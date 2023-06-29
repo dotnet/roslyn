@@ -68,6 +68,7 @@ param (
   [switch]$sequential,
   [switch]$helix,
   [string]$helixQueueName = "",
+  [string]$helixApiAccessToken = "",
 
   [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
 
@@ -260,6 +261,8 @@ function BuildSolution() {
   # https://github.com/NuGet/Home/issues/12373
   $restoreUseStaticGraphEvaluation = if ($ci) { $false } else { $true }
   
+  $isNpmAvailable = IsNpmAvailable
+
   try {
     MSBuild $toolsetBuildProj `
       $bl `
@@ -282,6 +285,7 @@ function BuildSolution() {
       /p:RestoreUseStaticGraphEvaluation=$restoreUseStaticGraphEvaluation `
       /p:VisualStudioIbcDrop=$ibcDropName `
       /p:VisualStudioDropAccessToken=$officialVisualStudioDropAccessToken `
+      /p:IsNpmPackable=$isNpmAvailable `
       $suppressExtensionDeployment `
       $msbuildWarnAsError `
       $buildFromSource `
@@ -401,7 +405,7 @@ function TestUsingRunTests() {
   $args += " --configuration $configuration"
 
   if ($testCoreClr) {
-    $args += " --tfm net6.0 --tfm net7.0"
+    $args += " --tfm net6.0 --tfm net7.0 --tfm net8.0"
     $args += " --timeout 90"
     if ($testCompilerOnly) {
       $args += GetCompilerTestAssembliesIncludePaths
@@ -459,6 +463,10 @@ function TestUsingRunTests() {
 
   if ($helixQueueName) {
     $args += " --helixQueueName $helixQueueName"
+  }
+
+  if ($helixApiAccessToken) {
+    $args += " --helixApiAccessToken $helixApiAccessToken"
   }
 
   try {
@@ -703,6 +711,14 @@ function List-Processes() {
   Get-Process -Name "vbcscompiler" -ErrorAction SilentlyContinue | Out-Host
   Get-Process -Name "dotnet" -ErrorAction SilentlyContinue | where { $_.Modules | select { $_.ModuleName -eq "VBCSCompiler.dll" } } | Out-Host
   Get-Process -Name "devenv" -ErrorAction SilentlyContinue | Out-Host
+}
+
+function IsNpmAvailable() {
+  if (Get-Command "npm" -ErrorAction SilentlyContinue) {
+    return $true
+  }
+
+  return $false;
 }
 
 try {

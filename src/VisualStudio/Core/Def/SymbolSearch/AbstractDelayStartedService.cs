@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             _perLanguageOptions = perLanguageOptions;
 
             _optionChangedWorkQueue = new AsyncBatchingWorkQueue(
-                TimeSpan.FromMilliseconds(500),
+                DelayTimeSpan.Medium,
                 ProcessOptionChangesAsync,
                 listenerProvider.GetListener(FeatureAttribute.Workspace),
                 this.DisposalToken);

@@ -662,16 +662,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool TryGetCollectionIterationType(Binder binder, ExpressionSyntax syntax, TypeSymbol collectionType, out TypeWithAnnotations iterationType)
         {
-            var builder = new ForEachEnumeratorInfo.Builder();
             BoundExpression collectionExpr = new BoundValuePlaceholder(syntax, collectionType);
             return binder.GetEnumeratorInfoAndInferCollectionElementType(
                 syntax,
                 syntax,
-                ref builder,
                 ref collectionExpr,
                 isAsync: false,
                 BindingDiagnosticBag.Discarded,
-                out iterationType);
+                out iterationType,
+                builder: out _);
         }
 #nullable disable
 

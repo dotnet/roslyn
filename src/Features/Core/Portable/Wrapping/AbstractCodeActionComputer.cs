@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.Wrapping
 {
@@ -88,9 +87,8 @@ namespace Microsoft.CodeAnalysis.Wrapping
             protected string GetIndentationAfter(SyntaxNodeOrToken nodeOrToken, FormattingOptions2.IndentStyle indentStyle)
             {
                 var newLine = Options.FormattingOptions.NewLine;
-                var newSourceText = OriginalSourceText.WithChanges(new TextChange(new TextSpan(nodeOrToken.Span.End, 0), newLine));
-                newSourceText = newSourceText.WithChanges(
-                    new TextChange(TextSpan.FromBounds(nodeOrToken.Span.End + newLine.Length, newSourceText.Length), ""));
+                var newSourceText = OriginalSourceText.WithChanges(
+                    new TextChange(TextSpan.FromBounds(nodeOrToken.Span.End, OriginalSourceText.Length), newLine));
 
                 var newDocument = OriginalDocument.WithText(newSourceText);
 

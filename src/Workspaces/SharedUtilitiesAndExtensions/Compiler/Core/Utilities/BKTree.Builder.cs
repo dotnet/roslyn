@@ -283,14 +283,11 @@ namespace Roslyn.Utilities
                 return false;
             }
 
-            private struct BuilderNode
+            private struct BuilderNode(TextSpan characterSpan)
             {
-                public readonly TextSpan CharacterSpan;
+                public readonly TextSpan CharacterSpan = characterSpan;
                 public int EdgeCount;
                 public Dictionary<int, int>? SpilloverEdges;
-
-                public BuilderNode(TextSpan characterSpan)
-                    => this.CharacterSpan = characterSpan;
             }
         }
     }

@@ -536,6 +536,54 @@ class C
             WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
         }
 
+        [Fact]
+        public void TestLocalFunctionCollectionVsAccessParsing()
+        {
+            var source = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        var v = a ? b?[() =>
+                            {
+                                var v = whatever();
+                                int LocalFunc()
+                                {
+                                    var v = a ? [b] : c;
+                                }
+                                var v = whatever();
+                            }] : d;
+                    }
+                }
+                """;
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            Assert.Empty(tree.GetDiagnostics());
+
+            var localFunc1 = tree.GetRoot().DescendantNodesAndSelf().Single(n => n is LocalFunctionStatementSyntax);
+            var innerConditionalExpr1 = localFunc1.DescendantNodesAndSelf().Single(n => n is ConditionalExpressionSyntax);
+
+            var text = tree.GetText();
+
+            var prefix = "var v = a ? b?[() =>";
+            var suffix = "] : d;";
+
+            var prefixSpan = new TextSpan(source.IndexOf(prefix), length: prefix.Length);
+            var suffixSpan = new TextSpan(source.IndexOf(suffix), length: suffix.Length);
+            text = text.WithChanges(new TextChange(prefixSpan, ""), new TextChange(suffixSpan, ""));
+            tree = tree.WithChangedText(text);
+            Assert.Empty(tree.GetDiagnostics());
+
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            Assert.Empty(fullTree.GetDiagnostics());
+
+            var localFunc2 = tree.GetRoot().DescendantNodesAndSelf().Single(n => n is LocalFunctionStatementSyntax);
+            var innerConditionalExpr2 = localFunc2.DescendantNodesAndSelf().Single(n => n is ConditionalExpressionSyntax);
+
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
         #region "Regression"
 
 #if false

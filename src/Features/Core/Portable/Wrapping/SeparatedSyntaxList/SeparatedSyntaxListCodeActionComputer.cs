@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             ///         ^
             ///         |
             /// </summary>
-            private readonly SyntaxTrivia _singleIndentationTrivia;
+            private readonly Lazy<SyntaxTrivia> _singleIndentationTrivia;
 
             /// <summary>
             /// Indentation to use when placing brace.  e.g.:
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             ///     ^
             ///     |
             /// </summary>
-            private readonly SyntaxTrivia _braceIndentationTrivia;
+            private readonly Lazy<SyntaxTrivia> _braceIndentationTrivia;
 
             /// <summary>
             /// Whether or not we should move the open brace of this separated list to a new line.  Many separated lists
@@ -89,15 +90,15 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 var generator = SyntaxGenerator.GetGenerator(OriginalDocument);
 
                 _afterOpenTokenIndentationTrivia = generator.Whitespace(GetAfterOpenTokenIdentation());
-                _singleIndentationTrivia = generator.Whitespace(GetSingleIdentation());
-                _braceIndentationTrivia = generator.Whitespace(GetBraceTokenIndentation());
+                _singleIndentationTrivia = new Lazy<SyntaxTrivia>(() => generator.Whitespace(GetSingleIdentation()));
+                _braceIndentationTrivia = new Lazy<SyntaxTrivia>(() => generator.Whitespace(GetBraceTokenIndentation()));
             }
 
             private void AddTextChangeBetweenOpenAndFirstItem(
                 WrappingStyle wrappingStyle, ArrayBuilder<Edit> result)
             {
                 result.Add(wrappingStyle == WrappingStyle.WrapFirst_IndentRest
-                    ? Edit.UpdateBetween(_listSyntax.GetFirstToken(), NewLineTrivia, _singleIndentationTrivia, _listItems[0])
+                    ? Edit.UpdateBetween(_listSyntax.GetFirstToken(), NewLineTrivia, _singleIndentationTrivia.Value, _listItems[0])
                     : Edit.DeleteBetween(_listSyntax.GetFirstToken(), _listItems[0]));
             }
 
@@ -124,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             {
                 return wrappingStyle == WrappingStyle.UnwrapFirst_AlignRest
                     ? _afterOpenTokenIndentationTrivia
-                    : _singleIndentationTrivia;
+                    : _singleIndentationTrivia.Value;
             }
 
             private string GetBraceTokenIndentation()
@@ -270,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 using var _ = ArrayBuilder<Edit>.GetInstance(out var result);
 
                 if (_shouldMoveOpenBraceToNewLine)
-                    result.Add(Edit.UpdateBetween(_listSyntax.GetFirstToken().GetPreviousToken(), NewLineTrivia, _braceIndentationTrivia, _listSyntax.GetFirstToken()));
+                    result.Add(Edit.UpdateBetween(_listSyntax.GetFirstToken().GetPreviousToken(), NewLineTrivia, _braceIndentationTrivia.Value, _listSyntax.GetFirstToken()));
 
                 AddTextChangeBetweenOpenAndFirstItem(wrappingStyle, result);
 
@@ -317,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
 
                 if (this.Wrapper.ShouldMoveCloseBraceToNewLine)
                 {
-                    result.Add(Edit.UpdateBetween(itemsAndSeparators.Last(), NewLineTrivia, _braceIndentationTrivia, _listSyntax.GetLastToken()));
+                    result.Add(Edit.UpdateBetween(itemsAndSeparators.Last(), NewLineTrivia, _braceIndentationTrivia.Value, _listSyntax.GetLastToken()));
                 }
                 else
                 {
@@ -396,7 +397,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 using var _ = ArrayBuilder<Edit>.GetInstance(out var result);
 
                 if (_shouldMoveOpenBraceToNewLine)
-                    result.Add(Edit.UpdateBetween(_listSyntax.GetFirstToken().GetPreviousToken(), NewLineTrivia, _braceIndentationTrivia, _listSyntax.GetFirstToken()));
+                    result.Add(Edit.UpdateBetween(_listSyntax.GetFirstToken().GetPreviousToken(), NewLineTrivia, _braceIndentationTrivia.Value, _listSyntax.GetFirstToken()));
 
                 AddTextChangeBetweenOpenAndFirstItem(wrappingStyle, result);
 
@@ -419,7 +420,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
 
                 if (_shouldMoveCloseBraceToNewLine)
                 {
-                    result.Add(Edit.UpdateBetween(itemsAndSeparators.Last(), NewLineTrivia, _braceIndentationTrivia, _listSyntax.GetLastToken()));
+                    result.Add(Edit.UpdateBetween(itemsAndSeparators.Last(), NewLineTrivia, _braceIndentationTrivia.Value, _listSyntax.GetLastToken()));
                 }
                 else
                 {

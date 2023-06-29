@@ -159,13 +159,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,20): error CS9500: Cannot initialize type 'object' with a collection literal because the type is not constructible.
+                // (5,20): error CS9174: Cannot initialize type 'object' with a collection literal because the type is not constructible.
                 //         object x = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("object").WithLocation(5, 20),
-                // (6,21): error CS9500: Cannot initialize type 'dynamic' with a collection literal because the type is not constructible.
+                // (6,21): error CS9174: Cannot initialize type 'dynamic' with a collection literal because the type is not constructible.
                 //         dynamic y = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("dynamic").WithLocation(6, 21),
-                // (7,17): error CS9503: There is no target type for the collection literal.
+                // (7,17): error CS9176: There is no target type for the collection literal.
                 //         var z = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[]").WithLocation(7, 17));
 
@@ -194,13 +194,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,20): error CS9500: Cannot initialize type 'object' with a collection literal because the type is not constructible.
+                // (5,20): error CS9174: Cannot initialize type 'object' with a collection literal because the type is not constructible.
                 //         object x = [1];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1]").WithArguments("object").WithLocation(5, 20),
-                // (6,21): error CS9500: Cannot initialize type 'dynamic' with a collection literal because the type is not constructible.
+                // (6,21): error CS9174: Cannot initialize type 'dynamic' with a collection literal because the type is not constructible.
                 //         dynamic y = [2];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[2]").WithArguments("dynamic").WithLocation(6, 21),
-                // (7,17): error CS9503: There is no target type for the collection literal.
+                // (7,17): error CS9176: There is no target type for the collection literal.
                 //         var z = [3];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[3]").WithLocation(7, 17));
 
@@ -229,13 +229,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,20): error CS9500: Cannot initialize type 'object' with a collection literal because the type is not constructible.
+                // (5,20): error CS9174: Cannot initialize type 'object' with a collection literal because the type is not constructible.
                 //         object x = [1, ""];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, @"[1, """"]").WithArguments("object").WithLocation(5, 20),
-                // (6,21): error CS9500: Cannot initialize type 'dynamic' with a collection literal because the type is not constructible.
+                // (6,21): error CS9174: Cannot initialize type 'dynamic' with a collection literal because the type is not constructible.
                 //         dynamic y = [2, ""];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, @"[2, """"]").WithArguments("dynamic").WithLocation(6, 21),
-                // (7,17): error CS9503: There is no target type for the collection literal.
+                // (7,17): error CS9176: There is no target type for the collection literal.
                 //         var z = [3, ""];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, @"[3, """"]").WithLocation(7, 17));
         }
@@ -257,13 +257,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,20): error CS9500: Cannot initialize type 'object' with a collection literal because the type is not constructible.
+                // (5,20): error CS9174: Cannot initialize type 'object' with a collection literal because the type is not constructible.
                 //         object x = [null];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[null]").WithArguments("object").WithLocation(5, 20),
-                // (6,21): error CS9500: Cannot initialize type 'dynamic' with a collection literal because the type is not constructible.
+                // (6,21): error CS9174: Cannot initialize type 'dynamic' with a collection literal because the type is not constructible.
                 //         dynamic y = [null];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[null]").WithArguments("dynamic").WithLocation(6, 21),
-                // (7,17): error CS9503: There is no target type for the collection literal.
+                // (7,17): error CS9176: There is no target type for the collection literal.
                 //         var z = [null];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[null]").WithLocation(7, 17));
         }
@@ -285,13 +285,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,17): error CS9503: There is no target type for the collection literal.
+                // (5,17): error CS9176: There is no target type for the collection literal.
                 //         var x = [1, 2, null];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[1, 2, null]").WithLocation(5, 17),
-                // (6,20): error CS9500: Cannot initialize type 'object' with a collection literal because the type is not constructible.
+                // (6,20): error CS9174: Cannot initialize type 'object' with a collection literal because the type is not constructible.
                 //         object y = [1, 2, null];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2, null]").WithArguments("object").WithLocation(6, 20),
-                // (7,21): error CS9500: Cannot initialize type 'dynamic' with a collection literal because the type is not constructible.
+                // (7,21): error CS9174: Cannot initialize type 'dynamic' with a collection literal because the type is not constructible.
                 //         dynamic z = [1, 2, null];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2, null]").WithArguments("dynamic").WithLocation(7, 21));
         }
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,23): error CS9500: Cannot initialize type 'object' with a collection literal because the type is not constructible.
+                // (5,23): error CS9174: Cannot initialize type 'object' with a collection literal because the type is not constructible.
                 //         object[] x = [[]];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("object").WithLocation(5, 23));
         }
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,23): error CS9500: Cannot initialize type 'object' with a collection literal because the type is not constructible.
+                // (5,23): error CS9174: Cannot initialize type 'object' with a collection literal because the type is not constructible.
                 //         object[] y = [[2]];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[2]").WithArguments("object").WithLocation(5, 23));
         }
@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,17): error CS9503: There is no target type for the collection literal.
+                // (5,17): error CS9176: There is no target type for the collection literal.
                 //         var z = [[3]];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[[3]]").WithLocation(5, 17));
         }
@@ -442,13 +442,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(new[] { source, s_collectionExtensions });
             comp.VerifyEmitDiagnostics(
-                // 0.cs(6,25): error CS9500: Cannot initialize type 'IEnumerable' with a collection literal because the type is not constructible.
+                // 0.cs(6,25): error CS9174: Cannot initialize type 'IEnumerable' with a collection literal because the type is not constructible.
                 //         IEnumerable a = [1];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1]").WithArguments("System.Collections.IEnumerable").WithLocation(6, 25),
-                // 0.cs(7,25): error CS9500: Cannot initialize type 'ICollection' with a collection literal because the type is not constructible.
+                // 0.cs(7,25): error CS9174: Cannot initialize type 'ICollection' with a collection literal because the type is not constructible.
                 //         ICollection b = [2];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[2]").WithArguments("System.Collections.ICollection").WithLocation(7, 25),
-                // 0.cs(8,19): error CS9500: Cannot initialize type 'IList' with a collection literal because the type is not constructible.
+                // 0.cs(8,19): error CS9174: Cannot initialize type 'IList' with a collection literal because the type is not constructible.
                 //         IList c = [3];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[3]").WithArguments("System.Collections.IList").WithLocation(8, 19));
         }
@@ -523,10 +523,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,17): error CS9503: There is no target type for the collection literal.
+                // (5,17): error CS9176: There is no target type for the collection literal.
                 //         var x = [null, 1];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[null, 1]").WithLocation(5, 17),
-                // (6,20): error CS9500: Cannot initialize type 'object' with a collection literal because the type is not constructible.
+                // (6,20): error CS9174: Cannot initialize type 'object' with a collection literal because the type is not constructible.
                 //         object y = [null, 2];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[null, 2]").WithArguments("object").WithLocation(6, 20));
         }
@@ -556,16 +556,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (12,18): error CS9503: There is no target type for the collection literal.
+                // (12,18): error CS9176: There is no target type for the collection literal.
                 //         var x2 = [(null, default)];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[(null, default)]").WithLocation(12, 18),
-                // (13,18): error CS9503: There is no target type for the collection literal.
+                // (13,18): error CS9176: There is no target type for the collection literal.
                 //         var y2 = [i switch { _ => default }];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[i switch { _ => default }]").WithLocation(13, 18),
                 // (13,21): error CS8506: No best type was found for the switch expression.
                 //         var y2 = [i switch { _ => default }];
                 Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(13, 21),
-                // (14,18): error CS9503: There is no target type for the collection literal.
+                // (14,18): error CS9176: There is no target type for the collection literal.
                 //         var z2 = [i == 0 ? null : default];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[i == 0 ? null : default]").WithLocation(14, 18),
                 // (14,19): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between '<null>' and 'default'
@@ -573,81 +573,76 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_InvalidQM, "i == 0 ? null : default").WithArguments("<null>", "default").WithLocation(14, 19));
 
             VerifyOperationTreeForTest<BlockSyntax>(comp,
-@"IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
-  Locals: Local_1: ? x2
-    Local_2: ? y2
-    Local_3: ? z2
-  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'var x2 = [( ...  default)];')
-    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'var x2 = [( ... , default)]')
-      Declarators:
-          IVariableDeclaratorOperation (Symbol: ? x2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'x2 = [(null, default)]')
-            Initializer:
-              IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= [(null, default)]')
-                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '[(null, default)]')
-                  Children(1):
-                      IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: ?, IsInvalid, IsImplicit) (Syntax: '[(null, default)]')
-                        Initializers(1):
-                            ITupleOperation (OperationKind.Tuple, Type: null, IsInvalid) (Syntax: '(null, default)')
-                              NaturalType: null
-                              Elements(2):
-                                  ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
-                                  IDefaultValueOperation (OperationKind.DefaultValue, Type: ?, IsInvalid) (Syntax: 'default')
-      Initializer:
-        null
-  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'var y2 = [i ... default }];')
-    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'var y2 = [i ...  default }]')
-      Declarators:
-          IVariableDeclaratorOperation (Symbol: ? y2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'y2 = [i swi ...  default }]')
-            Initializer:
-              IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= [i switch ...  default }]')
-                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '[i switch { ...  default }]')
-                  Children(1):
-                      IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: ?, IsInvalid, IsImplicit) (Syntax: '[i switch { ...  default }]')
-                        Initializers(1):
-                            ISwitchExpressionOperation (1 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: ?, IsInvalid) (Syntax: 'i switch {  ... > default }')
-                              Value:
-                                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'i')
-                              Arms(1):
-                                  ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '_ => default')
-                                    Pattern:
-                                      IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Int32, NarrowedType: System.Int32)
-                                    Value:
-                                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsInvalid, IsImplicit) (Syntax: 'default')
-                                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                        Operand:
-                                          IDefaultValueOperation (OperationKind.DefaultValue, Type: ?, IsInvalid) (Syntax: 'default')
-      Initializer:
-        null
-  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'var z2 = [i ... : default];')
-    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'var z2 = [i ...  : default]')
-      Declarators:
-          IVariableDeclaratorOperation (Symbol: ? z2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'z2 = [i ==  ...  : default]')
-            Initializer:
-              IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= [i == 0 ? ...  : default]')
-                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '[i == 0 ? n ...  : default]')
-                  Children(1):
-                      IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: ?, IsInvalid, IsImplicit) (Syntax: '[i == 0 ? n ...  : default]')
-                        Initializers(1):
-                            IConditionalOperation (OperationKind.Conditional, Type: ?, IsInvalid) (Syntax: 'i == 0 ? null : default')
-                              Condition:
-                                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsInvalid) (Syntax: 'i == 0')
-                                  Left:
-                                    IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'i')
-                                  Right:
-                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
-                              WhenTrue:
-                                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
-                                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                                  Operand:
-                                    ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
-                              WhenFalse:
-                                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsInvalid, IsImplicit) (Syntax: 'default')
-                                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                  Operand:
-                                    IDefaultValueOperation (OperationKind.DefaultValue, Type: ?, IsInvalid) (Syntax: 'default')
-      Initializer:
-        null
-");
+                """
+                IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
+                  Locals: Local_1: ? x2
+                    Local_2: ? y2
+                    Local_3: ? z2
+                  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'var x2 = [( ...  default)];')
+                    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'var x2 = [( ... , default)]')
+                      Declarators:
+                          IVariableDeclaratorOperation (Symbol: ? x2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'x2 = [(null, default)]')
+                            Initializer:
+                              IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= [(null, default)]')
+                                IOperation:  (OperationKind.None, Type: ?, IsInvalid) (Syntax: '[(null, default)]')
+                                  Children(1):
+                                      ITupleOperation (OperationKind.Tuple, Type: null, IsInvalid) (Syntax: '(null, default)')
+                                        NaturalType: null
+                                        Elements(2):
+                                            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
+                                            IDefaultValueOperation (OperationKind.DefaultValue, Type: ?, IsInvalid) (Syntax: 'default')
+                      Initializer:
+                        null
+                  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'var y2 = [i ... default }];')
+                    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'var y2 = [i ...  default }]')
+                      Declarators:
+                          IVariableDeclaratorOperation (Symbol: ? y2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'y2 = [i swi ...  default }]')
+                            Initializer:
+                              IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= [i switch ...  default }]')
+                                IOperation:  (OperationKind.None, Type: ?, IsInvalid) (Syntax: '[i switch { ...  default }]')
+                                  Children(1):
+                                      ISwitchExpressionOperation (1 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: ?, IsInvalid) (Syntax: 'i switch {  ... > default }')
+                                        Value:
+                                          IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'i')
+                                        Arms(1):
+                                            ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '_ => default')
+                                              Pattern:
+                                                IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Int32, NarrowedType: System.Int32)
+                                              Value:
+                                                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsInvalid, IsImplicit) (Syntax: 'default')
+                                                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                                  Operand:
+                                                    IDefaultValueOperation (OperationKind.DefaultValue, Type: ?, IsInvalid) (Syntax: 'default')
+                      Initializer:
+                        null
+                  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'var z2 = [i ... : default];')
+                    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'var z2 = [i ...  : default]')
+                      Declarators:
+                          IVariableDeclaratorOperation (Symbol: ? z2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'z2 = [i ==  ...  : default]')
+                            Initializer:
+                              IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= [i == 0 ? ...  : default]')
+                                IOperation:  (OperationKind.None, Type: ?, IsInvalid) (Syntax: '[i == 0 ? n ...  : default]')
+                                  Children(1):
+                                      IConditionalOperation (OperationKind.Conditional, Type: ?, IsInvalid) (Syntax: 'i == 0 ? null : default')
+                                        Condition:
+                                          IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsInvalid) (Syntax: 'i == 0')
+                                            Left:
+                                              IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'i')
+                                            Right:
+                                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
+                                        WhenTrue:
+                                          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
+                                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                            Operand:
+                                              ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
+                                        WhenFalse:
+                                          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsInvalid, IsImplicit) (Syntax: 'default')
+                                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                            Operand:
+                                              IDefaultValueOperation (OperationKind.DefaultValue, Type: ?, IsInvalid) (Syntax: 'default')
+                      Initializer:
+                        null
+                """);
         }
 
         [Fact]
@@ -1173,7 +1168,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            // PROTOTYPE: Should compile and run successfully: expectedOutput: "[1, 2, 3], "
             var comp = CreateCompilation(new[] { source, s_collectionExtensions });
             comp.VerifyEmitDiagnostics(
                 // 0.cs(9,29): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'collection literals' and 'collection literals'
@@ -1200,7 +1194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(new[] { source, s_collectionExtensions });
             comp.VerifyEmitDiagnostics(
-                // 0.cs(9,17): error CS9503: There is no target type for the collection literal.
+                // 0.cs(9,17): error CS9176: There is no target type for the collection literal.
                 //         var a = [1, 2, 3].AsArray();
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[1, 2, 3]").WithLocation(9, 17));
         }
@@ -1241,7 +1235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (27,17): error CS9503: There is no target type for the collection literal.
+                // (27,17): error CS9176: There is no target type for the collection literal.
                 //         var b = [4].AsCollection();
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[4]").WithLocation(27, 17));
         }
@@ -1274,7 +1268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (15,13): error CS0411: The type arguments for method 'Program.AsCollection<T>(S<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         _ = AsCollection([1, 2, 3]);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "AsCollection").WithArguments("Program.AsCollection<T>(S<T>)").WithLocation(15, 13),
-                // (16,13): error CS9503: There is no target type for the collection literal.
+                // (16,13): error CS9176: There is no target type for the collection literal.
                 //         _ = [4].AsCollection();
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[4]").WithLocation(16, 13));
         }
@@ -1325,7 +1319,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "(System.Int32[]) [1, 2, 3], ");
         }
 
-        // PROTOTYPE: Test other variance cases.
         [Fact]
         public void TypeInference_12()
         {
@@ -1345,10 +1338,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "(System.Object[]) [1], (System.Object[]) [3], ");
         }
 
-        // PROTOTYPE: Test other variance cases. And these are just for array inferences.
-        // What about constructed collection type inferences?
         [Fact]
-        public void TypeInference_13()
+        public void TypeInference_13A()
         {
             string source = """
                 class Program
@@ -1364,6 +1355,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "(System.Int64[]) [1], (System.Int64[]) [3], ");
+        }
+
+        [Fact]
+        public void TypeInference_13B()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static HashSet<T> F<T>(HashSet<T> x, HashSet<T> y) => x;
+                    static void Main()
+                    {
+                        var x = F([1], [(long)2]);
+                        x.Report(includeType: true);
+                        var y = F([(long)3], [4]);
+                        y.Report(includeType: true);
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "(System.Collections.Generic.HashSet<System.Int64>) [1], (System.Collections.Generic.HashSet<System.Int64>) [3], ");
         }
 
         [Fact]
@@ -1937,6 +1948,114 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TypeInference_38()
+        {
+            string source = """
+                class Program
+                {
+                    static T[] F1<T>(T[] x, T y) => x;
+                    static T[] F2<T>(T[] x, ref T y) => x;
+                    static T[] F3<T>(T[] x, in T y) => x;
+                    static T[] F4<T>(T[] x, out T y) { y = default; return x; }
+                    static void Main()
+                    {
+                        object y = null;
+                        var x1 = F1([1], y);
+                        var x2 = F2([2], ref y);
+                        var x3A = F3([3], y);
+                        var x3B = F3([3], in y);
+                        var x4 = F4([4], out y);
+                        x1.Report(true);
+                        x2.Report(true);
+                        x3A.Report(true);
+                        x3B.Report(true);
+                        x4.Report(true);
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "(System.Object[]) [1], (System.Object[]) [2], (System.Object[]) [3], (System.Object[]) [3], (System.Object[]) [4], ");
+        }
+
+        [Fact]
+        public void TypeInference_39A()
+        {
+            string source = """
+                class Program
+                {
+                    static T[] F1<T>(T[] x, T y) => x;
+                    static T[] F3<T>(T[] x, in T y) => x;
+                    static void Main()
+                    {
+                        byte y = 0;
+                        var x1 = F1([1], y);
+                        var x3A = F3([3], y);
+                        x1.Report(true);
+                        x3A.Report(true);
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "(System.Int32[]) [1], (System.Int32[]) [3], ");
+        }
+
+        [Fact]
+        public void TypeInference_39B()
+        {
+            string source = """
+                class Program
+                {
+                    static T[] F2<T>(T[] x, ref T y) => x;
+                    static T[] F3<T>(T[] x, in T y) => x;
+                    static T[] F4<T>(T[] x, out T y) { y = default; return x; }
+                    static void Main()
+                    {
+                        byte y = 0;
+                        var x2 = F2([2], ref y);
+                        var x3B = F3([3], in y);
+                        var x4 = F4([4], out y);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (9,18): error CS0411: The type arguments for method 'Program.F2<T>(T[], ref T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var x2 = F2([2], ref y);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F2").WithArguments("Program.F2<T>(T[], ref T)").WithLocation(9, 18),
+                // (10,19): error CS0411: The type arguments for method 'Program.F3<T>(T[], in T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var x3B = F3([3], in y);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F3").WithArguments("Program.F3<T>(T[], in T)").WithLocation(10, 19),
+                // (11,18): error CS0411: The type arguments for method 'Program.F4<T>(T[], out T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var x4 = F4([4], out y);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F4").WithArguments("Program.F4<T>(T[], out T)").WithLocation(11, 18));
+        }
+
+        [Fact]
+        public void TypeInference_40()
+        {
+            string source = """
+                using System;
+                class Program
+                {
+                    static Func<T[]> F<T>(Func<T[]> arg) => arg;
+                    static void Main(string[] args)
+                    {
+                        var x = F(() => [1, 2, 3]);
+                        x.Report(includeType: true);
+                        var y = F(() => { if (args.Length == 0) return []; return [1, 2, 3]; });
+                        y.Report(includeType: true);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions });
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(7,17): error CS0411: The type arguments for method 'Program.F<T>(Func<T[]>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var x = F(() => [1, 2, 3]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(System.Func<T[]>)").WithLocation(7, 17),
+                // 0.cs(9,17): error CS0411: The type arguments for method 'Program.F<T>(Func<T[]>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var y = F(() => { if (args.Length == 0) return []; return [1, 2, 3]; });
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(System.Func<T[]>)").WithLocation(9, 17));
+        }
+
+        [Fact]
         public void MemberAccess_01()
         {
             string source = """
@@ -1952,13 +2071,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,9): error CS9503: There is no target type for the collection literal.
+                // (5,9): error CS9176: There is no target type for the collection literal.
                 //         [].GetHashCode();
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[]").WithLocation(5, 9),
-                // (6,9): error CS9503: There is no target type for the collection literal.
+                // (6,9): error CS9176: There is no target type for the collection literal.
                 //         []?.GetHashCode();
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[]").WithLocation(6, 9),
-                // (7,9): error CS9503: There is no target type for the collection literal.
+                // (7,9): error CS9176: There is no target type for the collection literal.
                 //         [][0].GetHashCode();
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[]").WithLocation(7, 9));
         }
@@ -1979,13 +2098,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,9): error CS9503: There is no target type for the collection literal.
+                // (5,9): error CS9176: There is no target type for the collection literal.
                 //         [1].GetHashCode();
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[1]").WithLocation(5, 9),
-                // (6,9): error CS9503: There is no target type for the collection literal.
+                // (6,9): error CS9176: There is no target type for the collection literal.
                 //         [2]?.GetHashCode();
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[2]").WithLocation(6, 9),
-                // (7,9): error CS9503: There is no target type for the collection literal.
+                // (7,9): error CS9176: There is no target type for the collection literal.
                 //         [3][0].GetHashCode();
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[3]").WithLocation(7, 9));
         }
@@ -2006,13 +2125,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,13): error CS9503: There is no target type for the collection literal.
+                // (5,13): error CS9176: There is no target type for the collection literal.
                 //         _ = [].GetHashCode();
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[]").WithLocation(5, 13),
-                // (6,13): error CS9503: There is no target type for the collection literal.
+                // (6,13): error CS9176: There is no target type for the collection literal.
                 //         _ = []?.GetHashCode();
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[]").WithLocation(6, 13),
-                // (7,13): error CS9503: There is no target type for the collection literal.
+                // (7,13): error CS9176: There is no target type for the collection literal.
                 //         _ = [][0].GetHashCode();
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[]").WithLocation(7, 13));
         }
@@ -2033,13 +2152,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,13): error CS9503: There is no target type for the collection literal.
+                // (5,13): error CS9176: There is no target type for the collection literal.
                 //         _ = [1].GetHashCode();
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[1]").WithLocation(5, 13),
-                // (6,13): error CS9503: There is no target type for the collection literal.
+                // (6,13): error CS9176: There is no target type for the collection literal.
                 //         _ = [2]?.GetHashCode();
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[2]").WithLocation(6, 13),
-                // (7,13): error CS9503: There is no target type for the collection literal.
+                // (7,13): error CS9176: There is no target type for the collection literal.
                 //         _ = [3][0].GetHashCode();
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[3]").WithLocation(7, 13));
         }
@@ -2087,10 +2206,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            // PROTOTYPE: Confirm we should generate ListBase<int> instances for both x and y.
-            // (We should use the target type ListBase<int> in each case because it implements IEnumerable, rather than
-            // using the natural type List<int>, even though ListBase<int>.Add(string) has the wrong parameter type.)
-            // Add similar test where ListBase<T> has no Add method. We should still use ListBase<int> for x and y.
             var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute());
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
@@ -2157,13 +2272,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
-                // 1.cs(7,16): error CS9500: Cannot initialize type 'IA' with a collection literal because the type is not constructible.
+                // 1.cs(7,16): error CS9174: Cannot initialize type 'IA' with a collection literal because the type is not constructible.
                 //         IA a = [2];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[2]").WithArguments("System.Collections.Generic.IA").WithLocation(7, 16),
-                // 1.cs(9,24): error CS9500: Cannot initialize type 'IC<object>' with a collection literal because the type is not constructible.
+                // 1.cs(9,24): error CS9174: Cannot initialize type 'IC<object>' with a collection literal because the type is not constructible.
                 //         IC<object> c = [4];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[4]").WithArguments("System.Collections.Generic.IC<object>").WithLocation(9, 24),
-                // 1.cs(10,32): error CS9500: Cannot initialize type 'ID<object, object>' with a collection literal because the type is not constructible.
+                // 1.cs(10,32): error CS9174: Cannot initialize type 'ID<object, object>' with a collection literal because the type is not constructible.
                 //         ID<object, object> d = [5];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[5]").WithArguments("System.Collections.Generic.ID<object, object>").WithLocation(10, 32));
         }
@@ -2215,7 +2330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
-                // 1.cs(8,29): error CS9500: Cannot initialize type 'IEquatable<int>' with a collection literal because the type is not constructible.
+                // 1.cs(8,29): error CS9174: Cannot initialize type 'IEquatable<int>' with a collection literal because the type is not constructible.
                 //         IEquatable<int> e = [2];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[2]").WithArguments("System.IEquatable<int>").WithLocation(8, 29));
         }
@@ -2259,10 +2374,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
-                // 1.cs(7,23): error CS9500: Cannot initialize type 'List<int>' with a collection literal because the type is not constructible.
+                // 1.cs(7,23): error CS9174: Cannot initialize type 'List<int>' with a collection literal because the type is not constructible.
                 //         List<int> l = [1];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1]").WithArguments("System.Collections.Generic.List<int>").WithLocation(7, 23),
-                // 1.cs(8,30): error CS9500: Cannot initialize type 'IEnumerable<int>' with a collection literal because the type is not constructible.
+                // 1.cs(8,30): error CS9174: Cannot initialize type 'IEnumerable<int>' with a collection literal because the type is not constructible.
                 //         IEnumerable<int> e = [2];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[2]").WithArguments("System.Collections.Generic.IEnumerable<int>").WithLocation(8, 30));
         }
@@ -2287,19 +2402,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateCompilation(source);
             comp.MakeTypeMissing(WellKnownType.System_Collections_Generic_List_T);
             comp.VerifyEmitDiagnostics(
-                // (6,30): error CS9500: Cannot initialize type 'IEnumerable<int>' with a collection literal because the type is not constructible.
+                // (6,30): error CS9174: Cannot initialize type 'IEnumerable<int>' with a collection literal because the type is not constructible.
                 //         IEnumerable<int> a = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("System.Collections.Generic.IEnumerable<int>").WithLocation(6, 30),
-                // (7,30): error CS9500: Cannot initialize type 'ICollection<int>' with a collection literal because the type is not constructible.
+                // (7,30): error CS9174: Cannot initialize type 'ICollection<int>' with a collection literal because the type is not constructible.
                 //         ICollection<int> b = [2];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[2]").WithArguments("System.Collections.Generic.ICollection<int>").WithLocation(7, 30),
-                // (8,24): error CS9500: Cannot initialize type 'IList<int>' with a collection literal because the type is not constructible.
+                // (8,24): error CS9174: Cannot initialize type 'IList<int>' with a collection literal because the type is not constructible.
                 //         IList<int> c = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("System.Collections.Generic.IList<int>").WithLocation(8, 24),
-                // (9,38): error CS9500: Cannot initialize type 'IReadOnlyCollection<int>' with a collection literal because the type is not constructible.
+                // (9,38): error CS9174: Cannot initialize type 'IReadOnlyCollection<int>' with a collection literal because the type is not constructible.
                 //         IReadOnlyCollection<int> d = [3];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[3]").WithArguments("System.Collections.Generic.IReadOnlyCollection<int>").WithLocation(9, 38),
-                // (10,32): error CS9500: Cannot initialize type 'IReadOnlyList<int>' with a collection literal because the type is not constructible.
+                // (10,32): error CS9174: Cannot initialize type 'IReadOnlyList<int>' with a collection literal because the type is not constructible.
                 //         IReadOnlyList<int> e = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("System.Collections.Generic.IReadOnlyList<int>").WithLocation(10, 32));
         }
@@ -2508,10 +2623,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,23): error CS9500: Cannot initialize type 'object[*,*]' with a collection literal because the type is not constructible.
+                // (5,23): error CS9174: Cannot initialize type 'object[*,*]' with a collection literal because the type is not constructible.
                 //         object[,] x = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("object[*,*]").WithLocation(5, 23),
-                // (6,20): error CS9500: Cannot initialize type 'int[*,*]' with a collection literal because the type is not constructible.
+                // (6,20): error CS9174: Cannot initialize type 'int[*,*]' with a collection literal because the type is not constructible.
                 //         int[,] y = [null, 2];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[null, 2]").WithArguments("int[*,*]").WithLocation(6, 20));
         }
@@ -2530,7 +2645,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,20): error CS9500: Cannot initialize type 'int[*,*]' with a collection literal because the type is not constructible.
+                // (5,20): error CS9174: Cannot initialize type 'int[*,*]' with a collection literal because the type is not constructible.
                 //         int[,] z = [[1, 2], [3, 4]];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[[1, 2], [3, 4]]").WithArguments("int[*,*]").WithLocation(5, 20));
         }
@@ -2794,10 +2909,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (26,13): error CS9500: Cannot initialize type 'I' with a collection literal because the type is not constructible.
+                // (26,13): error CS9174: Cannot initialize type 'I' with a collection literal because the type is not constructible.
                 //         i = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("I").WithLocation(26, 13),
-                // (27,13): error CS9500: Cannot initialize type 'I' with a collection literal because the type is not constructible.
+                // (27,13): error CS9174: Cannot initialize type 'I' with a collection literal because the type is not constructible.
                 //         i = [3, 4];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[3, 4]").WithArguments("I").WithLocation(27, 13));
         }
@@ -2819,10 +2934,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (7,13): error CS9500: Cannot initialize type 'E' with a collection literal because the type is not constructible.
+                // (7,13): error CS9174: Cannot initialize type 'E' with a collection literal because the type is not constructible.
                 //         e = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("E").WithLocation(7, 13),
-                // (8,13): error CS9500: Cannot initialize type 'E' with a collection literal because the type is not constructible.
+                // (8,13): error CS9174: Cannot initialize type 'E' with a collection literal because the type is not constructible.
                 //         e = [1, 2];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2]").WithArguments("E").WithLocation(8, 13));
         }
@@ -2870,10 +2985,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
-                // 1.cs(7,13): error CS9500: Cannot initialize type 'E' with a collection literal because the type is not constructible.
+                // 1.cs(7,13): error CS9174: Cannot initialize type 'E' with a collection literal because the type is not constructible.
                 //         e = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("E").WithLocation(7, 13),
-                // 1.cs(8,13): error CS9500: Cannot initialize type 'E' with a collection literal because the type is not constructible.
+                // 1.cs(8,13): error CS9174: Cannot initialize type 'E' with a collection literal because the type is not constructible.
                 //         e = [1, 2];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2]").WithArguments("E").WithLocation(8, 13));
         }
@@ -2895,10 +3010,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (7,13): error CS9500: Cannot initialize type 'D' with a collection literal because the type is not constructible.
+                // (7,13): error CS9174: Cannot initialize type 'D' with a collection literal because the type is not constructible.
                 //         d = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("D").WithLocation(7, 13),
-                // (8,13): error CS9500: Cannot initialize type 'D' with a collection literal because the type is not constructible.
+                // (8,13): error CS9174: Cannot initialize type 'D' with a collection literal because the type is not constructible.
                 //         d = [1, 2];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2]").WithArguments("D").WithLocation(8, 13));
         }
@@ -2948,10 +3063,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
-                // 1.cs(7,13): error CS9500: Cannot initialize type 'D' with a collection literal because the type is not constructible.
+                // 1.cs(7,13): error CS9174: Cannot initialize type 'D' with a collection literal because the type is not constructible.
                 //         d = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("D").WithLocation(7, 13),
-                // 1.cs(8,13): error CS9500: Cannot initialize type 'D' with a collection literal because the type is not constructible.
+                // 1.cs(8,13): error CS9174: Cannot initialize type 'D' with a collection literal because the type is not constructible.
                 //         d = [1, 2];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2]").WithArguments("D").WithLocation(8, 13));
         }
@@ -2972,13 +3087,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
             comp.VerifyEmitDiagnostics(
-                // (5,18): error CS9500: Cannot initialize type 'int*' with a collection literal because the type is not constructible.
+                // (5,18): error CS9174: Cannot initialize type 'int*' with a collection literal because the type is not constructible.
                 //         int* x = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("int*").WithLocation(5, 18),
-                // (6,18): error CS9500: Cannot initialize type 'int*' with a collection literal because the type is not constructible.
+                // (6,18): error CS9174: Cannot initialize type 'int*' with a collection literal because the type is not constructible.
                 //         int* y = [1, 2];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2]").WithArguments("int*").WithLocation(6, 18),
-                // (7,17): error CS9500: Cannot initialize type 'int*' with a collection literal because the type is not constructible.
+                // (7,17): error CS9174: Cannot initialize type 'int*' with a collection literal because the type is not constructible.
                 //         var z = (int*)[3];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "(int*)[3]").WithArguments("int*").WithLocation(7, 17));
         }
@@ -2999,13 +3114,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
             comp.VerifyEmitDiagnostics(
-                // (5,29): error CS9500: Cannot initialize type 'delegate*<void>' with a collection literal because the type is not constructible.
+                // (5,29): error CS9174: Cannot initialize type 'delegate*<void>' with a collection literal because the type is not constructible.
                 //         delegate*<void> x = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("delegate*<void>").WithLocation(5, 29),
-                // (6,29): error CS9500: Cannot initialize type 'delegate*<void>' with a collection literal because the type is not constructible.
+                // (6,29): error CS9174: Cannot initialize type 'delegate*<void>' with a collection literal because the type is not constructible.
                 //         delegate*<void> y = [1, 2];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2]").WithArguments("delegate*<void>").WithLocation(6, 29),
-                // (7,17): error CS9500: Cannot initialize type 'delegate*<void>' with a collection literal because the type is not constructible.
+                // (7,17): error CS9174: Cannot initialize type 'delegate*<void>' with a collection literal because the type is not constructible.
                 //         var z = (delegate*<void>)[3];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "(delegate*<void>)[3]").WithArguments("delegate*<void>").WithLocation(7, 17));
         }
@@ -3027,10 +3142,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
             comp.VerifyEmitDiagnostics(
-                // (7,17): error CS9503: There is no target type for the collection literal.
+                // (7,17): error CS9176: There is no target type for the collection literal.
                 //         var x = [p];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[p]").WithLocation(7, 17),
-                // (8,17): error CS9503: There is no target type for the collection literal.
+                // (8,17): error CS9176: There is no target type for the collection literal.
                 //         var y = [d];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[d]").WithLocation(8, 17));
         }
@@ -3174,13 +3289,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (2,5): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible.
+                // (2,5): error CS9174: Cannot initialize type 'S' with a collection literal because the type is not constructible.
                 // s = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("S").WithLocation(2, 5),
-                // (3,5): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible.
+                // (3,5): error CS9174: Cannot initialize type 'S' with a collection literal because the type is not constructible.
                 // s = [1, 2];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2]").WithArguments("S").WithLocation(3, 5),
-                // (4,5): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible.
+                // (4,5): error CS9174: Cannot initialize type 'S' with a collection literal because the type is not constructible.
                 // s = [default];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[default]").WithArguments("S").WithLocation(4, 5),
                 // (5,6): error CS0103: The name 'Unknown' does not exist in the current context
@@ -3947,7 +4062,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (16,57): error CS9500: Cannot initialize type 'T?' with a collection literal because the type is not constructible.
+                // (16,57): error CS9174: Cannot initialize type 'T?' with a collection literal because the type is not constructible.
                 //     static T? Create2<T, U>() where T : struct, I<U> => [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("T?").WithLocation(16, 57));
         }
@@ -4021,10 +4136,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateCompilation(source);
             comp.MakeTypeMissing(SpecialType.System_Collections_IEnumerable);
             comp.VerifyEmitDiagnostics(
-                // (8,15): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible.
+                // (8,15): error CS9174: Cannot initialize type 'S' with a collection literal because the type is not constructible.
                 //         S s = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("S").WithLocation(8, 15),
-                // (9,20): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible.
+                // (9,20): error CS9174: Cannot initialize type 'S' with a collection literal because the type is not constructible.
                 //         object o = (S)([1, 2]);
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "(S)([1, 2])").WithArguments("S").WithLocation(9, 20));
         }
@@ -4156,7 +4271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [ConditionalTheory(typeof(CoreClrOnly))]
         [CombinatorialData]
         public void SpreadElement_01(
-            [CombinatorialValues("IEnumerable", "IEnumerable<int>", "int[]", "List<int>", "Span<int>", "ReadOnlySpan<int>")] string spreadType,
+            [CombinatorialValues("IEnumerable<int>", "int[]", "List<int>", "Span<int>", "ReadOnlySpan<int>")] string spreadType,
             [CombinatorialValues("IEnumerable<int>", "int[]", "List<int>", "Span<int>", "ReadOnlySpan<int>")] string collectionType)
         {
             string source = $$"""
@@ -4172,9 +4287,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     static {{collectionType}} F({{spreadType}} s) => [..s];
                 }
                 """;
-
-            // PROTOTYPE: Should IEnumerable contribute object or no type to the best common type?
-            if (spreadType == "IEnumerable") return;
 
             var verifier = CompileAndVerify(
                 new[] { source, s_collectionExtensionsWithSpan },
@@ -4266,7 +4378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                     """,
                 ("int[]", "int[]") =>
-                    // PROTOTYPE: Shouldn't require an intermediate List<int> since the compiler can use e.Length directly.
+                    // https://github.com/dotnet/roslyn/issues/68785: Avoid intermediate List<T> if all spread elements have Length property.
                     """
                     {
                       // Code size       40 (0x28)
@@ -4304,7 +4416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                     """,
                 ("ReadOnlySpan<int>", "ReadOnlySpan<int>") =>
-                    // PROTOTYPE: Shouldn't require an intermediate List<int> since the compiler can use e.Length directly.
+                    // https://github.com/dotnet/roslyn/issues/68785: Avoid intermediate List<T> if all spread elements have Length property.
                     """
                     {
                       // Code size       53 (0x35)
@@ -4564,7 +4676,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,26): error CS9503: There is no target type for the collection literal.
+                // (5,26): error CS9176: There is no target type for the collection literal.
                 //         var a = [1, 2, ..[]];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[]").WithLocation(5, 26));
         }
@@ -4584,12 +4696,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source);
-            // PROTOTYPE: Should spread elements support target type? (Should we infer IEnumerable<int>?)
             comp.VerifyEmitDiagnostics(
-                // (6,21): error CS9503: There is no target type for the collection literal.
+                // (6,21): error CS9176: There is no target type for the collection literal.
                 //         a = [..a, ..[]];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[]").WithLocation(6, 21),
-                // (7,16): error CS9503: There is no target type for the collection literal.
+                // (7,16): error CS9176: There is no target type for the collection literal.
                 //         a = [..[default]];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[default]").WithLocation(7, 16));
         }
@@ -4606,7 +4717,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            // PROTOTYPE: Should spread elements support target type? (Should we infer IEnumerable<string>?)
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (5,26): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'collection literals' and 'collection literals'
@@ -4883,6 +4993,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[1, 2, 3, 4], ");
         }
 
+        [Fact]
+        public void SpreadElement_11()
+        {
+            string source = """
+                using System.Collections;
+                class Program
+                {
+                    static void Main()
+                    {
+                        F([1, 2, 3]);
+                    }
+                    static int[] F(IEnumerable s) => [..s];
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,11): error CS1503: Argument 1: cannot convert from 'collection literals' to 'System.Collections.IEnumerable'
+                //         F([1, 2, 3]);
+                Diagnostic(ErrorCode.ERR_BadArgType, "[1, 2, 3]").WithArguments("1", "collection literals", "System.Collections.IEnumerable").WithLocation(6, 11),
+                // (8,39): error CS1950: The best overloaded Add method 'List<int>.Add(int)' for the collection initializer has some invalid arguments
+                //     static int[] F(IEnumerable s) => [..s];
+                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "..s").WithArguments("System.Collections.Generic.List<int>.Add(int)").WithLocation(8, 39),
+                // (8,39): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                //     static int[] F(IEnumerable s) => [..s];
+                Diagnostic(ErrorCode.ERR_BadArgType, "..s").WithArguments("1", "object", "int").WithLocation(8, 39));
+        }
+
         [Theory]
         [InlineData("object[]")]
         [InlineData("List<object>")]
@@ -4996,7 +5133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation(source);
             comp.MakeTypeMissing(WellKnownType.System_Collections_Generic_List_T);
-            // PROTOTYPE: Should report missing List<T>, and only report for [..e] case only, not [..a].
+            // https://github.com/dotnet/roslyn/issues/68785: Should not report missing List<T> for [..a].
             comp.VerifyEmitDiagnostics(
                 // (9,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.ToArray'
                 //         b = [..a];
@@ -5013,7 +5150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             comp = CreateCompilation(source);
             comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_List_T__ToArray);
-            // PROTOTYPE: Should report missing List<T>.ToArray() for [..e] case only, not [..a].
+            // https://github.com/dotnet/roslyn/issues/68785: Should not report missing List<T>.ToArray() for [..a].
             comp.VerifyEmitDiagnostics(
                 // (9,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.ToArray'
                 //         b = [..a];
@@ -5046,7 +5183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source);
-            // PROTOTYPE: // 2 should be reported as a warning (compare with array initializer: new object[] { null }).
+            // https://github.com/dotnet/roslyn/issues/68786: // 2 should be reported as a warning (compare with array initializer: new object[] { null }).
             comp.VerifyEmitDiagnostics(
                 // (7,9): warning CS8602: Dereference of a possibly null reference.
                 //         x[0].ToString(); // 1
@@ -5152,16 +5289,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (13,24): error CS9500: Cannot initialize type 'S<object>?' with a collection literal because the type is not constructible.
+                // (13,24): error CS9174: Cannot initialize type 'S<object>?' with a collection literal because the type is not constructible.
                 //         S<object>? x = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("S<object>?").WithLocation(13, 24),
-                // (14,13): error CS9500: Cannot initialize type 'S<object>?' with a collection literal because the type is not constructible.
+                // (14,13): error CS9174: Cannot initialize type 'S<object>?' with a collection literal because the type is not constructible.
                 //         x = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("S<object>?").WithLocation(14, 13),
-                // (15,24): error CS9500: Cannot initialize type 'S<object>?' with a collection literal because the type is not constructible.
+                // (15,24): error CS9174: Cannot initialize type 'S<object>?' with a collection literal because the type is not constructible.
                 //         S<object>? y = [1];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1]").WithArguments("S<object>?").WithLocation(15, 24),
-                // (16,13): error CS9500: Cannot initialize type 'S<object>?' with a collection literal because the type is not constructible.
+                // (16,13): error CS9174: Cannot initialize type 'S<object>?' with a collection literal because the type is not constructible.
                 //         y = [2];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[2]").WithArguments("S<object>?").WithLocation(16, 13));
         }
@@ -5235,13 +5372,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (9,15): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible.
+                // (9,15): error CS9174: Cannot initialize type 'S' with a collection literal because the type is not constructible.
                 //         S s = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("S").WithLocation(9, 15),
-                // (10,13): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible.
+                // (10,13): error CS9174: Cannot initialize type 'S' with a collection literal because the type is not constructible.
                 //         s = [1, 2];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2]").WithArguments("S").WithLocation(10, 13),
-                // (11,13): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible.
+                // (11,13): error CS9174: Cannot initialize type 'S' with a collection literal because the type is not constructible.
                 //         s = (S)([3, 4]);
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "(S)([3, 4])").WithArguments("S").WithLocation(11, 13));
         }
@@ -5266,13 +5403,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (9,15): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible.
+                // (9,15): error CS9174: Cannot initialize type 'S' with a collection literal because the type is not constructible.
                 //         S s = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("S").WithLocation(9, 15),
-                // (10,13): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible.
+                // (10,13): error CS9174: Cannot initialize type 'S' with a collection literal because the type is not constructible.
                 //         s = [1, 2];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[1, 2]").WithArguments("S").WithLocation(10, 13),
-                // (11,13): error CS9500: Cannot initialize type 'S' with a collection literal because the type is not constructible.
+                // (11,13): error CS9174: Cannot initialize type 'S' with a collection literal because the type is not constructible.
                 //         s = (S)([3, 4]);
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "(S)([3, 4])").WithArguments("S").WithLocation(11, 13));
         }
@@ -5473,10 +5610,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (20,17): error CS9500: Cannot initialize type 'S2' with a collection literal because the type is not constructible.
+                // (20,17): error CS9174: Cannot initialize type 'S2' with a collection literal because the type is not constructible.
                 //         S2 v6 = [];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("S2").WithLocation(20, 17),
-                // (26,19): error CS9500: Cannot initialize type 'S2' with a collection literal because the type is not constructible.
+                // (26,19): error CS9174: Cannot initialize type 'S2' with a collection literal because the type is not constructible.
                 //         var v12 = (S2)([]);
                 Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "(S2)([])").WithArguments("S2").WithLocation(26, 19));
 
@@ -5524,13 +5661,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (6,17): error CS9503: There is no target type for the collection literal.
+                // (6,17): error CS9176: There is no target type for the collection literal.
                 //         var x = [default(TypedReference)];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[default(TypedReference)]").WithLocation(6, 17),
-                // (7,17): error CS9503: There is no target type for the collection literal.
+                // (7,17): error CS9176: There is no target type for the collection literal.
                 //         var y = [default(ArgIterator)];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[default(ArgIterator)]").WithLocation(7, 17),
-                // (8,17): error CS9503: There is no target type for the collection literal.
+                // (8,17): error CS9176: There is no target type for the collection literal.
                 //         var z = [default(RuntimeArgumentHandle)];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[default(RuntimeArgumentHandle)]").WithLocation(8, 17));
         }
@@ -5555,10 +5692,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (10,17): error CS9503: There is no target type for the collection literal.
+                // (10,17): error CS9176: There is no target type for the collection literal.
                 //         var x = [default(R)];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[default(R)]").WithLocation(10, 17),
-                // (11,17): error CS9503: There is no target type for the collection literal.
+                // (11,17): error CS9176: There is no target type for the collection literal.
                 //         var y = [new R(ref i)];
                 Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[new R(ref i)]").WithLocation(11, 17));
         }
@@ -5647,13 +5784,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (13,22): error CS9501: An expression tree may not contain a collection literal.
+                // (13,22): error CS9175: An expression tree may not contain a collection literal.
                 //         return () => [];
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsCollectionLiteral, "[]").WithLocation(13, 22),
-                // (17,22): error CS9501: An expression tree may not contain a collection literal.
+                // (17,22): error CS9175: An expression tree may not contain a collection literal.
                 //         return () => [1, 2];
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsCollectionLiteral, "[1, 2]").WithLocation(17, 22),
-                // (21,22): error CS9501: An expression tree may not contain a collection literal.
+                // (21,22): error CS9175: An expression tree may not contain a collection literal.
                 //         return () => [a, b];
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsCollectionLiteral, "[a, b]").WithLocation(21, 22));
         }
@@ -5675,42 +5812,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics();
 
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
-@"IArrayCreationOperation (OperationKind.ArrayCreation, Type: T[]) (Syntax: '[a, b]')
-  Dimension Sizes(1):
-      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '[a, b]')
-  Initializer:
-    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: '[a, b]')
-      Element Values(2):
-          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'a')
-          IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'b')
-");
+                """
+                IOperation:  (OperationKind.None, Type: T[]) (Syntax: '[a, b]')
+                  Children(2):
+                      IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'a')
+                      IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'b')
+                """);
 
             var tree = comp.SyntaxTrees[0];
             var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "Create");
             VerifyFlowGraph(comp, method,
-@"Block[B0] - Entry
-    Statements (0)
-    Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (0)
-    Next (Return) Block[B2]
-        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: T[], IsImplicit) (Syntax: '[a, b]')
-          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            (CollectionLiteral)
-          Operand:
-            IArrayCreationOperation (OperationKind.ArrayCreation, Type: T[]) (Syntax: '[a, b]')
-              Dimension Sizes(1):
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '[a, b]')
-              Initializer:
-                IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: '[a, b]')
-                  Element Values(2):
-                      IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'a')
-                      IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'b')
-Block[B2] - Exit
-    Predecessors: [B1]
-    Statements (0)
-");
+                """
+                Block[B0] - Entry
+                    Statements (0)
+                    Next (Regular) Block[B1]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (0)
+                    Next (Return) Block[B2]
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: T[], IsImplicit) (Syntax: '[a, b]')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            (CollectionLiteral)
+                          Operand:
+                            IOperation:  (OperationKind.None, Type: T[]) (Syntax: '[a, b]')
+                              Children(2):
+                                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'a')
+                                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'b')
+                Block[B2] - Exit
+                    Predecessors: [B1]
+                    Statements (0)
+                """);
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -5731,56 +5862,36 @@ Block[B2] - Exit
             comp.VerifyEmitDiagnostics();
 
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
-@"IObjectCreationOperation (Constructor: System.Span<T>..ctor(T[]? array)) (OperationKind.ObjectCreation, Type: System.Span<T>) (Syntax: '[a, b]')
-  Arguments(1):
-      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: array) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '[a, b]')
-        IArrayCreationOperation (OperationKind.ArrayCreation, Type: T[]?, IsImplicit) (Syntax: '[a, b]')
-          Dimension Sizes(1):
-              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '[a, b]')
-          Initializer:
-            IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: '[a, b]')
-              Element Values(2):
-                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'a')
-                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'b')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  Initializer:
-    null
-");
+                """
+                IOperation:  (OperationKind.None, Type: System.Span<T>) (Syntax: '[a, b]')
+                  Children(2):
+                      IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'a')
+                      IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'b')
+                """);
 
             var tree = comp.SyntaxTrees[0];
             var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "Create");
             VerifyFlowGraph(comp, method,
-@"Block[B0] - Entry
-    Statements (0)
-    Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (0)
-    Next (Return) Block[B2]
-        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Span<T>, IsImplicit) (Syntax: '[a, b]')
-          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            (CollectionLiteral)
-          Operand:
-            IObjectCreationOperation (Constructor: System.Span<T>..ctor(T[]? array)) (OperationKind.ObjectCreation, Type: System.Span<T>) (Syntax: '[a, b]')
-              Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: array) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '[a, b]')
-                    IArrayCreationOperation (OperationKind.ArrayCreation, Type: T[]?, IsImplicit) (Syntax: '[a, b]')
-                      Dimension Sizes(1):
-                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '[a, b]')
-                      Initializer:
-                        IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: '[a, b]')
-                          Element Values(2):
-                              IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'a')
-                              IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'b')
-                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-              Initializer:
-                null
-Block[B2] - Exit
-    Predecessors: [B1]
-    Statements (0)
-");
+                """
+                Block[B0] - Entry
+                    Statements (0)
+                    Next (Regular) Block[B1]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (0)
+                    Next (Return) Block[B2]
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Span<T>, IsImplicit) (Syntax: '[a, b]')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            (CollectionLiteral)
+                          Operand:
+                            IOperation:  (OperationKind.None, Type: System.Span<T>) (Syntax: '[a, b]')
+                              Children(2):
+                                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'a')
+                                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T, IsImplicit) (Syntax: 'b')
+                Block[B2] - Exit
+                    Predecessors: [B1]
+                    Statements (0)
+                """);
         }
 
         [Fact]
@@ -5812,76 +5923,36 @@ Block[B2] - Exit
             comp.VerifyEmitDiagnostics();
 
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
-@"IObjectCreationOperation (Constructor: S<T>..ctor()) (OperationKind.ObjectCreation, Type: S<T>) (Syntax: '[a, b]')
-  Arguments(0)
-  Initializer:
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: S<T>, IsImplicit) (Syntax: '[a, b]')
-      Initializers(2):
-          IInvocationOperation ( void S<T>.Add(T t)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'a')
-            Instance Receiver:
-              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: S<T>, IsImplicit) (Syntax: '[a, b]')
-            Arguments(1):
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: t) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'a')
-                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T) (Syntax: 'a')
-                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          IInvocationOperation ( void S<T>.Add(T t)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'b')
-            Instance Receiver:
-              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: S<T>, IsImplicit) (Syntax: '[a, b]')
-            Arguments(1):
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: t) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'b')
-                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T) (Syntax: 'b')
-                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-");
+                """
+                IOperation:  (OperationKind.None, Type: S<T>) (Syntax: '[a, b]')
+                  Children(2):
+                      IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T) (Syntax: 'a')
+                      IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T) (Syntax: 'b')
+                """);
 
             var tree = comp.SyntaxTrees[0];
             var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "Create");
             VerifyFlowGraph(comp, method,
-@"Block[B0] - Entry
-    Statements (0)
-    Next (Regular) Block[B1]
-        Entering: {R1}
-.locals {R1}
-{
-    CaptureIds: [0]
-    Block[B1] - Block
-        Predecessors: [B0]
-        Statements (3)
-            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[a, b]')
-              Value:
-                IObjectCreationOperation (Constructor: S<T>..ctor()) (OperationKind.ObjectCreation, Type: S<T>) (Syntax: '[a, b]')
-                  Arguments(0)
-                  Initializer:
-                    null
-            IInvocationOperation ( void S<T>.Add(T t)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'a')
-              Instance Receiver:
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S<T>, IsImplicit) (Syntax: '[a, b]')
-              Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: t) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'a')
-                    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T) (Syntax: 'a')
-                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            IInvocationOperation ( void S<T>.Add(T t)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'b')
-              Instance Receiver:
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S<T>, IsImplicit) (Syntax: '[a, b]')
-              Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: t) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'b')
-                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T) (Syntax: 'b')
-                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Next (Return) Block[B2]
-            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: S<T>, IsImplicit) (Syntax: '[a, b]')
-              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                (CollectionLiteral)
-              Operand:
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S<T>, IsImplicit) (Syntax: '[a, b]')
-            Leaving: {R1}
-}
-Block[B2] - Exit
-    Predecessors: [B1]
-    Statements (0)
-");
+                """
+                Block[B0] - Entry
+                    Statements (0)
+                    Next (Regular) Block[B1]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (0)
+                    Next (Return) Block[B2]
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: S<T>, IsImplicit) (Syntax: '[a, b]')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            (CollectionLiteral)
+                          Operand:
+                            IOperation:  (OperationKind.None, Type: S<T>) (Syntax: '[a, b]')
+                              Children(2):
+                                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T) (Syntax: 'a')
+                                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T) (Syntax: 'b')
+                Block[B2] - Exit
+                    Predecessors: [B1]
+                    Statements (0)
+                """);
         }
 
         [Fact]
@@ -5913,74 +5984,36 @@ Block[B2] - Exit
             comp.VerifyEmitDiagnostics();
 
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
-@"ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T) (Syntax: '[a, b]')
-  Initializer:
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: T, IsImplicit) (Syntax: '[a, b]')
-      Initializers(2):
-          IInvocationOperation (virtual void I<U>.Add(U t)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'a')
-            Instance Receiver:
-              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: T, IsImplicit) (Syntax: '[a, b]')
-            Arguments(1):
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: t) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'a')
-                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: U) (Syntax: 'a')
-                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          IInvocationOperation (virtual void I<U>.Add(U t)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'b')
-            Instance Receiver:
-              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: T, IsImplicit) (Syntax: '[a, b]')
-            Arguments(1):
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: t) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'b')
-                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: U) (Syntax: 'b')
-                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-");
+                """
+                IOperation:  (OperationKind.None, Type: T) (Syntax: '[a, b]')
+                  Children(2):
+                      IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: U) (Syntax: 'a')
+                      IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: U) (Syntax: 'b')
+                """);
 
             var tree = comp.SyntaxTrees[0];
             var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "Create");
             VerifyFlowGraph(comp, method,
-@"Block[B0] - Entry
-    Statements (0)
-    Next (Regular) Block[B1]
-        Entering: {R1}
-.locals {R1}
-{
-    CaptureIds: [0]
-    Block[B1] - Block
-        Predecessors: [B0]
-        Statements (3)
-            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[a, b]')
-              Value:
-                ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T) (Syntax: '[a, b]')
-                  Initializer:
-                    null
-            IInvocationOperation (virtual void I<U>.Add(U t)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'a')
-              Instance Receiver:
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: T, IsImplicit) (Syntax: '[a, b]')
-              Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: t) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'a')
-                    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: U) (Syntax: 'a')
-                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            IInvocationOperation (virtual void I<U>.Add(U t)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'b')
-              Instance Receiver:
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: T, IsImplicit) (Syntax: '[a, b]')
-              Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: t) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'b')
-                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: U) (Syntax: 'b')
-                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Next (Return) Block[B2]
-            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: T, IsImplicit) (Syntax: '[a, b]')
-              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                (CollectionLiteral)
-              Operand:
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: T, IsImplicit) (Syntax: '[a, b]')
-            Leaving: {R1}
-}
-Block[B2] - Exit
-    Predecessors: [B1]
-    Statements (0)
-");
+                """
+                Block[B0] - Entry
+                    Statements (0)
+                    Next (Regular) Block[B1]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (0)
+                    Next (Return) Block[B2]
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: T, IsImplicit) (Syntax: '[a, b]')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            (CollectionLiteral)
+                          Operand:
+                            IOperation:  (OperationKind.None, Type: T) (Syntax: '[a, b]')
+                              Children(2):
+                                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: U) (Syntax: 'a')
+                                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: U) (Syntax: 'b')
+                Block[B2] - Exit
+                    Predecessors: [B1]
+                    Statements (0)
+                """);
         }
 
         [Fact]
@@ -6002,129 +6035,71 @@ Block[B2] - Exit
             comp.VerifyEmitDiagnostics();
 
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
-@"IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>) (Syntax: '[[Get(1)]]')
-    Arguments(0)
-    Initializer:
-    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: '[[Get(1)]]')
-        Initializers(1):
-            IInvocationOperation ( void System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>.Add(System.Collections.Generic.List<System.Int32> item)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '[Get(1)]')
-            Instance Receiver:
-                IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: '[[Get(1)]]')
-            Arguments(1):
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '[Get(1)]')
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[Get(1)]')
-                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
-                        IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '[Get(1)]')
-                        Arguments(0)
-                        Initializer:
-                            IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[Get(1)]')
-                            Initializers(1):
-                                IInvocationOperation ( void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'Get(1)')
-                                    Instance Receiver:
-                                    IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[Get(1)]')
-                                    Arguments(1):
-                                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Get(1)')
-                                        IInvocationOperation (System.Int32 Program.Get(System.Int32 value)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Get(1)')
-                                            Instance Receiver:
-                                            null
-                                            Arguments(1):
-                                                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '1')
-                                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                """
+                IOperation:  (OperationKind.None, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>) (Syntax: '[[Get(1)]]')
+                  Children(1):
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[Get(1)]')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand:
+                          IOperation:  (OperationKind.None, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '[Get(1)]')
+                            Children(1):
+                                IInvocationOperation (System.Int32 Program.Get(System.Int32 value)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Get(1)')
+                                  Instance Receiver:
+                                    null
+                                  Arguments(1):
+                                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '1')
+                                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-");
+                """);
 
             var tree = comp.SyntaxTrees[0];
             var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "Main");
             VerifyFlowGraph(comp, method,
-@"Block[B0] - Entry
-    Statements (0)
-    Next (Regular) Block[B1]
-        Entering: {R1}
-.locals {R1}
-{
-    Locals: [System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>> x]
-    CaptureIds: [0]
-    Block[B1] - Block
-        Predecessors: [B0]
-        Statements (1)
-            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[[Get(1)]]')
-                Value:
-                IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>) (Syntax: '[[Get(1)]]')
-                    Arguments(0)
-                    Initializer:
-                    null
-        Next (Regular) Block[B2]
-            Entering: {R2}
-    .locals {R2}
-    {
-        CaptureIds: [1]
-        Block[B2] - Block
-            Predecessors: [B1]
-            Statements (3)
-                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[Get(1)]')
-                    Value:
-                    IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '[Get(1)]')
-                        Arguments(0)
-                        Initializer:
-                        null
-                IInvocationOperation ( void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'Get(1)')
-                    Instance Receiver:
-                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[Get(1)]')
-                    Arguments(1):
-                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Get(1)')
-                        IInvocationOperation (System.Int32 Program.Get(System.Int32 value)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Get(1)')
-                            Instance Receiver:
-                            null
-                            Arguments(1):
-                                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '1')
-                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                IInvocationOperation ( void System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>.Add(System.Collections.Generic.List<System.Int32> item)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '[Get(1)]')
-                    Instance Receiver:
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: '[[Get(1)]]')
-                    Arguments(1):
-                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '[Get(1)]')
-                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[Get(1)]')
-                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            (CollectionLiteral)
-                            Operand:
-                            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[Get(1)]')
-                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Next (Regular) Block[B3]
-                Leaving: {R2}
-    }
-    Block[B3] - Block
-        Predecessors: [B2]
-        Statements (1)
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: 'x = /*<bind>*/[[Get(1)]]')
-                Left:
-                ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: 'x = /*<bind>*/[[Get(1)]]')
-                Right:
-                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: '[[Get(1)]]')
-                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    (CollectionLiteral)
-                    Operand:
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: '[[Get(1)]]')
-        Next (Regular) Block[B4]
-            Leaving: {R1}
-}
-Block[B4] - Exit
-    Predecessors: [B3]
-    Statements (0)
-");
+                """
+                Block[B0] - Entry
+                    Statements (0)
+                    Next (Regular) Block[B1]
+                        Entering: {R1}
+                .locals {R1}
+                {
+                    Locals: [System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>> x]
+                    Block[B1] - Block
+                        Predecessors: [B0]
+                        Statements (1)
+                            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: 'x = /*<bind>*/[[Get(1)]]')
+                              Left:
+                                ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: 'x = /*<bind>*/[[Get(1)]]')
+                              Right:
+                                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: '[[Get(1)]]')
+                                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                    (CollectionLiteral)
+                                  Operand:
+                                    IOperation:  (OperationKind.None, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>) (Syntax: '[[Get(1)]]')
+                                      Children(1):
+                                          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[Get(1)]')
+                                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                              (CollectionLiteral)
+                                            Operand:
+                                              IOperation:  (OperationKind.None, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '[Get(1)]')
+                                                Children(1):
+                                                    IInvocationOperation (System.Int32 Program.Get(System.Int32 value)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Get(1)')
+                                                      Instance Receiver:
+                                                        null
+                                                      Arguments(1):
+                                                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '1')
+                                                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Next (Regular) Block[B2]
+                            Leaving: {R1}
+                }
+                Block[B2] - Exit
+                    Predecessors: [B1]
+                    Statements (0)
+                """);
         }
 
-        // PROTOTYPE: Handle intermediate List<T> in IOperation.
         [Fact]
         public void IOperation_SpreadElement_01()
         {
@@ -6143,8 +6118,14 @@ Block[B4] - Exit
 
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
                 """
-                IInvalidOperation (OperationKind.Invalid, Type: System.Int32[]) (Syntax: '[..a]')
-                  Children(0)
+                IOperation:  (OperationKind.None, Type: System.Int32[]) (Syntax: '[..a]')
+                  Children(1):
+                      IOperation:  (OperationKind.None, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: '..a')
+                        Children(1):
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'a')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                              Operand:
+                                IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'a')
                 """);
 
             var tree = comp.SyntaxTrees[0];
@@ -6162,8 +6143,15 @@ Block[B4] - Exit
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             (CollectionLiteral)
                           Operand:
-                            IInvalidOperation (OperationKind.Invalid, Type: System.Int32[]) (Syntax: '[..a]')
-                              Children(0)
+                            IOperation:  (OperationKind.None, Type: System.Int32[]) (Syntax: '[..a]')
+                              Children(1):
+                                  IOperation:  (OperationKind.None, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: '..a')
+                                    Children(1):
+                                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'a')
+                                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                            (ImplicitReference)
+                                          Operand:
+                                            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'a')
                 Block[B2] - Exit
                     Predecessors: [B1]
                     Statements (0)
@@ -6189,17 +6177,14 @@ Block[B4] - Exit
 
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
                 """
-                IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '[..a]')
-                  Arguments(0)
-                  Initializer:
-                    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[..a]')
-                      Initializers(1):
-                          IInvalidOperation (OperationKind.Invalid, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: '..a')
-                            Children(1):
-                                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'a')
-                                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                                  Operand:
-                                    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'a')
+                IOperation:  (OperationKind.None, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '[..a]')
+                  Children(1):
+                      IOperation:  (OperationKind.None, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: '..a')
+                        Children(1):
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'a')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                              Operand:
+                                IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'a')
                 """);
 
             var tree = comp.SyntaxTrees[0];
@@ -6209,34 +6194,23 @@ Block[B4] - Exit
                 Block[B0] - Entry
                     Statements (0)
                     Next (Regular) Block[B1]
-                        Entering: {R1}
-                .locals {R1}
-                {
-                    CaptureIds: [0]
-                    Block[B1] - Block
-                        Predecessors: [B0]
-                        Statements (2)
-                            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[..a]')
-                              Value:
-                                IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '[..a]')
-                                  Arguments(0)
-                                  Initializer:
-                                    null
-                            IInvalidOperation (OperationKind.Invalid, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: '..a')
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (0)
+                    Next (Return) Block[B2]
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[..a]')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            (CollectionLiteral)
+                          Operand:
+                            IOperation:  (OperationKind.None, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '[..a]')
                               Children(1):
-                                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'a')
-                                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                                      (ImplicitReference)
-                                    Operand:
-                                      IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'a')
-                        Next (Return) Block[B2]
-                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[..a]')
-                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                (CollectionLiteral)
-                              Operand:
-                                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: '[..a]')
-                            Leaving: {R1}
-                }
+                                  IOperation:  (OperationKind.None, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: '..a')
+                                    Children(1):
+                                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'a')
+                                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                            (ImplicitReference)
+                                          Operand:
+                                            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'a')
                 Block[B2] - Exit
                     Predecessors: [B1]
                     Statements (0)
@@ -6274,7 +6248,7 @@ Block[B4] - Exit
             CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[1, 2], [3, 4], ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))] // PROTOTYPE: CFG failure.
+        [Fact]
         public void Async_02()
         {
             string source = """

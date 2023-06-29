@@ -291,13 +291,8 @@ namespace Microsoft.CodeAnalysis
                 => throw new NotSupportedException();
         }
 
-        private class ReadStream : PooledStream
+        private class ReadStream(long length, byte[][] chunks) : PooledStream(length, new List<byte[]>(chunks))
         {
-            public ReadStream(long length, byte[][] chunks)
-                : base(length, new List<byte[]>(chunks))
-            {
-
-            }
         }
 
         private class ReadWriteStream : PooledStream

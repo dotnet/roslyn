@@ -138,6 +138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
         Public ReadOnly Property ExpressionStatement As Integer = SyntaxKind.ExpressionStatement Implements ISyntaxKinds.ExpressionStatement
         Public ReadOnly Property ForEachStatement As Integer = SyntaxKind.ForEachStatement Implements ISyntaxKinds.ForEachStatement
+        Public ReadOnly Property ForStatement As Integer = SyntaxKind.ForStatement Implements ISyntaxKinds.ForStatement
         Public ReadOnly Property IfStatement As Integer = SyntaxKind.IfStatement Implements ISyntaxKinds.IfStatement
         Public ReadOnly Property LocalDeclarationStatement As Integer = SyntaxKind.LocalDeclarationStatement Implements ISyntaxKinds.LocalDeclarationStatement
         Public ReadOnly Property LocalFunctionStatement As Integer? Implements ISyntaxKinds.LocalFunctionStatement
