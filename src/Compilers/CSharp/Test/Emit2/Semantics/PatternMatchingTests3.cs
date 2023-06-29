@@ -6430,35 +6430,28 @@ class C
     }}
 }}";
             var verifier = CompileAndVerify(source, expectedOutput: "42");
-            verifier.VerifyIL("C.M",
-@"{
-  // Code size       39 (0x27)
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       30 (0x1e)
   .maxstack  2
-  .locals init (int V_0,
-                bool V_1)
+  .locals init (int V_0)
   IL_0000:  ldarg.0
-  IL_0001:  isinst     ""int""
-  IL_0006:  brfalse.s  IL_001a
+  IL_0001:  isinst     "int"
+  IL_0006:  brfalse.s  IL_0016
   IL_0008:  ldarg.0
-  IL_0009:  unbox.any  ""int""
+  IL_0009:  unbox.any  "int"
   IL_000e:  stloc.0
   IL_000f:  ldloc.0
   IL_0010:  ldc.i4.s   41
   IL_0012:  sub
   IL_0013:  ldc.i4.1
-  IL_0014:  bgt.un.s   IL_001a
-  IL_0016:  ldc.i4.1
-  IL_0017:  stloc.1
-  IL_0018:  br.s       IL_001c
-  IL_001a:  ldc.i4.0
-  IL_001b:  stloc.1
-  IL_001c:  ldloc.1
-  IL_001d:  brtrue.s   IL_0020
-  IL_001f:  ret
-  IL_0020:  ldarg.0
-  IL_0021:  call       ""void System.Console.WriteLine(object)""
-  IL_0026:  ret
-}");
+  IL_0014:  ble.un.s   IL_0017
+  IL_0016:  ret
+  IL_0017:  ldarg.0
+  IL_0018:  call       "void System.Console.WriteLine(object)"
+  IL_001d:  ret
+}
+""");
         }
 
         [Fact]
