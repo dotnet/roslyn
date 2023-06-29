@@ -29,6 +29,9 @@ Example `runs` section, with stripped off `results` and `rules` sections:
 {
   "results": [
   ],
+  "properties": {
+    "analyzerExecutionTime": "x.xxx"
+  },
   "tool": {
     "driver": {
       "name": "Microsoft (R) Visual C# Compiler",
@@ -131,6 +134,8 @@ Example `rule` entry:
   "helpUri": "https://docs.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1001",
   "properties": {
     "category": "Design",
+    "executionTimeInSeconds": "x.xxx",
+    "executionTimeInPercentage": "xx",
     "isEverSuppressed": "true",
     "suppressionKinds": [
       "external"
