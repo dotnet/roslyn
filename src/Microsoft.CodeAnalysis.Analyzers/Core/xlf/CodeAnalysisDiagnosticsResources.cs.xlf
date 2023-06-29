@@ -119,27 +119,27 @@
       </trans-unit>
       <trans-unit id="DoNotDeclareCSharpCompilerFeatureInAssemblyWithVisualBasicReferenceMessage">
         <source>This C# compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.VisualBasic. The Microsoft.CodeAnalysis.VisualBasic assembly is not always provided during C# compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</source>
-        <target state="new">This C# compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.VisualBasic. The Microsoft.CodeAnalysis.VisualBasic assembly is not always provided during C# compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</target>
+        <target state="translated">Toto rozšíření kompilátoru jazyka C# by nemělo být implementováno v sestavení obsahujícím odkaz na Microsoft.CodeAnalysis.VisualBasic. Sestavení Microsoft.CodeAnalysis.VisualBasic není vždy poskytováno během kompilačních scénářů jazyka C#, takže odkazy na něj by mohly způsobit, že se rozšíření kompilátoru bude chovat nepředvídatelně.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotDeclareCompilerFeatureInAssemblyWithWorkspacesReferenceMessage">
         <source>This compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.Workspaces. The Microsoft.CodeAnalysis.Workspaces assembly is not provided during command line compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</source>
-        <target state="new">This compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.Workspaces. The Microsoft.CodeAnalysis.Workspaces assembly is not provided during command line compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</target>
+        <target state="translated">Toto rozšíření kompilátoru by nemělo být implementováno v sestavení obsahujícím odkaz na Microsoft.CodeAnalysis.Workspaces. Sestavení Microsoft.CodeAnalysis.Workspaces se během scénářů kompilace příkazového řádku neposkytuje, takže odkazy na něj by mohly způsobit, že se rozšíření kompilátoru bude chovat nepředvídatelně.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotDeclareVisualBasicCompilerFeatureInAssemblyWithCSharpReferenceMessage">
         <source>This Visual Basic compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.CSharp. The Microsoft.CodeAnalysis.CSharp assembly is not always provided during Visual Basic compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</source>
-        <target state="new">This Visual Basic compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.CSharp. The Microsoft.CodeAnalysis.CSharp assembly is not always provided during Visual Basic compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</target>
+        <target state="translated">Toto rozšíření kompilátoru Visual Basic by nemělo být implementováno v sestavení obsahujícím odkaz na Microsoft.CodeAnalysis.CSharp. Sestavení Microsoft.CodeAnalysis.CSharp není vždy poskytováno během Visual Basic scénářů kompilace, takže odkazy na něj by mohly způsobit, že se rozšíření kompilátoru bude chovat nepředvídatelně.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotRegisterCompilerTypesWithBadAssemblyReferenceRuleDescription">
         <source>Types which implement compiler extension points should not be declared in assemblies that contain references to assemblies which are not provided by all compilation scenarios. Doing so may cause the feature to behave unpredictably.</source>
-        <target state="new">Types which implement compiler extension points should not be declared in assemblies that contain references to assemblies which are not provided by all compilation scenarios. Doing so may cause the feature to behave unpredictably.</target>
+        <target state="translated">Typy, které implementují rozšiřující body kompilátoru, by neměly být deklarovány v sestaveních, která obsahují odkazy na sestavení, která nejsou poskytována všemi scénáři kompilace. To může způsobit, že se funkce bude chovat nepředvídatelně.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotRegisterCompilerTypesWithBadAssemblyReferenceRuleTitle">
         <source>Compiler extensions should be implemented in assemblies with compiler-provided references</source>
-        <target state="new">Compiler extensions should be implemented in assemblies with compiler-provided references</target>
+        <target state="translated">Rozšíření kompilátoru by se měla implementovat v sestaveních s odkazy poskytnutými kompilátorem.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseCompilationGetSemanticModelDescription">
