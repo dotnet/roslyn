@@ -1964,9 +1964,34 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitObjectCreationExpression(BoundObjectCreationExpression node)
         {
-
             VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, node.Constructor);
             VisitRvalue(node.InitializerExpressionOpt);
+            return null;
+        }
+
+        public override BoundNode VisitCollectionLiteralExpression(BoundCollectionLiteralExpression node)
+        {
+            VisitCollectionLiteralExpression(node.Elements);
+            return null;
+        }
+
+        public override BoundNode VisitUnconvertedCollectionLiteralExpression(BoundUnconvertedCollectionLiteralExpression node)
+        {
+            VisitCollectionLiteralExpression(node.Elements);
+            return null;
+        }
+
+        private void VisitCollectionLiteralExpression(ImmutableArray<BoundExpression> elements)
+        {
+            foreach (var element in elements)
+            {
+                VisitRvalue(element);
+            }
+        }
+
+        public override BoundNode VisitCollectionLiteralSpreadElement(BoundCollectionLiteralSpreadElement node)
+        {
+            VisitRvalue(node.Expression);
             return null;
         }
 
