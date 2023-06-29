@@ -847,9 +847,10 @@ namespace Analyzer.Utilities.Extensions
             };
         }
 
-        public static IArgumentOperation GetArgumentForParameterAtIndex(
+        public static bool TryGetArgumentForParameterAtIndex(
             this ImmutableArray<IArgumentOperation> arguments,
-            int parameterIndex)
+            int parameterIndex,
+            [NotNullWhen(true)] out IArgumentOperation? result)
         {
             Debug.Assert(parameterIndex >= 0);
             Debug.Assert(parameterIndex < arguments.Length);
@@ -858,8 +859,22 @@ namespace Analyzer.Utilities.Extensions
             {
                 if (argument.Parameter?.Ordinal == parameterIndex)
                 {
-                    return argument;
+                    result = argument;
+                    return true;
                 }
+            }
+
+            result = null;
+            return false;
+        }
+
+        public static IArgumentOperation GetArgumentForParameterAtIndex(
+            this ImmutableArray<IArgumentOperation> arguments,
+            int parameterIndex)
+        {
+            if (TryGetArgumentForParameterAtIndex(arguments, parameterIndex, out var result))
+            {
+                return result;
             }
 
             throw new InvalidOperationException();
