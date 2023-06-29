@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis
 
         public void RegisterOutput(IIncrementalGeneratorOutputNode output) => _registerOutput(output);
 
-        private void LogTables(NodeStateTable<T> previousTable, NodeStateTable<T> newTable, ImmutableArray<T> inputs)
+        private void LogTables(NodeStateTable<T>? previousTable, NodeStateTable<T> newTable, ImmutableArray<T> inputs)
         {
             if (!CodeAnalysisEventSource.Log.IsEnabled())
             {

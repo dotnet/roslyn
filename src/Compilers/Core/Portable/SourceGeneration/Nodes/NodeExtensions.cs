@@ -14,15 +14,15 @@ namespace Microsoft.CodeAnalysis
             if (CodeAnalysisEventSource.Log.IsEnabled())
             {
                 // don't log the new table if we skipped creating a new one
-                newTable = newTable != previousTable ? newTable : null;
+                var newTableOpt = newTable != previousTable ? newTable : null;
 
                 CodeAnalysisEventSource.Log.NodeTransform(self.GetHashCode(),
                                                           name ?? "<anonymous>",
                                                           typeof(TSelf).FullName,
                                                           previousTable?.GetHashCode() ?? -1,
                                                           previousTable?.GetPackedStates() ?? "",
-                                                          newTable?.GetHashCode() ?? -1,
-                                                          newTable?.GetPackedStates() ?? "",
+                                                          newTableOpt?.GetHashCode() ?? -1,
+                                                          newTableOpt?.GetPackedStates() ?? "",
                                                           inputNode1.GetHashCode(),
                                                           inputNode2?.GetHashCode() ?? -1);
             }
