@@ -1719,9 +1719,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public SeparatedSyntaxList<SyntaxNode> GetExpressionsOfObjectCollectionInitializer(SyntaxNode node)
             => node is InitializerExpressionSyntax(SyntaxKind.CollectionInitializerExpression) initExpr ? initExpr.Expressions : default;
 
-        public string? GetRightmostNameOfExpression(SyntaxNode node)
-            => (node as ExpressionSyntax)?.GetRightmostName()?.Identifier.Text;
-
         #endregion
     }
 }

@@ -2535,6 +2535,16 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
         <target state="translated">Grobe Bearbeitung</target>
         <note />
       </trans-unit>
+      <trans-unit id="Run_All_Tests">
+        <source>Run All Tests</source>
+        <target state="new">Run All Tests</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run_Test">
+        <source>Run Test</source>
+        <target state="new">Run Test</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Selection_does_not_contain_a_valid_token">
         <source>Selection does not contain a valid token.</source>
         <target state="translated">Auswahl enthält kein gültiges Token.</target>

@@ -16,31 +16,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 [Export, Shared]
 internal class DotnetCliHelper
 {
+    internal const string DotnetRootEnvVar = "DOTNET_ROOT";
+    internal const string DotnetRootUserEnvVar = "DOTNET_ROOT_USER";
+
     private readonly ILogger _logger;
     private readonly Lazy<string> _dotnetExecutablePath;
     private readonly AsyncLazy<string> _dotnetSdkFolder;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public DotnetCliHelper(ILoggerFactory loggerFactory, ServerConfiguration serverConfiguration)
+    public DotnetCliHelper(ILoggerFactory loggerFactory)
     {
         _logger = loggerFactory.CreateLogger<DotnetCliHelper>();
-        _dotnetExecutablePath = new Lazy<string>(() => GetDotnetExecutablePath(serverConfiguration.DotnetPath));
+        _dotnetExecutablePath = new Lazy<string>(() => GetDotnetExecutablePath());
         _dotnetSdkFolder = new AsyncLazy<string>(GetDotnetSdkFolderFromDotnetExecutableAsync, cacheResult: true);
     }
 
-    public string GetDotnetExecutablePath(string? dotnetPathOption)
+    public string GetDotnetExecutablePath()
     {
-        // First see if a dotnetPath option was provided.
-        if (TryGetDotnetExecutableFromFolder(dotnetPathOption, nameof(dotnetPathOption), _logger, out var executablePath))
-        {
-            return executablePath;
-        }
-
         // The client can modify the value in DOTNET_ROOT to ensure that the server starts on the correct runtime.
         // It will save the user's DOTNET_ROOT in the DOTNET_ROOT_USER environment variable, so check there instead of using the DOTNET_ROOT.
-        var dotnetPathFromDotnetRootUser = Environment.GetEnvironmentVariable("DOTNET_ROOT_USER");
-        if (TryGetDotnetExecutableFromFolder(dotnetPathFromDotnetRootUser, "DOTNET_ROOT_USER", _logger, out var dotnetRootUserExecutable))
+        var dotnetPathFromDotnetRootUser = Environment.GetEnvironmentVariable(DotnetRootUserEnvVar);
+        if (TryGetDotnetExecutableFromFolder(dotnetPathFromDotnetRootUser, DotnetRootUserEnvVar, _logger, out var dotnetRootUserExecutable))
         {
             return dotnetRootUserExecutable;
         }
@@ -128,6 +125,13 @@ internal class DotnetCliHelper
             startInfo.WorkingDirectory = workingDirectory;
         }
 
+        // If we're relying on the user's configured CLI to run this we need to remove our custom DOTNET_ROOT that we set
+        // Wto start the server; otherwise we won't find the users installed sdks.
+        if (_dotnetExecutablePath.Value == "dotnet")
+        {
+            startInfo.Environment[DotnetRootEnvVar] = GetUserDotnetRoot();
+        }
+
         if (!shouldLocalizeOutput)
         {
             // The caller requested that we not localize the output of the command (typically be cause it needs to be parsed)
@@ -143,6 +147,19 @@ internal class DotnetCliHelper
         var process = Process.Start(startInfo);
         Contract.ThrowIfNull(process, $"Unable to start dotnet CLI at {_dotnetExecutablePath.Value} with arguments {arguments} in directory {workingDirectory}");
         return process;
+    }
+
+    /// <summary>
+    /// Since we change DOTNET_ROOT in order to start the process, we need to get the original value
+    /// whenever we shell out to the CLI or other processes (e.g. vstest console).
+    /// </summary>
+    /// <returns></returns>
+    public static string GetUserDotnetRoot()
+    {
+        // If the user had a valid dotnet root, set it to that, otherwise leave it empty.
+        var dotnetRootUser = Environment.GetEnvironmentVariable("DOTNET_ROOT_USER");
+        var newDotnetRootValue = Path.Exists(dotnetRootUser) ? dotnetRootUser : string.Empty;
+        return newDotnetRootValue;
     }
 
     public async Task<string> GetVsTestConsolePathAsync(CancellationToken cancellationToken)

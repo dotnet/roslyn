@@ -5,10 +5,11 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Features.Testing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.TestPlatform.VsTestConsole.TranslationLayer;
@@ -21,23 +22,15 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Testing;
 
 [Export, Shared]
-internal class TestDiscoverer
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class TestDiscoverer(ILoggerFactory loggerFactory)
 {
     /// <summary>
     /// TODO - localize messages. https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1799066/
     /// </summary>
     private const string StageName = "Discovering tests...";
-
-    private readonly TestFrameworkHelper _testFrameworkHelper;
-    private readonly ILogger _logger;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public TestDiscoverer(TestFrameworkHelper testFrameworkHelper, ILoggerFactory loggerFactory)
-    {
-        _testFrameworkHelper = testFrameworkHelper;
-        _logger = loggerFactory.CreateLogger<TestDiscoverer>();
-    }
+    private readonly ILogger _logger = loggerFactory.CreateLogger<TestDiscoverer>();
 
     /// <summary>
     /// Finds tests in the specified document in the specified range.
@@ -52,24 +45,20 @@ internal class TestDiscoverer
         VsTestConsoleWrapper vsTestConsoleWrapper,
         CancellationToken cancellationToken)
     {
-        progress.Report(new RunTestsPartialResult
-        {
-            Stage = StageName,
-            Message = $"{Environment.NewLine}Starting test discovery"
-        });
+        var partialResult = new RunTestsPartialResult(StageName, $"{Environment.NewLine}Starting test discovery", Progress: null);
+        progress.Report(partialResult);
 
-        var potentialTestMethods = await GetPotentialTestMethodsAsync(range, document, cancellationToken);
+        var testMethodFinder = document.GetRequiredLanguageService<ITestMethodFinder>();
+
+        // Find any potential test methods (based on attributes) that exist in the input range.
+        var potentialTestMethods = await GetPotentialTestMethodsAsync(range, document, testMethodFinder, cancellationToken);
         if (potentialTestMethods.IsEmpty)
         {
-            progress.Report(new RunTestsPartialResult
-            {
-                Stage = StageName,
-                Message = $"{Environment.NewLine}No test methods found in requested range"
-            });
-
+            progress.Report(partialResult with { Message = "No test methods found in requested range" });
             return ImmutableArray<TestCase>.Empty;
         }
 
+        // Next, run the actual vs test discovery on the output dll to figure out what tests actually exist.
         var discoveryHandler = new DiscoveryHandler(progress);
         var stopwatch = SharedStopwatch.StartNew();
 
@@ -82,70 +71,44 @@ internal class TestDiscoverer
         var testCases = discoveryHandler.GetTestCases();
         var elapsed = stopwatch.Elapsed;
 
-        var matchedTests = MatchDiscoveredTestsToTestsInRange(testCases, potentialTestMethods);
-        _logger.LogDebug($"Filtered {testCases.Length} to {matchedTests.Length} tests");
-
-        progress.Report(new RunTestsPartialResult
-        {
-            Stage = StageName,
-            Message = $"Found {matchedTests.Length} tests in {elapsed}"
-        });
+        // Match what we found from vs test to what we found in the document to figure out exactly which tests to run.
+        var matchedTests = await MatchDiscoveredTestsToTestsInRangeAsync(testCases, potentialTestMethods, testMethodFinder, document, cancellationToken);
+        progress.Report(partialResult with { Message = $"Found {matchedTests.Length} tests in {elapsed:g}"});
 
         return matchedTests;
 
-        async Task<ImmutableArray<MethodDeclarationSyntax>> GetPotentialTestMethodsAsync(LSP.Range range, Document document, CancellationToken cancellationToken)
+        async Task<ImmutableArray<SyntaxNode>> GetPotentialTestMethodsAsync(LSP.Range range, Document document, ITestMethodFinder testMethodFinder, CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken);
             var textSpan = ProtocolConversions.RangeToTextSpan(range, text);
-            var potentialTestMethods = await _testFrameworkHelper.GetPotentialTestMethodsAsync(document, textSpan, cancellationToken);
-            _logger.LogDebug($"Potential test methods in range: {string.Join(Environment.NewLine, potentialTestMethods)}");
+            var potentialTestMethods = await testMethodFinder.GetPotentialTestMethodsAsync(textSpan, document, cancellationToken);
+            _logger.LogDebug(message: $"Potential test methods in range: {string.Join(Environment.NewLine, potentialTestMethods)}");
             return potentialTestMethods;
         }
     }
 
-    private ImmutableArray<TestCase> MatchDiscoveredTestsToTestsInRange(ImmutableArray<TestCase> discoveredTests, ImmutableArray<MethodDeclarationSyntax> testMethods)
+    private async Task<ImmutableArray<TestCase>> MatchDiscoveredTestsToTestsInRangeAsync(ImmutableArray<TestCase> discoveredTests, ImmutableArray<SyntaxNode> testMethods, ITestMethodFinder testMethodFinder, Document document, CancellationToken cancellationToken)
     {
         // Match the tests in the requested range to the ones we discovered.
-        var matchedTests = discoveredTests.Where(d => IsMatch(d, testMethods)).ToImmutableArray();
-        return matchedTests;
-
-        bool IsMatch(TestCase discoveredTest, ImmutableArray<MethodDeclarationSyntax> testMethods)
+        using var _ = ArrayBuilder<TestCase>.GetInstance(out var matchedTests);
+        foreach(var discoveredTest in discoveredTests)
         {
-            // Since discovered tests don't run on a particular snapshot, we match optimistically based on test name.
-            foreach (var testMethod in testMethods)
+            var isMatch = await testMethods.AnyAsync(async (m) => await testMethodFinder.IsMatchAsync(m, discoveredTest.FullyQualifiedName, document, cancellationToken));
+            if (isMatch)
             {
-                // Either of these could be missing in top level programs.
-                var classForMethod = testMethod.GetAncestor<ClassDeclarationSyntax>()?.Identifier.Text ?? string.Empty;
-                var namespaceForMethod = testMethod.GetAncestor<NamespaceDeclarationSyntax>()?.Name.ToString() ?? string.Empty;
-                // Quick and dirty check - see if the discovered test's fully qualified name contains
-                // the test method name and class name.  We could try and match against the test method's FQN, however
-                // that won't always match correctly especially in the case of generics.  At worst we run 
-                if (discoveredTest.FullyQualifiedName.Contains(testMethod.Identifier.Text, StringComparison.Ordinal)
-                    && discoveredTest.FullyQualifiedName.Contains(classForMethod, StringComparison.Ordinal)
-                    && discoveredTest.FullyQualifiedName.Contains(namespaceForMethod, StringComparison.Ordinal))
-                {
-                    return true;
-                }
-                else
-                {
-                    _logger.LogDebug($"Discovered test {testMethod} did not match any tests in requested range");
-                }
+                matchedTests.Add(discoveredTest);
             }
-
-            return false;
         }
+
+        _logger.LogDebug($"Filtered {discoveredTests.Length} to {matchedTests.Count} tests");
+        return matchedTests.ToImmutable();
     }
 
-    private class DiscoveryHandler : ITestDiscoveryEventsHandler
+    private class DiscoveryHandler(BufferedProgress<RunTestsPartialResult> progress) : ITestDiscoveryEventsHandler
     {
-        private readonly BufferedProgress<RunTestsPartialResult> _progress;
+        private readonly BufferedProgress<RunTestsPartialResult> _progress = progress;
         private readonly ConcurrentBag<TestCase> _testCases = new();
         private bool _isComplete;
-
-        public DiscoveryHandler(BufferedProgress<RunTestsPartialResult> progress)
-        {
-            _progress = progress;
-        }
 
         public void HandleDiscoveredTests(IEnumerable<TestCase>? discoveredTestCases) => AddTests(discoveredTestCases);
 
@@ -159,12 +122,7 @@ internal class TestDiscoverer
         {
             if (message != null)
             {
-                _progress.Report(new RunTestsPartialResult
-                {
-                    Stage = StageName,
-                    Message = message,
-                    Progress = null,
-                });
+                _progress.Report(new RunTestsPartialResult(StageName, message, Progress: null));
             }
         }
 

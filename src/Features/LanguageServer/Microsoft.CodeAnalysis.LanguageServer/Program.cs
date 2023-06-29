@@ -153,11 +153,6 @@ static Parser CreateCommandLineParser()
         Description = "Telemetry level, Defaults to 'off'. Example values: 'all', 'crash', 'error', or 'off'.",
         IsRequired = false,
     };
-    var dotnetPathOption = new Option<string?>("--dotnetPath")
-    {
-        Description = "The path to the dotnet folder that should be used when shelling out to the dotnet CLI.",
-        IsRequired = false,
-    };
     var extensionLogDirectoryOption = new Option<string>("--extensionLogDirectory")
     {
         Description = "The directory where we should write log files to",
@@ -188,7 +183,6 @@ static Parser CreateCommandLineParser()
         brokeredServicePipeNameOption,
         logLevelOption,
         starredCompletionsPathOption,
-        dotnetPathOption,
         telemetryLevelOption,
         sessionIdOption,
         sharedDependenciesOption,
@@ -201,7 +195,6 @@ static Parser CreateCommandLineParser()
         var launchDebugger = context.ParseResult.GetValueForOption(debugOption);
         var logLevel = context.ParseResult.GetValueForOption(logLevelOption);
         var starredCompletionsPath = context.ParseResult.GetValueForOption(starredCompletionsPathOption);
-        var dotnetPath = context.ParseResult.GetValueForOption(dotnetPathOption);
         var telemetryLevel = context.ParseResult.GetValueForOption(telemetryLevelOption);
         var sessionId = context.ParseResult.GetValueForOption(sessionIdOption);
         var sharedDependenciesPath = context.ParseResult.GetValueForOption(sharedDependenciesOption);
@@ -212,7 +205,6 @@ static Parser CreateCommandLineParser()
             LaunchDebugger: launchDebugger,
             MinimumLogLevel: logLevel,
             StarredCompletionsPath: starredCompletionsPath,
-            DotnetPath: dotnetPath,
             TelemetryLevel: telemetryLevel,
             SessionId: sessionId,
             SharedDependenciesPath: sharedDependenciesPath,

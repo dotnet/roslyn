@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Composition;
-using Microsoft.CodeAnalysis.Collections;
+using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
 using Microsoft.Extensions.Logging;
 using Microsoft.TestPlatform.VsTestConsole.TranslationLayer;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
@@ -19,23 +19,16 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.LanguageServer.Testing;
 
 [Export, Shared]
-internal class TestRunner
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class TestRunner(ILoggerFactory loggerFactory)
 {
     /// <summary>
     /// TODO - localize messages. https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1799066/
     /// </summary>
     private const string StageName = "Running tests...";
 
-    private readonly IAsynchronousOperationListener _listener;
-    private readonly ILogger _logger;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public TestRunner(IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider, ILoggerFactory loggerFactory)
-    {
-        _listener = asynchronousOperationListenerProvider.GetListener(nameof(TestRunner));
-        _logger = loggerFactory.CreateLogger<TestRunner>();
-    }
+    private readonly ILogger _logger = loggerFactory.CreateLogger<TestRunner>();
 
     public async Task RunTestsAsync(
         ImmutableArray<TestCase> testCases,
@@ -43,18 +36,13 @@ internal class TestRunner
         VsTestConsoleWrapper vsTestConsoleWrapper,
         CancellationToken cancellationToken)
     {
-        var initialProgres = new TestProgress
+        var initialProgress = new TestProgress
         {
             TotalTests = testCases.Length
         };
-        progress.Report(new RunTestsPartialResult
-        {
-            Stage = StageName,
-            Message = $"{Environment.NewLine}Starting test run",
-            Progress = initialProgres
-        });
+        progress.Report(new RunTestsPartialResult(StageName, $"{Environment.NewLine}Starting test run", initialProgress));
 
-        var handler = new TestRunHandler(progress, initialProgres, _logger, _listener, cancellationToken);
+        var handler = new TestRunHandler(progress, initialProgress, _logger);
 
         // The async APIs for vs test are broken (current impl ends up just hanging), so we must use the sync API instead.
         // TODO - run settings. https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1799066/
@@ -63,42 +51,20 @@ internal class TestRunner
         await runTask;
     }
 
-    private class TestRunHandler : ITestRunEventsHandler
+    private class TestRunHandler(BufferedProgress<RunTestsPartialResult> progress, TestProgress initialProgress, ILogger logger) : ITestRunEventsHandler
     {
-        private readonly ILogger _logger;
-        private readonly BufferedProgress<RunTestsPartialResult> _progress;
-        private readonly AsyncBatchingWorkQueue<ITestRunStatistics?> _batchingWorkQueue;
-
-        /// <summary>
-        /// Serial access is gauranteed by the <see cref="_batchingWorkQueue"/> 
-        /// </summary>
-        private TestProgress _lastReport;
+        private readonly ILogger _logger = logger;
+        private readonly BufferedProgress<RunTestsPartialResult> _progress = progress;
+        private readonly TestProgress _initialProgress = initialProgress;
 
         private bool _isComplete = false;
 
-        public TestRunHandler(BufferedProgress<RunTestsPartialResult> progress, TestProgress initialProgress, ILogger logger, IAsynchronousOperationListener listener, CancellationToken cancellationToken)
-        {
-            _progress = progress;
-            _lastReport = initialProgress;
-            _logger = logger;
-
-            _batchingWorkQueue = new(
-                TimeSpan.FromMicroseconds(100),
-                OnBatchReportAsync,
-                listener,
-                cancellationToken);
-        }
-
         public void HandleLogMessage(TestMessageLevel level, string? message)
         {
-            if (message != null)
-            {
-                _progress.Report(new RunTestsPartialResult
-                {
-                    Stage = StageName,
-                    Message = message,
-                });
-            }
+            // Don't report log messages here.  The log output is dependent on the test framework being used and does not consistently
+            // report the information we desire (for example the test names that passed).  Instead we report the test run information manually.
+            // Any information here is also reported in the vs test console logs (written to the extension logs directory).
+            return;
         }
 
         public void HandleRawMessage(string rawMessage)
@@ -109,21 +75,19 @@ internal class TestRunner
 
         public void HandleTestRunComplete(TestRunCompleteEventArgs testRunCompleteArgs, TestRunChangedEventArgs? lastChunkArgs, ICollection<AttachmentSet>? runContextAttachments, ICollection<string>? executorUris)
         {
-            _batchingWorkQueue.AddWork(testRunCompleteArgs.TestRunStatistics);
             _isComplete = true;
             _logger.LogDebug($"Test run completed in {testRunCompleteArgs.ElapsedTimeInRunningTests}");
 
-            // Block until the last report goes through.
-            _batchingWorkQueue.WaitUntilCurrentBatchCompletesAsync().Wait();
+            // Report the last set of tests.
+            var stats = CreateReport(testRunCompleteArgs.TestRunStatistics);
+            var message = CreateTestCaseReportMessage(lastChunkArgs);
+            var partialResult = new RunTestsPartialResult(StageName, message ?? string.Empty, stats);
+            _progress.Report(partialResult);
 
+            // Report any errors running the tests
             if (testRunCompleteArgs.Error != null)
             {
-                _progress.Report(new RunTestsPartialResult
-                {
-                    Stage = StageName,
-                    Message = $"Test run error: {testRunCompleteArgs.Error}",
-                    Progress = _lastReport,
-                });
+                _progress.Report(partialResult with { Message = $"Test run error: {testRunCompleteArgs.Error}" });
 
                 return;
             }
@@ -137,25 +101,26 @@ internal class TestRunner
             {
                 state = "Aborted";
             }
-            else if (_lastReport.TestsFailed != 0)
+            else if (stats?.TestsFailed != 0)
             {
                 state = "Failed";
             }
 
-            var message = $"{state}!    - Failed:    {_lastReport.TestsFailed}, Passed:    {_lastReport.TestsPassed}, Skipped:    {_lastReport.TestsSkipped}, Total:    {_lastReport.TotalTests}, Duration: {testRunCompleteArgs.ElapsedTimeInRunningTests:g}";
+            // Report the test summary (similar to the dotnet test output).
+            message = @$"==== Summary ===={Environment.NewLine}{state}!  - Failed:    {stats?.TestsFailed}, Passed:    {stats?.TestsPassed}, Skipped:    {stats?.TestsSkipped}, Total:    {stats?.TotalTests}, Duration: {testRunCompleteArgs.ElapsedTimeInRunningTests:g}{Environment.NewLine}";
 
-            _progress.Report(new RunTestsPartialResult
-            {
-                Stage = StageName,
-                Message = message,
-                Progress = _lastReport
-            });
+            _progress.Report(partialResult with { Message = message });
         }
 
         public void HandleTestRunStatsChange(TestRunChangedEventArgs? testRunChangedArgs)
         {
             Contract.ThrowIfTrue(_isComplete);
-            _batchingWorkQueue.AddWork(testRunChangedArgs?.TestRunStatistics);
+            if (testRunChangedArgs?.TestRunStatistics != null)
+            {
+                var stats = CreateReport(testRunChangedArgs.TestRunStatistics);
+                var message = CreateTestCaseReportMessage(testRunChangedArgs);
+                _progress.Report(new RunTestsPartialResult(StageName, message, stats));
+            }
         }
 
         public int LaunchProcessWithDebuggerAttached(TestProcessStartInfo testProcessStartInfo)
@@ -165,19 +130,15 @@ internal class TestRunner
             throw new NotImplementedException();
         }
 
-        private ValueTask OnBatchReportAsync(ImmutableSegmentedList<ITestRunStatistics?> testRunStatistics, CancellationToken cancellationToken)
+        private TestProgress? CreateReport(ITestRunStatistics? testRunStatistics)
         {
-            // We only care about the latest report in the batch since it contains
-            // the aggregated statistics from all previous reports.
-            var latestReport = testRunStatistics.Last(r => r?.Stats != null);
-            if (latestReport == null)
+            if (testRunStatistics?.Stats == null)
             {
-                return ValueTask.CompletedTask;
+                return null;
             }
 
             long passed = 0, failed = 0, skipped = 0;
-            // Verified stats is not null above.
-            foreach (var (outcome, amount) in latestReport.Stats!)
+            foreach (var (outcome, amount) in testRunStatistics.Stats)
             {
                 switch (outcome)
                 {
@@ -195,17 +156,51 @@ internal class TestRunner
                 }
             }
 
-            var stats = _lastReport with { TestsPassed = passed, TestsFailed = failed, TestsSkipped = skipped };
-            _lastReport = stats;
+            var stats = _initialProgress with { TestsPassed = passed, TestsFailed = failed, TestsSkipped = skipped };
+            return stats;
+        }
 
-            _progress.Report(new RunTestsPartialResult
+        /// <summary>
+        /// Create a nicely formatted report of the test outcome including any error message or stack trace.
+        /// Ensures that we're not creating duplicate blank lines and have proper indentation.
+        /// </summary>
+        private static string CreateTestCaseReportMessage(TestRunChangedEventArgs? testRunChangedEventArgs)
+        {
+            if (testRunChangedEventArgs?.NewTestResults == null)
             {
-                Stage = StageName,
-                Message = string.Empty,
-                Progress = _lastReport
+                return string.Empty;
+            }
+
+            var results = testRunChangedEventArgs.NewTestResults.Select(result =>
+            {
+                var messageBuilder = new StringBuilder();
+                messageBuilder.Append($"[{result.Outcome}] {result.TestCase.DisplayName}");
+                if (result.ErrorMessage != null || result.ErrorStackTrace != null)
+                {
+                    messageBuilder.AppendLine();
+                }
+
+                if (!string.IsNullOrWhiteSpace(result.ErrorMessage))
+                {
+                    messageBuilder.AppendLine(IndentString("Message:", 4));
+                    messageBuilder.AppendLine(IndentString(result.ErrorMessage, 8));
+                }
+
+                if (!string.IsNullOrWhiteSpace(result.ErrorStackTrace))
+                {
+                    messageBuilder.AppendLine(value: IndentString("StackTrace:", 4));
+                    messageBuilder.AppendLine(IndentString(result.ErrorStackTrace, 8));
+                }
+
+                return messageBuilder.ToString();
             });
 
-            return ValueTask.CompletedTask;
+            return string.Join(Environment.NewLine, results);
+
+            static string IndentString(string text, int count)
+            {
+                return text.Replace(Environment.NewLine, $"{Environment.NewLine}        ").TrimEnd().Insert(0, new string(' ', count));
+            }
         }
     }
 }

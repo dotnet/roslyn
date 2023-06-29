@@ -254,6 +254,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension>
+        Public Function GetRightmostName(node As ExpressionSyntax) As SimpleNameSyntax
+            Dim memberAccess = TryCast(node, MemberAccessExpressionSyntax)
+            If memberAccess IsNot Nothing AndAlso memberAccess.Name IsNot Nothing Then
+                Return memberAccess.Name
+            End If
+
+            Dim qualified = TryCast(node, QualifiedNameSyntax)
+            If qualified IsNot Nothing AndAlso qualified.Right IsNot Nothing Then
+                Return qualified.Right
+            End If
+
+            Return TryCast(node, SimpleNameSyntax)
+        End Function
+
+        <Extension>
         Public Function IsNameOfArgumentExpression(expression As ExpressionSyntax) As Boolean
             Return expression.IsParentKind(SyntaxKind.NameOfExpression)
         End Function

@@ -2,16 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Concurrent;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
 using Microsoft.TestPlatform.VsTestConsole.TranslationLayer;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel.Client;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -19,24 +15,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Testing;
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(RunTestsHandler)), Shared]
 [Method(RunTestsMethodName)]
-internal class RunTestsHandler : ILspServiceDocumentRequestHandler<RunTestsParams, RunTestsPartialResult[]>
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer testDiscoverer, TestRunner testRunner, ServerConfiguration serverConfiguration) : ILspServiceDocumentRequestHandler<RunTestsParams, RunTestsPartialResult[]>
 {
     private const string RunTestsMethodName = "textDocument/runTests";
-
-    private readonly DotnetCliHelper _dotnetCliHelper;
-    private readonly TestDiscoverer _testDiscoverer;
-    private readonly TestRunner _testRunner;
-    private readonly ServerConfiguration _serverConfiguration;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer testDiscoverer, TestRunner testRunner, ServerConfiguration serverConfiguration)
-    {
-        _dotnetCliHelper = dotnetCliHelper;
-        _testDiscoverer = testDiscoverer;
-        _testRunner = testRunner;
-        _serverConfiguration = serverConfiguration;
-    }
 
     public bool MutatesSolutionState => false;
 
@@ -59,22 +42,27 @@ internal class RunTestsHandler : ILspServiceDocumentRequestHandler<RunTestsParam
         Contract.ThrowIfFalse(File.Exists(projectOutputPath), $"Output path {projectOutputPath} is missing");
 
         // Find the appropriate vstest.console.dll from the SDK.
-        var vsTestConsolePath = await _dotnetCliHelper.GetVsTestConsolePathAsync(cancellationToken);
+        var vsTestConsolePath = await dotnetCliHelper.GetVsTestConsolePathAsync(cancellationToken);
 
         // Instantiate the test platform wrapper.
         var vsTestConsoleWrapper = new VsTestConsoleWrapper(vsTestConsolePath, new ConsoleParameters
         {
-            LogFilePath = Path.Combine(_serverConfiguration.ExtensionLogDirectory, "vsTestConsoleLogs.txt"),
-            TraceLevel = GetTraceLevel(_serverConfiguration),
+            LogFilePath = Path.Combine(serverConfiguration.ExtensionLogDirectory, "testLogs", "vsTestLogs.txt"),
+            TraceLevel = GetTraceLevel(serverConfiguration),
+            EnvironmentVariables = new()
+            {
+                // Reset dotnet root to the user's original configuration so that vs test console can find the right runtimes.
+                { DotnetCliHelper.DotnetRootEnvVar, DotnetCliHelper.GetUserDotnetRoot() },
+            }
         });
 
-        var testCases = await _testDiscoverer.DiscoverTestsAsync(request.Range, context.Document, projectOutputPath, progress, vsTestConsoleWrapper, cancellationToken);
+        var testCases = await testDiscoverer.DiscoverTestsAsync(request.Range, context.Document, projectOutputPath, progress, vsTestConsoleWrapper, cancellationToken);
         if (testCases.IsEmpty)
         {
             return progress.GetValues() ?? Array.Empty<RunTestsPartialResult>();
         }
 
-        await _testRunner.RunTestsAsync(testCases, progress, vsTestConsoleWrapper, cancellationToken);
+        await testRunner.RunTestsAsync(testCases, progress, vsTestConsoleWrapper, cancellationToken);
 
         return progress.GetValues() ?? Array.Empty<RunTestsPartialResult>();
     }
@@ -93,9 +81,9 @@ internal class RunTestsHandler : ILspServiceDocumentRequestHandler<RunTestsParam
         Contract.ThrowIfNull(workingDirectory, $"Unable to get working directory for project {document.Project.Name}");
 
         // TODO - we likely need to pass the no-restore flag once we have automatic restore enabled.
-        // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1776138/
+        // https://github.com/dotnet/vscode-csharp/issues/5725
         var arguments = "build";
-        using var process = _dotnetCliHelper.Run(arguments, workingDirectory);
+        using var process = dotnetCliHelper.Run(arguments, workingDirectory);
 
         process.OutputDataReceived += (sender, args) =>
         {
@@ -124,12 +112,7 @@ internal class RunTestsHandler : ILspServiceDocumentRequestHandler<RunTestsParam
 
         static void ReportProgress(BufferedProgress<RunTestsPartialResult> progress, string buildOutput)
         {
-            progress.Report(new RunTestsPartialResult
-            {
-                Message = buildOutput,
-                Stage = "Building project...",
-                Progress = null,
-            });
+            progress.Report(new RunTestsPartialResult("Building project...", buildOutput, Progress: null));
         }
     }
 

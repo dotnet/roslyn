@@ -1919,15 +1919,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return initializer.Initializer.Initializers
         End Function
 
-        Public Function GetRightmostNameOfExpression(node As SyntaxNode) As String Implements ISyntaxFacts.GetRightmostNameOfExpression
-            Dim expression = TryCast(node, ExpressionSyntax)
-            If expression Is Nothing Then
-                Return Nothing
-            End If
-
-            Return expression.GetRightmostName()?.Identifier.Text
-        End Function
-
 #End Region
 
     End Class

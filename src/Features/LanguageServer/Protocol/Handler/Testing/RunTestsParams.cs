@@ -2,22 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Runtime.Serialization;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Testing;
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
 
 [DataContract]
-internal class RunTestsParams : IPartialResultParams<RunTestsPartialResult>
+internal record RunTestsParams(
+    [property: DataMember(Name = "textDocument")] TextDocumentIdentifier TextDocument,
+    [property: DataMember(Name = "range")] VisualStudio.LanguageServer.Protocol.Range Range
+) : IPartialResultParams<RunTestsPartialResult>
 {
     [DataMember(Name = Methods.PartialResultTokenName)]
     [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
     public IProgress<RunTestsPartialResult>? PartialResultToken { get; set; }
-
-    [DataMember(Name = "textDocument")]
-    public TextDocumentIdentifier TextDocument { get; set; }
-
-    [DataMember(Name = "range")]
-    public VisualStudio.LanguageServer.Protocol.Range Range { get; set; }
 }

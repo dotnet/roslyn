@@ -29,7 +29,6 @@ internal record class ServerConfiguration(
     bool LaunchDebugger,
     LogLevel MinimumLogLevel,
     string? StarredCompletionsPath,
-    string? DotnetPath,
     string? TelemetryLevel,
     string? SessionId,
     string? SharedDependenciesPath,
