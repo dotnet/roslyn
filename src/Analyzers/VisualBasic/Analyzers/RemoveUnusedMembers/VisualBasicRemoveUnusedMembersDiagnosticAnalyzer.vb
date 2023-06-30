@@ -56,6 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedMembers
             For Each reference In namedType.DeclaringSyntaxReferences
                 Dim node = reference.GetSyntax(cancellationToken)
 
+                node = If(TryCast(node, TypeStatementSyntax)?.Parent, node)
                 Dim typeBlock = TryCast(node, TypeBlockSyntax)
                 If typeBlock Is Nothing Then
                     Continue For
