@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -18,6 +16,7 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 {
@@ -102,11 +101,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             /// Here, 'get' accessor is used in an increment operation, but the result of the increment operation isn't used and 'P' itself is not used anywhere else, so it can be safely removed
             /// </summary>
             private readonly HashSet<IPropertySymbol> _propertiesWithShadowGetAccessorUsages = new();
-            private readonly INamedTypeSymbol _taskType, _genericTaskType, _debuggerDisplayAttributeType, _structLayoutAttributeType;
-            private readonly INamedTypeSymbol _eventArgsType;
-            private readonly INamedTypeSymbol _iNotifyCompletionType;
+            private readonly INamedTypeSymbol? _taskType, _genericTaskType, _debuggerDisplayAttributeType, _structLayoutAttributeType;
+            private readonly INamedTypeSymbol? _eventArgsType;
+            private readonly INamedTypeSymbol? _iNotifyCompletionType;
             private readonly DeserializationConstructorCheck _deserializationConstructorCheck;
-            private readonly ImmutableHashSet<INamedTypeSymbol> _attributeSetForMethodsToIgnore;
+            private readonly ImmutableHashSet<INamedTypeSymbol?> _attributeSetForMethodsToIgnore;
             private readonly AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax, TTypeDeclarationSyntax, TMemberDeclarationSyntax> _analyzer;
 
             private CompilationAnalyzer(
@@ -123,7 +122,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 _eventArgsType = compilation.EventArgsType();
                 _iNotifyCompletionType = compilation.GetBestTypeByMetadataName(typeof(INotifyCompletion).FullName!);
                 _deserializationConstructorCheck = new DeserializationConstructorCheck(compilation);
-                _attributeSetForMethodsToIgnore = ImmutableHashSet.CreateRange(GetAttributesForMethodsToIgnore(compilation));
+                _attributeSetForMethodsToIgnore = ImmutableHashSet.CreateRange<INamedTypeSymbol?>(GetAttributesForMethodsToIgnore(compilation));
             }
 
             private static Location GetDiagnosticLocation(ISymbol symbol)
@@ -278,7 +277,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 }
             }
 
-            private void OnSymbolUsage(ISymbol memberSymbol, ValueUsageInfo usageInfo)
+            private void OnSymbolUsage(ISymbol? memberSymbol, ValueUsageInfo usageInfo)
             {
                 if (!IsCandidateSymbol(memberSymbol))
                 {
@@ -344,7 +343,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                         // while the increment operation '_f2++' is child of a return statement, which uses the result of the increment.
                         // For the above test, '_f1' can be safely removed without affecting the semantics of the program, while '_f2' cannot be removed.
 
-                        if (memberReference.Parent.Parent is IExpressionStatementOperation)
+                        if (memberReference?.Parent?.Parent is IExpressionStatementOperation)
                         {
                             valueUsageInfo = ValueUsageInfo.Write;
 
@@ -399,7 +398,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 // Workaround for https://github.com/dotnet/roslyn/issues/19965
                 // IOperation API does not expose potential references to methods/properties within
                 // a bound method group/property group.
-                var symbolInfo = nameofArgument.SemanticModel.GetSymbolInfo(nameofArgument.Syntax, operationContext.CancellationToken);
+                var symbolInfo = nameofArgument.SemanticModel!.GetSymbolInfo(nameofArgument.Syntax, operationContext.CancellationToken);
                 foreach (var symbol in symbolInfo.GetAllSymbols())
                 {
                     switch (symbol.Kind)
@@ -416,7 +415,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
             private void AnalyzeObjectCreationOperation(OperationAnalysisContext operationContext)
             {
-                var constructor = ((IObjectCreationOperation)operationContext.Operation).Constructor.OriginalDefinition;
+                var constructor = ((IObjectCreationOperation)operationContext.Operation).Constructor?.OriginalDefinition;
 
                 // An object creation is considered as a read reference to the constructor
                 // to ensure that we consider the constructor as "used".
@@ -553,7 +552,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
             private static bool HasSyntaxErrors(INamedTypeSymbol namedTypeSymbol, CancellationToken cancellationToken)
             {
-                foreach (var tree in namedTypeSymbol.Locations.Select(l => l.SourceTree))
+                foreach (var tree in namedTypeSymbol.Locations.Select(l => l.SourceTree).WhereNotNull())
                 {
                     if (tree.GetDiagnostics(cancellationToken).Any(d => d.Severity == DiagnosticSeverity.Error))
                     {
@@ -578,7 +577,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 foreach (var group in documentationComments.GroupBy(d => d.SyntaxTree))
                 {
                     var syntaxTree = group.Key;
-                    SemanticModel lazyModel = null;
+                    SemanticModel? lazyModel = null;
 
                     foreach (var docComment in group)
                     {
@@ -693,7 +692,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             ///        or the 'IsCompleted' property which is needed to make a type awaitable.
             ///     7. If event, then it must not be an explicit interface event implementation.
             /// </summary>
-            private bool IsCandidateSymbol([NotNullWhen(true)] ISymbol memberSymbol)
+            private bool IsCandidateSymbol([NotNullWhen(true)] ISymbol? memberSymbol)
             {
                 if (memberSymbol is null)
                     return false;
@@ -784,7 +783,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                                     }
 
                                     // Ignore methods which make a type awaitable.
-                                    if (methodSymbol.ContainingType.AllInterfaces.Contains(_iNotifyCompletionType, SymbolEqualityComparer.Default)
+                                    if (_iNotifyCompletionType != null && Roslyn.Utilities.ImmutableArrayExtensions.Contains(methodSymbol.ContainingType.AllInterfaces, _iNotifyCompletionType, SymbolEqualityComparer.Default)
                                         && methodSymbol.Name is "GetAwaiter" or "GetResult")
                                     {
                                         return false;
@@ -800,7 +799,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                             return ((IFieldSymbol)memberSymbol).AssociatedSymbol == null;
 
                         case SymbolKind.Property:
-                            if (memberSymbol.ContainingType.AllInterfaces.Contains(_iNotifyCompletionType) && memberSymbol.Name == "IsCompleted")
+                            if (_iNotifyCompletionType != null && memberSymbol.ContainingType.AllInterfaces.Contains(_iNotifyCompletionType) && memberSymbol.Name == "IsCompleted")
                             {
                                 return false;
                             }
