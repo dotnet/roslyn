@@ -4551,7 +4551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (expression)
                 {
                     case BoundBinaryOperator binary:
-                        getParts((BoundInterpolatedString)binary.Right);
+                        GetInterpolatedStringHandlerArgumentsForEscape(binary.Right, arguments);
                         expression = binary.Left;
                         break;
 
