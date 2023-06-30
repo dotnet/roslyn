@@ -2158,12 +2158,13 @@ public class InterceptorsTests : CSharpTestBase
             #nullable enable
 
             using System.Runtime.CompilerServices;
+            using System;
 
             class C
             {
                 public static void InterceptableMethod<T1>(T1 t) => throw null!;
 
-                public static void Usage()
+                public static void Main()
                 {
                     C.InterceptableMethod<string?>(null);
                 }
@@ -2171,15 +2172,15 @@ public class InterceptorsTests : CSharpTestBase
 
             static class D
             {
-                [InterceptsLocation("Program.cs", 11, 11)] // 1
-                public static void Interceptor1<T>(T t) where T : notnull => throw null!;
+                [InterceptsLocation("Program.cs", 12, 11)] // 1
+                public static void Interceptor1<T>(T t) where T : notnull => Console.Write(1);
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
-        comp.VerifyEmitDiagnostics(
-            // Program.cs(17,6): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'D.Interceptor1<T>(T)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
-            //     [InterceptsLocation("Program.cs", 11, 11)] // 1
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, @"InterceptsLocation(""Program.cs"", 11, 11)").WithArguments("D.Interceptor1<T>(T)", "T", "string?").WithLocation(17, 6));
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "1");
+        verifier.VerifyDiagnostics(
+            // Program.cs(18,6): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'D.Interceptor1<T>(T)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+            //     [InterceptsLocation("Program.cs", 12, 11)] // 1
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, @"InterceptsLocation(""Program.cs"", 12, 11)").WithArguments("D.Interceptor1<T>(T)", "T", "string?").WithLocation(18, 6));
     }
 
     [Fact]
