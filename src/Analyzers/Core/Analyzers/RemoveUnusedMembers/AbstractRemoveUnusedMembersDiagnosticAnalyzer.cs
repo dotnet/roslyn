@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -53,6 +54,23 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             : base(ImmutableArray.Create(s_removeUnusedMembersRule, s_removeUnreadMembersRule),
                    GeneratedCodeAnalysisFlags.Analyze) // We want to analyze references in generated code, but not report unused members in generated code.
         {
+        }
+
+        protected abstract void AddAllDocumentationComments(
+            INamedTypeSymbol namedType, ArrayBuilder<TDocumentationCommentTriviaSyntax> documentationComments, CancellationToken cancellationToken);
+
+        protected static void AddDocumentationComments(
+            SyntaxNode memberDeclaration, ArrayBuilder<TDocumentationCommentTriviaSyntax> documentationComments)
+        {
+            var firstToken = memberDeclaration.GetFirstToken();
+            if (!firstToken.HasStructuredTrivia)
+                return;
+
+            foreach (var trivia in firstToken.LeadingTrivia)
+            {
+                if (trivia.HasStructure)
+                    documentationComments.AddIfNotNull(trivia.GetStructure() as TDocumentationCommentTriviaSyntax);
+            }
         }
 
         // We need to analyze the whole document even for edits within a method body,
@@ -560,18 +578,23 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 HashSet<ISymbol> builder,
                 CancellationToken cancellationToken)
             {
-                foreach (var root in namedTypeSymbol.Locations.Select(l => l.SourceTree.GetRoot(cancellationToken)))
+                using var _ = ArrayBuilder<TDocumentationCommentTriviaSyntax>.GetInstance(out var documentationComments);
+                _analyzer.AddAllDocumentationComments(namedTypeSymbol, documentationComments, cancellationToken);
+
+                foreach (var group in documentationComments.GroupBy(d => d.SyntaxTree))
                 {
+                    var syntaxTree = group.Key;
                     SemanticModel lazyModel = null;
-                    foreach (var node in root.DescendantNodes(descendIntoTrivia: true)
-                                             .OfType<TDocumentationCommentTriviaSyntax>()
-                                             .SelectMany(n => n.DescendantNodes().OfType<TIdentifierNameSyntax>()))
+
+                    foreach (var docComment in group)
                     {
-                        lazyModel ??= compilation.GetSemanticModel(root.SyntaxTree);
-                        var symbol = lazyModel.GetSymbolInfo(node, cancellationToken).Symbol?.OriginalDefinition;
-                        if (symbol != null && IsCandidateSymbol(symbol))
+                        foreach (var node in docComment.DescendantNodes().OfType<TIdentifierNameSyntax>())
                         {
-                            builder.Add(symbol);
+                            lazyModel ??= compilation.GetSemanticModel(syntaxTree);
+                            var symbol = lazyModel.GetSymbolInfo(node, cancellationToken).Symbol?.OriginalDefinition;
+
+                            if (IsCandidateSymbol(symbol))
+                                builder.Add(symbol);
                         }
                     }
                 }
@@ -623,8 +646,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             ///        or the 'IsCompleted' property which is needed to make a type awaitable.
             ///     7. If event, then it must not be an explicit interface event implementation.
             /// </summary>
-            private bool IsCandidateSymbol(ISymbol memberSymbol)
+            private bool IsCandidateSymbol([NotNullWhen(true)] ISymbol memberSymbol)
             {
+                if (memberSymbol is null)
+                    return false;
+
                 Debug.Assert(memberSymbol == memberSymbol.OriginalDefinition);
 
                 if (memberSymbol.DeclaredAccessibility == Accessibility.Private &&

@@ -2,7 +2,9 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.RemoveUnusedMembers
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -42,6 +44,47 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedMembers
                     onSymbolUsageFound(symbol, ValueUsageInfo.Read)
                 Next
             Next
+        End Sub
+
+        Protected Overrides Sub AddAllDocumentationComments(
+                namedType As INamedTypeSymbol,
+                documentationComments As ArrayBuilder(Of DocumentationCommentTriviaSyntax),
+                cancellationToken As CancellationToken)
+
+            Dim stack = ArrayBuilder(Of TypeBlockSyntax).GetInstance()
+
+            For Each reference In namedType.DeclaringSyntaxReferences
+                Dim node = reference.GetSyntax(cancellationToken)
+
+                Dim typeBlock = TryCast(node, TypeBlockSyntax)
+                If typeBlock Is Nothing Then
+                    Continue For
+                End If
+
+                stack.Clear()
+                stack.Push(typeBlock)
+
+                While stack.Count > 0
+                    Dim currentType = stack.Pop()
+
+                    ' Add the doc comments on the type itself.
+                    AddDocumentationComments(currentType, documentationComments)
+
+                    ' Walk each member
+                    For Each member In currentType.GetMembers()
+                        Dim childType = TryCast(member, TypeBlockSyntax)
+                        If childType IsNot Nothing Then
+                            ' If the member Is a nested type, recurse into it.
+                            stack.Push(childType)
+                        Else
+                            ' Otherwise, add the doc comments on the member itself.
+                            AddDocumentationComments(member, documentationComments)
+                        End If
+                    Next
+                End While
+            Next
+
+            stack.Free()
         End Sub
     End Class
 End Namespace
