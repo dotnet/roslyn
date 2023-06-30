@@ -573,6 +573,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 using var _ = ArrayBuilder<TDocumentationCommentTriviaSyntax>.GetInstance(out var documentationComments);
                 AddAllDocumentationComments();
 
+                // Group by syntax tree so we can process all partial types within a tree at once, using just a single
+                // semantic model.
                 foreach (var group in documentationComments.GroupBy(d => d.SyntaxTree))
                 {
                     var syntaxTree = group.Key;
@@ -580,6 +582,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
                     foreach (var docComment in group)
                     {
+                        // Note: we could likely optimize this further by only analyzing identifier nodes that have a
+                        // matching name to one of the candidate symbols we care about.
                         foreach (var node in docComment.DescendantNodes().OfType<TIdentifierNameSyntax>())
                         {
                             lazyModel ??= compilation.GetSemanticModel(syntaxTree);
@@ -597,6 +601,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 {
                     using var _ = ArrayBuilder<TTypeDeclarationSyntax>.GetInstance(out var stack);
 
+                    // Defer to subclass to give us the type decl nodes for this named type.
                     foreach (var typeDeclaration in _analyzer.GetTypeDeclarations(namedTypeSymbol, cancellationToken))
                     {
                         stack.Clear();
