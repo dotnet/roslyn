@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 interceptor = interceptor.Construct(typeArgumentsBuilder.ToImmutableAndFree());
-                if (!interceptor.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this._compilation, this._compilation.Conversions, includeNullability: false, attributeLocation, this._diagnostics)))
+                if (!interceptor.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this._compilation, this._compilation.Conversions, includeNullability: true, attributeLocation, this._diagnostics)))
                 {
                     return;
                 }

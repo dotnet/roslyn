@@ -2152,6 +2152,37 @@ public class InterceptorsTests : CSharpTestBase
     }
 
     [Fact]
+    public void InterceptableGeneric_16()
+    {
+        var source = """
+            #nullable enable
+
+            using System.Runtime.CompilerServices;
+
+            class C
+            {
+                public static void InterceptableMethod<T1>(T1 t) => throw null!;
+
+                public static void Usage()
+                {
+                    C.InterceptableMethod<string?>(null);
+                }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 11, 11)] // 1
+                public static void Interceptor1<T>(T t) where T : notnull => throw null!;
+            }
+            """;
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(17,6): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'D.Interceptor1<T>(T)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+            //     [InterceptsLocation("Program.cs", 11, 11)] // 1
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, @"InterceptsLocation(""Program.cs"", 11, 11)").WithArguments("D.Interceptor1<T>(T)", "T", "string?").WithLocation(17, 6));
+    }
+
+    [Fact]
     public void InterceptsLocationBadAttributeArguments_01()
     {
         var source = """
