@@ -9579,6 +9579,7 @@ public static class Program
                 // (8,15): warning CS9502: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
                 //         M(ref x);
                 Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(8, 15));
+            var comp1Ref = comp1.ToMetadataReference();
 
             var source2 = """
                 class D
@@ -9592,10 +9593,20 @@ public static class Program
                     }
                 }
                 """;
-            CreateCompilation(source2, new[] { comp1.ToMetadataReference() }, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+            CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (7,17): error CS9505: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version preview or greater.
                 //         c.M(ref x);
                 Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "preview").WithLocation(7, 17));
+
+            var expectedDiagnostics = new[]
+            {
+                // (7,17): warning CS9502: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+                //         c.M(ref x);
+                Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(7, 17)
+            };
+
+            CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source2, new[] { comp1Ref }).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]

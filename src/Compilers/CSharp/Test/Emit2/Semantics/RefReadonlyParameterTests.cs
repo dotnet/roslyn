@@ -1982,6 +1982,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (7,11): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
             //         M(x);
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(7, 11));
+        var comp1Ref = comp1.ToMetadataReference();
 
         var source2 = """
             class D
@@ -1995,13 +1996,23 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                 }
             }
             """;
-        CreateCompilation(source2, new[] { comp1.ToMetadataReference() }, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+        CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
             // (6,13): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //         c.M(x);
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("ref readonly parameters").WithLocation(6, 13),
             // (8,16): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //         c.M(in x);
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("ref readonly parameters").WithLocation(8, 16));
+
+        var expectedDiagnostics = new[]
+        {
+            // (6,13): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            //         c.M(x);
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(6, 13)
+        };
+
+        CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source2, new[] { comp1Ref }).VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Fact]
