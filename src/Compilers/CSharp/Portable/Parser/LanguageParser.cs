@@ -7462,7 +7462,7 @@ done:;
                 || IsExpectedBinaryOperator(this.CurrentToken.Kind)
                 || IsExpectedAssignmentOperator(this.CurrentToken.Kind)
                 || this.CurrentToken.Kind is SyntaxKind.DotDotToken
-                || this.CurrentToken.ContextualKind is SyntaxKind.SwitchKeyword or SyntaxKind.WithKeyword && this.PeekToken(1).Kind is SyntaxKind.OpenBraceToken;
+                || (this.CurrentToken.ContextualKind is SyntaxKind.SwitchKeyword or SyntaxKind.WithKeyword && this.PeekToken(1).Kind is SyntaxKind.OpenBraceToken);
 
             if (!isCollectionExpression &&
                 hadBracketArgumentList &&
