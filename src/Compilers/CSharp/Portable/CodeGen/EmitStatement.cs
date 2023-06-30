@@ -613,7 +613,7 @@ oneMoreTime:
                     dest ??= new object();
 
                     DefineLocals(loweredIs.Syntax, loweredIs.Locals);
-                    EmitStatements(loweredIs.Statements);
+                    EmitSideEffects(loweredIs.Statements);
 
                     if (sense)
                     {

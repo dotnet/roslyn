@@ -359,14 +359,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitLoweredIsPatternExpression(BoundLoweredIsPatternExpression node, bool used)
         {
             DefineLocals(node.Syntax, node.Locals);
-#if !DEBUG
-            EmitStatements(node.Statements);
-#else
-            foreach (BoundStatement statement in node.Statements)
-            {
-                EmitStatement(statement, _builder.GetStackDepth());
-            }
-#endif
+            EmitSideEffects(node.Statements);
+
             if (!used)
             {
                 _builder.MarkLabel(node.WhenTrueLabel);
@@ -385,6 +379,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             FreeLocals(node.Locals);
+        }
+
+        private void EmitSideEffects(ImmutableArray<BoundStatement> statements)
+        {
+#if !DEBUG
+            EmitStatements(statements);
+#else
+            int stackDepth = _builder.GetStackDepth();
+            foreach (BoundStatement statement in statements)
+            {
+                EmitStatement(statement, stackDepth);
+            }
+#endif
         }
 
         private void EmitThrowExpression(BoundThrowExpression node, bool used)

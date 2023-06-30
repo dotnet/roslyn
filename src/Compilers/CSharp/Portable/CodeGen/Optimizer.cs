@@ -569,6 +569,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return VisitSideEffect(node);
         }
 
+        public ImmutableArray<BoundStatement> VisitSideEffects(ImmutableArray<BoundStatement> statements)
+        {
+            var result = ArrayBuilder<BoundStatement>.GetInstance(statements.Length);
+            foreach (BoundStatement statement in statements)
+            {
+                result.Add((BoundStatement)VisitSideEffect(statement));
+            }
+
+            return result.ToImmutableAndFree();
+        }
+
         public BoundNode VisitSideEffect(BoundNode node)
         {
             var origStack = StackDepth();
@@ -1448,14 +1459,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         public override BoundNode VisitLoweredIsPatternExpression(BoundLoweredIsPatternExpression node)
         {
             DeclareLocals(node.Locals, StackDepth());
-            var statements = ArrayBuilder<BoundStatement>.GetInstance(node.Statements.Length);
-            foreach (BoundStatement statement in node.Statements)
-            {
-                statements.Add((BoundStatement)VisitSideEffect(statement));
-            }
+            var statements = VisitSideEffects(node.Statements);
             RecordBranch(node.WhenTrueLabel);
             RecordBranch(node.WhenFalseLabel);
-            return node.Update(node.Locals, statements.ToImmutableAndFree(), node.WhenTrueLabel, node.WhenFalseLabel, VisitType(node.Type));
+            return node.Update(node.Locals, statements, node.WhenTrueLabel, node.WhenFalseLabel, VisitType(node.Type));
         }
 
         public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
