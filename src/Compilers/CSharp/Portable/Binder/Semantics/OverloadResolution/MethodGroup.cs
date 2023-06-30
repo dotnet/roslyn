@@ -42,9 +42,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression receiverOpt,
             ArrayBuilder<Symbol> members,
             ImmutableArray<TypeWithAnnotations> typeArguments,
+            bool isExtensionMethodGroup,
             LookupResultKind resultKind = LookupResultKind.Viable,
-            DiagnosticInfo error = null,
-            bool isExtensionMethodGroup = true)
+            DiagnosticInfo error = null)
         {
             this.PopulateHelper(receiverOpt, resultKind, error);
             this.IsExtensionMethodGroup = isExtensionMethodGroup;

@@ -869,7 +869,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var result = LookupResult.GetInstance();
-            LookupOptions options = GetSimpleNameLookupOptions(node, node.Identifier.IsVerbatimIdentifier(), qualifierOpt);
+            LookupOptions options = GetSimpleNameLookupOptions(node, node.Identifier.IsVerbatimIdentifier());
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             this.LookupSymbolsSimpleName(result, qualifierOpt, identifierValueText, 0, basesBeingResolved, options, diagnose: true, useSiteInfo: ref useSiteInfo);
@@ -1067,7 +1067,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Gets the name lookup options for simple generic or non-generic name.
-        private static LookupOptions GetSimpleNameLookupOptions(NameSyntax node, bool isVerbatimIdentifier, NamespaceOrTypeSymbol qualifierOpt)
+        private static LookupOptions GetSimpleNameLookupOptions(NameSyntax node, bool isVerbatimIdentifier)
         {
             LookupOptions result;
             if (SyntaxFacts.IsAttributeName(node))
@@ -1212,7 +1212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SeparatedSyntaxList<TypeSyntax> typeArguments = node.TypeArgumentList.Arguments;
 
             bool isUnboundTypeExpr = node.IsUnboundGenericName;
-            LookupOptions options = GetSimpleNameLookupOptions(node, isVerbatimIdentifier: false, qualifierOpt);
+            LookupOptions options = GetSimpleNameLookupOptions(node, isVerbatimIdentifier: false);
 
             NamedTypeSymbol unconstructedType = LookupGenericTypeName(
                 diagnostics, basesBeingResolved, qualifierOpt, node, plainName, node.Arity, options);

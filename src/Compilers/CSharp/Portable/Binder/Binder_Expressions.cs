@@ -6767,7 +6767,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 this.LookupMembersWithFallback(lookupResult, ns, rightName, rightArity, ref useSiteInfo, options: options);
-
                 diagnostics.Add(right, useSiteInfo);
 
                 ArrayBuilder<Symbol> symbols = lookupResult.Symbols;
@@ -6935,25 +6934,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (expr.Kind)
             {
                 case BoundKind.MethodGroup:
+                    if (expr is BoundMethodGroup { Methods: [], SearchExtensionMethods: true } methodGroup)
                     {
-                        if (expr is BoundMethodGroup { Methods: [], SearchExtensionMethods: true } methodGroup)
+                        CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                        var resolution = this.ResolveMethodGroup(methodGroup, analyzedArguments: null, isMethodGroupConversion: false, ref useSiteInfo);
+                        diagnostics.Add(expr.Syntax, useSiteInfo);
+
+                        if (resolution.IsExtensionMember(out Symbol extensionMember))
                         {
-                            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                            var resolution = this.ResolveMethodGroup(methodGroup, analyzedArguments: null, isMethodGroupConversion: false, ref useSiteInfo);
-                            diagnostics.Add(expr.Syntax, useSiteInfo);
-
-                            if (resolution.IsExtensionMember(out Symbol extensionMember))
-                            {
-                                resolution.Free();
-                                return GetExtensionMemberAccess(methodGroup.Syntax, methodGroup.ReceiverOpt, extensionMember, diagnostics);
-                            }
-
                             resolution.Free();
-                            return expr;
+                            return GetExtensionMemberAccess(methodGroup.Syntax, methodGroup.ReceiverOpt, extensionMember, diagnostics);
                         }
 
-                        return expr;
+                        resolution.Free();
                     }
+
+                    return expr;
                 // PROTOTYPE need to handle PropertyGroup as well
 
                 default:
@@ -6987,14 +6983,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // UNDONE: Classify E as prop access, indexer access, variable or value
 
                 bool leftIsBaseReference = boundLeft.Kind == BoundKind.BaseReference;
-                searchExtensionMethodsIfNecessary = searchExtensionMethodsIfNecessary && !leftIsBaseReference;
-
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 this.LookupInstanceMember(lookupResult, leftType, leftIsBaseReference, rightName, rightArity, invoked, ref useSiteInfo);
                 diagnostics.Add(right, useSiteInfo);
 
                 // SPEC: Otherwise, an attempt is made to process E.I as an extension method invocation.
                 // SPEC: If this fails, E.I is an invalid member reference, and a binding-time error occurs.
+                searchExtensionMethodsIfNecessary = searchExtensionMethodsIfNecessary && !leftIsBaseReference;
+
                 BoundMethodGroupFlags flags = BoundMethodGroupFlags.None;
                 if (searchExtensionMethodsIfNecessary)
                 {
@@ -7368,6 +7364,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            members.Free();
             return result;
         }
 
@@ -7523,7 +7520,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var methodGroup = MethodGroup.GetInstance();
-                methodGroup.PopulateWithExtensionMethods(left, members, typeArgumentsWithAnnotations, lookupResult.Kind, isExtensionMethodGroup: false);
+                methodGroup.PopulateWithExtensionMethods(left, members, typeArgumentsWithAnnotations, isExtensionMethodGroup: false, resultKind: lookupResult.Kind);
                 members.Free();
 
                 if (analyzedArguments is null)
@@ -7660,7 +7657,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Symbol symbol = GetSymbolOrMethodOrPropertyGroup(lookupResult, node, rightName, arity, members, diagnostics, out wasError, qualifierOpt: null);
                 Debug.Assert((object)symbol == null);
                 Debug.Assert(members.Count > 0);
-                methodGroup.PopulateWithExtensionMethods(left, members, typeArgumentsWithAnnotations, lookupResult.Kind);
+                methodGroup.PopulateWithExtensionMethods(left, members, typeArgumentsWithAnnotations, isExtensionMethodGroup: true, resultKind: lookupResult.Kind);
                 members.Free();
             }
 

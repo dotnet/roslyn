@@ -4,12 +4,10 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -111,7 +109,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (resolution.IsExtensionMember(out var extensionMember))
             {
                 var nestedConversion = ClassifyConversionFromExpressionType(extensionMember.GetTypeOrReturnType().Type, destination, isChecked: false, ref useSiteInfo);
-                return new Conversion(extensionMember, nestedConversion);
+                if (nestedConversion.Kind != ConversionKind.NoConversion)
+                {
+                    return new Conversion(extensionMember, nestedConversion);
+                }
             }
 
             var conversion = (resolution.IsEmpty || resolution.HasAnyErrors) ?
@@ -133,8 +134,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (resolution.IsExtensionMember(out Symbol extensionMember) && extensionMember is not NamedTypeSymbol)
                 {
                     var nestedConversion = ClassifyConversionFromExpressionType(extensionMember.GetTypeOrReturnType().Type, destination, isChecked: false, ref useSiteInfo);
-                    extensionMemberConversion = new Conversion(extensionMember, nestedConversion);
-                    return true;
+                    if (nestedConversion.Kind != ConversionKind.NoConversion)
+                    {
+                        extensionMemberConversion = new Conversion(extensionMember, nestedConversion);
+                        return true;
+                    }
                 }
 
                 extensionMemberConversion = default;
