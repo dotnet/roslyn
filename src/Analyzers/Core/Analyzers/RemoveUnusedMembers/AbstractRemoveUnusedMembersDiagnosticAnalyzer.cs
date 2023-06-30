@@ -552,7 +552,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
             private static bool HasSyntaxErrors(INamedTypeSymbol namedTypeSymbol, CancellationToken cancellationToken)
             {
-                foreach (var tree in namedTypeSymbol.Locations.Select(l => l.SourceTree).WhereNotNull())
+                foreach (var tree in namedTypeSymbol.Locations.Select(l => l.SourceTree).Distinct().WhereNotNull())
                 {
                     if (tree.GetDiagnostics(cancellationToken).Any(d => d.Severity == DiagnosticSeverity.Error))
                     {
