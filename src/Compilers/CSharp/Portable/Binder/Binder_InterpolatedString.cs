@@ -642,7 +642,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                diagnostics.AddRangeAndFree(outConstructorDiagnostics);
+                addAndFreeConstructorDiagnostics(target: diagnostics, source: outConstructorDiagnostics);
                 constructorCall = outConstructorCall;
                 additionalConstructorArguments = outConstructorAdditionalArguments;
             }
