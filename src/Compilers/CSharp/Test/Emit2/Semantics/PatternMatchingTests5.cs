@@ -3344,5 +3344,51 @@ class Outer
                 Diagnostic(ErrorCode.ERR_ConstantExpected, expression).WithLocation(6, 22)
             );
         }
+
+        [Fact]
+        public void IsPatternExpressionWithAwait()
+        {
+            var source = """
+using System;
+using System.Threading.Tasks;
+
+Console.WriteLine(await Async1(30));
+Console.WriteLine(await Async1(40));
+Console.WriteLine(await Async1(50));
+
+Console.WriteLine(await Async2(30));
+Console.WriteLine(await Async2(40));
+Console.WriteLine(await Async2(50));
+
+Console.WriteLine(await Async3(30));
+Console.WriteLine(await Async3(40));
+Console.WriteLine(await Async3(50));
+
+static async Task<bool> Async1(int i) {
+    // sub-expression
+    return await Task.FromResult(false) || i is 30 or 40;
+}
+static async Task<bool> Async2(int i) {
+    // input-expression
+    return await Task.FromResult(i) is 30 or 40;
+}
+static async Task<bool> Async3(int i) {
+    // expression-list
+    return (await Task.FromResult(0), i is 30 or 40).Item2;
+}
+""";
+            var comp = CreateCompilation(source);
+            CompileAndVerify(comp, expectedOutput: """
+True
+True
+False
+True
+True
+False
+True
+True
+False
+""");
+        }
     }
 }

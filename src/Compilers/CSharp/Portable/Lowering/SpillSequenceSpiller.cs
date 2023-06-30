@@ -666,6 +666,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Expression Visitors
 
+        public override BoundNode VisitLoweredIsPatternExpression(BoundLoweredIsPatternExpression node)
+        {
+            var builder = new BoundSpillSequenceBuilder(node.Syntax);
+            builder.AddLocals(node.Locals);
+            builder.AddStatements(VisitList(node.Statements));
+            var temp = Spill(builder, node.Update(
+                ImmutableArray<LocalSymbol>.Empty, ImmutableArray<BoundStatement>.Empty,
+                node.WhenTrueLabel, node.WhenFalseLabel, VisitType(node.Type)));
+            return builder.Update(temp);
+        }
+
         public override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
         {
             // An await expression has already been wrapped in a BoundSpillSequence if not at the top level, so
