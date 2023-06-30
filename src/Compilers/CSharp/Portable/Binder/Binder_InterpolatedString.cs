@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression constructorCall;
             var outConstructorDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: diagnostics.AccumulatesDependencies);
-            var outConstructorCall = MakeConstructorInvocation(interpolatedStringHandlerType, argumentsBuilder, refKindsBuilder, syntax, outConstructorDiagnostics, interpolatedStringHandler: true);
+            var outConstructorCall = MakeConstructorInvocation(interpolatedStringHandlerType, argumentsBuilder, refKindsBuilder, syntax, outConstructorDiagnostics);
             if (outConstructorCall is not BoundObjectCreationExpression { ResultKind: LookupResultKind.Viable })
             {
                 // MakeConstructorInvocation can call CoerceArguments on the builder if overload resolution succeeded ignoring accessibility, which
@@ -595,13 +595,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 refKindsBuilder.RemoveLast();
 
                 var nonOutConstructorDiagnostics = BindingDiagnosticBag.GetInstance(template: outConstructorDiagnostics);
-                BoundExpression nonOutConstructorCall = MakeConstructorInvocation(interpolatedStringHandlerType, argumentsBuilder, refKindsBuilder, syntax, nonOutConstructorDiagnostics, interpolatedStringHandler: true);
+                BoundExpression nonOutConstructorCall = MakeConstructorInvocation(interpolatedStringHandlerType, argumentsBuilder, refKindsBuilder, syntax, nonOutConstructorDiagnostics);
 
                 if (nonOutConstructorCall is BoundObjectCreationExpression { ResultKind: LookupResultKind.Viable })
                 {
                     // We successfully bound the out version, so set all the final data based on that binding
                     constructorCall = nonOutConstructorCall;
-                    diagnostics.AddRangeAndFree(nonOutConstructorDiagnostics);
+                    addAndFreeConstructorDiagnostics(target: diagnostics, source: nonOutConstructorDiagnostics);
                     outConstructorDiagnostics.Free();
                 }
                 else
@@ -622,20 +622,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case (true, false):
                             constructorCall = outConstructorCall;
                             additionalConstructorArguments = outConstructorAdditionalArguments;
-                            diagnostics.AddRangeAndFree(outConstructorDiagnostics);
+                            addAndFreeConstructorDiagnostics(target: diagnostics, source: outConstructorDiagnostics);
                             nonOutConstructorDiagnostics.Free();
                             break;
                         case (false, true):
                             constructorCall = nonOutConstructorCall;
-                            diagnostics.AddRangeAndFree(nonOutConstructorDiagnostics);
+                            addAndFreeConstructorDiagnostics(target: diagnostics, source: nonOutConstructorDiagnostics);
                             outConstructorDiagnostics.Free();
                             break;
                         default:
                             // For the final output binding info, we'll go with the shorter constructor in the absence of any tiebreaker,
                             // but we'll report all diagnostics
                             constructorCall = nonOutConstructorCall;
-                            diagnostics.AddRangeAndFree(nonOutConstructorDiagnostics);
-                            diagnostics.AddRangeAndFree(outConstructorDiagnostics);
+                            addAndFreeConstructorDiagnostics(target: diagnostics, source: nonOutConstructorDiagnostics);
+                            addAndFreeConstructorDiagnostics(target: diagnostics, source: outConstructorDiagnostics);
                             break;
                     }
                 }
@@ -676,6 +676,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentsBuilder.Add(new BoundLiteral(syntax, ConstantValue.Create(numFormatHoles), intType) { WasCompilerGenerated = true });
                 // Any other arguments from the call site
                 argumentsBuilder.AddRange(additionalConstructorArguments);
+            }
+
+            static void addAndFreeConstructorDiagnostics(BindingDiagnosticBag target, BindingDiagnosticBag source)
+            {
+                target.AddDependencies(source);
+
+                if (source.DiagnosticBag is { IsEmptyWithoutResolution: false } bag)
+                {
+                    foreach (var diagnostic in bag.AsEnumerableWithoutResolution())
+                    {
+                        // Filter diagnostics that cannot be fixed since they are on the hidden interpolated string constructor.
+                        if (!((ErrorCode)diagnostic.Code is ErrorCode.WRN_BadArgRef
+                            or ErrorCode.WRN_RefReadonlyNotVariable
+                            or ErrorCode.WRN_ArgExpectedRefOrIn
+                            or ErrorCode.WRN_ArgExpectedIn))
+                        {
+                            target.Add(diagnostic);
+                        }
+                    }
+                }
+
+                source.Free();
             }
         }
 
