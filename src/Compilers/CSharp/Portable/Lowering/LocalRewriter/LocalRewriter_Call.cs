@@ -153,14 +153,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (interceptor.Arity != 0)
             {
-                // Gather the type arguments of the original method and its containing types, from outermost to innermost.
-                var stack = ArrayBuilder<Symbol>.GetInstance();
-                stack.Push(method);
-                for (var type = method.ContainingType; type is not null; type = type.ContainingType)
-                {
-                    stack.Push(type);
-                }
-
                 var typeArgumentsBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
                 method.ContainingType.GetAllTypeArgumentsNoUseSiteDiagnostics(typeArgumentsBuilder);
                 typeArgumentsBuilder.AddRange(method.TypeArgumentsWithAnnotations);
