@@ -7437,11 +7437,11 @@ done:;
 
             // Continue consuming element access expressions for `[x][y]...`.  We have to determine if this is a
             // collection expression being indexed into, or if it's a sequence of attributes.
-            var bracketArgumentListCount = 0;
+            var hadBracketArgumentList = false;
             while (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
             {
                 ParseBracketedArgumentList();
-                bracketArgumentListCount++;
+                hadBracketArgumentList = true;
             }
 
             // Check the next token to see if it indicates the `[...]` sequence we have is a term or not. This is the
@@ -7465,7 +7465,7 @@ done:;
                 || this.CurrentToken.ContextualKind is SyntaxKind.SwitchKeyword or SyntaxKind.WithKeyword && this.PeekToken(1).Kind is SyntaxKind.OpenBraceToken;
 
             if (!isCollectionExpression &&
-                bracketArgumentListCount > 0 &&
+                hadBracketArgumentList &&
                 this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
             {
                 // There are a few things that could be happening here:
