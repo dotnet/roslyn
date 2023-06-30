@@ -8056,10 +8056,7 @@ public partial struct CustomHandler
                 literal:text
                 """);
 
-            verifier.VerifyDiagnostics(
-                // 0.cs(5,9): warning CS9502: The 'ref' modifier for argument 3 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
-                // C.M(ref x, $"text");
-                Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("3").WithLocation(5, 9));
+            verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("<top-level-statements-entry-point>", """
                 {
@@ -17555,10 +17552,7 @@ partial struct CustomHandler
 
             var verifier = CompileAndVerify(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler },
                 expectedOutput: "literal:text");
-            verifier.VerifyDiagnostics(
-                // 0.cs(5,1): warning CS9502: The 'ref' modifier for argument 3 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
-                // s.M($"text");
-                Diagnostic(ErrorCode.WRN_BadArgRef, "s").WithArguments("3").WithLocation(5, 1));
+            verifier.VerifyDiagnostics();
             verifier.VerifyIL("<top-level-statements-entry-point>", """
                 {
                   // Code size       39 (0x27)

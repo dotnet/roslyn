@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression constructorCall;
             var outConstructorDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: diagnostics.AccumulatesDependencies);
-            var outConstructorCall = MakeConstructorInvocation(interpolatedStringHandlerType, argumentsBuilder, refKindsBuilder, syntax, outConstructorDiagnostics);
+            var outConstructorCall = MakeConstructorInvocation(interpolatedStringHandlerType, argumentsBuilder, refKindsBuilder, syntax, outConstructorDiagnostics, interpolatedStringHandler: true);
             if (outConstructorCall is not BoundObjectCreationExpression { ResultKind: LookupResultKind.Viable })
             {
                 // MakeConstructorInvocation can call CoerceArguments on the builder if overload resolution succeeded ignoring accessibility, which
@@ -595,7 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 refKindsBuilder.RemoveLast();
 
                 var nonOutConstructorDiagnostics = BindingDiagnosticBag.GetInstance(template: outConstructorDiagnostics);
-                BoundExpression nonOutConstructorCall = MakeConstructorInvocation(interpolatedStringHandlerType, argumentsBuilder, refKindsBuilder, syntax, nonOutConstructorDiagnostics);
+                BoundExpression nonOutConstructorCall = MakeConstructorInvocation(interpolatedStringHandlerType, argumentsBuilder, refKindsBuilder, syntax, nonOutConstructorDiagnostics, interpolatedStringHandler: true);
 
                 if (nonOutConstructorCall is BoundObjectCreationExpression { ResultKind: LookupResultKind.Viable })
                 {
