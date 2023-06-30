@@ -21,10 +21,16 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 {
-    internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax>
+    internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
+        TDocumentationCommentTriviaSyntax,
+        TIdentifierNameSyntax,
+        TTypeDeclarationSyntax,
+        TMemberDeclarationSyntax>
         : AbstractCodeQualityDiagnosticAnalyzer
         where TDocumentationCommentTriviaSyntax : SyntaxNode
         where TIdentifierNameSyntax : SyntaxNode
+        where TTypeDeclarationSyntax : TMemberDeclarationSyntax
+        where TMemberDeclarationSyntax : SyntaxNode
     {
         /// <summary>
         /// Produces names like TypeName.MemberName
@@ -56,22 +62,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         {
         }
 
-        protected abstract void AddAllDocumentationComments(
-            INamedTypeSymbol namedType, ArrayBuilder<TDocumentationCommentTriviaSyntax> documentationComments, CancellationToken cancellationToken);
-
-        protected static void AddDocumentationComments(
-            SyntaxNode memberDeclaration, ArrayBuilder<TDocumentationCommentTriviaSyntax> documentationComments)
-        {
-            var firstToken = memberDeclaration.GetFirstToken();
-            if (!firstToken.HasStructuredTrivia)
-                return;
-
-            foreach (var trivia in firstToken.LeadingTrivia)
-            {
-                if (trivia.HasStructure)
-                    documentationComments.AddIfNotNull(trivia.GetStructure() as TDocumentationCommentTriviaSyntax);
-            }
-        }
+        protected abstract IEnumerable<TTypeDeclarationSyntax> GetTypeDeclarations(INamedTypeSymbol namedType, CancellationToken cancellationToken);
+        protected abstract SyntaxList<TMemberDeclarationSyntax> GetMembers(TTypeDeclarationSyntax typeDeclaration);
 
         // We need to analyze the whole document even for edits within a method body,
         // because we might add or remove references to members in executable code.
@@ -115,11 +107,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             private readonly INamedTypeSymbol _iNotifyCompletionType;
             private readonly DeserializationConstructorCheck _deserializationConstructorCheck;
             private readonly ImmutableHashSet<INamedTypeSymbol> _attributeSetForMethodsToIgnore;
-            private readonly AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax> _analyzer;
+            private readonly AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax, TTypeDeclarationSyntax, TMemberDeclarationSyntax> _analyzer;
 
             private CompilationAnalyzer(
                 Compilation compilation,
-                AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax> analyzer)
+                AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax, TTypeDeclarationSyntax, TMemberDeclarationSyntax> analyzer)
             {
                 _gate = new object();
                 _analyzer = analyzer;
@@ -180,7 +172,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
             public static void CreateAndRegisterActions(
                 CompilationStartAnalysisContext compilationStartContext,
-                AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax> analyzer)
+                AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax, TTypeDeclarationSyntax, TMemberDeclarationSyntax> analyzer)
             {
                 var compilationAnalyzer = new CompilationAnalyzer(compilationStartContext.Compilation, analyzer);
                 compilationAnalyzer.RegisterActions(compilationStartContext);
@@ -579,7 +571,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 CancellationToken cancellationToken)
             {
                 using var _ = ArrayBuilder<TDocumentationCommentTriviaSyntax>.GetInstance(out var documentationComments);
-                _analyzer.AddAllDocumentationComments(namedTypeSymbol, documentationComments, cancellationToken);
+                AddAllDocumentationComments();
 
                 foreach (var group in documentationComments.GroupBy(d => d.SyntaxTree))
                 {
@@ -596,6 +588,56 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                             if (IsCandidateSymbol(symbol))
                                 builder.Add(symbol);
                         }
+                    }
+                }
+
+                return;
+
+                void AddAllDocumentationComments()
+                {
+                    using var _ = ArrayBuilder<TTypeDeclarationSyntax>.GetInstance(out var stack);
+
+                    foreach (var typeDeclaration in _analyzer.GetTypeDeclarations(namedTypeSymbol, cancellationToken))
+                    {
+                        stack.Clear();
+                        stack.Push(typeDeclaration);
+
+                        while (stack.Count > 0)
+                        {
+                            var currentType = stack.Pop();
+
+                            // Add the doc comments on the type itself.
+                            AddDocumentationComments(currentType, documentationComments);
+
+                            // Walk each member
+                            foreach (var member in _analyzer.GetMembers(currentType))
+                            {
+                                if (member is TTypeDeclarationSyntax childType)
+                                {
+                                    // If the member is a nested type, recurse into it.
+                                    stack.Push(childType);
+                                }
+                                else
+                                {
+                                    // Otherwise, add the doc comments on the member itself.
+                                    AddDocumentationComments(member, documentationComments);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                static void AddDocumentationComments(
+                    SyntaxNode memberDeclaration, ArrayBuilder<TDocumentationCommentTriviaSyntax> documentationComments)
+                {
+                    var firstToken = memberDeclaration.GetFirstToken();
+                    if (!firstToken.HasStructuredTrivia)
+                        return;
+
+                    foreach (var trivia in firstToken.LeadingTrivia)
+                    {
+                        if (trivia.HasStructure)
+                            documentationComments.AddIfNotNull(trivia.GetStructure() as TDocumentationCommentTriviaSyntax);
                     }
                 }
             }

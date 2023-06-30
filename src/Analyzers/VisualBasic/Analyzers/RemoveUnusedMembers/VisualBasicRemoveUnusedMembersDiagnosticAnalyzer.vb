@@ -4,14 +4,17 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.RemoveUnusedMembers
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedMembers
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend NotInheritable Class VisualBasicRemoveUnusedMembersDiagnosticAnalyzer
-        Inherits AbstractRemoveUnusedMembersDiagnosticAnalyzer(Of DocumentationCommentTriviaSyntax, IdentifierNameSyntax)
+        Inherits AbstractRemoveUnusedMembersDiagnosticAnalyzer(Of
+            DocumentationCommentTriviaSyntax,
+            IdentifierNameSyntax,
+            TypeBlockSyntax,
+            StatementSyntax)
 
         Protected Overrides Sub HandleNamedTypeSymbolStart(context As SymbolStartAnalysisContext, onSymbolUsageFound As Action(Of ISymbol, ValueUsageInfo))
             ' Mark all methods with handles clause as having a read reference
@@ -46,46 +49,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedMembers
             Next
         End Sub
 
-        Protected Overrides Sub AddAllDocumentationComments(
-                namedType As INamedTypeSymbol,
-                documentationComments As ArrayBuilder(Of DocumentationCommentTriviaSyntax),
-                cancellationToken As CancellationToken)
+        Protected Overrides Function GetTypeDeclarations(namedType As INamedTypeSymbol, cancellationToken As CancellationToken) As IEnumerable(Of TypeBlockSyntax)
+            Return namedType.DeclaringSyntaxReferences.
+                Select(Function(r) r.GetSyntax(cancellationToken)).
+                Select(Function(n) If(TryCast(n, TypeStatementSyntax)?.Parent, n)).
+                OfType(Of TypeBlockSyntax)
+        End Function
 
-            Dim stack = ArrayBuilder(Of TypeBlockSyntax).GetInstance()
-
-            For Each reference In namedType.DeclaringSyntaxReferences
-                Dim node = reference.GetSyntax(cancellationToken)
-
-                node = If(TryCast(node, TypeStatementSyntax)?.Parent, node)
-                Dim typeBlock = TryCast(node, TypeBlockSyntax)
-                If typeBlock Is Nothing Then
-                    Continue For
-                End If
-
-                stack.Clear()
-                stack.Push(typeBlock)
-
-                While stack.Count > 0
-                    Dim currentType = stack.Pop()
-
-                    ' Add the doc comments on the type itself.
-                    AddDocumentationComments(currentType, documentationComments)
-
-                    ' Walk each member
-                    For Each member In currentType.GetMembers()
-                        Dim childType = TryCast(member, TypeBlockSyntax)
-                        If childType IsNot Nothing Then
-                            ' If the member Is a nested type, recurse into it.
-                            stack.Push(childType)
-                        Else
-                            ' Otherwise, add the doc comments on the member itself.
-                            AddDocumentationComments(member, documentationComments)
-                        End If
-                    Next
-                End While
-            Next
-
-            stack.Free()
-        End Sub
+        Protected Overrides Function GetMembers(typeDeclaration As TypeBlockSyntax) As SyntaxList(Of StatementSyntax)
+            Return typeDeclaration.Members
+        End Function
     End Class
 End Namespace
