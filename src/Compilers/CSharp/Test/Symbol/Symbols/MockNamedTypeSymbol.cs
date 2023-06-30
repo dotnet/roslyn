@@ -338,5 +338,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
         }
+
+        internal sealed override bool HasInlineArrayAttribute(out int length)
+        {
+            length = 0;
+            return false;
+        }
     }
 }

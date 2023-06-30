@@ -54,8 +54,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServer
         "CS9158", // ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor
         "CS9159", // ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor
         "CS9160", // ErrorCode.ERR_InterceptorCannotInterceptNameof
-        "CS9163", // ErrorCode.ERR_InterceptorArityNotCompatible
-        "CS9164" // ErrorCode.ERR_InterceptorCannotBeGeneric
+        "CS9163"  // ErrorCode.ERR_SymbolDefinedInAssembly
+        "CS9174", // ErrorCode.ERR_InterceptorArityNotCompatible
+        "CS9175" // ErrorCode.ERR_InterceptorCannotBeGeneric
         )]
     internal sealed class CSharpLspBuildOnlyDiagnostics : ILspBuildOnlyDiagnostics
     {

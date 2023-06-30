@@ -1961,7 +1961,7 @@ public class InterceptorsTests : CSharpTestBase
             """;
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
-            // Program.cs(15,6): error CS9163: Method 'D.Interceptor1<T>(object, T)' must be non-generic or have arity 2 to match 'C<object>.InterceptableMethod<T>(object, T)'.
+            // Program.cs(15,6): error CS9174: Method 'D.Interceptor1<T>(object, T)' must be non-generic or have arity 2 to match 'C<object>.InterceptableMethod<T>(object, T)'.
             //     [InterceptsLocation("Program.cs", 12, 19)] // 1
             Diagnostic(ErrorCode.ERR_InterceptorArityNotCompatible, @"InterceptsLocation(""Program.cs"", 12, 19)").WithArguments("D.Interceptor1<T>(object, T)", "2", "C<object>.InterceptableMethod<T>(object, T)").WithLocation(15, 6));
     }
@@ -2146,7 +2146,7 @@ public class InterceptorsTests : CSharpTestBase
             """;
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
-            // Program.cs(13,6): error CS9164: Method 'D.Interceptor1<T>()' must be non-generic to match 'C.Original()'.
+            // Program.cs(13,6): error CS9175: Method 'D.Interceptor1<T>()' must be non-generic to match 'C.Original()'.
             //     [InterceptsLocation("Program.cs", 4, 3)] // 1
             Diagnostic(ErrorCode.ERR_InterceptorCannotBeGeneric, @"InterceptsLocation(""Program.cs"", 4, 3)").WithArguments("D.Interceptor1<T>()", "C.Original()").WithLocation(13, 6));
     }

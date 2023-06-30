@@ -487,7 +487,7 @@ class C
         public void TestGetSemanticTokensRange_AssertCustomTokenTypes(bool isVS)
         {
             var capabilities = GetCapabilities(isVS);
-            var schema = SemanticTokensSchema.GetSchema(capabilities);
+            var schema = SemanticTokensSchema.GetSchema(capabilities.HasVisualStudioLspCapability());
 
             var expectedNames = ClassificationTypeNames.AllTypeNames.Where(s => !ClassificationTypeNames.AdditiveTypeNames.Contains(s));
             foreach (var expectedClassificationName in expectedNames)

@@ -2182,6 +2182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_StructLayoutCyclePrimaryConstructorParameter = 9121,
         ERR_UnexpectedParameterList = 9122,
         WRN_AddressOfInAsync = 9123,
+        WRN_CapturedPrimaryConstructorParameterInFieldInitializer = 9124,
 
         ERR_BadRefInUsingAlias = 9130,
         ERR_BadUnsafeInUsingDirective = 9131,
@@ -2219,9 +2220,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InterceptorCannotUseUnmanagedCallersOnly = 9161,
 
         ERR_BadUsingStaticType = 9162,
+        ERR_SymbolDefinedInAssembly = 9163,
 
-        ERR_InterceptorArityNotCompatible = 9163,
-        ERR_InterceptorCannotBeGeneric = 9164,
+        ERR_InlineArrayConversionToSpanNotSupported = 9164,
+        ERR_InlineArrayConversionToReadOnlySpanNotSupported = 9165,
+        ERR_InlineArrayIndexOutOfRange = 9166,
+        ERR_InvalidInlineArrayLength = 9167,
+        ERR_InvalidInlineArrayLayout = 9168,
+        ERR_InvalidInlineArrayFields = 9169,
+        ERR_ExpressionTreeContainsInlineArrayOperation = 9170,
+        ERR_RuntimeDoesNotSupportInlineArrayTypes = 9171,
+        ERR_InlineArrayBadIndex = 9172,
+        ERR_NamedArgumentForInlineArray = 9173,
+
+        ERR_InterceptorArityNotCompatible = 9174,
+        ERR_InterceptorCannotBeGeneric = 9175,
 
         #endregion
 

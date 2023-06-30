@@ -1113,6 +1113,23 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
+        internal bool HasInlineArrayAttribute(TypeDefinitionHandle token, out int length)
+        {
+            AttributeInfo info = FindTargetAttribute(token, AttributeDescription.InlineArrayAttribute);
+            if (info.HasValue)
+            {
+                Debug.Assert(info.SignatureIndex == 0);
+                if (TryExtractValueFromAttribute(info.Handle, out int value, s_attributeIntValueExtractor))
+                {
+                    length = value;
+                    return true;
+                }
+            }
+
+            length = 0;
+            return false;
+        }
+
         internal bool HasTupleElementNamesAttribute(EntityHandle token, out ImmutableArray<string> tupleElementNames)
         {
             var info = FindTargetAttribute(token, AttributeDescription.TupleElementNamesAttribute);

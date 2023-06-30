@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
@@ -390,45 +391,54 @@ namespace Microsoft.CodeAnalysis
         {
             Contract.ThrowIfNull(transformation);
 
-            var oldSolution = Volatile.Read(ref _latestSolution);
-
-            if (mayRaiseEvents)
+            try
             {
-                // Ensure our event handlers are realized prior to taking this lock.  We don't want to deadlock trying
-                // to obtain them when calling one of our callbacks. See https://github.com/dotnet/roslyn/issues/64681
-                EnsureEventListeners();
-            }
+                var oldSolution = Volatile.Read(ref _latestSolution);
 
-            while (true)
-            {
-                // Run the transformation outside of the lock as it should not be making any state changes to us.
-                var newSolution = transformation(oldSolution, data);
-
-                // if it did nothing, then no need to proceed.
-                if (oldSolution == newSolution)
-                    return (oldSolution, newSolution);
-
-                // Now, take the lock and try to update our internal state.
-                using (useAsync ? await _serializationLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false) : _serializationLock.DisposableWait(cancellationToken))
+                if (mayRaiseEvents)
                 {
-                    if (_latestSolution != oldSolution)
-                    {
-                        // something else snuck in and wrote to _latestSolution. Restart and try again.
-                        oldSolution = _latestSolution;
-                        continue;
-                    }
-
-                    newSolution = newSolution.WithNewWorkspace(oldSolution.WorkspaceKind, oldSolution.WorkspaceVersion + 1, oldSolution.Services);
-
-                    // Prior to updating the latest solution, let the caller do any other state updates they want.
-                    onBeforeUpdate?.Invoke(oldSolution, newSolution, data);
-
-                    _latestSolution = newSolution;
-
-                    // Once we've updated _latestSolution, perform any requested callbacks.
-                    onAfterUpdate?.Invoke(oldSolution, newSolution, data);
-                    return (oldSolution, newSolution);
+                    // Ensure our event handlers are realized prior to taking this lock.  We don't want to deadlock trying
+                    // to obtain them when calling one of our callbacks. See https://github.com/dotnet/roslyn/issues/64681
+                    EnsureEventListeners();
                 }
+
+                while (true)
+                {
+                    // Run the transformation outside of the lock as it should not be making any state changes to us.
+                    var newSolution = transformation(oldSolution, data);
+
+                    // if it did nothing, then no need to proceed.
+                    if (oldSolution == newSolution)
+                        return (oldSolution, newSolution);
+
+                    // Now, take the lock and try to update our internal state.
+                    using (useAsync ? await _serializationLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false) : _serializationLock.DisposableWait(cancellationToken))
+                    {
+                        if (_latestSolution != oldSolution)
+                        {
+                            // something else snuck in and wrote to _latestSolution. Restart and try again.
+                            oldSolution = _latestSolution;
+                            continue;
+                        }
+
+                        newSolution = newSolution.WithNewWorkspace(oldSolution.WorkspaceKind, oldSolution.WorkspaceVersion + 1, oldSolution.Services);
+
+                        // Prior to updating the latest solution, let the caller do any other state updates they want.
+                        onBeforeUpdate?.Invoke(oldSolution, newSolution, data);
+
+                        _latestSolution = newSolution;
+
+                        // Once we've updated _latestSolution, perform any requested callbacks.
+                        onAfterUpdate?.Invoke(oldSolution, newSolution, data);
+                        return (oldSolution, newSolution);
+                    }
+                }
+            }
+            catch (Exception e) when (FatalError.ReportAndPropagate(e, ErrorSeverity.Critical))
+            {
+                // We'll rethrow the exception to the caller, since this exception could represent a bug in a third-party workspace, and if at this point our workspace
+                // is corrupted we want the caller to know.
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
