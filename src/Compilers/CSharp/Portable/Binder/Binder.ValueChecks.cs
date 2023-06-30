@@ -467,6 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // BoundBadExpression simply refers to the receiver and the resolved symbol (if any).
                 if (resolvedToUnusableSymbol)
                 {
+                    Debug.Assert(methodGroup.ResultKind != LookupResultKind.Viable);
                     var receiver = methodGroup.ReceiverOpt;
                     if ((object)otherSymbol != null && receiver?.Kind == BoundKind.TypeOrValueExpression)
                     {

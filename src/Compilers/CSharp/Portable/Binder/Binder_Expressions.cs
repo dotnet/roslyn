@@ -6859,14 +6859,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Support selecting an extension method from a type name in nameof(.)
                     return BindInstanceMemberAccess(node, right, boundLeft, rightName, rightArity, typeArgumentsSyntax, typeArguments, invoked, indexed, diagnostics);
                 }
-
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo2 = GetNewCompoundUseSiteInfo(diagnostics);
-                this.LookupMembersWithFallback(lookupResult, leftType, rightName, rightArity, ref useSiteInfo2, basesBeingResolved: null, options: options);
-                diagnostics.Add(right, useSiteInfo2);
-
-                if (lookupResult.IsMultiViable)
+                else
                 {
-                    return BindMemberOfType(node, right, rightName, rightArity, indexed, boundLeft, typeArgumentsSyntax, typeArguments, lookupResult, BoundMethodGroupFlags.SearchExtensionMethods, diagnostics: diagnostics);
+                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                    this.LookupMembersWithFallback(lookupResult, leftType, rightName, rightArity, ref useSiteInfo, basesBeingResolved: null, options: options);
+                    diagnostics.Add(right, useSiteInfo);
+
+                    if (lookupResult.IsMultiViable)
+                    {
+                        return BindMemberOfType(node, right, rightName, rightArity, indexed, boundLeft, typeArgumentsSyntax, typeArguments, lookupResult, BoundMethodGroupFlags.SearchExtensionMethods, diagnostics: diagnostics);
+                    }
                 }
 
                 return MakeBoundMethodGroupAndCheckOmittedTypeArguments(boundLeft, rightName, typeArguments, lookupResult,
@@ -6942,6 +6944,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (resolution.IsExtensionMember(out Symbol extensionMember))
                         {
+                            diagnostics.AddRange(resolution.Diagnostics);
                             resolution.Free();
                             return GetExtensionMemberAccess(methodGroup.Syntax, methodGroup.ReceiverOpt, extensionMember, diagnostics);
                         }
@@ -7520,7 +7523,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var methodGroup = MethodGroup.GetInstance();
-                methodGroup.PopulateWithExtensionMethods(left, members, typeArgumentsWithAnnotations, isExtensionMethodGroup: false, resultKind: lookupResult.Kind);
+                methodGroup.PopulateWithMethods(left, members, typeArgumentsWithAnnotations, isExtensionMethodGroup: false, resultKind: lookupResult.Kind);
                 members.Free();
 
                 if (analyzedArguments is null)
@@ -7657,7 +7660,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Symbol symbol = GetSymbolOrMethodOrPropertyGroup(lookupResult, node, rightName, arity, members, diagnostics, out wasError, qualifierOpt: null);
                 Debug.Assert((object)symbol == null);
                 Debug.Assert(members.Count > 0);
-                methodGroup.PopulateWithExtensionMethods(left, members, typeArgumentsWithAnnotations, isExtensionMethodGroup: true, resultKind: lookupResult.Kind);
+                methodGroup.PopulateWithMethods(left, members, typeArgumentsWithAnnotations, isExtensionMethodGroup: true, resultKind: lookupResult.Kind);
                 members.Free();
             }
 

@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Methods.Add(method);
         }
 
-        internal void PopulateWithExtensionMethods(
+        internal void PopulateWithMethods(
             BoundExpression receiverOpt,
             ArrayBuilder<Symbol> members,
             ImmutableArray<TypeWithAnnotations> typeArguments,

@@ -632,6 +632,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (resolution.IsExtensionMember(out Symbol extensionMember))
             {
+                diagnostics.AddRange(resolution.Diagnostics);
                 var extensionMemberAccess = GetExtensionMemberAccess(expression, methodGroup.ReceiverOpt, extensionMember, diagnostics);
                 Debug.Assert(extensionMemberAccess.Kind != BoundKind.MethodGroup);
 
