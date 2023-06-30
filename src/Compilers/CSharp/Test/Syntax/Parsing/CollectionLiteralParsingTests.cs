@@ -161,2880 +161,6 @@ public class CollectionLiteralParsingTests : ParsingTests
     }
 
     [Fact]
-    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity1()
-    {
-        UsingTree("""
-            class C
-            {
-                void M()
-                {
-                    [() => {}][rand.Next()]();
-                }
-            }
-            """);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.ClassDeclaration);
-            {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.MethodDeclaration);
-                {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.ExpressionStatement);
-                        {
-                            N(SyntaxKind.InvocationExpression);
-                            {
-                                N(SyntaxKind.ElementAccessExpression);
-                                {
-                                    N(SyntaxKind.CollectionExpression);
-                                    {
-                                        N(SyntaxKind.OpenBracketToken);
-                                        N(SyntaxKind.ExpressionElement);
-                                        {
-                                            N(SyntaxKind.ParenthesizedLambdaExpression);
-                                            {
-                                                N(SyntaxKind.ParameterList);
-                                                {
-                                                    N(SyntaxKind.OpenParenToken);
-                                                    N(SyntaxKind.CloseParenToken);
-                                                }
-                                                N(SyntaxKind.EqualsGreaterThanToken);
-                                                N(SyntaxKind.Block);
-                                                {
-                                                    N(SyntaxKind.OpenBraceToken);
-                                                    N(SyntaxKind.CloseBraceToken);
-                                                }
-                                            }
-                                        }
-                                        N(SyntaxKind.CloseBracketToken);
-                                    }
-                                    N(SyntaxKind.BracketedArgumentList);
-                                    {
-                                        N(SyntaxKind.OpenBracketToken);
-                                        N(SyntaxKind.Argument);
-                                        {
-                                            N(SyntaxKind.InvocationExpression);
-                                            {
-                                                N(SyntaxKind.SimpleMemberAccessExpression);
-                                                {
-                                                    N(SyntaxKind.IdentifierName);
-                                                    {
-                                                        N(SyntaxKind.IdentifierToken, "rand");
-                                                    }
-                                                    N(SyntaxKind.DotToken);
-                                                    N(SyntaxKind.IdentifierName);
-                                                    {
-                                                        N(SyntaxKind.IdentifierToken, "Next");
-                                                    }
-                                                }
-                                                N(SyntaxKind.ArgumentList);
-                                                {
-                                                    N(SyntaxKind.OpenParenToken);
-                                                    N(SyntaxKind.CloseParenToken);
-                                                }
-                                            }
-                                        }
-                                        N(SyntaxKind.CloseBracketToken);
-                                    }
-                                }
-                                N(SyntaxKind.ArgumentList);
-                                {
-                                    N(SyntaxKind.OpenParenToken);
-                                    N(SyntaxKind.CloseParenToken);
-                                }
-                            }
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.CloseBraceToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity1A()
-    {
-        UsingTree("""
-            [() => {}][rand.Next()]();
-            """);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.ExpressionStatement);
-                {
-                    N(SyntaxKind.InvocationExpression);
-                    {
-                        N(SyntaxKind.ElementAccessExpression);
-                        {
-                            N(SyntaxKind.CollectionExpression);
-                            {
-                                N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.ExpressionElement);
-                                {
-                                    N(SyntaxKind.ParenthesizedLambdaExpression);
-                                    {
-                                        N(SyntaxKind.ParameterList);
-                                        {
-                                            N(SyntaxKind.OpenParenToken);
-                                            N(SyntaxKind.CloseParenToken);
-                                        }
-                                        N(SyntaxKind.EqualsGreaterThanToken);
-                                        N(SyntaxKind.Block);
-                                        {
-                                            N(SyntaxKind.OpenBraceToken);
-                                            N(SyntaxKind.CloseBraceToken);
-                                        }
-                                    }
-                                }
-                                N(SyntaxKind.CloseBracketToken);
-                            }
-                            N(SyntaxKind.BracketedArgumentList);
-                            {
-                                N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.Argument);
-                                {
-                                    N(SyntaxKind.InvocationExpression);
-                                    {
-                                        N(SyntaxKind.SimpleMemberAccessExpression);
-                                        {
-                                            N(SyntaxKind.IdentifierName);
-                                            {
-                                                N(SyntaxKind.IdentifierToken, "rand");
-                                            }
-                                            N(SyntaxKind.DotToken);
-                                            N(SyntaxKind.IdentifierName);
-                                            {
-                                                N(SyntaxKind.IdentifierToken, "Next");
-                                            }
-                                        }
-                                        N(SyntaxKind.ArgumentList);
-                                        {
-                                            N(SyntaxKind.OpenParenToken);
-                                            N(SyntaxKind.CloseParenToken);
-                                        }
-                                    }
-                                }
-                                N(SyntaxKind.CloseBracketToken);
-                            }
-                        }
-                        N(SyntaxKind.ArgumentList);
-                        {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.CloseParenToken);
-                        }
-                    }
-                    N(SyntaxKind.SemicolonToken);
-                }
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity2()
-    {
-        UsingTree("""
-            class C
-            {
-                void M()
-                {
-                    [() => {}][rand.Next()](A);
-                }
-            }
-            """);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.ClassDeclaration);
-            {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.MethodDeclaration);
-                {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.ExpressionStatement);
-                        {
-                            N(SyntaxKind.InvocationExpression);
-                            {
-                                N(SyntaxKind.ElementAccessExpression);
-                                {
-                                    N(SyntaxKind.CollectionExpression);
-                                    {
-                                        N(SyntaxKind.OpenBracketToken);
-                                        N(SyntaxKind.ExpressionElement);
-                                        {
-                                            N(SyntaxKind.ParenthesizedLambdaExpression);
-                                            {
-                                                N(SyntaxKind.ParameterList);
-                                                {
-                                                    N(SyntaxKind.OpenParenToken);
-                                                    N(SyntaxKind.CloseParenToken);
-                                                }
-                                                N(SyntaxKind.EqualsGreaterThanToken);
-                                                N(SyntaxKind.Block);
-                                                {
-                                                    N(SyntaxKind.OpenBraceToken);
-                                                    N(SyntaxKind.CloseBraceToken);
-                                                }
-                                            }
-                                        }
-                                        N(SyntaxKind.CloseBracketToken);
-                                    }
-                                    N(SyntaxKind.BracketedArgumentList);
-                                    {
-                                        N(SyntaxKind.OpenBracketToken);
-                                        N(SyntaxKind.Argument);
-                                        {
-                                            N(SyntaxKind.InvocationExpression);
-                                            {
-                                                N(SyntaxKind.SimpleMemberAccessExpression);
-                                                {
-                                                    N(SyntaxKind.IdentifierName);
-                                                    {
-                                                        N(SyntaxKind.IdentifierToken, "rand");
-                                                    }
-                                                    N(SyntaxKind.DotToken);
-                                                    N(SyntaxKind.IdentifierName);
-                                                    {
-                                                        N(SyntaxKind.IdentifierToken, "Next");
-                                                    }
-                                                }
-                                                N(SyntaxKind.ArgumentList);
-                                                {
-                                                    N(SyntaxKind.OpenParenToken);
-                                                    N(SyntaxKind.CloseParenToken);
-                                                }
-                                            }
-                                        }
-                                        N(SyntaxKind.CloseBracketToken);
-                                    }
-                                }
-                                N(SyntaxKind.ArgumentList);
-                                {
-                                    N(SyntaxKind.OpenParenToken);
-                                    N(SyntaxKind.Argument);
-                                    {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "A");
-                                        }
-                                    }
-                                    N(SyntaxKind.CloseParenToken);
-                                }
-                            }
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.CloseBraceToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity2A()
-    {
-        UsingTree("""
-            [() => {}][rand.Next()](A);
-            """);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.ExpressionStatement);
-                {
-                    N(SyntaxKind.InvocationExpression);
-                    {
-                        N(SyntaxKind.ElementAccessExpression);
-                        {
-                            N(SyntaxKind.CollectionExpression);
-                            {
-                                N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.ExpressionElement);
-                                {
-                                    N(SyntaxKind.ParenthesizedLambdaExpression);
-                                    {
-                                        N(SyntaxKind.ParameterList);
-                                        {
-                                            N(SyntaxKind.OpenParenToken);
-                                            N(SyntaxKind.CloseParenToken);
-                                        }
-                                        N(SyntaxKind.EqualsGreaterThanToken);
-                                        N(SyntaxKind.Block);
-                                        {
-                                            N(SyntaxKind.OpenBraceToken);
-                                            N(SyntaxKind.CloseBraceToken);
-                                        }
-                                    }
-                                }
-                                N(SyntaxKind.CloseBracketToken);
-                            }
-                            N(SyntaxKind.BracketedArgumentList);
-                            {
-                                N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.Argument);
-                                {
-                                    N(SyntaxKind.InvocationExpression);
-                                    {
-                                        N(SyntaxKind.SimpleMemberAccessExpression);
-                                        {
-                                            N(SyntaxKind.IdentifierName);
-                                            {
-                                                N(SyntaxKind.IdentifierToken, "rand");
-                                            }
-                                            N(SyntaxKind.DotToken);
-                                            N(SyntaxKind.IdentifierName);
-                                            {
-                                                N(SyntaxKind.IdentifierToken, "Next");
-                                            }
-                                        }
-                                        N(SyntaxKind.ArgumentList);
-                                        {
-                                            N(SyntaxKind.OpenParenToken);
-                                            N(SyntaxKind.CloseParenToken);
-                                        }
-                                    }
-                                }
-                                N(SyntaxKind.CloseBracketToken);
-                            }
-                        }
-                        N(SyntaxKind.ArgumentList);
-                        {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.Argument);
-                            {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "A");
-                                }
-                            }
-                            N(SyntaxKind.CloseParenToken);
-                        }
-                    }
-                    N(SyntaxKind.SemicolonToken);
-                }
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity3()
-    {
-        UsingTree("""
-            class C
-            {
-                void M()
-                {
-                    [() => {}][rand.Next()](A)[0];
-                }
-            }
-            """);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.ClassDeclaration);
-            {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.MethodDeclaration);
-                {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.ExpressionStatement);
-                        {
-                            N(SyntaxKind.ElementAccessExpression);
-                            {
-                                N(SyntaxKind.InvocationExpression);
-                                {
-                                    N(SyntaxKind.ElementAccessExpression);
-                                    {
-                                        N(SyntaxKind.CollectionExpression);
-                                        {
-                                            N(SyntaxKind.OpenBracketToken);
-                                            N(SyntaxKind.ExpressionElement);
-                                            {
-                                                N(SyntaxKind.ParenthesizedLambdaExpression);
-                                                {
-                                                    N(SyntaxKind.ParameterList);
-                                                    {
-                                                        N(SyntaxKind.OpenParenToken);
-                                                        N(SyntaxKind.CloseParenToken);
-                                                    }
-                                                    N(SyntaxKind.EqualsGreaterThanToken);
-                                                    N(SyntaxKind.Block);
-                                                    {
-                                                        N(SyntaxKind.OpenBraceToken);
-                                                        N(SyntaxKind.CloseBraceToken);
-                                                    }
-                                                }
-                                            }
-                                            N(SyntaxKind.CloseBracketToken);
-                                        }
-                                        N(SyntaxKind.BracketedArgumentList);
-                                        {
-                                            N(SyntaxKind.OpenBracketToken);
-                                            N(SyntaxKind.Argument);
-                                            {
-                                                N(SyntaxKind.InvocationExpression);
-                                                {
-                                                    N(SyntaxKind.SimpleMemberAccessExpression);
-                                                    {
-                                                        N(SyntaxKind.IdentifierName);
-                                                        {
-                                                            N(SyntaxKind.IdentifierToken, "rand");
-                                                        }
-                                                        N(SyntaxKind.DotToken);
-                                                        N(SyntaxKind.IdentifierName);
-                                                        {
-                                                            N(SyntaxKind.IdentifierToken, "Next");
-                                                        }
-                                                    }
-                                                    N(SyntaxKind.ArgumentList);
-                                                    {
-                                                        N(SyntaxKind.OpenParenToken);
-                                                        N(SyntaxKind.CloseParenToken);
-                                                    }
-                                                }
-                                            }
-                                            N(SyntaxKind.CloseBracketToken);
-                                        }
-                                    }
-                                    N(SyntaxKind.ArgumentList);
-                                    {
-                                        N(SyntaxKind.OpenParenToken);
-                                        N(SyntaxKind.Argument);
-                                        {
-                                            N(SyntaxKind.IdentifierName);
-                                            {
-                                                N(SyntaxKind.IdentifierToken, "A");
-                                            }
-                                        }
-                                        N(SyntaxKind.CloseParenToken);
-                                    }
-                                }
-                                N(SyntaxKind.BracketedArgumentList);
-                                {
-                                    N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.Argument);
-                                    {
-                                        N(SyntaxKind.NumericLiteralExpression);
-                                        {
-                                            N(SyntaxKind.NumericLiteralToken, "0");
-                                        }
-                                    }
-                                    N(SyntaxKind.CloseBracketToken);
-                                }
-                            }
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.CloseBraceToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity3A()
-    {
-        UsingTree("""
-            [() => {}][rand.Next()](A)[0];
-            """);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.ExpressionStatement);
-                {
-                    N(SyntaxKind.ElementAccessExpression);
-                    {
-                        N(SyntaxKind.InvocationExpression);
-                        {
-                            N(SyntaxKind.ElementAccessExpression);
-                            {
-                                N(SyntaxKind.CollectionExpression);
-                                {
-                                    N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.ExpressionElement);
-                                    {
-                                        N(SyntaxKind.ParenthesizedLambdaExpression);
-                                        {
-                                            N(SyntaxKind.ParameterList);
-                                            {
-                                                N(SyntaxKind.OpenParenToken);
-                                                N(SyntaxKind.CloseParenToken);
-                                            }
-                                            N(SyntaxKind.EqualsGreaterThanToken);
-                                            N(SyntaxKind.Block);
-                                            {
-                                                N(SyntaxKind.OpenBraceToken);
-                                                N(SyntaxKind.CloseBraceToken);
-                                            }
-                                        }
-                                    }
-                                    N(SyntaxKind.CloseBracketToken);
-                                }
-                                N(SyntaxKind.BracketedArgumentList);
-                                {
-                                    N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.Argument);
-                                    {
-                                        N(SyntaxKind.InvocationExpression);
-                                        {
-                                            N(SyntaxKind.SimpleMemberAccessExpression);
-                                            {
-                                                N(SyntaxKind.IdentifierName);
-                                                {
-                                                    N(SyntaxKind.IdentifierToken, "rand");
-                                                }
-                                                N(SyntaxKind.DotToken);
-                                                N(SyntaxKind.IdentifierName);
-                                                {
-                                                    N(SyntaxKind.IdentifierToken, "Next");
-                                                }
-                                            }
-                                            N(SyntaxKind.ArgumentList);
-                                            {
-                                                N(SyntaxKind.OpenParenToken);
-                                                N(SyntaxKind.CloseParenToken);
-                                            }
-                                        }
-                                    }
-                                    N(SyntaxKind.CloseBracketToken);
-                                }
-                            }
-                            N(SyntaxKind.ArgumentList);
-                            {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.Argument);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "A");
-                                    }
-                                }
-                                N(SyntaxKind.CloseParenToken);
-                            }
-                        }
-                        N(SyntaxKind.BracketedArgumentList);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.Argument);
-                            {
-                                N(SyntaxKind.NumericLiteralExpression);
-                                {
-                                    N(SyntaxKind.NumericLiteralToken, "0");
-                                }
-                            }
-                            N(SyntaxKind.CloseBracketToken);
-                        }
-                    }
-                    N(SyntaxKind.SemicolonToken);
-                }
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity4()
-    {
-        UsingTree("""
-            class C
-            {
-                void M()
-                {
-                    [() => {}][rand.Next()](A)(B);
-                }
-            }
-            """);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.ClassDeclaration);
-            {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.MethodDeclaration);
-                {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.ExpressionStatement);
-                        {
-                            N(SyntaxKind.InvocationExpression);
-                            {
-                                N(SyntaxKind.InvocationExpression);
-                                {
-                                    N(SyntaxKind.ElementAccessExpression);
-                                    {
-                                        N(SyntaxKind.CollectionExpression);
-                                        {
-                                            N(SyntaxKind.OpenBracketToken);
-                                            N(SyntaxKind.ExpressionElement);
-                                            {
-                                                N(SyntaxKind.ParenthesizedLambdaExpression);
-                                                {
-                                                    N(SyntaxKind.ParameterList);
-                                                    {
-                                                        N(SyntaxKind.OpenParenToken);
-                                                        N(SyntaxKind.CloseParenToken);
-                                                    }
-                                                    N(SyntaxKind.EqualsGreaterThanToken);
-                                                    N(SyntaxKind.Block);
-                                                    {
-                                                        N(SyntaxKind.OpenBraceToken);
-                                                        N(SyntaxKind.CloseBraceToken);
-                                                    }
-                                                }
-                                            }
-                                            N(SyntaxKind.CloseBracketToken);
-                                        }
-                                        N(SyntaxKind.BracketedArgumentList);
-                                        {
-                                            N(SyntaxKind.OpenBracketToken);
-                                            N(SyntaxKind.Argument);
-                                            {
-                                                N(SyntaxKind.InvocationExpression);
-                                                {
-                                                    N(SyntaxKind.SimpleMemberAccessExpression);
-                                                    {
-                                                        N(SyntaxKind.IdentifierName);
-                                                        {
-                                                            N(SyntaxKind.IdentifierToken, "rand");
-                                                        }
-                                                        N(SyntaxKind.DotToken);
-                                                        N(SyntaxKind.IdentifierName);
-                                                        {
-                                                            N(SyntaxKind.IdentifierToken, "Next");
-                                                        }
-                                                    }
-                                                    N(SyntaxKind.ArgumentList);
-                                                    {
-                                                        N(SyntaxKind.OpenParenToken);
-                                                        N(SyntaxKind.CloseParenToken);
-                                                    }
-                                                }
-                                            }
-                                            N(SyntaxKind.CloseBracketToken);
-                                        }
-                                    }
-                                    N(SyntaxKind.ArgumentList);
-                                    {
-                                        N(SyntaxKind.OpenParenToken);
-                                        N(SyntaxKind.Argument);
-                                        {
-                                            N(SyntaxKind.IdentifierName);
-                                            {
-                                                N(SyntaxKind.IdentifierToken, "A");
-                                            }
-                                        }
-                                        N(SyntaxKind.CloseParenToken);
-                                    }
-                                }
-                                N(SyntaxKind.ArgumentList);
-                                {
-                                    N(SyntaxKind.OpenParenToken);
-                                    N(SyntaxKind.Argument);
-                                    {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "B");
-                                        }
-                                    }
-                                    N(SyntaxKind.CloseParenToken);
-                                }
-                            }
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.CloseBraceToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity4A()
-    {
-        UsingTree("""
-            [() => {}][rand.Next()](A)(B);
-            """);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.ExpressionStatement);
-                {
-                    N(SyntaxKind.InvocationExpression);
-                    {
-                        N(SyntaxKind.InvocationExpression);
-                        {
-                            N(SyntaxKind.ElementAccessExpression);
-                            {
-                                N(SyntaxKind.CollectionExpression);
-                                {
-                                    N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.ExpressionElement);
-                                    {
-                                        N(SyntaxKind.ParenthesizedLambdaExpression);
-                                        {
-                                            N(SyntaxKind.ParameterList);
-                                            {
-                                                N(SyntaxKind.OpenParenToken);
-                                                N(SyntaxKind.CloseParenToken);
-                                            }
-                                            N(SyntaxKind.EqualsGreaterThanToken);
-                                            N(SyntaxKind.Block);
-                                            {
-                                                N(SyntaxKind.OpenBraceToken);
-                                                N(SyntaxKind.CloseBraceToken);
-                                            }
-                                        }
-                                    }
-                                    N(SyntaxKind.CloseBracketToken);
-                                }
-                                N(SyntaxKind.BracketedArgumentList);
-                                {
-                                    N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.Argument);
-                                    {
-                                        N(SyntaxKind.InvocationExpression);
-                                        {
-                                            N(SyntaxKind.SimpleMemberAccessExpression);
-                                            {
-                                                N(SyntaxKind.IdentifierName);
-                                                {
-                                                    N(SyntaxKind.IdentifierToken, "rand");
-                                                }
-                                                N(SyntaxKind.DotToken);
-                                                N(SyntaxKind.IdentifierName);
-                                                {
-                                                    N(SyntaxKind.IdentifierToken, "Next");
-                                                }
-                                            }
-                                            N(SyntaxKind.ArgumentList);
-                                            {
-                                                N(SyntaxKind.OpenParenToken);
-                                                N(SyntaxKind.CloseParenToken);
-                                            }
-                                        }
-                                    }
-                                    N(SyntaxKind.CloseBracketToken);
-                                }
-                            }
-                            N(SyntaxKind.ArgumentList);
-                            {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.Argument);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "A");
-                                    }
-                                }
-                                N(SyntaxKind.CloseParenToken);
-                            }
-                        }
-                        N(SyntaxKind.ArgumentList);
-                        {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.Argument);
-                            {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "B");
-                                }
-                            }
-                            N(SyntaxKind.CloseParenToken);
-                        }
-                    }
-                    N(SyntaxKind.SemicolonToken);
-                }
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity5()
-    {
-        UsingTree("""
-            class C
-            {
-                void M()
-                {
-                    [() => {}][rand.Next()](A).B();
-                }
-            }
-            """);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.ClassDeclaration);
-            {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.MethodDeclaration);
-                {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.ExpressionStatement);
-                        {
-                            N(SyntaxKind.InvocationExpression);
-                            {
-                                N(SyntaxKind.SimpleMemberAccessExpression);
-                                {
-                                    N(SyntaxKind.InvocationExpression);
-                                    {
-                                        N(SyntaxKind.ElementAccessExpression);
-                                        {
-                                            N(SyntaxKind.CollectionExpression);
-                                            {
-                                                N(SyntaxKind.OpenBracketToken);
-                                                N(SyntaxKind.ExpressionElement);
-                                                {
-                                                    N(SyntaxKind.ParenthesizedLambdaExpression);
-                                                    {
-                                                        N(SyntaxKind.ParameterList);
-                                                        {
-                                                            N(SyntaxKind.OpenParenToken);
-                                                            N(SyntaxKind.CloseParenToken);
-                                                        }
-                                                        N(SyntaxKind.EqualsGreaterThanToken);
-                                                        N(SyntaxKind.Block);
-                                                        {
-                                                            N(SyntaxKind.OpenBraceToken);
-                                                            N(SyntaxKind.CloseBraceToken);
-                                                        }
-                                                    }
-                                                }
-                                                N(SyntaxKind.CloseBracketToken);
-                                            }
-                                            N(SyntaxKind.BracketedArgumentList);
-                                            {
-                                                N(SyntaxKind.OpenBracketToken);
-                                                N(SyntaxKind.Argument);
-                                                {
-                                                    N(SyntaxKind.InvocationExpression);
-                                                    {
-                                                        N(SyntaxKind.SimpleMemberAccessExpression);
-                                                        {
-                                                            N(SyntaxKind.IdentifierName);
-                                                            {
-                                                                N(SyntaxKind.IdentifierToken, "rand");
-                                                            }
-                                                            N(SyntaxKind.DotToken);
-                                                            N(SyntaxKind.IdentifierName);
-                                                            {
-                                                                N(SyntaxKind.IdentifierToken, "Next");
-                                                            }
-                                                        }
-                                                        N(SyntaxKind.ArgumentList);
-                                                        {
-                                                            N(SyntaxKind.OpenParenToken);
-                                                            N(SyntaxKind.CloseParenToken);
-                                                        }
-                                                    }
-                                                }
-                                                N(SyntaxKind.CloseBracketToken);
-                                            }
-                                        }
-                                        N(SyntaxKind.ArgumentList);
-                                        {
-                                            N(SyntaxKind.OpenParenToken);
-                                            N(SyntaxKind.Argument);
-                                            {
-                                                N(SyntaxKind.IdentifierName);
-                                                {
-                                                    N(SyntaxKind.IdentifierToken, "A");
-                                                }
-                                            }
-                                            N(SyntaxKind.CloseParenToken);
-                                        }
-                                    }
-                                    N(SyntaxKind.DotToken);
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "B");
-                                    }
-                                }
-                                N(SyntaxKind.ArgumentList);
-                                {
-                                    N(SyntaxKind.OpenParenToken);
-                                    N(SyntaxKind.CloseParenToken);
-                                }
-                            }
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.CloseBraceToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity5A()
-    {
-        UsingTree("""
-            [() => {}][rand.Next()](A).B();
-            """);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.ExpressionStatement);
-                {
-                    N(SyntaxKind.InvocationExpression);
-                    {
-                        N(SyntaxKind.SimpleMemberAccessExpression);
-                        {
-                            N(SyntaxKind.InvocationExpression);
-                            {
-                                N(SyntaxKind.ElementAccessExpression);
-                                {
-                                    N(SyntaxKind.CollectionExpression);
-                                    {
-                                        N(SyntaxKind.OpenBracketToken);
-                                        N(SyntaxKind.ExpressionElement);
-                                        {
-                                            N(SyntaxKind.ParenthesizedLambdaExpression);
-                                            {
-                                                N(SyntaxKind.ParameterList);
-                                                {
-                                                    N(SyntaxKind.OpenParenToken);
-                                                    N(SyntaxKind.CloseParenToken);
-                                                }
-                                                N(SyntaxKind.EqualsGreaterThanToken);
-                                                N(SyntaxKind.Block);
-                                                {
-                                                    N(SyntaxKind.OpenBraceToken);
-                                                    N(SyntaxKind.CloseBraceToken);
-                                                }
-                                            }
-                                        }
-                                        N(SyntaxKind.CloseBracketToken);
-                                    }
-                                    N(SyntaxKind.BracketedArgumentList);
-                                    {
-                                        N(SyntaxKind.OpenBracketToken);
-                                        N(SyntaxKind.Argument);
-                                        {
-                                            N(SyntaxKind.InvocationExpression);
-                                            {
-                                                N(SyntaxKind.SimpleMemberAccessExpression);
-                                                {
-                                                    N(SyntaxKind.IdentifierName);
-                                                    {
-                                                        N(SyntaxKind.IdentifierToken, "rand");
-                                                    }
-                                                    N(SyntaxKind.DotToken);
-                                                    N(SyntaxKind.IdentifierName);
-                                                    {
-                                                        N(SyntaxKind.IdentifierToken, "Next");
-                                                    }
-                                                }
-                                                N(SyntaxKind.ArgumentList);
-                                                {
-                                                    N(SyntaxKind.OpenParenToken);
-                                                    N(SyntaxKind.CloseParenToken);
-                                                }
-                                            }
-                                        }
-                                        N(SyntaxKind.CloseBracketToken);
-                                    }
-                                }
-                                N(SyntaxKind.ArgumentList);
-                                {
-                                    N(SyntaxKind.OpenParenToken);
-                                    N(SyntaxKind.Argument);
-                                    {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "A");
-                                        }
-                                    }
-                                    N(SyntaxKind.CloseParenToken);
-                                }
-                            }
-                            N(SyntaxKind.DotToken);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "B");
-                            }
-                        }
-                        N(SyntaxKind.ArgumentList);
-                        {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.CloseParenToken);
-                        }
-                    }
-                    N(SyntaxKind.SemicolonToken);
-                }
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity6()
-    {
-        UsingTree("""
-            class C
-            {
-                void M()
-                {
-                    [() => {}][rand.Next()](A)++;
-                }
-            }
-            """);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.ClassDeclaration);
-            {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.MethodDeclaration);
-                {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.ExpressionStatement);
-                        {
-                            N(SyntaxKind.PostIncrementExpression);
-                            {
-                                N(SyntaxKind.InvocationExpression);
-                                {
-                                    N(SyntaxKind.ElementAccessExpression);
-                                    {
-                                        N(SyntaxKind.CollectionExpression);
-                                        {
-                                            N(SyntaxKind.OpenBracketToken);
-                                            N(SyntaxKind.ExpressionElement);
-                                            {
-                                                N(SyntaxKind.ParenthesizedLambdaExpression);
-                                                {
-                                                    N(SyntaxKind.ParameterList);
-                                                    {
-                                                        N(SyntaxKind.OpenParenToken);
-                                                        N(SyntaxKind.CloseParenToken);
-                                                    }
-                                                    N(SyntaxKind.EqualsGreaterThanToken);
-                                                    N(SyntaxKind.Block);
-                                                    {
-                                                        N(SyntaxKind.OpenBraceToken);
-                                                        N(SyntaxKind.CloseBraceToken);
-                                                    }
-                                                }
-                                            }
-                                            N(SyntaxKind.CloseBracketToken);
-                                        }
-                                        N(SyntaxKind.BracketedArgumentList);
-                                        {
-                                            N(SyntaxKind.OpenBracketToken);
-                                            N(SyntaxKind.Argument);
-                                            {
-                                                N(SyntaxKind.InvocationExpression);
-                                                {
-                                                    N(SyntaxKind.SimpleMemberAccessExpression);
-                                                    {
-                                                        N(SyntaxKind.IdentifierName);
-                                                        {
-                                                            N(SyntaxKind.IdentifierToken, "rand");
-                                                        }
-                                                        N(SyntaxKind.DotToken);
-                                                        N(SyntaxKind.IdentifierName);
-                                                        {
-                                                            N(SyntaxKind.IdentifierToken, "Next");
-                                                        }
-                                                    }
-                                                    N(SyntaxKind.ArgumentList);
-                                                    {
-                                                        N(SyntaxKind.OpenParenToken);
-                                                        N(SyntaxKind.CloseParenToken);
-                                                    }
-                                                }
-                                            }
-                                            N(SyntaxKind.CloseBracketToken);
-                                        }
-                                    }
-                                    N(SyntaxKind.ArgumentList);
-                                    {
-                                        N(SyntaxKind.OpenParenToken);
-                                        N(SyntaxKind.Argument);
-                                        {
-                                            N(SyntaxKind.IdentifierName);
-                                            {
-                                                N(SyntaxKind.IdentifierToken, "A");
-                                            }
-                                        }
-                                        N(SyntaxKind.CloseParenToken);
-                                    }
-                                }
-                                N(SyntaxKind.PlusPlusToken);
-                            }
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.CloseBraceToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity6A()
-    {
-        UsingTree("""
-            [() => {}][rand.Next()](A)++;
-            """);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.ExpressionStatement);
-                {
-                    N(SyntaxKind.PostIncrementExpression);
-                    {
-                        N(SyntaxKind.InvocationExpression);
-                        {
-                            N(SyntaxKind.ElementAccessExpression);
-                            {
-                                N(SyntaxKind.CollectionExpression);
-                                {
-                                    N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.ExpressionElement);
-                                    {
-                                        N(SyntaxKind.ParenthesizedLambdaExpression);
-                                        {
-                                            N(SyntaxKind.ParameterList);
-                                            {
-                                                N(SyntaxKind.OpenParenToken);
-                                                N(SyntaxKind.CloseParenToken);
-                                            }
-                                            N(SyntaxKind.EqualsGreaterThanToken);
-                                            N(SyntaxKind.Block);
-                                            {
-                                                N(SyntaxKind.OpenBraceToken);
-                                                N(SyntaxKind.CloseBraceToken);
-                                            }
-                                        }
-                                    }
-                                    N(SyntaxKind.CloseBracketToken);
-                                }
-                                N(SyntaxKind.BracketedArgumentList);
-                                {
-                                    N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.Argument);
-                                    {
-                                        N(SyntaxKind.InvocationExpression);
-                                        {
-                                            N(SyntaxKind.SimpleMemberAccessExpression);
-                                            {
-                                                N(SyntaxKind.IdentifierName);
-                                                {
-                                                    N(SyntaxKind.IdentifierToken, "rand");
-                                                }
-                                                N(SyntaxKind.DotToken);
-                                                N(SyntaxKind.IdentifierName);
-                                                {
-                                                    N(SyntaxKind.IdentifierToken, "Next");
-                                                }
-                                            }
-                                            N(SyntaxKind.ArgumentList);
-                                            {
-                                                N(SyntaxKind.OpenParenToken);
-                                                N(SyntaxKind.CloseParenToken);
-                                            }
-                                        }
-                                    }
-                                    N(SyntaxKind.CloseBracketToken);
-                                }
-                            }
-                            N(SyntaxKind.ArgumentList);
-                            {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.Argument);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "A");
-                                    }
-                                }
-                                N(SyntaxKind.CloseParenToken);
-                            }
-                        }
-                        N(SyntaxKind.PlusPlusToken);
-                    }
-                    N(SyntaxKind.SemicolonToken);
-                }
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity7()
-    {
-        UsingTree("""
-            class C
-            {
-                void M()
-                {
-                    [() => {}][rand.Next()](A)[0] = 1;
-                }
-            }
-            """);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.ClassDeclaration);
-            {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.MethodDeclaration);
-                {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.ExpressionStatement);
-                        {
-                            N(SyntaxKind.SimpleAssignmentExpression);
-                            {
-                                N(SyntaxKind.ElementAccessExpression);
-                                {
-                                    N(SyntaxKind.InvocationExpression);
-                                    {
-                                        N(SyntaxKind.ElementAccessExpression);
-                                        {
-                                            N(SyntaxKind.CollectionExpression);
-                                            {
-                                                N(SyntaxKind.OpenBracketToken);
-                                                N(SyntaxKind.ExpressionElement);
-                                                {
-                                                    N(SyntaxKind.ParenthesizedLambdaExpression);
-                                                    {
-                                                        N(SyntaxKind.ParameterList);
-                                                        {
-                                                            N(SyntaxKind.OpenParenToken);
-                                                            N(SyntaxKind.CloseParenToken);
-                                                        }
-                                                        N(SyntaxKind.EqualsGreaterThanToken);
-                                                        N(SyntaxKind.Block);
-                                                        {
-                                                            N(SyntaxKind.OpenBraceToken);
-                                                            N(SyntaxKind.CloseBraceToken);
-                                                        }
-                                                    }
-                                                }
-                                                N(SyntaxKind.CloseBracketToken);
-                                            }
-                                            N(SyntaxKind.BracketedArgumentList);
-                                            {
-                                                N(SyntaxKind.OpenBracketToken);
-                                                N(SyntaxKind.Argument);
-                                                {
-                                                    N(SyntaxKind.InvocationExpression);
-                                                    {
-                                                        N(SyntaxKind.SimpleMemberAccessExpression);
-                                                        {
-                                                            N(SyntaxKind.IdentifierName);
-                                                            {
-                                                                N(SyntaxKind.IdentifierToken, "rand");
-                                                            }
-                                                            N(SyntaxKind.DotToken);
-                                                            N(SyntaxKind.IdentifierName);
-                                                            {
-                                                                N(SyntaxKind.IdentifierToken, "Next");
-                                                            }
-                                                        }
-                                                        N(SyntaxKind.ArgumentList);
-                                                        {
-                                                            N(SyntaxKind.OpenParenToken);
-                                                            N(SyntaxKind.CloseParenToken);
-                                                        }
-                                                    }
-                                                }
-                                                N(SyntaxKind.CloseBracketToken);
-                                            }
-                                        }
-                                        N(SyntaxKind.ArgumentList);
-                                        {
-                                            N(SyntaxKind.OpenParenToken);
-                                            N(SyntaxKind.Argument);
-                                            {
-                                                N(SyntaxKind.IdentifierName);
-                                                {
-                                                    N(SyntaxKind.IdentifierToken, "A");
-                                                }
-                                            }
-                                            N(SyntaxKind.CloseParenToken);
-                                        }
-                                    }
-                                    N(SyntaxKind.BracketedArgumentList);
-                                    {
-                                        N(SyntaxKind.OpenBracketToken);
-                                        N(SyntaxKind.Argument);
-                                        {
-                                            N(SyntaxKind.NumericLiteralExpression);
-                                            {
-                                                N(SyntaxKind.NumericLiteralToken, "0");
-                                            }
-                                        }
-                                        N(SyntaxKind.CloseBracketToken);
-                                    }
-                                }
-                                N(SyntaxKind.EqualsToken);
-                                N(SyntaxKind.NumericLiteralExpression);
-                                {
-                                    N(SyntaxKind.NumericLiteralToken, "1");
-                                }
-                            }
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.CloseBraceToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity7A()
-    {
-        UsingTree("""
-            [() => {}][rand.Next()](A)[0] = 1;
-            """);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.ExpressionStatement);
-                {
-                    N(SyntaxKind.SimpleAssignmentExpression);
-                    {
-                        N(SyntaxKind.ElementAccessExpression);
-                        {
-                            N(SyntaxKind.InvocationExpression);
-                            {
-                                N(SyntaxKind.ElementAccessExpression);
-                                {
-                                    N(SyntaxKind.CollectionExpression);
-                                    {
-                                        N(SyntaxKind.OpenBracketToken);
-                                        N(SyntaxKind.ExpressionElement);
-                                        {
-                                            N(SyntaxKind.ParenthesizedLambdaExpression);
-                                            {
-                                                N(SyntaxKind.ParameterList);
-                                                {
-                                                    N(SyntaxKind.OpenParenToken);
-                                                    N(SyntaxKind.CloseParenToken);
-                                                }
-                                                N(SyntaxKind.EqualsGreaterThanToken);
-                                                N(SyntaxKind.Block);
-                                                {
-                                                    N(SyntaxKind.OpenBraceToken);
-                                                    N(SyntaxKind.CloseBraceToken);
-                                                }
-                                            }
-                                        }
-                                        N(SyntaxKind.CloseBracketToken);
-                                    }
-                                    N(SyntaxKind.BracketedArgumentList);
-                                    {
-                                        N(SyntaxKind.OpenBracketToken);
-                                        N(SyntaxKind.Argument);
-                                        {
-                                            N(SyntaxKind.InvocationExpression);
-                                            {
-                                                N(SyntaxKind.SimpleMemberAccessExpression);
-                                                {
-                                                    N(SyntaxKind.IdentifierName);
-                                                    {
-                                                        N(SyntaxKind.IdentifierToken, "rand");
-                                                    }
-                                                    N(SyntaxKind.DotToken);
-                                                    N(SyntaxKind.IdentifierName);
-                                                    {
-                                                        N(SyntaxKind.IdentifierToken, "Next");
-                                                    }
-                                                }
-                                                N(SyntaxKind.ArgumentList);
-                                                {
-                                                    N(SyntaxKind.OpenParenToken);
-                                                    N(SyntaxKind.CloseParenToken);
-                                                }
-                                            }
-                                        }
-                                        N(SyntaxKind.CloseBracketToken);
-                                    }
-                                }
-                                N(SyntaxKind.ArgumentList);
-                                {
-                                    N(SyntaxKind.OpenParenToken);
-                                    N(SyntaxKind.Argument);
-                                    {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "A");
-                                        }
-                                    }
-                                    N(SyntaxKind.CloseParenToken);
-                                }
-                            }
-                            N(SyntaxKind.BracketedArgumentList);
-                            {
-                                N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.Argument);
-                                {
-                                    N(SyntaxKind.NumericLiteralExpression);
-                                    {
-                                        N(SyntaxKind.NumericLiteralToken, "0");
-                                    }
-                                }
-                                N(SyntaxKind.CloseBracketToken);
-                            }
-                        }
-                        N(SyntaxKind.EqualsToken);
-                        N(SyntaxKind.NumericLiteralExpression);
-                        {
-                            N(SyntaxKind.NumericLiteralToken, "1");
-                        }
-                    }
-                    N(SyntaxKind.SemicolonToken);
-                }
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity8()
-    {
-        UsingTree("""
-            class C
-            {
-                void M()
-                {
-                    [Attr] (A, B) LocalFunc() { }
-                }
-            }
-            """);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.ClassDeclaration);
-            {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.MethodDeclaration);
-                {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.LocalFunctionStatement);
-                        {
-                            N(SyntaxKind.AttributeList);
-                            {
-                                N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.Attribute);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "Attr");
-                                    }
-                                }
-                                N(SyntaxKind.CloseBracketToken);
-                            }
-                            N(SyntaxKind.TupleType);
-                            {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.TupleElement);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "A");
-                                    }
-                                }
-                                N(SyntaxKind.CommaToken);
-                                N(SyntaxKind.TupleElement);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "B");
-                                    }
-                                }
-                                N(SyntaxKind.CloseParenToken);
-                            }
-                            N(SyntaxKind.IdentifierToken, "LocalFunc");
-                            N(SyntaxKind.ParameterList);
-                            {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.CloseParenToken);
-                            }
-                            N(SyntaxKind.Block);
-                            {
-                                N(SyntaxKind.OpenBraceToken);
-                                N(SyntaxKind.CloseBraceToken);
-                            }
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.CloseBraceToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity8A()
-    {
-        UsingTree("""
-            [Attr] (A, B) LocalFunc() { }
-            """);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.LocalFunctionStatement);
-                {
-                    N(SyntaxKind.AttributeList);
-                    {
-                        N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.Attribute);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Attr");
-                            }
-                        }
-                        N(SyntaxKind.CloseBracketToken);
-                    }
-                    N(SyntaxKind.TupleType);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.TupleElement);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "A");
-                            }
-                        }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.TupleElement);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "B");
-                            }
-                        }
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.IdentifierToken, "LocalFunc");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity9()
-    {
-        UsingTree("""
-            class C
-            {
-                void M()
-                {
-                    [Attr1][Attr2] (A, B) LocalFunc() { }
-                }
-            }
-            """);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.ClassDeclaration);
-            {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.MethodDeclaration);
-                {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.LocalFunctionStatement);
-                        {
-                            N(SyntaxKind.AttributeList);
-                            {
-                                N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.Attribute);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "Attr1");
-                                    }
-                                }
-                                N(SyntaxKind.CloseBracketToken);
-                            }
-                            N(SyntaxKind.AttributeList);
-                            {
-                                N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.Attribute);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "Attr2");
-                                    }
-                                }
-                                N(SyntaxKind.CloseBracketToken);
-                            }
-                            N(SyntaxKind.TupleType);
-                            {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.TupleElement);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "A");
-                                    }
-                                }
-                                N(SyntaxKind.CommaToken);
-                                N(SyntaxKind.TupleElement);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "B");
-                                    }
-                                }
-                                N(SyntaxKind.CloseParenToken);
-                            }
-                            N(SyntaxKind.IdentifierToken, "LocalFunc");
-                            N(SyntaxKind.ParameterList);
-                            {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.CloseParenToken);
-                            }
-                            N(SyntaxKind.Block);
-                            {
-                                N(SyntaxKind.OpenBraceToken);
-                                N(SyntaxKind.CloseBraceToken);
-                            }
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.CloseBraceToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity9A()
-    {
-        UsingTree("""
-            [Attr1][Attr2] (A, B) LocalFunc() { }
-            """);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.LocalFunctionStatement);
-                {
-                    N(SyntaxKind.AttributeList);
-                    {
-                        N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.Attribute);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Attr1");
-                            }
-                        }
-                        N(SyntaxKind.CloseBracketToken);
-                    }
-                    N(SyntaxKind.AttributeList);
-                    {
-                        N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.Attribute);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Attr2");
-                            }
-                        }
-                        N(SyntaxKind.CloseBracketToken);
-                    }
-                    N(SyntaxKind.TupleType);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.TupleElement);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "A");
-                            }
-                        }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.TupleElement);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "B");
-                            }
-                        }
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.IdentifierToken, "LocalFunc");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity10()
-    {
-        UsingTree("""
-            class C
-            {
-                void M()
-                {
-                    [Attr1][Attr2] (A, B)? LocalFunc() { }
-                }
-            }
-            """);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.ClassDeclaration);
-            {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.MethodDeclaration);
-                {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.LocalFunctionStatement);
-                        {
-                            N(SyntaxKind.AttributeList);
-                            {
-                                N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.Attribute);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "Attr1");
-                                    }
-                                }
-                                N(SyntaxKind.CloseBracketToken);
-                            }
-                            N(SyntaxKind.AttributeList);
-                            {
-                                N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.Attribute);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "Attr2");
-                                    }
-                                }
-                                N(SyntaxKind.CloseBracketToken);
-                            }
-                            N(SyntaxKind.NullableType);
-                            {
-                                N(SyntaxKind.TupleType);
-                                {
-                                    N(SyntaxKind.OpenParenToken);
-                                    N(SyntaxKind.TupleElement);
-                                    {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "A");
-                                        }
-                                    }
-                                    N(SyntaxKind.CommaToken);
-                                    N(SyntaxKind.TupleElement);
-                                    {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "B");
-                                        }
-                                    }
-                                    N(SyntaxKind.CloseParenToken);
-                                }
-                                N(SyntaxKind.QuestionToken);
-                            }
-                            N(SyntaxKind.IdentifierToken, "LocalFunc");
-                            N(SyntaxKind.ParameterList);
-                            {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.CloseParenToken);
-                            }
-                            N(SyntaxKind.Block);
-                            {
-                                N(SyntaxKind.OpenBraceToken);
-                                N(SyntaxKind.CloseBraceToken);
-                            }
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.CloseBraceToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity10A()
-    {
-        UsingTree("""
-            [Attr1][Attr2] (A, B)? LocalFunc() { }
-            """);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.LocalFunctionStatement);
-                {
-                    N(SyntaxKind.AttributeList);
-                    {
-                        N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.Attribute);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Attr1");
-                            }
-                        }
-                        N(SyntaxKind.CloseBracketToken);
-                    }
-                    N(SyntaxKind.AttributeList);
-                    {
-                        N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.Attribute);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Attr2");
-                            }
-                        }
-                        N(SyntaxKind.CloseBracketToken);
-                    }
-                    N(SyntaxKind.NullableType);
-                    {
-                        N(SyntaxKind.TupleType);
-                        {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.TupleElement);
-                            {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "A");
-                                }
-                            }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.TupleElement);
-                            {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "B");
-                                }
-                            }
-                            N(SyntaxKind.CloseParenToken);
-                        }
-                        N(SyntaxKind.QuestionToken);
-                    }
-                    N(SyntaxKind.IdentifierToken, "LocalFunc");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity11()
-    {
-        UsingTree("""
-            class C
-            {
-                void M()
-                {
-                    [Attr1][Attr2] (A, B)[] LocalFunc() { }
-                }
-            }
-            """);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.ClassDeclaration);
-            {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.MethodDeclaration);
-                {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.LocalFunctionStatement);
-                        {
-                            N(SyntaxKind.AttributeList);
-                            {
-                                N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.Attribute);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "Attr1");
-                                    }
-                                }
-                                N(SyntaxKind.CloseBracketToken);
-                            }
-                            N(SyntaxKind.AttributeList);
-                            {
-                                N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.Attribute);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "Attr2");
-                                    }
-                                }
-                                N(SyntaxKind.CloseBracketToken);
-                            }
-                            N(SyntaxKind.ArrayType);
-                            {
-                                N(SyntaxKind.TupleType);
-                                {
-                                    N(SyntaxKind.OpenParenToken);
-                                    N(SyntaxKind.TupleElement);
-                                    {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "A");
-                                        }
-                                    }
-                                    N(SyntaxKind.CommaToken);
-                                    N(SyntaxKind.TupleElement);
-                                    {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "B");
-                                        }
-                                    }
-                                    N(SyntaxKind.CloseParenToken);
-                                }
-                                N(SyntaxKind.ArrayRankSpecifier);
-                                {
-                                    N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.OmittedArraySizeExpression);
-                                    {
-                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
-                                    }
-                                    N(SyntaxKind.CloseBracketToken);
-                                }
-                            }
-                            N(SyntaxKind.IdentifierToken, "LocalFunc");
-                            N(SyntaxKind.ParameterList);
-                            {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.CloseParenToken);
-                            }
-                            N(SyntaxKind.Block);
-                            {
-                                N(SyntaxKind.OpenBraceToken);
-                                N(SyntaxKind.CloseBraceToken);
-                            }
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.CloseBraceToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity11A()
-    {
-        UsingTree("""
-            [Attr1][Attr2] (A, B)[] LocalFunc() { }
-            """);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.LocalFunctionStatement);
-                {
-                    N(SyntaxKind.AttributeList);
-                    {
-                        N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.Attribute);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Attr1");
-                            }
-                        }
-                        N(SyntaxKind.CloseBracketToken);
-                    }
-                    N(SyntaxKind.AttributeList);
-                    {
-                        N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.Attribute);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Attr2");
-                            }
-                        }
-                        N(SyntaxKind.CloseBracketToken);
-                    }
-                    N(SyntaxKind.ArrayType);
-                    {
-                        N(SyntaxKind.TupleType);
-                        {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.TupleElement);
-                            {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "A");
-                                }
-                            }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.TupleElement);
-                            {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "B");
-                                }
-                            }
-                            N(SyntaxKind.CloseParenToken);
-                        }
-                        N(SyntaxKind.ArrayRankSpecifier);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.OmittedArraySizeExpression);
-                            {
-                                N(SyntaxKind.OmittedArraySizeExpressionToken);
-                            }
-                            N(SyntaxKind.CloseBracketToken);
-                        }
-                    }
-                    N(SyntaxKind.IdentifierToken, "LocalFunc");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity12()
-    {
-        UsingTree("""
-            class C
-            {
-                void M()
-                {
-                    [Attr1][Attr2] (A, B)[,] LocalFunc() { }
-                }
-            }
-            """);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.ClassDeclaration);
-            {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.MethodDeclaration);
-                {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.LocalFunctionStatement);
-                        {
-                            N(SyntaxKind.AttributeList);
-                            {
-                                N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.Attribute);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "Attr1");
-                                    }
-                                }
-                                N(SyntaxKind.CloseBracketToken);
-                            }
-                            N(SyntaxKind.AttributeList);
-                            {
-                                N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.Attribute);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "Attr2");
-                                    }
-                                }
-                                N(SyntaxKind.CloseBracketToken);
-                            }
-                            N(SyntaxKind.ArrayType);
-                            {
-                                N(SyntaxKind.TupleType);
-                                {
-                                    N(SyntaxKind.OpenParenToken);
-                                    N(SyntaxKind.TupleElement);
-                                    {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "A");
-                                        }
-                                    }
-                                    N(SyntaxKind.CommaToken);
-                                    N(SyntaxKind.TupleElement);
-                                    {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "B");
-                                        }
-                                    }
-                                    N(SyntaxKind.CloseParenToken);
-                                }
-                                N(SyntaxKind.ArrayRankSpecifier);
-                                {
-                                    N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.OmittedArraySizeExpression);
-                                    {
-                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
-                                    }
-                                    N(SyntaxKind.CommaToken);
-                                    N(SyntaxKind.OmittedArraySizeExpression);
-                                    {
-                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
-                                    }
-                                    N(SyntaxKind.CloseBracketToken);
-                                }
-                            }
-                            N(SyntaxKind.IdentifierToken, "LocalFunc");
-                            N(SyntaxKind.ParameterList);
-                            {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.CloseParenToken);
-                            }
-                            N(SyntaxKind.Block);
-                            {
-                                N(SyntaxKind.OpenBraceToken);
-                                N(SyntaxKind.CloseBraceToken);
-                            }
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.CloseBraceToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity12A()
-    {
-        UsingTree("""
-            [Attr1][Attr2] (A, B)[,] LocalFunc() { }
-            """);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.LocalFunctionStatement);
-                {
-                    N(SyntaxKind.AttributeList);
-                    {
-                        N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.Attribute);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Attr1");
-                            }
-                        }
-                        N(SyntaxKind.CloseBracketToken);
-                    }
-                    N(SyntaxKind.AttributeList);
-                    {
-                        N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.Attribute);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Attr2");
-                            }
-                        }
-                        N(SyntaxKind.CloseBracketToken);
-                    }
-                    N(SyntaxKind.ArrayType);
-                    {
-                        N(SyntaxKind.TupleType);
-                        {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.TupleElement);
-                            {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "A");
-                                }
-                            }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.TupleElement);
-                            {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "B");
-                                }
-                            }
-                            N(SyntaxKind.CloseParenToken);
-                        }
-                        N(SyntaxKind.ArrayRankSpecifier);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.OmittedArraySizeExpression);
-                            {
-                                N(SyntaxKind.OmittedArraySizeExpressionToken);
-                            }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.OmittedArraySizeExpression);
-                            {
-                                N(SyntaxKind.OmittedArraySizeExpressionToken);
-                            }
-                            N(SyntaxKind.CloseBracketToken);
-                        }
-                    }
-                    N(SyntaxKind.IdentifierToken, "LocalFunc");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity13()
-    {
-        UsingTree("""
-            class C
-            {
-                void M()
-                {
-                    [Attr1][Attr2] (A, B)* LocalFunc() { }
-                }
-            }
-            """);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.ClassDeclaration);
-            {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.MethodDeclaration);
-                {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.LocalFunctionStatement);
-                        {
-                            N(SyntaxKind.AttributeList);
-                            {
-                                N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.Attribute);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "Attr1");
-                                    }
-                                }
-                                N(SyntaxKind.CloseBracketToken);
-                            }
-                            N(SyntaxKind.AttributeList);
-                            {
-                                N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.Attribute);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "Attr2");
-                                    }
-                                }
-                                N(SyntaxKind.CloseBracketToken);
-                            }
-                            N(SyntaxKind.PointerType);
-                            {
-                                N(SyntaxKind.TupleType);
-                                {
-                                    N(SyntaxKind.OpenParenToken);
-                                    N(SyntaxKind.TupleElement);
-                                    {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "A");
-                                        }
-                                    }
-                                    N(SyntaxKind.CommaToken);
-                                    N(SyntaxKind.TupleElement);
-                                    {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "B");
-                                        }
-                                    }
-                                    N(SyntaxKind.CloseParenToken);
-                                }
-                                N(SyntaxKind.AsteriskToken);
-                            }
-                            N(SyntaxKind.IdentifierToken, "LocalFunc");
-                            N(SyntaxKind.ParameterList);
-                            {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.CloseParenToken);
-                            }
-                            N(SyntaxKind.Block);
-                            {
-                                N(SyntaxKind.OpenBraceToken);
-                                N(SyntaxKind.CloseBraceToken);
-                            }
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.CloseBraceToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity13A()
-    {
-        UsingTree("""
-            [Attr1][Attr2] (A, B)* LocalFunc() { }
-            """);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.LocalFunctionStatement);
-                {
-                    N(SyntaxKind.AttributeList);
-                    {
-                        N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.Attribute);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Attr1");
-                            }
-                        }
-                        N(SyntaxKind.CloseBracketToken);
-                    }
-                    N(SyntaxKind.AttributeList);
-                    {
-                        N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.Attribute);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Attr2");
-                            }
-                        }
-                        N(SyntaxKind.CloseBracketToken);
-                    }
-                    N(SyntaxKind.PointerType);
-                    {
-                        N(SyntaxKind.TupleType);
-                        {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.TupleElement);
-                            {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "A");
-                                }
-                            }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.TupleElement);
-                            {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "B");
-                                }
-                            }
-                            N(SyntaxKind.CloseParenToken);
-                        }
-                        N(SyntaxKind.AsteriskToken);
-                    }
-                    N(SyntaxKind.IdentifierToken, "LocalFunc");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity14()
-    {
-        UsingTree("""
-            class C
-            {
-                void M()
-                {
-                    [Attr1][Attr2] (A a, B b) LocalFunc() { }
-                }
-            }
-            """);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.ClassDeclaration);
-            {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.MethodDeclaration);
-                {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.LocalFunctionStatement);
-                        {
-                            N(SyntaxKind.AttributeList);
-                            {
-                                N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.Attribute);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "Attr1");
-                                    }
-                                }
-                                N(SyntaxKind.CloseBracketToken);
-                            }
-                            N(SyntaxKind.AttributeList);
-                            {
-                                N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.Attribute);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "Attr2");
-                                    }
-                                }
-                                N(SyntaxKind.CloseBracketToken);
-                            }
-                            N(SyntaxKind.TupleType);
-                            {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.TupleElement);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "A");
-                                    }
-                                    N(SyntaxKind.IdentifierToken, "a");
-                                }
-                                N(SyntaxKind.CommaToken);
-                                N(SyntaxKind.TupleElement);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "B");
-                                    }
-                                    N(SyntaxKind.IdentifierToken, "b");
-                                }
-                                N(SyntaxKind.CloseParenToken);
-                            }
-                            N(SyntaxKind.IdentifierToken, "LocalFunc");
-                            N(SyntaxKind.ParameterList);
-                            {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.CloseParenToken);
-                            }
-                            N(SyntaxKind.Block);
-                            {
-                                N(SyntaxKind.OpenBraceToken);
-                                N(SyntaxKind.CloseBraceToken);
-                            }
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.CloseBraceToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity14A()
-    {
-        UsingTree("""
-            [Attr1][Attr2] (A a, B b) LocalFunc() { }
-            """);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.LocalFunctionStatement);
-                {
-                    N(SyntaxKind.AttributeList);
-                    {
-                        N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.Attribute);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Attr1");
-                            }
-                        }
-                        N(SyntaxKind.CloseBracketToken);
-                    }
-                    N(SyntaxKind.AttributeList);
-                    {
-                        N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.Attribute);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Attr2");
-                            }
-                        }
-                        N(SyntaxKind.CloseBracketToken);
-                    }
-                    N(SyntaxKind.TupleType);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.TupleElement);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "A");
-                            }
-                            N(SyntaxKind.IdentifierToken, "a");
-                        }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.TupleElement);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "B");
-                            }
-                            N(SyntaxKind.IdentifierToken, "b");
-                        }
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.IdentifierToken, "LocalFunc");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
     public void TopLevelDotAccess_GlobalAttributeAmbiguity1()
     {
         UsingTree("[assembly: A, B].C();",
@@ -3096,6 +222,422 @@ public class CollectionLiteralParsingTests : ParsingTests
                         }
                     }
                     N(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TopLevelDotAccess_AttributeAmbiguity2A()
+    {
+        UsingTree("[return: A, B].C();",
+            // (1,2): error CS1003: Syntax error, ']' expected
+            // [return: A, B].C();
+            Diagnostic(ErrorCode.ERR_SyntaxError, "return").WithArguments("]").WithLocation(1, 2),
+            // (1,2): error CS1002: ; expected
+            // [return: A, B].C();
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "return").WithLocation(1, 2),
+            // (1,8): error CS1525: Invalid expression term ':'
+            // [return: A, B].C();
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ":").WithArguments(":").WithLocation(1, 8),
+            // (1,8): error CS1002: ; expected
+            // [return: A, B].C();
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(1, 8),
+            // (1,8): error CS1022: Type or namespace definition, or end-of-file expected
+            // [return: A, B].C();
+            Diagnostic(ErrorCode.ERR_EOFExpected, ":").WithLocation(1, 8),
+            // (1,11): error CS1001: Identifier expected
+            // [return: A, B].C();
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ",").WithLocation(1, 11),
+            // (1,14): error CS1003: Syntax error, ',' expected
+            // [return: A, B].C();
+            Diagnostic(ErrorCode.ERR_SyntaxError, "]").WithArguments(",").WithLocation(1, 14),
+            // (1,18): error CS1002: ; expected
+            // [return: A, B].C();
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 18),
+            // (1,18): error CS1022: Type or namespace definition, or end-of-file expected
+            // [return: A, B].C();
+            Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(1, 18));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.CollectionExpression);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        M(SyntaxKind.CloseBracketToken);
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.ReturnStatement);
+                {
+                    N(SyntaxKind.ReturnKeyword);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalDeclarationStatement);
+                {
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "A");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "B");
+                        }
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TopLevelDotAccess_AttributeAmbiguity2B()
+    {
+        UsingTree("[return: A, B] void F() { }");
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalFunctionStatement);
+                {
+                    N(SyntaxKind.AttributeList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.AttributeTargetSpecifier);
+                        {
+                            N(SyntaxKind.ReturnKeyword);
+                            N(SyntaxKind.ColonToken);
+                        }
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "B");
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "F");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TopLevelDotAccess_AttributeAmbiguity3A()
+    {
+        UsingTree("[method: A, B].C();",
+            // (1,8): error CS1003: Syntax error, ',' expected
+            // [method: A, B].C();
+            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 8),
+            // (1,10): error CS1003: Syntax error, ',' expected
+            // [method: A, B].C();
+            Diagnostic(ErrorCode.ERR_SyntaxError, "A").WithArguments(",").WithLocation(1, 10));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.InvocationExpression);
+                    {
+                        N(SyntaxKind.SimpleMemberAccessExpression);
+                        {
+                            N(SyntaxKind.CollectionExpression);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.ExpressionElement);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "method");
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.ExpressionElement);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "A");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.ExpressionElement);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "B");
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "C");
+                            }
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TopLevelDotAccess_AttributeAmbiguity3B()
+    {
+        UsingTree("[method: A, B] void F() { }");
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalFunctionStatement);
+                {
+                    N(SyntaxKind.AttributeList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.AttributeTargetSpecifier);
+                        {
+                            N(SyntaxKind.MethodKeyword);
+                            N(SyntaxKind.ColonToken);
+                        }
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "B");
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "F");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TopLevelDotAccess_AttributeAmbiguity4A()
+    {
+        UsingTree("[return: A].C();",
+            // (1,2): error CS1003: Syntax error, ']' expected
+            // [return: A].C();
+            Diagnostic(ErrorCode.ERR_SyntaxError, "return").WithArguments("]").WithLocation(1, 2),
+            // (1,2): error CS1002: ; expected
+            // [return: A].C();
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "return").WithLocation(1, 2),
+            // (1,8): error CS1525: Invalid expression term ':'
+            // [return: A].C();
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ":").WithArguments(":").WithLocation(1, 8),
+            // (1,8): error CS1002: ; expected
+            // [return: A].C();
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(1, 8),
+            // (1,8): error CS1022: Type or namespace definition, or end-of-file expected
+            // [return: A].C();
+            Diagnostic(ErrorCode.ERR_EOFExpected, ":").WithLocation(1, 8),
+            // (1,11): error CS1001: Identifier expected
+            // [return: A].C();
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "]").WithLocation(1, 11),
+            // (1,11): error CS1003: Syntax error, ',' expected
+            // [return: A].C();
+            Diagnostic(ErrorCode.ERR_SyntaxError, "]").WithArguments(",").WithLocation(1, 11),
+            // (1,15): error CS1002: ; expected
+            // [return: A].C();
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 15),
+            // (1,15): error CS1022: Type or namespace definition, or end-of-file expected
+            // [return: A].C();
+            Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(1, 15));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.CollectionExpression);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        M(SyntaxKind.CloseBracketToken);
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.ReturnStatement);
+                {
+                    N(SyntaxKind.ReturnKeyword);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalDeclarationStatement);
+                {
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "A");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TopLevelDotAccess_AttributeAmbiguity4B()
+    {
+        UsingTree("[return: A] void F() { }");
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalFunctionStatement);
+                {
+                    N(SyntaxKind.AttributeList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.AttributeTargetSpecifier);
+                        {
+                            N(SyntaxKind.ReturnKeyword);
+                            N(SyntaxKind.ColonToken);
+                        }
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "F");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
                 }
             }
             N(SyntaxKind.EndOfFileToken);
@@ -16347,139 +13889,32 @@ class C
     }
 
     [Fact]
-    public void TopLevelDotAccess_AttributeAmbiguity2A()
+    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity1()
     {
-        UsingTree("[return: A, B].C();",
-            // (1,2): error CS1003: Syntax error, ']' expected
-            // [return: A, B].C();
-            Diagnostic(ErrorCode.ERR_SyntaxError, "return").WithArguments("]").WithLocation(1, 2),
-            // (1,2): error CS1002: ; expected
-            // [return: A, B].C();
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "return").WithLocation(1, 2),
-            // (1,8): error CS1525: Invalid expression term ':'
-            // [return: A, B].C();
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ":").WithArguments(":").WithLocation(1, 8),
-            // (1,8): error CS1002: ; expected
-            // [return: A, B].C();
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(1, 8),
-            // (1,8): error CS1022: Type or namespace definition, or end-of-file expected
-            // [return: A, B].C();
-            Diagnostic(ErrorCode.ERR_EOFExpected, ":").WithLocation(1, 8),
-            // (1,11): error CS1001: Identifier expected
-            // [return: A, B].C();
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, ",").WithLocation(1, 11),
-            // (1,14): error CS1003: Syntax error, ',' expected
-            // [return: A, B].C();
-            Diagnostic(ErrorCode.ERR_SyntaxError, "]").WithArguments(",").WithLocation(1, 14),
-            // (1,18): error CS1002: ; expected
-            // [return: A, B].C();
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 18),
-            // (1,18): error CS1022: Type or namespace definition, or end-of-file expected
-            // [return: A, B].C();
-            Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(1, 18));
+        UsingTree("""
+            class C
+            {
+                void M()
+                {
+                    [() => {}][rand.Next()]();
+                }
+            }
+            """);
 
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.GlobalStatement);
+            N(SyntaxKind.ClassDeclaration);
             {
-                N(SyntaxKind.ExpressionStatement);
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
                 {
-                    N(SyntaxKind.CollectionExpression);
-                    {
-                        N(SyntaxKind.OpenBracketToken);
-                        M(SyntaxKind.CloseBracketToken);
-                    }
-                    M(SyntaxKind.SemicolonToken);
-                }
-            }
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.ReturnStatement);
-                {
-                    N(SyntaxKind.ReturnKeyword);
-                    M(SyntaxKind.IdentifierName);
-                    {
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.SemicolonToken);
-                }
-            }
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.LocalDeclarationStatement);
-                {
-                    N(SyntaxKind.VariableDeclaration);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "A");
-                        }
-                        M(SyntaxKind.VariableDeclarator);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.VariableDeclarator);
-                        {
-                            N(SyntaxKind.IdentifierToken, "B");
-                        }
-                    }
-                    M(SyntaxKind.SemicolonToken);
-                }
-            }
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.EmptyStatement);
-                {
-                    N(SyntaxKind.SemicolonToken);
-                }
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void TopLevelDotAccess_AttributeAmbiguity2B()
-    {
-        UsingTree("[return: A, B] void F() { }");
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.LocalFunctionStatement);
-                {
-                    N(SyntaxKind.AttributeList);
-                    {
-                        N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.AttributeTargetSpecifier);
-                        {
-                            N(SyntaxKind.ReturnKeyword);
-                            N(SyntaxKind.ColonToken);
-                        }
-                        N(SyntaxKind.Attribute);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "A");
-                            }
-                        }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Attribute);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "B");
-                            }
-                        }
-                        N(SyntaxKind.CloseBracketToken);
-                    }
                     N(SyntaxKind.PredefinedType);
                     {
                         N(SyntaxKind.VoidKeyword);
                     }
-                    N(SyntaxKind.IdentifierToken, "F");
+                    N(SyntaxKind.IdentifierToken, "M");
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -16488,9 +13923,75 @@ class C
                     N(SyntaxKind.Block);
                     {
                         N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.ExpressionStatement);
+                        {
+                            N(SyntaxKind.InvocationExpression);
+                            {
+                                N(SyntaxKind.ElementAccessExpression);
+                                {
+                                    N(SyntaxKind.CollectionExpression);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.ExpressionElement);
+                                        {
+                                            N(SyntaxKind.ParenthesizedLambdaExpression);
+                                            {
+                                                N(SyntaxKind.ParameterList);
+                                                {
+                                                    N(SyntaxKind.OpenParenToken);
+                                                    N(SyntaxKind.CloseParenToken);
+                                                }
+                                                N(SyntaxKind.EqualsGreaterThanToken);
+                                                N(SyntaxKind.Block);
+                                                {
+                                                    N(SyntaxKind.OpenBraceToken);
+                                                    N(SyntaxKind.CloseBraceToken);
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
+                                    N(SyntaxKind.BracketedArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.InvocationExpression);
+                                            {
+                                                N(SyntaxKind.SimpleMemberAccessExpression);
+                                                {
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "rand");
+                                                    }
+                                                    N(SyntaxKind.DotToken);
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "Next");
+                                                    }
+                                                }
+                                                N(SyntaxKind.ArgumentList);
+                                                {
+                                                    N(SyntaxKind.OpenParenToken);
+                                                    N(SyntaxKind.CloseParenToken);
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
+                                }
+                                N(SyntaxKind.ArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
                         N(SyntaxKind.CloseBraceToken);
                     }
                 }
+                N(SyntaxKind.CloseBraceToken);
             }
             N(SyntaxKind.EndOfFileToken);
         }
@@ -16498,15 +13999,11 @@ class C
     }
 
     [Fact]
-    public void TopLevelDotAccess_AttributeAmbiguity3A()
+    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity1A()
     {
-        UsingTree("[method: A, B].C();",
-            // (1,8): error CS1003: Syntax error, ',' expected
-            // [method: A, B].C();
-            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 8),
-            // (1,10): error CS1003: Syntax error, ',' expected
-            // [method: A, B].C();
-            Diagnostic(ErrorCode.ERR_SyntaxError, "A").WithArguments(",").WithLocation(1, 10));
+        UsingTree("""
+            [() => {}][rand.Next()]();
+            """);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -16516,40 +14013,57 @@ class C
                 {
                     N(SyntaxKind.InvocationExpression);
                     {
-                        N(SyntaxKind.SimpleMemberAccessExpression);
+                        N(SyntaxKind.ElementAccessExpression);
                         {
                             N(SyntaxKind.CollectionExpression);
                             {
                                 N(SyntaxKind.OpenBracketToken);
                                 N(SyntaxKind.ExpressionElement);
                                 {
-                                    N(SyntaxKind.IdentifierName);
+                                    N(SyntaxKind.ParenthesizedLambdaExpression);
                                     {
-                                        N(SyntaxKind.IdentifierToken, "method");
-                                    }
-                                }
-                                M(SyntaxKind.CommaToken);
-                                N(SyntaxKind.ExpressionElement);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "A");
-                                    }
-                                }
-                                N(SyntaxKind.CommaToken);
-                                N(SyntaxKind.ExpressionElement);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "B");
+                                        N(SyntaxKind.ParameterList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                        N(SyntaxKind.EqualsGreaterThanToken);
+                                        N(SyntaxKind.Block);
+                                        {
+                                            N(SyntaxKind.OpenBraceToken);
+                                            N(SyntaxKind.CloseBraceToken);
+                                        }
                                     }
                                 }
                                 N(SyntaxKind.CloseBracketToken);
                             }
-                            N(SyntaxKind.DotToken);
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.BracketedArgumentList);
                             {
-                                N(SyntaxKind.IdentifierToken, "C");
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.InvocationExpression);
+                                    {
+                                        N(SyntaxKind.SimpleMemberAccessExpression);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "rand");
+                                            }
+                                            N(SyntaxKind.DotToken);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "Next");
+                                            }
+                                        }
+                                        N(SyntaxKind.ArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
                             }
                         }
                         N(SyntaxKind.ArgumentList);
@@ -16567,9 +14081,1484 @@ class C
     }
 
     [Fact]
-    public void TopLevelDotAccess_AttributeAmbiguity3B()
+    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity2()
     {
-        UsingTree("[method: A, B] void F() { }");
+        UsingTree("""
+            class C
+            {
+                void M()
+                {
+                    [() => {}][rand.Next()](A);
+                }
+            }
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.ExpressionStatement);
+                        {
+                            N(SyntaxKind.InvocationExpression);
+                            {
+                                N(SyntaxKind.ElementAccessExpression);
+                                {
+                                    N(SyntaxKind.CollectionExpression);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.ExpressionElement);
+                                        {
+                                            N(SyntaxKind.ParenthesizedLambdaExpression);
+                                            {
+                                                N(SyntaxKind.ParameterList);
+                                                {
+                                                    N(SyntaxKind.OpenParenToken);
+                                                    N(SyntaxKind.CloseParenToken);
+                                                }
+                                                N(SyntaxKind.EqualsGreaterThanToken);
+                                                N(SyntaxKind.Block);
+                                                {
+                                                    N(SyntaxKind.OpenBraceToken);
+                                                    N(SyntaxKind.CloseBraceToken);
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
+                                    N(SyntaxKind.BracketedArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.InvocationExpression);
+                                            {
+                                                N(SyntaxKind.SimpleMemberAccessExpression);
+                                                {
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "rand");
+                                                    }
+                                                    N(SyntaxKind.DotToken);
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "Next");
+                                                    }
+                                                }
+                                                N(SyntaxKind.ArgumentList);
+                                                {
+                                                    N(SyntaxKind.OpenParenToken);
+                                                    N(SyntaxKind.CloseParenToken);
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
+                                }
+                                N(SyntaxKind.ArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity2A()
+    {
+        UsingTree("""
+            [() => {}][rand.Next()](A);
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.InvocationExpression);
+                    {
+                        N(SyntaxKind.ElementAccessExpression);
+                        {
+                            N(SyntaxKind.CollectionExpression);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.ExpressionElement);
+                                {
+                                    N(SyntaxKind.ParenthesizedLambdaExpression);
+                                    {
+                                        N(SyntaxKind.ParameterList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                        N(SyntaxKind.EqualsGreaterThanToken);
+                                        N(SyntaxKind.Block);
+                                        {
+                                            N(SyntaxKind.OpenBraceToken);
+                                            N(SyntaxKind.CloseBraceToken);
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                            N(SyntaxKind.BracketedArgumentList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.InvocationExpression);
+                                    {
+                                        N(SyntaxKind.SimpleMemberAccessExpression);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "rand");
+                                            }
+                                            N(SyntaxKind.DotToken);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "Next");
+                                            }
+                                        }
+                                        N(SyntaxKind.ArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "A");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity3()
+    {
+        UsingTree("""
+            class C
+            {
+                void M()
+                {
+                    [() => {}][rand.Next()](A)[0];
+                }
+            }
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.ExpressionStatement);
+                        {
+                            N(SyntaxKind.ElementAccessExpression);
+                            {
+                                N(SyntaxKind.InvocationExpression);
+                                {
+                                    N(SyntaxKind.ElementAccessExpression);
+                                    {
+                                        N(SyntaxKind.CollectionExpression);
+                                        {
+                                            N(SyntaxKind.OpenBracketToken);
+                                            N(SyntaxKind.ExpressionElement);
+                                            {
+                                                N(SyntaxKind.ParenthesizedLambdaExpression);
+                                                {
+                                                    N(SyntaxKind.ParameterList);
+                                                    {
+                                                        N(SyntaxKind.OpenParenToken);
+                                                        N(SyntaxKind.CloseParenToken);
+                                                    }
+                                                    N(SyntaxKind.EqualsGreaterThanToken);
+                                                    N(SyntaxKind.Block);
+                                                    {
+                                                        N(SyntaxKind.OpenBraceToken);
+                                                        N(SyntaxKind.CloseBraceToken);
+                                                    }
+                                                }
+                                            }
+                                            N(SyntaxKind.CloseBracketToken);
+                                        }
+                                        N(SyntaxKind.BracketedArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenBracketToken);
+                                            N(SyntaxKind.Argument);
+                                            {
+                                                N(SyntaxKind.InvocationExpression);
+                                                {
+                                                    N(SyntaxKind.SimpleMemberAccessExpression);
+                                                    {
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "rand");
+                                                        }
+                                                        N(SyntaxKind.DotToken);
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "Next");
+                                                        }
+                                                    }
+                                                    N(SyntaxKind.ArgumentList);
+                                                    {
+                                                        N(SyntaxKind.OpenParenToken);
+                                                        N(SyntaxKind.CloseParenToken);
+                                                    }
+                                                }
+                                            }
+                                            N(SyntaxKind.CloseBracketToken);
+                                        }
+                                    }
+                                    N(SyntaxKind.ArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "A");
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                N(SyntaxKind.BracketedArgumentList);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "0");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity3A()
+    {
+        UsingTree("""
+            [() => {}][rand.Next()](A)[0];
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.ElementAccessExpression);
+                    {
+                        N(SyntaxKind.InvocationExpression);
+                        {
+                            N(SyntaxKind.ElementAccessExpression);
+                            {
+                                N(SyntaxKind.CollectionExpression);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.ExpressionElement);
+                                    {
+                                        N(SyntaxKind.ParenthesizedLambdaExpression);
+                                        {
+                                            N(SyntaxKind.ParameterList);
+                                            {
+                                                N(SyntaxKind.OpenParenToken);
+                                                N(SyntaxKind.CloseParenToken);
+                                            }
+                                            N(SyntaxKind.EqualsGreaterThanToken);
+                                            N(SyntaxKind.Block);
+                                            {
+                                                N(SyntaxKind.OpenBraceToken);
+                                                N(SyntaxKind.CloseBraceToken);
+                                            }
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                                N(SyntaxKind.BracketedArgumentList);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.InvocationExpression);
+                                        {
+                                            N(SyntaxKind.SimpleMemberAccessExpression);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "rand");
+                                                }
+                                                N(SyntaxKind.DotToken);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Next");
+                                                }
+                                            }
+                                            N(SyntaxKind.ArgumentList);
+                                            {
+                                                N(SyntaxKind.OpenParenToken);
+                                                N(SyntaxKind.CloseParenToken);
+                                            }
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "A");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.BracketedArgumentList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity4()
+    {
+        UsingTree("""
+            class C
+            {
+                void M()
+                {
+                    [() => {}][rand.Next()](A)(B);
+                }
+            }
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.ExpressionStatement);
+                        {
+                            N(SyntaxKind.InvocationExpression);
+                            {
+                                N(SyntaxKind.InvocationExpression);
+                                {
+                                    N(SyntaxKind.ElementAccessExpression);
+                                    {
+                                        N(SyntaxKind.CollectionExpression);
+                                        {
+                                            N(SyntaxKind.OpenBracketToken);
+                                            N(SyntaxKind.ExpressionElement);
+                                            {
+                                                N(SyntaxKind.ParenthesizedLambdaExpression);
+                                                {
+                                                    N(SyntaxKind.ParameterList);
+                                                    {
+                                                        N(SyntaxKind.OpenParenToken);
+                                                        N(SyntaxKind.CloseParenToken);
+                                                    }
+                                                    N(SyntaxKind.EqualsGreaterThanToken);
+                                                    N(SyntaxKind.Block);
+                                                    {
+                                                        N(SyntaxKind.OpenBraceToken);
+                                                        N(SyntaxKind.CloseBraceToken);
+                                                    }
+                                                }
+                                            }
+                                            N(SyntaxKind.CloseBracketToken);
+                                        }
+                                        N(SyntaxKind.BracketedArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenBracketToken);
+                                            N(SyntaxKind.Argument);
+                                            {
+                                                N(SyntaxKind.InvocationExpression);
+                                                {
+                                                    N(SyntaxKind.SimpleMemberAccessExpression);
+                                                    {
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "rand");
+                                                        }
+                                                        N(SyntaxKind.DotToken);
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "Next");
+                                                        }
+                                                    }
+                                                    N(SyntaxKind.ArgumentList);
+                                                    {
+                                                        N(SyntaxKind.OpenParenToken);
+                                                        N(SyntaxKind.CloseParenToken);
+                                                    }
+                                                }
+                                            }
+                                            N(SyntaxKind.CloseBracketToken);
+                                        }
+                                    }
+                                    N(SyntaxKind.ArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "A");
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                N(SyntaxKind.ArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "B");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity4A()
+    {
+        UsingTree("""
+            [() => {}][rand.Next()](A)(B);
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.InvocationExpression);
+                    {
+                        N(SyntaxKind.InvocationExpression);
+                        {
+                            N(SyntaxKind.ElementAccessExpression);
+                            {
+                                N(SyntaxKind.CollectionExpression);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.ExpressionElement);
+                                    {
+                                        N(SyntaxKind.ParenthesizedLambdaExpression);
+                                        {
+                                            N(SyntaxKind.ParameterList);
+                                            {
+                                                N(SyntaxKind.OpenParenToken);
+                                                N(SyntaxKind.CloseParenToken);
+                                            }
+                                            N(SyntaxKind.EqualsGreaterThanToken);
+                                            N(SyntaxKind.Block);
+                                            {
+                                                N(SyntaxKind.OpenBraceToken);
+                                                N(SyntaxKind.CloseBraceToken);
+                                            }
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                                N(SyntaxKind.BracketedArgumentList);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.InvocationExpression);
+                                        {
+                                            N(SyntaxKind.SimpleMemberAccessExpression);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "rand");
+                                                }
+                                                N(SyntaxKind.DotToken);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Next");
+                                                }
+                                            }
+                                            N(SyntaxKind.ArgumentList);
+                                            {
+                                                N(SyntaxKind.OpenParenToken);
+                                                N(SyntaxKind.CloseParenToken);
+                                            }
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "A");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "B");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity5()
+    {
+        UsingTree("""
+            class C
+            {
+                void M()
+                {
+                    [() => {}][rand.Next()](A).B();
+                }
+            }
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.ExpressionStatement);
+                        {
+                            N(SyntaxKind.InvocationExpression);
+                            {
+                                N(SyntaxKind.SimpleMemberAccessExpression);
+                                {
+                                    N(SyntaxKind.InvocationExpression);
+                                    {
+                                        N(SyntaxKind.ElementAccessExpression);
+                                        {
+                                            N(SyntaxKind.CollectionExpression);
+                                            {
+                                                N(SyntaxKind.OpenBracketToken);
+                                                N(SyntaxKind.ExpressionElement);
+                                                {
+                                                    N(SyntaxKind.ParenthesizedLambdaExpression);
+                                                    {
+                                                        N(SyntaxKind.ParameterList);
+                                                        {
+                                                            N(SyntaxKind.OpenParenToken);
+                                                            N(SyntaxKind.CloseParenToken);
+                                                        }
+                                                        N(SyntaxKind.EqualsGreaterThanToken);
+                                                        N(SyntaxKind.Block);
+                                                        {
+                                                            N(SyntaxKind.OpenBraceToken);
+                                                            N(SyntaxKind.CloseBraceToken);
+                                                        }
+                                                    }
+                                                }
+                                                N(SyntaxKind.CloseBracketToken);
+                                            }
+                                            N(SyntaxKind.BracketedArgumentList);
+                                            {
+                                                N(SyntaxKind.OpenBracketToken);
+                                                N(SyntaxKind.Argument);
+                                                {
+                                                    N(SyntaxKind.InvocationExpression);
+                                                    {
+                                                        N(SyntaxKind.SimpleMemberAccessExpression);
+                                                        {
+                                                            N(SyntaxKind.IdentifierName);
+                                                            {
+                                                                N(SyntaxKind.IdentifierToken, "rand");
+                                                            }
+                                                            N(SyntaxKind.DotToken);
+                                                            N(SyntaxKind.IdentifierName);
+                                                            {
+                                                                N(SyntaxKind.IdentifierToken, "Next");
+                                                            }
+                                                        }
+                                                        N(SyntaxKind.ArgumentList);
+                                                        {
+                                                            N(SyntaxKind.OpenParenToken);
+                                                            N(SyntaxKind.CloseParenToken);
+                                                        }
+                                                    }
+                                                }
+                                                N(SyntaxKind.CloseBracketToken);
+                                            }
+                                        }
+                                        N(SyntaxKind.ArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.Argument);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "A");
+                                                }
+                                            }
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                    }
+                                    N(SyntaxKind.DotToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "B");
+                                    }
+                                }
+                                N(SyntaxKind.ArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity5A()
+    {
+        UsingTree("""
+            [() => {}][rand.Next()](A).B();
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.InvocationExpression);
+                    {
+                        N(SyntaxKind.SimpleMemberAccessExpression);
+                        {
+                            N(SyntaxKind.InvocationExpression);
+                            {
+                                N(SyntaxKind.ElementAccessExpression);
+                                {
+                                    N(SyntaxKind.CollectionExpression);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.ExpressionElement);
+                                        {
+                                            N(SyntaxKind.ParenthesizedLambdaExpression);
+                                            {
+                                                N(SyntaxKind.ParameterList);
+                                                {
+                                                    N(SyntaxKind.OpenParenToken);
+                                                    N(SyntaxKind.CloseParenToken);
+                                                }
+                                                N(SyntaxKind.EqualsGreaterThanToken);
+                                                N(SyntaxKind.Block);
+                                                {
+                                                    N(SyntaxKind.OpenBraceToken);
+                                                    N(SyntaxKind.CloseBraceToken);
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
+                                    N(SyntaxKind.BracketedArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.InvocationExpression);
+                                            {
+                                                N(SyntaxKind.SimpleMemberAccessExpression);
+                                                {
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "rand");
+                                                    }
+                                                    N(SyntaxKind.DotToken);
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "Next");
+                                                    }
+                                                }
+                                                N(SyntaxKind.ArgumentList);
+                                                {
+                                                    N(SyntaxKind.OpenParenToken);
+                                                    N(SyntaxKind.CloseParenToken);
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
+                                }
+                                N(SyntaxKind.ArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "B");
+                            }
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity6()
+    {
+        UsingTree("""
+            class C
+            {
+                void M()
+                {
+                    [() => {}][rand.Next()](A)++;
+                }
+            }
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.ExpressionStatement);
+                        {
+                            N(SyntaxKind.PostIncrementExpression);
+                            {
+                                N(SyntaxKind.InvocationExpression);
+                                {
+                                    N(SyntaxKind.ElementAccessExpression);
+                                    {
+                                        N(SyntaxKind.CollectionExpression);
+                                        {
+                                            N(SyntaxKind.OpenBracketToken);
+                                            N(SyntaxKind.ExpressionElement);
+                                            {
+                                                N(SyntaxKind.ParenthesizedLambdaExpression);
+                                                {
+                                                    N(SyntaxKind.ParameterList);
+                                                    {
+                                                        N(SyntaxKind.OpenParenToken);
+                                                        N(SyntaxKind.CloseParenToken);
+                                                    }
+                                                    N(SyntaxKind.EqualsGreaterThanToken);
+                                                    N(SyntaxKind.Block);
+                                                    {
+                                                        N(SyntaxKind.OpenBraceToken);
+                                                        N(SyntaxKind.CloseBraceToken);
+                                                    }
+                                                }
+                                            }
+                                            N(SyntaxKind.CloseBracketToken);
+                                        }
+                                        N(SyntaxKind.BracketedArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenBracketToken);
+                                            N(SyntaxKind.Argument);
+                                            {
+                                                N(SyntaxKind.InvocationExpression);
+                                                {
+                                                    N(SyntaxKind.SimpleMemberAccessExpression);
+                                                    {
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "rand");
+                                                        }
+                                                        N(SyntaxKind.DotToken);
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "Next");
+                                                        }
+                                                    }
+                                                    N(SyntaxKind.ArgumentList);
+                                                    {
+                                                        N(SyntaxKind.OpenParenToken);
+                                                        N(SyntaxKind.CloseParenToken);
+                                                    }
+                                                }
+                                            }
+                                            N(SyntaxKind.CloseBracketToken);
+                                        }
+                                    }
+                                    N(SyntaxKind.ArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "A");
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                N(SyntaxKind.PlusPlusToken);
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity6A()
+    {
+        UsingTree("""
+            [() => {}][rand.Next()](A)++;
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.PostIncrementExpression);
+                    {
+                        N(SyntaxKind.InvocationExpression);
+                        {
+                            N(SyntaxKind.ElementAccessExpression);
+                            {
+                                N(SyntaxKind.CollectionExpression);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.ExpressionElement);
+                                    {
+                                        N(SyntaxKind.ParenthesizedLambdaExpression);
+                                        {
+                                            N(SyntaxKind.ParameterList);
+                                            {
+                                                N(SyntaxKind.OpenParenToken);
+                                                N(SyntaxKind.CloseParenToken);
+                                            }
+                                            N(SyntaxKind.EqualsGreaterThanToken);
+                                            N(SyntaxKind.Block);
+                                            {
+                                                N(SyntaxKind.OpenBraceToken);
+                                                N(SyntaxKind.CloseBraceToken);
+                                            }
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                                N(SyntaxKind.BracketedArgumentList);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.InvocationExpression);
+                                        {
+                                            N(SyntaxKind.SimpleMemberAccessExpression);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "rand");
+                                                }
+                                                N(SyntaxKind.DotToken);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Next");
+                                                }
+                                            }
+                                            N(SyntaxKind.ArgumentList);
+                                            {
+                                                N(SyntaxKind.OpenParenToken);
+                                                N(SyntaxKind.CloseParenToken);
+                                            }
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "A");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.PlusPlusToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity7()
+    {
+        UsingTree("""
+            class C
+            {
+                void M()
+                {
+                    [() => {}][rand.Next()](A)[0] = 1;
+                }
+            }
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.ExpressionStatement);
+                        {
+                            N(SyntaxKind.SimpleAssignmentExpression);
+                            {
+                                N(SyntaxKind.ElementAccessExpression);
+                                {
+                                    N(SyntaxKind.InvocationExpression);
+                                    {
+                                        N(SyntaxKind.ElementAccessExpression);
+                                        {
+                                            N(SyntaxKind.CollectionExpression);
+                                            {
+                                                N(SyntaxKind.OpenBracketToken);
+                                                N(SyntaxKind.ExpressionElement);
+                                                {
+                                                    N(SyntaxKind.ParenthesizedLambdaExpression);
+                                                    {
+                                                        N(SyntaxKind.ParameterList);
+                                                        {
+                                                            N(SyntaxKind.OpenParenToken);
+                                                            N(SyntaxKind.CloseParenToken);
+                                                        }
+                                                        N(SyntaxKind.EqualsGreaterThanToken);
+                                                        N(SyntaxKind.Block);
+                                                        {
+                                                            N(SyntaxKind.OpenBraceToken);
+                                                            N(SyntaxKind.CloseBraceToken);
+                                                        }
+                                                    }
+                                                }
+                                                N(SyntaxKind.CloseBracketToken);
+                                            }
+                                            N(SyntaxKind.BracketedArgumentList);
+                                            {
+                                                N(SyntaxKind.OpenBracketToken);
+                                                N(SyntaxKind.Argument);
+                                                {
+                                                    N(SyntaxKind.InvocationExpression);
+                                                    {
+                                                        N(SyntaxKind.SimpleMemberAccessExpression);
+                                                        {
+                                                            N(SyntaxKind.IdentifierName);
+                                                            {
+                                                                N(SyntaxKind.IdentifierToken, "rand");
+                                                            }
+                                                            N(SyntaxKind.DotToken);
+                                                            N(SyntaxKind.IdentifierName);
+                                                            {
+                                                                N(SyntaxKind.IdentifierToken, "Next");
+                                                            }
+                                                        }
+                                                        N(SyntaxKind.ArgumentList);
+                                                        {
+                                                            N(SyntaxKind.OpenParenToken);
+                                                            N(SyntaxKind.CloseParenToken);
+                                                        }
+                                                    }
+                                                }
+                                                N(SyntaxKind.CloseBracketToken);
+                                            }
+                                        }
+                                        N(SyntaxKind.ArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.Argument);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "A");
+                                                }
+                                            }
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                    }
+                                    N(SyntaxKind.BracketedArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "0");
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
+                                }
+                                N(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "1");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity7A()
+    {
+        UsingTree("""
+            [() => {}][rand.Next()](A)[0] = 1;
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.SimpleAssignmentExpression);
+                    {
+                        N(SyntaxKind.ElementAccessExpression);
+                        {
+                            N(SyntaxKind.InvocationExpression);
+                            {
+                                N(SyntaxKind.ElementAccessExpression);
+                                {
+                                    N(SyntaxKind.CollectionExpression);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.ExpressionElement);
+                                        {
+                                            N(SyntaxKind.ParenthesizedLambdaExpression);
+                                            {
+                                                N(SyntaxKind.ParameterList);
+                                                {
+                                                    N(SyntaxKind.OpenParenToken);
+                                                    N(SyntaxKind.CloseParenToken);
+                                                }
+                                                N(SyntaxKind.EqualsGreaterThanToken);
+                                                N(SyntaxKind.Block);
+                                                {
+                                                    N(SyntaxKind.OpenBraceToken);
+                                                    N(SyntaxKind.CloseBraceToken);
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
+                                    N(SyntaxKind.BracketedArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.InvocationExpression);
+                                            {
+                                                N(SyntaxKind.SimpleMemberAccessExpression);
+                                                {
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "rand");
+                                                    }
+                                                    N(SyntaxKind.DotToken);
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "Next");
+                                                    }
+                                                }
+                                                N(SyntaxKind.ArgumentList);
+                                                {
+                                                    N(SyntaxKind.OpenParenToken);
+                                                    N(SyntaxKind.CloseParenToken);
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
+                                }
+                                N(SyntaxKind.ArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                            N(SyntaxKind.BracketedArgumentList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "0");
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity8()
+    {
+        UsingTree("""
+            class C
+            {
+                void M()
+                {
+                    [Attr] (A, B) LocalFunc() { }
+                }
+            }
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.LocalFunctionStatement);
+                        {
+                            N(SyntaxKind.AttributeList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Attr");
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                            N(SyntaxKind.TupleType);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "A");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "B");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.IdentifierToken, "LocalFunc");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity8A()
+    {
+        UsingTree("""
+            [Attr] (A, B) LocalFunc() { }
+            """);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -16580,12 +15569,19 @@ class C
                     N(SyntaxKind.AttributeList);
                     {
                         N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.AttributeTargetSpecifier);
-                        {
-                            N(SyntaxKind.MethodKeyword);
-                            N(SyntaxKind.ColonToken);
-                        }
                         N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Attr");
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.TupleType);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.TupleElement);
                         {
                             N(SyntaxKind.IdentifierName);
                             {
@@ -16593,20 +15589,16 @@ class C
                             }
                         }
                         N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Attribute);
+                        N(SyntaxKind.TupleElement);
                         {
                             N(SyntaxKind.IdentifierName);
                             {
                                 N(SyntaxKind.IdentifierToken, "B");
                             }
                         }
-                        N(SyntaxKind.CloseBracketToken);
+                        N(SyntaxKind.CloseParenToken);
                     }
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "F");
+                    N(SyntaxKind.IdentifierToken, "LocalFunc");
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -16625,87 +15617,102 @@ class C
     }
 
     [Fact]
-    public void TopLevelDotAccess_AttributeAmbiguity4A()
+    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity9()
     {
-        UsingTree("[return: A].C();",
-            // (1,2): error CS1003: Syntax error, ']' expected
-            // [return: A].C();
-            Diagnostic(ErrorCode.ERR_SyntaxError, "return").WithArguments("]").WithLocation(1, 2),
-            // (1,2): error CS1002: ; expected
-            // [return: A].C();
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "return").WithLocation(1, 2),
-            // (1,8): error CS1525: Invalid expression term ':'
-            // [return: A].C();
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ":").WithArguments(":").WithLocation(1, 8),
-            // (1,8): error CS1002: ; expected
-            // [return: A].C();
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(1, 8),
-            // (1,8): error CS1022: Type or namespace definition, or end-of-file expected
-            // [return: A].C();
-            Diagnostic(ErrorCode.ERR_EOFExpected, ":").WithLocation(1, 8),
-            // (1,11): error CS1001: Identifier expected
-            // [return: A].C();
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, "]").WithLocation(1, 11),
-            // (1,11): error CS1003: Syntax error, ',' expected
-            // [return: A].C();
-            Diagnostic(ErrorCode.ERR_SyntaxError, "]").WithArguments(",").WithLocation(1, 11),
-            // (1,15): error CS1002: ; expected
-            // [return: A].C();
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 15),
-            // (1,15): error CS1022: Type or namespace definition, or end-of-file expected
-            // [return: A].C();
-            Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(1, 15));
+        UsingTree("""
+            class C
+            {
+                void M()
+                {
+                    [Attr1][Attr2] (A, B) LocalFunc() { }
+                }
+            }
+            """);
 
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.GlobalStatement);
+            N(SyntaxKind.ClassDeclaration);
             {
-                N(SyntaxKind.ExpressionStatement);
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
                 {
-                    N(SyntaxKind.CollectionExpression);
+                    N(SyntaxKind.PredefinedType);
                     {
-                        N(SyntaxKind.OpenBracketToken);
-                        M(SyntaxKind.CloseBracketToken);
+                        N(SyntaxKind.VoidKeyword);
                     }
-                    M(SyntaxKind.SemicolonToken);
-                }
-            }
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.ReturnStatement);
-                {
-                    N(SyntaxKind.ReturnKeyword);
-                    M(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
                     {
-                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
                     }
-                    M(SyntaxKind.SemicolonToken);
-                }
-            }
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.LocalDeclarationStatement);
-                {
-                    N(SyntaxKind.VariableDeclaration);
+                    N(SyntaxKind.Block);
                     {
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.LocalFunctionStatement);
                         {
-                            N(SyntaxKind.IdentifierToken, "A");
+                            N(SyntaxKind.AttributeList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Attr1");
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                            N(SyntaxKind.AttributeList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Attr2");
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                            N(SyntaxKind.TupleType);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "A");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "B");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.IdentifierToken, "LocalFunc");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
                         }
-                        M(SyntaxKind.VariableDeclarator);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
+                        N(SyntaxKind.CloseBraceToken);
                     }
-                    M(SyntaxKind.SemicolonToken);
                 }
-            }
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.EmptyStatement);
-                {
-                    N(SyntaxKind.SemicolonToken);
-                }
+                N(SyntaxKind.CloseBraceToken);
             }
             N(SyntaxKind.EndOfFileToken);
         }
@@ -16713,9 +15720,11 @@ class C
     }
 
     [Fact]
-    public void TopLevelDotAccess_AttributeAmbiguity4B()
+    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity9A()
     {
-        UsingTree("[return: A] void F() { }");
+        UsingTree("""
+            [Attr1][Attr2] (A, B) LocalFunc() { }
+            """);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -16726,25 +15735,1016 @@ class C
                     N(SyntaxKind.AttributeList);
                     {
                         N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.AttributeTargetSpecifier);
-                        {
-                            N(SyntaxKind.ReturnKeyword);
-                            N(SyntaxKind.ColonToken);
-                        }
                         N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Attr1");
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.AttributeList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Attr2");
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.TupleType);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.TupleElement);
                         {
                             N(SyntaxKind.IdentifierName);
                             {
                                 N(SyntaxKind.IdentifierToken, "A");
                             }
                         }
-                        N(SyntaxKind.CloseBracketToken);
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.TupleElement);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "B");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
                     }
+                    N(SyntaxKind.IdentifierToken, "LocalFunc");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity10()
+    {
+        UsingTree("""
+            class C
+            {
+                void M()
+                {
+                    [Attr1][Attr2] (A, B)? LocalFunc() { }
+                }
+            }
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
                     N(SyntaxKind.PredefinedType);
                     {
                         N(SyntaxKind.VoidKeyword);
                     }
-                    N(SyntaxKind.IdentifierToken, "F");
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.LocalFunctionStatement);
+                        {
+                            N(SyntaxKind.AttributeList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Attr1");
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                            N(SyntaxKind.AttributeList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Attr2");
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                            N(SyntaxKind.NullableType);
+                            {
+                                N(SyntaxKind.TupleType);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.TupleElement);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.TupleElement);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "B");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.QuestionToken);
+                            }
+                            N(SyntaxKind.IdentifierToken, "LocalFunc");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity10A()
+    {
+        UsingTree("""
+            [Attr1][Attr2] (A, B)? LocalFunc() { }
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalFunctionStatement);
+                {
+                    N(SyntaxKind.AttributeList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Attr1");
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.AttributeList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Attr2");
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.NullableType);
+                    {
+                        N(SyntaxKind.TupleType);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.TupleElement);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "A");
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.TupleElement);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "B");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.QuestionToken);
+                    }
+                    N(SyntaxKind.IdentifierToken, "LocalFunc");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity11()
+    {
+        UsingTree("""
+            class C
+            {
+                void M()
+                {
+                    [Attr1][Attr2] (A, B)[] LocalFunc() { }
+                }
+            }
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.LocalFunctionStatement);
+                        {
+                            N(SyntaxKind.AttributeList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Attr1");
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                            N(SyntaxKind.AttributeList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Attr2");
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                            N(SyntaxKind.ArrayType);
+                            {
+                                N(SyntaxKind.TupleType);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.TupleElement);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.TupleElement);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "B");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    {
+                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                            N(SyntaxKind.IdentifierToken, "LocalFunc");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity11A()
+    {
+        UsingTree("""
+            [Attr1][Attr2] (A, B)[] LocalFunc() { }
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalFunctionStatement);
+                {
+                    N(SyntaxKind.AttributeList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Attr1");
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.AttributeList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Attr2");
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.ArrayType);
+                    {
+                        N(SyntaxKind.TupleType);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.TupleElement);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "A");
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.TupleElement);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "B");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.ArrayRankSpecifier);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.OmittedArraySizeExpression);
+                            {
+                                N(SyntaxKind.OmittedArraySizeExpressionToken);
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                    N(SyntaxKind.IdentifierToken, "LocalFunc");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity12()
+    {
+        UsingTree("""
+            class C
+            {
+                void M()
+                {
+                    [Attr1][Attr2] (A, B)[,] LocalFunc() { }
+                }
+            }
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.LocalFunctionStatement);
+                        {
+                            N(SyntaxKind.AttributeList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Attr1");
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                            N(SyntaxKind.AttributeList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Attr2");
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                            N(SyntaxKind.ArrayType);
+                            {
+                                N(SyntaxKind.TupleType);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.TupleElement);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.TupleElement);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "B");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    {
+                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    {
+                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                            N(SyntaxKind.IdentifierToken, "LocalFunc");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity12A()
+    {
+        UsingTree("""
+            [Attr1][Attr2] (A, B)[,] LocalFunc() { }
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalFunctionStatement);
+                {
+                    N(SyntaxKind.AttributeList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Attr1");
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.AttributeList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Attr2");
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.ArrayType);
+                    {
+                        N(SyntaxKind.TupleType);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.TupleElement);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "A");
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.TupleElement);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "B");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.ArrayRankSpecifier);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.OmittedArraySizeExpression);
+                            {
+                                N(SyntaxKind.OmittedArraySizeExpressionToken);
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.OmittedArraySizeExpression);
+                            {
+                                N(SyntaxKind.OmittedArraySizeExpressionToken);
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                    N(SyntaxKind.IdentifierToken, "LocalFunc");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity13()
+    {
+        UsingTree("""
+            class C
+            {
+                void M()
+                {
+                    [Attr1][Attr2] (A, B)* LocalFunc() { }
+                }
+            }
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.LocalFunctionStatement);
+                        {
+                            N(SyntaxKind.AttributeList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Attr1");
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                            N(SyntaxKind.AttributeList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Attr2");
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                            N(SyntaxKind.PointerType);
+                            {
+                                N(SyntaxKind.TupleType);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.TupleElement);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.TupleElement);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "B");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.AsteriskToken);
+                            }
+                            N(SyntaxKind.IdentifierToken, "LocalFunc");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity13A()
+    {
+        UsingTree("""
+            [Attr1][Attr2] (A, B)* LocalFunc() { }
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalFunctionStatement);
+                {
+                    N(SyntaxKind.AttributeList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Attr1");
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.AttributeList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Attr2");
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.PointerType);
+                    {
+                        N(SyntaxKind.TupleType);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.TupleElement);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "A");
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.TupleElement);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "B");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.AsteriskToken);
+                    }
+                    N(SyntaxKind.IdentifierToken, "LocalFunc");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity14()
+    {
+        UsingTree("""
+            class C
+            {
+                void M()
+                {
+                    [Attr1][Attr2] (A a, B b) LocalFunc() { }
+                }
+            }
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.LocalFunctionStatement);
+                        {
+                            N(SyntaxKind.AttributeList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Attr1");
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                            N(SyntaxKind.AttributeList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Attr2");
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                            N(SyntaxKind.TupleType);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "A");
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "a");
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "B");
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "b");
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.IdentifierToken, "LocalFunc");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void InvokedCollectionExpressionVersusLocalFunctionAmbiguity14A()
+    {
+        UsingTree("""
+            [Attr1][Attr2] (A a, B b) LocalFunc() { }
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalFunctionStatement);
+                {
+                    N(SyntaxKind.AttributeList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Attr1");
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.AttributeList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Attr2");
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.TupleType);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.TupleElement);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                            }
+                            N(SyntaxKind.IdentifierToken, "a");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.TupleElement);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "B");
+                            }
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.IdentifierToken, "LocalFunc");
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
