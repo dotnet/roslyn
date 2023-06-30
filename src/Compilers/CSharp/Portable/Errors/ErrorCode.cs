@@ -2233,8 +2233,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InlineArrayBadIndex = 9172,
         ERR_NamedArgumentForInlineArray = 9173,
 
-        ERR_InterceptorArityNotCompatible = 9174,
-        ERR_InterceptorCannotBeGeneric = 9175,
+        ERR_CollectionLiteralTargetTypeNotConstructible = 9174,
+        ERR_ExpressionTreeContainsCollectionLiteral = 9175,
+        ERR_CollectionLiteralNoTargetType = 9176,
+
+        ERR_InterceptorArityNotCompatible = 9177,
+        ERR_InterceptorCannotBeGeneric = 9178,
 
         #endregion
 

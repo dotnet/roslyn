@@ -2357,6 +2357,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_RuntimeDoesNotSupportInlineArrayTypes:
                 case ErrorCode.ERR_InlineArrayBadIndex:
                 case ErrorCode.ERR_NamedArgumentForInlineArray:
+                case ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible:
+                case ErrorCode.ERR_ExpressionTreeContainsCollectionLiteral:
+                case ErrorCode.ERR_CollectionLiteralNoTargetType:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

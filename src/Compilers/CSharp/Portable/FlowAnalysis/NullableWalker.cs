@@ -3471,6 +3471,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode? VisitCollectionLiteralExpression(BoundCollectionLiteralExpression node)
+        {
+            // https://github.com/dotnet/roslyn/issues/68786: Use inferInitialObjectState() to set the initial
+            // state of the instance: see the call to InheritNullableStateOfTrackableStruct() in particular.
+            int containerSlot = GetOrCreatePlaceholderSlot(node);
+            bool delayCompletionForType = false; // https://github.com/dotnet/roslyn/issues/68786: Should be true if the collection literal is target typed.
+
+            // https://github.com/dotnet/roslyn/issues/68786: Set nullability of elements from the inferred target type nullability.
+            foreach (var element in node.Elements)
+            {
+                switch (element)
+                {
+                    case BoundCollectionElementInitializer initializer:
+                        var collectionType = initializer.AddMethod.ContainingType;
+                        var completion = VisitCollectionElementInitializer(initializer, collectionType, delayCompletionForType);
+                        if (completion is { })
+                        {
+                            // https://github.com/dotnet/roslyn/issues/68786: Complete the analysis later.
+                            completion(containerSlot, collectionType);
+                        }
+                        break;
+                    default:
+                        VisitRvalue(element);
+                        break;
+                }
+            }
+
+            SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.NotNull));
+            return null;
+        }
+
+        public override BoundNode? VisitUnconvertedCollectionLiteralExpression(BoundUnconvertedCollectionLiteralExpression node)
+        {
+            foreach (var element in node.Elements)
+            {
+                VisitRvalue(element);
+            }
+
+            SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.NotNull));
+            return null;
+        }
+
         private void VisitObjectCreationExpressionBase(BoundObjectCreationExpressionBase node)
         {
             Debug.Assert(!IsConditionalState);
@@ -7209,6 +7251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.UnboundLambda:
                     case BoundKind.UnconvertedObjectCreationExpression:
                     case BoundKind.ConvertedTupleLiteral:
+                    case BoundKind.UnconvertedCollectionLiteralExpression:
                         return NullableAnnotation.NotAnnotated;
                     default:
                         Debug.Assert(false); // unexpected value
@@ -8164,6 +8207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case ConversionKind.ObjectCreation:
+                case ConversionKind.CollectionLiteral:
                 case ConversionKind.SwitchExpression:
                 case ConversionKind.ConditionalExpression:
                     resultState = getConversionResultState(operandType);

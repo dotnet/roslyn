@@ -13,9 +13,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
 internal sealed class WorkspaceDocumentDiagnosticSource : AbstractDocumentDiagnosticSource<TextDocument>
 {
-    public WorkspaceDocumentDiagnosticSource(TextDocument document)
+    private readonly Func<DiagnosticAnalyzer, bool>? _shouldIncludeAnalyzer;
+
+    public WorkspaceDocumentDiagnosticSource(TextDocument document, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer)
         : base(document)
     {
+        _shouldIncludeAnalyzer = shouldIncludeAnalyzer;
     }
 
     public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
@@ -36,7 +39,7 @@ internal sealed class WorkspaceDocumentDiagnosticSource : AbstractDocumentDiagno
             // However we can include them as a part of workspace pull when FSA is on.
             var documentDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForIdsAsync(
                 Document.Project.Solution, Document.Project.Id, Document.Id,
-                diagnosticIds: null, includeSuppressedDiagnostics: false, includeNonLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
+                diagnosticIds: null, _shouldIncludeAnalyzer, includeSuppressedDiagnostics: false, includeNonLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
             return documentDiagnostics;
         }
     }
