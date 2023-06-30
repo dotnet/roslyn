@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // We currently pack everything into a 32 bit int with the following layout:
             //
-            // |              |a|b|e|n|vvv|yy|s|r|q|z|kk|wwwww|
+            // |               |a|b|e|n|vvv|y|s|r|q|z|kk|wwwww|
             // 
             // w = method kind.  5 bits.
             // k = ref kind.  2 bits.
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // q = isMetadataVirtualIgnoringInterfaceChanges. 1 bit.
             // r = isMetadataVirtual. 1 bit. (At least as true as isMetadataVirtualIgnoringInterfaceChanges.)
             // s = isMetadataVirtualLocked. 1 bit.
-            // y = ReturnsVoid. 2 bits.
+            // y = ReturnsVoid. 1 bits.
             // v = NullableContext. 3 bits.
             // n = IsNullableAnalysisEnabled. 1 bit.
             // e = IsExpressionBody. 1 bit.
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int IsMetadataVirtualLockedSize = 1;
 
             private const int ReturnsVoidOffset = IsMetadataVirtualLockedOffset + IsMetadataVirtualLockedSize;
-            private const int ReturnsVoidSize = 2;
+            private const int ReturnsVoidSize = 1;
 
             private const int NullableContextOffset = ReturnsVoidOffset + ReturnsVoidSize;
             private const int NullableContextSize = 3;
@@ -90,20 +90,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int IsVarargBit = 1 << IsVarargOffset;
 
             private const int ReturnsVoidBit = 1 << ReturnsVoidOffset;
-            private const int ReturnsVoidIsSetBit = 1 << ReturnsVoidOffset + 1;
 
             private const int IsNullableAnalysisEnabledBit = 1 << IsNullableAnalysisEnabledOffset;
 
-            public bool TryGetReturnsVoid(out bool value)
-            {
-                int bits = _flags;
-                value = (bits & ReturnsVoidBit) != 0;
-                return (bits & ReturnsVoidIsSetBit) != 0;
-            }
+            public bool ReturnsVoid
+                => (_flags & ReturnsVoidBit) != 0;
 
             public void SetReturnsVoid(bool value)
             {
-                ThreadSafeFlagOperations.Set(ref _flags, (int)(ReturnsVoidIsSetBit | (value ? ReturnsVoidBit : 0)));
+                if (value)
+                {
+                    ThreadSafeFlagOperations.Set(ref _flags, ReturnsVoidBit);
+                }
+                else
+                {
+                    // We never have to unset this flag
+                    Debug.Assert(!ReturnsVoid);
+                }
             }
 
             public MethodKind MethodKind
@@ -194,8 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     | isVarargInt
                     | isMetadataVirtualIgnoringInterfaceImplementationChangesInt
                     | isMetadataVirtualInt
-                    | (returnsVoid ? ReturnsVoidBit : 0)
-                    | ReturnsVoidIsSetBit;
+                    | (returnsVoid ? ReturnsVoidBit : 0);
             }
 
             public bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
@@ -468,8 +470,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                flags.TryGetReturnsVoid(out bool value);
-                return value;
+                return flags.ReturnsVoid;
             }
         }
 
