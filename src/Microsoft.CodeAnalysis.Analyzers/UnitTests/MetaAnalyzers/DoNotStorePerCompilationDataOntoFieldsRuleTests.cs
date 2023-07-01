@@ -334,6 +334,135 @@ namespace MyNamespace
 }");
         }
 
+        [Theory]
+        [InlineData("Func")]
+        [InlineData("Action")]
+        public Task CSharp_Func_NoDiagnostic(string delegateType)
+        {
+            return VerifyCS.VerifyAnalyzerAsync($@"
+using System;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Operations;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+class MyAnalyzer : DiagnosticAnalyzer
+{{
+    private static readonly {delegateType}<IBinaryOperation> x;
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+    {{
+        get
+        {{
+            throw new NotImplementedException();
+        }}
+    }}
+
+    public override void Initialize(AnalysisContext context)
+    {{
+    }}
+}}");
+        }
+
+        [Theory]
+        [InlineData("Func")]
+        [InlineData("Action")]
+        public Task CSharp_NestedFunc_NoDiagnostic(string delegateType)
+        {
+            return VerifyCS.VerifyAnalyzerAsync($@"
+using System;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Operations;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+class MyAnalyzer : DiagnosticAnalyzer
+{{
+    private static readonly ImmutableArray<{delegateType}<IBinaryOperation>> x;
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+    {{
+        get
+        {{
+            throw new NotImplementedException();
+        }}
+    }}
+
+    public override void Initialize(AnalysisContext context)
+    {{
+    }}
+}}");
+        }
+
+        [Theory]
+        [InlineData("Func")]
+        [InlineData("Action")]
+        public Task CSharp_NestedNestedFunc_NoDiagnostic(string delegateType)
+        {
+            return VerifyCS.VerifyAnalyzerAsync($@"
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Operations;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+class MyAnalyzer : DiagnosticAnalyzer
+{{
+    private static readonly {delegateType}<List<IBinaryOperation>> x;
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+    {{
+        get
+        {{
+            throw new NotImplementedException();
+        }}
+    }}
+
+    public override void Initialize(AnalysisContext context)
+    {{
+    }}
+}}");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public Task CSharp_MultiFunc_NoDiagnostic([CombinatorialValues("Func", "Action")] string delegateType, [CombinatorialValues("bool", "int, string")] string types)
+        {
+            return VerifyCS.VerifyAnalyzerAsync($@"
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Operations;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+class MyAnalyzer : DiagnosticAnalyzer
+{{
+    private static readonly {delegateType}<IBinaryOperation, {types}> x;
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+    {{
+        get
+        {{
+            throw new NotImplementedException();
+        }}
+    }}
+
+    public override void Initialize(AnalysisContext context)
+    {{
+    }}
+}}");
+        }
+
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string violatingTypeName) =>
 #pragma warning disable RS0030 // Do not use banned APIs
             VerifyCS.Diagnostic()
