@@ -24,7 +24,7 @@ internal static class СSharpSnippetIndentationHelpers
         var newLine = indentationOptions.FormattingOptions.NewLine;
 
         var indentationService = parsedDocument.LanguageServices.GetRequiredService<IIndentationService>();
-        var indentation = indentationService.GetIndentation(parsedDocument, openBraceLine + 1, indentationOptions, cancellationToken);
+        var indentation = indentationService.GetIndentation(parsedDocument, openBraceLine, indentationOptions, cancellationToken);
 
         // Adding the offset calculated with one tab so that it is indented once past the line containing the opening brace
         var newIndentation = new IndentationResult(indentation.BasePosition, indentation.Offset + syntaxFormattingOptions.TabSize);

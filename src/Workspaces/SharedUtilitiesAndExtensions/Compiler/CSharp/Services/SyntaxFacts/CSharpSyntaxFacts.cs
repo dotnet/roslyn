@@ -1545,6 +1545,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public bool IsMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node)
             => node is MemberAccessExpressionSyntax;
 
+        public bool IsMethodDeclaration([NotNullWhen(true)] SyntaxNode? node)
+            => node is MethodDeclarationSyntax;
+
         public bool IsSimpleName([NotNullWhen(true)] SyntaxNode? node)
             => node is SimpleNameSyntax;
 
