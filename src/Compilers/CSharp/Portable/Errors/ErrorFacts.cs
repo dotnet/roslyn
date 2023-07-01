@@ -596,6 +596,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor:
                 case ErrorCode.ERR_InterceptorCannotInterceptNameof:
                 case ErrorCode.ERR_SymbolDefinedInAssembly:
+                case ErrorCode.ERR_InterceptorArityNotCompatible:
+                case ErrorCode.ERR_InterceptorCannotBeGeneric:
                     // Update src\EditorFeatures\CSharp\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
                     // whenever new values are added here.
                     return true;
@@ -2327,7 +2329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_BadStaticAfterUnsafe:
                 case ErrorCode.ERR_BadCaseInSwitchArm:
                 case ErrorCode.ERR_InterceptorsFeatureNotEnabled:
-                case ErrorCode.ERR_InterceptorCannotBeGeneric:
+                case ErrorCode.ERR_InterceptorContainingTypeCannotBeGeneric:
                 case ErrorCode.ERR_InterceptorPathNotInCompilation:
                 case ErrorCode.ERR_InterceptorPathNotInCompilationWithCandidate:
                 case ErrorCode.ERR_InterceptorPathNotInCompilationWithUnmappedCandidate:

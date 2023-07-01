@@ -7535,8 +7535,14 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InterceptorsFeatureNotEnabled" xml:space="preserve">
     <value>The 'interceptors' experimental feature is not enabled. Add '&lt;Features&gt;InterceptorsPreview&lt;/Features&gt;' to your project.</value>
   </data>
+  <data name="ERR_InterceptorContainingTypeCannotBeGeneric" xml:space="preserve">
+    <value>Method '{0}' cannot be used as an interceptor because its containing type has type parameters.</value>
+  </data>
+  <data name="ERR_InterceptorArityNotCompatible" xml:space="preserve">
+    <value>Method '{0}' must be non-generic or have arity {1} to match '{2}'.</value>
+  </data>
   <data name="ERR_InterceptorCannotBeGeneric" xml:space="preserve">
-    <value>Method '{0}' cannot be used as an interceptor because it or its containing type has type parameters.</value>
+    <value>Method '{0}' must be non-generic to match '{1}'.</value>
   </data>
   <data name="ERR_InterceptorPathNotInCompilation" xml:space="preserve">
     <value>Cannot intercept: compilation does not contain a file with path '{0}'.</value>
