@@ -105,9 +105,9 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
 
         private static void GenericMethodCheck(SemanticModel semanticModel, SyntaxNode node, Location location, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
         {
-            if (semanticModel.GetSymbolInfo(node, cancellationToken).Symbol != null)
+            if (semanticModel.GetSymbolInfo(node, cancellationToken).Symbol is { } symbol)
             {
-                var containingSymbol = semanticModel.GetSymbolInfo(node, cancellationToken).Symbol.ContainingSymbol;
+                var containingSymbol = symbol.ContainingSymbol;
                 if (containingSymbol is IMethodSymbol methodSymbol && methodSymbol.Arity > 0)
                 {
                     reportDiagnostic(Diagnostic.Create(LambaOrAnonymousMethodInGenericMethodRule, location, EmptyMessageArgs));

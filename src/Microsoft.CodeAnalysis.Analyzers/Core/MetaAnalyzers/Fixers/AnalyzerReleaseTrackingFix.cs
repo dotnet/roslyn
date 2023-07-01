@@ -122,6 +122,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                 diagnostic.Properties.TryGetValue(DiagnosticDescriptorCreationAnalyzer.EntryToAddPropertyName, out entryToAdd) &&
                 !RoslynString.IsNullOrEmpty(entryToAdd))
             {
+                RoslynDebug.Assert(entryToAdd != null);
                 return true;
             }
 

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         private static readonly Func<ControlFlowRegion, IEnumerable<ControlFlowRegion>> s_getTransitiveNestedRegions = GetTransitiveNestedRegions;
 
         internal BranchWithInfo(ControlFlowBranch branch)
-            : this(branch.Destination, branch.EnteringRegions, branch.LeavingRegions, branch.FinallyRegions,
+            : this(branch.Destination!, branch.EnteringRegions, branch.LeavingRegions, branch.FinallyRegions,
                   branch.Semantics, branch.Source.BranchValue,
                   GetControlFlowConditionKind(branch),
                   leavingRegionLocals: ComputeLeavingRegionLocals(branch.LeavingRegions),

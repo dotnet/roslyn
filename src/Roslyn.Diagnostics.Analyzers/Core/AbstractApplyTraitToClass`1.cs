@@ -80,7 +80,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 throw new InvalidOperationException("Failed to obtain the method syntax to which the attribute is applied.");
             }
 
-            var expectedAttributeData = state.SemanticModel.GetDeclaredSymbol(method, cancellationToken).GetAttributes()
+            var expectedAttributeData = state.SemanticModel.GetDeclaredSymbol(method, cancellationToken)!.GetAttributes()
                 .Single(attributeData => attributeData.ApplicationSyntaxReference is not null && attribute.Span.Contains(attributeData.ApplicationSyntaxReference.Span));
 
             var newTypeDeclaration = typeDeclaration.ReplaceNodes(
@@ -100,7 +100,7 @@ namespace Roslyn.Diagnostics.Analyzers
                         if (!SymbolEqualityComparer.Default.Equals(attributeType.Type, state.TraitAttribute))
                             continue;
 
-                        var actualAttributeData = state.SemanticModel.GetDeclaredSymbol(originalNode, cancellationToken).GetAttributes()
+                        var actualAttributeData = state.SemanticModel.GetDeclaredSymbol(originalNode, cancellationToken)!.GetAttributes()
                             .Single(attributeData => attributeData.ApplicationSyntaxReference is not null && attribute.Span.Contains(attributeData.ApplicationSyntaxReference.Span));
 
                         if (!expectedAttributeData.ConstructorArguments.SequenceEqual(actualAttributeData.ConstructorArguments))

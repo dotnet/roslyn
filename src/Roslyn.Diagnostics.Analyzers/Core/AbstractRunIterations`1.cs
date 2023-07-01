@@ -36,7 +36,7 @@ namespace Roslyn.Diagnostics.Analyzers
             }
 
             var knownTestAttributes = new ConcurrentDictionary<INamedTypeSymbol, bool>();
-            var methodSymbol = (IMethodSymbol)semanticModel.GetDeclaredSymbol(method, context.CancellationToken);
+            var methodSymbol = (IMethodSymbol)semanticModel.GetDeclaredSymbol(method, context.CancellationToken)!;
             if (!methodSymbol.IsBenchmarkOrXUnitTestMethod(knownTestAttributes, benchmarkAttribute: null, factAttribute))
                 return;
 

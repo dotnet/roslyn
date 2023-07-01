@@ -70,19 +70,9 @@ namespace Microsoft.CodeAnalysis.Analyzers
                 {
                     var symbol = symbolAnalysisContext.Symbol;
 
-                    var attributes = symbol.GetAttributes();
-                    if (attributes.Any(shouldReportNotSpecifiedEnforceAnalyzerBannedApisSetting))
+                    if (symbol.HasAnyAttribute(diagnosticAnalyzerAttributeType, generatorAttributeType))
                     {
                         symbolAnalysisContext.ReportDiagnostic(symbol.Locations.CreateDiagnostic(SymbolIsBannedInAnalyzersAnalyzer.NoSettingSpecifiedSymbolIsBannedRule, symbol));
-                    }
-
-                    bool shouldReportNotSpecifiedEnforceAnalyzerBannedApisSetting(AttributeData attributeData)
-                    {
-                        if (attributeData.AttributeClass is null)
-                            return false;
-
-                        return attributeData.AttributeClass.Equals(diagnosticAnalyzerAttributeType, SymbolEqualityComparer.Default)
-                            || attributeData.AttributeClass.Equals(generatorAttributeType, SymbolEqualityComparer.Default);
                     }
                 }
             }

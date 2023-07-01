@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
             public override string Title { get; }
 
-            protected override async Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
+            protected override async Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
             {
                 var updatedPublicSurfaceAreaText = new List<KeyValuePair<DocumentId, SourceText>>();
                 var addedPublicSurfaceAreaText = new List<KeyValuePair<ProjectId, SourceText>>();

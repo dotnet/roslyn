@@ -1,10 +1,11 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Analyzer.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            var root = await context.Document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             var diagnostic = context.Diagnostics.First();
             var diagnosticSpan = diagnostic.Location.SourceSpan;
             var node = root.FindNode(diagnosticSpan);
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes
 
         private async Task TryToRegisterCodeFixesForMethodInvocationParameterAsync(CodeFixContext context, SyntaxNode node, Diagnostic diagnostic)
         {
-            var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
+            var semanticModel = await context.Document.GetRequiredSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
             if (IsExpectedParameterReadonlySequence(node, semanticModel) && node is ArgumentSyntax argument)
             {
                 TryRegisterCodeFix(context, node, diagnostic, argument.Expression, semanticModel);
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes
 
         private async Task TryToRegisterCodeFixesForReturnStatementAsync(CodeFixContext context, SyntaxNode node, Diagnostic diagnostic)
         {
-            var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
+            var semanticModel = await context.Document.GetRequiredSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
             if (IsInsideMemberReturningEnumerable(node, semanticModel))
             {
                 TryRegisterCodeFix(context, node, diagnostic, node, semanticModel);
@@ -141,8 +142,8 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes
                 return contextDocument;
             }
 
-            var syntaxRootAsync = await contextDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var newSyntaxRoot = syntaxRootAsync.ReplaceNode(node.Parent, newNode);
+            var syntaxRootAsync = await contextDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var newSyntaxRoot = syntaxRootAsync.ReplaceNode(node.Parent!, newNode);
             return contextDocument.WithSyntaxRoot(newSyntaxRoot);
         }
 
@@ -167,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes
                semanticModel.GetSymbolInfo(objectCreation).Symbol is IMethodSymbol methodSymbol &&
                methodSymbol.Parameters.Any(x => x.Type is INamedTypeSymbol namedType && ImplementsGenericICollectionInterface(namedType));
 
-        private static bool IsInitializationBlockEmpty(InitializerExpressionSyntax initializer)
+        private static bool IsInitializationBlockEmpty(InitializerExpressionSyntax? initializer)
             => initializer == null || initializer.Expressions.Count == 0;
 
         private static bool IsCollectionType(SemanticModel semanticModel, ObjectCreationExpressionSyntax objectCreationExpressionSyntax)
@@ -190,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes
             if (node is ArgumentSyntax argument && node.Parent is ArgumentListSyntax argumentList)
             {
                 var argumentIndex = argumentList.Arguments.IndexOf(argument);
-                if (semanticModel.GetSymbolInfo(argumentList.Parent).Symbol is IMethodSymbol methodSymbol &&
+                if (semanticModel.GetSymbolInfo(argumentList.Parent!).Symbol is IMethodSymbol methodSymbol &&
                     methodSymbol.Parameters.Length > argumentIndex)
                 {
                     var parameterType = methodSymbol.Parameters[argumentIndex].Type;
@@ -206,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes
 
         private static bool IsTypeReadonlySequence(SemanticModel semanticModel, TypeSyntax typeSyntax)
         {
-            var returnType = ModelExtensions.GetTypeInfo(semanticModel, typeSyntax).Type;
+            var returnType = ModelExtensions.GetTypeInfo(semanticModel, typeSyntax).Type!;
             return IsTypeReadonlySequence(returnType);
         }
 

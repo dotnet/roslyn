@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                 context.RegisterOperationAction(context =>
                 {
                     var objectCreation = (IObjectCreationOperation)context.Operation;
-                    IMethodSymbol constructor = objectCreation.Constructor;
+                    IMethodSymbol? constructor = objectCreation.Constructor;
                     if (constructor != null && constructor.ContainingType.DerivesFrom(_analysisTypes.CodeActionType))
                     {
                         AddOperation(namedType, objectCreation, _codeActionObjectCreations);
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
 
                 static bool IsViolatingCodeActionCreateInvocation(IInvocationOperation invocation)
                 {
-                    IParameterSymbol param = invocation.TargetMethod.Parameters.FirstOrDefault(p => p.Name == EquivalenceKeyParameterName);
+                    IParameterSymbol? param = invocation.TargetMethod.Parameters.FirstOrDefault(p => p.Name == EquivalenceKeyParameterName);
                     if (param == null)
                     {
                         // User is calling an overload without the equivalenceKey parameter
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                         {
                             if (IsViolatingCodeActionObjectCreation(objectCreation))
                             {
-                                Diagnostic diagnostic = objectCreation.CreateDiagnostic(OverrideCodeActionEquivalenceKeyRule, objectCreation.Constructor.ContainingType, EquivalenceKeyPropertyName);
+                                Diagnostic diagnostic = objectCreation.CreateDiagnostic(OverrideCodeActionEquivalenceKeyRule, objectCreation.Constructor!.ContainingType, EquivalenceKeyPropertyName);
                                 context.ReportDiagnostic(diagnostic);
                             }
                         }
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
 
                 bool IsViolatingCodeActionObjectCreation(IObjectCreationOperation objectCreation)
                 {
-                    return objectCreation.Constructor.ContainingType.GetBaseTypesAndThis().All(namedType => !IsCodeActionWithOverriddenEquivalenceKey(namedType));
+                    return objectCreation.Constructor != null && objectCreation.Constructor.ContainingType.GetBaseTypesAndThis().All(namedType => !IsCodeActionWithOverriddenEquivalenceKey(namedType));
 
                     // Local functions
                     bool IsCodeActionWithOverriddenEquivalenceKey(INamedTypeSymbol namedType)
