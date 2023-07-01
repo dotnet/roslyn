@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -15,5 +15,5 @@ internal readonly struct RequestContext(LspRequestContext context)
     /// <inheritdoc cref="LspRequestContext.GetRequiredDocument()"/>
     internal Document GetRequiredDocument() => context.GetRequiredDocument();
 
-    internal T GetRequiredService<T>() where T : class, ICompilerDeveloperSdkLspService => context.GetRequiredService<T>();
+    internal T GetRequiredService<T>() where T : class => context.GetRequiredService<T>();
 }
