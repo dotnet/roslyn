@@ -8,7 +8,6 @@ namespace Analyzer.Utilities.Lightup
 {
     internal static class OperationKindEx
     {
-        public const OperationKind UsingDeclaration = (OperationKind)0x6c;
         public const OperationKind FunctionPointerInvocation = (OperationKind)0x78;
         public const OperationKind ImplicitIndexerReference = (OperationKind)0x7b;
         public const OperationKind Attribute = (OperationKind)0x7d;
