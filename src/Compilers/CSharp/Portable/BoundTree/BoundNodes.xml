@@ -2276,7 +2276,6 @@
 
   <Node Name="BoundLoweredIsPatternExpression" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Statements" Type="ImmutableArray&lt;BoundStatement&gt;"/>
     <Field Name="WhenTrueLabel" Type="LabelSymbol"/>
     <Field Name="WhenFalseLabel" Type="LabelSymbol"/>

@@ -544,14 +544,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            public override BoundNode? VisitLoweredIsPatternExpression(BoundLoweredIsPatternExpression node)
-            {
-                AddAll(node.Locals);
-                base.VisitLoweredIsPatternExpression(node);
-                RemoveAll(node.Locals);
-                return null;
-            }
-
             public override BoundNode? VisitSwitchStatement(BoundSwitchStatement node)
             {
                 AddAll(node.InnerLocals);

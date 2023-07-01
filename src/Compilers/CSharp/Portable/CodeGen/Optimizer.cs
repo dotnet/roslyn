@@ -1458,11 +1458,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         public override BoundNode VisitLoweredIsPatternExpression(BoundLoweredIsPatternExpression node)
         {
-            DeclareLocals(node.Locals, StackDepth());
             var statements = VisitSideEffects(node.Statements);
             RecordBranch(node.WhenTrueLabel);
             RecordBranch(node.WhenFalseLabel);
-            return node.Update(node.Locals, statements, node.WhenTrueLabel, node.WhenFalseLabel, VisitType(node.Type));
+            return node.Update(statements, node.WhenTrueLabel, node.WhenFalseLabel, VisitType(node.Type));
         }
 
         public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)

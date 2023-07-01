@@ -358,7 +358,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitLoweredIsPatternExpression(BoundLoweredIsPatternExpression node, bool used)
         {
-            DefineLocals(node.Syntax, node.Locals);
             EmitSideEffects(node.Statements);
 
             if (!used)
@@ -377,8 +376,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 _builder.EmitBoolConstant(false);
                 _builder.MarkLabel(doneLabel);
             }
-
-            FreeLocals(node.Locals);
         }
 
         private void EmitSideEffects(ImmutableArray<BoundStatement> statements)
@@ -894,39 +891,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void DefineLocals(BoundSequence sequence)
         {
-            DefineLocals(sequence.Syntax, sequence.Locals);
-        }
-
-        private void DefineLocals(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals)
-        {
-            if (locals.IsEmpty)
+            if (sequence.Locals.IsEmpty)
             {
                 return;
             }
 
             _builder.OpenLocalScope();
 
-            foreach (var local in locals)
+            foreach (var local in sequence.Locals)
             {
-                DefineLocal(local, syntax);
+                DefineLocal(local, sequence.Syntax);
             }
         }
 
         private void FreeLocals(BoundSequence sequence)
         {
-            FreeLocals(sequence.Locals);
-        }
-
-        private void FreeLocals(ImmutableArray<LocalSymbol> locals)
-        {
-            if (locals.IsEmpty)
+            if (sequence.Locals.IsEmpty)
             {
                 return;
             }
 
             _builder.CloseLocalScope();
 
-            foreach (var local in locals)
+            foreach (var local in sequence.Locals)
             {
                 FreeLocal(local);
             }

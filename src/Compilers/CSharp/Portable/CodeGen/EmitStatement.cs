@@ -612,7 +612,6 @@ oneMoreTime:
                     var loweredIs = (BoundLoweredIsPatternExpression)condition;
                     dest ??= new object();
 
-                    DefineLocals(loweredIs.Syntax, loweredIs.Locals);
                     EmitSideEffects(loweredIs.Statements);
 
                     if (sense)
@@ -629,7 +628,6 @@ oneMoreTime:
                         _builder.MarkLabel(loweredIs.WhenTrueLabel);
                     }
 
-                    FreeLocals(loweredIs.Locals);
                     return;
 
                 default:

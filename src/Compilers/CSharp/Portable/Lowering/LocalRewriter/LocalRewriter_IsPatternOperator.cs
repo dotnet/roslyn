@@ -111,16 +111,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(node.Type is { SpecialType: SpecialType.System_Boolean });
 
                 _factory.Syntax = node.Syntax;
-                var resultBuilder = ArrayBuilder<BoundStatement>.GetInstance();
+                var sideEffectsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
                 var inputExpression = _localRewriter.VisitExpression(node.Expression);
-                decisionDag = ShareTempsIfPossibleAndEvaluateInput(decisionDag, inputExpression, resultBuilder, out _);
+                decisionDag = ShareTempsAndEvaluateInput(inputExpression, decisionDag, sideEffectsBuilder.Add, out _);
 
                 // lower the decision dag.
+                var resultBuilder = ArrayBuilder<BoundStatement>.GetInstance();
                 ImmutableArray<BoundStatement> loweredDag = LowerDecisionDagCore(decisionDag);
                 resultBuilder.AddRange(loweredDag);
                 resultBuilder.AddRange(_statements);
-                return new BoundLoweredIsPatternExpression(node.Syntax, _tempAllocator.AllTemps(),
-                    resultBuilder.ToImmutableAndFree(), node.WhenTrueLabel, node.WhenFalseLabel, node.Type);
+                return _factory.Sequence(
+                    _tempAllocator.AllTemps(),
+                    sideEffectsBuilder.ToImmutableAndFree(),
+                    new BoundLoweredIsPatternExpression(
+                        node.Syntax,
+                        resultBuilder.ToImmutableAndFree(),
+                        node.WhenTrueLabel,
+                        node.WhenFalseLabel,
+                        node.Type));
             }
         }
 

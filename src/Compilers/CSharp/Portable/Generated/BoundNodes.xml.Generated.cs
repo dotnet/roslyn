@@ -7671,24 +7671,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundLoweredIsPatternExpression : BoundExpression
     {
-        public BoundLoweredIsPatternExpression(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundStatement> statements, LabelSymbol whenTrueLabel, LabelSymbol whenFalseLabel, TypeSymbol type, bool hasErrors = false)
+        public BoundLoweredIsPatternExpression(SyntaxNode syntax, ImmutableArray<BoundStatement> statements, LabelSymbol whenTrueLabel, LabelSymbol whenFalseLabel, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.LoweredIsPatternExpression, syntax, type, hasErrors || statements.HasErrors())
         {
 
-            RoslynDebug.Assert(!locals.IsDefault, "Field 'locals' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(!statements.IsDefault, "Field 'statements' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(whenTrueLabel is object, "Field 'whenTrueLabel' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(whenFalseLabel is object, "Field 'whenFalseLabel' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
-            this.Locals = locals;
             this.Statements = statements;
             this.WhenTrueLabel = whenTrueLabel;
             this.WhenFalseLabel = whenFalseLabel;
         }
 
         public new TypeSymbol Type => base.Type!;
-        public ImmutableArray<LocalSymbol> Locals { get; }
         public ImmutableArray<BoundStatement> Statements { get; }
         public LabelSymbol WhenTrueLabel { get; }
         public LabelSymbol WhenFalseLabel { get; }
@@ -7696,11 +7693,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitLoweredIsPatternExpression(this);
 
-        public BoundLoweredIsPatternExpression Update(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundStatement> statements, LabelSymbol whenTrueLabel, LabelSymbol whenFalseLabel, TypeSymbol type)
+        public BoundLoweredIsPatternExpression Update(ImmutableArray<BoundStatement> statements, LabelSymbol whenTrueLabel, LabelSymbol whenFalseLabel, TypeSymbol type)
         {
-            if (locals != this.Locals || statements != this.Statements || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(whenTrueLabel, this.WhenTrueLabel) || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(whenFalseLabel, this.WhenFalseLabel) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (statements != this.Statements || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(whenTrueLabel, this.WhenTrueLabel) || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(whenFalseLabel, this.WhenFalseLabel) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundLoweredIsPatternExpression(this.Syntax, locals, statements, whenTrueLabel, whenFalseLabel, type, this.HasErrors);
+                var result = new BoundLoweredIsPatternExpression(this.Syntax, statements, whenTrueLabel, whenFalseLabel, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -11671,7 +11668,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ImmutableArray<BoundStatement> statements = this.VisitList(node.Statements);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.Locals, statements, node.WhenTrueLabel, node.WhenFalseLabel, type);
+            return node.Update(statements, node.WhenTrueLabel, node.WhenFalseLabel, type);
         }
         public override BoundNode? VisitConstantPattern(BoundConstantPattern node)
         {
@@ -14229,18 +14226,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitLoweredIsPatternExpression(BoundLoweredIsPatternExpression node)
         {
-            ImmutableArray<LocalSymbol> locals = GetUpdatedArray(node, node.Locals);
             ImmutableArray<BoundStatement> statements = this.VisitList(node.Statements);
             BoundLoweredIsPatternExpression updatedNode;
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(locals, statements, node.WhenTrueLabel, node.WhenFalseLabel, infoAndType.Type!);
+                updatedNode = node.Update(statements, node.WhenTrueLabel, node.WhenFalseLabel, infoAndType.Type!);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(locals, statements, node.WhenTrueLabel, node.WhenFalseLabel, node.Type);
+                updatedNode = node.Update(statements, node.WhenTrueLabel, node.WhenFalseLabel, node.Type);
             }
             return updatedNode;
         }
@@ -16361,7 +16357,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         );
         public override TreeDumperNode VisitLoweredIsPatternExpression(BoundLoweredIsPatternExpression node, object? arg) => new TreeDumperNode("loweredIsPatternExpression", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("locals", node.Locals, null),
             new TreeDumperNode("statements", null, from x in node.Statements select Visit(x, null)),
             new TreeDumperNode("whenTrueLabel", node.WhenTrueLabel, null),
             new TreeDumperNode("whenFalseLabel", node.WhenFalseLabel, null),
