@@ -10,11 +10,24 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
 internal static class CSharpSnippetHelpers
 {
+    public static int GetTargetCaretPositionInBlock<TTargetNode>(SyntaxNode caretTarget, Func<TTargetNode, BlockSyntax> getBlock, SourceText sourceText)
+        where TTargetNode : SyntaxNode
+    {
+        var targetNode = (TTargetNode)caretTarget;
+        var block = getBlock(targetNode);
+
+        var triviaSpan = block.CloseBraceToken.LeadingTrivia.Span;
+        var line = sourceText.Lines.GetLineFromPosition(triviaSpan.Start);
+        // Getting the location at the end of the line before the newline.
+        return line.Span.End;
+    }
+
     public static string GetBlockLikeIndentationString(Document document, int startPositionOfOpenCurlyBrace, SyntaxFormattingOptions syntaxFormattingOptions, CancellationToken cancellationToken)
     {
         var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
