@@ -14,18 +14,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers
             Dim current = typeSyntax.Parent
             Dim typeArgumentList = TryCast(current, TypeArgumentListSyntax)
             Dim genericName = TryCast(current, GenericNameSyntax)
-            While Not typeArgumentList Is Nothing AndAlso Not genericName Is Nothing
-                If Not genericName Is Nothing
+            While typeArgumentList IsNot Nothing AndAlso genericName IsNot Nothing
+                If genericName IsNot Nothing
                     Dim currentSymbol = TryCast(model.GetSymbolInfo(current).Symbol, INamedTypeSymbol)
-                    If Not currentSymbol Is Nothing _
+                    If currentSymbol IsNot Nothing _
                         AndAlso (funcs.Contains(currentSymbol.OriginalDefinition, SymbolEqualityComparer.Default) Or actions.Contains(currentSymbol.OriginalDefinition, SymbolEqualityComparer.Default))
                         Return True
                     End If
                 End If
-                
+
                 current = current.Parent
             End While
-            
+
             Return False
         End Function
     End Class
