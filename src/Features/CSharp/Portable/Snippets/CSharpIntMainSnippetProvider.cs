@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             var returnStatement = body.Statements.First();
 
             var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
-            var indentationString = СSharpSnippetIndentationHelpers.GetBlockLikeIndentationString(document, body.OpenBraceToken.SpanStart, syntaxFormattingOptions, cancellationToken);
+            var indentationString = CSharpSnippetHelpers.GetBlockLikeIndentationString(document, body.OpenBraceToken.SpanStart, syntaxFormattingOptions, cancellationToken);
 
             var updatedReturnStatement = returnStatement.WithPrependedLeadingTrivia(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, indentationString));
             var updatedRoot = root.ReplaceNode(returnStatement, updatedReturnStatement);

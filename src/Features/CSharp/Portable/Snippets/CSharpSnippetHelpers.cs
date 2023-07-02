@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
-internal static class СSharpSnippetIndentationHelpers
+internal static class CSharpSnippetHelpers
 {
     public static string GetBlockLikeIndentationString(Document document, int startPositionOfOpenCurlyBrace, SyntaxFormattingOptions syntaxFormattingOptions, CancellationToken cancellationToken)
     {

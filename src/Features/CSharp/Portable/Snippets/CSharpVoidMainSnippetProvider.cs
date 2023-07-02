@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 
         protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
         {
-            return СSharpSnippetIndentationHelpers.AddBlockIndentationToDocumentAsync<MethodDeclarationSyntax>(
+            return CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync<MethodDeclarationSyntax>(
                 document,
                 FindSnippetAnnotation,
                 static m => m.Body!,
