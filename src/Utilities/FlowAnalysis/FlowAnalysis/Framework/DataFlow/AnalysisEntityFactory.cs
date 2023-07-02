@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         // For tuple fields, always use the CorrespondingTupleField (i.e. Item1, Item2, etc.) from the underlying value tuple type.
                         // This allows seamless operation between named tuple elements and use of Item1, Item2, etc. to access tuple elements.
                         var name = fieldReference.Field.CorrespondingTupleField.Name;
-                        symbol = fieldReference.Field.ContainingType.GetUnderlyingValueTupleTypeOrThis().GetMembers(name).OfType<IFieldSymbol>().FirstOrDefault()
+                        symbol = fieldReference.Field.ContainingType.GetUnderlyingValueTupleTypeOrThis()?.GetMembers(name).OfType<IFieldSymbol>().FirstOrDefault()
                             ?? symbol;
                     }
 
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 }
 
                 PointsToAbstractValue instanceLocation = _getPointsToAbstractValue(tupleOperation);
-                var underlyingValueTupleType = tupleType.GetUnderlyingValueTupleTypeOrThis();
+                var underlyingValueTupleType = tupleType.GetUnderlyingValueTupleTypeOrThis()!;
                 AnalysisEntity? parentEntity = null;
                 if (tupleOperation.TryGetParentTupleOperation(out var parentTupleOperationOpt, out var elementOfParentTupleContainingTuple) &&
                     TryCreateForTupleElements(parentTupleOperationOpt, out var parentTupleElementEntities))
@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public bool TryGetForInterproceduralAnalysis(IOperation operation, out AnalysisEntity? analysisEntity)
             => _analysisEntityMap.TryGetValue(operation, out analysisEntity);
 
-        private AnalysisEntity GetOrCreateForFlowCapture(CaptureId captureId, ITypeSymbol type, IOperation flowCaptureOrReference, bool isLValueFlowCapture)
+        private AnalysisEntity GetOrCreateForFlowCapture(CaptureId captureId, ITypeSymbol? type, IOperation flowCaptureOrReference, bool isLValueFlowCapture)
         {
             // Type can be null for capture of operations with OperationKind.None
             type ??= _wellKnownTypeProvider.Compilation.GetSpecialType(SpecialType.System_Object);

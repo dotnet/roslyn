@@ -533,8 +533,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             return creationMethod != null;
 
-            bool IsDescriptorConstructor(IMethodSymbol method)
-                => SymbolEqualityComparer.Default.Equals(method.ContainingType, diagnosticDescriptorType);
+            bool IsDescriptorConstructor(IMethodSymbol? method)
+                => SymbolEqualityComparer.Default.Equals(method?.ContainingType, diagnosticDescriptorType);
 
             // Heuristic to identify helper methods to create DiagnosticDescriptor:
             //  "A method invocation that returns 'DiagnosticDescriptor' and has a first string parameter named 'id'"
@@ -561,10 +561,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             bool TryGetConstructorCreation([NotNullWhen(true)] out string? nameOfLocalizableResource, [NotNullWhen(true)] out string? resourceFileName)
             {
                 if (operation.WalkDownConversion() is IObjectCreationOperation objectCreation &&
-                    SymbolEqualityComparer.Default.Equals(objectCreation.Constructor.ContainingType, localizableResourceStringType) &&
+                    SymbolEqualityComparer.Default.Equals(objectCreation.Constructor?.ContainingType, localizableResourceStringType) &&
                     objectCreation.Arguments.Length >= 3 &&
                     objectCreation.Arguments.GetArgumentForParameterAtIndex(0) is { } firstParamArgument &&
-                    firstParamArgument.Parameter.Type.SpecialType == SpecialType.System_String &&
+                    firstParamArgument.Parameter?.Type.SpecialType == SpecialType.System_String &&
                     firstParamArgument.Value.ConstantValue.HasValue &&
                     firstParamArgument.Value.ConstantValue.Value is string nameOfResource &&
                     objectCreation.Arguments.GetArgumentForParameterAtIndex(2) is { } thirdParamArgument &&
@@ -592,7 +592,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 if (operation.WalkDownConversion() is IInvocationOperation invocation &&
                     invocation.TargetMethod.ReturnType.Equals(localizableResourceStringType) &&
                     invocation.Arguments.Length == 1 &&
-                    invocation.Arguments[0].Parameter.Type.SpecialType == SpecialType.System_String &&
+                    invocation.Arguments[0].Parameter?.Type.SpecialType == SpecialType.System_String &&
                     invocation.Arguments[0].Value.ConstantValue.HasValue &&
                     invocation.Arguments[0].Value.ConstantValue.Value is string nameOfResource)
                 {
@@ -617,10 +617,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             INamedTypeSymbol localizableStringType,
             INamedTypeSymbol localizableResourceStringType)
         {
-            IArgumentOperation titleArgument = creationArguments.FirstOrDefault(a => a.Parameter.Name.Equals("title", StringComparison.OrdinalIgnoreCase));
+            IArgumentOperation? titleArgument = creationArguments.FirstOrDefault(a => a.Parameter?.Name.Equals("title", StringComparison.OrdinalIgnoreCase) == true);
             if (titleArgument != null)
             {
-                if (titleArgument.Parameter.Type.SpecialType == SpecialType.System_String)
+                if (titleArgument.Parameter?.Type.SpecialType == SpecialType.System_String)
                 {
                     operationAnalysisContext.ReportDiagnostic(creation.Value.CreateDiagnostic(UseLocalizableStringsInDescriptorRule, WellKnownTypeNames.MicrosoftCodeAnalysisLocalizableString));
                 }
@@ -720,7 +720,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             INamedTypeSymbol localizableStringType,
             INamedTypeSymbol localizableResourceStringType)
         {
-            var messageArgument = creationArguments.FirstOrDefault(a => a.Parameter.Name.Equals("messageFormat", StringComparison.OrdinalIgnoreCase));
+            var messageArgument = creationArguments.FirstOrDefault(a => a.Parameter?.Name.Equals("messageFormat", StringComparison.OrdinalIgnoreCase) == true);
             if (messageArgument != null)
             {
                 AnalyzeDescriptorArgument(operationAnalysisContext, messageArgument,
@@ -767,7 +767,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             INamedTypeSymbol localizableStringType,
             INamedTypeSymbol localizableResourceStringType)
         {
-            IArgumentOperation descriptionArgument = creationArguments.FirstOrDefault(a => a.Parameter.Name.Equals("description", StringComparison.OrdinalIgnoreCase));
+            IArgumentOperation? descriptionArgument = creationArguments.FirstOrDefault(a => a.Parameter?.Name.Equals("description", StringComparison.OrdinalIgnoreCase) == true);
             if (descriptionArgument != null)
             {
                 AnalyzeDescriptorArgument(operationAnalysisContext, descriptionArgument,
@@ -810,7 +810,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 analyzeStringValueCore(argumentValue, argument, argumentValueLocation, operationAnalysisContext.ReportDiagnostic);
             }
             else if (localizableStringsMap != null &&
-                SymbolEqualityComparer.Default.Equals(argument.Parameter.Type, localizableStringType))
+                SymbolEqualityComparer.Default.Equals(argument.Parameter?.Type, localizableStringType))
             {
                 RoslynDebug.Assert(resourceDataValueMap != null);
 
@@ -895,7 +895,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 fieldReferenceOperation.Field.DeclaringSyntaxReferences.Length == 1 &&
                 fieldReferenceOperation.Field.DeclaringSyntaxReferences[0].GetSyntax() is { } fieldDeclaration &&
                 fieldDeclaration.SyntaxTree == argumentValueOperation.Syntax.SyntaxTree &&
-                GetFieldInitializer(fieldDeclaration, argumentValueOperation.SemanticModel) is { } fieldInitializer &&
+                GetFieldInitializer(fieldDeclaration, argumentValueOperation.SemanticModel!) is { } fieldInitializer &&
                 fieldInitializer.Value.WalkDownConversion() is ILiteralOperation fieldInitializerLiteral)
             {
                 valueOperation = fieldInitializerLiteral;
@@ -1030,7 +1030,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             // Find the matching argument for helpLinkUri
             foreach (var argument in creationArguments)
             {
-                if (argument.Parameter.Name.Equals(HelpLinkUriParameterName, StringComparison.OrdinalIgnoreCase))
+                if (argument.Parameter?.Name.Equals(HelpLinkUriParameterName, StringComparison.OrdinalIgnoreCase) == true)
                 {
                     if (argument.Value.ConstantValue.HasValue)
                     {
@@ -1060,7 +1060,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             {
                 // Find the matching argument for customTags
                 var argument = creationArguments.FirstOrDefault(
-                    a => a.Parameter.Name.Equals(CustomTagsParameterName, StringComparison.OrdinalIgnoreCase));
+                    a => a.Parameter?.Name.Equals(CustomTagsParameterName, StringComparison.OrdinalIgnoreCase) == true);
                 if (argument is null ||
                     argument.Value is not IArrayCreationOperation arrayCreation ||
                     arrayCreation.DimensionSizes.Length != 1)
@@ -1080,7 +1080,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 else if (arrayCreation.Initializer is IArrayInitializerOperation arrayInitializer &&
                     arrayInitializer.ElementValues.All(element => element.ConstantValue.HasValue && element.ConstantValue.Value is string))
                 {
-                    customTags = arrayInitializer.ElementValues.Select(element => (string)element.ConstantValue.Value).ToImmutableArray();
+                    customTags = arrayInitializer.ElementValues.Select(element => (string)element.ConstantValue.Value!).ToImmutableArray();
                 }
             }
             finally
@@ -1110,12 +1110,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             foreach (var argument in creationArguments)
             {
-                switch (argument.Parameter.Name)
+                switch (argument.Parameter?.Name)
                 {
                     case IsEnabledByDefaultParameterName:
-                        if (argument.Value.ConstantValue.HasValue)
+                        if (argument.Value.ConstantValue.HasValue &&
+                            argument.Value.ConstantValue.Value is bool value)
                         {
-                            isEnabledByDefault = (bool)argument.Value.ConstantValue.Value;
+                            isEnabledByDefault = value;
                         }
 
                         break;
@@ -1194,14 +1195,15 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             string? ruleId = null;
             foreach (var argument in creationArguments)
             {
-                if (argument.Parameter.Name.Equals(DiagnosticIdParameterName, StringComparison.OrdinalIgnoreCase))
+                if (argument.Parameter?.Name.Equals(DiagnosticIdParameterName, StringComparison.OrdinalIgnoreCase) == true)
                 {
                     // Check if diagnostic ID is a constant string.
                     if (argument.Value.ConstantValue.HasValue &&
                         argument.Value.Type != null &&
-                        argument.Value.Type.SpecialType == SpecialType.System_String)
+                        argument.Value.Type.SpecialType == SpecialType.System_String &&
+                        argument.Value.ConstantValue.Value is string value)
                     {
-                        ruleId = (string)argument.Value.ConstantValue.Value;
+                        ruleId = value;
                         seenRuleIds.Add(ruleId);
 
                         var location = argument.Value.Syntax.GetLocation();

@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                             p.OverriddenProperty.Equals(supportedDiagnosticBaseProperty));
                     if (supportedDiagnosticsProperty?.GetMethod != null)
                     {
-                        SyntaxReference syntaxRef = supportedDiagnosticsProperty.GetMethod.DeclaringSyntaxReferences.FirstOrDefault();
+                        SyntaxReference? syntaxRef = supportedDiagnosticsProperty.GetMethod.DeclaringSyntaxReferences.FirstOrDefault();
                         if (syntaxRef != null)
                         {
                             SyntaxNode syntax = syntaxRef.GetSyntax(cancellationToken);
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
                             if (argSymbol is ILocalSymbol local)
                             {
-                                SyntaxReference syntaxRef = local.DeclaringSyntaxReferences.FirstOrDefault();
+                                SyntaxReference? syntaxRef = local.DeclaringSyntaxReferences.FirstOrDefault();
                                 if (syntaxRef != null)
                                 {
                                     diagnosticInitializer = syntaxRef.GetSyntax(symbolContext.CancellationToken).FirstAncestorOrSelf<TVariableDeclaratorSyntax>();
