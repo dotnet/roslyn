@@ -2975,6 +2975,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLoweredIsPatternExpression(BoundLoweredIsPatternExpression node)
         {
+            VisitStatements(node.Statements);
             return null;
         }
 
