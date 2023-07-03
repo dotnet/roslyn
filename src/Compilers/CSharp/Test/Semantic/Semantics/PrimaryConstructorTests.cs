@@ -16717,5 +16717,862 @@ public partial struct S
             var namedType2 = symbols2.OfType<INamedTypeSymbol>().Single();
             Assert.Equal(namedType1, namedType2);
         }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_01_NoArgumentList()
+        {
+            var source = @"
+class Base
+{
+    protected string p1 = """";
+}
+
+class C1(int p1) : Base
+{
+    void M()
+    {
+        local();
+
+        void local()
+        {
+            string a = p1; 
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(7, 14),
+                // (15,24): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //             string a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(15, 24)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_02_EmptyArgumentList()
+        {
+            var source = @"
+class Base
+{
+    protected string p1 = """";
+}
+
+class C1(int p1) : Base()
+{
+    void M()
+    {
+        string a = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(7, 14),
+                // (11,20): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         string a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(11, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_03_WithArgument()
+        {
+            var source = @"
+class Base(int p1)
+{
+    protected string p1 = p1.ToString();
+}
+
+class C1(int p1, int p2) : Base(p2)
+{
+    void M()
+    {
+        string a = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(7, 14),
+                // (11,20): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         string a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(11, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_04_WithArgument()
+        {
+            var source = @"
+class Base(int p1)
+{
+    protected string p1 = p1.ToString();
+}
+
+class C1(int p1) : Base(p1)
+{
+    void M()
+    {
+        string a = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_05_WithIdentityConvertedArgument()
+        {
+            var source = @"
+class Base(int p1)
+{
+    protected string p1 = p1.ToString();
+}
+
+class C1(int p1) : Base((int)p1)
+{
+    void M()
+    {
+        string a = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_06_WithNonIdentityConvertedArgument()
+        {
+            var source = @"
+class Base(long p1)
+{
+    protected string p1 = p1.ToString();
+}
+
+class C1(int p1) : Base(p1)
+{
+    void M()
+    {
+        string a = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (11,20): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         string a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(11, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_07_NotFirstArgument()
+        {
+            var source = @"
+class Base(int p1, int p2)
+{
+    protected string p1 = (p1+p2).ToString();
+}
+
+class C1(int p1) : Base(0, p1)
+{
+    void M()
+    {
+        string a = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_08_WithParamsArgument()
+        {
+            var source = @"
+class Base(params int[] p1)
+{
+    protected string p1 = p1.ToString();
+}
+
+class C1(int p1) : Base(p1)
+{
+    void M()
+    {
+        string a = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (11,20): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         string a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(11, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_09_ColorColorResolvingToADifferentType()
+        {
+            var source = @"
+class Base
+{
+    protected Type1 Type1 = null;
+}
+
+class C1(int Type1) : Base
+{
+    void M()
+    {
+        string a = Type1.M(); 
+    }
+}
+
+class Type1
+{
+    public static string M() => null;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'Type1' is unread.
+                // class C1(int Type1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Type1").WithArguments("Type1").WithLocation(7, 14),
+                // (11,20): warning CS9179: Primary constructor parameter 'int Type1' is shadowed by a member from base.
+                //         string a = Type1.M(); 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "Type1").WithArguments("int Type1").WithLocation(11, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_10_ColorColorResolvingToTheSameType()
+        {
+            var source = @"
+class Base
+{
+    protected Type1 Type1 = null;
+}
+
+class C1(Type1 Type1) : Base
+{
+    void M()
+    {
+        string a = Type1.M(); 
+    }
+}
+
+class Type1
+{
+    public static string M() => null;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,16): warning CS9113: Parameter 'Type1' is unread.
+                // class C1(Type1 Type1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Type1").WithArguments("Type1").WithLocation(7, 16)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_11_ColorColorResolvingToAValue()
+        {
+            var source = @"
+class Base
+{
+    protected Type1 Type1 = null;
+}
+
+class C1(int Type1) : Base
+{
+    void M()
+    {
+        string a = Type1.M(); 
+    }
+}
+
+class Type1
+{
+    public string M() => null;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'Type1' is unread.
+                // class C1(int Type1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Type1").WithArguments("Type1").WithLocation(7, 14),
+                // (11,20): warning CS9179: Primary constructor parameter 'int Type1' is shadowed by a member from base.
+                //         string a = Type1.M(); 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "Type1").WithArguments("int Type1").WithLocation(11, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_12_ColorColorResolvingToAValue()
+        {
+            var source = @"
+class Base
+{
+    protected Type1 Type1 = null;
+}
+
+class C1(Type1 Type1) : Base
+{
+    void M()
+    {
+        string a = Type1.M(); 
+    }
+}
+
+class Type1
+{
+    public string M() => null;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,16): warning CS9113: Parameter 'Type1' is unread.
+                // class C1(Type1 Type1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Type1").WithArguments("Type1").WithLocation(7, 16),
+                // (11,20): warning CS9179: Primary constructor parameter 'Type1 Type1' is shadowed by a member from base.
+                //         string a = Type1.M(); 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "Type1").WithArguments("Type1 Type1").WithLocation(11, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_13_TypeVsParameter()
+        {
+            var source = @"
+class Base
+{
+    public class Type1
+    {
+        public static string M() => null;
+    }
+}
+
+class C1(Base.Type1 Type1) : Base
+{
+    void M()
+    {
+        string a = Type1.M(); 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (10,21): warning CS9113: Parameter 'Type1' is unread.
+                // class C1(Base.Type1 Type1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Type1").WithArguments("Type1").WithLocation(10, 21),
+                // (14,20): warning CS9179: Primary constructor parameter 'Base.Type1 Type1' is shadowed by a member from base.
+                //         string a = Type1.M(); 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "Type1").WithArguments("Base.Type1 Type1").WithLocation(14, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_14_TypeVsParameter()
+        {
+            var source = @"
+class Base
+{
+    public class Type1
+    {
+        public string M() => null;
+    }
+}
+
+class C1(Base.Type1 Type1) : Base
+{
+    void M()
+    {
+        string a = Type1.M(); 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (10,21): warning CS9113: Parameter 'Type1' is unread.
+                // class C1(Base.Type1 Type1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Type1").WithArguments("Type1").WithLocation(10, 21),
+                // (14,20): warning CS9179: Primary constructor parameter 'Base.Type1 Type1' is shadowed by a member from base.
+                //         string a = Type1.M(); 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "Type1").WithArguments("Base.Type1 Type1").WithLocation(14, 20),
+                // (14,20): error CS0120: An object reference is required for the non-static field, method, or property 'Base.Type1.M()'
+                //         string a = Type1.M(); 
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Type1.M").WithArguments("Base.Type1.M()").WithLocation(14, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_15_MethodVsParameter()
+        {
+            var source = @"
+class Base
+{
+    protected string p1() => """";
+}
+
+class C1(int p1) : Base
+{
+    void M()
+    {
+        var a = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(7, 14),
+                // (11,17): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         var a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(11, 17)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_16_MethodVsParameter()
+        {
+            var source = @"
+class Base
+{
+}
+
+class C1(int p1) : Base
+{
+    void M()
+    {
+        var a = p1; 
+    }
+
+    protected string p1() => """";
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (6,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(6, 14)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_17_MethodVsParameter_ShadowedByMemberFromTheSameType()
+        {
+            var source = @"
+class Base
+{
+    protected string p1(int x) => """";
+}
+
+class C1(int p1) : Base
+{
+    void M()
+    {
+        var a = p1(1); 
+    }
+
+    protected string p1() => """";
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(7, 14)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_18_MethodVsParameter()
+        {
+            var source = @"
+class Base
+{
+    protected string p1() => """";
+}
+
+class C1(int p1) : Base
+{
+    void M()
+    {
+        int a = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(7, 14),
+                // (11,17): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         int a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(11, 17),
+                // (11,17): error CS0428: Cannot convert method group 'p1' to non-delegate type 'int'. Did you intend to invoke the method?
+                //         int a = p1; 
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "p1").WithArguments("p1", "int").WithLocation(11, 17)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_19_MultipleReferences()
+        {
+            var source = @"
+class Base
+{
+    protected string p1 = """";
+}
+
+class C1(int p1) : Base
+{
+    void M1()
+    {
+        string a = p1; 
+    }
+
+    void M2()
+    {
+        string b = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(7, 14),
+                // (11,20): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         string a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(11, 20),
+                // (16,20): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         string b = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(16, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_20_NoReferences()
+        {
+            var source = @"
+class Base
+{
+    protected string p1 = """";
+}
+
+class C1(int p1) : Base
+{
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(7, 14)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_21_InStaticMethod()
+        {
+            var source = @"
+class Base
+{
+    protected static string p1 = """";
+}
+
+class C1(int p1) : Base
+{
+    static void M1()
+    {
+        string a = p1; 
+    }
+}
+
+class C2(string p2)
+{
+    static void M1()
+    {
+        string a = p2; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(7, 14),
+                // (15,17): warning CS9113: Parameter 'p2' is unread.
+                // class C2(string p2)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p2").WithArguments("p2").WithLocation(15, 17),
+                // (19,20): error CS9105: Cannot use primary constructor parameter 'string p2' in this context.
+                //         string a = p2; 
+                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "p2").WithArguments("string p2").WithLocation(19, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_22_InNestedType()
+        {
+            var source = @"
+class Base
+{
+    protected static string p1 = """";
+}
+
+class C1(int p1) : Base
+{
+    class Nested
+    {
+        void M()
+        {
+            string a = p1; 
+        }
+    }
+}
+
+class C2(string p2)
+{
+    class Nested
+    {
+        void M()
+        {
+            string a = p2; 
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(7, 14),
+                // (18,17): warning CS9113: Parameter 'p2' is unread.
+                // class C2(string p2)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p2").WithArguments("p2").WithLocation(18, 17),
+                // (24,24): error CS9105: Cannot use primary constructor parameter 'string p2' in this context.
+                //             string a = p2; 
+                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "p2").WithArguments("string p2").WithLocation(24, 24)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_23_InOtherConstructor()
+        {
+            var source = @"
+class Base
+{
+    protected string p1 = """";
+}
+
+class C1(int p1) : Base
+{
+    C1() : this(1)
+    {
+        string a = p1; 
+    }
+}
+
+class C2(string p2)
+{
+    C2() : this(1)
+    {
+        string a = p2; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (7,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(7, 14),
+                // (11,20): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         string a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(11, 20),
+                // (17,17): error CS1503: Argument 1: cannot convert from 'int' to 'string'
+                //     C2() : this(1)
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "string").WithLocation(17, 17),
+                // (19,20): error CS9105: Cannot use primary constructor parameter 'string p2' in this context.
+                //         string a = p2; 
+                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "p2").WithArguments("string p2").WithLocation(19, 20)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_24_OrderOfDeclarations()
+        {
+            var source1 = @"
+partial class C1(int p1) : Base("""");
+";
+            var source2 = @"
+partial class C1
+{
+    void M()
+    {
+        string a = p1; 
+    }
+}
+";
+            var source3 = @"
+class Base(string p1)
+{
+    protected string p1 = p1;
+}
+";
+            var comp = CreateCompilation(source1 + source2 + source3, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (2,22): warning CS9113: Parameter 'p1' is unread.
+                // partial class C1(int p1) : Base;
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(2, 22),
+                // (8,20): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         string a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(8, 20)
+                );
+
+            comp = CreateCompilation(source2 + source1 + source3, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (6,20): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         string a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(6, 20),
+                // (10,22): warning CS9113: Parameter 'p1' is unread.
+                // partial class C1(int p1) : Base;
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(10, 22)
+                );
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_25_OrderOfBinding()
+        {
+            var source1 = @"
+partial class C1(int p1) : Base("""");
+";
+            var source2 = @"
+partial class C1
+{
+    void M()
+    {
+        string a = p1; 
+    }
+}
+";
+            var source3 = @"
+class Base(string p1)
+{
+    protected string p1 = p1;
+}
+";
+            var comp = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.ReleaseDll);
+            var tree = comp.SyntaxTrees[1];
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+
+            model.GetDiagnostics().Verify(
+                // 1.cs(6,20): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         string a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(6, 20)
+                );
+
+            comp.VerifyDiagnostics(
+                // 0.cs(2,22): warning CS9113: Parameter 'p1' is unread.
+                // partial class C1(int p1) : Base;
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(2, 22),
+                // 1.cs(6,20): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         string a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(6, 20)
+                );
+        }
     }
 }

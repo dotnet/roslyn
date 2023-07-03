@@ -2592,6 +2592,16 @@
         <target state="translated">O parâmetro tem modificador de parâmetros em lambda, mas não no tipo delegado de destino.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase">
+        <source>Primary constructor parameter '{0}' is shadowed by a member from base.</source>
+        <target state="new">Primary constructor parameter '{0}' is shadowed by a member from base.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase_Title">
+        <source>Primary constructor parameter is shadowed by a member from base</source>
+        <target state="new">Primary constructor parameter is shadowed by a member from base</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">
         <source>'{0}' defines 'Equals' but not 'GetHashCode'</source>
         <target state="translated">'{0}' define 'Equals', mas não 'GetHashCode'</target>
