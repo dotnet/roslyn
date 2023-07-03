@@ -811,7 +811,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return sortedMap.Values.ToList();
             }
 
-            private void AppendTypeParametersInConstraintsUsedByConstructedTypeWithItsOwnConstraints(SortedDictionary<int, ITypeParameterSymbol> sortedMap)
+            private static void AppendTypeParametersInConstraintsUsedByConstructedTypeWithItsOwnConstraints(SortedDictionary<int, ITypeParameterSymbol> sortedMap)
             {
                 var visited = new HashSet<ITypeSymbol>();
                 var candidates = SpecializedCollections.EmptyEnumerable<ITypeParameterSymbol>();
@@ -838,7 +838,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
             }
 
-            private IEnumerable<ITypeParameterSymbol> AppendTypeParametersInConstraintsUsedByConstructedTypeWithItsOwnConstraints(
+            private static IEnumerable<ITypeParameterSymbol> AppendTypeParametersInConstraintsUsedByConstructedTypeWithItsOwnConstraints(
                 ITypeSymbol type, HashSet<ITypeSymbol> visited)
             {
                 if (visited.Contains(type))

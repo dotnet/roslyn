@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             ICodeFixService codeFixService,
             TextDocument document,
             TextSpan selection,
-            CodeActionRequestPriority priority,
+            ICodeActionRequestPriorityProvider priorityProvider,
             CodeActionOptionsProvider fallbackOptions,
             Func<string, IDisposable?> addOperationScope,
             CancellationToken cancellationToken)
@@ -48,13 +48,13 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             var fixes = await Task.Run(() => codeFixService.GetFixesAsync(
                 document,
                 selection,
-                priority,
+                priorityProvider,
                 fallbackOptions,
                 addOperationScope,
                 cancellationToken), cancellationToken).ConfigureAwait(false);
 
             var filteredFixes = fixes.WhereAsArray(c => c.Fixes.Length > 0);
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var organizedFixes = await OrganizeFixesAsync(workspace, originalSolution, text, filteredFixes, cancellationToken).ConfigureAwait(false);
 
             return organizedFixes;
@@ -181,13 +181,14 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             ArrayBuilder<CodeFixGroupKey> order)
         {
             var groupKey = GetGroupKey(fix);
-            if (!map.ContainsKey(groupKey))
+            if (!map.TryGetValue(groupKey, out var suggestedActions))
             {
                 order.Add(groupKey);
-                map[groupKey] = ImmutableArray.CreateBuilder<IUnifiedSuggestedAction>();
+                suggestedActions = ImmutableArray.CreateBuilder<IUnifiedSuggestedAction>();
+                map[groupKey] = suggestedActions;
             }
 
-            map[groupKey].Add(suggestedAction);
+            suggestedActions.Add(suggestedAction);
             return;
 
             static CodeFixGroupKey GetGroupKey(CodeFix fix)

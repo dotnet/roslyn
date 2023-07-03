@@ -97,23 +97,16 @@ namespace Microsoft.CodeAnalysis.Options
                type == typeof(ImmutableArray<long>);
     }
 
-    internal sealed class OptionDefinition<T> : OptionDefinition
+    internal sealed class OptionDefinition<T>(
+        T defaultValue,
+        EditorConfigValueSerializer<T>? serializer,
+        OptionGroup? group,
+        string configName,
+        OptionStorageMapping? storageMapping,
+        bool isEditorConfigOption) : OptionDefinition(group, configName, defaultValue, storageMapping, isEditorConfigOption)
     {
-        public new T DefaultValue { get; }
-        public new EditorConfigValueSerializer<T> Serializer { get; }
-
-        public OptionDefinition(
-            T defaultValue,
-            EditorConfigValueSerializer<T>? serializer,
-            OptionGroup? group,
-            string configName,
-            OptionStorageMapping? storageMapping,
-            bool isEditorConfigOption)
-            : base(group, configName, defaultValue, storageMapping, isEditorConfigOption)
-        {
-            DefaultValue = defaultValue;
-            Serializer = serializer ?? EditorConfigValueSerializer.Default<T>();
-        }
+        public new T DefaultValue { get; } = defaultValue;
+        public new EditorConfigValueSerializer<T> Serializer { get; } = serializer ?? EditorConfigValueSerializer.Default<T>();
 
         public override Type Type
             => typeof(T);

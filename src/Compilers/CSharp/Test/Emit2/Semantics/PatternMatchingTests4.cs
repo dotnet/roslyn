@@ -124,8 +124,7 @@ class C
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "M2").WithLocation(18, 18));
         }
 
-        [Fact]
-        [WorkItem(34980, "https://github.com/dotnet/roslyn/issues/34980")]
+        [Fact, WorkItem(34980, "https://github.com/dotnet/roslyn/issues/34980")]
         public void PatternMatchGenericParameterToNonConstantExprs()
         {
             var comp = CreateCompilation(@"
@@ -2136,7 +2135,7 @@ public class C
     // sequence point: switch { (3, 4) => 1 }
     IL_002e:  nop
     // sequence point: <hidden>
-    IL_002f:  call       ""ThrowInvalidOperationException""
+    IL_002f:  call       ""ThrowInvalidOperationException()""
     IL_0034:  nop
     // sequence point: <hidden>
     IL_0035:  ldc.i4.1
@@ -2278,7 +2277,7 @@ namespace System.Runtime.CompilerServices
     // sequence point: switch { (3, 4) => 1 }
     IL_002e:  nop
     // sequence point: <hidden>
-    IL_002f:  call       ""ThrowSwitchExpressionExceptionParameterless""
+    IL_002f:  call       ""ThrowSwitchExpressionExceptionParameterless()""
     IL_0034:  nop
     // sequence point: <hidden>
     IL_0035:  ldc.i4.1
@@ -2472,7 +2471,7 @@ namespace System.Runtime.CompilerServices
     IL_001d:  ldloc.1
     IL_001e:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
     IL_0023:  box        ""System.ValueTuple<int, int>""
-    IL_0028:  call       ""ThrowSwitchExpressionException""
+    IL_0028:  call       ""ThrowSwitchExpressionException(object)""
     IL_002d:  nop
     // sequence point: <hidden>
     IL_002e:  ldc.i4.1
@@ -4748,5 +4747,35 @@ public class C
 """);
         }
 #endif
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67923")]
+        public void VarPatternCapturingAfterDisjunctiveTypeTest()
+        {
+            var source = """
+A a = new B();
+
+if (a is (B or C) and var x)
+{
+    if (x is null)
+        throw null;
+    else
+        System.Console.WriteLine("OK");
+}
+
+class A { }
+class B : A { }
+class C : A { }
+class D : A { }
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "OK");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var x = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().First();
+            Assert.Equal("x", x.ToString());
+            Assert.Equal("A? x", model.GetDeclaredSymbol(x).ToTestDisplayString());
+        }
     }
 }

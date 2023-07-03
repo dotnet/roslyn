@@ -11,10 +11,6 @@
               "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
             },
             {
-              "filename": "/Microsoft.CodeAnalysis.CSharp.dll",
-              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
-            },
-            {
               "filename": "/Microsoft.CodeAnalysis.EditorFeatures.Text.dll",
               "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
             },
@@ -40,10 +36,6 @@
             },
             {
               "filename": "/Microsoft.CodeAnalysis.EditorFeatures.dll",
-              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
-            },
-            {
-              "filename": "/Microsoft.CodeAnalysis.CSharp.Features.dll",
               "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
             },
             {

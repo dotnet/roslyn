@@ -460,7 +460,7 @@ class Class
                         SpecializedCollections.EmptyEnumerable<Lazy<CodeFixProvider, CodeChangeProviderMetadata>>(),
                         SpecializedCollections.SingletonEnumerable(suppressionProviderFactory));
                     var document = GetDocumentAndSelectSpan(workspace, out var span);
-                    var diagnostics = await diagnosticService.GetDiagnosticsForSpanAsync(document, span);
+                    var diagnostics = await diagnosticService.GetDiagnosticsForSpanAsync(document, span, CancellationToken.None);
                     Assert.Equal(2, diagnostics.Where(d => d.Id == "CS0219").Count());
 
                     var allFixes = (await fixService.GetFixesAsync(document, span, CodeActionOptions.DefaultProvider, CancellationToken.None))

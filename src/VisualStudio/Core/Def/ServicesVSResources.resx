@@ -1813,6 +1813,9 @@ Additional information: {1}</value>
   <data name="Run_code_analysis_in_separate_process_requires_restart" xml:space="preserve">
     <value>Run code analysis in separate process (requires restart)</value>
   </data>
+  <data name="Run_code_analysis_on_latest_dotnet_requires_restart" xml:space="preserve">
+    <value>Run code analysis on latest .NET (requires restart)</value>
+  </data>
   <data name="Quick_Actions" xml:space="preserve">
     <value>Quick Actions</value>
   </data>
@@ -1961,21 +1964,6 @@ Additional information: {1}</value>
   <data name="Document_Outline_Search" xml:space="preserve">
     <value>Search Document Outline</value>
   </data>
-  <data name="Document_Outline_Collapse_All" xml:space="preserve">
-    <value>Collapse All</value>
-  </data>
-  <data name="Document_Outline_Expand_All" xml:space="preserve">
-    <value>Expand All</value>
-  </data>
-  <data name="Document_Outline_Sort_Name" xml:space="preserve">
-    <value>Sort By Name</value>
-  </data>
-  <data name="Document_Outline_Sort_Order" xml:space="preserve">
-    <value>Sort By Order</value>
-  </data>
-  <data name="Document_Outline_Sort_Type" xml:space="preserve">
-    <value>Sort By Type</value>
-  </data>
   <data name="Rename" xml:space="preserve">
     <value>Rename</value>
   </data>
@@ -2030,5 +2018,8 @@ Additional information: {1}</value>
   </data>
   <data name="Enable_document_outline_experimental_requires_restart" xml:space="preserve">
     <value>Enable document outline (experimental, requires restart)</value>
+  </data>
+  <data name="Prefer_primary_constructors" xml:space="preserve">
+    <value>Prefer primary constructors</value>
   </data>
 </root>

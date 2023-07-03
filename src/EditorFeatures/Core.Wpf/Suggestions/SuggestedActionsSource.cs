@@ -4,13 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -19,8 +18,6 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.CodeAnalysis.UnifiedSuggestions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -217,25 +214,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 CodeActionOptionsProvider fallbackOptions,
                 CancellationToken cancellationToken)
             {
+                var lowPriorityAnalyzers = new ConcurrentSet<DiagnosticAnalyzer>();
+
                 foreach (var order in Orderings)
                 {
                     var priority = TryGetPriority(order);
                     Contract.ThrowIfNull(priority);
+                    var priorityProvider = new SuggestedActionPriorityProvider(priority.Value, lowPriorityAnalyzers);
 
-                    var result = await GetFixLevelAsync(priority.Value).ConfigureAwait(false);
+                    var result = await GetFixLevelAsync(priorityProvider).ConfigureAwait(false);
                     if (result != null)
                         return result;
                 }
 
                 return null;
 
-                async Task<string?> GetFixLevelAsync(CodeActionRequestPriority priority)
+                async Task<string?> GetFixLevelAsync(ICodeActionRequestPriorityProvider priorityProvider)
                 {
                     if (state.Target.Owner._codeFixService != null &&
                         state.Target.SubjectBuffer.SupportsCodeFixes())
                     {
                         var result = await state.Target.Owner._codeFixService.GetMostSevereFixAsync(
-                            document, range.Span.ToTextSpan(), priority, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                            document, range.Span.ToTextSpan(), priorityProvider, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
                         if (result.HasFix)
                         {

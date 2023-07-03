@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc
                     }),
                     endOfComment: Token(SyntaxKind.EndOfDocumentationCommentToken).WithoutTrivia());
 
-                sourceText ??= await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                sourceText ??= await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var indentation = sourceText.GetLeadingWhitespaceOfLineAtPosition(node.FullSpan.Start);
                 var newLeadingTrivia = TriviaList(
                     Whitespace(indentation),

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             var blockStructure = await _impl.GetBlockStructureAsync(document, cancellationToken).ConfigureAwait(false);
 
             return new BlockStructure(blockStructure.Spans.SelectAsArray(
-                x => new BlockSpan(x.Type, x.IsCollapsible, x.TextSpan, x.HintSpan, x.BannerText, x.AutoCollapse, x.IsDefaultCollapsed)));
+                x => new BlockSpan(x.Type!, x.IsCollapsible, x.TextSpan, x.HintSpan, primarySpans: null, x.BannerText, x.AutoCollapse, x.IsDefaultCollapsed)));
         }
     }
 }

@@ -7,6 +7,8 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -31,7 +33,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     [Export]
     internal class VisualStudioActiveDocumentTracker : ForegroundThreadAffinitizedObject, IVsSelectionEvents
     {
+        private readonly IAsyncServiceProvider _asyncServiceProvider;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
+        private IVsRunningDocumentTable4? _runningDocumentTable;
 
         /// <summary>
         /// The list of tracked frames. This can only be written by the UI thread, although can be read (with care) from any thread.
@@ -51,6 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
             : base(threadingContext, assertIsForeground: false)
         {
+            _asyncServiceProvider = asyncServiceProvider;
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
             ThreadingContext.RunWithShutdownBlockAsync(async cancellationToken =>
             {
@@ -59,6 +64,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 var monitorSelectionService = (IVsMonitorSelection?)await asyncServiceProvider.GetServiceAsync(typeof(SVsShellMonitorSelection)).ConfigureAwait(true);
                 Assumes.Present(monitorSelectionService);
 
+                var runningDocumentTable = await GetRunningDocumentTableAsync(cancellationToken).ConfigureAwait(true);
+
                 // No need to track windows if we are shutting down
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -66,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     if (value is IVsWindowFrame windowFrame)
                     {
-                        TrackNewActiveWindowFrame(windowFrame);
+                        TrackNewActiveWindowFrame(windowFrame, runningDocumentTable);
                     }
                 }
 
@@ -139,7 +146,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return ids.ToImmutableAndFree();
         }
 
-        public void TrackNewActiveWindowFrame(IVsWindowFrame frame)
+        public void TrackNewActiveWindowFrame(IVsWindowFrame frame, IVsRunningDocumentTable4 runningDocumentTable)
         {
             AssertIsForeground();
 
@@ -150,7 +157,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var existingFrame = _visibleFrames.FirstOrDefault(f => f.Frame == frame);
             if (existingFrame == null)
             {
-                _visibleFrames = _visibleFrames.Add(new FrameListener(this, frame));
+                _visibleFrames = _visibleFrames.Add(new FrameListener(this, frame, runningDocumentTable));
             }
             else if (existingFrame.TextBuffer == null)
             {
@@ -158,10 +165,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 // Note that we do not need to disconnect the existing frame here. It will get disconnected along with
                 // the new frame whenever the document is closed or de-activated.
                 _visibleFrames = _visibleFrames.Remove(existingFrame);
-                _visibleFrames = _visibleFrames.Add(new FrameListener(this, frame));
+                _visibleFrames = _visibleFrames.Add(new FrameListener(this, frame, runningDocumentTable));
             }
 
             this.DocumentsChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        private async ValueTask<IVsRunningDocumentTable4> GetRunningDocumentTableAsync(CancellationToken cancellationToken)
+        {
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            if (_runningDocumentTable is null)
+            {
+                _runningDocumentTable = (IVsRunningDocumentTable4?)await _asyncServiceProvider.GetServiceAsync(typeof(SVsRunningDocumentTable)).ConfigureAwait(true);
+                Assumes.Present(_runningDocumentTable);
+            }
+
+            return _runningDocumentTable;
         }
 
         private void RemoveFrame(FrameListener frame)
@@ -198,7 +218,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     ErrorHandler.Succeeded(frame.GetProperty((int)__VSFPROPID.VSFPROPID_Type, out var frameType)) &&
                     (int)frameType == (int)__WindowFrameTypeFlags.WINDOWFRAMETYPE_Document)
                 {
-                    TrackNewActiveWindowFrame(frame);
+                    var runningDocumentTable = ThreadingContext.JoinableTaskFactory.Run(() => GetRunningDocumentTableAsync(ThreadingContext.DisposalToken).AsTask());
+                    TrackNewActiveWindowFrame(frame, runningDocumentTable);
                 }
             }
 
@@ -217,31 +238,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             public readonly IVsWindowFrame Frame;
 
             private readonly VisualStudioActiveDocumentTracker _documentTracker;
+            private readonly IVsRunningDocumentTable4 _runningDocumentTable;
             private readonly uint _frameEventsCookie;
 
-            internal ITextBuffer? TextBuffer { get; }
+            internal ITextBuffer? TextBuffer { get; private set; }
 
-            public FrameListener(VisualStudioActiveDocumentTracker service, IVsWindowFrame frame)
+            public FrameListener(VisualStudioActiveDocumentTracker service, IVsWindowFrame frame, IVsRunningDocumentTable4 runningDocumentTable)
             {
                 _documentTracker = service;
+                _runningDocumentTable = runningDocumentTable;
+
                 _documentTracker.AssertIsForeground();
 
                 this.Frame = frame;
-
                 ((IVsWindowFrame2)frame).Advise(this, out _frameEventsCookie);
 
-                if (ErrorHandler.Succeeded(frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocData, out var docData)))
-                {
-                    if (docData is IVsTextBuffer bufferAdapter)
-                    {
-                        TextBuffer = _documentTracker._editorAdaptersFactoryService.GetDocumentBuffer(bufferAdapter);
-
-                        if (TextBuffer != null && !TextBuffer.ContentType.IsOfType(ContentTypeNames.RoslynContentType))
-                        {
-                            TextBuffer.Changed += NonRoslynTextBuffer_Changed;
-                        }
-                    }
-                }
+                TryInitializeTextBuffer();
             }
 
             private void NonRoslynTextBuffer_Changed(object sender, TextContentChangedEventArgs e)
@@ -272,6 +284,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 switch ((__FRAMESHOW)fShow)
                 {
+                    case __FRAMESHOW.FRAMESHOW_WinShown when TextBuffer is null:
+                        TryInitializeTextBuffer();
+                        if (TextBuffer is not null)
+                        {
+                            // The current TextBuffer was initialized in the OnShow instead of being initialized in the
+                            // constructor. For consumers, treat this the same way as when the active document changes.
+                            _documentTracker.DocumentsChanged?.Invoke(_documentTracker, EventArgs.Empty);
+                        }
+
+                        return VSConstants.S_OK;
+
                     case __FRAMESHOW.FRAMESHOW_WinClosed:
                     case __FRAMESHOW.FRAMESHOW_WinHidden:
                     case __FRAMESHOW.FRAMESHOW_TabDeactivated:
@@ -286,6 +309,54 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             int IVsWindowFrameNotify2.OnClose(ref uint pgrfSaveOptions)
                 => Disconnect();
+
+            private void TryInitializeTextBuffer()
+            {
+                RoslynDebug.Assert(TextBuffer is null);
+
+                _documentTracker.AssertIsForeground();
+
+                if (ErrorHandler.Succeeded(Frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocCookie, out var boxedDocCookie)))
+                {
+                    uint docCookie;
+
+                    if (boxedDocCookie is int docCookieInt)
+                    {
+                        docCookie = (uint)docCookieInt;
+                    }
+                    else if (boxedDocCookie is uint docCookieUint)
+                    {
+                        docCookie = docCookieUint;
+                    }
+                    else
+                    {
+                        // Return if we failed to unbox the cookie. We'll try again on the next OnShow event.
+                        return;
+                    }
+
+                    var flags = (_VSRDTFLAGS)_runningDocumentTable.GetDocumentFlags(docCookie);
+                    if ((flags & (_VSRDTFLAGS)_VSRDTFLAGS4.RDT_PendingInitialization) != 0)
+                    {
+                        // This document is not yet initialized. Defer initialization to the next OnShow event.
+                        return;
+                    }
+                }
+
+                if (ErrorHandler.Succeeded(Frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocData, out var docData)))
+                {
+                    if (docData is IVsTextBuffer bufferAdapter)
+                    {
+                        TextBuffer = _documentTracker._editorAdaptersFactoryService.GetDocumentBuffer(bufferAdapter);
+
+                        if (TextBuffer != null && !TextBuffer.ContentType.IsOfType(ContentTypeNames.RoslynContentType))
+                        {
+                            TextBuffer.Changed += NonRoslynTextBuffer_Changed;
+                        }
+                    }
+                }
+
+                return;
+            }
 
             private int Disconnect()
             {

@@ -25,10 +25,39 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Configuration
     {
         // A regex help to check the message we send to client.
         // It should look like "feature_group.feature_name"
-        private static readonly string s_clientSideSectionPattern = @"^((csharp|visual_basic)\|)?([\w_]+)\.([\w_]+)$";
+        private static readonly string s_clientSideSectionPattern = @"^((csharp|visual_basic)\|)?([\w_|\.]+)([\w_]+)$";
 
         public DidChangeConfigurationNotificationHandlerTest(ITestOutputHelper? testOutputHelper) : base(testOutputHelper)
         {
+        }
+
+        [Theory, CombinatorialData]
+        public async Task VerifyNoRequestToClientWithoutCapability(bool mutatingLspWorkspace)
+        {
+            var markup = @"
+public class B { }";
+
+            var clientCapabilities = new ClientCapabilities()
+            {
+                Workspace = new WorkspaceClientCapabilities()
+                {
+                    DidChangeConfiguration = new DynamicRegistrationSetting() { DynamicRegistration = true },
+                    Configuration = false
+                }
+            };
+
+            var clientCallbackTarget = new ClientCallbackTarget();
+            var initializationOptions = new InitializationOptions()
+            {
+                CallInitialized = true,
+                ClientCapabilities = clientCapabilities,
+                ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+                ClientTarget = clientCallbackTarget,
+            };
+
+            await CreateTestLspServerAsync(
+                markup, mutatingLspWorkspace, initializationOptions);
+            Assert.False(clientCallbackTarget.ReceivedWorkspaceConfigurationRequest);
         }
 
         [Theory, CombinatorialData]
@@ -41,7 +70,8 @@ public class A { }";
             {
                 Workspace = new WorkspaceClientCapabilities()
                 {
-                    DidChangeConfiguration = new DynamicRegistrationSetting() { DynamicRegistration = true }
+                    DidChangeConfiguration = new DynamicRegistrationSetting() { DynamicRegistration = true },
+                    Configuration = true
                 }
             };
 
@@ -107,6 +137,7 @@ public class A { }";
             public bool WorkspaceDidChangeConfigurationRegistered { get; private set; } = false;
             public List<ConfigurationItem> ReceivedConfigurationItems { get; } = new();
             public List<string> MockClientSideValues { get; } = new();
+            public bool ReceivedWorkspaceConfigurationRequest { get; private set; } = false;
 
             [JsonRpcMethod(Methods.ClientRegisterCapabilityName, UseSingleObjectParameterDeserialization = true)]
             public void ClientRegisterCapability(RegistrationParams @registrationParams, CancellationToken _)
@@ -124,6 +155,7 @@ public class A { }";
             [JsonRpcMethod(Methods.WorkspaceConfigurationName, UseSingleObjectParameterDeserialization = true)]
             public JArray WorkspaceConfigurationName(ConfigurationParams configurationParams, CancellationToken _)
             {
+                ReceivedWorkspaceConfigurationRequest = true;
                 var expectConfigurationItemsNumber = DidChangeConfigurationNotificationHandler.SupportedOptions.Sum(option => option is IPerLanguageValuedOption ? 2 : 1);
                 Assert.Equal(expectConfigurationItemsNumber, configurationParams!.Items.Length);
                 Assert.Equal(expectConfigurationItemsNumber, MockClientSideValues.Count);
@@ -174,6 +206,11 @@ public class A { }";
 
             private static object? GetNonDefaultValue(IOption2 option)
             {
+                if (TryGetValueNonDefaultValueBasedOnName(option, out var nonDefaultValue))
+                {
+                    return nonDefaultValue;
+                }
+
                 var type = option.Type;
                 if (type == typeof(bool))
                 {
@@ -210,7 +247,7 @@ public class A { }";
                 }
                 else
                 {
-                    throw new Exception("Please return a non-default value based on the config name.");
+                    throw new Exception($"Please return a non-default value based on the config name, config name: {option.Name}.");
                 }
 
                 object GetDifferentEnumValue(Type enumType, object enumValue)
@@ -224,6 +261,18 @@ public class A { }";
                     }
 
                     throw new ArgumentException($"{enumType.Name} has only one value.");
+                }
+
+                static bool TryGetValueNonDefaultValueBasedOnName(IOption option, out object? nonDefaultValue)
+                {
+                    if (option.Name is "end_of_line")
+                    {
+                        nonDefaultValue = "\n";
+                        return true;
+                    }
+
+                    nonDefaultValue = null;
+                    return false;
                 }
             }
 

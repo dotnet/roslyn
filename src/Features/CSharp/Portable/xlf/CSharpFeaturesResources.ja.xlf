@@ -247,9 +247,14 @@
         <target state="translated">extern エイリアス</target>
         <note />
       </trans-unit>
+      <trans-unit id="for_loop">
+        <source>for loop</source>
+        <target state="new">for loop</target>
+        <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="init_only_property">
         <source>init-only property</source>
-        <target state="new">init-only property</target>
+        <target state="translated">init 専用プロパティ</target>
         <note />
       </trans-unit>
       <trans-unit id="lambda_expression">
@@ -411,6 +416,11 @@
         <source>record struct</source>
         <target state="translated">レコード構造体</target>
         <note />
+      </trans-unit>
+      <trans-unit id="reversed_for_loop">
+        <source>reversed for loop</source>
+        <target state="new">reversed for loop</target>
+        <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="switch_statement">
         <source>switch statement</source>

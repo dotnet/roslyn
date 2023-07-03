@@ -7,20 +7,21 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
+using InternalContracts = Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal sealed class ManagedHotReloadServiceImpl : Contracts.IManagedHotReloadService
+    internal sealed class ManagedHotReloadServiceImpl : InternalContracts.IManagedHotReloadService
     {
         private readonly IManagedHotReloadService _service;
 
         public ManagedHotReloadServiceImpl(IManagedHotReloadService service)
             => _service = service;
 
-        public async ValueTask<ImmutableArray<Contracts.ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellation)
+        public async ValueTask<ImmutableArray<InternalContracts.ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellation)
             => (await _service.GetActiveStatementsAsync(cancellation).ConfigureAwait(false)).SelectAsArray(a => a.ToContract());
 
-        public async ValueTask<Contracts.ManagedHotReloadAvailability> GetAvailabilityAsync(Guid module, CancellationToken cancellation)
+        public async ValueTask<InternalContracts.ManagedHotReloadAvailability> GetAvailabilityAsync(Guid module, CancellationToken cancellation)
             => (await _service.GetAvailabilityAsync(module, cancellation).ConfigureAwait(false)).ToContract();
 
         public ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellation)

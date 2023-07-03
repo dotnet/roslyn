@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -127,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CodeDefinitionWindow
         {
             try
             {
-                await _asyncListener.Delay(TimeSpan.FromMilliseconds(250), cancellationToken).ConfigureAwait(false);
+                await _asyncListener.Delay(DelayTimeSpan.Short, cancellationToken).ConfigureAwait(false);
 
                 // If it's not open, don't do anything, since if we are going to show locations in metadata that might
                 // be expensive. This doesn't cause a functional issue, since opening the window clears whatever was previously there
@@ -171,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CodeDefinitionWindow
                 {
                     if (await navigationService.CanNavigateToSpanAsync(workspace, item.Document.Id, item.SourceSpan, cancellationToken).ConfigureAwait(false))
                     {
-                        var text = await item.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        var text = await item.Document.GetTextAsync(document.Project.Solution, cancellationToken).ConfigureAwait(false);
                         var linePositionSpan = text.Lines.GetLinePositionSpan(item.SourceSpan);
 
                         if (item.Document.FilePath != null)

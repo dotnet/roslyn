@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     RetargetingTranslator.Retarget(tupleErrorField.ContainingType, RetargetOptions.RetargetPrimitiveTypesByName),
                     tupleErrorField.Name,
                     tupleErrorField.TupleElementIndex,
-                    tupleErrorField.Locations.IsEmpty ? null : tupleErrorField.Locations[0],
+                    tupleErrorField.TryGetFirstLocation(),
                     this.RetargetingTranslator.Retarget(tupleErrorField.TypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
                     tupleErrorField.GetUseSiteInfo().DiagnosticInfo,
                     tupleErrorField.IsImplicitlyDeclared,

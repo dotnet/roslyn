@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             public override SyntaxNode VisitInvocationExpression(InvocationExpressionSyntax node)
             {
-                return SimplifyExpression(
+                return SimplifyNode(
                     node,
                     newNode: base.VisitInvocationExpression(node),
                     simplifier: s_simplifyExtensionMethod);

@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
                 .GroupBy(change => change.Span)
                 .Select(changes => new TextSpan(changes.Key.Start, changes.Sum(change => change.NewText!.Length)));
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var newText = text.WithChanges(orderedTextInserts);
             var newDocument = newProject.GetRequiredDocument(document.Id).WithText(newText);
 
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         private async Task<Document> CleanUpNewLinesAsync(Document document, TextSpan insertSpan, SyntaxFormattingOptions options, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var services = document.Project.Solution.Services;
 
             var textChanges = Formatter.GetFormattedTextChanges(

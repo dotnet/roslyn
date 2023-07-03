@@ -17,15 +17,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// Analyzer options with workspace.
     /// These are used to fetch the workspace options by our internal analyzers (e.g. simplification analyzer).
     /// </summary>
-    internal sealed class WorkspaceAnalyzerOptions : AnalyzerOptions
+    internal sealed class WorkspaceAnalyzerOptions(AnalyzerOptions options, IdeAnalyzerOptions ideOptions) : AnalyzerOptions(options.AdditionalFiles, options.AnalyzerConfigOptionsProvider)
     {
-        public IdeAnalyzerOptions IdeOptions { get; }
-
-        public WorkspaceAnalyzerOptions(AnalyzerOptions options, IdeAnalyzerOptions ideOptions)
-            : base(options.AdditionalFiles, options.AnalyzerConfigOptionsProvider)
-        {
-            IdeOptions = ideOptions;
-        }
+        public IdeAnalyzerOptions IdeOptions { get; } = ideOptions;
 
         public override bool Equals(object obj)
         {

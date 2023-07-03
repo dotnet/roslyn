@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             <Out> ByRef typeArgumentsLocation As ImmutableArray(Of SyntaxNodeOrToken),
             <[In](), Out()> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
             <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol),
-            ByRef diagnostic As BindingDiagnosticBag,
+            diagnostic As BindingDiagnosticBag,
             Optional inferTheseTypeParameters As BitVector = Nothing
         ) As Boolean
             Debug.Assert(candidate Is candidate.ConstructedFrom)
@@ -458,13 +458,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     If lambdaParameter.Type Is Nothing AndAlso
                                        delegateParam.Type.Equals(currentTypedNode.DeclaredTypeParam) Then
 
-                                        If Graph.Diagnostic Is Nothing Then
-                                            Graph.Diagnostic = BindingDiagnosticBag.Create(withDiagnostics:=True, Graph.UseSiteInfo.AccumulatesDependencies)
-                                        End If
-
                                         ' If this was an argument to the unbound Lambda, infer Object.
                                         If Graph.ObjectType Is Nothing Then
-                                            Debug.Assert(Graph.Diagnostic IsNot Nothing)
                                             Graph.ObjectType = unboundLambda.Binder.GetSpecialType(SpecialType.System_Object, lambdaParameter.IdentifierSyntax, Graph.Diagnostic)
                                         End If
 
@@ -481,7 +476,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         ' e.g. "Sub f(Of T, U)(ByVal x As Func(Of T, U))" invoked with "f(function(z)z)"
                                         ' needs to put the squiggly on the first "z".
 
-                                        Debug.Assert(Graph.Diagnostic IsNot Nothing)
                                         unboundLambda.Binder.ReportLambdaParameterInferredToBeObject(lambdaParameter, Graph.Diagnostic)
 
                                         skipThisNode = False
@@ -606,7 +600,7 @@ HandleAsAGeneralExpression:
         Private Class InferenceGraph
             Inherits Graph(Of InferenceNode)
 
-            Public Diagnostic As BindingDiagnosticBag
+            Public ReadOnly Diagnostic As BindingDiagnosticBag
             Public ObjectType As NamedTypeSymbol
             Public ReadOnly Candidate As MethodSymbol
             Public ReadOnly Arguments As ImmutableArray(Of BoundExpression)
@@ -636,6 +630,8 @@ HandleAsAGeneralExpression:
                 useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
             )
                 Debug.Assert(delegateReturnType Is Nothing OrElse delegateReturnTypeReferenceBoundNode IsNot Nothing)
+                Debug.Assert(diagnostic IsNot Nothing)
+                Debug.Assert(diagnostic.AccumulatesDependencies OrElse Not useSiteInfo.AccumulatesDependencies)
 
                 Me.Diagnostic = diagnostic
                 Me.Candidate = candidate
@@ -713,9 +709,12 @@ HandleAsAGeneralExpression:
                 <Out> ByRef typeArgumentsLocation As ImmutableArray(Of SyntaxNodeOrToken),
                 <[In](), Out()> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
                 <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol),
-                ByRef diagnostic As BindingDiagnosticBag,
+                diagnostic As BindingDiagnosticBag,
                 inferTheseTypeParameters As BitVector
             ) As Boolean
+                Debug.Assert(diagnostic IsNot Nothing)
+                Debug.Assert(diagnostic.AccumulatesDependencies OrElse Not useSiteInfo.AccumulatesDependencies)
+
                 Dim graph As New InferenceGraph(diagnostic, candidate, arguments, parameterToArgumentMap, paramArrayItems,
                                                 delegateReturnType, delegateReturnTypeReferenceBoundNode, asyncLambdaSubToFunctionMismatch,
                                                 useSiteInfo)
@@ -903,9 +902,6 @@ HandleAsAGeneralExpression:
                 typeArguments = inferredTypes.AsImmutableOrNull()
                 typeArgumentsLocation = inferredFromLocation.AsImmutableOrNull()
                 inferenceLevel = graph._typeInferenceLevel
-
-                Debug.Assert(diagnostic Is Nothing OrElse diagnostic Is graph.Diagnostic)
-                diagnostic = graph.Diagnostic
 
                 asyncLambdaSubToFunctionMismatch = graph._asyncLambdaSubToFunctionMismatch
                 useSiteInfo = graph.UseSiteInfo
@@ -2124,11 +2120,6 @@ HandleAsAGeneralExpression:
                                 lambdaReturnType = queryLambda.Expression.Type
 
                                 If lambdaReturnType Is Nothing Then
-                                    If Me.Diagnostic Is Nothing Then
-                                        Me.Diagnostic = BindingDiagnosticBag.Create(withDiagnostics:=True, Me.UseSiteInfo.AccumulatesDependencies)
-                                    End If
-
-                                    Debug.Assert(Me.Diagnostic IsNot Nothing)
                                     lambdaReturnType = queryLambda.LambdaSymbol.ContainingBinder.MakeRValue(queryLambda.Expression, Me.Diagnostic).Type
                                 End If
                             End If
@@ -2147,10 +2138,6 @@ HandleAsAGeneralExpression:
                                     lambdaReturnType = Nothing
 
                                     ' Let's keep return type inference errors
-                                    If Me.Diagnostic Is Nothing Then
-                                        Me.Diagnostic = BindingDiagnosticBag.Create(withDiagnostics:=True, Me.UseSiteInfo.AccumulatesDependencies)
-                                    End If
-
                                     Me.Diagnostic.AddRange(returnTypeInfo.Value)
 
                                 ElseIf returnTypeInfo.Key Is LambdaSymbol.ReturnTypeIsUnknown Then
@@ -2167,10 +2154,6 @@ HandleAsAGeneralExpression:
                                         lambdaReturnType = returnTypeInfo.Key
 
                                         ' Let's keep return type inference warnings, if any.
-                                        If Me.Diagnostic Is Nothing Then
-                                            Me.Diagnostic = BindingDiagnosticBag.Create(withDiagnostics:=True, Me.UseSiteInfo.AccumulatesDependencies)
-                                        End If
-
                                         Me.Diagnostic.AddRange(returnTypeInfo.Value)
                                         Me.Diagnostic.AddDependencies(boundLambda.Diagnostics.Dependencies)
                                     Else
@@ -2178,10 +2161,6 @@ HandleAsAGeneralExpression:
 
                                         ' Let's preserve diagnostics that caused the failure
                                         If Not boundLambda.Diagnostics.Diagnostics.IsDefaultOrEmpty Then
-                                            If Me.Diagnostic Is Nothing Then
-                                                Me.Diagnostic = BindingDiagnosticBag.Create(withDiagnostics:=True, Me.UseSiteInfo.AccumulatesDependencies)
-                                            End If
-
                                             Me.Diagnostic.AddRange(boundLambda.Diagnostics)
                                         End If
                                     End If
