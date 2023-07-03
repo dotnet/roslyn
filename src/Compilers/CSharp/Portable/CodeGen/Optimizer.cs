@@ -571,6 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         public ImmutableArray<BoundStatement> VisitSideEffects(ImmutableArray<BoundStatement> statements)
         {
+#if DEBUG
             var result = ArrayBuilder<BoundStatement>.GetInstance(statements.Length);
             foreach (BoundStatement statement in statements)
             {
@@ -578,6 +579,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             return result.ToImmutableAndFree();
+#else
+            return this.VisitList(statements);
+#endif
         }
 
         public BoundNode VisitSideEffect(BoundNode node)
