@@ -8,19 +8,16 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Text;
+using Metalama.Compiler;
+using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Metalama.Compiler;
-using Microsoft.CodeAnalysis.CommandLine;
-using System.Reflection;
-using System.Linq;
-using Metalama.Backstage.Extensibility;
-using Metalama.Backstage.Telemetry;
-using Metalama.Backstage.Maintenance;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -312,20 +309,6 @@ namespace Microsoft.CodeAnalysis
 
         internal StrongNameProvider GetStrongNameProvider(StrongNameFileSystem fileSystem)
             => new DesktopStrongNameProvider(KeyFileSearchPaths, fileSystem);
-
-        // <Metalama>
-        private readonly TempFileManager _tempFileManager;
-
-        internal CommandLineArguments()
-        {
-            var applicationInfo = new MetalamaCompilerApplicationInfo(false, false, ImmutableArray<ISourceTransformer>.Empty);
-            var initializationOptions = new BackstageInitializationOptions(applicationInfo);
-
-            var serviceProviderBuilder = new ServiceProviderBuilder().AddBackstageServices(initializationOptions);
-
-            _tempFileManager = new TempFileManager(serviceProviderBuilder.ServiceProvider);
-        }
-        // </Metalama>
 
         /// <summary>
         /// Returns a full path of the file that the compiler will generate the assembly to if compilation succeeds.
@@ -666,7 +649,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 else if (referencedRoslynVersion > metalamaRoslynVersion)
                 {
-                    if (AnalyzerAssemblyRedirector.GetRedirectedPath(resolvedPath, _tempFileManager) is { } redirectedPath)
+                    if (AnalyzerAssemblyRedirector.GetRedirectedPath(resolvedPath) is { } redirectedPath)
                     {
                         // We're redirecting assemblies to their older versions, which means the behavior shouldn't change much.
                         // So a single generic warning should be enough.

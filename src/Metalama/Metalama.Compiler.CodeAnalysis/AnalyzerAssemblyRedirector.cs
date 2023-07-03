@@ -1,75 +1,42 @@
 ﻿// Copyright (c) SharpCrafters s.r.o. All rights reserved.
 // This project is not open source. Please see the LICENSE.md file in the repository root for details.
 
-using System;
 using System.IO;
-using System.IO.Compression;
-using System.Linq;
-using Metalama.Backstage.Maintenance;
-using Metalama.Backstage.Utilities;
 
 namespace Metalama.Compiler;
 
 static class AnalyzerAssemblyRedirector
 {
-    private const string SdkAnalyzersResourceNamePrefix = "Metalama.Compiler.SdkAnalyzers.";
-    private const string SdkAnalyzersResourceNameSuffix = ".zip";
+    private static readonly string? s_sdkAnalyzersDirectory = GetSdkAnalyzersDirectory();
 
-    public static string? GetRedirectedPath(string originalPath, TempFileManager tempFileManager)
+    private static string? GetSdkAnalyzersDirectory()
     {
-        var thisAssembly = typeof(AnalyzerAssemblyRedirector).Assembly;
-        var resourceNames = thisAssembly.GetManifestResourceNames();
+        var assemblyDirectory = Path.GetDirectoryName(typeof(AnalyzerAssemblyRedirector).Assembly.Location);
 
-        var sdkAnalyzersResourceName = resourceNames.FirstOrDefault(name => name.StartsWith(SdkAnalyzersResourceNamePrefix, StringComparison.Ordinal));
-
-        if (sdkAnalyzersResourceName == null)
+        if (string.IsNullOrEmpty(assemblyDirectory))
         {
             return null;
         }
 
-        var sdkVersion = sdkAnalyzersResourceName[SdkAnalyzersResourceNamePrefix.Length..^SdkAnalyzersResourceNameSuffix.Length];
+        // tasks/net6.0/bincore/Microsoft.CodeAnalysis.dll vs. tasks/net472/Microsoft.CodeAnalysis.dll
+        var pathToRoot = assemblyDirectory.Contains("bincore") ? "../../.." : "../..";
 
-        var redirectionDirectory = tempFileManager.GetTempDirectory(directory: "SdkAnalyzers", subdirectory: sdkVersion, cleanUpStrategy: CleanUpStrategy.WhenUnused, versionNeutral: true);
+        var sdkAnalyzersDirectory = Path.Combine(assemblyDirectory, pathToRoot, "sdkAnalyzers");
 
-        using (var stream = thisAssembly.GetManifestResourceStream(sdkAnalyzersResourceName))
+        return Directory.Exists(sdkAnalyzersDirectory) ? sdkAnalyzersDirectory : null;
+    }
+
+    public static string? GetRedirectedPath(string originalPath)
+    {
+        if (s_sdkAnalyzersDirectory == null)
         {
-            ExtractSdkAssemblies(redirectionDirectory, stream!);
+            return null;
         }
 
         var fileName = Path.GetFileName(originalPath);
 
-        var redirectedPath = Path.Combine(redirectionDirectory, fileName);
+        var redirectedPath = Path.Combine(s_sdkAnalyzersDirectory, fileName);
 
-        if (File.Exists(redirectedPath))
-        {
-            return redirectedPath;
-        }
-
-        return null;
-    }
-
-    private static void ExtractSdkAssemblies(string directory, Stream assembliesArchiveStream)
-    {
-        var completedFilePath = Path.Combine(directory, ".completed");
-
-        if (File.Exists(completedFilePath))
-        {
-            return;
-        }
-
-        using (MutexHelper.WithGlobalLock(directory))
-        {
-            if (File.Exists(completedFilePath))
-            {
-                return;
-            }
-
-            using (var archive = new ZipArchive(assembliesArchiveStream))
-            {
-                archive.ExtractToDirectory(directory);
-            }
-
-            File.WriteAllText(completedFilePath, "completed");
-        }
+        return File.Exists(redirectedPath) ? redirectedPath : null;
     }
 }

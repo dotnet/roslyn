@@ -1,48 +1,41 @@
-﻿using System.IO.Compression;
-using DownloadNetSdkAnalyzers;
+﻿using DownloadNetSdkAnalyzers;
 
 using var sdkDownloader = await NetSdkReleaseInfo.GetLatestStableSdkForRoslynVersionAsync(Version.Parse(args[0]));
 
-var fileName = $"Metalama.Compiler.SdkAnalyzers.{sdkDownloader.SdkVersion}.zip";
-
-var directory = Path.Combine(Path.GetTempPath(), "Metalama", "SdkAnalyzers");
-
-var path = Path.Combine(directory, fileName);
+var directory = Path.Combine(Path.GetTempPath(), "Metalama", "SdkAnalyzers", sdkDownloader.SdkVersion.ToString());
 
 Directory.CreateDirectory(directory);
 
-if (File.Exists(path))
+var completedFilePath = Path.Combine(directory, ".completed");
+
+bool shouldSave = true;
+
+if (File.Exists(directory))
 {
-    // Checks that the file is a valid archive.
-    using var sdkAnalyzersArchive = ZipFile.OpenRead(path);
-}
-else
-{
-    try
+    if (File.Exists(completedFilePath))
     {
-        using var sdkAnalyzersArchiveStream = File.Open(path, FileMode.CreateNew, FileAccess.Write, FileShare.None);
-
-        using var sdkAnalyzersArchive = new ZipArchive(sdkAnalyzersArchiveStream, ZipArchiveMode.Create);
-
-        foreach (var downloadedAnalyzerEntry in sdkDownloader.GetAnalyzers())
-        {
-            var newEntry = sdkAnalyzersArchive.CreateEntry(downloadedAnalyzerEntry.Name);
-
-            using var newEntryStream = newEntry.Open();
-            using var downloadAnalyzerStream = downloadedAnalyzerEntry.Open();
-
-            await downloadAnalyzerStream.CopyToAsync(newEntryStream);
-        }
+        shouldSave = false;
     }
-    catch
+    else
     {
-        if (File.Exists(path))
-        {
-            File.Delete(path);
-        }
-
-        throw;
+        // Attempt to delete the directory and recreate it from scratch.
+        Directory.Delete(directory, recursive: true);
     }
 }
 
-Console.WriteLine(path);
+if (shouldSave)
+{
+    foreach (var entry in sdkDownloader.GetAnalyzers())
+    {
+        var analyzerPath = Path.Combine(directory, entry.Name);
+
+        using var downloadAnalyzerStream = entry.Open();
+        using var savingAnalyzerStream = File.OpenWrite(analyzerPath);
+
+        await downloadAnalyzerStream.CopyToAsync(savingAnalyzerStream);
+    }
+
+    File.WriteAllText(completedFilePath, "completed");
+}
+
+Console.WriteLine(directory);
