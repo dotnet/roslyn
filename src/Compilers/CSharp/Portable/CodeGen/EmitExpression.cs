@@ -380,14 +380,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitSideEffects(ImmutableArray<BoundStatement> statements)
         {
-#if !DEBUG
-            EmitStatements(statements);
-#else
+#if DEBUG
             int stackDepth = _builder.GetStackDepth();
             foreach (BoundStatement statement in statements)
             {
                 EmitStatement(statement, stackDepth);
             }
+#else
+            EmitStatements(statements);
 #endif
         }
 
