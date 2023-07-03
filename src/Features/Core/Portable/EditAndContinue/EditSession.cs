@@ -1188,9 +1188,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // Adds a region with specified PDB spans.
                     void AddNonRemappableRegion(SourceFileSpan oldSpan, SourceFileSpan newSpan, bool isExceptionRegion)
                     {
-                        // TODO: Remove comparer, the path should match exactly. Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1830914.
-                        Debug.Assert(string.Equals(oldSpan.Path, newSpan.Path,
-                            EditAndContinueMethodDebugInfoReader.IgnoreCaseWhenComparingDocumentNames ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal));
+                        // it is a rude edit to change the path of the region span:
+                        Debug.Assert(oldSpan.Path == newSpan.Path);
 
                         // The up-to-date flag is copied when new active statement is created from the corresponding old one.
                         Debug.Assert(oldActiveStatement.IsMethodUpToDate == newActiveStatement.IsMethodUpToDate);
