@@ -3377,8 +3377,7 @@ static async Task<bool> Async3(int i) {
     return (await Task.FromResult(0), i is 30 or 40).Item2;
 }
 """;
-            var comp = CreateCompilation(source);
-            CompileAndVerify(comp, expectedOutput: """
+            var expectedOutput = """
 True
 True
 False
@@ -3388,6 +3387,94 @@ False
 True
 True
 False
+""";
+            var verifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+            // await in input-expression
+            verifier.VerifyIL("Program.<<<Main>$>g__Async2|0_1>d.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """
+{
+  // Code size      167 (0xa7)
+  .maxstack  3
+  .locals init (int V_0,
+                bool V_1,
+                int V_2,
+                System.Runtime.CompilerServices.TaskAwaiter<int> V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int Program.<<<Main>$>g__Async2|0_1>d.<>1__state"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_0044
+    IL_000a:  ldarg.0
+    IL_000b:  ldfld      "int Program.<<<Main>$>g__Async2|0_1>d.i"
+    IL_0010:  call       "System.Threading.Tasks.Task<int> System.Threading.Tasks.Task.FromResult<int>(int)"
+    IL_0015:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()"
+    IL_001a:  stloc.3
+    IL_001b:  ldloca.s   V_3
+    IL_001d:  call       "bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get"
+    IL_0022:  brtrue.s   IL_0060
+    IL_0024:  ldarg.0
+    IL_0025:  ldc.i4.0
+    IL_0026:  dup
+    IL_0027:  stloc.0
+    IL_0028:  stfld      "int Program.<<<Main>$>g__Async2|0_1>d.<>1__state"
+    IL_002d:  ldarg.0
+    IL_002e:  ldloc.3
+    IL_002f:  stfld      "System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<<Main>$>g__Async2|0_1>d.<>u__1"
+    IL_0034:  ldarg.0
+    IL_0035:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool> Program.<<<Main>$>g__Async2|0_1>d.<>t__builder"
+    IL_003a:  ldloca.s   V_3
+    IL_003c:  ldarg.0
+    IL_003d:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<<<Main>$>g__Async2|0_1>d>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<<<Main>$>g__Async2|0_1>d)"
+    IL_0042:  leave.s    IL_00a6
+    IL_0044:  ldarg.0
+    IL_0045:  ldfld      "System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<<Main>$>g__Async2|0_1>d.<>u__1"
+    IL_004a:  stloc.3
+    IL_004b:  ldarg.0
+    IL_004c:  ldflda     "System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<<Main>$>g__Async2|0_1>d.<>u__1"
+    IL_0051:  initobj    "System.Runtime.CompilerServices.TaskAwaiter<int>"
+    IL_0057:  ldarg.0
+    IL_0058:  ldc.i4.m1
+    IL_0059:  dup
+    IL_005a:  stloc.0
+    IL_005b:  stfld      "int Program.<<<Main>$>g__Async2|0_1>d.<>1__state"
+    IL_0060:  ldloca.s   V_3
+    IL_0062:  call       "int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()"
+    IL_0067:  stloc.2
+    IL_0068:  ldloc.2
+    IL_0069:  ldc.i4.s   30
+    IL_006b:  beq.s      IL_0072
+    IL_006d:  ldloc.2
+    IL_006e:  ldc.i4.s   40
+    IL_0070:  bne.un.s   IL_0075
+    IL_0072:  ldc.i4.1
+    IL_0073:  br.s       IL_0076
+    IL_0075:  ldc.i4.0
+    IL_0076:  stloc.1
+    IL_0077:  leave.s    IL_0092
+  }
+  catch System.Exception
+  {
+    IL_0079:  stloc.s    V_4
+    IL_007b:  ldarg.0
+    IL_007c:  ldc.i4.s   -2
+    IL_007e:  stfld      "int Program.<<<Main>$>g__Async2|0_1>d.<>1__state"
+    IL_0083:  ldarg.0
+    IL_0084:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool> Program.<<<Main>$>g__Async2|0_1>d.<>t__builder"
+    IL_0089:  ldloc.s    V_4
+    IL_008b:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool>.SetException(System.Exception)"
+    IL_0090:  leave.s    IL_00a6
+  }
+  IL_0092:  ldarg.0
+  IL_0093:  ldc.i4.s   -2
+  IL_0095:  stfld      "int Program.<<<Main>$>g__Async2|0_1>d.<>1__state"
+  IL_009a:  ldarg.0
+  IL_009b:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool> Program.<<<Main>$>g__Async2|0_1>d.<>t__builder"
+  IL_00a0:  ldloc.1
+  IL_00a1:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool>.SetResult(bool)"
+  IL_00a6:  ret
+}
 """);
         }
     }
