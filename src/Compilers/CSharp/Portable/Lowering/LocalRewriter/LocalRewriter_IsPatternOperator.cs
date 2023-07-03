@@ -113,6 +113,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.Syntax = node.Syntax;
                 var sideEffectsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
                 var inputExpression = _localRewriter.VisitExpression(node.Expression);
+
+                // The optimization of sharing pattern-matching temps with user variables can always apply to
+                // an is-pattern expression because there is no when clause that could possibly intervene during
+                // the execution of the pattern-matching automaton and change one of those variables.
                 decisionDag = ShareTempsAndEvaluateInput(inputExpression, decisionDag, sideEffectsBuilder.Add, out _);
 
                 // lower the decision dag.
