@@ -9,7 +9,6 @@
     <Import_RootNamespace>Analyzer.CSharp.Utilities</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)Lightup\SyntaxKindEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxNodeExtensions.cs" />
   </ItemGroup>
 </Project>
