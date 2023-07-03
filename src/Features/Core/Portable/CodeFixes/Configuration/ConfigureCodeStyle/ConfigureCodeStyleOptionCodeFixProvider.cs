@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
                     nestedActions.Add(
                         SolutionChangeAction.Create(
                             optionValue,
-                            solution => ConfigurationUpdater.ConfigureCodeStyleOptionAsync(optionName, optionValue, diagnostic, option.IsPerLanguage, project, cancellationToken),
+                            cancellationToken => ConfigurationUpdater.ConfigureCodeStyleOptionAsync(optionName, optionValue, diagnostic, option.IsPerLanguage, project, cancellationToken),
                             optionValue));
                 }
             }
