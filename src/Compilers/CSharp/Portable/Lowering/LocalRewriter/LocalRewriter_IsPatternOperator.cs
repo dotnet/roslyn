@@ -129,6 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     sideEffectsBuilder.ToImmutableAndFree(),
                     new BoundLoweredIsPatternExpression(
                         node.Syntax,
+                        // Note: it is not expected for this node to trigger spilling
                         resultBuilder.ToImmutableAndFree(),
                         node.WhenTrueLabel,
                         node.WhenFalseLabel,
