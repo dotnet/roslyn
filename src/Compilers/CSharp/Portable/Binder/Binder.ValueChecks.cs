@@ -416,6 +416,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                case BoundKind.UnconvertedCollectionLiteralExpression:
+                    if (valueKind == BindValueKind.RValue)
+                    {
+                        return expr;
+                    }
+                    break;
+
                 case BoundKind.PointerIndirectionOperator:
                     if ((valueKind & BindValueKind.RefersToLocation) == BindValueKind.RefersToLocation)
                     {
@@ -3952,6 +3959,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var switchExpr = (BoundSwitchExpression)expr;
                     return GetValEscape(switchExpr.SwitchArms.SelectAsArray(a => a.Value), scopeOfTheContainingExpression);
 
+                case BoundKind.CollectionLiteralExpression:
+                    return CallingMethodScope;
+
                 default:
                     // in error situations some unexpected nodes could make here
                     // returning "scopeOfTheContainingExpression" seems safer than throwing.
@@ -4476,6 +4486,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return false;
                     }
 
+                    return true;
+
+                case BoundKind.CollectionLiteralExpression:
                     return true;
 
                 default:

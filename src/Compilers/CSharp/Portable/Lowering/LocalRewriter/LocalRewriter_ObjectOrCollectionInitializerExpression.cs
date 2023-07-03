@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Rewrite collection initializer element Add method call:
-        //  new List<int> { 1, 2, 3 };  OR  new List<int> { { 1, 2 }, 3 };
+        //  new List<int> { 1, 2, 3 };  OR  new List<int> { { 1, 2 }, 3 }; OR [1, 2, 3]
         //                  ~                               ~~~~~~~~
         private BoundExpression? MakeCollectionInitializer(BoundExpression? rewrittenReceiver, BoundCollectionElementInitializer initializer)
         {

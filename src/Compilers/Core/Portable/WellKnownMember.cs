@@ -587,6 +587,8 @@ namespace Microsoft.CodeAnalysis
         System_MissingMethodException__ctor,
         System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor,
 
+        System_Collections_Generic_List_T__ToArray,
+
         Count
 
         // Remember to update the AllWellKnownTypeMembers tests when making changes here

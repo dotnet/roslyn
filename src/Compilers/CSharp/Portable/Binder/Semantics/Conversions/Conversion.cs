@@ -241,6 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static Conversion ImplicitEnumeration => new Conversion(ConversionKind.ImplicitEnumeration);
         internal static Conversion ImplicitThrow => new Conversion(ConversionKind.ImplicitThrow);
         internal static Conversion ObjectCreation => new Conversion(ConversionKind.ObjectCreation);
+        internal static Conversion CollectionLiteral => new Conversion(ConversionKind.CollectionLiteral);
         internal static Conversion AnonymousFunction => new Conversion(ConversionKind.AnonymousFunction);
         internal static Conversion Boxing => new Conversion(ConversionKind.Boxing);
         internal static Conversion NullLiteral => new Conversion(ConversionKind.NullLiteral);
@@ -653,6 +654,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Kind == ConversionKind.ObjectCreation;
             }
         }
+
+        /// <summary>
+        /// Returns true if the conversion is an implicit collection literal expression conversion.
+        /// </summary>
+        public bool IsCollectionLiteral => Kind == ConversionKind.CollectionLiteral;
 
         /// <summary>
         /// Returns true if the conversion is an implicit switch expression conversion.

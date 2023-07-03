@@ -2233,6 +2233,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InlineArrayBadIndex = 9172,
         ERR_NamedArgumentForInlineArray = 9173,
 
+        ERR_CollectionLiteralTargetTypeNotConstructible = 9174,
+        ERR_ExpressionTreeContainsCollectionLiteral = 9175,
+        ERR_CollectionLiteralNoTargetType = 9176,
+
         #endregion
 
         // Note: you will need to do the following after adding warnings:
