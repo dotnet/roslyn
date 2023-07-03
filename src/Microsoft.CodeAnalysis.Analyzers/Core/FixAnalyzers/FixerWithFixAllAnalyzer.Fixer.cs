@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
             var generator = editor.Generator;
 
             var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var typeIsSealed = ((INamedTypeSymbol)model.GetDeclaredSymbol(classDecl, cancellationToken)).IsSealed;
+            var typeIsSealed = ((INamedTypeSymbol)model.GetDeclaredSymbol(classDecl, cancellationToken)!).IsSealed;
 
             INamedTypeSymbol? codeFixProviderSymbol = model.Compilation.GetOrCreateTypeByMetadataName(FixerWithFixAllAnalyzer.CodeFixProviderMetadataName);
             IMethodSymbol? getFixAllProviderMethod = codeFixProviderSymbol?.GetMembers(FixerWithFixAllAnalyzer.GetFixAllProviderMethodName).OfType<IMethodSymbol>().FirstOrDefault();

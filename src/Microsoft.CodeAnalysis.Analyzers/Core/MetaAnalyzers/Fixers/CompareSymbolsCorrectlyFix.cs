@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                 && invocation.Arguments[0].IsImplicit;
         }
 
-        private static async Task<Document> CallOverloadWithEqualityComparerAsync(Document document, SyntaxNode nodeToReplace, IMethodSymbol methodSymbol,
+        private static async Task<Document> CallOverloadWithEqualityComparerAsync(Document document, SyntaxNode nodeToReplace, IMethodSymbol? methodSymbol,
             ImmutableArray<IArgumentOperation> arguments, bool isUsedAsExtensionMethod, Func<SyntaxGenerator, IEnumerable<SyntaxNode>, SyntaxNode> getReplacementNode,
             INamedTypeSymbol iEqualityComparer, CancellationToken cancellationToken)
         {
@@ -135,9 +135,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
             return editor.GetChangedDocument();
         }
 
-        private static bool TryFindSymbolEqualityComparerOverload(IMethodSymbol methodSymbol, INamedTypeSymbol iEqualityComparer, out int symbolEqualityParameterPosition)
+        private static bool TryFindSymbolEqualityComparerOverload(IMethodSymbol? methodSymbol, INamedTypeSymbol iEqualityComparer, out int symbolEqualityParameterPosition)
         {
             symbolEqualityParameterPosition = -1;
+            if (methodSymbol == null)
+                return false;
+
             var overloads = methodSymbol.GetOverloads();
             methodSymbol = (methodSymbol.ReducedFrom ?? methodSymbol).ConstructedFrom;
             var methodArgsCount = methodSymbol.Parameters.Length;

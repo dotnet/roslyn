@@ -621,6 +621,44 @@ namespace Analyzer.Utilities.Extensions
             };
         }
 
+        public static AttributeData? GetAttribute(this ISymbol symbol, [NotNullWhen(true)] INamedTypeSymbol? attributeType)
+        {
+            return symbol.GetAttributes(attributeType).FirstOrDefault();
+        }
+
+        public static IEnumerable<AttributeData> GetAttributes(this ISymbol symbol, IEnumerable<INamedTypeSymbol> attributesToMatch)
+        {
+            foreach (var attribute in symbol.GetAttributes())
+            {
+                if (attribute.AttributeClass == null)
+                    continue;
+
+                foreach (var attributeToMatch in attributesToMatch)
+                {
+                    if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, attributeToMatch))
+                    {
+                        yield return attribute;
+                        break;
+                    }
+                }
+            }
+        }
+
+        public static IEnumerable<AttributeData> GetAttributes(this ISymbol symbol, params INamedTypeSymbol?[] attributeTypesToMatch)
+        {
+            return symbol.GetAttributes(attributesToMatch: attributeTypesToMatch);
+        }
+
+        public static bool HasAnyAttribute(this ISymbol symbol, IEnumerable<INamedTypeSymbol> attributesToMatch)
+        {
+            return symbol.GetAttributes(attributesToMatch).Any();
+        }
+
+        public static bool HasAnyAttribute(this ISymbol symbol, params INamedTypeSymbol?[] attributeTypesToMatch)
+        {
+            return symbol.GetAttributes(attributeTypesToMatch).Any();
+        }
+
         /// <summary>
         /// Returns a value indicating whether the specified symbol has the specified
         /// attribute.
@@ -641,7 +679,7 @@ namespace Analyzer.Utilities.Extensions
         /// </remarks>
         public static bool HasAttribute(this ISymbol symbol, [NotNullWhen(returnValue: true)] INamedTypeSymbol? attribute)
         {
-            return attribute != null && symbol.GetAttributes().Any(static (attr, attribute) => attr.AttributeClass.Equals(attribute), attribute);
+            return symbol.HasAnyAttribute(attribute);
         }
 
         /// <summary>
@@ -667,7 +705,7 @@ namespace Analyzer.Utilities.Extensions
 
             while (symbol != null)
             {
-                if (symbol.GetAttributes().Any(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, attribute)))
+                if (symbol.HasAttribute(attribute))
                 {
                     return true;
                 }
@@ -706,7 +744,7 @@ namespace Analyzer.Utilities.Extensions
 
             while (symbol != null)
             {
-                if (symbol.GetAttributes().Any(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, attribute)))
+                if (symbol.HasAttribute(attribute))
                 {
                     return true;
                 }
@@ -744,23 +782,6 @@ namespace Analyzer.Utilities.Extensions
             }
 
             return isAttributePresent;
-        }
-
-        /// <summary>
-        /// Gets enumeration of attributes that are of the specified type.
-        /// </summary>
-        /// <param name="symbol">This symbol whose attributes to get.</param>
-        /// <param name="attributeType">Type of attribute to look for.</param>
-        /// <returns>Enumeration of attributes.</returns>
-        [SuppressMessage("RoslyDiagnosticsPerformance", "RS0001:Use SpecializedCollections.EmptyEnumerable()", Justification = "Not available in all projects")]
-        public static IEnumerable<AttributeData> GetAttributes(this ISymbol symbol, INamedTypeSymbol? attributeType)
-        {
-            if (attributeType == null)
-            {
-                return Enumerable.Empty<AttributeData>();
-            }
-
-            return symbol.GetAttributes().Where(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, attributeType));
         }
 
         /// <summary>

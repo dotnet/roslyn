@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         private AnalysisEntity(IInstanceReferenceOperation instanceReferenceOperation, PointsToAbstractValue location)
             : this(symbol: null, indices: ImmutableArray<AbstractIndex>.Empty, instanceReferenceOperationSyntax: instanceReferenceOperation.Syntax,
-                  captureId: null, location: location, type: instanceReferenceOperation.Type, parent: null, isThisOrMeInstance: false)
+                  captureId: null, location: location, type: instanceReferenceOperation.Type!, parent: null, isThisOrMeInstance: false)
         {
             Debug.Assert(instanceReferenceOperation != null);
         }

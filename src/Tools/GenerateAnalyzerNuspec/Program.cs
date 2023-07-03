@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -188,6 +188,9 @@ if (fileList.Length > 0 || assemblyList.Length > 0 || libraryList.Length > 0 || 
         }
     }
 
+    // Skip packaging certain well-known third-party assemblies that ship within Microsoft.CodeAnalysis.Features package.
+    var fileNamesToExclude = new List<string>() { "Humanizer.dll", "MessagePack.dll", "MessagePack.Annotations.dll" };
+
     foreach (string folder in folderList)
     {
         foreach (var tfm in tfms)
@@ -198,6 +201,10 @@ if (fileList.Length > 0 || assemblyList.Length > 0 || libraryList.Length > 0 || 
                 var fileExtension = Path.GetExtension(file);
                 if (fileExtension is ".exe" or ".dll" or ".config" or ".xml")
                 {
+                    var fileName = Path.GetFileName(file);
+                    if (fileNamesToExclude.Contains(fileName, StringComparer.OrdinalIgnoreCase))
+                        continue;
+
                     var fileWithPath = Path.Combine(folderPath, file);
                     var targetPath = tfms.Length > 1 ? Path.Combine(folder, tfm) : folder;
                     result.AppendLine(FileElement(fileWithPath, targetPath));

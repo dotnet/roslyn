@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             protected override ValueContentAbstractValue GetAbstractValue(AnalysisEntity analysisEntity)
                 => CurrentAnalysisData.TryGetValue(analysisEntity, out var value) ? value : ValueDomain.UnknownOrMayBeValue;
 
-            protected override ValueContentAbstractValue GetAbstractDefaultValue(ITypeSymbol type)
+            protected override ValueContentAbstractValue GetAbstractDefaultValue(ITypeSymbol? type)
                 => type != null ?
                    ValueContentAbstractValue.DoesNotContainLiteralOrNonLiteralState :
                    ValueContentAbstractValue.ContainsNullLiteralState;
@@ -229,8 +229,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 ICompoundAssignmentOperation operation,
                 ValueContentAbstractValue targetValue,
                 ValueContentAbstractValue assignedValue,
-                ITypeSymbol targetType,
-                ITypeSymbol assignedValueType)
+                ITypeSymbol? targetType,
+                ITypeSymbol? assignedValueType)
             {
                 return targetValue.MergeBinaryOperation(assignedValue, operation.OperatorKind, targetType, assignedValueType, operation.Type);
             }

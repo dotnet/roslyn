@@ -643,10 +643,9 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
                 if (typeForwardedToAttribute != null)
                 {
-                    foreach (var attribute in compilation.Assembly.GetAttributes())
+                    foreach (var attribute in compilation.Assembly.GetAttributes(typeForwardedToAttribute))
                     {
-                        if (attribute.AttributeClass.Equals(typeForwardedToAttribute) &&
-                            attribute.AttributeConstructor.Parameters.Length == 1 &&
+                        if (attribute.AttributeConstructor.Parameters.Length == 1 &&
                             attribute.ConstructorArguments.Length == 1 &&
                             attribute.ConstructorArguments[0].Value is INamedTypeSymbol forwardedType)
                         {

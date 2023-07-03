@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
-using Analyzer.Utilities.Lightup;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -81,7 +80,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
 
         private static bool ShouldReport(ISymbol symbol)
         {
-            if (symbol?.GetMemberOrLocalOrParameterType()?.NullableAnnotation() != Analyzer.Utilities.Lightup.NullableAnnotation.Annotated)
+            if (symbol?.GetMemberOrLocalOrParameterType()?.NullableAnnotation != NullableAnnotation.Annotated)
             {
                 // Not in a nullable context, bail-out
                 return false;

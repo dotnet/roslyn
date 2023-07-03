@@ -15,6 +15,7 @@
 	  <GeneratePackagePropsFile>false</GeneratePackagePropsFile>
     <IsShippingPackage>true</IsShippingPackage>
 	  <NoWarn>$(NoWarn);NU5100</NoWarn>
+    <VersionPrefix>$(MetricsVersionPrefix)</VersionPrefix>
   </PropertyGroup>
   
   <ItemGroup>
