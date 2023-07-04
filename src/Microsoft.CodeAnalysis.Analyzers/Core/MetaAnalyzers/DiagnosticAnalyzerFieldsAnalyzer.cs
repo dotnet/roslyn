@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -166,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             var current = typeSyntax.Parent;
             while (current is TTypeArgumentListSyntax or TGenericNameSyntax)
             {
-                if(current is TGenericNameSyntax && model.GetSymbolInfo(current).Symbol is INamedTypeSymbol { DelegateInvokeMethod: not null })
+                if (current is TGenericNameSyntax && model.GetSymbolInfo(current).Symbol is INamedTypeSymbol { DelegateInvokeMethod: not null })
                 {
                     return true;
                 }
