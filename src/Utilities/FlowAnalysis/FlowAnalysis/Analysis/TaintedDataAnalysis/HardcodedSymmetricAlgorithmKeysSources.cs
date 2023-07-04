@@ -54,7 +54,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         (methodName, arguments) =>
                             methodName == "GetBytes" &&
                             arguments.Length == 5 &&
-                            arguments[0].Parameter.Type.SpecialType == SpecialType.System_String,
+                            arguments[0].Parameter?.Type.SpecialType == SpecialType.System_String,
                         new (ValueContentCheck, string)[]
                         {
                             (
@@ -67,7 +67,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         (methodName, arguments) =>
                             methodName == "GetBytes" &&
                             arguments.Length == 1 &&
-                            arguments[0].Parameter.Type.SpecialType == SpecialType.System_String,
+                            arguments[0].Parameter?.Type.SpecialType == SpecialType.System_String,
                         new (ValueContentCheck, string)[]
                         {
                             (
@@ -83,7 +83,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         (methodName, arguments) =>
                             methodName == "GetBytes" &&
                             arguments.Length == 5 &&
-                            arguments[0].Parameter.Type is IArrayTypeSymbol arrayTypeSymbol &&
+                            arguments[0].Parameter?.Type is IArrayTypeSymbol arrayTypeSymbol &&
                             arrayTypeSymbol.ElementType.SpecialType == SpecialType.System_Char,
                         new (string, string)[] { ("chars", "bytes"), }
                     ),
@@ -91,7 +91,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         (methodName, arguments) =>
                             methodName == "GetBytes" &&
                             arguments.Length == 5 &&
-                            arguments[0].Parameter.Type.SpecialType == SpecialType.System_String,
+                            arguments[0].Parameter?.Type.SpecialType == SpecialType.System_String,
                         new (string, string)[] { ("chars", "bytes"), }
                     ),
                 });

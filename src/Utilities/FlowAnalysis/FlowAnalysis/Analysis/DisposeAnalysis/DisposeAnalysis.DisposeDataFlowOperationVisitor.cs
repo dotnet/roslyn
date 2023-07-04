@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 }
             }
 
-            protected override DisposeAbstractValue GetAbstractDefaultValue(ITypeSymbol type) => DisposeAbstractValue.NotDisposable;
+            protected override DisposeAbstractValue GetAbstractDefaultValue(ITypeSymbol? type) => DisposeAbstractValue.NotDisposable;
 
             protected override DisposeAbstractValue GetAbstractValue(AbstractLocation location) => CurrentAnalysisData.TryGetValue(location, out var value) ? value : ValueDomain.UnknownOrMayBeValue;
 
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
 
             protected override DisposeAbstractValue ComputeAnalysisValueForEscapedRefOrOutArgument(IArgumentOperation operation, DisposeAbstractValue defaultValue)
             {
-                Debug.Assert(operation.Parameter.RefKind is RefKind.Ref or RefKind.Out);
+                Debug.Assert(operation.Parameter!.RefKind is RefKind.Ref or RefKind.Out);
 
                 // Special case: don't flag "out" arguments for "bool TryGetXXX(..., out value)" invocations.
                 if (operation.Parent is IInvocationOperation invocation &&
@@ -219,10 +219,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 return DisposeAbstractValue.NotDisposable;
             }
 
-            public override DisposeAbstractValue Visit(IOperation operation, object? argument)
+            public override DisposeAbstractValue Visit(IOperation? operation, object? argument)
             {
                 var value = base.Visit(operation, argument);
-                HandlePossibleEscapingOperation(operation, GetEscapedLocations(operation));
+
+                if (operation != null)
+                    HandlePossibleEscapingOperation(operation, GetEscapedLocations(operation));
 
                 return value;
             }
@@ -332,7 +334,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                         return;
                     }
                     else if (FlowBranchConditionKind == ControlFlowConditionKind.WhenFalse &&
-                        operation.Parameter.RefKind == RefKind.Out &&
+                        operation.Parameter?.RefKind == RefKind.Out &&
                         operation.Parent is IInvocationOperation invocation &&
                         invocation.TargetMethod.ReturnType.SpecialType == SpecialType.System_Boolean)
                     {
@@ -359,7 +361,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 }
 
                 // Ref or out argument values from callee might be escaped by assigning to field.
-                if (operation.Parameter.RefKind is RefKind.Out or RefKind.Ref)
+                if (operation.Parameter?.RefKind is RefKind.Out or RefKind.Ref)
                 {
                     HandlePossibleEscapingOperation(operation, GetEscapedLocations(operation));
                 }
@@ -369,7 +371,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 // Local functions.
                 bool IsDisposeOwnershipTransfer()
                 {
-                    if (operation.Parameter.RefKind == RefKind.Out)
+                    if (operation.Parameter == null ||
+                        operation.Parameter.RefKind == RefKind.Out)
                     {
                         // Out arguments are always owned by the caller.
                         return false;

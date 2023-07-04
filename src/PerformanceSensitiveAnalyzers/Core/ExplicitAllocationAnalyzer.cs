@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
 
             if (context.Operation is IObjectCreationOperation or ITypeParameterObjectCreationOperation)
             {
-                if (context.Operation.Type.IsReferenceType)
+                if (context.Operation.Type?.IsReferenceType == true)
                 {
                     context.ReportDiagnostic(context.Operation.CreateDiagnostic(ObjectCreationRule, EmptyMessageArgs));
                     return;
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
 
                 if (context.Operation.Parent is IConversionOperation conversion)
                 {
-                    if (conversion.Type.IsReferenceType && conversion.Operand.Type.IsValueType)
+                    if (conversion.Type?.IsReferenceType == true && conversion.Operand.Type?.IsValueType == true)
                     {
                         context.ReportDiagnostic(context.Operation.CreateDiagnostic(ObjectCreationRule, EmptyMessageArgs));
                     }

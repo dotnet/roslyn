@@ -140,7 +140,7 @@ namespace Analyzer.Utilities
 
         private bool IsDisposableCreation(IOperation operation)
             => (s_DisposableCreationKinds.Contains(operation.Kind) ||
-                operation.Parent is IArgumentOperation argument && argument.Parameter.RefKind == RefKind.Out) &&
+                operation.Parent is IArgumentOperation argument && argument.Parameter?.RefKind == RefKind.Out) &&
                IsDisposable(operation.Type);
 
         public bool HasAnyDisposableCreationDescendant(ImmutableArray<IOperation> operationBlocks, IMethodSymbol containingMethod)

@@ -423,7 +423,7 @@ public namespace MyCompany.MyProduct.MyFeature
                 .AddProject(projectId, TestProjectName, TestProjectName, LanguageNames.CSharp)
                 .AddMetadataReferences(projectId, references)
                 .WithProjectCompilationOptions(projectId, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
-                .WithProjectParseOptions(projectId, null)
+                .WithProjectParseOptions(projectId, new CSharpParseOptions())
                 .GetProject(projectId);
 
             int count = 0;

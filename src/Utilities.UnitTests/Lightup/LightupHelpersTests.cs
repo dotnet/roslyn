@@ -134,22 +134,22 @@ namespace Analyzer.Utilities.UnitTests.Lightup
             string ISymbol.GetDocumentationCommentId()
                 => throw new NotImplementedException();
 
-            string ISymbol.GetDocumentationCommentXml(CultureInfo preferredCulture, bool expandIncludes, CancellationToken cancellationToken)
+            string ISymbol.GetDocumentationCommentXml(CultureInfo? preferredCulture, bool expandIncludes, CancellationToken cancellationToken)
                 => throw new NotImplementedException();
 
-            ImmutableArray<SymbolDisplayPart> ISymbol.ToDisplayParts(SymbolDisplayFormat format)
+            ImmutableArray<SymbolDisplayPart> ISymbol.ToDisplayParts(SymbolDisplayFormat? format)
                 => throw new NotImplementedException();
 
-            string ISymbol.ToDisplayString(SymbolDisplayFormat format)
+            string ISymbol.ToDisplayString(SymbolDisplayFormat? format)
                 => throw new NotImplementedException();
 
-            ImmutableArray<SymbolDisplayPart> ISymbol.ToMinimalDisplayParts(SemanticModel semanticModel, int position, SymbolDisplayFormat format)
+            ImmutableArray<SymbolDisplayPart> ISymbol.ToMinimalDisplayParts(SemanticModel semanticModel, int position, SymbolDisplayFormat? format)
                 => throw new NotImplementedException();
 
-            string ISymbol.ToMinimalDisplayString(SemanticModel semanticModel, int position, SymbolDisplayFormat format)
+            string ISymbol.ToMinimalDisplayString(SemanticModel semanticModel, int position, SymbolDisplayFormat? format)
                 => throw new NotImplementedException();
 
-            public bool Equals(ISymbol other, SymbolEqualityComparer equalityComparer)
+            public bool Equals(ISymbol? other, SymbolEqualityComparer equalityComparer)
                 => throw new NotImplementedException();
         }
     }

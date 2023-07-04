@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
             }
         }
 
-        private static bool IsStructInstanceMethod(SyntaxNode? node, SemanticModel semanticModel, CancellationToken cancellationToken)
+        private static bool IsStructInstanceMethod(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             if (node.IsKind(SyntaxKind.AnonymousMethodExpression) || node.IsKind(SyntaxKind.ParenthesizedLambdaExpression) || node.IsKind(SyntaxKind.SimpleLambdaExpression))
             {

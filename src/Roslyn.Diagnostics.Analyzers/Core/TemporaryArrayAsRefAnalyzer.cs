@@ -42,7 +42,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 if (temporaryArrayExtensions is null)
                     return;
 
-                var temporaryArrayAsRef = (IMethodSymbol)temporaryArrayExtensions.GetMembers("AsRef").SingleOrDefault();
+                var temporaryArrayAsRef = (IMethodSymbol?)temporaryArrayExtensions.GetMembers("AsRef").SingleOrDefault();
                 if (temporaryArrayAsRef is null)
                     return;
 
@@ -64,7 +64,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 return;
             }
 
-            var declaration = invocation.SemanticModel.GetOperation(localReference.Local.DeclaringSyntaxReferences.Single().GetSyntax(context.CancellationToken), context.CancellationToken);
+            var declaration = invocation.SemanticModel!.GetOperation(localReference.Local.DeclaringSyntaxReferences.Single().GetSyntax(context.CancellationToken), context.CancellationToken);
             if (declaration is not { Parent: IVariableDeclarationOperation { Parent: IVariableDeclarationGroupOperation { Parent: IUsingOperation or IUsingDeclarationOperation } } })
             {
                 context.ReportDiagnostic(invocation.CreateDiagnostic(Rule));

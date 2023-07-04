@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 }
             }
 
-            protected override ParameterValidationAbstractValue GetAbstractDefaultValue(ITypeSymbol type) => ValueDomain.Bottom;
+            protected override ParameterValidationAbstractValue GetAbstractDefaultValue(ITypeSymbol? type) => ValueDomain.Bottom;
 
             protected override bool HasAnyAbstractValue(ParameterValidationAnalysisData data) => data.Count > 0;
 
@@ -119,9 +119,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 }
             }
 
-            private bool HasAnyNullValidationAttribute(IParameterSymbol parameter)
-                => parameter.GetAttributes().Any(attr => attr.AttributeClass.Name.Equals("ValidatedNotNullAttribute", StringComparison.OrdinalIgnoreCase) ||
-                                                         attr.AttributeClass.Equals(_notNullAttributeType));
+            private bool HasAnyNullValidationAttribute(IParameterSymbol? parameter)
+                => parameter != null && parameter.GetAttributes().Any(attr => attr.AttributeClass != null &&
+                                                                      (attr.AttributeClass.Name.Equals("ValidatedNotNullAttribute", StringComparison.OrdinalIgnoreCase) ||
+                                                                       attr.AttributeClass.Equals(_notNullAttributeType)));
 
             protected override void EscapeValueForParameterPointsToLocationOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity, ImmutableHashSet<AbstractLocation> escapedLocations)
             {
@@ -189,7 +190,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                     Debug.Assert(IsNotOrMaybeValidatedLocation(location));
 
                     var parameter = (IParameterSymbol)location.Symbol!;
-                    if (!_hazardousParameterUsageBuilder.TryGetValue(parameter, out SyntaxNode currentSyntaxNode) ||
+                    if (!_hazardousParameterUsageBuilder.TryGetValue(parameter, out var currentSyntaxNode) ||
                         syntaxNode.SpanStart < currentSyntaxNode.SpanStart)
                     {
                         _hazardousParameterUsageBuilder[parameter] = syntaxNode;
@@ -213,7 +214,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 => EqualsHelper(value1, value2);
 
             #region Visit overrides
-            public override ParameterValidationAbstractValue Visit(IOperation operation, object? argument)
+            public override ParameterValidationAbstractValue Visit(IOperation? operation, object? argument)
             {
                 var value = base.Visit(operation, argument);
                 if (operation != null)
@@ -238,7 +239,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
 
             public override ParameterValidationAbstractValue VisitObjectCreation(IObjectCreationOperation operation, object? argument)
             {
-                var value = base.VisitObjectCreation(operation, argument);
+                var value = base.VisitObjectCreation(operation, argument)!;
                 ProcessRegularInvocationOrCreation(operation.Constructor, operation.Arguments, operation);
                 return value;
             }
@@ -278,8 +279,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 return value;
             }
 
-            private void ProcessRegularInvocationOrCreation(IMethodSymbol targetMethod, ImmutableArray<IArgumentOperation> arguments, IOperation operation)
+            private void ProcessRegularInvocationOrCreation(IMethodSymbol? targetMethod, ImmutableArray<IArgumentOperation> arguments, IOperation operation)
             {
+                if (targetMethod == null)
+                    return;
+
                 Debug.Assert(!targetMethod.IsLambdaOrLocalFunctionOrDelegate());
 
                 if (targetMethod.IsArgumentNullCheckMethod())

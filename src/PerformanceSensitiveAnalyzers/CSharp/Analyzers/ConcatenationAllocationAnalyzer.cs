@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
 
         private static void CheckTypeConversion(TypeInfo typeInfo, Conversion conversionInfo, Action<Diagnostic> reportDiagnostic, ExpressionSyntax expression)
         {
-            if (conversionInfo.IsBoxing && !IsOptimizedValueType(typeInfo.Type))
+            if (conversionInfo.IsBoxing && typeInfo.Type != null && !IsOptimizedValueType(typeInfo.Type))
             {
                 reportDiagnostic(expression.CreateDiagnostic(ValueTypeToReferenceTypeInAStringConcatenationRule, typeInfo.Type.ToDisplayString()));
             }
