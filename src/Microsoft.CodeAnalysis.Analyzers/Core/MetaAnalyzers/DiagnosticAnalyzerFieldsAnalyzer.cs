@@ -13,12 +13,22 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
     using static CodeAnalysisDiagnosticsResources;
 
-    public abstract class DiagnosticAnalyzerFieldsAnalyzer<TClassDeclarationSyntax, TStructDeclarationSyntax, TFieldDeclarationSyntax, TTypeSyntax, TVariableTypeDeclarationSyntax> : DiagnosticAnalyzerCorrectnessAnalyzer
+    public abstract class DiagnosticAnalyzerFieldsAnalyzer<
+        TClassDeclarationSyntax,
+        TStructDeclarationSyntax,
+        TFieldDeclarationSyntax,
+        TTypeSyntax,
+        TVariableTypeDeclarationSyntax,
+        TTypeArgumentListSyntax,
+        TGenericNameSyntax
+    > : DiagnosticAnalyzerCorrectnessAnalyzer
         where TClassDeclarationSyntax : SyntaxNode
         where TStructDeclarationSyntax : SyntaxNode
         where TFieldDeclarationSyntax : SyntaxNode
         where TTypeSyntax : SyntaxNode
         where TVariableTypeDeclarationSyntax : SyntaxNode
+        where TTypeArgumentListSyntax : SyntaxNode
+        where TGenericNameSyntax : SyntaxNode
     {
         private static readonly string s_compilationTypeFullName = typeof(Compilation).FullName;
         private static readonly string s_symbolTypeFullName = typeof(ISymbol).FullName;
@@ -69,10 +79,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             }
 
             var attributeUsageAttribute = typeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemAttributeUsageAttribute);
-            var funcs = Enumerable.Range(1, 17).Select(i => typeProvider.GetOrCreateTypeByMetadataName($"System.Func`{i}")).WhereNotNull().ToImmutableArray();
-            var actions = Enumerable.Range(1, 16).Select(i => typeProvider.GetOrCreateTypeByMetadataName($"System.Action`{i}")).WhereNotNull().ToImmutableArray();
 
-            return new FieldsAnalyzer(compilationType, symbolType, operationType, attributeUsageAttribute, diagnosticAnalyzer, diagnosticAnalyzerAttribute, funcs, actions, IsContainedInFuncOrAction);
+            return new FieldsAnalyzer(compilationType, symbolType, operationType, attributeUsageAttribute, diagnosticAnalyzer, diagnosticAnalyzerAttribute);
         }
 
         private sealed class FieldsAnalyzer : SyntaxNodeWithinAnalyzerTypeCompilationAnalyzer<TClassDeclarationSyntax, TStructDeclarationSyntax, TFieldDeclarationSyntax>
@@ -81,28 +89,19 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             private readonly INamedTypeSymbol _symbolType;
             private readonly INamedTypeSymbol _operationType;
             private readonly INamedTypeSymbol? _attributeUsageAttribute;
-            private readonly ImmutableArray<INamedTypeSymbol> _funcTypes;
-            private readonly ImmutableArray<INamedTypeSymbol> _actionTypes;
-            private readonly Func<TTypeSyntax, SemanticModel, ImmutableArray<INamedTypeSymbol>, ImmutableArray<INamedTypeSymbol>, bool> _isContainedInFuncOrAction;
 
             public FieldsAnalyzer(INamedTypeSymbol compilationType,
                 INamedTypeSymbol symbolType,
                 INamedTypeSymbol operationType,
                 INamedTypeSymbol? attributeUsageAttribute,
                 INamedTypeSymbol diagnosticAnalyzer,
-                INamedTypeSymbol diagnosticAnalyzerAttribute,
-                ImmutableArray<INamedTypeSymbol> funcTypes,
-                ImmutableArray<INamedTypeSymbol> actionTypes,
-                Func<TTypeSyntax, SemanticModel, ImmutableArray<INamedTypeSymbol>, ImmutableArray<INamedTypeSymbol>, bool> isContainedInFuncOrAction)
+                INamedTypeSymbol diagnosticAnalyzerAttribute)
                 : base(diagnosticAnalyzer, diagnosticAnalyzerAttribute)
             {
                 _compilationType = compilationType;
                 _symbolType = symbolType;
                 _operationType = operationType;
                 _attributeUsageAttribute = attributeUsageAttribute;
-                _funcTypes = funcTypes;
-                _actionTypes = actionTypes;
-                _isContainedInFuncOrAction = isContainedInFuncOrAction;
             }
 
             protected override void AnalyzeDiagnosticAnalyzer(SymbolAnalysisContext symbolContext)
@@ -126,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
                 foreach (TTypeSyntax typeNode in typeNodes)
                 {
-                    if (_isContainedInFuncOrAction(typeNode, semanticModel, _funcTypes, _actionTypes))
+                    if (IsContainedInFuncOrAction(typeNode, semanticModel))
                     {
                         continue;
                     }
@@ -162,6 +161,20 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             }
         }
 
-        protected abstract bool IsContainedInFuncOrAction(TTypeSyntax typeSyntax, SemanticModel model, ImmutableArray<INamedTypeSymbol> funcs, ImmutableArray<INamedTypeSymbol> actions);
+        private static bool IsContainedInFuncOrAction(TTypeSyntax typeSyntax, SemanticModel model)
+        {
+            var current = typeSyntax.Parent;
+            while (current is TTypeArgumentListSyntax or TGenericNameSyntax)
+            {
+                if(current is TGenericNameSyntax && model.GetSymbolInfo(current).Symbol is INamedTypeSymbol { DelegateInvokeMethod: not null })
+                {
+                    return true;
+                }
+
+                current = current.Parent;
+            }
+
+            return false;
+        }
     }
 }
