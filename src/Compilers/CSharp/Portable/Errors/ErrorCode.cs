@@ -2193,6 +2193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny = 9136,
 
         ERR_RefReadOnlyWrongOrdering = 9501, // PROTOTYPE: Pack numbers
+        ERR_OutAttrOnRefReadonlyParam = 9520,
 
         #endregion
 
