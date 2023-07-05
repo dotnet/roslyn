@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp;
@@ -24,7 +25,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             string[] metadataReferences = null,
             string extension = null,
             bool commonReferences = true,
-            bool isMarkup = true)
+            bool isMarkup = true,
+            string[] fileContainingFolders = null)
         {
             var documentElements = new List<XElement>();
 
@@ -32,10 +34,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             extension ??= (language == LanguageNames.CSharp) ? CSharpExtension : VisualBasicExtension;
             if (files != null)
             {
-                foreach (var file in files)
+                if (fileContainingFolders != null)
                 {
-                    documentElements.Add(CreateDocumentElement(
-                        file, GetDefaultTestSourceDocumentName(index++, extension), parseOptions, isMarkup));
+                    Contract.ThrowIfTrue(fileContainingFolders.Length != files.Length);
+                    foreach (var (file, folder) in files.Zip(fileContainingFolders, (file, containingFolder) => (file, containingFolder)))
+                    {
+                        documentElements.Add(CreateDocumentElement(
+                            file, Path.Combine(folder, GetDefaultTestSourceDocumentName(index++, extension)), parseOptions, isMarkup));
+                    }
+                }
+                else
+                {
+                    foreach (var file in files)
+                    {
+                        documentElements.Add(CreateDocumentElement(
+                            file, GetDefaultTestSourceDocumentName(index++, extension), parseOptions, isMarkup));
+                    }
                 }
             }
 
