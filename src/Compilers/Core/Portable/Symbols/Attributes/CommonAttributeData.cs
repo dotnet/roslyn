@@ -258,38 +258,38 @@ namespace Microsoft.CodeAnalysis
                 case ObsoleteAttributeKind.WindowsExperimental:
                     return DecodeWindowsExperimentalAttribute();
                 case ObsoleteAttributeKind.Experimental:
-                    return decodeExperimentalAttribute();
+                    return DecodeExperimentalAttribute();
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }
+        }
 
-            ObsoleteAttributeData decodeExperimentalAttribute()
+        private ObsoleteAttributeData DecodeExperimentalAttribute()
+        {
+            // ExperimentalAttribute(string diagnosticId)
+            Debug.Assert(this.CommonConstructorArguments.Length == 1);
+            string? diagnosticId = this.CommonConstructorArguments[0].ValueInternal as string;
+
+            if (string.IsNullOrWhiteSpace(diagnosticId))
             {
-                // ExperimentalAttribute(string diagnosticId)
-                Debug.Assert(this.CommonConstructorArguments.Length == 1);
-                string? diagnosticId = this.CommonConstructorArguments[0].ValueInternal as string;
-
-                if (string.IsNullOrWhiteSpace(diagnosticId))
-                {
-                    diagnosticId = null;
-                }
-
-                string? urlFormat = null;
-                foreach (var (name, value) in this.CommonNamedArguments)
-                {
-                    if (urlFormat is null && name == ObsoleteAttributeData.UrlFormatPropertyName && IsStringProperty(ObsoleteAttributeData.UrlFormatPropertyName))
-                    {
-                        urlFormat = value.ValueInternal as string;
-                    }
-
-                    if (urlFormat is not null)
-                    {
-                        break;
-                    }
-                }
-
-                return new ObsoleteAttributeData(ObsoleteAttributeKind.Experimental, message: null, isError: false, diagnosticId, urlFormat);
+                diagnosticId = null;
             }
+
+            string? urlFormat = null;
+            foreach (var (name, value) in this.CommonNamedArguments)
+            {
+                if (urlFormat is null && name == ObsoleteAttributeData.UrlFormatPropertyName && IsStringProperty(ObsoleteAttributeData.UrlFormatPropertyName))
+                {
+                    urlFormat = value.ValueInternal as string;
+                }
+
+                if (urlFormat is not null)
+                {
+                    break;
+                }
+            }
+
+            return new ObsoleteAttributeData(ObsoleteAttributeKind.Experimental, message: null, isError: false, diagnosticId, urlFormat);
         }
 
         /// <summary>
