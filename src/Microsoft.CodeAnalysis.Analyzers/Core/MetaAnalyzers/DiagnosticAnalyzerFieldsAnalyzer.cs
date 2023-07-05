@@ -12,12 +12,22 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
     using static CodeAnalysisDiagnosticsResources;
 
-    public abstract class DiagnosticAnalyzerFieldsAnalyzer<TClassDeclarationSyntax, TStructDeclarationSyntax, TFieldDeclarationSyntax, TTypeSyntax, TVariableTypeDeclarationSyntax> : DiagnosticAnalyzerCorrectnessAnalyzer
+    public abstract class DiagnosticAnalyzerFieldsAnalyzer<
+        TClassDeclarationSyntax,
+        TStructDeclarationSyntax,
+        TFieldDeclarationSyntax,
+        TTypeSyntax,
+        TVariableTypeDeclarationSyntax,
+        TTypeArgumentListSyntax,
+        TGenericNameSyntax
+    > : DiagnosticAnalyzerCorrectnessAnalyzer
         where TClassDeclarationSyntax : SyntaxNode
         where TStructDeclarationSyntax : SyntaxNode
         where TFieldDeclarationSyntax : SyntaxNode
         where TTypeSyntax : SyntaxNode
         where TVariableTypeDeclarationSyntax : SyntaxNode
+        where TTypeArgumentListSyntax : SyntaxNode
+        where TGenericNameSyntax : SyntaxNode
     {
         private static readonly string s_compilationTypeFullName = typeof(Compilation).FullName;
         private static readonly string s_symbolTypeFullName = typeof(ISymbol).FullName;
@@ -47,27 +57,27 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         [SuppressMessage("AnalyzerPerformance", "RS1012:Start action has no registered actions.", Justification = "Method returns an analyzer that is registered by the caller.")]
         protected override DiagnosticAnalyzerSymbolAnalyzer? GetDiagnosticAnalyzerSymbolAnalyzer(CompilationStartAnalysisContext compilationContext, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
         {
-            Compilation compilation = compilationContext.Compilation;
+            WellKnownTypeProvider typeProvider = WellKnownTypeProvider.GetOrCreate(compilationContext.Compilation);
 
-            INamedTypeSymbol? compilationType = compilation.GetOrCreateTypeByMetadataName(s_compilationTypeFullName);
+            INamedTypeSymbol? compilationType = typeProvider.GetOrCreateTypeByMetadataName(s_compilationTypeFullName);
             if (compilationType == null)
             {
                 return null;
             }
 
-            INamedTypeSymbol? symbolType = compilation.GetOrCreateTypeByMetadataName(s_symbolTypeFullName);
+            INamedTypeSymbol? symbolType = typeProvider.GetOrCreateTypeByMetadataName(s_symbolTypeFullName);
             if (symbolType == null)
             {
                 return null;
             }
 
-            INamedTypeSymbol? operationType = compilation.GetOrCreateTypeByMetadataName(s_operationTypeFullName);
+            INamedTypeSymbol? operationType = typeProvider.GetOrCreateTypeByMetadataName(s_operationTypeFullName);
             if (operationType == null)
             {
                 return null;
             }
 
-            var attributeUsageAttribute = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemAttributeUsageAttribute);
+            var attributeUsageAttribute = typeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemAttributeUsageAttribute);
 
             return new FieldsAnalyzer(compilationType, symbolType, operationType, attributeUsageAttribute, diagnosticAnalyzer, diagnosticAnalyzerAttribute);
         }
@@ -79,7 +89,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             private readonly INamedTypeSymbol _operationType;
             private readonly INamedTypeSymbol? _attributeUsageAttribute;
 
-            public FieldsAnalyzer(INamedTypeSymbol compilationType, INamedTypeSymbol symbolType, INamedTypeSymbol operationType, INamedTypeSymbol? attributeUsageAttribute, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
+            public FieldsAnalyzer(INamedTypeSymbol compilationType,
+                INamedTypeSymbol symbolType,
+                INamedTypeSymbol operationType,
+                INamedTypeSymbol? attributeUsageAttribute,
+                INamedTypeSymbol diagnosticAnalyzer,
+                INamedTypeSymbol diagnosticAnalyzerAttribute)
                 : base(diagnosticAnalyzer, diagnosticAnalyzerAttribute)
             {
                 _compilationType = compilationType;
@@ -109,6 +124,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
                 foreach (TTypeSyntax typeNode in typeNodes)
                 {
+                    if (IsContainedInFuncOrAction(typeNode, semanticModel))
+                    {
+                        continue;
+                    }
+
                     ITypeSymbol? type = semanticModel.GetTypeInfo(typeNode, symbolContext.CancellationToken).Type;
                     if (type != null)
                     {
@@ -138,6 +158,22 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 Diagnostic diagnostic = typeSyntax.CreateDiagnostic(DoNotStorePerCompilationDataOntoFieldsRule, type.ToDisplayString());
                 context.ReportDiagnostic(diagnostic);
             }
+        }
+
+        private static bool IsContainedInFuncOrAction(TTypeSyntax typeSyntax, SemanticModel model)
+        {
+            var current = typeSyntax.Parent;
+            while (current is TTypeArgumentListSyntax or TGenericNameSyntax)
+            {
+                if (current is TGenericNameSyntax && model.GetSymbolInfo(current).Symbol is INamedTypeSymbol { DelegateInvokeMethod: not null })
+                {
+                    return true;
+                }
+
+                current = current.Parent;
+            }
+
+            return false;
         }
     }
 }
