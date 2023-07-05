@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 MethodGroupResolution resolution = _binder.ResolveMethodGroup(source, analyzedArguments: null, isMethodGroupConversion: false, ref useSiteInfo);
-                if (resolution.IsExtensionMember(out Symbol extensionMember) && extensionMember is not NamedTypeSymbol)
+                if (resolution.IsExtensionMember(out Symbol? extensionMember) && extensionMember is not NamedTypeSymbol)
                 {
                     var nestedConversion = ClassifyConversionFromExpressionType(extensionMember.GetTypeOrReturnType().Type, destination, isChecked: false, ref useSiteInfo);
                     if (nestedConversion.Kind != ConversionKind.NoConversion)

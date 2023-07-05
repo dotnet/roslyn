@@ -875,7 +875,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.LookupSymbolsSimpleName(result, qualifierOpt, identifierValueText, 0, basesBeingResolved, options, diagnose: true, useSiteInfo: ref useSiteInfo);
             diagnostics.Add(node, useSiteInfo);
 
-            if (result.Kind == LookupResultKind.Empty && qualifierOpt is TypeSymbol typeSymbol)
+            if (result.Kind != LookupResultKind.Viable && qualifierOpt is TypeSymbol typeSymbol)
             {
                 this.LookupExtensionTypeMembersIfNeeded(result, typeSymbol, identifierValueText, arity: 0, basesBeingResolved, options, ref useSiteInfo);
             }
@@ -1284,7 +1284,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.LookupSymbolsSimpleName(lookupResult, qualifierOpt, plainName, arity, basesBeingResolved, options, diagnose: true, useSiteInfo: ref useSiteInfo);
             diagnostics.Add(node, useSiteInfo);
 
-            if (lookupResult.Kind == LookupResultKind.Empty && qualifierOpt is TypeSymbol typeSymbol)
+            if (lookupResult.Kind != LookupResultKind.Viable && qualifierOpt is TypeSymbol typeSymbol)
             {
                 this.LookupExtensionTypeMembersIfNeeded(lookupResult, typeSymbol, plainName, arity, basesBeingResolved, options, ref useSiteInfo);
             }

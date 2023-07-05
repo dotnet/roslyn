@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -52,6 +53,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!diagnostics.Dependencies.IsDefault);
             Debug.Assert(overloadResolutionResult == null || methodGroup != null);
 
+            // If we have an extension member (viable result but which isn't a method group), it is stored in other symbol.
+            Debug.Assert((otherSymbol is not null) || !(ResultKind == LookupResultKind.Viable && MethodGroup is null));
+
             this.MethodGroup = methodGroup;
             this.OtherSymbol = otherSymbol;
             this.OverloadResolutionResult = overloadResolutionResult;
@@ -85,11 +89,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return (this.MethodGroup != null) && this.MethodGroup.IsExtensionMethodGroup; }
         }
 
-        public bool IsExtensionMember(out Symbol extensionMember)
+#nullable enable
+        public bool IsExtensionMember([NotNullWhen(true)] out Symbol? extensionMember)
         {
-            extensionMember = OtherSymbol;
-            return ResultKind == LookupResultKind.Viable && MethodGroup is null;
+            bool isExtensionMember = ResultKind == LookupResultKind.Viable && MethodGroup is null;
+            extensionMember = isExtensionMember ? OtherSymbol : null;
+            Debug.Assert((extensionMember is not null) || !isExtensionMember);
+
+            return isExtensionMember;
         }
+#nullable disable
 
         public bool IsLocalFunctionInvocation =>
             MethodGroup?.Methods.Count == 1 && // Local functions cannot be overloaded

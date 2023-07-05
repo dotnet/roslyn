@@ -6869,10 +6869,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         return BindMemberOfType(node, right, rightName, rightArity, indexed, boundLeft, typeArgumentsSyntax, typeArguments, lookupResult, BoundMethodGroupFlags.SearchExtensionMethods, diagnostics: diagnostics);
                     }
+
+                    return MakeBoundMethodGroupAndCheckOmittedTypeArguments(boundLeft, rightName, typeArguments, lookupResult,
+                        flags: BoundMethodGroupFlags.SearchExtensionMethods, node, typeArgumentsSyntax, diagnostics);
                 }
 
-                return MakeBoundMethodGroupAndCheckOmittedTypeArguments(boundLeft, rightName, typeArguments, lookupResult,
-                    flags: BoundMethodGroupFlags.SearchExtensionMethods, node, typeArgumentsSyntax, diagnostics);
+                return null;
             }
         }
 
@@ -7245,18 +7247,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             extensionMethodArguments.IsExtensionMethodInvocation = true;
             extensionMethodArguments.Arguments.Add(receiver);
-            extensionMethodArguments.Arguments.AddRange(originalArguments.Arguments);
-
-            if (originalArguments.Names.Count > 0)
+            if (originalArguments is not null)
             {
-                extensionMethodArguments.Names.Add(null);
-                extensionMethodArguments.Names.AddRange(originalArguments.Names);
-            }
+                extensionMethodArguments.Arguments.AddRange(originalArguments.Arguments);
 
-            if (originalArguments.RefKinds.Count > 0)
-            {
-                extensionMethodArguments.RefKinds.Add(RefKind.None);
-                extensionMethodArguments.RefKinds.AddRange(originalArguments.RefKinds);
+                if (originalArguments.Names.Count > 0)
+                {
+                    extensionMethodArguments.Names.Add(null);
+                    extensionMethodArguments.Names.AddRange(originalArguments.Names);
+                }
+
+                if (originalArguments.RefKinds.Count > 0)
+                {
+                    extensionMethodArguments.RefKinds.Add(RefKind.None);
+                    extensionMethodArguments.RefKinds.AddRange(originalArguments.RefKinds);
+                }
             }
         }
 
@@ -7413,12 +7418,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         isMethodGroupConversion, returnRefKind, returnType, withDependencies, scope,
                         out MethodGroupResolution extensionResult))
                 {
-                    if (analyzedArguments == null)
-                    {
-                        // Found a match and didn't need to do overload resolution
-                        return extensionResult;
-                    }
-
                     if (extensionResult.IsExtensionMember(out _))
                     {
                         return extensionResult;
@@ -7447,12 +7446,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     isMethodGroupConversion, returnRefKind, returnType, withDependencies, scope,
                     ref actualArguments, out MethodGroupResolution extensionMethodResult))
                 {
-                    if (analyzedArguments == null)
-                    {
-                        // Found a match and didn't need to do overload resolution
-                        return extensionMethodResult;
-                    }
-
                     // If the search in the current scope resulted in any applicable method (regardless of whether a best
                     // applicable method could be determined) then our search is complete. Otherwise, store aside the
                     // first non-applicable result and continue searching for an applicable result.
@@ -7494,6 +7487,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
                 binder.LookupImplicitExtensionMembersInSingleBinder(lookupResult, scope.Binder, left.Type!, methodName, arity, basesBeingResolved: null, options, binder, ref useSiteInfo);
 
+                // PROTOTYPE test use-site diagnostics
+                diagnostics.Add(expression, useSiteInfo);
+
                 if (!lookupResult.IsMultiViable)
                 {
                     lookupResult.Free();
@@ -7533,7 +7529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                extensionResult = resolveOverloads(binder, methodGroup, analyzedArguments, isMethodGroupConversion, returnType, returnRefKind, expression, diagnostics, ref useSiteInfo);
+                extensionResult = resolveOverloads(binder, methodGroup, analyzedArguments, isMethodGroupConversion, returnType, returnRefKind, expression, diagnostics);
                 return true;
             }
 
@@ -7570,12 +7566,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 methodGroup.Methods.RemoveAt(i);
                         }
                     }
-
-                    if (methodGroup.Methods.Count != 0)
-                    {
-                        result = new MethodGroupResolution(methodGroup, diagnostics.ToReadOnlyAndFree());
-                        return true;
-                    }
                 }
 
                 if (methodGroup.Methods.Count == 0)
@@ -7594,17 +7584,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CombineExtensionMethodArguments(left, analyzedArguments, actualArguments);
                 }
 
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
-                result = resolveOverloads(binder, methodGroup, actualArguments, isMethodGroupConversion, returnType, returnRefKind, expression, diagnostics, ref useSiteInfo);
+                result = resolveOverloads(binder, methodGroup, actualArguments, isMethodGroupConversion, returnType, returnRefKind, expression, diagnostics);
                 return true;
             }
 
             static MethodGroupResolution resolveOverloads(Binder binder, MethodGroup methodGroup, AnalyzedArguments actualArguments, bool isMethodGroupConversion,
-                TypeSymbol returnType, RefKind returnRefKind, SyntaxNode expression, BindingDiagnosticBag diagnostics, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+                TypeSymbol returnType, RefKind returnRefKind, SyntaxNode expression, BindingDiagnosticBag diagnostics)
             {
                 var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
                 bool allowRefOmittedArguments = methodGroup.Receiver.IsExpressionOfComImportType();
 
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
                 binder.OverloadResolution.MethodInvocationOverloadResolution(
                     methods: methodGroup.Methods,
                     typeArguments: methodGroup.TypeArguments,

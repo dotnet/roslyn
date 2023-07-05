@@ -104,6 +104,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : base(isExtensionMethod: false, isArrayIndex: false, conversionResult: default, conversionMethod: null, nestedConversions)
             {
                 Debug.Assert(extensionMember is not null);
+                Debug.Assert(nestedConversions.Length == 1);
+                Debug.Assert(nestedConversions[0].Kind != ConversionKind.ExtensionMember);
+
                 ExtensionMember = extensionMember;
             }
         }

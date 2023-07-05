@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return CreateMethodGroupConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt, destination, diagnostics);
                 }
 
-                if (conversion.IsExtensionMemberConversion(out var extensionMember, out var nestedConversion))
+                if (conversion.IsExtensionMemberConversion(out Symbol? extensionMember, out Conversion nestedConversion))
                 {
                     source = GetExtensionMemberAccess(syntax, ((BoundMethodGroup)source).ReceiverOpt, extensionMember, diagnostics);
                     return CreateConversion(syntax, source, nestedConversion, isCast, conversionGroupOpt, destination, diagnostics);
