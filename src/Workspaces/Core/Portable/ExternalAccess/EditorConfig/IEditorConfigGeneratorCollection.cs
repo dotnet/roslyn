@@ -9,8 +9,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig
 {
     internal interface IEditorConfigGeneratorCollection
     {
-        string? GenerateEditorConfig(IOptionsReader options);
-
         ImmutableArray<(string feature, ImmutableArray<IOption2> options)> GetEditorConfigOptions();
     }
 }

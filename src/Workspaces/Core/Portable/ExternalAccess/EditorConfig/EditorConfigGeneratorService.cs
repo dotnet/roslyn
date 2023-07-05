@@ -13,15 +13,16 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig
 {
-    [Export(typeof(EditorConfigGeneratorService)), Shared]
-    internal class EditorConfigGeneratorService
+    [Export(typeof(EditorConfigGenerator)), Shared]
+    internal class EditorConfigGenerator
+
     {
         private readonly IGlobalOptionService _globalOptions;
         private readonly ImmutableArray<Lazy<IEditorConfigGeneratorCollection, LanguageMetadata>> _editorConfigGenerators;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public EditorConfigGeneratorService(
+        public EditorConfigGenerator(
             IGlobalOptionService globalOptions,
             [ImportMany] IEnumerable<Lazy<IEditorConfigGeneratorCollection, LanguageMetadata>> generators)
         {
@@ -31,13 +32,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig
 
         public string? Generate(string language)
         {
-            var generators = _editorConfigGenerators.Where(b => b.Metadata.Language == language);
-            foreach (var generator in generators)
-            {
-                return generator.Value.GenerateEditorConfig(_globalOptions);
-            }
-
-            return null;
+            var groupOptions = GetOptions(language);
+            return EditorConfigFileGenerator.Generate(groupOptions, _globalOptions, language);
         }
 
         public ImmutableArray<(string feature, ImmutableArray<IOption2> options)> GetOptions(string language)

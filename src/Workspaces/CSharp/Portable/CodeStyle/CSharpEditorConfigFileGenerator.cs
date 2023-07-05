@@ -26,11 +26,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig
         {
         }
 
-        public string? GenerateEditorConfig(IOptionsReader options)
-        {
-            return EditorConfigFileGenerator.Generate(GetEditorConfigOptions(), options, LanguageNames.CSharp);
-        }
-
         public ImmutableArray<(string feature, ImmutableArray<IOption2> options)> GetEditorConfigOptions()
         {
             var builder = ArrayBuilder<(string, ImmutableArray<IOption2>)>.GetInstance();
