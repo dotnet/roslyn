@@ -7,11 +7,11 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.ImplementType;
-using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.QuickInfo;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
@@ -53,6 +53,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             FormattingOptions2.IndentationSize,
             FormattingOptions2.UseTabs,
             FormattingOptions2.NewLine,
-            FormattingOptions2.InsertFinalNewLine);
+            FormattingOptions2.InsertFinalNewLine,
+            // Background analysis
+            SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption,
+            SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption);
     }
 }

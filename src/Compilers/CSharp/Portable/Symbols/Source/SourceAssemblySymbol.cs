@@ -2690,7 +2690,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         handledUnreadFields.Add(field);
                     }
 
-                    if (containingType.HasStructLayoutAttribute)
+                    if (containingType.HasStructLayoutAttribute || containingType.HasInlineArrayAttribute(out _))
                     {
                         continue;
                     }
@@ -2727,7 +2727,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     var containingType = field.ContainingType as SourceNamedTypeSymbol;
-                    if ((object)containingType != null && !containingType.HasStructLayoutAttribute)
+                    if ((object)containingType != null && !containingType.HasStructLayoutAttribute && !containingType.HasInlineArrayAttribute(out _))
                     {
                         diagnostics.Add(ErrorCode.WRN_UnreferencedFieldAssg, field.GetFirstLocationOrNone(), field);
                     }

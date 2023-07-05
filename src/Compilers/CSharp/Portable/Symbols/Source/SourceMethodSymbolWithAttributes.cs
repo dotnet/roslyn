@@ -974,9 +974,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            if (Arity != 0 || ContainingType.IsGenericType)
+            if (ContainingType.IsGenericType)
             {
-                diagnostics.Add(ErrorCode.ERR_InterceptorCannotBeGeneric, attributeLocation, this);
+                diagnostics.Add(ErrorCode.ERR_InterceptorContainingTypeCannotBeGeneric, attributeLocation, this);
                 return;
             }
 

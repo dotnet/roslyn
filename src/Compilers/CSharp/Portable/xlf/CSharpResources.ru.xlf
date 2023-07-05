@@ -397,6 +397,16 @@
         <target state="translated">"{0}" не реализует элемент интерфейса "{1}". "{2}" не может реализовывать "{1}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionLiteralNoTargetType">
+        <source>There is no target type for the collection literal.</source>
+        <target state="new">There is no target type for the collection literal.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionLiteralTargetTypeNotConstructible">
+        <source>Cannot initialize type '{0}' with a collection literal because the type is not constructible.</source>
+        <target state="new">Cannot initialize type '{0}' with a collection literal because the type is not constructible.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
         <source>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</source>
         <target state="translated">Параметр типа "{1}" имеет ограничение "unmanaged", поэтому "{1}" не может использоваться в качестве ограничения для "{0}".</target>
@@ -582,9 +592,19 @@
         <target state="translated">Дерево выражения не может содержать доступ к статическому виртуальному или абстрактному элементу интерфейса.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsCollectionLiteral">
+        <source>An expression tree may not contain a collection literal.</source>
+        <target state="new">An expression tree may not contain a collection literal.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
         <source>An expression tree may not contain a from-end index ('^') expression.</source>
         <target state="translated">Дерево выражений не может содержать выражение индекса, отсчитываемого с конца ("^").</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsInlineArrayOperation">
+        <source>An expression tree may not contain an inline array access or conversion</source>
+        <target state="new">An expression tree may not contain an inline array access or conversion</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsInterpolatedStringHandlerConversion">
@@ -847,14 +867,39 @@
         <target state="translated">Методы доступа "init" не могут быть помечены как доступные только для чтения. Вместо них пометьте "{0}" как доступные только для чтения.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InlineArrayBadIndex">
+        <source>Elements of an inline array type can be accessed only with a single argument implicitly convertible to 'int', 'System.Index', or 'System.Range'.</source>
+        <target state="new">Elements of an inline array type can be accessed only with a single argument implicitly convertible to 'int', 'System.Index', or 'System.Range'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InlineArrayConversionToReadOnlySpanNotSupported">
+        <source>Cannot convert expression to '{0}' because it may not be passed or returned by reference</source>
+        <target state="new">Cannot convert expression to '{0}' because it may not be passed or returned by reference</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InlineArrayConversionToSpanNotSupported">
+        <source>Cannot convert expression to '{0}' because it is not an assignable variable</source>
+        <target state="new">Cannot convert expression to '{0}' because it is not an assignable variable</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InlineArrayIndexOutOfRange">
+        <source>Index is outside the bounds of the inline array</source>
+        <target state="new">Index is outside the bounds of the inline array</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
         <source>Instance properties in interfaces cannot have initializers.</source>
         <target state="translated">Свойства экземпляра в интерфейсах не могут иметь инициализаторы.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterceptorArityNotCompatible">
+        <source>Method '{0}' must be non-generic or have arity {1} to match '{2}'.</source>
+        <target state="new">Method '{0}' must be non-generic or have arity {1} to match '{2}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InterceptorCannotBeGeneric">
-        <source>Method '{0}' cannot be used as an interceptor because it or its containing type has type parameters.</source>
-        <target state="new">Method '{0}' cannot be used as an interceptor because it or its containing type has type parameters.</target>
+        <source>Method '{0}' must be non-generic to match '{1}'.</source>
+        <target state="new">Method '{0}' must be non-generic to match '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorCannotInterceptNameof">
@@ -870,6 +915,11 @@
       <trans-unit id="ERR_InterceptorCharacterOutOfRange">
         <source>The given line is '{0}' characters long, which is fewer than the provided character number '{1}'.</source>
         <target state="new">The given line is '{0}' characters long, which is fewer than the provided character number '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorContainingTypeCannotBeGeneric">
+        <source>Method '{0}' cannot be used as an interceptor because its containing type has type parameters.</source>
+        <target state="new">Method '{0}' cannot be used as an interceptor because its containing type has type parameters.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorFilePathCannotBeNull">
@@ -1020,6 +1070,21 @@
       <trans-unit id="ERR_InvalidHashAlgorithmName">
         <source>Invalid hash algorithm name: '{0}'</source>
         <target state="translated">Недопустимое имя хэш-алгоритма: "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidInlineArrayFields">
+        <source>Inline array struct must declare one and only one instance field.</source>
+        <target state="new">Inline array struct must declare one and only one instance field.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidInlineArrayLayout">
+        <source>Inline array struct must not have explicit layout.</source>
+        <target state="new">Inline array struct must not have explicit layout.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidInlineArrayLength">
+        <source>Inline array length must be greater than 0.</source>
+        <target state="new">Inline array length must be greater than 0.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidInterpolatedStringHandlerArgumentName">
@@ -1200,6 +1265,11 @@
       <trans-unit id="ERR_MultipleRecordParameterLists">
         <source>Only a single partial type declaration may have a parameter list</source>
         <target state="translated">Только отдельное объявление разделяемого типа может содержать список параметров</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NamedArgumentForInlineArray">
+        <source>An inline array access may not have a named argument specifier</source>
+        <target state="new">An inline array access may not have a named argument specifier</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -1612,6 +1682,11 @@
         <target state="translated">"{0}": целевая среда выполнения не поддерживает ковариантные возвращаемые типы в переопределениях. Для сопоставления переопределенного элемента "{1}" необходимо использовать возвращаемый тип "{2}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportInlineArrayTypes">
+        <source>Target runtime doesn't support inline array types.</source>
+        <target state="new">Target runtime doesn't support inline array types.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
         <target state="translated">Целевая среда выполнения не поддерживает специальные возможности "защищенный", "внутренний защищенный" или "частный защищенный" для члена интерфейса.</target>
@@ -1972,6 +2047,11 @@
         <target state="translated">проверенные операторы, определяемые пользователем</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureCollectionLiterals">
+        <source>collection literals</source>
+        <target state="new">collection literals</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
         <source>covariant returns</source>
         <target state="translated">ковариантные возвращаемые значения</target>
@@ -2025,6 +2105,11 @@
       <trans-unit id="IDS_FeatureInferredDelegateType">
         <source>inferred delegate type</source>
         <target state="translated">выводимый тип делегата</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureInlineArrays">
+        <source>inline arrays</source>
+        <target state="new">inline arrays</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureInstanceMemberInNameof">
@@ -2972,161 +3057,164 @@
                               assembly by all dependencies, and annotate foreign assembly
                               accessibility errors with what assembly they came from.
 </source>
-        <target state="needs-review-translation">
-                             Параметры компилятора Visual C#
+        <target state="new">
+                             Visual C# Compiler Options
 
-                       — Выходные файлы -
--out:&lt;file&gt;                   Указать имя выходного файла (по умолчанию: базовое имя
-                              файла с классом main или имя первого файла)
--target:exe                   Выполнить сборку консольного исполняемого файла (по умолчанию) (краткая
-                              форма: -t:exe)
--target:winexe               Выполнить сборку исполняемого файла Windows (краткая форма:
+                       - OUTPUT FILES -
+-out:&lt;file&gt;                   Specify output file name (default: base name of
+                              file with main class or first file)
+-target:exe                   Build a console executable (default) (Short
+                              form: -t:exe)
+-target:winexe                Build a Windows executable (Short form:
                               -t:winexe)
--target:library               Выполнить сборку библиотеки (краткая форма: -t:library)
--target:module                Выполнить сборку модуля, который можно добавить в другую
-                              сборку (краткая форма: -t:module)
--target:appcontainerexe       Выполнить сборку исполняемого файла AppContainer (краткая форма:
+-target:library               Build a library (Short form: -t:library)
+-target:module                Build a module that can be added to another
+                              assembly (Short form: -t:module)
+-target:appcontainerexe       Build an Appcontainer executable (Short form:
                               -t:appcontainerexe)
--target:winmdobj              Выполнить сборку промежуточного файла среды выполнения Windows,
-                              используемого в WinMDExp (краткая форма: -t:winmdobj)
--doc:&lt;file&gt;                   Создаваемый XML-файл документации
--refout:&lt;file&gt;                Создаваемые выходные данные базовой сборки
--platform:&lt;string&gt;            Ограничить платформы, на которых может выполняться этот код: x86,
-                              Itanium, x64, arm, arm64, anycpu32bitpreferred или
-                              anycpu. Значение по умолчанию — anycpu.
+-target:winmdobj              Build a Windows Runtime intermediate file that
+                              is consumed by WinMDExp (Short form: -t:winmdobj)
+-doc:&lt;file&gt;                   XML Documentation file to generate
+-refout:&lt;file&gt;                Reference assembly output to generate
+-platform:&lt;string&gt;            Limit which platforms this code can run on: x86,
+                              Itanium, x64, arm, arm64, anycpu32bitpreferred, or
+                              anycpu. The default is anycpu.
 
-                       — Входные файлы -
--recurse:&lt;wildcard&gt;           Включить все файлы в текущем каталоге и
-                              подкаталогах в соответствии с заданным
-                              подстановочным знаком
--reference:&lt;alias&gt;=&lt;file&gt;     Сослаться на метаданные из заданного файла
-                              сборки с помощью определенного псевдонима (краткая форма: -r)
--reference:&lt;file list&gt;        Сослаться на метаданные из заданных файлов
-                              сборки (краткая форма: -r)
--addmodule:&lt;file list&gt;        Скомпоновать указанные модули в этой сборке
--link:&lt;file list&gt;             Внедрить метаданные из указанных файлов
-                              сборок взаимодействия (краткая форма: -l)
--analyzer:&lt;file list&gt;         Запускать анализаторы из этой сборки
-                              (краткая форма: -a)
--additionalfile:&lt;file list&gt;   Дополнительные файлы, которые не оказывают прямого влияния на создание
-                              кода, но могут использоваться анализаторами для вывода
-                              ошибок или предупреждений.
--embed                        Внедрить все исходные файлы в PDB.
--embed:&lt;file list&gt;            Внедрить указанные файлы в PDB.
+                       - INPUT FILES -
+-recurse:&lt;wildcard&gt;           Include all files in the current directory and
+                              subdirectories according to the wildcard
+                              specifications
+-reference:&lt;alias&gt;=&lt;file&gt;     Reference metadata from the specified assembly
+                              file using the given alias (Short form: -r)
+-reference:&lt;file list&gt;        Reference metadata from the specified assembly
+                              files (Short form: -r)
+-addmodule:&lt;file list&gt;        Link the specified modules into this assembly
+-link:&lt;file list&gt;             Embed metadata from the specified interop
+                              assembly files (Short form: -l)
+-analyzer:&lt;file list&gt;         Run the analyzers from this assembly
+                              (Short form: -a)
+-additionalfile:&lt;file list&gt;   Additional files that don't directly affect code
+                              generation but may be used by analyzers for producing
+                              errors or warnings.
+-embed                        Embed all source files in the PDB.
+-embed:&lt;file list&gt;            Embed specific files in the PDB.
 
-                       — Ресурсы -
--win32res:&lt;file&gt;              Задать файл ресурсов Win32 (RES-файл)
--win32icon:&lt;file&gt;             Использовать этот значок для вывода
--win32manifest:&lt;file&gt;         Задать файл манифеста Win32 (XML-файл)
--nowin32manifest              Не включать манифест Win32 по умолчанию
--resource:&lt;resinfo&gt;           Внедрить указанный ресурс (краткая форма: -res)
--linkresource:&lt;resinfo&gt;       Скомпоновать указанный ресурс в этой сборке
-                              (краткая форма: -linkres), где данные о ресурсах имеют
-                              формат &lt;file&gt;[,&lt;string name&gt;[,public|private]]
+                       - RESOURCES -
+-win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
+-win32icon:&lt;file&gt;             Use this icon for the output
+-win32manifest:&lt;file&gt;         Specify a Win32 manifest file (.xml)
+-nowin32manifest              Do not include the default Win32 manifest
+-resource:&lt;resinfo&gt;           Embed the specified resource (Short form: -res)
+-linkresource:&lt;resinfo&gt;       Link the specified resource to this assembly
+                              (Short form: -linkres) Where the resinfo format
+                              is &lt;file&gt;[,&lt;string name&gt;[,public|private]]
 
-                       — Создание кода -
--debug[+|-]                   Выдать отладочную информацию
+                       - CODE GENERATION -
+-debug[+|-]                   Emit debugging information
 -debug:{full|pdbonly|portable|embedded}
-                              Задать тип отладки (по умолчанию — "full",
-                              "portable"  — кроссплатформенный формат,
-                              "embedded" — кроссплатформенный формат, внедряемый в
-                              целевой DLL- или EXE-файл)
--optimize[+|-]                Включить оптимизацию (краткая форма: -o)
--deterministic                Создать детерминированную сборку
-                              (включая GUID версии модуля и метку времени)
--refonly                      Создать базовую сборку вместо основных выходных данных
--instrument:TestCoverage      Создать сборку, инструментированную для сбора
-                              сведений об объеме протестированного кода
--sourcelink:&lt;file&gt;            Данные о ссылке на исходные файлы для внедрения в PDB.
- 
-                       — Ошибки и предупреждения -
--warnaserror[+|-]             Регистрировать все предупреждения как ошибки
--warnaserror[+|-]:&lt;warn list&gt; Регистрировать указанные предупреждения как ошибки
-                              (используйте "nullable" для всех предупреждений о допустимости значений NULL)
--warn:&lt;n&gt;                     Задать порог предупреждений (0 или выше) (краткая форма: -w)
--nowarn:&lt;warn list&gt;           Отключить указанные предупреждения
-                              (используйте "nullable" для всех предупреждений о допустимости значений NULL)
--ruleset:&lt;file&gt;               Указать файл набора правил, отключающий определенные
-                              диагностические операции.
+                              Specify debugging type ('full' is default,
+                              'portable' is a cross-platform format,
+                              'embedded' is a cross-platform format embedded into
+                              the target .dll or .exe)
+-optimize[+|-]                Enable optimizations (Short form: -o)
+-deterministic                Produce a deterministic assembly
+                              (including module version GUID and timestamp)
+-refonly                      Produce a reference assembly in place of the main output
+-instrument:TestCoverage      Produce an assembly instrumented to collect
+                              coverage information
+-sourcelink:&lt;file&gt;            Source link info to embed into PDB.
+
+                       - ERRORS AND WARNINGS -
+-warnaserror[+|-]             Report all warnings as errors
+-warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
+                              (use "nullable" for all nullability warnings)
+-warn:&lt;n&gt;                     Set warning level (0 or higher) (Short form: -w)
+-nowarn:&lt;warn list&gt;           Disable specific warning messages
+                              (use "nullable" for all nullability warnings)
+-ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
+                              diagnostics.
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
-                              Указать файл для записи всех диагностических данных
-                              компилятора и анализатора.
-                              sarif_version:{1|2|2.1} По умолчанию используются значения 1.2 и 2.1,
-                              обозначающие версию SARIF 2.1.0.
--reportanalyzer               Сообщить дополнительные сведения об анализаторе, например
-                              время выполнения.
--skipanalyzers[+|-]           Пропустить выполнение анализаторов диагностики.
+                              Specify a file to log all compiler and analyzer
+                              diagnostics.
+                              sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
+                              both mean SARIF version 2.1.0.
+-reportanalyzer               Report additional analyzer information, such as
+                              execution time.
+-skipanalyzers[+|-]           Skip execution of diagnostic analyzers.
 
-                       — Язык -
--checked[+|-]                 Создать проверки переполнений
--unsafe[+|-]                  Допускать "небезопасный" код
--define:&lt;symbol list&gt;         Определить символы условной компиляции (краткая
-                              форма: -d)
--langversion:?                Отобразить разрешенные значения для версии языка
--langversion:&lt;string&gt;         Указать версию языка, например
-                              "latest" (последняя версия, включая дополнительные номера версии),
-                              "default" (то же, что и "latest"),
-                              "latestmajor" (последняя версия, исключая дополнительные номера версии),
-                              "preview" (последняя версия, включая функции в неподдерживаемой предварительной версии),
-                              либо конкретные версии, например "6" или "7.1"
--nullable[+|-]                Указать параметр допускающего значение NULL контекста enable|disable.
+                       - LANGUAGE -
+-checked[+|-]                 Generate overflow checks
+-unsafe[+|-]                  Allow 'unsafe' code
+-define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short
+                              form: -d)
+-langversion:?                Display the allowed values for language version
+-langversion:&lt;string&gt;         Specify language version such as
+                              `latest` (latest version, including minor versions),
+                              `default` (same as `latest`),
+                              `latestmajor` (latest version, excluding minor versions),
+                              `preview` (latest version, including features in unsupported preview),
+                              or specific versions like `6` or `7.1`
+-nullable[+|-]                Specify nullable context option enable|disable.
 -nullable:{enable|disable|warnings|annotations}
-                              Указать параметр допускающего значение NULL контекста enable|disable|warnings|annotations.
+                              Specify nullable context option enable|disable|warnings|annotations.
 
-                       — Безопасность -
--delaysign[+|-]               Использовать отложенную подпись для сборки, применяя только открытую
-                              часть ключа строгого имени
--publicsign[+|-]              Выполнить общедоступную подпись сборки, используя только открытую
-                              часть ключа строгого имени
--keyfile:&lt;file&gt;               Указать файл ключей строгого имени
--keycontainer:&lt;string&gt;        Указать контейнер ключей строгого имени
--highentropyva[+|-]           Включить ASLR с высокой энтропией
+                       - SECURITY -
+-delaysign[+|-]               Delay-sign the assembly using only the public
+                              portion of the strong name key
+-publicsign[+|-]              Public-sign the assembly using only the public
+                              portion of the strong name key
+-keyfile:&lt;file&gt;               Specify a strong name key file
+-keycontainer:&lt;string&gt;        Specify a strong name key container
+-highentropyva[+|-]           Enable high-entropy ASLR
 
-                       — Прочее -
-@&lt;file&gt;                       Считать файл ответов с дополнительными параметрами
--help                         Отобразить это сообщение об использовании (краткая форма: -?)
--nologo                       Запрещать отображение сообщения компилятора об авторских правах
--noconfig                     Не включать файл CSC.RSP автоматически
--parallel[+|-]                Параллельная сборка.
--version                      Отобразить номер версии компилятора и выйти.
+                       - MISCELLANEOUS -
+@&lt;file&gt;                       Read response file for more options
+-help                         Display this usage message (Short form: -?)
+-nologo                       Suppress compiler copyright message
+-noconfig                     Do not auto include CSC.RSP file
+-parallel[+|-]                Concurrent build.
+-version                      Display the compiler version number and exit.
 
-                       — Дополнительно -
--baseaddress:&lt;address&gt;        Базовый адрес библиотеки, для которой выполняется сборка
--checksumalgorithm:&lt;alg&gt;      Задать алгоритм для расчета контрольной суммы
-                              исходного файла, хранимой в формате PDB. Поддерживаемые значения:
-                              SHA1 или SHA256 (по умолчанию).
--codepage:&lt;n&gt;                 Задать кодовую страницу, используемую при открытии исходных
-                              файлов
--utf8output                   Выводить сообщения компилятора в кодировке UTF-8
--main:&lt;type&gt;                  Указать тип, содержащий точку входа
-                              (все другие возможные точки входа игнорируются) (краткая
-                              форма: -m)
--fullpaths                    Компилятор создает полные пути
--filealign:&lt;n&gt;                Задать выравнивание для разделов выходных
-                              файлов
+                       - ADVANCED -
+-baseaddress:&lt;address&gt;        Base address for the library to be built
+-checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file
+                              checksum stored in PDB. Supported values are:
+                              SHA1 or SHA256 (default).
+-codepage:&lt;n&gt;                 Specify the codepage to use when opening source
+                              files
+-utf8output                   Output compiler messages in UTF-8 encoding
+-main:&lt;type&gt;                  Specify the type that contains the entry point
+                              (ignore all other possible entry points) (Short
+                              form: -m)
+-fullpaths                    Compiler generates fully qualified paths
+-filealign:&lt;n&gt;                Specify the alignment used for output file
+                              sections
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                              Задать сопоставление для выходных данных имен исходного пути по
-                              компилятору.
--pdb:&lt;file&gt;                   Задать имя файла для отладочной информации (по умолчанию
-                              используется имя выходного файла с расширением PDB)
--errorendlocation             Выводить строку и столбец конечного расположения
-                              каждой ошибки
--preferreduilang              Указать имя предпочтительного языка вывода.
--nosdkpath                    Отключить поиск пути пакета SDK по умолчанию для стандартных сборок библиотеки.
--nostdlib[+|-]                Не обращаться к стандартной библиотеке (mscorlib.dll)
--subsystemversion:&lt;string&gt;    Задать версию подсистемы этой сборки
--lib:&lt;file list&gt;              Задать дополнительные каталоги для поиска
-                              ссылок
--errorreport:&lt;string&gt;         Указать способ обработки внутренних ошибок компилятора:
-                              prompt, send, queue или none. По умолчанию используется
+                              Specify a mapping for source path names output by
+                              the compiler.
+-pdb:&lt;file&gt;                   Specify debug information file name (default:
+                              output file name with .pdb extension)
+-errorendlocation             Output line and column of the end location of
+                              each error
+-preferreduilang              Specify the preferred output language name.
+-nosdkpath                    Disable searching the default SDK path for standard library assemblies.
+-nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
+-subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
+-lib:&lt;file list&gt;              Specify additional directories to search in for
+                              references
+-errorreport:&lt;string&gt;         Specify how to handle internal compiler errors:
+                              prompt, send, queue, or none. The default is
                               queue.
--appconfig:&lt;file&gt;             Указать файл конфигурации приложения,
-                              содержащий параметры привязки сборки
--moduleassemblyname:&lt;string&gt;  Имя сборки, частью которой будет являться
-                              этот модуль
--modulename:&lt;string&gt;          Задать имя исходного модуля
--generatedfilesout:&lt;dir&gt;      Размещать файлы, созданные во время компиляции, в
-                              указанном каталоге.
+-appconfig:&lt;file&gt;             Specify an application configuration file
+                              containing assembly binding settings
+-moduleassemblyname:&lt;string&gt;  Name of the assembly which this module will be
+                              a part of
+-modulename:&lt;string&gt;          Specify the name of the source module
+-generatedfilesout:&lt;dir&gt;      Place files generated during compilation in the
+                              specified directory.
+-reportivts[+|-]                    Output information on all IVTs granted to this
+                              assembly by all dependencies, and annotate foreign assembly
+                              accessibility errors with what assembly they came from.
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
@@ -11976,8 +12064,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">
-        <source>'await' cannot be used in an expression containing a call to '{0}' because it returns by reference</source>
-        <target state="translated">'await нельзя использовать в выражении, содержащем вызов "{0}", так как он возвращает данные по ссылке</target>
+        <source>A reference returned by a call to '{0}' cannot be preserved across 'await' or 'yield' boundary.</source>
+        <target state="new">A reference returned by a call to '{0}' cannot be preserved across 'await' or 'yield' boundary.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefConditionalAndAwait">

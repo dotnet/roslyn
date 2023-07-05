@@ -351,6 +351,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return Me.RuntimeSupportsUnmanagedSignatureCallingConvention
                 Case RuntimeCapability.VirtualStaticsInInterfaces
                     Return Me.RuntimeSupportsVirtualStaticsInInterfaces
+                Case RuntimeCapability.InlineArrayTypes
+                    Return Me.RuntimeSupportsInlineArrayTypes
             End Select
 
             Return False
@@ -403,6 +405,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 ' Keep in sync with C#'s AssemblySymbol.RuntimeSupportsStaticAbstractMembersInInterfaces
                 Return RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__VirtualStaticsInInterfaces)
+            End Get
+        End Property
+
+        Private ReadOnly Property RuntimeSupportsInlineArrayTypes As Boolean
+            Get
+                ' Keep in sync with C#'s AssemblySymbol.RuntimeSupportsInlineArrayTypes
+                Return GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor) IsNot Nothing
             End Get
         End Property
 

@@ -596,6 +596,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor:
                 case ErrorCode.ERR_InterceptorCannotInterceptNameof:
                 case ErrorCode.ERR_SymbolDefinedInAssembly:
+                case ErrorCode.ERR_InterceptorArityNotCompatible:
+                case ErrorCode.ERR_InterceptorCannotBeGeneric:
                     // Update src\EditorFeatures\CSharp\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
                     // whenever new values are added here.
                     return true;
@@ -2327,7 +2329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_BadStaticAfterUnsafe:
                 case ErrorCode.ERR_BadCaseInSwitchArm:
                 case ErrorCode.ERR_InterceptorsFeatureNotEnabled:
-                case ErrorCode.ERR_InterceptorCannotBeGeneric:
+                case ErrorCode.ERR_InterceptorContainingTypeCannotBeGeneric:
                 case ErrorCode.ERR_InterceptorPathNotInCompilation:
                 case ErrorCode.ERR_InterceptorPathNotInCompilationWithCandidate:
                 case ErrorCode.ERR_InterceptorPathNotInCompilationWithUnmappedCandidate:
@@ -2345,6 +2347,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_InterceptorCannotUseUnmanagedCallersOnly:
                 case ErrorCode.ERR_BadUsingStaticType:
                 case ErrorCode.WRN_CapturedPrimaryConstructorParameterInFieldInitializer:
+                case ErrorCode.ERR_InlineArrayConversionToSpanNotSupported:
+                case ErrorCode.ERR_InlineArrayConversionToReadOnlySpanNotSupported:
+                case ErrorCode.ERR_InlineArrayIndexOutOfRange:
+                case ErrorCode.ERR_InvalidInlineArrayLength:
+                case ErrorCode.ERR_InvalidInlineArrayLayout:
+                case ErrorCode.ERR_InvalidInlineArrayFields:
+                case ErrorCode.ERR_ExpressionTreeContainsInlineArrayOperation:
+                case ErrorCode.ERR_RuntimeDoesNotSupportInlineArrayTypes:
+                case ErrorCode.ERR_InlineArrayBadIndex:
+                case ErrorCode.ERR_NamedArgumentForInlineArray:
+                case ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible:
+                case ErrorCode.ERR_ExpressionTreeContainsCollectionLiteral:
+                case ErrorCode.ERR_CollectionLiteralNoTargetType:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

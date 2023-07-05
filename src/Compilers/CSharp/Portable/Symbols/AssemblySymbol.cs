@@ -428,6 +428,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return this.RuntimeSupportsUnmanagedSignatureCallingConvention;
                 case RuntimeCapability.VirtualStaticsInInterfaces:
                     return this.RuntimeSupportsStaticAbstractMembersInInterfaces;
+                case RuntimeCapability.InlineArrayTypes:
+                    return this.RuntimeSupportsInlineArrayTypes;
             }
 
             return false;
@@ -463,6 +465,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Tracked by https://github.com/dotnet/roslyn/issues/61262
                 return CorLibrary is not null &&
                     RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__NumericIntPtr);
+            }
+        }
+
+        /// <summary>
+        /// Figure out if the target runtime supports inline array types.
+        /// </summary>
+        internal bool RuntimeSupportsInlineArrayTypes
+        {
+            // Keep in sync with VB's AssemblySymbol.RuntimeSupportsInlineArrayTypes
+            get
+            {
+                return GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor) is object;
             }
         }
 
