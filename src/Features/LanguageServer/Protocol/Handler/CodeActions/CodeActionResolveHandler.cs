@@ -282,10 +282,30 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     var newTextDoc = getNewDocument(docId);
                     Contract.ThrowIfNull(newTextDoc);
 
-                    // If the file path doesn't exist, try to create from project path
-                    var uri = newTextDoc.FilePath != null
-                        ? newTextDoc.GetURI()
-                        : newTextDoc.GetUriFromProjectPath();
+                    // Try Get the Uri for a document based on
+                    // 1. The file path of the document.
+                    // 2. If the document has a name, then check does it has containing folders.
+                    // 3. Choose to put the document under the project directory with the document name.
+                    Uri? uri = null;
+                    if (!string.IsNullOrEmpty(newTextDoc.FilePath))
+                    {
+                        uri = newTextDoc.GetURI();
+                    }
+                    else if (!string.IsNullOrEmpty(newTextDoc.Name))
+                    {
+                        if (!newTextDoc.Folders.IsEmpty())
+                        {
+                            uri = newTextDoc.GetUriFromContainingFolder();
+                        }
+                        else if (!string.IsNullOrEmpty(newTextDoc.Project.FilePath))
+                        {
+                            uri = newTextDoc.GetUriFromProjectPath();
+                        }
+                    }
+
+                    // In all other cases, if we can't find the Uri, it means we miss this code action. Throws.
+                    Contract.ThrowIfNull(uri);
+
                     textDocumentEdits.Add(new CreateFile { Uri = uri });
 
                     // And then give it content
