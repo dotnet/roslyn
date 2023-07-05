@@ -7437,8 +7437,12 @@ done:;
 
             // Continue consuming element access expressions for `[x][y]...`.  We have to determine if this is a
             // collection expression being indexed into, or if it's a sequence of attributes.
+            var hadBracketArgumentList = false;
             while (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
+            {
                 ParseBracketedArgumentList();
+                hadBracketArgumentList = true;
+            }
 
             // Check the next token to see if it indicates the `[...]` sequence we have is a term or not. This is the
             // same set of tokens that ParsePostFixExpression looks for.
@@ -7449,6 +7453,48 @@ done:;
                 or SyntaxKind.PlusPlusToken
                 or SyntaxKind.MinusMinusToken
                 or SyntaxKind.MinusGreaterThanToken;
+
+            // Now look for another set of items that indicate that we're not an attribute, but instead are a collection
+            // expression misplaced in an invalid top level expression-statement. (like `[] + b`).  These are
+            // technically invalid. But checking for this allows us to parse effectively to then give a good semantic
+            // error later on. These cases came from: ParseExpressionContinued
+            isCollectionExpression = isCollectionExpression
+                || IsExpectedBinaryOperator(this.CurrentToken.Kind)
+                || IsExpectedAssignmentOperator(this.CurrentToken.Kind)
+                || this.CurrentToken.Kind is SyntaxKind.DotDotToken
+                || (this.CurrentToken.ContextualKind is SyntaxKind.SwitchKeyword or SyntaxKind.WithKeyword && this.PeekToken(1).Kind is SyntaxKind.OpenBraceToken);
+
+            if (!isCollectionExpression &&
+                hadBracketArgumentList &&
+                this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
+            {
+                // There are a few things that could be happening here:
+                //
+                // First is that we have an actual collection literal that we're invoking.  For example:
+                //
+                //      `[() => {}][rand.NextInt() % x]();`
+                //
+                // Second would be the start of a local function that returns a tuple.  For example:
+                //
+                //      `[Attr] (A, B) LocalFunc() { }
+                //
+                // Have to figure out what the parenthesized thing is in order to parse this.  By parsing out a type
+                // and looking for an identifier next, we handle the cases of:
+                //
+                //      `[Attr] (A, B) LocalFunc() { }
+                //      `[Attr] (A, B)[] LocalFunc() { }
+                //      `[Attr] (A, B)[,] LocalFunc() { }
+                //      `[Attr] (A, B)? LocalFunc() { }
+                //      `[Attr] (A, B)* LocalFunc() { }
+                //
+                // etc.
+                //
+                // Note: we do not accept the naked `[...](...)` as an invocation of a collection literal.  Collection
+                // literals never have a type that itself could possibly be invoked, so this ensures a more natural parse
+                // with what users may be expecting here.
+                var returnType = this.ParseReturnType();
+                isCollectionExpression = ContainsErrorDiagnostic(returnType) || !IsTrueIdentifier();
+            }
 
             // If this was a collection expression, not an attribute declaration, return no attributes so that the
             // caller will parse this out as a collection expression. Otherwise re-parse the code as the actual
@@ -10483,6 +10529,11 @@ done:;
 
                 bool isAssignmentOperator = false;
                 SyntaxKind opKind;
+
+                // If the set of expression continuations is updated here, please review ParseStatementAttributeDeclarations
+                // to see if it may need a similar look-ahead check to determine if something is a collection expression versus
+                // an attribute.
+
                 if (IsExpectedBinaryOperator(tk))
                 {
                     opKind = SyntaxFacts.GetBinaryExpression(tk);
@@ -11039,6 +11090,10 @@ done:;
 
             while (true)
             {
+                // If the set of postfix expressions is updated here, please review ParseStatementAttributeDeclarations
+                // to see if it may need a similar look-ahead check to determine if something is a collection expression
+                // versus an attribute.
+
                 switch (this.CurrentToken.Kind)
                 {
                     case SyntaxKind.OpenParenToken:
