@@ -22,44 +22,28 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractClass
 {
-    internal class ExtractClassWithDialogCodeAction : CodeActionWithOptions
+    internal class ExtractClassWithDialogCodeAction(
+        Document document,
+        TextSpan span,
+        IExtractClassOptionsService service,
+        INamedTypeSymbol selectedType,
+        SyntaxNode selectedTypeDeclarationNode,
+        CleanCodeGenerationOptionsProvider fallbackOptions,
+        ImmutableArray<ISymbol> selectedMembers) : CodeActionWithOptions
     {
-        private readonly Document _document;
-        private readonly ImmutableArray<ISymbol> _selectedMembers;
-        private readonly INamedTypeSymbol _selectedType;
-        private readonly SyntaxNode _selectedTypeDeclarationNode;
-        private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
-        private readonly IExtractClassOptionsService _service;
+        private readonly Document _document = document;
+        private readonly ImmutableArray<ISymbol> _selectedMembers = selectedMembers;
+        private readonly INamedTypeSymbol _selectedType = selectedType;
+        private readonly SyntaxNode _selectedTypeDeclarationNode = selectedTypeDeclarationNode;
+        private readonly CleanCodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
+        private readonly IExtractClassOptionsService _service = service;
 
-        public TextSpan Span { get; }
+        public TextSpan Span { get; } = span;
         public override string Title => _selectedType.IsRecord
             ? FeaturesResources.Extract_base_record
             : FeaturesResources.Extract_base_class;
 
-        internal override CodeActionPriority Priority { get; }
-
-        public ExtractClassWithDialogCodeAction(
-            Document document,
-            TextSpan span,
-            IExtractClassOptionsService service,
-            INamedTypeSymbol selectedType,
-            SyntaxNode selectedTypeDeclarationNode,
-            CleanCodeGenerationOptionsProvider fallbackOptions,
-            ImmutableArray<ISymbol> selectedMembers)
-        {
-            _document = document;
-            _service = service;
-            _selectedType = selectedType;
-            _selectedTypeDeclarationNode = selectedTypeDeclarationNode;
-            _fallbackOptions = fallbackOptions;
-            _selectedMembers = selectedMembers;
-            Span = span;
-
-            // If the user brought up the lightbulb on a class itself, it's more likely that they want to extract a base
-            // class.  on a member however, we deprioritize this as there are likely more member-specific operations
-            // they'd prefer to invoke instead.
-            Priority = selectedMembers.IsEmpty ? CodeActionPriority.Medium : CodeActionPriority.Low;
-        }
+        internal override CodeActionPriority Priority { get; } = selectedMembers.IsEmpty ? CodeActionPriority.Medium : CodeActionPriority.Low;
 
         public override object? GetOptions(CancellationToken cancellationToken)
         {
