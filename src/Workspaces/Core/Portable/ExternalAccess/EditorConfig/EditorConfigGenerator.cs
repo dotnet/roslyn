@@ -18,13 +18,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig
 
     {
         private readonly IGlobalOptionService _globalOptions;
-        private readonly ImmutableArray<Lazy<IEditorConfigGeneratorCollection, LanguageMetadata>> _editorConfigGenerators;
+        private readonly ImmutableArray<Lazy<IEditorConfigOptionsCollection, LanguageMetadata>> _editorConfigGenerators;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public EditorConfigGenerator(
             IGlobalOptionService globalOptions,
-            [ImportMany] IEnumerable<Lazy<IEditorConfigGeneratorCollection, LanguageMetadata>> generators)
+            [ImportMany] IEnumerable<Lazy<IEditorConfigOptionsCollection, LanguageMetadata>> generators)
         {
             _globalOptions = globalOptions;
             _editorConfigGenerators = generators.ToImmutableArray();

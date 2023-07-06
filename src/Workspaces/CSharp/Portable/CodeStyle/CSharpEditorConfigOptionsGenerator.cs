@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig
 {
     [EditorConfigGenerator(LanguageNames.CSharp), Shared]
     internal class CSharpEditorConfigFileGenerator
-        : IEditorConfigGeneratorCollection
+        : IEditorConfigOptionsCollection
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

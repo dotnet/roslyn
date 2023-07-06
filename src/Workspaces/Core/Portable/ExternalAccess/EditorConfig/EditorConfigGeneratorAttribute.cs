@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig
         public string Language { get; }
 
         public EditorConfigGeneratorAttribute(string language)
-            : base(typeof(IEditorConfigGeneratorCollection))
+            : base(typeof(IEditorConfigOptionsCollection))
         {
             this.Language = language ?? throw new ArgumentNullException(nameof(language));
         }

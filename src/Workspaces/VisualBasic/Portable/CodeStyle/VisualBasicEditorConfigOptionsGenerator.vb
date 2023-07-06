@@ -13,14 +13,14 @@ Imports Microsoft.CodeAnalysis.PooledObjects
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
     <EditorConfigGenerator(LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicEditorConfigOptionsGenerator
-        Implements IEditorConfigGeneratorCollection
+        Implements IEditorConfigOptionsCollection
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
-        Public Function GetEditorConfigOptions() As ImmutableArray(Of (String, ImmutableArray(Of IOption2))) Implements IEditorConfigGeneratorCollection.GetEditorConfigOptions
+        Public Function GetEditorConfigOptions() As ImmutableArray(Of (String, ImmutableArray(Of IOption2))) Implements IEditorConfigOptionsCollection.GetEditorConfigOptions
             Dim builder = ArrayBuilder(Of (String, ImmutableArray(Of IOption2))).GetInstance()
             builder.AddRange(EditorConfigFileGenerator.GetLanguageAgnosticEditorConfigOptions())
             builder.Add((VBWorkspaceResources.VB_Coding_Conventions, VisualBasicCodeStyleOptions.AllOptions.As(Of IOption2)))

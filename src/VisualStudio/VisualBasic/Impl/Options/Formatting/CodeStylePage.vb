@@ -18,12 +18,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options.Formatting
         Inherits AbstractOptionPage
 
         Protected Overrides Function CreateOptionPage(serviceProvider As IServiceProvider, optionStore As OptionStore) As AbstractOptionPageControl
-            Dim editorService2 = DirectCast(serviceProvider.GetService(GetType(EditorConfigGenerator)), EditorConfigGenerator)
-            'Dim editorService = Me.Site.GetService(GetType(EditorConfigGenerator))
+            Dim editorService = DirectCast(serviceProvider.GetService(GetType(EditorConfigGenerator)), EditorConfigGenerator)
             Return New GridOptionPreviewControl(serviceProvider,
                                                 optionStore,
                                                 Function(o, s) New StyleViewModel(o, s),
-                                                editorService2.GetDefaultOptions(LanguageNames.VisualBasic),
+                                                editorService.GetDefaultOptions(LanguageNames.VisualBasic),
                                                 LanguageNames.VisualBasic)
         End Function
     End Class
