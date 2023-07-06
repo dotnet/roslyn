@@ -67,7 +67,7 @@ internal abstract class AbstractTestMethodFinder<TMethodDeclaration>(IEnumerable
         {
             fullyQualifiedTestName = fullyQualifiedTestName.Remove(indexOfOpenParen);
         }
-        
+
         return fullyQualifiedMethodName == fullyQualifiedTestName;
     }
 
