@@ -4,8 +4,6 @@
 
 using System.Collections.Immutable;
 using System.CommandLine;
-using System.CommandLine.Builder;
-using System.CommandLine.Parsing;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Contracts.Telemetry;
@@ -32,7 +30,7 @@ catch (IOException)
 WindowsErrorReporting.SetErrorModeOnWindows();
 
 var parser = CreateCommandLineParser();
-return await parser.InvokeAsync(args);
+return await parser.Parse(args).InvokeAsync(CancellationToken.None);
 
 static async Task RunAsync(ServerConfiguration serverConfiguration, CancellationToken cancellationToken)
 {
@@ -119,65 +117,61 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     }
 }
 
-static Parser CreateCommandLineParser()
+static CliRootCommand CreateCommandLineParser()
 {
-    var debugOption = new Option<bool>("--debug", getDefaultValue: () => false)
+    var debugOption = new CliOption<bool>("--debug")
     {
         Description = "Flag indicating if the debugger should be launched on startup.",
-        IsRequired = false,
+        Required = false,
+        DefaultValueFactory = _ => false,
     };
-    var brokeredServicePipeNameOption = new Option<string?>("--brokeredServicePipeName")
+    var brokeredServicePipeNameOption = new CliOption<string?>("--brokeredServicePipeName")
     {
         Description = "The name of the pipe used to connect to a remote process (if one exists).",
-        IsRequired = false,
+        Required = false,
     };
 
-    var logLevelOption = new Option<LogLevel>("--logLevel", description: "The minimum log verbosity.", parseArgument: result =>
+    var logLevelOption = new CliOption<LogLevel>("--logLevel")
     {
-        var value = result.Tokens.Single().Value;
-        return !Enum.TryParse<LogLevel>(value, out var logLevel)
-            ? throw new InvalidOperationException($"Unexpected logLevel argument {result}")
-            : logLevel;
-    })
-    {
-        IsRequired = true,
+        Description = "The minimum log verbosity.",
+        Required = true,
     };
-    var starredCompletionsPathOption = new Option<string?>("--starredCompletionComponentPath")
+    var starredCompletionsPathOption = new CliOption<string?>("--starredCompletionComponentPath")
     {
         Description = "The location of the starred completion component (if one exists).",
-        IsRequired = false,
+        Required = false,
     };
 
-    var telemetryLevelOption = new Option<string?>("--telemetryLevel")
+    var telemetryLevelOption = new CliOption<string?>("--telemetryLevel")
     {
         Description = "Telemetry level, Defaults to 'off'. Example values: 'all', 'crash', 'error', or 'off'.",
-        IsRequired = false,
+        Required = false,
     };
-    var extensionLogDirectoryOption = new Option<string>("--extensionLogDirectory")
+    var extensionLogDirectoryOption = new CliOption<string>("--extensionLogDirectory")
     {
         Description = "The directory where we should write log files to",
-        IsRequired = true,
+        Required = true,
     };
 
-    var sessionIdOption = new Option<string?>("--sessionId")
+    var sessionIdOption = new CliOption<string?>("--sessionId")
     {
         Description = "Session Id to use for telemetry",
-        IsRequired = false
+        Required = false
     };
 
-    var sharedDependenciesOption = new Option<string?>("--sharedDependencies")
+    var sharedDependenciesOption = new CliOption<string?>("--sharedDependencies")
     {
         Description = "Full path of the directory containing shared assemblies (optional).",
-        IsRequired = false
+        Required = false
     };
 
-    var extensionAssemblyPathsOption = new Option<string[]?>(new string[] { "--extension", "--extensions" }) // TODO: remove plural form
+    var extensionAssemblyPathsOption = new CliOption<string[]?>("--extension", "--extensions") // TODO: remove plural form
     {
         Description = "Full paths of extension assemblies to load (optional).",
-        IsRequired = false
+        Required = false
     };
 
-    var rootCommand = new RootCommand()
+    var rootCommand = new CliRootCommand()
     {
         debugOption,
         brokeredServicePipeNameOption,
@@ -189,17 +183,16 @@ static Parser CreateCommandLineParser()
         extensionAssemblyPathsOption,
         extensionLogDirectoryOption
     };
-    rootCommand.SetHandler(context =>
+    rootCommand.SetAction((parseResult, cancellationToken) =>
     {
-        var cancellationToken = context.GetCancellationToken();
-        var launchDebugger = context.ParseResult.GetValueForOption(debugOption);
-        var logLevel = context.ParseResult.GetValueForOption(logLevelOption);
-        var starredCompletionsPath = context.ParseResult.GetValueForOption(starredCompletionsPathOption);
-        var telemetryLevel = context.ParseResult.GetValueForOption(telemetryLevelOption);
-        var sessionId = context.ParseResult.GetValueForOption(sessionIdOption);
-        var sharedDependenciesPath = context.ParseResult.GetValueForOption(sharedDependenciesOption);
-        var extensionAssemblyPaths = context.ParseResult.GetValueForOption(extensionAssemblyPathsOption) ?? Array.Empty<string>();
-        var extensionLogDirectory = context.ParseResult.GetValueForOption(extensionLogDirectoryOption)!;
+        var launchDebugger = parseResult.GetValue(debugOption);
+        var logLevel = parseResult.GetValue(logLevelOption);
+        var starredCompletionsPath = parseResult.GetValue(starredCompletionsPathOption);
+        var telemetryLevel = parseResult.GetValue(telemetryLevelOption);
+        var sessionId = parseResult.GetValue(sessionIdOption);
+        var sharedDependenciesPath = parseResult.GetValue(sharedDependenciesOption);
+        var extensionAssemblyPaths = parseResult.GetValue(extensionAssemblyPathsOption) ?? Array.Empty<string>();
+        var extensionLogDirectory = parseResult.GetValue(extensionLogDirectoryOption)!;
 
         var serverConfiguration = new ServerConfiguration(
             LaunchDebugger: launchDebugger,
@@ -214,6 +207,6 @@ static Parser CreateCommandLineParser()
         return RunAsync(serverConfiguration, cancellationToken);
     });
 
-    return new CommandLineBuilder(rootCommand).UseDefaults().Build();
+    return rootCommand;
 }
 

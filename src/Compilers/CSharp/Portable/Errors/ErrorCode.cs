@@ -2194,7 +2194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny = 9136,
 
         ERR_InterceptorsFeatureNotEnabled = 9137,
-        ERR_InterceptorCannotBeGeneric = 9138,
+        ERR_InterceptorContainingTypeCannotBeGeneric = 9138,
         ERR_InterceptorPathNotInCompilation = 9139,
         ERR_InterceptorPathNotInCompilationWithCandidate = 9140,
         ERR_InterceptorPositionBadToken = 9141,
@@ -2232,6 +2232,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RuntimeDoesNotSupportInlineArrayTypes = 9171,
         ERR_InlineArrayBadIndex = 9172,
         ERR_NamedArgumentForInlineArray = 9173,
+
+        ERR_CollectionLiteralTargetTypeNotConstructible = 9174,
+        ERR_ExpressionTreeContainsCollectionLiteral = 9175,
+        ERR_CollectionLiteralNoTargetType = 9176,
+
+        ERR_InterceptorArityNotCompatible = 9177,
+        ERR_InterceptorCannotBeGeneric = 9178,
 
         #endregion
 

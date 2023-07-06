@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class AttributeTests_Experimental : CSharpTestBase
+    public class AttributeTests_WindowsExperimental : CSharpTestBase
     {
         private const string DeprecatedAttributeSource =
 @"using System;

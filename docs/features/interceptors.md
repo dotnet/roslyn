@@ -104,9 +104,31 @@ Interception can only occur for calls to ordinary member methods--not constructo
 
 ### Arity
 
-Interceptors cannot have type parameters or be declared in generic types at any level of nesting.
+Interceptors cannot be declared in generic types at any level of nesting.
 
-This limitation prevents interceptors from matching the signature of an interceptable call in cases where the interceptable call uses type parameters which are not in scope at the interceptor declaration. We can consider adjusting the rules to alleviate this limitation if compelling scenarios arise for it in the future.
+Interceptors must either be non-generic, or have arity equal to the sum of the arity of the original method's arity and containing type arities. For example:
+
+```cs
+Grandparent<int>.Parent<bool>.Original<string>(1, false, "a");
+
+class Grandparent<T1>
+{
+    class Parent<T2>
+    {
+        public static void Original<T3>(T1 t1, T2 t2, T3 t3) { }
+    }
+}
+
+class Interceptors
+{
+    [InterceptsLocation("Program.cs", 1, 33)]
+    public static void Interceptor<T1, T2, T3>(T1 t1, T2 t2, T3 t3) { }
+}
+```
+
+When an interceptor is generic, the type arguments from the original containing types and method are passed as type arguments to the interceptor, from outermost to innermost. In the above scenario, the interceptor receives `<int, bool, string>` as type arguments. If the interceptor type parameters have constraints which are violated by these type arguments, a compile-time error occurs.
+
+This substitution allows interceptors to use type parameters which aren't in scope at its declaration site.
 
 ```cs
 using System.Runtime.CompilerServices;
@@ -127,7 +149,7 @@ static class Program
 static class D
 {
     [InterceptsLocation("Program.cs", 12, 11)]
-    public static void Interceptor1(object s) => throw null!;
+    public static void Interceptor1<T2>(T2 t) => throw null!;
 }
 ```
 

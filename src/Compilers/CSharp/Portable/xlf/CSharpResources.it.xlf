@@ -397,6 +397,16 @@
         <target state="translated">'{0}' non implementa il membro di interfaccia '{1}'. '{2}' non può implementare '{1}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionLiteralNoTargetType">
+        <source>There is no target type for the collection literal.</source>
+        <target state="new">There is no target type for the collection literal.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionLiteralTargetTypeNotConstructible">
+        <source>Cannot initialize type '{0}' with a collection literal because the type is not constructible.</source>
+        <target state="new">Cannot initialize type '{0}' with a collection literal because the type is not constructible.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
         <source>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</source>
         <target state="translated">Il parametro di tipo '{1}' ha il vincolo 'managed'. Non è quindi possibile usare '{1}' come vincolo per '{0}'</target>
@@ -580,6 +590,11 @@
       <trans-unit id="ERR_ExpressionTreeContainsAbstractStaticMemberAccess">
         <source>An expression tree may not contain an access of static virtual or abstract interface member</source>
         <target state="translated">Un albero delle espressioni può non contenere un accesso del membro di interfaccia statico astratto o virtuale</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsCollectionLiteral">
+        <source>An expression tree may not contain a collection literal.</source>
+        <target state="new">An expression tree may not contain a collection literal.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -877,9 +892,14 @@
         <target state="translated">Le proprietà di istanza nelle interfacce non possono avere inizializzatori.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterceptorArityNotCompatible">
+        <source>Method '{0}' must be non-generic or have arity {1} to match '{2}'.</source>
+        <target state="new">Method '{0}' must be non-generic or have arity {1} to match '{2}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InterceptorCannotBeGeneric">
-        <source>Method '{0}' cannot be used as an interceptor because it or its containing type has type parameters.</source>
-        <target state="new">Method '{0}' cannot be used as an interceptor because it or its containing type has type parameters.</target>
+        <source>Method '{0}' must be non-generic to match '{1}'.</source>
+        <target state="new">Method '{0}' must be non-generic to match '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorCannotInterceptNameof">
@@ -895,6 +915,11 @@
       <trans-unit id="ERR_InterceptorCharacterOutOfRange">
         <source>The given line is '{0}' characters long, which is fewer than the provided character number '{1}'.</source>
         <target state="new">The given line is '{0}' characters long, which is fewer than the provided character number '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorContainingTypeCannotBeGeneric">
+        <source>Method '{0}' cannot be used as an interceptor because its containing type has type parameters.</source>
+        <target state="new">Method '{0}' cannot be used as an interceptor because its containing type has type parameters.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorFilePathCannotBeNull">
@@ -2022,6 +2047,11 @@
         <target state="translated">operatori definiti dall'utente controllati</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureCollectionLiterals">
+        <source>collection literals</source>
+        <target state="new">collection literals</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
         <source>covariant returns</source>
         <target state="translated">tipi restituiti covarianti</target>
@@ -3027,161 +3057,164 @@
                               assembly by all dependencies, and annotate foreign assembly
                               accessibility errors with what assembly they came from.
 </source>
-        <target state="needs-review-translation">
-                             Opzioni del compilatore Visual C#
+        <target state="new">
+                             Visual C# Compiler Options
 
-                       - FILE DI OUTPUT -
--out:&lt;file&gt;                   Consente di specificare il nome del file di output (impostazione predefinita:
-                              nome di base del file con la classe principale o primo file)
--target:exe                   Compila un file eseguibile da console (impostazione predefinita).
-                              Forma breve: -t:exe
--target:winexe                Compila un eseguibile Windows. Forma breve:
-                              -t:winexe
--target:library               Compila una libreria. Forma breve: -t:library
--target:module                Compila un modulo che può essere aggiunto a un altro assembly.
-                              Forma breve: -t:module
--target:appcontainerexe       Compila un file eseguibile Appcontainer. Forma breve:
-                              -t:appcontainerexe
--target:winmdobj              Compila un file Windows Runtime intermedio
-                              usato da WinMDExp. Forma breve: -t:winmdobj
--doc:&lt;file&gt;                   File di documentazione XML da generare
--refout:&lt;file&gt;                Output dell'assembly di riferimento da generare
--platform:&lt;stringa&gt;            Limita le piattaforme in cui è possibile eseguire il codice: x86,
-                              Itanium, x64, arm, arm64, anycpu32bitpreferred o
-                              anycpu. Il valore predefinito è anycpu.
+                       - OUTPUT FILES -
+-out:&lt;file&gt;                   Specify output file name (default: base name of
+                              file with main class or first file)
+-target:exe                   Build a console executable (default) (Short
+                              form: -t:exe)
+-target:winexe                Build a Windows executable (Short form:
+                              -t:winexe)
+-target:library               Build a library (Short form: -t:library)
+-target:module                Build a module that can be added to another
+                              assembly (Short form: -t:module)
+-target:appcontainerexe       Build an Appcontainer executable (Short form:
+                              -t:appcontainerexe)
+-target:winmdobj              Build a Windows Runtime intermediate file that
+                              is consumed by WinMDExp (Short form: -t:winmdobj)
+-doc:&lt;file&gt;                   XML Documentation file to generate
+-refout:&lt;file&gt;                Reference assembly output to generate
+-platform:&lt;string&gt;            Limit which platforms this code can run on: x86,
+                              Itanium, x64, arm, arm64, anycpu32bitpreferred, or
+                              anycpu. The default is anycpu.
 
-                       - FILE DI INPUT -
--recurse:&lt;caratteri_jolly&gt;           Include tutti i file presenti nella directory corrente e
-                              nelle relative sottodirectory in base
-                              ai caratteri jolly specificati
--reference:&lt;alias&gt;=&lt;file&gt;     Crea un riferimento ai metadati dal file di assembly specificato
-                              usando l'alias indicato. Forma breve: -r
--reference:&lt;elenco file&gt;        Crea un riferimento ai metadati dai file di assembly 
-                              specificati. Forma breve: -r
--addmodule:&lt;elenco file&gt;        Collega i moduli specificati in questo assembly
--link:&lt;elenco file&gt;             Incorpora metadati dai file di assembly di
-                              interoperabilità specificati. Forma breve: -l
--analyzer:&lt;elenco file&gt;             Esegue gli analizzatori dall'assembly.
-                              Forma breve: -a
--additionalfile:&lt;elenco file&gt;       File aggiuntivi che non influiscono
-                              direttamente sulla generazione del codice ma possono essere usati
-                              dagli analizzatori per produrre errori o avvisi.
--embed                        Incorpora tutti i file di origine nel file PDB.
--embed:&lt;elenco file&gt;            Incorpora file specifici nel file PDB.
+                       - INPUT FILES -
+-recurse:&lt;wildcard&gt;           Include all files in the current directory and
+                              subdirectories according to the wildcard
+                              specifications
+-reference:&lt;alias&gt;=&lt;file&gt;     Reference metadata from the specified assembly
+                              file using the given alias (Short form: -r)
+-reference:&lt;file list&gt;        Reference metadata from the specified assembly
+                              files (Short form: -r)
+-addmodule:&lt;file list&gt;        Link the specified modules into this assembly
+-link:&lt;file list&gt;             Embed metadata from the specified interop
+                              assembly files (Short form: -l)
+-analyzer:&lt;file list&gt;         Run the analyzers from this assembly
+                              (Short form: -a)
+-additionalfile:&lt;file list&gt;   Additional files that don't directly affect code
+                              generation but may be used by analyzers for producing
+                              errors or warnings.
+-embed                        Embed all source files in the PDB.
+-embed:&lt;file list&gt;            Embed specific files in the PDB.
 
-                       - RISORSE -
--win32res:&lt;file&gt;              Consente di specificare un file di risorse Win32 (.res)
--win32icon:&lt;file&gt;             Usa questa icona per l'output
--win32manifest:&lt;file&gt;         Consente di specificare un file manifesto Win32 (.xml)
--nowin32manifest              Non include il manifesto Win32 predefinito
--resource:&lt;info_risorsa&gt;           Incorpora la risorsa specificata. Forma breve: -res
--linkresource:&lt;info_risorsa&gt;       Collega la risorsa specificata all'assembly.
-                              Forma breve: -linkres. Il formato di info_risorsa
-                              è &lt;file&gt;[,&lt;nome stringa&gt;[,public|private]]
+                       - RESOURCES -
+-win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
+-win32icon:&lt;file&gt;             Use this icon for the output
+-win32manifest:&lt;file&gt;         Specify a Win32 manifest file (.xml)
+-nowin32manifest              Do not include the default Win32 manifest
+-resource:&lt;resinfo&gt;           Embed the specified resource (Short form: -res)
+-linkresource:&lt;resinfo&gt;       Link the specified resource to this assembly
+                              (Short form: -linkres) Where the resinfo format
+                              is &lt;file&gt;[,&lt;string name&gt;[,public|private]]
 
-                       - GENERAZIONE DEL CODICE -
--debug[+|-]                   Crea le informazioni di debug
+                       - CODE GENERATION -
+-debug[+|-]                   Emit debugging information
 -debug:{full|pdbonly|portable|embedded}
-                              Specifica il tipo di debug ('full' è l'impostazione predefinita,
-                              'portable' è un formato multipiattaforma,
-                               'embedded' è un formato multipiattaforma incorporato nel
-                              file DLL o EXE di destinazione)
--optimize[+|-]                Abilita le ottimizzazioni. Forma breve: -o
--deterministic                Produce un assembly deterministico
-                              (che include GUID e timestamp della versione del modulo)
--refonly                      Produce un assembly di riferimento al posto dell'output principale
--instrument:TestCoverage      Produce un assembly instrumentato per raccogliere
-                              informazioni sul code coverage
--sourcelink:&lt;file&gt;            Informazioni sul collegamento all'origine da incorporare nel file PDB.
- 
-                       - ERRORI E AVVISI -
--warnaserror[+|-]             Segnala tutti gli avvisi come errori
--warnaserror[+|-]:&lt;elenco avvisi&gt; Segnala determinati avvisi come errori
-                              (usare "nullable" per tutti gli avvisi di supporto dei valori Null)
--warn:&lt;n&gt;                     Imposta il livello di avviso (0 o valore superiore). Forma breve: -w
--nowarn:&lt;elenco avvisi&gt;           Disabilita messaggi di avviso specifici
-                              (usare "nullable" per tutti gli avvisi di supporto dei valori Null)
--ruleset:&lt;file&gt;               Consente di specificare un file di set di regole che disabilita
-                              diagnostica specifica.
--errorlog:&lt;file&gt;[,version=&lt;versione _SARIF&gt;]
-                              Consente di specificare un file in cui registrare tutte le diagnostiche del
-                              compilatore e dell'analizzatore.
-                              versione_SARIF:{1|2|2.1} L'impostazione predefinita è 1. 2 e 2.1
-                              si riferiscono entrambi a SARIF versione 2.1.0.
--reportanalyzer               Restituisce informazioni aggiuntive dell'analizzatore, ad
-                              esempio il tempo di esecuzione.
--skipanalyzers[+|-]           Ignora l'esecuzione degli analizzatori diagnostici.
+                              Specify debugging type ('full' is default,
+                              'portable' is a cross-platform format,
+                              'embedded' is a cross-platform format embedded into
+                              the target .dll or .exe)
+-optimize[+|-]                Enable optimizations (Short form: -o)
+-deterministic                Produce a deterministic assembly
+                              (including module version GUID and timestamp)
+-refonly                      Produce a reference assembly in place of the main output
+-instrument:TestCoverage      Produce an assembly instrumented to collect
+                              coverage information
+-sourcelink:&lt;file&gt;            Source link info to embed into PDB.
 
-                       - LINGUAGGIO -
--checked[+|-]                 Genera controlli dell'overflow
--unsafe[+|-]                  Consente codice 'unsafe'
--define:&lt;elenco simboli&gt;         Consente di definire simboli di compilazione condizionale. Forma
-                              breve: -d
--langversion:?                Visualizza i valori consentiti per la versione del linguaggio
--langversion:&lt;stringa&gt;         Consente di specificare la versione del linguaggio, ad esempio
-                              `latest` (ultima versione che include versioni secondarie),
-                              `default` (uguale a `latest`),
-                              `latestmajor` (ultima versione, escluse le versioni secondarie),
-                              `preview` (ultima versione, incluse le funzionalità nell'anteprima non supportata),
-                              o versioni specifiche come `6` o `7.1`
--nullable[+|-]                Consente di specificare l'opzione di contesto nullable enable|disable.
+                       - ERRORS AND WARNINGS -
+-warnaserror[+|-]             Report all warnings as errors
+-warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
+                              (use "nullable" for all nullability warnings)
+-warn:&lt;n&gt;                     Set warning level (0 or higher) (Short form: -w)
+-nowarn:&lt;warn list&gt;           Disable specific warning messages
+                              (use "nullable" for all nullability warnings)
+-ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
+                              diagnostics.
+-errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
+                              Specify a file to log all compiler and analyzer
+                              diagnostics.
+                              sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
+                              both mean SARIF version 2.1.0.
+-reportanalyzer               Report additional analyzer information, such as
+                              execution time.
+-skipanalyzers[+|-]           Skip execution of diagnostic analyzers.
+
+                       - LANGUAGE -
+-checked[+|-]                 Generate overflow checks
+-unsafe[+|-]                  Allow 'unsafe' code
+-define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short
+                              form: -d)
+-langversion:?                Display the allowed values for language version
+-langversion:&lt;string&gt;         Specify language version such as
+                              `latest` (latest version, including minor versions),
+                              `default` (same as `latest`),
+                              `latestmajor` (latest version, excluding minor versions),
+                              `preview` (latest version, including features in unsupported preview),
+                              or specific versions like `6` or `7.1`
+-nullable[+|-]                Specify nullable context option enable|disable.
 -nullable:{enable|disable|warnings|annotations}
-                              Consente di specificare l'opzione di contesto nullable enable|disable|warnings|annotations.
+                              Specify nullable context option enable|disable|warnings|annotations.
 
-                       - SICUREZZA -
--delaysign[+|-]               Ritarda la firma dell'assembly usando solo la parte pubblica della
-                              chiave con nome sicuro
--publicsign[+|-]              Firma pubblicamente l'assembly usando solo la parte pubblica
-                              della chiave con nome sicuro
--keyfile:&lt;file&gt;               Consente di specificare un file di chiave con nome sicuro
--keycontainer:&lt;stringa&gt;        Consente di specificare un contenitore di chiavi con nome sicuro
--highentropyva[+|-]               Abilita ASLR a entropia elevata
+                       - SECURITY -
+-delaysign[+|-]               Delay-sign the assembly using only the public
+                              portion of the strong name key
+-publicsign[+|-]              Public-sign the assembly using only the public
+                              portion of the strong name key
+-keyfile:&lt;file&gt;               Specify a strong name key file
+-keycontainer:&lt;string&gt;        Specify a strong name key container
+-highentropyva[+|-]           Enable high-entropy ASLR
 
-                       - VARIE -
-@&lt;file&gt;                       Legge il file di risposta per altre opzioni
--help                         Visualizza questo messaggio relativo all'utilizzo. Forma breve: -?
--nologo                       Non visualizza il messaggio di copyright del compilatore
--noconfig                     Non include automaticamente il file CSC.RSP
--parallel[+|-]                    Compilazione simultanea.
--version                      Visualizza il numero di versione del compilatore ed esce.
+                       - MISCELLANEOUS -
+@&lt;file&gt;                       Read response file for more options
+-help                         Display this usage message (Short form: -?)
+-nologo                       Suppress compiler copyright message
+-noconfig                     Do not auto include CSC.RSP file
+-parallel[+|-]                Concurrent build.
+-version                      Display the compiler version number and exit.
 
-                       - AVANZATE -
--baseaddress:&lt;indirizzo&gt;        Indirizzo di base della libreria da compilare
--checksumalgorithm:&lt;alg&gt;      Consente di specificare l'algoritmo per calcolare il checksum 
-                              del file di origine archiviato nel file PDB. I valori supportati sono:
-                              SHA1 o SHA256 (impostazione predefinita).
--codepage:&lt;n&gt;                 Consente di specificare la tabella codici da usare all'apertura dei file
-                              di origine
--utf8output                   Restituisce i messaggi del compilatore usando la codifica UTF-8
--main:&lt;tipo&gt;                  Consente di specificare il tipo che contiene il punto di ingresso,
-                              ignorando tutti gli altri punti di ingresso possibili. Forma
-                              breve: -m
--fullpaths                    Il compilatore genera percorsi completi
--filealign:&lt;n&gt;                Consente di specificare l'allineamento usato per le sezioni del
-                              file di output
+                       - ADVANCED -
+-baseaddress:&lt;address&gt;        Base address for the library to be built
+-checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file
+                              checksum stored in PDB. Supported values are:
+                              SHA1 or SHA256 (default).
+-codepage:&lt;n&gt;                 Specify the codepage to use when opening source
+                              files
+-utf8output                   Output compiler messages in UTF-8 encoding
+-main:&lt;type&gt;                  Specify the type that contains the entry point
+                              (ignore all other possible entry points) (Short
+                              form: -m)
+-fullpaths                    Compiler generates fully qualified paths
+-filealign:&lt;n&gt;                Specify the alignment used for output file
+                              sections
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                              Consente di specificare un mapping per i nomi di percorso di origine
-                              visualizzati dal compilatore.
--pdb:&lt;file&gt;                   Consente di specificare il nome del file di informazioni di debug (impostazione predefinita:
-                              nome del file di output con estensione pdb)
--errorendlocation             Riga e colonna di output della posizione finale di
-                              ogni errore
--preferreduilang              Consente di specificare il nome del linguaggio di output preferito.
--nosdkpath                    Disabilita la ricerca di assembly di librerie standard nel percorso predefinito dell'SDK.
--nostdlib[+|-]                Omette i riferimenti alla libreria standard (mscorlib.dll)
--subsystemversion:&lt;stringa&gt;    Consente di specificare la versione del sottosistema di questo assembly
--lib:&lt;elenco file&gt;              Consente di specificare le directory aggiuntive in cui cercare i
-                              riferimenti
--errorreport:&lt;stringa&gt;         Consente di specificare la modalità di gestione degli errori interni del compilatore:
-                              prompt, send, queue o none. L'impostazione predefinita è
+                              Specify a mapping for source path names output by
+                              the compiler.
+-pdb:&lt;file&gt;                   Specify debug information file name (default:
+                              output file name with .pdb extension)
+-errorendlocation             Output line and column of the end location of
+                              each error
+-preferreduilang              Specify the preferred output language name.
+-nosdkpath                    Disable searching the default SDK path for standard library assemblies.
+-nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
+-subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
+-lib:&lt;file list&gt;              Specify additional directories to search in for
+                              references
+-errorreport:&lt;string&gt;         Specify how to handle internal compiler errors:
+                              prompt, send, queue, or none. The default is
                               queue.
--appconfig:&lt;file&gt;             Consente di specificare un file di configurazione dell'applicazione
-                              contenente le impostazioni di binding dell'assembly
--moduleassemblyname:&lt;stringa&gt;  Nome dell'assembly di cui farà parte
-                              questo modulo
--modulename:&lt;stringa&gt;          Consente di specificare il nome del modulo di origine
--generatedfilesout:&lt;dir&gt;      Inserisce i file generati durante la compilazione nella
-                              directory specificata.
+-appconfig:&lt;file&gt;             Specify an application configuration file
+                              containing assembly binding settings
+-moduleassemblyname:&lt;string&gt;  Name of the assembly which this module will be
+                              a part of
+-modulename:&lt;string&gt;          Specify the name of the source module
+-generatedfilesout:&lt;dir&gt;      Place files generated during compilation in the
+                              specified directory.
+-reportivts[+|-]                    Output information on all IVTs granted to this
+                              assembly by all dependencies, and annotate foreign assembly
+                              accessibility errors with what assembly they came from.
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
@@ -12032,7 +12065,7 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">
         <source>A reference returned by a call to '{0}' cannot be preserved across 'await' or 'yield' boundary.</source>
-        <target state="needs-review-translation">'Non è possibile usare 'await' in un'espressione che contiene una chiamata a '{0}' perché viene restituito per riferimento</target>
+        <target state="new">A reference returned by a call to '{0}' cannot be preserved across 'await' or 'yield' boundary.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefConditionalAndAwait">
