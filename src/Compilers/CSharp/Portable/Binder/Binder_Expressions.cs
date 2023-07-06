@@ -7247,21 +7247,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             extensionMethodArguments.IsExtensionMethodInvocation = true;
             extensionMethodArguments.Arguments.Add(receiver);
-            if (originalArguments is not null)
+            extensionMethodArguments.Arguments.AddRange(originalArguments.Arguments);
+
+            if (originalArguments.Names.Count > 0)
             {
-                extensionMethodArguments.Arguments.AddRange(originalArguments.Arguments);
+                extensionMethodArguments.Names.Add(null);
+                extensionMethodArguments.Names.AddRange(originalArguments.Names);
+            }
 
-                if (originalArguments.Names.Count > 0)
-                {
-                    extensionMethodArguments.Names.Add(null);
-                    extensionMethodArguments.Names.AddRange(originalArguments.Names);
-                }
-
-                if (originalArguments.RefKinds.Count > 0)
-                {
-                    extensionMethodArguments.RefKinds.Add(RefKind.None);
-                    extensionMethodArguments.RefKinds.AddRange(originalArguments.RefKinds);
-                }
+            if (originalArguments.RefKinds.Count > 0)
+            {
+                extensionMethodArguments.RefKinds.Add(RefKind.None);
+                extensionMethodArguments.RefKinds.AddRange(originalArguments.RefKinds);
             }
         }
 
@@ -7553,18 +7550,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 binder.PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, expression, left, methodName, typeArgumentsWithAnnotations, diagnostics);
 
-                // analyzedArguments will be null if the caller is resolving for error recovery to the first method group
-                // that can accept that receiver, regardless of arguments, when the signature cannot be inferred.
-                // (In the error case of nameof(o.M) or the error case of o.M = null; for instance.)
                 if (analyzedArguments == null)
                 {
-                    if (expression == binder.EnclosingNameofArgument)
+                    for (int i = methodGroup.Methods.Count - 1; i >= 0; i--)
                     {
-                        for (int i = methodGroup.Methods.Count - 1; i >= 0; i--)
-                        {
-                            if ((object)methodGroup.Methods[i].ReduceExtensionMethod(left.Type, binder.Compilation) == null)
-                                methodGroup.Methods.RemoveAt(i);
-                        }
+                        if ((object)methodGroup.Methods[i].ReduceExtensionMethod(left.Type, binder.Compilation) == null)
+                            methodGroup.Methods.RemoveAt(i);
+                    }
+
+                    if (methodGroup.Methods.Count != 0)
+                    {
+                        result = new MethodGroupResolution(methodGroup, diagnostics.ToReadOnlyAndFree());
+                        return true;
                     }
                 }
 

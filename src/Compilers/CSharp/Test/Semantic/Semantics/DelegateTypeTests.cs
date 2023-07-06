@@ -1954,9 +1954,9 @@ class Program
                 // (11,15): error CS8917: The delegate type could not be inferred.
                 //         d = t.F1;
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F1").WithLocation(11, 15),
-                // (12,13): error CS0411: The type arguments for method 'E.F2<T, U>(T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                // (12,15): error CS8917: The delegate type could not be inferred.
                 //         d = t.F2;
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "t.F2").WithArguments("E.F2<T, U>(T)").WithLocation(12, 13));
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F2").WithLocation(12, 15));
         }
 
         /// <summary>

@@ -434,9 +434,9 @@ static class Program
                 // (9,18): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         bool x = s.Goo is Action;
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "s.Goo is Action").WithLocation(9, 18),
-                // (12,18): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
+                // (12,20): error CS1061: 'int' does not contain a definition for 'Goo' and no accessible extension method 'Goo' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
                 //         bool y = i.Goo is Action;
-                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "i.Goo is Action").WithLocation(12, 18),
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Goo").WithArguments("int", "Goo").WithLocation(12, 20),
                 // (9,18): error CS0165: Use of unassigned local variable 's'
                 //         bool x = s.Goo is Action;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(9, 18),

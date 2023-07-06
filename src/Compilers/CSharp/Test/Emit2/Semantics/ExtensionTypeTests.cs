@@ -17521,15 +17521,23 @@ namespace N
     }
 }
 """;
-        // PROTOTYPE confirm this is the symbol we expect to bind to
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: "42", verify: Verification.Fails).VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using N;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1),
+            // (4,11): error CS0428: Cannot convert method group 'Member' to non-delegate type 'int'. Did you intend to invoke the method?
+            // int i = c.Member;
+            Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Member").WithArguments("Member", "int").WithLocation(4, 11)
+            );
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "c.Member").First();
-        Assert.Equal("System.Int32 N.E2.Member { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+
+        Assert.Equal(new[] { "void C<System.Int32>.Member<System.Int32>(System.String s)" },
+            model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -17624,7 +17632,7 @@ namespace N
     }
 
     [Fact]
-    public void ExtensionMethodsInNonInvocationLookup_Ineligible_ExtraParameter()
+    public void ExtensionMethodsInNonInvocationLookup_ExtraParameter()
     {
         var src = """
 public implicit extension E1 for object
@@ -17650,14 +17658,17 @@ namespace N
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (18,23): error CS0428: Cannot convert method group 'Member' to non-delegate type 'int'. Did you intend to invoke the method?
+            //             int x = o.Member;
+            Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Member").WithArguments("Member", "int").WithLocation(18, 23)
+            );
 
-        // PROTOTYPE confirm this is the symbol we expect to bind to
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").Single();
-        Assert.Equal("System.Int32 E1.Member { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Equal(new[] { "void System.Object.Member(System.Int32 i)" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
