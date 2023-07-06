@@ -466,7 +466,8 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription NullableAttribute = new AttributeDescription("System.Runtime.CompilerServices", "NullableAttribute", s_signaturesOfNullableAttribute);
         internal static readonly AttributeDescription NullableContextAttribute = new AttributeDescription("System.Runtime.CompilerServices", "NullableContextAttribute", s_signaturesOfNullableContextAttribute);
         internal static readonly AttributeDescription NullablePublicOnlyAttribute = new AttributeDescription("System.Runtime.CompilerServices", "NullablePublicOnlyAttribute", s_signatures_HasThis_Void_Boolean_Only);
-        internal static readonly AttributeDescription ExperimentalAttribute = new AttributeDescription("Windows.Foundation.Metadata", "ExperimentalAttribute", s_signatures_HasThis_Void_Only);
+        internal static readonly AttributeDescription WindowsExperimentalAttribute = new AttributeDescription("Windows.Foundation.Metadata", "ExperimentalAttribute", s_signatures_HasThis_Void_Only);
+        internal static readonly AttributeDescription ExperimentalAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "ExperimentalAttribute", s_signatures_HasThis_Void_String_Only);
         internal static readonly AttributeDescription ExcludeFromCodeCoverageAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "ExcludeFromCodeCoverageAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription EnumeratorCancellationAttribute = new AttributeDescription("System.Runtime.CompilerServices", "EnumeratorCancellationAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription SkipLocalsInitAttribute = new AttributeDescription("System.Runtime.CompilerServices", "SkipLocalsInitAttribute", s_signatures_HasThis_Void_Only);
