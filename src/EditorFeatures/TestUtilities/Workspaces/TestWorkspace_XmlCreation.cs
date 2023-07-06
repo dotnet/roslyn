@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             extension ??= (language == LanguageNames.CSharp) ? CSharpExtension : VisualBasicExtension;
             if (files != null)
             {
-                if (fileContainingFolders != null)
+                if (fileContainingFolders != null && !fileContainingFolders.IsEmpty())
                 {
                     Contract.ThrowIfTrue(fileContainingFolders.Length != files.Length);
                     foreach (var (file, folder) in files.Zip(fileContainingFolders, (file, containingFolder) => (file, containingFolder)))
