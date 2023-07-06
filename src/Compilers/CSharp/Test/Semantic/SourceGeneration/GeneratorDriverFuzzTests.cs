@@ -52,10 +52,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             MaxValue
         }
 
-        // isomorphic to the IncrementalValueProvider tree.
-        // Used to generate code which reconstructs the IncrementalValueProvider tree.
-        // Consider: should this structure be responsible for creating IncrementalValueProvider?
-
         class HintNameProvider(int nextHintNameId)
         {
             public string GetNextHintName()
@@ -66,14 +62,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             }
         }
 
-        abstract record Operator
+        /// <summary>
+        /// isomorphic to the IncrementalValueProvider tree.
+        /// Used to generate code which reconstructs the IncrementalValueProvider tree.
+        /// </summary>
+        abstract class Operator
         {
             public required HintNameProvider HintNameProvider { protected get; init; }
+
+            /// <summary>Creates an IncrementalValuesProvider which is the result of applying this operator to <paramref name="provider"/>.</summary>
             public abstract IncrementalValuesProvider<AdditionalText> Apply(IncrementalValuesProvider<AdditionalText> provider);
-            public abstract void AppendTo(StringBuilder builder); // TODO: depth parameter?
+
+            /// <summary>Generates source equivalent to application of this operator.</summary>
+            public abstract void AppendTo(StringBuilder builder); // TODO: depth parameter to improve readability?
         }
 
-        record SelectOperator(Operator Source, bool TransformAs, bool TransformCs) : Operator
+        class SelectOperator(Operator Source, bool TransformAs, bool TransformCs) : Operator
         {
             public override IncrementalValuesProvider<AdditionalText> Apply(IncrementalValuesProvider<AdditionalText> provider)
             {
@@ -112,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             }
         }
 
-        record SelectManyOperator(Operator Source, ImmutableArray<(bool TransformAs, bool TransformCs)> Logics) : Operator
+        class SelectManyOperator(Operator Source, ImmutableArray<(bool TransformAs, bool TransformCs)> Logics) : Operator
         {
             public override IncrementalValuesProvider<AdditionalText> Apply(IncrementalValuesProvider<AdditionalText> provider)
             {
@@ -150,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             }
         }
 
-        record WhereOperator(Operator Source, bool IncludeAs, bool IncludeBs, bool IncludeCs, bool IncludeDs) : Operator
+        class WhereOperator(Operator Source, bool IncludeAs, bool IncludeBs, bool IncludeCs, bool IncludeDs) : Operator
         {
             public override IncrementalValuesProvider<AdditionalText> Apply(IncrementalValuesProvider<AdditionalText> provider)
             {
@@ -199,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             }
         }
 
-        record CombineOperator(Operator Source1, Operator Source2) : Operator
+        class CombineOperator(Operator Source1, Operator Source2) : Operator
         {
             public override IncrementalValuesProvider<AdditionalText> Apply(IncrementalValuesProvider<AdditionalText> provider)
             {
@@ -236,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         }
 
         // Represents the original input.
-        record LeafOperator : Operator
+        class LeafOperator : Operator
         {
             public override IncrementalValuesProvider<AdditionalText> Apply(IncrementalValuesProvider<AdditionalText> provider) => provider;
 
