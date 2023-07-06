@@ -358,6 +358,41 @@ interface Base{}
             comp.VerifyEmitDiagnostics();
         }
 
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68782")]
+        public void BindIdentifier()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public void Test()
+    {
+        foreach (ref read)
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,18): error CS1525: Invalid expression term 'ref'
+                //         foreach (ref read)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref read").WithArguments("ref").WithLocation(6, 18),
+                // (6,26): error CS1515: 'in' expected
+                //         foreach (ref read)
+                Diagnostic(ErrorCode.ERR_InExpected, ")").WithLocation(6, 26),
+                // (6,26): error CS0230: Type and identifier are both required in a foreach statement
+                //         foreach (ref read)
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, ")").WithLocation(6, 26),
+                // (6,26): error CS1525: Invalid expression term ')'
+                //         foreach (ref read)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 26),
+                // (6,27): error CS1525: Invalid expression term '}'
+                //         foreach (ref read)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(6, 27),
+                // (6,27): error CS1002: ; expected
+                //         foreach (ref read)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 27)
+                );
+        }
+
         [Theory]
         [CombinatorialData]
         public void ConstructorSymbol_01([CombinatorialValues("class ", "struct")] string keyword)
