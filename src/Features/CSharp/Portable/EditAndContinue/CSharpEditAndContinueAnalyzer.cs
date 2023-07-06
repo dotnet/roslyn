@@ -24,7 +24,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
-    internal sealed class CSharpEditAndContinueAnalyzer : AbstractEditAndContinueAnalyzer
+    internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaultInjector = null) : AbstractEditAndContinueAnalyzer(testFaultInjector)
     {
         [ExportLanguageServiceFactory(typeof(IEditAndContinueAnalyzer), LanguageNames.CSharp), Shared]
         internal sealed class Factory : ILanguageServiceFactory
@@ -39,12 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             {
                 return new CSharpEditAndContinueAnalyzer(testFaultInjector: null);
             }
-        }
-
-        // Public for testing purposes
-        public CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaultInjector = null)
-            : base(testFaultInjector)
-        {
         }
 
         #region Syntax Analysis

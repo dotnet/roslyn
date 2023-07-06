@@ -16,20 +16,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
 {
     internal partial class CSharpProximityExpressionsService
     {
-        internal class Worker
+        internal class Worker(SyntaxTree syntaxTree, int position)
         {
-            private readonly SyntaxTree _syntaxTree;
-            private readonly int _position;
+            private readonly SyntaxTree _syntaxTree = syntaxTree;
+            private readonly int _position = position;
 
             private StatementSyntax _parentStatement;
             private SyntaxToken _token;
             private readonly List<string> _expressions = new List<string>();
-
-            public Worker(SyntaxTree syntaxTree, int position)
-            {
-                _syntaxTree = syntaxTree;
-                _position = position;
-            }
 
             internal IList<string> Do(CancellationToken cancellationToken)
             {
