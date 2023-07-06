@@ -477,15 +477,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         #endregion
 
-        // ToolExe delegates back to ToolName if the override is not
-        // set.  So, if ToolExe == ToolName, we know ToolExe is not
-        // explicitly overridden.  So, if both ToolPath is unset and
-        // ToolExe == ToolName, we know nothing is overridden, and
-        // we can use our own csc.
-        private bool HasToolBeenOverridden => !(string.IsNullOrEmpty(ToolPath) && ToolExe == ToolName);
-
-        protected sealed override bool IsManagedTool => !HasToolBeenOverridden;
-
         /// <summary>
         /// Method for testing only
         /// </summary>
@@ -493,10 +484,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             return GenerateFullPathToTool();
         }
-
-        protected sealed override string PathToManagedTool => Utilities.GenerateFullPathToTool(ToolName);
-
-        protected sealed override string PathToNativeTool => Path.Combine(ToolPath ?? "", ToolExe);
 
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
@@ -526,7 +513,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 string? tempDirectory = BuildServerConnection.GetTempPath(workingDirectory);
 
                 if (!UseSharedCompilation ||
-                    HasToolBeenOverridden ||
+                    !IsManagedTool ||
                     !BuildServerConnection.IsCompilerServerSupported)
                 {
                     LogCompilationMessage(logger, requestId, CompilationKind.Tool, $"using command line tool by design '{pathToTool}'");

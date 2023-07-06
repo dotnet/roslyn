@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis
         internal static bool IsCoreClrRuntime => !IsDesktopRuntime;
 
         internal static string ToolExtension => IsCoreClrRuntime ? "dll" : "exe";
-        private static string NativeToolSuffix => PlatformInformation.IsWindows ? ".exe" : "";
 
         /// <summary>
         /// This gets information about invoking a tool on the current runtime. This will attempt to 
@@ -30,7 +29,8 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(!toolFilePathWithoutExtension.EndsWith(".dll") && !toolFilePathWithoutExtension.EndsWith(".exe"));
 
-            var nativeToolFilePath = $"{toolFilePathWithoutExtension}{NativeToolSuffix}";
+            var nativeToolSuffix = PlatformInformation.IsWindows ? ".exe" : "";
+            var nativeToolFilePath = $"{toolFilePathWithoutExtension}{nativeToolSuffix}";
             if (IsCoreClrRuntime && File.Exists(nativeToolFilePath))
             {
                 return (nativeToolFilePath, commandLineArguments, nativeToolFilePath);

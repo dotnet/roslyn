@@ -11,7 +11,18 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 {
     public abstract class ManagedToolTask : ToolTask
     {
-        protected abstract bool IsManagedTool { get; }
+        /// <summary>
+        /// Is the standard tool being used here? When false the developer has specified a custom tool
+        /// to be run by this task
+        /// </summary>
+        /// <remarks>
+        /// ToolExe delegates back to ToolName if the override is not
+        /// set.  So, if ToolExe == ToolName, we know ToolExe is not
+        /// explicitly overridden.  So, if both ToolPath is unset and
+        /// ToolExe == ToolName, we know nothing is overridden, and
+        /// we can use our own csc.
+        /// </remarks>
+        protected bool IsManagedTool => string.IsNullOrEmpty(ToolPath) && ToolExe == ToolName;
 
         /// <summary>
         /// ToolArguments are the arguments intended to be passed to the tool,
@@ -19,7 +30,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         protected abstract string ToolArguments { get; }
 
-        protected abstract string PathToManagedTool { get; }
+        protected string PathToManagedTool => Utilities.GenerateFullPathToTool(ToolName);
 
         protected string PathToManagedToolWithoutExtension
         {
@@ -34,7 +45,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// Note: "Native" here does not necessarily mean "native binary".
         /// "Native" in this context means "native invocation", and running the executable directly.
         /// </summary>
-        protected abstract string PathToNativeTool { get; }
+        protected string PathToNativeTool => Path.Combine(ToolPath ?? "", ToolExe);
 
         protected ManagedToolTask(ResourceManager resourceManager)
             : base(resourceManager)
@@ -79,7 +90,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <remarks>
         /// We *cannot* actually call IsManagedTool in the implementation of this method,
         /// as the implementation of IsManagedTool calls this property. See the comment in
-        /// <see cref="ManagedCompiler.HasToolBeenOverridden"/>.
+        /// <see cref="ManagedToolTask.IsManagedTool"/>.
         /// </remarks>
         protected sealed override string ToolName => $"{ToolNameWithoutExtension}.{RuntimeHostInfo.ToolExtension}";
     }
