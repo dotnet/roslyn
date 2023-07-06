@@ -145,6 +145,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 CodeActionsVerifier?.Invoke(actions);
                 return base.FilterCodeActions(actions);
             }
+
+            protected override ImmutableArray<(Project project, Diagnostic diagnostic)> SortDistinctDiagnostics(IEnumerable<(Project project, Diagnostic diagnostic)> diagnostics)
+            {
+                var baseResult = base.SortDistinctDiagnostics(diagnostics);
+                if (typeof(DiagnosticSuppressor).IsAssignableFrom(typeof(TAnalyzer)))
+                {
+                    // Include suppressed diagnostics when testing diagnostic suppressors
+                    return baseResult;
+                }
+
+                // Treat suppressed diagnostics as non-existent. Normally this wouldn't be necessary, but some of the
+                // tests include diagnostics reported in code wrapped in '#pragma warning disable'.
+                return baseResult.WhereAsArray(diagnostic => !diagnostic.diagnostic.IsSuppressed);
+            }
         }
     }
 }
