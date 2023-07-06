@@ -2,10 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -27,19 +31,26 @@ namespace Microsoft.CodeAnalysis.SpellCheck
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var classifier = document.GetRequiredLanguageService<ISyntaxClassificationService>();
+            var virtualCharService = document.GetRequiredLanguageService<IVirtualCharLanguageService>();
+
             using var _ = ArrayBuilder<SpellCheckSpan>.GetInstance(out var spans);
 
-            var worker = new Worker(syntaxFacts, classifier, spans);
+            var worker = new Worker(syntaxFacts, classifier, virtualCharService, spans);
             worker.Recurse(root, cancellationToken);
 
             return spans.ToImmutable();
         }
 
-        private readonly ref struct Worker(ISyntaxFactsService syntaxFacts, ISyntaxClassificationService classifier, ArrayBuilder<SpellCheckSpan> spans)
+        private readonly ref struct Worker(
+            ISyntaxFactsService syntaxFacts,
+            ISyntaxClassificationService classifier,
+            IVirtualCharLanguageService virtualCharService,
+            ArrayBuilder<SpellCheckSpan> spans)
         {
             private readonly ISyntaxFactsService _syntaxFacts = syntaxFacts;
             private readonly ISyntaxKinds _syntaxKinds = syntaxFacts.SyntaxKinds;
             private readonly ISyntaxClassificationService _classifier = classifier;
+            private readonly IVirtualCharLanguageService _virtualCharService = virtualCharService;
             private readonly ArrayBuilder<SpellCheckSpan> _spans = spans;
 
             private void AddSpan(SpellCheckSpan span)
@@ -51,15 +62,22 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             public void Recurse(SyntaxNode root, CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                foreach (var child in root.ChildNodesAndTokens())
+
+                using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var stack);
+                stack.Push(root);
+
+                while (stack.Count > 0)
                 {
-                    if (child.IsNode)
+                    var current = stack.Pop();
+
+                    if (current.IsToken)
                     {
-                        Recurse(child.AsNode()!, cancellationToken);
+                        ProcessToken(current.AsToken(), cancellationToken);
                     }
-                    else
+                    else if (current.IsNode)
                     {
-                        ProcessToken(child.AsToken(), cancellationToken);
+                        foreach (var child in current.ChildNodesAndTokens().Reverse())
+                            stack.Push(child);
                     }
                 }
             }
@@ -74,12 +92,12 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                     token.RawKind == _syntaxKinds.SingleLineRawStringLiteralToken ||
                     token.RawKind == _syntaxKinds.MultiLineRawStringLiteralToken)
                 {
-                    AddSpan(new SpellCheckSpan(token.Span, SpellCheckKind.String));
+                    AddStringSubSpans(token);
                 }
                 else if (token.RawKind == _syntaxKinds.InterpolatedStringTextToken &&
                          token.Parent?.RawKind == _syntaxKinds.InterpolatedStringText)
                 {
-                    AddSpan(new SpellCheckSpan(token.Span, SpellCheckKind.String));
+                    AddStringSubSpans(token);
                 }
                 else if (token.RawKind == _syntaxKinds.IdentifierToken)
                 {
@@ -87,6 +105,52 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                 }
 
                 ProcessTriviaList(token.TrailingTrivia, cancellationToken);
+            }
+
+            private void AddStringSubSpans(SyntaxToken token)
+            {
+                var virtualChars = _virtualCharService.TryConvertToVirtualChars(token);
+                if (virtualChars.IsDefaultOrEmpty)
+                    return;
+
+                // find the sequences of letters in a row that should be spell checked. if any part of that sequence is
+                // an escaped character (like `\u0065`) then filter that out.  The platform won't be able to understand
+                // this word and will report bogus spell checking mistakes.
+                var start = 0;
+                while (start < virtualChars.Length)
+                {
+                    var startChar = virtualChars[start];
+                    if (!startChar.IsLetter)
+                        continue;
+
+                    var spanStart = startChar.Span.Start;
+                    var spanEnd = startChar.Span.End;
+
+                    var end = start;
+                    var seenEscape = false;
+                    while (end < virtualChars.Length && virtualChars[end] is { IsLetter: true } endChar)
+                    {
+                        // we know if we've seen a letter that is an escape character if it takes more than two actual
+                        // characters in the source.
+                        seenEscape = seenEscape || virtualChars[end].Span.Length > 1;
+                        spanEnd = endChar.Span.End;
+                        end++;
+                    }
+
+                    Debug.Assert(end > start);
+
+                    if (!seenEscape)
+                    {
+                        AddSpan(new SpellCheckSpan(TextSpan.FromBounds(
+                            virtualChars[start].Span.Start,
+                            virtualChars[end]), SpellCheckKind.String))
+                    }
+
+                    start = end;
+                }
+
+                AddSpan(new SpellCheckSpan(token.Span, SpellCheckKind.String));
+
             }
 
             private void TryAddSpanForIdentifier(SyntaxToken token)
@@ -142,18 +206,22 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             private void ProcessDocComment(SyntaxNode node, CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var stack);
+                stack.Push(node);
 
-                foreach (var child in node.ChildNodesAndTokens())
+                while (stack.Count > 0)
                 {
-                    if (child.IsNode)
+                    var current = stack.Pop();
+                    if (current.IsToken)
                     {
-                        ProcessDocComment(child.AsNode()!, cancellationToken);
-                    }
-                    else
-                    {
-                        var token = child.AsToken();
+                        var token = current.AsToken();
                         if (token.RawKind == _syntaxFacts.SyntaxKinds.XmlTextLiteralToken)
                             AddSpan(new SpellCheckSpan(token.Span, SpellCheckKind.Comment));
+                    }
+                    else if (current.IsNode)
+                    {
+                        foreach (var child in current.ChildNodesAndTokens().Reverse())
+                            stack.Push(child);
                     }
                 }
             }
