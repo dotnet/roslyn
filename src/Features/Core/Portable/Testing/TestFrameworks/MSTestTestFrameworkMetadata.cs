@@ -17,8 +17,8 @@ internal class MSTestTestFrameworkMetadata : ITestFrameworkMetadata
     {
     }
 
-    public bool MatchesAttributeSymbolName(string attributeSymbolName)
+    public bool MatchesAttributeSyntacticName(string attributeSyntacticName)
     {
-        return attributeSymbolName is "Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute";
+        return attributeSyntacticName is "TestMethodAttribute";
     }
 }

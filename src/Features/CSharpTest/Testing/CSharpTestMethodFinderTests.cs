@@ -61,7 +61,9 @@ public class CSharpTestMethodFinderTests
                 public void Test$$Method1() { }
             }
             """;
-        await TestXunitAsync(code, "TestMethod1");
+
+        // This asserts that we cannot find test methods with aliased attributes because we only do syntactic checks.
+        await TestXunitAsync(code);
     }
 
     [Fact]
@@ -267,6 +269,72 @@ public class CSharpTestMethodFinderTests
 
     #endregion
 
+    [Fact]
+    public async Task TestFindsTestMethodInBlockScopedNamespace()
+    {
+        var code = """
+            namespace BlockScoped
+            {
+                using Xunit;
+                public class TestClass
+                {
+                    [Fact]
+                    public void Test$$Method1() { }
+                }
+            }
+            """;
+        await TestXunitAsync(code, "TestMethod1");
+    }
+
+    [Fact]
+    public async Task TestFindsTestMethodInFileScopedNamespace()
+    {
+        var code = """
+            namespace FileScoped;
+            using Xunit;
+            public class TestClass
+            {
+                [Fact]
+                public void Test$$Method1() { }
+            }
+            """;
+        await TestXunitAsync(code, "TestMethod1");
+    }
+
+    [Fact]
+    public async Task TestFindsTestMethodInStruct()
+    {
+        var code = """
+            using Xunit;
+            public struct TestClass
+            {
+                [Fact]
+                public void Test$$Method1() { }
+            }
+            """;
+        await TestXunitAsync(code, "TestMethod1");
+    }
+
+    [Fact]
+    public async Task TestFindsTestMethodInPartialClass()
+    {
+        var code = """
+            using Xunit;
+            public partial class PartialClass
+            {
+                [Fact]
+                public void Test$$Method1() { }
+            }
+
+            public partial class PartialClass
+            {
+                [Fact]
+                public void TestMethod2() { }
+            }
+            """;
+        await TestXunitAsync(code, "TestMethod1");
+    }
+
     private static Task TestXunitAsync(string code, params string[] expectedTestNames)
     {
         var xunitDefinitions = """
@@ -330,7 +398,7 @@ public class CSharpTestMethodFinderTests
         var span = testDocument.CursorPosition != null ? new TextSpan(testDocument.CursorPosition.Value, 0) : testDocument.SelectedSpans.Single();
 
         var testMethodFinder = workspace.CurrentSolution.Projects.Single().GetRequiredLanguageService<ITestMethodFinder>();
-        var testMethods = await testMethodFinder.GetPotentialTestMethodsAsync(span, workspace.CurrentSolution.GetRequiredDocument(testDocument.Id), CancellationToken.None);
+        var testMethods = await testMethodFinder.GetPotentialTestMethodsAsync(workspace.CurrentSolution.GetRequiredDocument(testDocument.Id), span, CancellationToken.None);
         var testMethodNames = testMethods.Cast<MethodDeclarationSyntax>().Select(m => m.Identifier.Text).ToArray();
 
         AssertEx.Equal(expectedTestNames, testMethodNames);

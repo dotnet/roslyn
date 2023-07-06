@@ -24,22 +24,17 @@ internal abstract class AbstractTestMethodFinder<TMethodDeclaration>(IEnumerable
         typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
         memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
 
-    /// <summary>
-    /// Sometimes the test runner outputs fully qualified method names with parameters.  So we also check for that scenario.
-    /// </summary>
-    private static readonly SymbolDisplayFormat s_methodSymbolWithParametersDisplayFormat = new(
-        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
-        memberOptions: SymbolDisplayMemberOptions.IncludeContainingType | SymbolDisplayMemberOptions.IncludeParameters);
-
     protected readonly ImmutableArray<ITestFrameworkMetadata> TestFrameworkMetadata = testFrameworks.ToImmutableArray();
 
-    protected abstract Task<bool> IsTestMethodAsync(Document document, TMethodDeclaration method, CancellationToken cancellationToken);
+    protected abstract bool IsTestMethod(TMethodDeclaration method);
 
-    public async Task<ImmutableArray<SyntaxNode>> GetPotentialTestMethodsAsync(TextSpan textSpan, Document document, CancellationToken cancellationToken)
+    protected abstract bool DescendIntoChildren(SyntaxNode node);
+
+    public async Task<ImmutableArray<SyntaxNode>> GetPotentialTestMethodsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        var testNodes = await GetPotentialTestMethodsAsync(document, cancellationToken).ConfigureAwait(false);
+        var testNodes = await GetPotentialTestNodesAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
 
         // Find any test methods that intersect with the requested span.
         var intersectingNodes = testNodes.Where(node => node.Span.IntersectsWith(textSpan)).ToImmutableArray();
@@ -52,41 +47,61 @@ internal abstract class AbstractTestMethodFinder<TMethodDeclaration>(IEnumerable
         return testNodes.Where(node => node.Parent?.Span.IntersectsWith(textSpan) == true).ToImmutableArray();
     }
 
-    public async Task<bool> IsMatchAsync(SyntaxNode node, string fullyQualifiedTestName, Document document, CancellationToken cancellationToken)
+    public bool IsMatch(SemanticModel semanticModel, SyntaxNode node, string fullyQualifiedTestName, CancellationToken cancellationToken)
     {
         var method = node as TMethodDeclaration;
         Contract.ThrowIfNull(method, $"Node with kind {node.RawKind} is not a method");
 
         // Since discovered tests are not guarantied to run on a particular snapshot, we match optimistically based on test name.
-        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var methodSymbol = semanticModel.GetDeclaredSymbol(method, cancellationToken);
         Contract.ThrowIfNull(methodSymbol, "Test method has no symbol");
 
         var fullyQualifiedMethodName = methodSymbol.ToDisplayString(s_methodSymbolNoParametersDisplayFormat);
-        var fullyQualifiedMethodNameWithParameters = methodSymbol.ToDisplayString(s_methodSymbolWithParametersDisplayFormat);
-        return fullyQualifiedMethodName == fullyQualifiedTestName || fullyQualifiedMethodNameWithParameters == fullyQualifiedTestName;
+
+        // The definition of fully qualified name varies depending on the test framework.
+        // For example, XUnit will never include parameters in the FQN it gives to us.
+        // However NUnit will give us a FQN with the actual parameter values passed in (e.g. if there's an int parameter, it will pass in the value of the int).
+        // To avoid these problems, we compare our method FQN (without parameters) against the test framework FQN with everything past the first open paren removed.
+        var indexOfOpenParen = fullyQualifiedTestName.IndexOf('(');
+        if (indexOfOpenParen != -1)
+        {
+            fullyQualifiedTestName = fullyQualifiedTestName.Remove(indexOfOpenParen);
+        }
+        
+        return fullyQualifiedMethodName == fullyQualifiedTestName;
     }
 
-    public Task<bool> IsTestMethodAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+    public bool IsTestMethod(SyntaxNode node)
     {
-        return node is TMethodDeclaration method ? IsTestMethodAsync(document, method, cancellationToken) : SpecializedTasks.False;
+        return node is TMethodDeclaration method && IsTestMethod(method);
     }
 
-    private async Task<ImmutableArray<SyntaxNode>> GetPotentialTestMethodsAsync(Document document, CancellationToken cancellationToken)
+    private async Task<ImmutableArray<SyntaxNode>> GetPotentialTestNodesAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var methodsInRange = root.DescendantNodesAndSelf(descendIntoTrivia: false).OfType<TMethodDeclaration>();
+        var methodsInRange = root.DescendantNodesAndSelf(descendIntoChildren: ShouldDescend, descendIntoTrivia: false).OfType<TMethodDeclaration>();
 
-        using var _ = ArrayBuilder<TMethodDeclaration>.GetInstance(out var testMethods);
+        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var testMethods);
         foreach (var method in methodsInRange)
         {
-            var isTestMethod = await IsTestMethodAsync(document, method, cancellationToken).ConfigureAwait(false);
+            var isTestMethod = IsTestMethod(method);
             if (isTestMethod)
             {
                 testMethods.Add(method);
             }
         }
 
-        return testMethods.Cast<SyntaxNode>().ToImmutableArray();
+        return testMethods.ToImmutableArray();
+
+        bool ShouldDescend(SyntaxNode node)
+        {
+            if (node is ICompilationUnitSyntax)
+            {
+                return true;
+            }
+
+            // If the text span doesn't intersect with the node at all we don't need to explore it.
+            return node.Span.IntersectsWith(textSpan) && DescendIntoChildren(node);
+        }
     }
 }

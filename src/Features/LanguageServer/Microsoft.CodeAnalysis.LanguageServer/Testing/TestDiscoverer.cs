@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Features.Testing;
@@ -14,8 +13,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.TestPlatform.VsTestConsole.TranslationLayer;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel.Client;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -24,7 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Testing;
 [Export, Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class TestDiscoverer(ILoggerFactory loggerFactory)
+internal partial class TestDiscoverer(ILoggerFactory loggerFactory)
 {
     /// <summary>
     /// TODO - localize messages. https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1799066/
@@ -68,6 +65,12 @@ internal class TestDiscoverer(ILoggerFactory loggerFactory)
         cancellationToken.Register(() => vsTestConsoleWrapper.CancelDiscovery());
         await discoveryTask;
 
+        if (discoveryHandler.IsAborted())
+        {
+            progress.Report(partialResult with { Message = "Test discovery aborted" });
+            return ImmutableArray<TestCase>.Empty;
+        }
+
         var testCases = discoveryHandler.GetTestCases();
         var elapsed = stopwatch.Elapsed;
 
@@ -81,7 +84,7 @@ internal class TestDiscoverer(ILoggerFactory loggerFactory)
         {
             var text = await document.GetTextAsync(cancellationToken);
             var textSpan = ProtocolConversions.RangeToTextSpan(range, text);
-            var potentialTestMethods = await testMethodFinder.GetPotentialTestMethodsAsync(textSpan, document, cancellationToken);
+            var potentialTestMethods = await testMethodFinder.GetPotentialTestMethodsAsync(document, textSpan, cancellationToken);
             _logger.LogDebug(message: $"Potential test methods in range: {string.Join(Environment.NewLine, potentialTestMethods)}");
             return potentialTestMethods;
         }
@@ -91,9 +94,14 @@ internal class TestDiscoverer(ILoggerFactory loggerFactory)
     {
         // Match the tests in the requested range to the ones we discovered.
         using var _ = ArrayBuilder<TestCase>.GetInstance(out var matchedTests);
+
+        // While using semantics can be expensive, it is reasonable here for a couple reasons
+        //   1.  This only runs when the user explicitly asks to run tests.  Any delay here would be dominated by build, discovery, and test running time.
+        //   2.  We're only looking at semantic information (the FQN) for methods we've already determined have an appropriate test attribute.
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken);
         foreach(var discoveredTest in discoveredTests)
         {
-            var isMatch = await testMethods.AnyAsync(async (m) => await testMethodFinder.IsMatchAsync(m, discoveredTest.FullyQualifiedName, document, cancellationToken));
+            var isMatch = testMethods.Any((m) => testMethodFinder.IsMatch(semanticModel, m, discoveredTest.FullyQualifiedName, cancellationToken));
             if (isMatch)
             {
                 matchedTests.Add(discoveredTest);
@@ -102,51 +110,5 @@ internal class TestDiscoverer(ILoggerFactory loggerFactory)
 
         _logger.LogDebug($"Filtered {discoveredTests.Length} to {matchedTests.Count} tests");
         return matchedTests.ToImmutable();
-    }
-
-    private class DiscoveryHandler(BufferedProgress<RunTestsPartialResult> progress) : ITestDiscoveryEventsHandler
-    {
-        private readonly BufferedProgress<RunTestsPartialResult> _progress = progress;
-        private readonly ConcurrentBag<TestCase> _testCases = new();
-        private bool _isComplete;
-
-        public void HandleDiscoveredTests(IEnumerable<TestCase>? discoveredTestCases) => AddTests(discoveredTestCases);
-
-        public void HandleDiscoveryComplete(long totalTests, IEnumerable<TestCase>? lastChunk, bool isAborted)
-        {
-            AddTests(lastChunk);
-            _isComplete = true;
-        }
-
-        public void HandleLogMessage(TestMessageLevel level, string? message)
-        {
-            if (message != null)
-            {
-                _progress.Report(new RunTestsPartialResult(StageName, message, Progress: null));
-            }
-        }
-
-        public void HandleRawMessage(string rawMessage)
-        {
-            // No need to do anything with raw messages.
-            return;
-        }
-
-        public ImmutableArray<TestCase> GetTestCases()
-        {
-            Contract.ThrowIfFalse(_isComplete, "Tried to get test cases before discovery completed");
-            return _testCases.ToImmutableArray();
-        }
-
-        private void AddTests(IEnumerable<TestCase>? testCases)
-        {
-            if (testCases != null)
-            {
-                foreach (var test in testCases)
-                {
-                    _testCases.Add(test);
-                }
-            }
-        }
     }
 }

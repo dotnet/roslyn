@@ -17,8 +17,8 @@ internal class XUnitTestFrameworkMetadata : ITestFrameworkMetadata
     {
     }
 
-    public bool MatchesAttributeSymbolName(string attributeSymbolName)
+    public bool MatchesAttributeSyntacticName(string attributeSyntacticName)
     {
-        return attributeSymbolName is "Xunit.FactAttribute" or "Xunit.TheoryAttribute";
+        return attributeSyntacticName is "FactAttribute" or "TheoryAttribute";
     }
 }

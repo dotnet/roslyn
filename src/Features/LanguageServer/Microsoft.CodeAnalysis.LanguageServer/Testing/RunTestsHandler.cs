@@ -57,12 +57,10 @@ internal class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer t
         });
 
         var testCases = await testDiscoverer.DiscoverTestsAsync(request.Range, context.Document, projectOutputPath, progress, vsTestConsoleWrapper, cancellationToken);
-        if (testCases.IsEmpty)
+        if (!testCases.IsEmpty)
         {
-            return progress.GetValues() ?? Array.Empty<RunTestsPartialResult>();
+            await testRunner.RunTestsAsync(testCases, progress, vsTestConsoleWrapper, cancellationToken);
         }
-
-        await testRunner.RunTestsAsync(testCases, progress, vsTestConsoleWrapper, cancellationToken);
 
         return progress.GetValues() ?? Array.Empty<RunTestsPartialResult>();
     }
@@ -83,23 +81,11 @@ internal class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer t
         // TODO - we likely need to pass the no-restore flag once we have automatic restore enabled.
         // https://github.com/dotnet/vscode-csharp/issues/5725
         var arguments = "build";
-        using var process = dotnetCliHelper.Run(arguments, workingDirectory);
+        using var process = dotnetCliHelper.Run(arguments, workingDirectory, shouldLocalizeOutput: true);
 
-        process.OutputDataReceived += (sender, args) =>
-        {
-            if (args.Data != null)
-            {
-                ReportProgress(progress, args.Data);
-            }
-        };
+        process.OutputDataReceived += (sender, args) => ReportProgress(progress, args.Data);
 
-        process.ErrorDataReceived += (sender, args) =>
-        {
-            if (args.Data != null)
-            {
-                ReportProgress(progress, args.Data);
-            }
-        };
+        process.ErrorDataReceived += (sender, args) => ReportProgress(progress, args.Data);
         process.BeginOutputReadLine();
         process.BeginErrorReadLine();
 
@@ -110,9 +96,12 @@ internal class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer t
             throw new InvalidOperationException("Failed to run build, see test output for details");
         }
 
-        static void ReportProgress(BufferedProgress<RunTestsPartialResult> progress, string buildOutput)
+        static void ReportProgress(BufferedProgress<RunTestsPartialResult> progress, string? buildOutput)
         {
-            progress.Report(new RunTestsPartialResult("Building project...", buildOutput, Progress: null));
+            if (buildOutput != null)
+            {
+                progress.Report(new RunTestsPartialResult("Building project...", buildOutput, Progress: null));
+            }
         }
     }
 

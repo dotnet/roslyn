@@ -6,12 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Features.Testing;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Testing;
 
@@ -20,12 +18,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Testing;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal class CSharpTestMethodFinder([ImportMany] IEnumerable<ITestFrameworkMetadata> testFrameworks) : AbstractTestMethodFinder<MethodDeclarationSyntax>(testFrameworks)
 {
-    protected override async Task<bool> IsTestMethodAsync(Document document, MethodDeclarationSyntax method, CancellationToken cancellationToken)
+    protected override bool DescendIntoChildren(SyntaxNode node)
+    {
+        // We only need to look in type declarations for test methods (and therefore namespaces to find types).
+        return node is BaseNamespaceDeclarationSyntax or TypeDeclarationSyntax;
+    }
+
+    protected override bool IsTestMethod(MethodDeclarationSyntax method)
     {
         var attributes = method.AttributeLists.SelectMany(a => a.Attributes);
         foreach (var attribute in attributes)
         {
-            var isTestAttribute = await IsTestAttributeAsync(document, attribute, cancellationToken).ConfigureAwait(false);
+            var isTestAttribute = IsTestAttribute(attribute);
             if (isTestAttribute)
             {
                 return true;
@@ -35,17 +39,25 @@ internal class CSharpTestMethodFinder([ImportMany] IEnumerable<ITestFrameworkMet
         return false;
     }
 
-    private async Task<bool> IsTestAttributeAsync(Document document, AttributeSyntax attribute, CancellationToken cancellationToken)
+    private bool IsTestAttribute(AttributeSyntax attribute)
     {
-        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        var symbol = semanticModel.GetSymbolInfo(attribute, cancellationToken);
-        if (symbol.Symbol is null)
+        var nameExpression = (ExpressionSyntax)attribute.Name;
+        var rightmostName = nameExpression.GetRightmostName();
+        if (rightmostName == null)
         {
             return false;
         }
 
-        var typeName = symbol.Symbol.ContainingType.ToNameDisplayString();
-        var matches = TestFrameworkMetadata.Any(metadata => metadata.MatchesAttributeSymbolName(typeName));
+        var attributeName = rightmostName.Identifier.Text;
+
+        // Normalize the attribute name to always end with "Attribute".
+        // For example [Fact] we normalize the name to 'FactAttribute' as it is actually defined.
+        if (!attributeName.EndsWith("Attribute"))
+        {
+            attributeName += "Attribute";
+        }
+
+        var matches = TestFrameworkMetadata.Any(metadata => metadata.MatchesAttributeSyntacticName(attributeName));
         return matches;
     }
 }

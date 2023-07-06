@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
 [Export, Shared]
-internal class DotnetCliHelper
+internal sealed class DotnetCliHelper
 {
     internal const string DotnetRootEnvVar = "DOTNET_ROOT";
     internal const string DotnetRootUserEnvVar = "DOTNET_ROOT_USER";
@@ -108,7 +108,7 @@ internal class DotnetCliHelper
         return dotnetSdkFolderPath;
     }
 
-    public Process Run(string arguments, string? workingDirectory, bool shouldLocalizeOutput = true)
+    public Process Run(string arguments, string? workingDirectory, bool shouldLocalizeOutput)
     {
         _logger.LogDebug($"Running dotnet CLI command at {_dotnetExecutablePath.Value} in directory {workingDirectory} with arguments {arguments}");
 

@@ -70,25 +70,24 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
             codeLenses.Add(codeLens);
         }
 
-        await AddTestCodeLensAsync(codeLenses, members, document, text, request.TextDocument, cancellationToken).ConfigureAwait(false);
+        AddTestCodeLens(codeLenses, members, document, text, request.TextDocument);
 
         return codeLenses.ToArray();
     }
 
-    private static async Task AddTestCodeLensAsync(
+    private static void AddTestCodeLens(
         ArrayBuilder<LSP.CodeLens> codeLenses,
         ImmutableArray<CodeLensMember> members,
         Document document,
         SourceText text,
-        LSP.TextDocumentIdentifier textDocumentIdentifier,
-        CancellationToken cancellationToken)
+        LSP.TextDocumentIdentifier textDocumentIdentifier)
     {
         // Find test method members.
         var testMethodFinder = document.GetRequiredLanguageService<ITestMethodFinder>();
         using var _ = ArrayBuilder<CodeLensMember>.GetInstance(out var testMethodMembers);
         foreach (var member in members)
         {
-            var isTestMethod = await testMethodFinder.IsTestMethodAsync(document, member.Node, cancellationToken).ConfigureAwait(false);
+            var isTestMethod = testMethodFinder.IsTestMethod(member.Node);
             if (isTestMethod)
             {
                 testMethodMembers.Add(member);

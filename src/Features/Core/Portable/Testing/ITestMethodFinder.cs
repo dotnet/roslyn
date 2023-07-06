@@ -16,15 +16,16 @@ internal interface ITestMethodFinder : ILanguageService
     /// Finds potential test methods in the range.  This is not intended to be 100% accurate, but good enough without exploding complexity.
     /// For example, this does not consider inheritance.
     /// </summary>
-    Task<ImmutableArray<SyntaxNode>> GetPotentialTestMethodsAsync(TextSpan textSpan, Document document, CancellationToken cancellationToken);
+    Task<ImmutableArray<SyntaxNode>> GetPotentialTestMethodsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Determines if the node is a potential method.
+    /// Determines if the node is a potential test method.
+    /// This is used in code lens computation, so it generally does syntax-only checks.
     /// </summary>
-    Task<bool> IsTestMethodAsync(Document document, SyntaxNode node, CancellationToken cancellationToken);
+    bool IsTestMethod(SyntaxNode node);
 
     /// <summary>
     /// Determines if a node is a likely match for the fully qualified test name.
     /// </summary>
-    Task<bool> IsMatchAsync(SyntaxNode node, string fullyQualifiedTestName, Document document, CancellationToken cancellationToken);
+    bool IsMatch(SemanticModel model, SyntaxNode node, string fullyQualifiedTestName, CancellationToken cancellationToken);
 }

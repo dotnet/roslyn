@@ -3,7 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis.Features.Testing;
+
 internal interface ITestFrameworkMetadata
 {
-    public bool MatchesAttributeSymbolName(string attributeSymbolName);
+    public bool MatchesAttributeSyntacticName(string attributeSyntacticName);
 }
