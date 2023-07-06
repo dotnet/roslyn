@@ -108,16 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public void SetReturnsVoid(bool value)
             {
                 Debug.Assert((_flags & ReturnsVoidIsSetBit) == 0);
-
-                if (value)
-                {
-                    ThreadSafeFlagOperations.Set(ref _flags, ReturnsVoidBit);
-                }
-                else
-                {
-                    // We never have to unset this flag
-                    Debug.Assert(!ReturnsVoid);
-                }
+                ThreadSafeFlagOperations.Set(ref _flags, (int)(ReturnsVoidIsSetBit | (value ? ReturnsVoidBit : 0)));
             }
 
             public MethodKind MethodKind
