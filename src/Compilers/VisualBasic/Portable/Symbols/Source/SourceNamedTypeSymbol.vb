@@ -1817,7 +1817,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                 Case AttributeDescription.CaseInsensitiveExtensionAttribute.Name,
                                      AttributeDescription.ObsoleteAttribute.Name,
                                      AttributeDescription.DeprecatedAttribute.Name,
-                                     AttributeDescription.WindowsExperimentalAttribute.Name,
                                      AttributeDescription.ExperimentalAttribute.Name,
                                      AttributeDescription.MyGroupCollectionAttribute.Name,
                                      AttributeDescription.TypeIdentifierAttribute.Name
