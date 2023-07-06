@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                 RefKind.None,
                                                 @event.Modifiers,
                                                 returnsVoid: false, // until we learn otherwise (in LazyMethodChecks).
+                                                returnsVoidIsSet: false,
                                                 isExpressionBodied: isExpressionBodied,
                                                 isExtensionMethod: false,
                                                 isNullableAnalysisEnabled: isNullableAnalysisEnabled,

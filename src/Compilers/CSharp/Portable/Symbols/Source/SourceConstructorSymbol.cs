@@ -86,9 +86,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             DeclarationModifiers declarationModifiers = MakeModifiers(containingType, syntax, methodKind, syntax.HasAnyBody(), location, diagnostics, out modifierErrors, out report_ERR_StaticConstructorWithAccessModifiers);
             Flags flags = MakeFlags(
-                                    methodKind, RefKind.None, declarationModifiers, returnsVoid: true, isExpressionBodied: syntax.IsExpressionBodied(),
-                                    isExtensionMethod: false, isVarArg: syntax.IsVarArg(), isNullableAnalysisEnabled: isNullableAnalysisEnabled,
-                                    isExplicitInterfaceImplementation: false);
+                                    methodKind, RefKind.None, declarationModifiers, returnsVoid: true, returnsVoidIsSet: true,
+                                    isExpressionBodied: syntax.IsExpressionBodied(), isExtensionMethod: false, isVarArg: syntax.IsVarArg(),
+                                    isNullableAnalysisEnabled: isNullableAnalysisEnabled, isExplicitInterfaceImplementation: false);
 
             return (declarationModifiers, flags);
         }
