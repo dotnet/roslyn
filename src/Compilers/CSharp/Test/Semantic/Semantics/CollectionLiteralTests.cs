@@ -6277,5 +6277,207 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[3, 1, 2, 4], ");
         }
+
+        [Fact]
+        public void PostfixIncrementDecrement()
+        {
+            string source = """
+                using System.Collections.Generic;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        []++;
+                        []--;
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (7,9): error CS1059: The operand of an increment or decrement operator must be a variable, property or indexer
+                //         []++;
+                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "[]").WithLocation(7, 9),
+                // (8,9): error CS1059: The operand of an increment or decrement operator must be a variable, property or indexer
+                //         []--;
+                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "[]").WithLocation(8, 9));
+        }
+
+        [Fact]
+        public void PostfixPointerAccess()
+        {
+            string source = """
+                using System.Collections.Generic;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        var v = []->Count;
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (7,17): error CS9503: There is no target type for the collection literal.
+                //         var v = []->Count;
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[]").WithLocation(7, 17));
+        }
+
+        [Fact]
+        public void LeftHandAssignment()
+        {
+            string source = """
+                using System.Collections.Generic;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        [] = null;
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (7,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         [] = null;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[]").WithLocation(7, 9));
+        }
+
+        [Fact]
+        public void BinaryOperator()
+        {
+            string source = """
+                using System.Collections.Generic;
+
+                class Program
+                {
+                    static void Main(List<int> list)
+                    {
+                        [] + list;
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (7,9): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+                //         [] + list;
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "[]").WithArguments("string", "0").WithLocation(7, 9),
+                // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         [] + list;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "[] + list").WithLocation(7, 9));
+        }
+
+        [Fact]
+        public void RangeOperator()
+        {
+            string source = """
+                using System.Collections.Generic;
+
+                class Program
+                {
+                    static void Main(List<int> list)
+                    {
+                        []..;
+                    }
+                }
+                """;
+            CreateCompilationWithIndexAndRangeAndSpan(source).VerifyEmitDiagnostics(
+                // (7,9): error CS9500: Cannot initialize type 'Index' with a collection literal because the type is not constructible.
+                //         []..;
+                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("System.Index").WithLocation(7, 9),
+                // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         []..;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "[]..").WithLocation(7, 9));
+        }
+
+        [Fact]
+        public void TopLevelSwitchExpression()
+        {
+            string source = """
+                using System.Collections.Generic;
+
+                class Program
+                {
+                    static void Main(List<int> list)
+                    {
+                        [] switch { null => 0 };
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (7,9): error CS9503: There is no target type for the collection literal.
+                //         [] switch
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[]").WithLocation(7, 9),
+                // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         [] switch
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "[] switch { null => 0 }").WithLocation(7, 9));
+        }
+
+        [Fact]
+        public void TopLevelWithExpression()
+        {
+            string source = """
+                using System.Collections.Generic;
+
+                class Program
+                {
+                    static void Main(List<int> list)
+                    {
+                        [] with { Count = 1, };
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (7,9): error CS9503: There is no target type for the collection literal.
+                //         [] with { Count = 1, };
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[]").WithLocation(7, 9),
+                // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         [] with { Count = 1, };
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "[] with { Count = 1, }").WithLocation(7, 9));
+        }
+
+        [Fact]
+        public void TopLevelIsExpressions()
+        {
+            string source = """
+                using System.Collections.Generic;
+
+                class Program
+                {
+                    static void Main(List<int> list)
+                    {
+                        [] is object;
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (7,9): error CS9503: There is no target type for the collection literal.
+                //         [] is object;
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[]").WithLocation(7, 9),
+                // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         [] is object;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "[] is object").WithLocation(7, 9));
+        }
+
+        [Fact]
+        public void TopLevelAsExpressions()
+        {
+            string source = """
+                using System.Collections.Generic;
+
+                class Program
+                {
+                    static void Main(List<int> list)
+                    {
+                        [] as List<int>;
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (7,9): error CS9503: There is no target type for the collection literal.
+                //         [] as List<int>;
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[]").WithLocation(7, 9),
+                // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         [] as List<int>;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "[] as List<int>").WithLocation(7, 9));
+        }
     }
 }
