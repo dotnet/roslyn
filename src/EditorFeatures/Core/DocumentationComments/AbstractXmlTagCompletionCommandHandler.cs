@@ -17,14 +17,11 @@ using Microsoft.VisualStudio.Text.Operations;
 
 namespace Microsoft.CodeAnalysis.DocumentationComments
 {
-    internal abstract class AbstractXmlTagCompletionCommandHandler : IChainedCommandHandler<TypeCharCommandArgs>
+    internal abstract class AbstractXmlTagCompletionCommandHandler(ITextUndoHistoryRegistry undoHistory) : IChainedCommandHandler<TypeCharCommandArgs>
     {
-        private readonly ITextUndoHistoryRegistry _undoHistory;
+        private readonly ITextUndoHistoryRegistry _undoHistory = undoHistory;
 
         public string DisplayName => EditorFeaturesResources.XML_End_Tag_Completion;
-
-        public AbstractXmlTagCompletionCommandHandler(ITextUndoHistoryRegistry undoHistory)
-            => _undoHistory = undoHistory;
 
         protected abstract void TryCompleteTag(ITextView textView, ITextBuffer subjectBuffer, Document document, SnapshotPoint position, CancellationToken cancellationToken);
 

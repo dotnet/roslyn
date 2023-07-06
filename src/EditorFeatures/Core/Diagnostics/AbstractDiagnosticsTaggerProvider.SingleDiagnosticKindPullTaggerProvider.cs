@@ -34,32 +34,23 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
     /// cref="AbstractDiagnosticsTaggerProvider{TTag}"/> which aggregates its results and the results for all the other <see
     /// cref="DiagnosticKind"/> to produce all the diagnostics for that feature.
     /// </summary>
-    private sealed class SingleDiagnosticKindPullTaggerProvider : AsynchronousTaggerProvider<TTag>
+    private sealed class SingleDiagnosticKindPullTaggerProvider(
+        AbstractDiagnosticsTaggerProvider<TTag> callback,
+        DiagnosticKind diagnosticKind,
+        IThreadingContext threadingContext,
+        IDiagnosticService diagnosticService,
+        IDiagnosticAnalyzerService analyzerService,
+        IGlobalOptionService globalOptions,
+        ITextBufferVisibilityTracker? visibilityTracker,
+        IAsynchronousOperationListener listener) : AsynchronousTaggerProvider<TTag>(threadingContext, globalOptions, visibilityTracker, listener)
     {
-        private readonly DiagnosticKind _diagnosticKind;
-        private readonly IDiagnosticService _diagnosticService;
-        private readonly IDiagnosticAnalyzerService _analyzerService;
+        private readonly DiagnosticKind _diagnosticKind = diagnosticKind;
+        private readonly IDiagnosticService _diagnosticService = diagnosticService;
+        private readonly IDiagnosticAnalyzerService _analyzerService = analyzerService;
 
-        private readonly AbstractDiagnosticsTaggerProvider<TTag> _callback;
+        private readonly AbstractDiagnosticsTaggerProvider<TTag> _callback = callback;
 
         protected override ImmutableArray<IOption2> Options => _callback.Options;
-
-        public SingleDiagnosticKindPullTaggerProvider(
-            AbstractDiagnosticsTaggerProvider<TTag> callback,
-            DiagnosticKind diagnosticKind,
-            IThreadingContext threadingContext,
-            IDiagnosticService diagnosticService,
-            IDiagnosticAnalyzerService analyzerService,
-            IGlobalOptionService globalOptions,
-            ITextBufferVisibilityTracker? visibilityTracker,
-            IAsynchronousOperationListener listener)
-            : base(threadingContext, globalOptions, visibilityTracker, listener)
-        {
-            _callback = callback;
-            _diagnosticKind = diagnosticKind;
-            _diagnosticService = diagnosticService;
-            _analyzerService = analyzerService;
-        }
 
         protected sealed override TaggerDelay EventChangeDelay => TaggerDelay.Short;
         protected sealed override TaggerDelay AddedTagNotificationDelay => TaggerDelay.OnIdle;

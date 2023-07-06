@@ -13,25 +13,18 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
-    internal class SolutionPreviewResult
+    internal class SolutionPreviewResult(
+        IThreadingContext threadingContext,
+        IList<SolutionPreviewItem>? previews,
+        SolutionChangeSummary? changeSummary = null)
     {
-        private readonly IThreadingContext _threadingContext;
-        private readonly IList<SolutionPreviewItem> _previews;
-        public readonly SolutionChangeSummary? ChangeSummary;
+        private readonly IThreadingContext _threadingContext = threadingContext;
+        private readonly IList<SolutionPreviewItem> _previews = previews ?? SpecializedCollections.EmptyList<SolutionPreviewItem>();
+        public readonly SolutionChangeSummary? ChangeSummary = changeSummary;
 
         public SolutionPreviewResult(IThreadingContext threadingContext, SolutionPreviewItem preview, SolutionChangeSummary? changeSummary = null)
             : this(threadingContext, new List<SolutionPreviewItem> { preview }, changeSummary)
         {
-        }
-
-        public SolutionPreviewResult(
-            IThreadingContext threadingContext,
-            IList<SolutionPreviewItem>? previews,
-            SolutionChangeSummary? changeSummary = null)
-        {
-            _threadingContext = threadingContext;
-            _previews = previews ?? SpecializedCollections.EmptyList<SolutionPreviewItem>();
-            this.ChangeSummary = changeSummary;
         }
 
         public bool IsEmpty => _previews.Count == 0;

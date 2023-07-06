@@ -32,21 +32,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
     [ContentType(ContentTypeNames.VisualBasicContentType)]
     [ContentType(ContentTypeNames.XamlContentType)]
     [Name(PredefinedCommandHandlerNames.OrganizeDocument)]
-    internal class OrganizeDocumentCommandHandler :
+    [method: ImportingConstructor]
+    [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+    internal class OrganizeDocumentCommandHandler(IThreadingContext threadingContext, IGlobalOptionService globalOptions) :
         ICommandHandler<OrganizeDocumentCommandArgs>,
         ICommandHandler<SortImportsCommandArgs>,
         ICommandHandler<SortAndRemoveUnnecessaryImportsCommandArgs>
     {
-        private readonly IThreadingContext _threadingContext;
-        private readonly IGlobalOptionService _globalOptions;
-
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public OrganizeDocumentCommandHandler(IThreadingContext threadingContext, IGlobalOptionService globalOptions)
-        {
-            _threadingContext = threadingContext;
-            _globalOptions = globalOptions;
-        }
+        private readonly IThreadingContext _threadingContext = threadingContext;
+        private readonly IGlobalOptionService _globalOptions = globalOptions;
 
         public string DisplayName => EditorFeaturesResources.Organize_Document;
 
