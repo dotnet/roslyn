@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig
 {
     [EditorConfigGenerator(LanguageNames.CSharp), Shared]
-    internal class CSharpEditorConfigFileGenerator
+    internal sealed class CSharpEditorConfigFileGenerator
         : IEditorConfigOptionsCollection
     {
         [ImportingConstructor]

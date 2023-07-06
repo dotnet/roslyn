@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.Options;
 namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig
 {
     internal interface IEditorConfigOptionsCollection
-
     {
         ImmutableArray<(string feature, ImmutableArray<IOption2> options)> GetEditorConfigOptions();
     }

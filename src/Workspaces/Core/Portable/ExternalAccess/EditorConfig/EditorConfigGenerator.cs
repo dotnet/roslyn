@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Options;
 namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig
 {
     [Export(typeof(EditorConfigGenerator)), Shared]
-    internal class EditorConfigGenerator
+    internal sealed class EditorConfigGenerator
 
     {
         private readonly IGlobalOptionService _globalOptions;
