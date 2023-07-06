@@ -59,14 +59,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return ProtocolConversions.GetUriFromFilePath(path);
         }
 
-        public static Uri GetUriFromContainingFolder(this TextDocument document)
-        {
-            Contract.ThrowIfNull(document.Name);
-            Contract.ThrowIfTrue(document.Folders.IsEmpty());
-            var path = Path.Combine(document.Folders.Concat(document.Name).ToArray());
-            return ProtocolConversions.GetUriFromFilePath(path);
-        }
-
         public static Uri? TryGetURI(this TextDocument document, RequestContext? context = null)
             => ProtocolConversions.TryGetUriFromFilePath(document.FilePath, context);
 

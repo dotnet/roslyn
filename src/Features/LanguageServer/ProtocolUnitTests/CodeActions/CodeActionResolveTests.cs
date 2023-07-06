@@ -445,7 +445,7 @@ class {|caret:BCD|}
                     }
                 },
 
-                DocumentFileContainingFolders = new[] { "dir1", "dir2", "dir3" },
+                DocumentFileContainingFolders = new[] { Path.Combine("dir1", "dir2", "dir3") },
             });
 
             var unresolvedCodeAction = CodeActionsTests.CreateCodeAction(
@@ -463,8 +463,11 @@ class {|caret:BCD|}
             var testWorkspace = testLspServer.TestWorkspace;
             var actualResolvedAction = await RunGetCodeActionResolveAsync(testLspServer, unresolvedCodeAction);
 
-            var newDocumentUri = ProtocolConversions.GetUriFromFilePath(Path.Combine("dir1", "dir2", "dir3", "BCD.cs"));
-            var existingDocumentUri = testWorkspace.CurrentSolution.GetRequiredDocument(testWorkspace.Documents.Single().Id).GetURI();
+            var existingDocument = testWorkspace.CurrentSolution.GetRequiredDocument(testWorkspace.Documents.Single().Id);
+            var existingDocumentUri = existingDocument.GetURI();
+
+            var newDocumentUri = ProtocolConversions.GetUriFromFilePath(
+                Path.Combine(Path.GetDirectoryName(existingDocument.FilePath), "BCD.cs"));
             var workspaceEdit = new WorkspaceEdit()
             {
                 DocumentChanges = new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]
@@ -494,8 +497,7 @@ class {|caret:BCD|}
                                 },
                                 NewText = @"class BCD
 {
-}
-"
+}"
                             }
                         }
                     },
@@ -517,7 +519,7 @@ class {|caret:BCD|}
                                     End = new Position()
                                     {
                                         Line = 5,
-                                        Character = 0
+                                        Character = 1
                                     }
                                 },
                                 NewText = ""
