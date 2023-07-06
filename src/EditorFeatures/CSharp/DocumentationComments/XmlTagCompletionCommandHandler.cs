@@ -24,15 +24,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
     [ContentType(ContentTypeNames.CSharpContentType)]
     [Name(nameof(XmlTagCompletionCommandHandler))]
     [Order(Before = PredefinedCompletionNames.CompletionCommandHandler)]
-    internal class XmlTagCompletionCommandHandler : AbstractXmlTagCompletionCommandHandler
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class XmlTagCompletionCommandHandler(ITextUndoHistoryRegistry undoHistory) : AbstractXmlTagCompletionCommandHandler(undoHistory)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public XmlTagCompletionCommandHandler(ITextUndoHistoryRegistry undoHistory)
-            : base(undoHistory)
-        {
-        }
-
         protected override void TryCompleteTag(ITextView textView, ITextBuffer subjectBuffer, Document document, SnapshotPoint position, CancellationToken cancellationToken)
         {
             var tree = document.GetRequiredSyntaxTreeSynchronously(cancellationToken);
