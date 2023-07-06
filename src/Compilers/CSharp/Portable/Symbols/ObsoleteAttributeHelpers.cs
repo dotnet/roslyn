@@ -159,7 +159,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     Debug.Assert(data.Message == null);
                     Debug.Assert(!data.IsError);
-                    return new CSDiagnosticInfo(ErrorCode.WRN_Experimental, symbol);
+                    // Provide an explicit format for fully-qualified type names.
+                    return new CSDiagnosticInfo(ErrorCode.WRN_Experimental,
+                        new FormattedSymbol(symbol, SymbolDisplayFormat.CSharpErrorMessageFormat));
                 }
 
                 if (data.Kind == ObsoleteAttributeKind.Experimental)
@@ -167,7 +169,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Debug.Assert(data.Message is null);
                     Debug.Assert(!data.IsError);
 
-                    return new CustomObsoleteDiagnosticInfo(MessageProvider.Instance, (int)ErrorCode.WRN_Experimental, data, symbol);
+                    // Provide an explicit format for fully-qualified type names.
+                    return new CustomObsoleteDiagnosticInfo(MessageProvider.Instance, (int)ErrorCode.WRN_Experimental, data,
+                        new FormattedSymbol(symbol, SymbolDisplayFormat.CSharpErrorMessageFormat));
                 }
 
                 // Issue a specialized diagnostic for add methods of collection initializers

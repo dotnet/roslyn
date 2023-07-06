@@ -893,7 +893,7 @@ namespace N
 """;
         var comp = CreateCompilation(new[] { src, experimentalAttributeSrc });
         comp.VerifyDiagnostics(
-            // 0.cs(1,1): warning DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+            // 0.cs(1,1): warning DiagID1: 'N.C' is for evaluation purposes only and is subject to change or removal in future updates.
             // N.C.M();
             Diagnostic("DiagID1", "N.C").WithArguments("N.C").WithLocation(1, 1)
             );
