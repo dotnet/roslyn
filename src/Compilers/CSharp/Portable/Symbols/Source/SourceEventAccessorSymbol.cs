@@ -123,8 +123,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         // EventRegistrationToken add_E(EventDelegate d);
 
-                        // Leave the returns void bit in this.flags false.
                         _lazyReturnType = TypeWithAnnotations.Create(eventTokenType);
+                        this.SetReturnsVoid(returnsVoid: false);
 
                         var parameter = new SynthesizedAccessorValueParameterSymbol(this, _event.TypeWithAnnotations, 0);
                         _lazyParameters = ImmutableArray.Create<ParameterSymbol>(parameter);
@@ -138,6 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         TypeSymbol voidType = compilation.GetSpecialType(SpecialType.System_Void);
                         Binder.ReportUseSite(voidType, diagnostics, this.Location);
                         _lazyReturnType = TypeWithAnnotations.Create(voidType);
+                        this.SetReturnsVoid(returnsVoid: true);
 
                         var parameter = new SynthesizedAccessorValueParameterSymbol(this, TypeWithAnnotations.Create(eventTokenType), 0);
                         _lazyParameters = ImmutableArray.Create<ParameterSymbol>(parameter);
@@ -151,13 +152,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     TypeSymbol voidType = compilation.GetSpecialType(SpecialType.System_Void);
                     Binder.ReportUseSite(voidType, diagnostics, this.Location);
                     _lazyReturnType = TypeWithAnnotations.Create(voidType);
+                    this.SetReturnsVoid(returnsVoid: true);
 
                     var parameter = new SynthesizedAccessorValueParameterSymbol(this, _event.TypeWithAnnotations, 0);
                     _lazyParameters = ImmutableArray.Create<ParameterSymbol>(parameter);
                 }
             }
-
-            SetReturnsVoid(_lazyReturnType.IsVoidType());
         }
 
         public sealed override bool ReturnsVoid
