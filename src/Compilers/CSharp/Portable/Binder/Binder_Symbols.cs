@@ -877,6 +877,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (result.Kind != LookupResultKind.Viable && qualifierOpt is TypeSymbol typeSymbol)
             {
+                Debug.Assert(result.Kind != LookupResultKind.Ambiguous);
                 this.LookupExtensionTypeMembersIfNeeded(result, typeSymbol, identifierValueText, arity: 0, basesBeingResolved, options, ref useSiteInfo);
             }
 
@@ -1286,6 +1287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (lookupResult.Kind != LookupResultKind.Viable && qualifierOpt is TypeSymbol typeSymbol)
             {
+                Debug.Assert(lookupResult.Kind != LookupResultKind.Ambiguous);
                 this.LookupExtensionTypeMembersIfNeeded(lookupResult, typeSymbol, plainName, arity, basesBeingResolved, options, ref useSiteInfo);
             }
 

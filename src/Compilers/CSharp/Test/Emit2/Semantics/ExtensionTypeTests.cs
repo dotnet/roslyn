@@ -12805,6 +12805,70 @@ implicit extension E for C
     }
 
     [Fact]
+    public void ExtensionMemberLookup_InTypeConstraint_AttemptingAmbiguousNestedType()
+    {
+        var ilSrc = """
+.class public auto ansi beforefieldinit C extends [mscorlib]System.Object
+{
+    .class nested public auto ansi beforefieldinit Nested extends [mscorlib]System.Object
+    {
+    }
+
+    .class nested public auto ansi beforefieldinit Nested extends [mscorlib]System.Object
+    {
+    }
+}
+""";
+
+        var src = """
+class D<T> where T : C.Nested { }
+
+implicit extension E for C
+{
+    public class Nested { }
+}
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        var d = comp.GlobalNamespace.GetTypeMember("D");
+        var t = d.TypeParameters.Single();
+        Assert.Equal("C.Nested", t.ConstraintTypes().Single().ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_InTypeConstraint_Generic_AttemptingAmbiguousNestedType()
+    {
+        var ilSrc = """
+.class public auto ansi beforefieldinit C extends [mscorlib]System.Object
+{
+    .class nested public auto ansi beforefieldinit Nested`1<T> extends [mscorlib]System.Object
+    {
+    }
+
+    .class nested public auto ansi beforefieldinit Nested`1<valuetype .ctor ([mscorlib]System.ValueType) T> extends [mscorlib]System.Object
+    {
+    }
+}
+""";
+
+        var src = """
+class D<T> where T : C.Nested<int> { }
+
+implicit extension E for C
+{
+    public class Nested<T> { }
+}
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        var d = comp.GlobalNamespace.GetTypeMember("D");
+        var t = d.TypeParameters.Single();
+        Assert.Equal("C.Nested<System.Int32>", t.ConstraintTypes().Single().ToTestDisplayString());
+    }
+
+    [Fact]
     public void ExtensionMemberLookup_InTypeConstraint_AsTypeParameter()
     {
         var src = """
