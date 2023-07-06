@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             private readonly ConcurrentDictionary<(ITypeSymbol Type, bool IsPublic), bool> _typeCanBeExtendedCache = new();
             private readonly ConcurrentDictionary<string, UnusedValue> _visitedApiList = new(StringComparer.Ordinal);
             private readonly ConcurrentDictionary<SyntaxTree, ImmutableArray<string>> _skippedNamespacesCache = new();
-            private readonly IReadOnlyDictionary<string, ApiLine> _apiMap;
+            private readonly Lazy<IReadOnlyDictionary<string, ApiLine>> _apiMap;
             private readonly AnalyzerOptions _analyzerOptions;
 
             internal Impl(Compilation compilation, ImmutableDictionary<AdditionalText, SourceText> additionalFiles, ApiData shippedData, ApiData unshippedData, bool isPublic, AnalyzerOptions analyzerOptions)
@@ -88,20 +88,27 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 _useNullability = shippedData.NullableLineNumber >= 0 || unshippedData.NullableLineNumber >= 0;
                 _unshippedData = unshippedData;
 
-                var publicApiMap = new Dictionary<string, ApiLine>(StringComparer.Ordinal);
-                foreach (ApiLine cur in shippedData.ApiList)
-                {
-                    publicApiMap.Add(cur.Text, cur);
-                }
-
-                foreach (ApiLine cur in unshippedData.ApiList)
-                {
-                    publicApiMap.Add(cur.Text, cur);
-                }
-
-                _apiMap = publicApiMap;
+                _apiMap = new Lazy<IReadOnlyDictionary<string, ApiLine>>(() => CreateApiMap(shippedData, unshippedData));
                 _isPublic = isPublic;
                 _analyzerOptions = analyzerOptions;
+
+                static IReadOnlyDictionary<string, ApiLine> CreateApiMap(ApiData shippedData, ApiData unshippedData)
+                {
+                    // Defer allocating/creating the apiMap until it's needed as there are many cases where it's never used
+                    //   and can be fairly large.
+                    var publicApiMap = new Dictionary<string, ApiLine>(shippedData.ApiList.Length + unshippedData.ApiList.Length, StringComparer.Ordinal);
+                    foreach (ApiLine cur in shippedData.ApiList)
+                    {
+                        publicApiMap.Add(cur.Text, cur);
+                    }
+
+                    foreach (ApiLine cur in unshippedData.ApiList)
+                    {
+                        publicApiMap.Add(cur.Text, cur);
+                    }
+
+                    return publicApiMap;
+                }
             }
 
             internal void OnSymbolAction(SymbolAnalysisContext symbolContext)
@@ -203,6 +210,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 _visitedApiList.TryAdd(WithObliviousMarker(publicApiName.NameWithNullability), default);
 
                 List<Location> locationsToReport = new List<Location>();
+                IReadOnlyDictionary<string, ApiLine> apiMap = _apiMap.Value;
 
                 if (explicitLocation != null)
                 {
@@ -224,20 +232,20 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                         reportObliviousApi(symbol);
                     }
 
-                    var hasApiEntryWithNullability = _apiMap.TryGetValue(publicApiName.NameWithNullability, out foundApiLine);
+                    var hasApiEntryWithNullability = apiMap.TryGetValue(publicApiName.NameWithNullability, out foundApiLine);
 
                     var hasApiEntryWithNullabilityAndOblivious =
                         !hasApiEntryWithNullability &&
                         symbolUsesOblivious &&
-                        _apiMap.TryGetValue(WithObliviousMarker(publicApiName.NameWithNullability), out foundApiLine);
+                        apiMap.TryGetValue(WithObliviousMarker(publicApiName.NameWithNullability), out foundApiLine);
 
                     if (!hasApiEntryWithNullability && !hasApiEntryWithNullabilityAndOblivious)
                     {
-                        var hasApiEntryWithoutNullability = _apiMap.TryGetValue(publicApiName.Name, out foundApiLine);
+                        var hasApiEntryWithoutNullability = apiMap.TryGetValue(publicApiName.Name, out foundApiLine);
 
                         var hasApiEntryWithoutNullabilityButOblivious =
                             !hasApiEntryWithoutNullability &&
-                            _apiMap.TryGetValue(WithObliviousMarker(publicApiName.Name), out foundApiLine);
+                            apiMap.TryGetValue(WithObliviousMarker(publicApiName.Name), out foundApiLine);
 
                         if (!hasApiEntryWithoutNullability && !hasApiEntryWithoutNullabilityButOblivious)
                         {
@@ -255,7 +263,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 }
                 else
                 {
-                    var hasApiEntryWithoutNullability = _apiMap.TryGetValue(publicApiName.Name, out foundApiLine);
+                    var hasApiEntryWithoutNullability = apiMap.TryGetValue(publicApiName.Name, out foundApiLine);
                     if (!hasApiEntryWithoutNullability)
                     {
                         reportDeclareNewApi(symbol, isImplicitlyDeclaredConstructor, publicApiName.Name);
@@ -419,13 +427,13 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 {
                     if (_useNullability)
                     {
-                        return _apiMap.TryGetValue(overloadPublicApiName.NameWithNullability, out overloadPublicApiLine) ||
-                            _apiMap.TryGetValue(WithObliviousMarker(overloadPublicApiName.NameWithNullability), out overloadPublicApiLine) ||
-                            _apiMap.TryGetValue(overloadPublicApiName.Name, out overloadPublicApiLine);
+                        return apiMap.TryGetValue(overloadPublicApiName.NameWithNullability, out overloadPublicApiLine) ||
+                            apiMap.TryGetValue(WithObliviousMarker(overloadPublicApiName.NameWithNullability), out overloadPublicApiLine) ||
+                            apiMap.TryGetValue(overloadPublicApiName.Name, out overloadPublicApiLine);
                     }
                     else
                     {
-                        return _apiMap.TryGetValue(overloadPublicApiName.Name, out overloadPublicApiLine);
+                        return apiMap.TryGetValue(overloadPublicApiName.Name, out overloadPublicApiLine);
                     }
                 }
             }
@@ -688,7 +696,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             /// </summary>
             internal void ReportDeletedApiList(Action<Diagnostic> reportDiagnostic)
             {
-                foreach (KeyValuePair<string, ApiLine> pair in _apiMap)
+                IReadOnlyDictionary<string, ApiLine> apiMap = _apiMap.Value;
+                foreach (KeyValuePair<string, ApiLine> pair in apiMap)
                 {
                     if (_visitedApiList.ContainsKey(pair.Key))
                     {
