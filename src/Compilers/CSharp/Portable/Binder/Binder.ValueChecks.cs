@@ -451,7 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var resolution = this.ResolveMethodGroup(methodGroup, analyzedArguments: null, isMethodGroupConversion: false, useSiteInfo: ref useSiteInfo);
                 diagnostics.Add(expr.Syntax, useSiteInfo);
                 Symbol otherSymbol = null;
-                bool resolvedToUnusableSymbol = resolution.MethodGroup == null && resolution.ResultKind != LookupResultKind.Viable;
+                bool resolvedToUnusableSymbol = resolution.MethodGroup == null && !resolution.IsExtensionMember(out _);
                 if (!expr.HasAnyErrors) diagnostics.AddRange(resolution.Diagnostics); // Suppress cascading.
                 hasResolutionErrors = resolution.HasAnyErrors;
                 if (hasResolutionErrors)

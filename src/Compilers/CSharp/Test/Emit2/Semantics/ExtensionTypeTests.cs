@@ -17397,6 +17397,77 @@ namespace N2
         Assert.Equal(new[] { "void System.Object.Member()" }, model.GetMemberGroup(memberAccess3).ToTestDisplayStrings());
     }
 
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionMethodsInInvocationLookup_GenericExtension_ThisParameterNotCompatible()
+    {
+        var src = """
+using N;
+
+C<int> c = new C<int>();
+int i = c.Member;
+System.Console.Write(i);
+
+public class C<T> { }
+
+public static class E1
+{
+    public static void Member<T>(this C<T> o) where T : class => throw null;
+}
+
+namespace N
+{
+    public implicit extension E2 for object
+    {
+        public int Member => 42;
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "42", verify: Verification.Fails).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "c.Member").First();
+        Assert.Equal("System.Int32 N.E2.Member { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionMethodsInInvocationLookup_GenericExtension_ExtraParameter()
+    {
+        var src = """
+using N;
+
+C<int> c = new C<int>();
+int i = c.Member;
+System.Console.Write(i);
+
+public class C<T> { }
+
+public static class E1
+{
+    public static void Member<T>(this C<T> o, string s) => throw null;
+}
+
+namespace N
+{
+    public implicit extension E2 for object
+    {
+        public int Member => 42;
+    }
+}
+""";
+        // PROTOTYPE confirm this is the symbol we expect to bind to
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "42", verify: Verification.Fails).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "c.Member").First();
+        Assert.Equal("System.Int32 N.E2.Member { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
     [Fact]
     public void ExtensionMethodsInNonInvocationLookup_Inaccessible()
     {
