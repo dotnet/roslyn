@@ -5,9 +5,11 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.ExternalAccess.EditorConfig
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
+Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options.Formatting
@@ -16,24 +18,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options.Formatting
         Inherits AbstractOptionPage
 
         Protected Overrides Function CreateOptionPage(serviceProvider As IServiceProvider, optionStore As OptionStore) As AbstractOptionPageControl
+            Dim editorService2 = DirectCast(serviceProvider.GetService(GetType(EditorConfigGenerator)), EditorConfigGenerator)
+            'Dim editorService = Me.Site.GetService(GetType(EditorConfigGenerator))
             Return New GridOptionPreviewControl(serviceProvider,
                                                 optionStore,
                                                 Function(o, s) New StyleViewModel(o, s),
-                                                GetEditorConfigOptions(),
+                                                editorService2.GetDefaultOptions(LanguageNames.VisualBasic),
                                                 LanguageNames.VisualBasic)
         End Function
-
-        Private Shared Function GetEditorConfigOptions() As ImmutableArray(Of (String, ImmutableArray(Of IOption2)))
-            Dim builder = ArrayBuilder(Of (String, ImmutableArray(Of IOption2))).GetInstance()
-            builder.AddRange(GridOptionPreviewControl.GetLanguageAgnosticEditorConfigOptions())
-            builder.Add((BasicVSResources.VB_Coding_Conventions, VisualBasicCodeStyleOptions.AllOptions.As(Of IOption2)))
-            Return builder.ToImmutableAndFree()
-        End Function
-
-        Friend Structure TestAccessor
-            Friend Shared Function GetEditorConfigOptions() As ImmutableArray(Of (String, ImmutableArray(Of IOption2)))
-                Return CodeStylePage.GetEditorConfigOptions()
-            End Function
-        End Structure
     End Class
 End Namespace

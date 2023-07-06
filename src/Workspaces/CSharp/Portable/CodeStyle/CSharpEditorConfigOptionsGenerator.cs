@@ -18,7 +18,8 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig
 {
     [EditorConfigGenerator(LanguageNames.CSharp), Shared]
-    internal class CSharpEditorConfigFileGenerator : IEditorConfigGeneratorCollection
+    internal class CSharpEditorConfigFileGenerator
+        : IEditorConfigGeneratorCollection
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -29,16 +30,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig
         public ImmutableArray<(string feature, ImmutableArray<IOption2> options)> GetEditorConfigOptions()
         {
             var builder = ArrayBuilder<(string, ImmutableArray<IOption2>)>.GetInstance();
-            builder.AddRange(CSharpEditorConfigFileGenerator.GetLanguageAgnosticEditorConfigOptions());
+            builder.AddRange(EditorConfigFileGenerator.GetLanguageAgnosticEditorConfigOptions());
             builder.Add((WorkspacesResources.CSharp_Coding_Conventions, CSharpCodeStyleOptions.AllOptions));
             builder.Add((WorkspacesResources.CSharp_Formatting_Rules, CSharpFormattingOptions2.AllOptions));
             return builder.ToImmutableAndFree();
-        }
-
-        internal static IEnumerable<(string feature, ImmutableArray<IOption2> options)> GetLanguageAgnosticEditorConfigOptions()
-        {
-            yield return (WorkspacesResources.Core_EditorConfig_Options, FormattingOptions2.Options);
-            yield return (WorkspacesResources.dot_NET_Coding_Conventions, GenerationOptions.AllOptions.AddRange(CodeStyleOptions2.AllOptions));
         }
     }
 }

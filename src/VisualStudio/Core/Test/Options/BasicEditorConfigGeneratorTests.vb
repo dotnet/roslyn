@@ -6,6 +6,7 @@ Imports System.Text
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.ExternalAccess.EditorConfig
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
@@ -147,9 +148,9 @@ dotnet_naming_style.begins_with_i.required_suffix =
 dotnet_naming_style.begins_with_i.word_separator = 
 dotnet_naming_style.begins_with_i.capitalization = pascal_case
 "
-                Dim editorConfigOptions = VisualBasic.Options.Formatting.CodeStylePage.TestAccessor.GetEditorConfigOptions()
-                Dim options = New OptionStore(workspace.GlobalOptions)
-                Dim actualText = EditorConfigFileGenerator.Generate(editorConfigOptions, options, LanguageNames.VisualBasic)
+                ' Use the default options 
+                Dim editorService = workspace.GetService(Of EditorConfigGenerator)()
+                Dim actualText = editorService.Generate(LanguageNames.VisualBasic)
                 AssertEx.EqualOrDiff(expectedText, actualText)
             End Using
         End Sub
@@ -287,7 +288,8 @@ dotnet_naming_style.begins_with_i.required_suffix =
 dotnet_naming_style.begins_with_i.word_separator = 
 dotnet_naming_style.begins_with_i.capitalization = pascal_case
 "
-                Dim editorConfigOptions = VisualBasic.Options.Formatting.CodeStylePage.TestAccessor.GetEditorConfigOptions()
+                Dim editorService = workspace.GetService(Of EditorConfigGenerator)()
+                Dim editorConfigOptions = editorService.GetDefaultOptions(LanguageNames.VisualBasic)
                 Dim actualText = EditorConfigFileGenerator.Generate(editorConfigOptions, options, LanguageNames.VisualBasic)
                 AssertEx.EqualOrDiff(expectedText, actualText)
             End Using

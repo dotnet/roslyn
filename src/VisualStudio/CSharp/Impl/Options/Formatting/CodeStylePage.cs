@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
                 serviceProvider,
                 optionStore,
                 (o, s) => new StyleViewModel(o, s),
-                editorService.GetOptions(LanguageNames.CSharp),
+                editorService.GetDefaultOptions(LanguageNames.CSharp),
                 LanguageNames.CSharp);
         }
     }

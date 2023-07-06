@@ -32,11 +32,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig
 
         public string? Generate(string language)
         {
-            var groupOptions = GetOptions(language);
+            var groupOptions = GetDefaultOptions(language);
             return EditorConfigFileGenerator.Generate(groupOptions, _globalOptions, language);
         }
 
-        public ImmutableArray<(string feature, ImmutableArray<IOption2> options)> GetOptions(string language)
+        public ImmutableArray<(string feature, ImmutableArray<IOption2> options)> GetDefaultOptions(string language)
         {
             var generators = _editorConfigGenerators.Where(b => b.Metadata.Language == language);
             foreach (var generator in generators)

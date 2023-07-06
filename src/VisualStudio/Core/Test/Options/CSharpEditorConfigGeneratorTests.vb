@@ -250,10 +250,9 @@ dotnet_naming_style.begins_with_i.required_suffix =
 dotnet_naming_style.begins_with_i.word_separator = 
 dotnet_naming_style.begins_with_i.capitalization = pascal_case
 "
+                ' Use the default options
                 Dim editorService = workspace.GetService(Of EditorConfigGenerator)()
-                Dim editorConfigOptions = editorService.GetOptions(LanguageNames.CSharp)
-                Dim options = New OptionStore(workspace.GlobalOptions)
-                Dim actualText = EditorConfigFileGenerator.Generate(editorConfigOptions, options, LanguageNames.CSharp)
+                Dim actualText = editorService.Generate(LanguageNames.CSharp)
                 AssertEx.EqualOrDiff(expectedText, actualText)
             End Using
         End Sub
@@ -496,7 +495,8 @@ dotnet_naming_style.begins_with_i.word_separator =
 dotnet_naming_style.begins_with_i.capitalization = pascal_case
 "
                 Dim editorService = workspace.GetService(Of EditorConfigGenerator)()
-                Dim actualText = editorService.Generate(LanguageNames.CSharp)
+                Dim groupedOptions = editorService.GetDefaultOptions(LanguageNames.CSharp)
+                Dim actualText = EditorConfigFileGenerator.Generate(groupedOptions, options, LanguageNames.CSharp)
                 AssertEx.EqualOrDiff(expectedText, actualText)
             End Using
         End Sub
