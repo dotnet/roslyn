@@ -9,39 +9,26 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Formatting.Rules
 {
     [NonDefaultable]
-    internal readonly struct NextIndentBlockOperationAction
+    internal readonly struct NextIndentBlockOperationAction(
+        ImmutableArray<AbstractFormattingRule> formattingRules,
+        int index,
+        SyntaxNode node,
+        List<IndentBlockOperation> list)
     {
-        private readonly ImmutableArray<AbstractFormattingRule> _formattingRules;
-        private readonly int _index;
-        private readonly SyntaxNode _node;
-        private readonly List<IndentBlockOperation> _list;
-
-        public NextIndentBlockOperationAction(
-            ImmutableArray<AbstractFormattingRule> formattingRules,
-            int index,
-            SyntaxNode node,
-            List<IndentBlockOperation> list)
-        {
-            _formattingRules = formattingRules;
-            _index = index;
-            _node = node;
-            _list = list;
-        }
-
         private NextIndentBlockOperationAction NextAction
-            => new(_formattingRules, _index + 1, _node, _list);
+            => new(formattingRules, index + 1, node, list);
 
         public void Invoke()
         {
             // If we have no remaining handlers to execute, then we'll execute our last handler
-            if (_index >= _formattingRules.Length)
+            if (index >= formattingRules.Length)
             {
                 return;
             }
             else
             {
                 // Call the handler at the index, passing a continuation that will come back to here with index + 1
-                _formattingRules[_index].AddIndentBlockOperations(_list, _node, NextAction);
+                formattingRules[index].AddIndentBlockOperations(list, node, NextAction);
                 return;
             }
         }

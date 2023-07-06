@@ -22,8 +22,6 @@
         <BeforePack>PublishAllRids;$(BeforePack)</BeforePack>
         <!-- Since this is not a standard nuget package and is only consumed by the extension build, we don't care if the folder structure doesn't match what nuget expects. -->
         <NoWarn>NU5100</NoWarn>
-        <!-- Put this package in the language server directory so we can upload it separately from the other packages -->
-        <ArtifactsShippingPackagesDir>$(ArtifactsDir)/LanguageServer</ArtifactsShippingPackagesDir>
 
         <!-- Publishing settings -->
         <SelfContained>false</SelfContained> 

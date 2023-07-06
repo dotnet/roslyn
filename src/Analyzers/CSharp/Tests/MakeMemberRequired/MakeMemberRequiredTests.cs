@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeFixes.MakeMemberRequired;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.MakeMemberRequired
@@ -117,6 +118,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.MakeMemberRequired
             yield return new[] { "internal", "protected" };
             yield return new[] { "internal", "private" };
             yield return new[] { "internal", "private protected" };
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68478")]
+        public async Task SimpleSetPropertyMissingRequiredAttribute()
+        {
+            var code =
+                """
+                #nullable enable
+                class MyClass
+                {
+                    public string {|CS8618:MyProperty|} { get; set; }
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp11,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+            }.RunAsync();
         }
 
         [Fact]

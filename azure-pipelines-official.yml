@@ -82,7 +82,7 @@ stages:
   displayName: Build and Test
   pool:
     name: NetCore1ESPool-Svc-Internal
-    demands: ImageOverride -equals windows.vs2022.amd64
+    demands: ImageOverride -equals windows.vs2022preview.amd64
 
   jobs:
   - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.7') }}:
@@ -308,17 +308,6 @@ stages:
       inputs:
         PathtoPublish: 'artifacts\packages\$(BuildConfiguration)'
         ArtifactName: 'PackageArtifacts'
-      condition: succeeded()
-
-    # Publish our language server executables as an artifact.
-    - task: NuGetCommand@2
-      displayName: Publish Language Server Executables
-      inputs:
-        command: push
-        packagesToPush: '$(Build.SourcesDirectory)\artifacts\LanguageServer\*.nupkg'
-        allowPackageConflicts: false
-        nuGetFeedType: external
-        publishFeedCredentials: 'DevDiv - VS package feed'
       condition: succeeded()
 
     # Publish language server package

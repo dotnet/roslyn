@@ -395,7 +395,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get;
         }
 
-        internal override FileIdentifier? AssociatedFileIdentifier
+        internal sealed override bool IsFileLocal => _lazyUncommonProperties is { lazyFilePathChecksum: { IsDefault: false }, lazyDisplayFileName: { } };
+        internal sealed override FileIdentifier? AssociatedFileIdentifier
         {
             get
             {
@@ -2239,7 +2240,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override bool IsSerializable
         {
+#pragma warning disable SYSLIB0050 // 'TypeAttributes.Serializable' is obsolete
             get { return (_flags & TypeAttributes.Serializable) != 0; }
+#pragma warning restore SYSLIB0050
         }
 
         public override bool IsRefLikeType
@@ -2452,6 +2455,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal sealed override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
         {
             return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
+        }
+
+        internal sealed override bool HasInlineArrayAttribute(out int length)
+        {
+            if (this.ContainingPEModule.Module.HasInlineArrayAttribute(_handle, out length) && length > 0)
+            {
+                return true;
+            }
+
+            length = 0;
+            return false;
         }
 
         /// <summary>

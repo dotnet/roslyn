@@ -44,18 +44,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         private readonly ConcurrentDictionary<string, DiagnosticDescriptor?> _idToDescriptorsMap;
 
-        private sealed class DiagnosticDescriptorsInfo
+        private sealed class DiagnosticDescriptorsInfo(ImmutableArray<DiagnosticDescriptor> supportedDescriptors, bool telemetryAllowed)
         {
-            public readonly ImmutableArray<DiagnosticDescriptor> SupportedDescriptors;
-            public readonly bool TelemetryAllowed;
-            public readonly bool HasCompilationEndDescriptor;
-
-            public DiagnosticDescriptorsInfo(ImmutableArray<DiagnosticDescriptor> supportedDescriptors, bool telemetryAllowed)
-            {
-                SupportedDescriptors = supportedDescriptors;
-                TelemetryAllowed = telemetryAllowed;
-                HasCompilationEndDescriptor = supportedDescriptors.Any(DiagnosticDescriptorExtensions.IsCompilationEnd);
-            }
+            public readonly ImmutableArray<DiagnosticDescriptor> SupportedDescriptors = supportedDescriptors;
+            public readonly bool TelemetryAllowed = telemetryAllowed;
+            public readonly bool HasCompilationEndDescriptor = supportedDescriptors.Any(DiagnosticDescriptorExtensions.IsCompilationEnd);
         }
 
         [Export, Shared]

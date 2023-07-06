@@ -15,6 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
+    using Microsoft.CodeAnalysis.CSharp.Symbols;
     using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
     internal abstract partial class SyntaxParser : IDisposable
@@ -1066,7 +1067,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         protected static SyntaxToken ConvertToIdentifier(SyntaxToken token)
         {
             Debug.Assert(!token.IsMissing);
-            return SyntaxToken.Identifier(token.Kind, token.LeadingTrivia.Node, token.Text, token.ValueText, token.TrailingTrivia.Node);
+
+            var identifier = SyntaxToken.Identifier(token.Kind, token.LeadingTrivia.Node, token.Text, token.ValueText, token.TrailingTrivia.Node);
+            if (token.ContainsDiagnostics)
+                identifier = identifier.WithDiagnosticsGreen(token.GetDiagnostics());
+
+            return identifier;
         }
 
         internal DirectiveStack Directives

@@ -12,21 +12,16 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     /// <summary>
     /// Utility class that can be used to track the progress of an operation in a threadsafe manner.
     /// </summary>
-    internal class ProgressTracker : IProgressTracker
+    internal class ProgressTracker(Action<string, int, int> updateActionOpt) : IProgressTracker
     {
         private string _description;
         private int _completedItems;
         private int _totalItems;
 
-        private readonly Action<string, int, int> _updateActionOpt;
-
         public ProgressTracker()
             : this(null)
         {
         }
-
-        public ProgressTracker(Action<string, int, int> updateActionOpt)
-            => _updateActionOpt = updateActionOpt;
 
         public string Description
         {
@@ -63,6 +58,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         private void Update()
-            => _updateActionOpt?.Invoke(_description, _completedItems, _totalItems);
+            => updateActionOpt?.Invoke(_description, _completedItems, _totalItems);
     }
 }
