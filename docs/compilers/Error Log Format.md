@@ -111,12 +111,13 @@ The `rules` section contains a rule entry that corresponds to metadata or `Diagn
 5. `helpUri`: Help uri for help information associated with the descriptor.
 6. `properties`: One or more custom properties associated with the descriptor. It includes the following:
    1. `category`: `Category` associated with the descriptor, such as, `Design`, `Performance`, `Security`, etc.
-   2. `executionTimeInSeconds`: Execution time in seconds associated with the analyzer, as reported with the `/reportAnalyzer` compiler switch. Values less than `0.001` seconds are reported as `<0.001`.
-   3. `executionTimeInPercentage`: Execution time in percentage associated with the analyzer, as reported with the `/reportAnalyzer` compiler switch. Values less than `1` are reported as `<1`.
-   4. `isEverSuppressed` and `suppressionKinds`: If a rule had either a source suppression or was disabled for part or whole of the compilation via options, the rule metadata contains a special flag `isEverSuppressed = true` and an array `suppressionKinds` with either or both of the below suppression kinds:
+   2. `effectiveConfigurationLevels`: If a rule had one for severity configurations for a part or whole of the compilation via options, the rule metadata will contain this array of one of more effective severity levels for diagnostics associated with the descriptor, such as `error`, `warning`, `note`, `none` etc.
+   3. `isEverSuppressed` and `suppressionKinds`: If a rule had either a source suppression or was disabled for part or whole of the compilation via options, the rule metadata contains a special flag `isEverSuppressed = true` and an array `suppressionKinds` with either or both of the below suppression kinds:
       1. `inSource` suppression kind for one or more reported diagnostic(s) that were suppressed through pragma directive, SuppressMessageAttribute or a DiagnosticSuppressor.
       2. `external` suppression kind for diagnostic ID that is disabled either for the entire compilation (via global options such as /nowarn, ruleset, globalconfig, etc.) or for certain files or folders in the compilation (via editorconfig options).
-   5. `tags`: An array of one of more `CustomTags` associated with the descriptor.
+   4. `executionTimeInSeconds`: Execution time in seconds associated with the analyzer, as reported with the `/reportAnalyzer` compiler switch. Values less than `0.001` seconds are reported as `<0.001`.
+   5. `executionTimeInPercentage`: Execution time in percentage associated with the analyzer, as reported with the `/reportAnalyzer` compiler switch. Values less than `1` are reported as `<1`.
+   6. `tags`: An array of one of more `CustomTags` associated with the descriptor.
   
 Example `rule` entry:
 ```json
@@ -134,12 +135,16 @@ Example `rule` entry:
   "helpUri": "https://docs.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1001",
   "properties": {
     "category": "Design",
-    "executionTimeInSeconds": "x.xxx",
-    "executionTimeInPercentage": "xx",
+    "effectiveConfigurationLevels": [
+      "error",
+      "none",
+    ],
     "isEverSuppressed": "true",
     "suppressionKinds": [
       "external"
     ],
+    "executionTimeInSeconds": "x.xxx",
+    "executionTimeInPercentage": "xx",
     "tags": [
       "PortedFromFxCop",
       "Telemetry",

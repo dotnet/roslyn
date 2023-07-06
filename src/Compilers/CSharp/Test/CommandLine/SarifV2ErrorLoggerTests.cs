@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -333,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
                 cmd,
                 hasAnalyzers: true,
                 AnalyzerForErrorLogTest.GetExpectedV2ErrorLogWithSuppressionResultsText(cmd.Compilation, justification, suppressionType),
-                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(cmd.DescriptorsWithInfo, CultureInfo.InvariantCulture, suppressionKinds));
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(cmd.DescriptorsWithInfo, CultureInfo.InvariantCulture, suppressionKinds1: suppressionKinds));
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
@@ -446,6 +447,8 @@ class C
                 hasAnalyzers: true,
                 AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(
                     cmd.DescriptorsWithInfo, CultureInfo.InvariantCulture,
+                    effectiveSeverities1: ImmutableHashSet.Create(ReportDiagnostic.Suppress),
+                    effectiveSeverities2: ImmutableHashSet.Create(ReportDiagnostic.Suppress),
                     suppressionKinds1: new[] { "external" }, suppressionKinds2: new[] { "external" }));
 
             Assert.Equal(expectedOutput, actualOutput);
@@ -523,7 +526,9 @@ dotnet_diagnostic.ID1.severity = none
                 cmd,
                 hasAnalyzers: true,
                 AnalyzerForErrorLogTest.GetExpectedV2ErrorLogWithSuppressionResultsText(cmd.Compilation, "Justification1", suppressionType: "SuppressMessageAttribute"),
-                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(cmd.DescriptorsWithInfo, CultureInfo.InvariantCulture, suppressionKinds1: new[] { "external", "inSource" }));
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(cmd.DescriptorsWithInfo, CultureInfo.InvariantCulture,
+                    effectiveSeverities1: ImmutableHashSet.Create(ReportDiagnostic.Suppress, ReportDiagnostic.Warn),
+                    suppressionKinds1: new[] { "external", "inSource" }));
 
             Assert.Equal(expectedOutput, actualOutput);
 

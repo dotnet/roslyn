@@ -372,9 +372,48 @@ namespace Microsoft.CodeAnalysis
                 return string.Empty;
             }
 
+            public static string GetExpectedV2EffectiveSeveritiesTextForRulesSection(ImmutableHashSet<ReportDiagnostic> effectiveSeverities)
+            {
+                if (effectiveSeverities?.Count > 0)
+                {
+                    return @",
+                ""effectiveConfigurationLevels"": [
+                  " + string.Join("," + Environment.NewLine + "                  ", effectiveSeverities.OrderBy(Comparer<ReportDiagnostic>.Default).Select(s => $"\"{GetLevel(s)}\"")) + @"
+                ]";
+                }
+
+                return string.Empty;
+            }
+
+            private static string GetLevel(ReportDiagnostic severity)
+            {
+                switch (severity)
+                {
+                    case ReportDiagnostic.Error:
+                        return "error";
+
+                    case ReportDiagnostic.Warn:
+                        return "warning";
+
+                    case ReportDiagnostic.Info:
+                        return "note";
+
+                    case ReportDiagnostic.Hidden:
+                        goto case ReportDiagnostic.Info;
+
+                    case ReportDiagnostic.Suppress:
+                        return "none";
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(severity);
+                }
+            }
+
             internal static string GetExpectedV2ErrorLogRulesText(
                 ImmutableArray<(DiagnosticDescriptor Descriptor, DiagnosticDescriptorErrorLoggerInfo Info)> descriptorsWithInfo,
                 CultureInfo culture,
+                ImmutableHashSet<ReportDiagnostic> effectiveSeverities1 = null,
+                ImmutableHashSet<ReportDiagnostic> effectiveSeverities2 = null,
                 string[] suppressionKinds1 = null,
                 string[] suppressionKinds2 = null)
             {
@@ -398,7 +437,9 @@ namespace Microsoft.CodeAnalysis
               },
               ""helpUri"": """ + Descriptor1.HelpLinkUri + @""",
               ""properties"": {
-                ""category"": """ + Descriptor1.Category + @"""" + GetExpectedV2SuppressionTextForRulesSection(suppressionKinds1) + @",
+                ""category"": """ + Descriptor1.Category + @"""" +
+                GetExpectedV2EffectiveSeveritiesTextForRulesSection(effectiveSeverities1) +
+                GetExpectedV2SuppressionTextForRulesSection(suppressionKinds1) + @",
                 ""executionTimeInSeconds"": """ + descriptor1ExecutionTime + @""",
                 ""executionTimeInPercentage"": """ + descriptor1ExecutionPercentage + @""",
                 ""tags"": [
@@ -419,7 +460,9 @@ namespace Microsoft.CodeAnalysis
               },
               ""helpUri"": """ + Descriptor2.HelpLinkUri + @""",
               ""properties"": {
-                ""category"": """ + Descriptor2.Category + @"""" + GetExpectedV2SuppressionTextForRulesSection(suppressionKinds2) + @",
+                ""category"": """ + Descriptor2.Category + @"""" +
+                GetExpectedV2EffectiveSeveritiesTextForRulesSection(effectiveSeverities2) +
+                GetExpectedV2SuppressionTextForRulesSection(suppressionKinds2) + @",
                 ""executionTimeInSeconds"": """ + descriptor2ExecutionTime + @""",
                 ""executionTimeInPercentage"": """ + descriptor2ExecutionPercentage + @""",
                 ""tags"": [

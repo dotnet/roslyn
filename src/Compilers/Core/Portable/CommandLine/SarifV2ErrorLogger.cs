@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -258,6 +259,10 @@ namespace Microsoft.CodeAnalysis
                         _writer.Write("helpUri", descriptor.HelpLinkUri);
                     }
 
+                    var defaultSeverity = descriptor.IsEnabledByDefault ? DiagnosticDescriptor.MapSeverityToReport(descriptor.DefaultSeverity) : ReportDiagnostic.Suppress;
+                    var hasNonDefaultEffectiveSeverities = descriptorInfo.EffectiveSeverities != null &&
+                        (descriptorInfo.EffectiveSeverities.Count != 1 || descriptorInfo.EffectiveSeverities.Single() != defaultSeverity);
+
                     // We report the rule as isEverSuppressed if either of the following is true:
                     // 1. If there is any external non-source suppression for the rule ID from
                     //    editorconfig, ruleset, command line options, etc. that disables the rule
@@ -270,13 +275,26 @@ namespace Microsoft.CodeAnalysis
                     Debug.Assert(reportAnalyzerExecutionTime || descriptorInfo.ExecutionTime == 0);
                     Debug.Assert(reportAnalyzerExecutionTime || descriptorInfo.ExecutionPercentage == 0);
 
-                    if (!string.IsNullOrEmpty(descriptor.Category) || isEverSuppressed || reportAnalyzerExecutionTime || descriptor.ImmutableCustomTags.Any())
+                    if (!string.IsNullOrEmpty(descriptor.Category) || hasNonDefaultEffectiveSeverities || isEverSuppressed || reportAnalyzerExecutionTime || descriptor.ImmutableCustomTags.Any())
                     {
                         _writer.WriteObjectStart("properties");
 
                         if (!string.IsNullOrEmpty(descriptor.Category))
                         {
                             _writer.Write("category", descriptor.Category);
+                        }
+
+                        if (hasNonDefaultEffectiveSeverities)
+                        {
+                            _writer.WriteArrayStart("effectiveConfigurationLevels");
+
+                            foreach (var severity in descriptorInfo.EffectiveSeverities!.OrderBy(Comparer<ReportDiagnostic>.Default))
+                            {
+                                var level = GetLevel(DiagnosticDescriptor.MapReportToSeverity(severity));
+                                _writer.Write(level);
+                            }
+
+                            _writer.WriteArrayEnd(); // effectiveConfigurationLevels
                         }
 
                         if (isEverSuppressed)
