@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool modifierErrors;
             var declarationModifiers = this.MakeModifiers(syntax.Modifiers, methodKind, hasAnyBody, location, diagnostics, out modifierErrors);
             this.MakeFlags(
-                methodKind, RefKind.None, declarationModifiers, returnsVoid: true, hasAnyBody: hasAnyBody, isExpressionBodied: isExpressionBodied,
+                methodKind, RefKind.None, declarationModifiers, returnsVoid: true, returnsVoidIsSet: true, hasAnyBody: hasAnyBody, isExpressionBodied: isExpressionBodied,
                 isExtensionMethod: false, isVarArg: syntax.ParameterList.Parameters.Any(static p => p.IsArgList), isNullableAnalysisEnabled: isNullableAnalysisEnabled);
 
             if (syntax.Identifier.ValueText != containingType.Name)

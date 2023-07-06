@@ -54,6 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // However, these two components are placeholders; the correct value will be
             // computed lazily later and then the flags will be fixed up.
             const bool returnsVoid = false;
+            const bool returnsVoidIsSet = false;
 
             DeclarationModifiers declarationModifiers;
             (declarationModifiers, HasExplicitAccessModifier) = this.MakeModifiers(methodKind, isReadOnly, hasAnyBody, location, diagnostics);
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var isMetadataVirtualIgnoringModifiers = isExplicitInterfaceImplementation && (declarationModifiers & DeclarationModifiers.Static) == 0;
 
             this.MakeFlags(
-                methodKind, refKind, declarationModifiers, returnsVoid, hasAnyBody: hasAnyBody, isExpressionBodied: isExpressionBodied,
+                methodKind, refKind, declarationModifiers, returnsVoid, returnsVoidIsSet, hasAnyBody: hasAnyBody, isExpressionBodied: isExpressionBodied,
                 isExtensionMethod: isExtensionMethod, isNullableAnalysisEnabled: isNullableAnalysisEnabled, isVarArg: isVarArg,
                 isMetadataVirtualIgnoringModifiers: isMetadataVirtualIgnoringModifiers);
 

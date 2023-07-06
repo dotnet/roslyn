@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             _returnType = returnType;
             this.MakeFlags(
-                methodKind, refKind, declarationModifiers, _returnType.IsVoidType(), hasAnyBody: false, isExpressionBodied: false,
+                methodKind, refKind, declarationModifiers, _returnType.IsVoidType(), returnsVoidIsSet: true, hasAnyBody: false, isExpressionBodied: false,
                 isExtensionMethod: false, isVarArg: false, isNullableAnalysisEnabled: false);
         }
 

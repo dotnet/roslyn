@@ -59,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 RefKind.None,
                 @event.Modifiers,
                 returnsVoid: false, // until we learn otherwise (in LazyMethodChecks).
+                returnsVoidIsSet: false,
                 hasAnyBody: hasAnyBody,
                 isExpressionBodied: isExpressionBodied,
                 isExtensionMethod: false,
@@ -137,7 +138,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         TypeSymbol voidType = compilation.GetSpecialType(SpecialType.System_Void);
                         Binder.ReportUseSite(voidType, diagnostics, this.Location);
                         _lazyReturnType = TypeWithAnnotations.Create(voidType);
-                        this.SetReturnsVoid(returnsVoid: true);
 
                         var parameter = new SynthesizedAccessorValueParameterSymbol(this, TypeWithAnnotations.Create(eventTokenType), 0);
                         _lazyParameters = ImmutableArray.Create<ParameterSymbol>(parameter);
@@ -151,12 +151,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     TypeSymbol voidType = compilation.GetSpecialType(SpecialType.System_Void);
                     Binder.ReportUseSite(voidType, diagnostics, this.Location);
                     _lazyReturnType = TypeWithAnnotations.Create(voidType);
-                    this.SetReturnsVoid(returnsVoid: true);
 
                     var parameter = new SynthesizedAccessorValueParameterSymbol(this, _event.TypeWithAnnotations, 0);
                     _lazyParameters = ImmutableArray.Create<ParameterSymbol>(parameter);
                 }
             }
+
+            SetReturnsVoid(_lazyReturnType.IsVoidType());
         }
 
         public sealed override bool ReturnsVoid

@@ -58,6 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 RefKind.None,
                 DeclarationModifiers.Static | DeclarationModifiers.Private | (hasAwait ? DeclarationModifiers.Async : DeclarationModifiers.None),
                 returnsVoid: !hasAwait && !hasReturnWithExpression,
+                returnsVoidIsSet: true,
                 // Consider the synthesized entrypoint to always have a body (conceptually the top level statements).
                 hasAnyBody: true,
                 isExpressionBodied: false,

@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // ReturnsVoid property is overridden in this class so
             // returnsVoid argument to MakeFlags is ignored.
             bool isExplicitInterfaceImplementation = property.IsExplicitInterfaceImplementation;
-            this.MakeFlags(MethodKind.PropertyGet, _property.RefKind, declarationModifiers, returnsVoid: false, hasAnyBody: true, isExpressionBodied: true, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled,
+            this.MakeFlags(MethodKind.PropertyGet, _property.RefKind, declarationModifiers, returnsVoid: false, returnsVoidIsSet: false, hasAnyBody: true, isExpressionBodied: true, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                 isVarArg: false, isMetadataVirtualIgnoringModifiers: isExplicitInterfaceImplementation && (declarationModifiers & DeclarationModifiers.Static) == 0);
 
             CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: true, diagnostics: diagnostics);
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // ReturnsVoid property is overridden in this class so
             // returnsVoid argument to MakeFlags is ignored.
-            this.MakeFlags(methodKind, _property.RefKind, declarationModifiers, returnsVoid: false, hasAnyBody: hasAnyBody, isExpressionBodied: isExpressionBodied, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled,
+            this.MakeFlags(methodKind, _property.RefKind, declarationModifiers, returnsVoid: false, returnsVoidIsSet: false, hasAnyBody: hasAnyBody, isExpressionBodied: isExpressionBodied, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                 isVarArg: false, isMetadataVirtualIgnoringModifiers: isExplicitInterfaceImplementation && (declarationModifiers & DeclarationModifiers.Static) == 0);
 
             CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: hasAnyBody || isAutoPropertyAccessor, diagnostics);

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasAnyBody = hasBlockBody || isExpressionBodied;
 
             this.MakeFlags(
-                methodKind, RefKind.None, declarationModifiers, returnsVoid: true, hasAnyBody: hasAnyBody, isExpressionBodied: isExpressionBodied, isExtensionMethod: false,
+                methodKind, RefKind.None, declarationModifiers, returnsVoid: true, returnsVoidIsSet: true, hasAnyBody: hasAnyBody, isExpressionBodied: isExpressionBodied, isExtensionMethod: false,
                 isVarArg: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled);
 
             if (syntax.Identifier.ValueText != containingType.Name)

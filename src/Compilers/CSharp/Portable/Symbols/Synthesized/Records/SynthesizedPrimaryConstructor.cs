@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 RefKind.None,
                 containingType.IsAbstract ? DeclarationModifiers.Protected : DeclarationModifiers.Public,
                 returnsVoid: true,
+                returnsVoidIsSet: true,
                 // We consider synthesized constructors to have a body, since they effectively span the entire type, and
                 // can do things like create constructor assignments that write into the fields/props of the type.
                 hasAnyBody: true,
