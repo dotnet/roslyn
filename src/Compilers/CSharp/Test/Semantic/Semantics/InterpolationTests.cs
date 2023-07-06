@@ -16683,6 +16683,25 @@ IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.St
 ");
         }
 
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/68834")]
+        public void ParenthesizedAdditiveExpression_06()
+        {
+            var src = """
+using System.Runtime.CompilerServices;
+DefaultInterpolatedStringHandler s1 = $"a" + $"b" + ($"c" + $"-");
+System.Console.Write(s1.ToString());
+
+DefaultInterpolatedStringHandler s2 = $"a" + ($"b" + $"c") + $"-";
+System.Console.Write(s2.ToString());
+
+DefaultInterpolatedStringHandler s3 = ($"a" + $"b") + $"c" + $"-";
+System.Console.Write(s3.ToString());
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+            CompileAndVerify(comp, expectedOutput: "abc-abc-abc-").VerifyDiagnostics();
+        }
+
         [Theory]
         [InlineData(@"$""{1}"", $""{2}""")]
         [InlineData(@"$""{1}"" + $"""", $""{2}"" + $""""")]
@@ -17865,25 +17884,6 @@ class C
                     IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{}')
                   NextVariables(0)
                 """);
-        }
-
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/68834")]
-        public void ParensInBinaryConcat()
-        {
-            var src = """
-using System.Runtime.CompilerServices;
-DefaultInterpolatedStringHandler s1 = $"a" + $"b" + ($"c" + $"-");
-System.Console.Write(s1.ToString());
-
-DefaultInterpolatedStringHandler s2 = $"a" + ($"b" + $"c") + $"-";
-System.Console.Write(s2.ToString());
-
-DefaultInterpolatedStringHandler s3 = ($"a" + $"b") + $"c" + $"-";
-System.Console.Write(s3.ToString());
-""";
-
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-            CompileAndVerify(comp, expectedOutput: "abc-abc-abc-").VerifyDiagnostics();
         }
     }
 }
