@@ -545,7 +545,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Remo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.VisualStudio.ServiceHub.Setup.arm64", "src\VisualStudio\Setup.ServiceHub\arm64\Roslyn.VisualStudio.ServiceHub.Setup.arm64.csproj", "{09E88382-0D7B-4A15-B1AF-0B89A5B67227}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK", "src\Tools\ExternalAccess\CompilerDeveloperSDK\Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK.csproj", "{A833B11C-5072-4A1F-A32B-2700433B0D3D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK", "src\Tools\ExternalAccess\CompilerDeveloperSDK\Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK.csproj", "{A833B11C-5072-4A1F-A32B-2700433B0D3D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
