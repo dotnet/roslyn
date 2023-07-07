@@ -82,8 +82,14 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
         SourceText text,
         LSP.TextDocumentIdentifier textDocumentIdentifier)
     {
+        var testMethodFinder = document.GetLanguageService<ITestMethodFinder>();
+        // The service is not implemented for all languages.
+        if (testMethodFinder == null)
+        {
+            return;
+        }
+
         // Find test method members.
-        var testMethodFinder = document.GetRequiredLanguageService<ITestMethodFinder>();
         using var _ = ArrayBuilder<CodeLensMember>.GetInstance(out var testMethodMembers);
         foreach (var member in members)
         {
