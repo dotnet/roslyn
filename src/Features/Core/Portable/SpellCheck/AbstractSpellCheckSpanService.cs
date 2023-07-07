@@ -35,20 +35,12 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             return spans.ToImmutable();
         }
 
-        private readonly ref struct Worker
+        private readonly ref struct Worker(ISyntaxFactsService syntaxFacts, ISyntaxClassificationService classifier, ArrayBuilder<SpellCheckSpan> spans)
         {
-            private readonly ISyntaxFactsService _syntaxFacts;
-            private readonly ISyntaxKinds _syntaxKinds;
-            private readonly ISyntaxClassificationService _classifier;
-            private readonly ArrayBuilder<SpellCheckSpan> _spans;
-
-            public Worker(ISyntaxFactsService syntaxFacts, ISyntaxClassificationService classifier, ArrayBuilder<SpellCheckSpan> spans)
-            {
-                _syntaxFacts = syntaxFacts;
-                _syntaxKinds = syntaxFacts.SyntaxKinds;
-                _classifier = classifier;
-                _spans = spans;
-            }
+            private readonly ISyntaxFactsService _syntaxFacts = syntaxFacts;
+            private readonly ISyntaxKinds _syntaxKinds = syntaxFacts.SyntaxKinds;
+            private readonly ISyntaxClassificationService _classifier = classifier;
+            private readonly ArrayBuilder<SpellCheckSpan> _spans = spans;
 
             private void AddSpan(SpellCheckSpan span)
             {
