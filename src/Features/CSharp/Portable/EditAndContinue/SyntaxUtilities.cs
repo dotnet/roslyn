@@ -2,85 +2,67 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.EditAndContinue;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
-    internal static class SyntaxUtilities
+    internal static partial class SyntaxUtilities
     {
-        public static SyntaxNode TryGetMethodDeclarationBody(SyntaxNode node)
+        public static LambdaBody CreateLambdaBody(SyntaxNode node)
+            => new CSharpLambdaBody(node);
+
+        public static MemberBody? TryGetDeclarationBody(SyntaxNode node)
+            => node switch
+            {
+                MethodDeclarationSyntax methodDeclaration => CreateSimpleBody(BlockOrExpression(methodDeclaration.Body, methodDeclaration.ExpressionBody)),
+                ConversionOperatorDeclarationSyntax conversionDeclaration => CreateSimpleBody(BlockOrExpression(conversionDeclaration.Body, conversionDeclaration.ExpressionBody)),
+                OperatorDeclarationSyntax operatorDeclaration => CreateSimpleBody(BlockOrExpression(operatorDeclaration.Body, operatorDeclaration.ExpressionBody)),
+                AccessorDeclarationSyntax accessorDeclaration => CreateSimpleBody(BlockOrExpression(accessorDeclaration.Body, accessorDeclaration.ExpressionBody)),
+                DestructorDeclarationSyntax destructorDeclaration => CreateSimpleBody(BlockOrExpression(destructorDeclaration.Body, destructorDeclaration.ExpressionBody)),
+
+                // We associate the body of expression-bodied property/indexer with the ArrowExpressionClause
+                // since that's the syntax node associated with the getter symbol.
+                // The property/indexer itself is considered to not have a body unless the property has an initializer.
+                ArrowExpressionClauseSyntax { Parent: (kind: SyntaxKind.PropertyDeclaration) or (kind: SyntaxKind.IndexerDeclaration) } arrowClause => CreateSimpleBody(arrowClause.Expression),
+                PropertyDeclarationSyntax propertyDeclaration => CreateSimpleBody(propertyDeclaration.Initializer?.Value),
+
+                ConstructorDeclarationSyntax constructorDeclaration when constructorDeclaration.Body != null || constructorDeclaration.ExpressionBody != null
+                    => constructorDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword)
+                       ? CreateSimpleBody(BlockOrExpression(constructorDeclaration.Body, constructorDeclaration.ExpressionBody))
+                       : (constructorDeclaration.Initializer != null)
+                       ? new InstanceConstructorWithExplicitInitializerDeclarationBody(constructorDeclaration)
+                       : new InstanceConstructorWithImplicitInitializerDeclarationBody(constructorDeclaration),
+
+                CompilationUnitSyntax unit when unit.ContainsGlobalStatements()
+                    => new TopLevelCodeDeclarationBody(unit),
+
+                VariableDeclaratorSyntax { Parent.Parent: BaseFieldDeclarationSyntax fieldDeclaration, Initializer: { } } variableDeclarator
+                    when !fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword)
+                    => new FieldWithInitializerDeclarationBody(variableDeclarator),
+
+                _ => null
+            };
+
+        internal static MemberBody? CreateSimpleBody(SyntaxNode? body)
         {
-            static SyntaxNode BlockOrExpression(BlockSyntax blockBodyOpt, ArrowExpressionClauseSyntax expressionBodyOpt)
-                => (SyntaxNode)blockBodyOpt ?? expressionBodyOpt?.Expression;
-
-            SyntaxNode result;
-            switch (node.Kind())
+            if (body == null)
             {
-                case SyntaxKind.MethodDeclaration:
-                    var methodDeclaration = (MethodDeclarationSyntax)node;
-                    result = BlockOrExpression(methodDeclaration.Body, methodDeclaration.ExpressionBody);
-                    break;
-
-                case SyntaxKind.ConversionOperatorDeclaration:
-                    var conversionDeclaration = (ConversionOperatorDeclarationSyntax)node;
-                    result = BlockOrExpression(conversionDeclaration.Body, conversionDeclaration.ExpressionBody);
-                    break;
-
-                case SyntaxKind.OperatorDeclaration:
-                    var operatorDeclaration = (OperatorDeclarationSyntax)node;
-                    result = BlockOrExpression(operatorDeclaration.Body, operatorDeclaration.ExpressionBody);
-                    break;
-
-                case SyntaxKind.SetAccessorDeclaration:
-                case SyntaxKind.InitAccessorDeclaration:
-                case SyntaxKind.AddAccessorDeclaration:
-                case SyntaxKind.RemoveAccessorDeclaration:
-                case SyntaxKind.GetAccessorDeclaration:
-                    var accessorDeclaration = (AccessorDeclarationSyntax)node;
-                    result = BlockOrExpression(accessorDeclaration.Body, accessorDeclaration.ExpressionBody);
-                    break;
-
-                case SyntaxKind.ConstructorDeclaration:
-                    var constructorDeclaration = (ConstructorDeclarationSyntax)node;
-                    result = BlockOrExpression(constructorDeclaration.Body, constructorDeclaration.ExpressionBody);
-                    break;
-
-                case SyntaxKind.DestructorDeclaration:
-                    var destructorDeclaration = (DestructorDeclarationSyntax)node;
-                    result = BlockOrExpression(destructorDeclaration.Body, destructorDeclaration.ExpressionBody);
-                    break;
-
-                case SyntaxKind.PropertyDeclaration:
-                    var propertyDeclaration = (PropertyDeclarationSyntax)node;
-                    result = propertyDeclaration.Initializer?.Value;
-                    break;
-
-                case SyntaxKind.ArrowExpressionClause:
-                    // We associate the body of expression-bodied property/indexer with the ArrowExpressionClause
-                    // since that's the syntax node associated with the getter symbol.
-                    // The property/indexer itself is considered to not have a body unless the property has an initializer.
-                    result = node.Parent.Kind() is SyntaxKind.PropertyDeclaration or SyntaxKind.IndexerDeclaration ?
-                        ((ArrowExpressionClauseSyntax)node).Expression : null;
-                    break;
-
-                default:
-                    return null;
+                return null;
             }
 
-            if (result != null)
-            {
-                AssertIsBody(result, allowLambda: false);
-            }
-
-            return result;
+            AssertIsBody(body, allowLambda: false);
+            return new SimpleMemberBody(body);
         }
+
+        public static SyntaxNode? BlockOrExpression(BlockSyntax? blockBody, ArrowExpressionClauseSyntax? expressionBody)
+             => (SyntaxNode?)blockBody ?? expressionBody?.Expression;
 
         [Conditional("DEBUG")]
         public static void AssertIsBody(SyntaxNode syntax, bool allowLambda)
@@ -100,19 +82,19 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
 
             // expression body
-            if (syntax is ExpressionSyntax && syntax.Parent is ArrowExpressionClauseSyntax)
+            if (syntax is ExpressionSyntax { Parent: ArrowExpressionClauseSyntax })
             {
                 return;
             }
 
             // field initializer
-            if (syntax is ExpressionSyntax && syntax.Parent.Parent is VariableDeclaratorSyntax)
+            if (syntax is ExpressionSyntax { Parent.Parent: VariableDeclaratorSyntax })
             {
                 return;
             }
 
             // property initializer
-            if (syntax is ExpressionSyntax && syntax.Parent.Parent is PropertyDeclarationSyntax)
+            if (syntax is ExpressionSyntax { Parent.Parent: PropertyDeclarationSyntax })
             {
                 return;
             }
@@ -129,70 +111,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         public static bool ContainsGlobalStatements(this CompilationUnitSyntax compilationUnit)
             => compilationUnit.Members is [GlobalStatementSyntax, ..];
 
-        public static void FindLeafNodeAndPartner(SyntaxNode leftRoot, int leftPosition, SyntaxNode rightRoot, out SyntaxNode leftNode, out SyntaxNode rightNodeOpt)
-        {
-            leftNode = leftRoot;
-            rightNodeOpt = rightRoot;
-            while (true)
-            {
-                if (rightNodeOpt != null && leftNode.RawKind != rightNodeOpt.RawKind)
-                {
-                    rightNodeOpt = null;
-                }
+        public static bool Any(TypeParameterListSyntax? list)
+            => list != null && list.ChildNodesAndTokens().Count != 0;
 
-                var leftChild = leftNode.ChildThatContainsPosition(leftPosition, out var childIndex);
-                if (leftChild.IsToken)
-                {
-                    return;
-                }
-
-                if (rightNodeOpt != null)
-                {
-                    var rightNodeChildNodesAndTokens = rightNodeOpt.ChildNodesAndTokens();
-                    if (childIndex >= 0 && childIndex < rightNodeChildNodesAndTokens.Count)
-                    {
-                        rightNodeOpt = rightNodeChildNodesAndTokens[childIndex].AsNode();
-                    }
-                    else
-                    {
-                        rightNodeOpt = null;
-                    }
-                }
-
-                leftNode = leftChild.AsNode();
-            }
-        }
-
-        public static SyntaxNode FindPartner(SyntaxNode leftRoot, SyntaxNode rightRoot, SyntaxNode leftNode)
-        {
-            // Finding a partner of a zero-width node is complicated and not supported atm:
-            Debug.Assert(leftNode.FullSpan.Length > 0);
-            Debug.Assert(leftNode.SyntaxTree == leftRoot.SyntaxTree);
-
-            var originalLeftNode = leftNode;
-            var leftPosition = leftNode.SpanStart;
-            leftNode = leftRoot;
-            var rightNode = rightRoot;
-
-            while (leftNode != originalLeftNode)
-            {
-                Debug.Assert(leftNode.RawKind == rightNode.RawKind);
-                var leftChild = leftNode.ChildThatContainsPosition(leftPosition, out var childIndex);
-
-                // Can only happen when searching for zero-width node.
-                Debug.Assert(!leftChild.IsToken);
-
-                rightNode = rightNode.ChildNodesAndTokens()[childIndex].AsNode();
-                leftNode = leftChild.AsNode();
-            }
-
-            return rightNode;
-        }
-
-        public static bool Any(TypeParameterListSyntax listOpt)
-            => listOpt != null && listOpt.ChildNodesAndTokens().Count != 0;
-
-        public static SyntaxNode TryGetEffectiveGetterBody(SyntaxNode declaration)
+        public static SyntaxNode? TryGetEffectiveGetterBody(SyntaxNode declaration)
         {
             if (declaration is PropertyDeclarationSyntax property)
             {
@@ -207,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return null;
         }
 
-        public static SyntaxNode TryGetEffectiveGetterBody(ArrowExpressionClauseSyntax propertyBody, AccessorListSyntax accessorList)
+        public static SyntaxNode? TryGetEffectiveGetterBody(ArrowExpressionClauseSyntax? propertyBody, AccessorListSyntax? accessorList)
         {
             if (propertyBody != null)
             {
@@ -220,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return null;
             }
 
-            return (SyntaxNode)firstGetter.Body ?? firstGetter.ExpressionBody?.Expression;
+            return (SyntaxNode?)firstGetter.Body ?? firstGetter.ExpressionBody?.Expression;
         }
 
         public static SyntaxTokenList? TryGetFieldOrPropertyModifiers(SyntaxNode node)
@@ -253,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
 
             return property.ExpressionBody == null
-                && property.AccessorList.Accessors.Any(e => e.Body == null && e.ExpressionBody == null);
+                && property.AccessorList!.Accessors.Any(e => e.Body == null && e.ExpressionBody == null);
         }
 
         /// <summary>
@@ -270,6 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             // expression bodied methods/local functions:
             if (declaration.IsKind(SyntaxKind.ArrowExpressionClause))
             {
+                Contract.ThrowIfNull(declaration.Parent);
                 declaration = declaration.Parent;
             }
 

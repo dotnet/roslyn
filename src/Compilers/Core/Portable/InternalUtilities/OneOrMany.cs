@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -258,7 +257,13 @@ namespace Roslyn.Utilities
         public static OneOrMany<T> Create<T>(T one)
             => new OneOrMany<T>(one);
 
+        public static OneOrMany<T> Create<T>(T one, T two)
+            => new OneOrMany<T>(ImmutableArray.Create(one, two));
+
         public static OneOrMany<T> Create<T>(ImmutableArray<T> many)
             => new OneOrMany<T>(many);
+
+        public static OneOrMany<T> OneOrNone<T>(T? item)
+            => item is null ? OneOrMany<T>.Empty : new OneOrMany<T>(item);
     }
 }
