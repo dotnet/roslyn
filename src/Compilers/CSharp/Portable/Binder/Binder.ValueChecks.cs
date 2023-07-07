@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression CheckValue(BoundExpression expr, BindValueKind valueKind, BindingDiagnosticBag diagnostics)
         {
-            if ((valueKind & BindValueKind.Assignable) != 0)
+            if (RequiresAssignableVariable(valueKind))
             {
                 expr = ResolveToExtensionMemberIfPossible(expr, diagnostics);
             }
