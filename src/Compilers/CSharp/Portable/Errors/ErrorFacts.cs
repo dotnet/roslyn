@@ -80,13 +80,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             nullableWarnings.Add(GetId(ErrorCode.WRN_ParameterDisallowsNull));
             nullableWarnings.Add(GetId(ErrorCode.WRN_ParameterNotNullIfNotNull));
             nullableWarnings.Add(GetId(ErrorCode.WRN_ReturnNotNullIfNotNull));
-<<<<<<< HEAD
-            nullableWarnings.Add(GetId(ErrorCode.WRN_DuplicateExtensionWithNullabilityMismatchInBaseList));
-||||||| 55e39535694
-=======
             nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor));
             nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor));
->>>>>>> dotnet/main
+            nullableWarnings.Add(GetId(ErrorCode.WRN_DuplicateExtensionWithNullabilityMismatchInBaseList));
 
             NullableWarnings = nullableWarnings.ToImmutable();
         }
@@ -537,15 +533,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_ParamsArrayInLambdaOnly:
                 case ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase:
                 case ErrorCode.WRN_UnreadPrimaryConstructorParameter:
-<<<<<<< HEAD
-                case ErrorCode.WRN_DuplicateExtensionWithNullabilityMismatchInBaseList:
-||||||| 55e39535694
-=======
                 case ErrorCode.WRN_InterceptorSignatureMismatch:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor:
                 case ErrorCode.WRN_CapturedPrimaryConstructorParameterInFieldInitializer:
->>>>>>> dotnet/main
+                case ErrorCode.WRN_DuplicateExtensionWithNullabilityMismatchInBaseList:
                     return 1;
                 default:
                     return 0;
@@ -2354,7 +2346,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_InterceptorLineCharacterMustBePositive:
                 case ErrorCode.ERR_ConstantValueOfTypeExpected:
                 case ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny:
-<<<<<<< HEAD
+                case ErrorCode.ERR_InterceptorCannotUseUnmanagedCallersOnly:
+                case ErrorCode.ERR_BadUsingStaticType:
+                case ErrorCode.WRN_CapturedPrimaryConstructorParameterInFieldInitializer:
+                case ErrorCode.ERR_InlineArrayConversionToSpanNotSupported:
+                case ErrorCode.ERR_InlineArrayConversionToReadOnlySpanNotSupported:
+                case ErrorCode.ERR_InlineArrayIndexOutOfRange:
+                case ErrorCode.ERR_InvalidInlineArrayLength:
+                case ErrorCode.ERR_InvalidInlineArrayLayout:
+                case ErrorCode.ERR_InvalidInlineArrayFields:
+                case ErrorCode.ERR_ExpressionTreeContainsInlineArrayOperation:
+                case ErrorCode.ERR_RuntimeDoesNotSupportInlineArrayTypes:
+                case ErrorCode.ERR_InlineArrayBadIndex:
+                case ErrorCode.ERR_NamedArgumentForInlineArray:
+                case ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible:
+                case ErrorCode.ERR_ExpressionTreeContainsCollectionLiteral:
+                case ErrorCode.ERR_CollectionLiteralNoTargetType:
                 case ErrorCode.ERR_BadExtensionUnderlyingType:
                 case ErrorCode.ERR_StaticBaseTypeOnInstanceExtension:
                 case ErrorCode.ERR_OnlyBaseExtensionAllowed:
@@ -2373,25 +2380,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_DuplicateExtensionInBaseList:
                 case ErrorCode.ERR_ExtensionMethodInExtension:
                 case ErrorCode.ERR_MalformedExtensionInMetadata:
-||||||| 55e39535694
-=======
-                case ErrorCode.ERR_InterceptorCannotUseUnmanagedCallersOnly:
-                case ErrorCode.ERR_BadUsingStaticType:
-                case ErrorCode.WRN_CapturedPrimaryConstructorParameterInFieldInitializer:
-                case ErrorCode.ERR_InlineArrayConversionToSpanNotSupported:
-                case ErrorCode.ERR_InlineArrayConversionToReadOnlySpanNotSupported:
-                case ErrorCode.ERR_InlineArrayIndexOutOfRange:
-                case ErrorCode.ERR_InvalidInlineArrayLength:
-                case ErrorCode.ERR_InvalidInlineArrayLayout:
-                case ErrorCode.ERR_InvalidInlineArrayFields:
-                case ErrorCode.ERR_ExpressionTreeContainsInlineArrayOperation:
-                case ErrorCode.ERR_RuntimeDoesNotSupportInlineArrayTypes:
-                case ErrorCode.ERR_InlineArrayBadIndex:
-                case ErrorCode.ERR_NamedArgumentForInlineArray:
-                case ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible:
-                case ErrorCode.ERR_ExpressionTreeContainsCollectionLiteral:
-                case ErrorCode.ERR_CollectionLiteralNoTargetType:
->>>>>>> dotnet/main
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

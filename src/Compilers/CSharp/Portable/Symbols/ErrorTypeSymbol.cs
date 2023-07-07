@@ -291,16 +291,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-<<<<<<< HEAD
-        /// Returns the type arguments that have been substituted for the type parameters.
-        /// If nothing has been substituted for a give type parameters,
-||||||| 55e39535694
-        /// Returns the type arguments that have been substituted for the type parameters. 
-        /// If nothing has been substituted for a give type parameters,
-=======
         /// Returns the type arguments that have been substituted for the type parameters. 
         /// If nothing has been substituted for a given type parameter,
->>>>>>> dotnet/main
         /// then the type parameter itself is consider the type argument.
         /// </summary>
         internal override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics

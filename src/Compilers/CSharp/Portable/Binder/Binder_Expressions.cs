@@ -7742,16 +7742,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     isMethodGroupConversion: isMethodGroupConversion,
                     allowRefOmittedArguments: allowRefOmittedArguments,
                     returnRefKind: returnRefKind,
-<<<<<<< HEAD
-                    returnType: returnType);
-
-                // PROTOTYPE test use-site diagnostics
-||||||| 55e39535694
-                    returnType: returnType);
-=======
                     returnType: returnType,
                     isExtensionMethodResolution: true);
->>>>>>> dotnet/main
+
+                // PROTOTYPE test use-site diagnostics
                 diagnostics.Add(expression, useSiteInfo);
                 var sealedDiagnostics = diagnostics.ToReadOnlyAndFree();
 

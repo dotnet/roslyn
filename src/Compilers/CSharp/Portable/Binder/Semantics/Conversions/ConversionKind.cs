@@ -66,12 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         CollectionLiteral, // a conversion from a collection literal to any type
 
         InterpolatedStringHandler, // A conversion from an interpolated string literal to a type attributed with InterpolatedStringBuilderAttribute
-<<<<<<< HEAD
-        ExtensionMember, // The ExtensionMember conversion is not part of the language, it is an implementation detail
-||||||| 55e39535694
-=======
-
         InlineArray, // A conversion from an inline array to Span/ReadOnlySpan
->>>>>>> dotnet/main
+        ExtensionMember, // The ExtensionMember conversion is not part of the language, it is an implementation detail
     }
 }

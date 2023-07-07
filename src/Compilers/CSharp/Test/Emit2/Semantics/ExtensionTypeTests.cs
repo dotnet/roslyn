@@ -9194,9 +9194,6 @@ public explicit extension D for object : C<string>
             targetFramework: TargetFramework.Net70);
 
         compilation3.VerifyDiagnostics(
-            // (1,1): error CS8090: There is an error in a referenced assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-            // D.M();
-            Diagnostic(ErrorCode.ERR_ErrorInReferencedAssembly, "D.M").WithArguments("missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1),
             // (1,3): error CS8090: There is an error in a referenced assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             // D.M();
             Diagnostic(ErrorCode.ERR_ErrorInReferencedAssembly, "M").WithArguments("missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 3),

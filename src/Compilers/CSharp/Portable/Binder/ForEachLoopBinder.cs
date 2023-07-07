@@ -1433,16 +1433,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // PROTOTYPE we'll want extension types to contribute and not crash below
             var analyzedArguments = AnalyzedArguments.GetInstance();
 
-<<<<<<< HEAD
             var methodGroupResolutionResult = this.ResolveExtension(
-                _syntax.Expression,
-||||||| 55e39535694
-            var methodGroupResolutionResult = this.BindExtensionMethod(
-                _syntax.Expression,
-=======
-            var methodGroupResolutionResult = this.BindExtensionMethod(
                 collectionSyntax,
->>>>>>> dotnet/main
                 methodName,
                 analyzedArguments,
                 collectionExpr,

@@ -170,7 +170,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable();
 
         internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
-<<<<<<< HEAD
 
 #nullable enable
         internal override bool IsExtension => false;
@@ -192,14 +191,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override void CheckBaseExtensions(BindingDiagnosticBag diagnostics)
             => throw ExceptionUtilities.Unreachable();
-||||||| 55e39535694
-=======
 
         internal sealed override bool HasInlineArrayAttribute(out int length)
         {
             length = 0;
             return false;
         }
->>>>>>> dotnet/main
     }
 }

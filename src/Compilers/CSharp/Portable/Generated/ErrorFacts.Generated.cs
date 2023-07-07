@@ -315,15 +315,11 @@
                 case ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase:
                 case ErrorCode.WRN_UnreadPrimaryConstructorParameter:
                 case ErrorCode.WRN_AddressOfInAsync:
-<<<<<<< HEAD
-                case ErrorCode.WRN_DuplicateExtensionWithNullabilityMismatchInBaseList:
-||||||| 55e39535694
-=======
                 case ErrorCode.WRN_CapturedPrimaryConstructorParameterInFieldInitializer:
                 case ErrorCode.WRN_InterceptorSignatureMismatch:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor:
->>>>>>> dotnet/main
+                case ErrorCode.WRN_DuplicateExtensionWithNullabilityMismatchInBaseList:
                     return true;
                 default:
                     return false;

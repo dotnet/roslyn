@@ -690,6 +690,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static (DeclarationModifiers mods, bool hasExplicitAccessMod) MakeModifiers(MethodDeclarationSyntax syntax, NamedTypeSymbol containingType, MethodKind methodKind, bool hasBody, Location location, BindingDiagnosticBag diagnostics)
         {
             bool isInterface = containingType.IsInterface;
+            bool inExtension = containingType.IsExtension;
             bool isExplicitInterfaceImplementation = methodKind == MethodKind.ExplicitInterfaceImplementation;
 
             // This is needed to make sure we can detect 'public' modifier specified explicitly and
@@ -700,7 +701,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var allowedModifiers = DeclarationModifiers.Partial | DeclarationModifiers.Unsafe;
             var defaultInterfaceImplementationModifiers = DeclarationModifiers.None;
 
-            if (!isExplicitInterfaceImplementation)
+            if (inExtension)
+            {
+                allowedModifiers |= DeclarationModifiers.New |
+                                    DeclarationModifiers.Static |
+                                    DeclarationModifiers.AccessibilityMask;
+            }
+            else if (!isExplicitInterfaceImplementation)
             {
                 allowedModifiers |= DeclarationModifiers.New |
                                     DeclarationModifiers.Sealed |

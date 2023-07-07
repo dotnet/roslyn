@@ -7622,54 +7622,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny" xml:space="preserve">
     <value>Cannot use primary constructor parameter of type '{0}' inside an instance member</value>
   </data>
-<<<<<<< HEAD
-  <data name="ERR_BadExtensionUnderlyingType" xml:space="preserve">
-    <value>The extended type may not be dynamic, a pointer, a ref struct, or an extension.</value>
-  </data>
-  <data name="ERR_StaticBaseTypeOnInstanceExtension" xml:space="preserve">
-    <value>Instance extension '{0}' cannot extend type '{1}' because it is static.</value>
-  </data>
-  <data name="ERR_OnlyBaseExtensionAllowed" xml:space="preserve">
-    <value>A base extension must be an extension type.</value>
-  </data>
-  <data name="ERR_PartialMultipleUnderlyingTypes" xml:space="preserve">
-    <value>Partial declarations of '{0}' must not extend different types.</value>
-  </data>
-  <data name="ERR_StateInExtension" xml:space="preserve">
-    <value>'{0}': cannot declare instance members with state in extension types.</value>
-  </data>
-  <data name="ERR_ExtensionMissingUnderlyingType" xml:space="preserve">
-    <value>No part of a partial extension '{0}' includes an underlying type specification.</value>
-  </data>
-  <data name="ERR_PartialDifferentExtensionModifiers" xml:space="preserve">
-    <value>Partial declarations of '{0}' must specify the same extension modifier ('implicit' or 'explicit').</value>
-  </data>
-  <data name="ERR_UnderlyingTypesMismatch" xml:space="preserve">
-    <value>Extension '{0}' extends '{1}' but base extension '{2}' extends '{3}'.</value>
-  </data>
-  <data name="WRN_DuplicateExtensionWithNullabilityMismatchInBaseList" xml:space="preserve">
-    <value>'{0}' is already listed in the base extension list on type '{1}' with different nullability of reference types.</value>
-  </data>
-  <data name="WRN_DuplicateExtensionWithNullabilityMismatchInBaseList_Title" xml:space="preserve">
-    <value>Extension is already listed in the base extension list with different nullability of reference types.</value>
-  </data>
-  <data name="ERR_DuplicateExtensionInBaseList" xml:space="preserve">
-    <value>'{0}' is already listed in the base extension list</value>
-  </data>
-  <data name="ERR_DuplicateExtensionWithTupleNamesInBaseList" xml:space="preserve">
-    <value>'{0}' is already listed in the base extension list on type '{2}' with different tuple element names, as '{1}'.</value>
-  </data>
-  <data name="ERR_DuplicateExtensionWithDifferencesInBaseList" xml:space="preserve">
-    <value>'{0}' is already listed in the base extension list on type '{2}' as '{1}'.</value>
-  </data>
-  <data name="ERR_ExtensionMethodInExtension" xml:space="preserve">
-    <value>Extension methods are not allowed in extension types.</value>
-  </data>
-  <data name="ERR_MalformedExtensionInMetadata" xml:space="preserve">
-    <value>Extension marker method on type '{0}' is malformed.</value>
-  </data>
-||||||| 55e39535694
-=======
   <data name="WRN_NullabilityMismatchInParameterTypeOnInterceptor" xml:space="preserve">
     <value>Nullability of reference types in type of parameter '{0}' doesn't match interceptable method '{1}'.</value>
   </data>
@@ -7733,5 +7685,49 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_NamedArgumentForInlineArray" xml:space="preserve">
     <value>An inline array access may not have a named argument specifier</value>
   </data>
->>>>>>> dotnet/main
+  <data name="ERR_BadExtensionUnderlyingType" xml:space="preserve">
+    <value>The extended type may not be dynamic, a pointer, a ref struct, or an extension.</value>
+  </data>
+  <data name="ERR_StaticBaseTypeOnInstanceExtension" xml:space="preserve">
+    <value>Instance extension '{0}' cannot extend type '{1}' because it is static.</value>
+  </data>
+  <data name="ERR_OnlyBaseExtensionAllowed" xml:space="preserve">
+    <value>A base extension must be an extension type.</value>
+  </data>
+  <data name="ERR_PartialMultipleUnderlyingTypes" xml:space="preserve">
+    <value>Partial declarations of '{0}' must not extend different types.</value>
+  </data>
+  <data name="ERR_StateInExtension" xml:space="preserve">
+    <value>'{0}': cannot declare instance members with state in extension types.</value>
+  </data>
+  <data name="ERR_ExtensionMissingUnderlyingType" xml:space="preserve">
+    <value>No part of a partial extension '{0}' includes an underlying type specification.</value>
+  </data>
+  <data name="ERR_PartialDifferentExtensionModifiers" xml:space="preserve">
+    <value>Partial declarations of '{0}' must specify the same extension modifier ('implicit' or 'explicit').</value>
+  </data>
+  <data name="ERR_UnderlyingTypesMismatch" xml:space="preserve">
+    <value>Extension '{0}' extends '{1}' but base extension '{2}' extends '{3}'.</value>
+  </data>
+  <data name="WRN_DuplicateExtensionWithNullabilityMismatchInBaseList" xml:space="preserve">
+    <value>'{0}' is already listed in the base extension list on type '{1}' with different nullability of reference types.</value>
+  </data>
+  <data name="WRN_DuplicateExtensionWithNullabilityMismatchInBaseList_Title" xml:space="preserve">
+    <value>Extension is already listed in the base extension list with different nullability of reference types.</value>
+  </data>
+  <data name="ERR_DuplicateExtensionInBaseList" xml:space="preserve">
+    <value>'{0}' is already listed in the base extension list</value>
+  </data>
+  <data name="ERR_DuplicateExtensionWithTupleNamesInBaseList" xml:space="preserve">
+    <value>'{0}' is already listed in the base extension list on type '{2}' with different tuple element names, as '{1}'.</value>
+  </data>
+  <data name="ERR_DuplicateExtensionWithDifferencesInBaseList" xml:space="preserve">
+    <value>'{0}' is already listed in the base extension list on type '{2}' as '{1}'.</value>
+  </data>
+  <data name="ERR_ExtensionMethodInExtension" xml:space="preserve">
+    <value>Extension methods are not allowed in extension types.</value>
+  </data>
+  <data name="ERR_MalformedExtensionInMetadata" xml:space="preserve">
+    <value>Extension marker method on type '{0}' is malformed.</value>
+  </data>
 </root>

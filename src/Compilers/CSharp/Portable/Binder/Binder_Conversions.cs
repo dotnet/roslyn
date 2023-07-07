@@ -390,55 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         conversion.MarkUnderlyingConversionsChecked();
                     }
                 }
-<<<<<<< HEAD
-            }
-        }
-
-        private BoundExpression GetExtensionMemberAccess(SyntaxNode syntax, BoundExpression? receiver, Symbol extensionMember, BindingDiagnosticBag diagnostics)
-        {
-            switch (extensionMember)
-            {
-                case PropertySymbol propertySymbol:
-                    return BindPropertyAccess(syntax, receiver, propertySymbol, diagnostics, LookupResultKind.Viable, hasErrors: false);
-
-                case FieldSymbol fieldSymbol:
-                    return BindFieldAccess(syntax, receiver, fieldSymbol, diagnostics, LookupResultKind.Viable, indexed: false, hasErrors: false);
-
-                case NamedTypeSymbol namedTypeSymbol:
-                    bool wasError = false;
-
-                    return BindTypeMemberOfType(receiver, namedTypeSymbol.Name, namedTypeSymbol,
-                        syntax, right: syntax, diagnostics, ref wasError);
-
-                case EventSymbol eventSymbol:
-                    return BindEventAccess(syntax, receiver, eventSymbol, diagnostics, LookupResultKind.Viable, hasErrors: false);
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(extensionMember.Kind);
-            }
-        }
-
-        internal void CheckConstraintLanguageVersionAndRuntimeSupportForConversion(SyntaxNodeOrToken syntax, Conversion conversion, BindingDiagnosticBag diagnostics)
-        {
-            Debug.Assert(syntax.SyntaxTree is object);
-
-            if (conversion.IsUserDefined && conversion.Method is MethodSymbol method && method.IsStatic)
-            {
-                if (method.IsAbstract || method.IsVirtual)
-||||||| 55e39535694
-            }
-        }
-
-        internal void CheckConstraintLanguageVersionAndRuntimeSupportForConversion(SyntaxNodeOrToken syntax, Conversion conversion, BindingDiagnosticBag diagnostics)
-        {
-            Debug.Assert(syntax.SyntaxTree is object);
-
-            if (conversion.IsUserDefined && conversion.Method is MethodSymbol method && method.IsStatic)
-            {
-                if (method.IsAbstract || method.IsVirtual)
-=======
                 else if (conversion.IsDynamic)
->>>>>>> dotnet/main
                 {
                     Debug.Assert(conversion.UnderlyingConversions.IsDefault);
                     conversion.MarkUnderlyingConversionsChecked();
@@ -515,6 +467,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
+            }
+        }
+
+        private BoundExpression GetExtensionMemberAccess(SyntaxNode syntax, BoundExpression? receiver, Symbol extensionMember, BindingDiagnosticBag diagnostics)
+        {
+            switch (extensionMember)
+            {
+                case PropertySymbol propertySymbol:
+                    return BindPropertyAccess(syntax, receiver, propertySymbol, diagnostics, LookupResultKind.Viable, hasErrors: false);
+
+                case FieldSymbol fieldSymbol:
+                    return BindFieldAccess(syntax, receiver, fieldSymbol, diagnostics, LookupResultKind.Viable, indexed: false, hasErrors: false);
+
+                case NamedTypeSymbol namedTypeSymbol:
+                    bool wasError = false;
+
+                    return BindTypeMemberOfType(receiver, namedTypeSymbol.Name, namedTypeSymbol,
+                        syntax, right: syntax, diagnostics, ref wasError);
+
+                case EventSymbol eventSymbol:
+                    return BindEventAccess(syntax, receiver, eventSymbol, diagnostics, LookupResultKind.Viable, hasErrors: false);
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(extensionMember.Kind);
             }
         }
 

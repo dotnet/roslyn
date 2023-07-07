@@ -272,14 +272,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureUsingTypeAlias = MessageBase + 12834,
 
         IDS_FeatureInstanceMemberInNameof = MessageBase + 12835,
-<<<<<<< HEAD
-        IDS_FeatureExtensions = MessageBase + 12836,
-||||||| 55e39535694
-=======
 
         IDS_FeatureInlineArrays = MessageBase + 12836,
         IDS_FeatureCollectionLiterals = MessageBase + 12837,
->>>>>>> dotnet/main
+        IDS_FeatureExtensions = MessageBase + 12838,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -465,13 +461,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeaturePrimaryConstructors: // declaration table check
                 case MessageID.IDS_FeatureUsingTypeAlias: // semantic check
                 case MessageID.IDS_FeatureInstanceMemberInNameof: // semantic check
-<<<<<<< HEAD
-                case MessageID.IDS_FeatureExtensions:
-||||||| 55e39535694
-=======
                 case MessageID.IDS_FeatureInlineArrays: // semantic check
                 case MessageID.IDS_FeatureCollectionLiterals: // semantic check
->>>>>>> dotnet/main
+                case MessageID.IDS_FeatureExtensions:
                     return LanguageVersion.Preview;
 
                 // C# 11.0 features.

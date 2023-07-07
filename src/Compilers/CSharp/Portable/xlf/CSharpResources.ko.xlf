@@ -292,7 +292,11 @@
         <target state="translated">'using static' 또는 'using alias'만 'unsafe'일 수 있습니다.</target>
         <note />
       </trans-unit>
-<<<<<<< HEAD
+      <trans-unit id="ERR_BadUsingStaticType">
+        <source>'{0}' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate, or namespace can be used.</source>
+        <target state="new">'{0}' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate, or namespace can be used.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadVisBaseExtension">
         <source>Inconsistent accessibility: base extension '{1}' is less accessible than extension '{0}'</source>
         <target state="new">Inconsistent accessibility: base extension '{1}' is less accessible than extension '{0}'</target>
@@ -303,14 +307,6 @@
         <target state="new">Inconsistent accessibility: underlying type '{1}' is less accessible than extension '{0}'</target>
         <note />
       </trans-unit>
-||||||| 55e39535694
-=======
-      <trans-unit id="ERR_BadUsingStaticType">
-        <source>'{0}' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate, or namespace can be used.</source>
-        <target state="new">'{0}' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate, or namespace can be used.</target>
-        <note />
-      </trans-unit>
->>>>>>> dotnet/main
       <trans-unit id="ERR_BuilderAttributeDisallowed">
         <source>The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.</source>
         <target state="translated">AsyncMethodBuilder 특성은 명시적 반환 형식이 없는 익명 메서드에서 허용되지 않습니다.</target>
@@ -526,7 +522,6 @@
         <target state="translated">'{0}'은(는) 두 번 이상 명시적으로 구현됩니다.</target>
         <note />
       </trans-unit>
-<<<<<<< HEAD
       <trans-unit id="ERR_DuplicateExtensionInBaseList">
         <source>'{0}' is already listed in the base extension list</source>
         <target state="new">'{0}' is already listed in the base extension list</target>
@@ -542,14 +537,11 @@
         <target state="new">'{0}' is already listed in the base extension list on type '{2}' with different tuple element names, as '{1}'.</target>
         <note />
       </trans-unit>
-||||||| 55e39535694
-=======
       <trans-unit id="ERR_DuplicateInterceptor">
         <source>The indicated call is intercepted multiple times.</source>
         <target state="new">The indicated call is intercepted multiple times.</target>
         <note />
       </trans-unit>
->>>>>>> dotnet/main
       <trans-unit id="ERR_DuplicateInterfaceWithDifferencesInBaseList">
         <source>'{0}' is already listed in the interface list on type '{2}' as '{1}'.</source>
         <target state="translated">'{0}'은(는) '{2}' 형식에 대한 인터페이스 목록에 '{1}'(으)로 이미 나열되어 있습니다.</target>
