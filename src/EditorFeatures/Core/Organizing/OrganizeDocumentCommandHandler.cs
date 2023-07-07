@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -23,7 +21,6 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
@@ -72,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
         {
             if (IsCommandSupported(args, needsSemantics, out var workspace))
             {
-                var organizeImportsService = workspace.Services.SolutionServices.GetProjectServices(args.SubjectBuffer).GetService<IOrganizeImportsService>();
+                var organizeImportsService = workspace.Services.SolutionServices.GetProjectServices(args.SubjectBuffer)!.GetRequiredService<IOrganizeImportsService>();
                 return new CommandState(isAvailable: true, displayText: descriptionString(organizeImportsService));
             }
             else
@@ -81,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
             }
         }
 
-        private static bool IsCommandSupported(EditorCommandArgs args, bool needsSemantics, out Workspace workspace)
+        private static bool IsCommandSupported(EditorCommandArgs args, bool needsSemantics, [NotNullWhen(true)] out Workspace? workspace)
         {
             workspace = null;
             if (args.SubjectBuffer.TryGetWorkspace(out var retrievedWorkspace))
@@ -103,11 +100,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
             return false;
         }
 
-        private void ExecuteCommandWorker(
+        private bool ExecuteCommand(
             EditorCommandArgs commandArgs,
             CommandExecutionContext context,
-            string dialogText,
-            Func<ITextSnapshot, IUIThreadOperationContext, Task<Document>> getCurrentDocumentAsync,
+            Func<ITextSnapshot, IUIThreadOperationContext, Task<Document?>> getCurrentDocumentAsync,
             Func<Document, CancellationToken, Task<Document>> getChangedDocumentAsync)
         {
             // We're showing our own UI, ensure the editor doesn't show anything itself.
@@ -118,25 +114,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
 
             var caretPoint = textView.GetCaretPoint(subjectBuffer);
             if (caretPoint is null)
-                return;
+                return false;
 
             if (!subjectBuffer.TryGetWorkspace(out var workspace))
-                return;
+                return false;
 
-            var token = _listener.BeginAsyncOperation(nameof(ExecuteCommandWorker));
+            var token = _listener.BeginAsyncOperation(nameof(ExecuteCommand));
 
             var snapshotSpan = textView.GetTextElementSpan(caretPoint.Value);
-            ExecuteAsync(workspace, commandArgs, snapshotSpan, dialogText, getCurrentDocumentAsync, getChangedDocumentAsync)
+            ExecuteAsync(workspace, commandArgs, snapshotSpan, getCurrentDocumentAsync, getChangedDocumentAsync)
                 .ReportNonFatalErrorAsync()
                 .CompletesAsyncOperation(token);
+            return true;
         }
 
         private async Task ExecuteAsync(
             Workspace workspace,
             EditorCommandArgs commandArgs,
             SnapshotSpan snapshotSpan,
-            string dialogText,
-            Func<ITextSnapshot, IUIThreadOperationContext, Task<Document>> getCurrentDocumentAsync,
+            Func<ITextSnapshot, IUIThreadOperationContext, Task<Document?>> getCurrentDocumentAsync,
             Func<Document, CancellationToken, Task<Document>> getChangedDocumentAsync)
         {
             _threadingContext.ThrowIfNotOnUIThread();
@@ -145,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
             using var backgroundWorkContext = indicatorFactory.Create(
                 commandArgs.TextView,
                 snapshotSpan,
-                dialogText,
+                EditorFeaturesResources.Organizing_document,
                 cancelOnEdit: true,
                 cancelOnFocusLost: true);
 
@@ -154,8 +150,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
             await TaskScheduler.Default;
 
             var currentDocument = await getCurrentDocumentAsync(snapshotSpan.Snapshot, backgroundWorkContext).ConfigureAwait(false);
-            var newDocument = await getChangedDocumentAsync(currentDocument, cancellationToken).ConfigureAwait(false);
+            if (currentDocument is null)
+                return;
 
+            var newDocument = await getChangedDocumentAsync(currentDocument, cancellationToken).ConfigureAwait(false);
             if (currentDocument == newDocument)
                 return;
 
@@ -171,81 +169,38 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
         }
 
         public bool ExecuteCommand(OrganizeDocumentCommandArgs args, CommandExecutionContext context)
-        {
-            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Organizing_document))
-            {
-                var cancellationToken = context.OperationContext.UserCancellationToken;
-                var document = args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChanges(
-                    context.OperationContext, _threadingContext);
-                if (document != null)
-                {
-                    var newDocument = OrganizingService.OrganizeAsync(document, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
-                    if (document != newDocument)
-                    {
-                        var changes = newDocument.GetTextChangesAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
-                        args.SubjectBuffer.ApplyChanges(changes);
-                    }
-                }
-            }
-
-            return true;
-        }
+            => ExecuteCommand(
+                args, context,
+                // Need full semantics for this operation.
+                (snapshot, context) => snapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(context),
+                (document, cancellationToken) => OrganizingService.OrganizeAsync(document, cancellationToken: cancellationToken));
 
         public bool ExecuteCommand(SortImportsCommandArgs args, CommandExecutionContext context)
-        {
-            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Organizing_document))
-            {
-                SortImports(args.SubjectBuffer, context.OperationContext);
-            }
-
-            return true;
-        }
+            => ExecuteCommand(
+                args, context,
+                // Only need syntax for this operation.
+                (snapshot, context) => Task.FromResult(snapshot.GetOpenDocumentInCurrentContextWithChanges()),
+                async (document, cancellationToken) =>
+                {
+                    var organizeImportsService = document.GetRequiredLanguageService<IOrganizeImportsService>();
+                    var options = await document.GetOrganizeImportsOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
+                    return await organizeImportsService.OrganizeImportsAsync(document, options, cancellationToken).ConfigureAwait(false);
+                });
 
         public bool ExecuteCommand(SortAndRemoveUnnecessaryImportsCommandArgs args, CommandExecutionContext context)
-        {
-            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Organizing_document))
-            {
-                this.SortAndRemoveUnusedImports(args.SubjectBuffer, context.OperationContext);
-            }
-
-            return true;
-        }
-
-        private void SortImports(ITextBuffer subjectBuffer, IUIThreadOperationContext operationContext)
-        {
-            var cancellationToken = operationContext.UserCancellationToken;
-            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document != null)
-            {
-                var organizeImportsService = document.GetRequiredLanguageService<IOrganizeImportsService>();
-                var options = document.GetOrganizeImportsOptionsAsync(_globalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
-                var newDocument = organizeImportsService.OrganizeImportsAsync(document, options, cancellationToken).WaitAndGetResult(cancellationToken);
-                if (document != newDocument)
+            => ExecuteCommand(
+                args, context,
+                // Need full semantics for this operation.
+                (snapshot, context) => snapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(context),
+                async (document, cancellationToken) =>
                 {
-                    var changes = newDocument.GetTextChangesAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
-                    subjectBuffer.ApplyChanges(changes);
-                }
-            }
-        }
-
-        private void SortAndRemoveUnusedImports(ITextBuffer subjectBuffer, IUIThreadOperationContext operationContext)
-        {
-            var cancellationToken = operationContext.UserCancellationToken;
-            var document = subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChanges(
-                operationContext, _threadingContext);
-            if (document != null)
-            {
-                var formattingOptions = document.SupportsSyntaxTree ? document.GetSyntaxFormattingOptionsAsync(_globalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken) : null;
-                var newDocument = document.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>().RemoveUnnecessaryImportsAsync(document, formattingOptions, cancellationToken).WaitAndGetResult(cancellationToken);
-                var organizeImportsService = document.GetRequiredLanguageService<IOrganizeImportsService>();
-                var options = document.GetOrganizeImportsOptionsAsync(_globalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
-                newDocument = organizeImportsService.OrganizeImportsAsync(newDocument, options, cancellationToken).WaitAndGetResult(cancellationToken);
-                if (document != newDocument)
-                {
-                    var changes = newDocument.GetTextChangesAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
-                    subjectBuffer.ApplyChanges(changes);
-                }
-            }
-        }
+                    var formattingOptions = document.SupportsSyntaxTree
+                        ? await document.GetSyntaxFormattingOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false)
+                        : null;
+                    var newDocument = document.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>().RemoveUnnecessaryImportsAsync(document, formattingOptions, cancellationToken).WaitAndGetResult(cancellationToken);
+                    var organizeImportsService = document.GetRequiredLanguageService<IOrganizeImportsService>();
+                    var options = await document.GetOrganizeImportsOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
+                    return await organizeImportsService.OrganizeImportsAsync(newDocument, options, cancellationToken).ConfigureAwait(false);
+                });
     }
 }
