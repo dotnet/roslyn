@@ -24,34 +24,37 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
         [IdeFact]
         public async Task RemoveAndSort()
         {
-            await SetUpEditorAsync(@"$$
-using C;
-using B;
-using A;
+            await SetUpEditorAsync("""
+                $$
+                using C;
+                using B;
+                using A;
 
-class Test
-{
-    CA a = null;
-    CC c = null;
-}
-namespace A { public class CA { } }
-namespace B { public class CB { } }
-namespace C { public class CC { } }", HangMitigatingCancellationToken);
+                class Test
+                {
+                    CA a = null;
+                    CC c = null;
+                }
+                namespace A { public class CA { } }
+                namespace B { public class CB { } }
+                namespace C { public class CC { } }
+                """, HangMitigatingCancellationToken);
             await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.RemoveAndSort, HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.OrganizeDocument, HangMitigatingCancellationToken);
 
-    await TestServices.EditorVerifier.TextContainsAsync(@"
-using A;
-using C;
+            await TestServices.EditorVerifier.TextContainsAsync("""
+                using A;
+                using C;
 
-class Test
-{
-    CA a = null;
-    CC c = null;
-}
-namespace A { public class CA { } }
-namespace B { public class CB { } }
-namespace C { public class CC { } }", cancellationToken: HangMitigatingCancellationToken);
+                class Test
+                {
+                    CA a = null;
+                    CC c = null;
+                }
+                namespace A { public class CA { } }
+                namespace B { public class CB { } }
+                namespace C { public class CC { } }
+                """, cancellationToken: HangMitigatingCancellationToken);
         }
     }
 }
