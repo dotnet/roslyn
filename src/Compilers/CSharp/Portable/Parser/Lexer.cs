@@ -954,11 +954,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 // text couldn't be converted to/from unicode. Replace with a form that still conveys the information,
                 // but will be non-lossy on conversion.
-                var result = PooledStringBuilder.GetInstance();
-                foreach (var ch in text)
-                    result.Builder.Append(@$"\u{(int)ch:X4}");
-
-                return result.ToStringAndFree();
+                return ObjectDisplay.FormatLiteral(text, ObjectDisplayOptions.EscapeNonPrintableCharacters);
             }
         }
 

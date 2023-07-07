@@ -4,7 +4,10 @@
 
 #nullable disable
 
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -389,6 +392,86 @@ class A
                 Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\u0060"));
         }
 
+        [Fact]
+        public void CS1056ERR_UnexpectedCharacter_UnpairedSurrogate()
+        {
+            var test = """
+                using System;
+                class Test
+                {
+                    public static void Main()
+                    {
+                        int 𫓧龦 = 1;
+                    }
+                }
+                """;
+
+            ParserErrorMessageTests.ParseAndValidate(test,
+                // (6,13): error CS1001: Identifier expected
+                //         int 𫓧龦 = 1;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "\ud86d").WithLocation(6, 13),
+                // (6,13): error CS1056: Unexpected character '\uD86D'
+                //         int 𫓧龦 = 1;
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\ud86d").WithLocation(6, 13),
+                // (6,14): error CS1056: Unexpected character '\uDCE7'
+                //         int 𫓧龦 = 1;
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\udce7").WithLocation(6, 14),
+                // (6,15): error CS1002: ; expected
+                //         int 𫓧龦 = 1;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "龦").WithLocation(6, 15));
+        }
+
+        [Fact]
+        public void CS1056ERR_UnexpectedCharacter_UnpairedSurrogate_Long()
+        {
+            var test = $$"""
+                using System;
+                class Test
+                {
+                    public static void Main()
+                    {
+                        int {{new string('\\', 200)}}𫓧龦 = 1;
+                    }
+                }
+                """;
+
+            var descriptions = new List<DiagnosticDescription>
+            { 
+                // (6,13): error CS1001: Identifier expected
+                //         int \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\𫓧龦 = 1;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, @"\").WithLocation(6, 13),
+            };
+
+            for (int i = 0; i < 200; i++)
+            {
+                descriptions.Add(
+                    // (6,13 + i): error CS1056: Unexpected character '\'
+                    //         int \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\𫓧龦 = 1;
+                    Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("\\").WithLocation(6, 13 + i));
+            }
+
+            descriptions.AddRange(new[]
+            { 
+                // (6,213): error CS1056: Unexpected character '\ud86d'
+                //         int \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\𫓧龦 = 1;
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\ud86d").WithLocation(6, 213),
+                // (6,214): error CS1056: Unexpected character '\udce7龦 = 1;\r\n    }\r\n}'
+                //         int \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\𫓧龦 = 1;
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\udce7龦 = 1;\r\n    }\r\n}").WithLocation(6, 214),
+                // (8,2): error CS1002: ; expected
+                // }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(8, 2),
+                // (8,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(8, 2),
+                // (8,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(8, 2),
+            });
+
+            ParserErrorMessageTests.ParseAndValidate(test, descriptions.ToArray());
+        }
+
         [Fact, WorkItem(535937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535937")]
         public void CS1646ERR_ExpectedVerbatimLiteral()
         {
@@ -442,35 +525,6 @@ class Test
     // (7,18): error CS1056: Unexpected character '\u0303'
     //         int i = @\u0303;  // CS1646
     Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\u0303"));
-        }
-
-        [Fact]
-        public void CS1056ERR_UnpairedSurrogate()
-        {
-            var test = """
-                using System;
-                class Test
-                {
-                    public static void Main()
-                    {
-                        int 𫓧龦 = 1;
-                    }
-                }
-                """;
-
-            ParserErrorMessageTests.ParseAndValidate(test,
-                // (6,13): error CS1001: Identifier expected
-                //         int 𫓧龦 = 1;
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "\ud86d").WithLocation(6, 13),
-                // (6,13): error CS1056: Unexpected character '\uD86D'
-                //         int 𫓧龦 = 1;
-                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\uD86D").WithLocation(6, 13),
-                // (6,14): error CS1056: Unexpected character '\uDCE7'
-                //         int 𫓧龦 = 1;
-                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\uDCE7").WithLocation(6, 14),
-                // (6,15): error CS1002: ; expected
-                //         int 𫓧龦 = 1;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "龦").WithLocation(6, 15));
         }
 
         [Fact]
