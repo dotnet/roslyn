@@ -7,35 +7,36 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-/// <summary>
-/// </summary>
-/// <remarks>This is not actually stateless, but we need to be sure it doesn't re-construct each time it is retrieved 
-/// and the only state will be wiped out on Server startup</remarks>
-internal class ClientCapabilitiesManager : IClientCapabilitiesManager
+internal class InitializeManager : IInitializeManager
 {
-    public ClientCapabilitiesManager()
+    public InitializeManager()
     {
     }
 
-    private ClientCapabilities? _clientCapabilities;
+    private InitializeParams? _initializeParams;
 
     public ClientCapabilities GetClientCapabilities()
     {
-        if (_clientCapabilities is null)
+        if (_initializeParams?.Capabilities is null)
         {
             throw new InvalidOperationException($"Tried to get required {nameof(ClientCapabilities)} before it was set");
         }
 
-        return _clientCapabilities;
+        return _initializeParams.Capabilities;
     }
 
-    public void SetClientCapabilities(ClientCapabilities clientCapabilities)
+    public void SetInitializeParams(InitializeParams initializeParams)
     {
-        _clientCapabilities = clientCapabilities;
+        _initializeParams = initializeParams;
+    }
+
+    public InitializeParams? TryGetInitializeParams()
+    {
+        return _initializeParams;
     }
 
     public ClientCapabilities? TryGetClientCapabilities()
     {
-        return _clientCapabilities;
+        return _initializeParams?.Capabilities;
     }
 }
