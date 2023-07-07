@@ -17540,6 +17540,50 @@ namespace N
             model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionMethodsInInvocationLookup_GenericExtension_UndeterminedTypeParameter()
+    {
+        var src = """
+using N;
+
+C<int> c = new C<int>();
+int i = c.Member;
+System.Console.Write(i);
+
+public class C<T> { }
+
+public static class E1
+{
+    public static void Member<T, U>(this C<T> o, U u) => throw null;
+}
+
+namespace N
+{
+    public implicit extension E2 for object
+    {
+        public int Member => 42;
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using N;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1),
+            // (4,11): error CS0428: Cannot convert method group 'Member' to non-delegate type 'int'. Did you intend to invoke the method?
+            // int i = c.Member;
+            Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Member").WithArguments("Member", "int").WithLocation(4, 11)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "c.Member").First();
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+
+        Assert.Equal(new[] { "void C<System.Int32>.Member<System.Int32, U>(U u)" },
+            model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+    }
+
     [Fact]
     public void ExtensionMethodsInNonInvocationLookup_Inaccessible()
     {
