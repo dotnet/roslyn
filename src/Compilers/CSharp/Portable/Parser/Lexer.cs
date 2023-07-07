@@ -925,8 +925,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         info.Text = TextWindow.GetText(intern: true);
                     }
 
-                    this.AddError(ErrorCode.ERR_UnexpectedCharacter, info.Text);
+                    this.AddError(ErrorCode.ERR_UnexpectedCharacter, EscapeIfInvalidUnicode(info.Text));
                     break;
+            }
+        }
+
+        private static readonly Encoding s_utf8EncodingThatThrows = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+
+        private static string EscapeIfInvalidUnicode(string text)
+        {
+            // This is an unfortunate hack, but is reasonably simple and unblocks an unfortunate situation.
+            // Specifically, there are consumers of Roslyn data that end up needing to encode the strings we produce
+            // (for example in diagnostic messages) from legal .Net strings to things like utf8.  For example, the
+            // rpc-serialization libraries in play have an additional restriction that .Net string be valid utf8, or
+            // else they will lose data (non unicode characters get replaced with \uFFFD).
+            //
+            // To mitigate this issue, if we're about to report an issue about a surrogate that we ourselves is invalid
+            // for C#, then we don't report the error about that char directly (despite it being legal .Net), and instead
+            // encode the character into a form that later encoders/decoders won't have an issue with.
+            try
+            {
+                s_utf8EncodingThatThrows.GetByteCount(text);
+
+                // no problem encoding, so this text is good to use as is.
+                return text;
+            }
+            catch (EncoderFallbackException)
+            {
+                // text couldn't be converted to/from unicode. Replace with a form that still conveys the information,
+                // but will be non-lossy on conversion.
+                var result = PooledStringBuilder.GetInstance();
+                foreach (var ch in text)
+                    result.Builder.Append(@$"\u{(int)ch:X4}");
+
+                return result.ToStringAndFree();
             }
         }
 

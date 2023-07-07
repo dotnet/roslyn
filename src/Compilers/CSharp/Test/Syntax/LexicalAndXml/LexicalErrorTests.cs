@@ -445,6 +445,35 @@ class Test
         }
 
         [Fact]
+        public void CS1056ERR_UnpairedSurrogate()
+        {
+            var test = """
+                using System;
+                class Test
+                {
+                    public static void Main()
+                    {
+                        int 𫓧龦 = 1;
+                    }
+                }
+                """;
+
+            ParserErrorMessageTests.ParseAndValidate(test,
+                // (6,13): error CS1001: Identifier expected
+                //         int 𫓧龦 = 1;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "\ud86d").WithLocation(6, 13),
+                // (6,13): error CS1056: Unexpected character '\uD86D'
+                //         int 𫓧龦 = 1;
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\uD86D").WithLocation(6, 13),
+                // (6,14): error CS1056: Unexpected character '\uDCE7'
+                //         int 𫓧龦 = 1;
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\uDCE7").WithLocation(6, 14),
+                // (6,15): error CS1002: ; expected
+                //         int 𫓧龦 = 1;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "龦").WithLocation(6, 15));
+        }
+
+        [Fact]
         public void CS8967ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString1()
         {
             var test = @"
