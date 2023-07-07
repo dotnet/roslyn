@@ -188,47 +188,18 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             if (ProvideCommandLineArgs)
             {
-                CommandLineArgs = GetArguments(commandLineCommands, responseFileCommands).Select(arg => new TaskItem(arg)).ToArray();
+                CommandLineArgs = GenerateCommandLineArgsTaskItems(responseFileCommands);
             }
 
             return (SkipInteractiveExecution) ? 0 : base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
         }
 
-        public string GenerateCommandLineContents() => GenerateCommandLineCommands();
-
-        protected sealed override string ToolArguments
-        {
-            get
-            {
-                var builder = new CommandLineBuilderExtension();
-                AddCommandLineCommands(builder);
-                return builder.ToString();
-            }
-        }
-
-        public string GenerateResponseFileContents() => GenerateResponseFileCommands();
-
-        protected sealed override string GenerateResponseFileCommands()
-        {
-            var commandLineBuilder = new CommandLineBuilderExtension();
-            AddResponseFileCommands(commandLineBuilder);
-            return commandLineBuilder.ToString();
-        }
-
         #endregion
-
-        /// <summary>
-        /// Fills the provided CommandLineBuilderExtension with those switches and other information that can't go into a response file and
-        /// must go directly onto the command line.
-        /// </summary>
-        protected virtual void AddCommandLineCommands(CommandLineBuilderExtension commandLine)
-        {
-        }
 
         /// <summary>
         /// Fills the provided CommandLineBuilderExtension with those switches and other information that can go into a response file.
         /// </summary>
-        protected virtual void AddResponseFileCommands(CommandLineBuilderExtension commandLine)
+        protected override void AddResponseFileCommands(CommandLineBuilderExtension commandLine)
         {
             commandLine.AppendSwitch("/i-");
 

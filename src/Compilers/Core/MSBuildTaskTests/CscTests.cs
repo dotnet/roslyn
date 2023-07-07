@@ -434,13 +434,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc.ToolPath = "";
             csc.ToolExe = Path.Combine("path", "to", "custom_csc");
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
-            Assert.Equal("", csc.GenerateCommandLine());
+            Assert.Equal("", csc.GenerateCommandLineContents());
             Assert.Equal(Path.Combine("path", "to", "custom_csc"), csc.GeneratePathToTool());
 
             csc = new Csc();
             csc.ToolExe = Path.Combine("path", "to", "custom_csc");
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
-            Assert.Equal("", csc.GenerateCommandLine());
+            Assert.Equal("", csc.GenerateCommandLineContents());
             Assert.Equal(Path.Combine("path", "to", "custom_csc"), csc.GeneratePathToTool());
         }
 
@@ -451,14 +451,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc.ToolPath = Path.Combine("path", "to", "custom_csc");
             csc.ToolExe = "";
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
-            Assert.Equal("", csc.GenerateCommandLine());
+            Assert.Equal("", csc.GenerateCommandLineContents());
             // StartsWith because it can be csc.exe or csc.dll
             Assert.StartsWith(Path.Combine("path", "to", "custom_csc", "csc."), csc.GeneratePathToTool());
 
             csc = new Csc();
             csc.ToolPath = Path.Combine("path", "to", "custom_csc");
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
-            Assert.Equal("", csc.GenerateCommandLine());
+            Assert.Equal("", csc.GenerateCommandLineContents());
             Assert.StartsWith(Path.Combine("path", "to", "custom_csc", "csc."), csc.GeneratePathToTool());
         }
 
@@ -523,6 +523,18 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             var csc = new Csc();
             csc.ReportIVTs = true;
             AssertEx.Equal("/reportivts", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void CommandLineArgsNoRuntimeInfo()
+        {
+            var csc = new Csc()
+            {
+                Sources = MSBuildUtil.CreateTaskItems("test.cs"),
+            };
+
+            Assert.Equal(new[] { "/out:test.exe", "test.cs" }, csc.Generate!.Select(x => x.ItemSpec));
+            TaskTestUtil.AssertCommandLine(csc, "/out:test.exe test.cs");
         }
     }
 }

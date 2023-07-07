@@ -3,9 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Resources;
+using System.Text;
+using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -28,9 +32,21 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// ToolArguments are the arguments intended to be passed to the tool,
         /// without taking into account any runtime-specific modifications.
         /// </summary>
-        protected abstract string ToolArguments { get; }
+        /// <remarks>
+        /// This will be the same value whether the build occurs on .NET Core or .NET Framework. 
+        /// There will be no 'dotnet' or 'exec' values inserted here for those purposes.
+        /// </remarks>
+        protected string ToolArguments
+        {
+            get
+            {
+                var builder = new CommandLineBuilderExtension();
+                AddCommandLineCommands(builder);
+                return builder.ToString();
+            }
+        }
 
-        protected string PathToManagedTool => Utilities.GenerateFullPathToTool(ToolName);
+        protected internal string PathToManagedTool => Utilities.GenerateFullPathToTool(ToolName);
 
         protected string PathToManagedToolWithoutExtension
         {
@@ -40,12 +56,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 return PathToManagedTool.Substring(0, PathToManagedTool.Length - extension.Length);
             }
         }
-
-        /// <summary>
-        /// Note: "Native" here does not necessarily mean "native binary".
-        /// "Native" in this context means "native invocation", and running the executable directly.
-        /// </summary>
-        protected string PathToNativeTool => Path.Combine(ToolPath ?? "", ToolExe);
 
         protected ManagedToolTask(ResourceManager resourceManager)
             : base(resourceManager)
@@ -68,19 +78,32 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return commandLineArguments;
         }
 
+        protected sealed override string GenerateResponseFileCommands()
+        {
+            var commandLineBuilder = new CommandLineBuilderExtension();
+            AddResponseFileCommands(commandLineBuilder);
+            return commandLineBuilder.ToString();
+        }
+
+        internal string GenerateCommandLineContents() => GenerateCommandLineCommands();
+
+        internal string GenerateResponseFileContents() => GenerateResponseFileCommands();
+
         /// <summary>
         /// This generates the path to the executable that is directly ran.
         /// This could be the managed assembly itself (on desktop .NET on Windows),
         /// or a runtime such as dotnet.
         /// </summary>
-        protected sealed override string GenerateFullPathToTool()
-        {
-            return IsManagedTool
+        protected sealed override string GenerateFullPathToTool() =>
+            IsManagedTool
                 ? RuntimeHostInfo.GetProcessInfo(PathToManagedToolWithoutExtension, string.Empty).processFilePath
-                : PathToNativeTool;
-        }
+                : Path.Combine(ToolPath ?? "", ToolExe);
 
         protected abstract string ToolNameWithoutExtension { get; }
+
+        protected abstract void AddCommandLineCommands(CommandLineBuilderExtension commandLine);
+
+        protected abstract void AddResponseFileCommands(CommandLineBuilderExtension commandLine);
 
         /// <summary>
         /// ToolName is only used in cases where <see cref="IsManagedTool"/> returns true.
@@ -93,5 +116,38 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <see cref="ManagedToolTask.IsManagedTool"/>.
         /// </remarks>
         protected sealed override string ToolName => $"{ToolNameWithoutExtension}.{RuntimeHostInfo.ToolExtension}";
+
+        /// <summary>
+        /// This generates the command line arguments passed to the tool.
+        /// </summary>
+        /// <remarks>
+        /// This does not include any runtime specific arguments like 'dotnet' or 'exec'.
+        /// </remarks>
+        protected List<string> GenerateCommandLineArgsList(string responseFileCommands)
+        {
+            var argumentList = new List<string>();
+            var builder = new StringBuilder();
+            CommandLineUtilities.SplitCommandLineIntoArguments(ToolArguments.AsSpan(), removeHashComments: true, builder, argumentList, out _);
+            CommandLineUtilities.SplitCommandLineIntoArguments(responseFileCommands.AsSpan(), removeHashComments: true, builder, argumentList, out _);
+            return argumentList;
+        }
+
+        /// <summary>
+        /// Generates the <see cref="ITaskItem"/> entries for the CommandLineArgs output ItemGroup
+        /// for our tool tasks
+        /// </summary>
+        protected internal ITaskItem[] GenerateCommandLineArgsTaskItems(string responseFileCommands) =>
+            GenerateCommandLineArgsTaskItems(GenerateCommandLineArgsList(responseFileCommands));
+
+        protected static ITaskItem[] GenerateCommandLineArgsTaskItems(List<string> commandLineArgs)
+        {
+            var items = new ITaskItem[commandLineArgs.Count];
+            for (var i = 0; i < commandLineArgs.Count; i++)
+            {
+                items[i] = new TaskItem(commandLineArgs[i]);
+            }
+
+            return items;
+        }
     }
 }
