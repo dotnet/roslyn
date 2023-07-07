@@ -27,6 +27,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void LangVersion()
+        {
+            var src = """
+                #pragma warning disable 169 // Unused field
+                unsafe class C
+                {
+                    delegate*<void> f;
+                }
+                """;
+
+            var comp = CreateCompilationWithFunctionPointers(src, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (4,5): error CS8400: Feature 'function pointers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //     delegate*<void> f;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "delegate").WithArguments("function pointers", "9.0").WithLocation(4, 5)
+            );
+
+            comp = CreateCompilationWithFunctionPointers(src, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void UsingAliasTest()
         {
             var src = @"
