@@ -5,7 +5,6 @@
 #nullable disable
 
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -421,7 +420,7 @@ class A
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "龦").WithLocation(6, 15));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void CS1056ERR_UnexpectedCharacter_UnpairedSurrogate_Long()
         {
             // Create a file with 200 slashes in a row.  This will cause 200 'expected character' errors, after which
