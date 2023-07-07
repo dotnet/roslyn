@@ -9,10 +9,16 @@ using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
 namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
 {
-    internal class RQConstructedType(RQUnconstructedType definingType, IList<RQType> typeArguments) : RQType
+    internal class RQConstructedType : RQType
     {
-        public readonly RQUnconstructedType DefiningType = definingType;
-        public readonly ReadOnlyCollection<RQType> TypeArguments = new ReadOnlyCollection<RQType>(typeArguments);
+        public readonly RQUnconstructedType DefiningType;
+        public readonly ReadOnlyCollection<RQType> TypeArguments;
+
+        public RQConstructedType(RQUnconstructedType definingType, IList<RQType> typeArguments)
+        {
+            DefiningType = definingType;
+            TypeArguments = new ReadOnlyCollection<RQType>(typeArguments);
+        }
 
         public override SimpleTreeNode ToSimpleTree()
         {

@@ -6,9 +6,15 @@
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal readonly struct ActiveStatementId(DocumentId documentId, int ordinal)
+    internal readonly struct ActiveStatementId
     {
-        public readonly DocumentId DocumentId = documentId;
-        public readonly int Ordinal = ordinal;
+        public readonly DocumentId DocumentId;
+        public readonly int Ordinal;
+
+        public ActiveStatementId(DocumentId documentId, int ordinal)
+        {
+            DocumentId = documentId;
+            Ordinal = ordinal;
+        }
     }
 }

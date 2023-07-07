@@ -9,10 +9,16 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
-    internal sealed class VSTypeScriptNavigableItemWrapper(IVSTypeScriptNavigableItem navigableItem) : INavigableItem
+    internal sealed class VSTypeScriptNavigableItemWrapper : INavigableItem
     {
-        private readonly IVSTypeScriptNavigableItem _navigableItem = navigableItem;
-        private readonly INavigableItem.NavigableDocument _navigableDocument = INavigableItem.NavigableDocument.FromDocument(navigableItem.Document);
+        private readonly IVSTypeScriptNavigableItem _navigableItem;
+        private readonly INavigableItem.NavigableDocument _navigableDocument;
+
+        public VSTypeScriptNavigableItemWrapper(IVSTypeScriptNavigableItem navigableItem)
+        {
+            _navigableItem = navigableItem;
+            _navigableDocument = INavigableItem.NavigableDocument.FromDocument(navigableItem.Document);
+        }
 
         public Glyph Glyph => _navigableItem.Glyph;
 

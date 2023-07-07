@@ -6,8 +6,13 @@ using Microsoft.CodeAnalysis.StackTraceExplorer;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
-    internal readonly struct UnitTestingParsedFrameWrapper(ParsedFrame parsedFrame)
+    internal readonly struct UnitTestingParsedFrameWrapper
     {
-        internal ParsedFrame UnderlyingObject { get; } = parsedFrame;
+        internal ParsedFrame UnderlyingObject { get; }
+
+        public UnitTestingParsedFrameWrapper(ParsedFrame parsedFrame)
+        {
+            UnderlyingObject = parsedFrame;
+        }
     }
 }

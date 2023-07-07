@@ -12,16 +12,24 @@ namespace Microsoft.CodeAnalysis.AddImport
 {
     internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
-        private class MetadataSymbolsSearchScope(
-            AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
-            Project assemblyProject,
-            IAssemblySymbol assembly,
-            PortableExecutableReference metadataReference,
-            bool exact) : SearchScope(provider, exact)
+        private class MetadataSymbolsSearchScope : SearchScope
         {
-            private readonly Project _assemblyProject = assemblyProject;
-            private readonly IAssemblySymbol _assembly = assembly;
-            private readonly PortableExecutableReference _metadataReference = metadataReference;
+            private readonly Project _assemblyProject;
+            private readonly IAssemblySymbol _assembly;
+            private readonly PortableExecutableReference _metadataReference;
+
+            public MetadataSymbolsSearchScope(
+                AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
+                Project assemblyProject,
+                IAssemblySymbol assembly,
+                PortableExecutableReference metadataReference,
+                bool exact)
+                : base(provider, exact)
+            {
+                _assemblyProject = assemblyProject;
+                _assembly = assembly;
+                _metadataReference = metadataReference;
+            }
 
             public override SymbolReference CreateReference<T>(SymbolResult<T> searchResult)
             {

@@ -8,13 +8,21 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
 {
     internal partial class RegexEmbeddedCompletionProvider
     {
-        private readonly struct RegexItem(
-            string displayText, string inlineDescription, string fullDescription, CompletionChange change)
+        private readonly struct RegexItem
         {
-            public readonly string DisplayText = displayText;
-            public readonly string InlineDescription = inlineDescription;
-            public readonly string FullDescription = fullDescription;
-            public readonly CompletionChange Change = change;
+            public readonly string DisplayText;
+            public readonly string InlineDescription;
+            public readonly string FullDescription;
+            public readonly CompletionChange Change;
+
+            public RegexItem(
+                string displayText, string inlineDescription, string fullDescription, CompletionChange change)
+            {
+                DisplayText = displayText;
+                InlineDescription = inlineDescription;
+                FullDescription = fullDescription;
+                Change = change;
+            }
         }
     }
 }

@@ -7,9 +7,14 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 
 namespace Microsoft.CodeAnalysis.StackTraceExplorer
 {
-    internal sealed class IgnoredFrame(VirtualCharSequence originalText) : ParsedFrame
+    internal sealed class IgnoredFrame : ParsedFrame
     {
-        private readonly VirtualCharSequence _originalText = originalText;
+        private readonly VirtualCharSequence _originalText;
+
+        public IgnoredFrame(VirtualCharSequence originalText)
+        {
+            _originalText = originalText;
+        }
 
         public override string ToString()
         {

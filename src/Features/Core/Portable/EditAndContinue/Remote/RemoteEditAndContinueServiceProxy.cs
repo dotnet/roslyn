@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     /// Encapsulates all RPC logic as well as dispatching to the local service if the remote service is disabled.
     /// THe facade is useful for targeted testing of serialization/deserialization of EnC service calls.
     /// </summary>
-    internal readonly partial struct RemoteEditAndContinueServiceProxy(Workspace workspace)
+    internal readonly partial struct RemoteEditAndContinueServiceProxy
     {
         [ExportRemoteServiceCallbackDispatcher(typeof(IRemoteEditAndContinueService)), Shared]
         internal sealed class CallbackDispatcher : RemoteServiceCallbackDispatcher, IRemoteEditAndContinueService.ICallback
@@ -53,10 +53,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 => ((DebuggingSessionCallback)GetCallback(callbackId)).PrepareModuleForUpdateAsync(mvid, cancellationToken);
         }
 
-        private sealed class DebuggingSessionCallback(IManagedHotReloadService debuggerService, IPdbMatchingSourceTextProvider sourceTextProvider)
+        private sealed class DebuggingSessionCallback
         {
-            private readonly IManagedHotReloadService _debuggerService = debuggerService;
-            private readonly IPdbMatchingSourceTextProvider _sourceTextProvider = sourceTextProvider;
+            private readonly IManagedHotReloadService _debuggerService;
+            private readonly IPdbMatchingSourceTextProvider _sourceTextProvider;
+
+            public DebuggingSessionCallback(IManagedHotReloadService debuggerService, IPdbMatchingSourceTextProvider sourceTextProvider)
+            {
+                _debuggerService = debuggerService;
+                _sourceTextProvider = sourceTextProvider;
+            }
 
             public async ValueTask<string?> TryGetMatchingSourceTextAsync(string filePath, ImmutableArray<byte> requiredChecksum, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken)
             {
@@ -119,7 +125,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        public readonly Workspace Workspace = workspace;
+        public readonly Workspace Workspace;
+
+        public RemoteEditAndContinueServiceProxy(Workspace workspace)
+        {
+            Workspace = workspace;
+        }
 
         private IEditAndContinueService GetLocalService()
             => Workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;

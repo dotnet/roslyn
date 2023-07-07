@@ -10,10 +10,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractInterface
 {
-    internal class ExtractInterfaceCodeAction(AbstractExtractInterfaceService extractInterfaceService, ExtractInterfaceTypeAnalysisResult typeAnalysisResult) : CodeActionWithOptions
+    internal class ExtractInterfaceCodeAction : CodeActionWithOptions
     {
-        private readonly ExtractInterfaceTypeAnalysisResult _typeAnalysisResult = typeAnalysisResult;
-        private readonly AbstractExtractInterfaceService _extractInterfaceService = extractInterfaceService;
+        private readonly ExtractInterfaceTypeAnalysisResult _typeAnalysisResult;
+        private readonly AbstractExtractInterfaceService _extractInterfaceService;
+
+        public ExtractInterfaceCodeAction(AbstractExtractInterfaceService extractInterfaceService, ExtractInterfaceTypeAnalysisResult typeAnalysisResult)
+        {
+            _extractInterfaceService = extractInterfaceService;
+            _typeAnalysisResult = typeAnalysisResult;
+        }
 
         public override object GetOptions(CancellationToken cancellationToken)
         {

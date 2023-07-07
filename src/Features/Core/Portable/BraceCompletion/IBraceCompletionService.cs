@@ -72,13 +72,13 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
         bool AllowOverType(BraceCompletionContext braceCompletionContext, CancellationToken cancellationToken);
     }
 
-    internal readonly struct BraceCompletionResult(ImmutableArray<TextChange> textChanges, LinePosition caretLocation)
+    internal readonly struct BraceCompletionResult
     {
         /// <summary>
         /// The set of text changes that should be applied to the input text to retrieve the
         /// brace completion result.
         /// </summary>
-        public ImmutableArray<TextChange> TextChanges { get; } = textChanges;
+        public ImmutableArray<TextChange> TextChanges { get; }
 
         /// <summary>
         /// The caret location in the new text created by applying all <see cref="TextChanges"/>
@@ -88,18 +88,32 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
         /// For example, placing the character in virtual space (when suppported)
         /// or inserting an appropriate number of spaces into the document".
         /// </summary>
-        public LinePosition CaretLocation { get; } = caretLocation;
+        public LinePosition CaretLocation { get; }
+
+        public BraceCompletionResult(ImmutableArray<TextChange> textChanges, LinePosition caretLocation)
+        {
+            CaretLocation = caretLocation;
+            TextChanges = textChanges;
+        }
     }
 
-    internal readonly struct BraceCompletionContext(ParsedDocument document, int openingPoint, int closingPoint, int caretLocation)
+    internal readonly struct BraceCompletionContext
     {
-        public ParsedDocument Document { get; } = document;
+        public ParsedDocument Document { get; }
 
-        public int OpeningPoint { get; } = openingPoint;
+        public int OpeningPoint { get; }
 
-        public int ClosingPoint { get; } = closingPoint;
+        public int ClosingPoint { get; }
 
-        public int CaretLocation { get; } = caretLocation;
+        public int CaretLocation { get; }
+
+        public BraceCompletionContext(ParsedDocument document, int openingPoint, int closingPoint, int caretLocation)
+        {
+            Document = document;
+            OpeningPoint = openingPoint;
+            ClosingPoint = closingPoint;
+            CaretLocation = caretLocation;
+        }
 
         public bool HasCompletionForOpeningBrace(char openingBrace)
             => ClosingPoint >= 1 && Document.Text[OpeningPoint] == openingBrace;

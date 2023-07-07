@@ -9,9 +9,12 @@ using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
 {
-    internal sealed class SymbolSearchUpdateEngineProxy(RemoteHostClient client) : ISymbolSearchUpdateEngine
+    internal sealed class SymbolSearchUpdateEngineProxy : ISymbolSearchUpdateEngine
     {
-        private readonly RemoteServiceConnection<IRemoteSymbolSearchUpdateService> _connection = client.CreateConnection<IRemoteSymbolSearchUpdateService>(callbackTarget: null);
+        private readonly RemoteServiceConnection<IRemoteSymbolSearchUpdateService> _connection;
+
+        public SymbolSearchUpdateEngineProxy(RemoteHostClient client)
+            => _connection = client.CreateConnection<IRemoteSymbolSearchUpdateService>(callbackTarget: null);
 
         public void Dispose()
             => _connection.Dispose();

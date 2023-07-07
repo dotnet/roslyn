@@ -109,9 +109,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 => TryGetDocumentChecksum(_symReader, documentPath, out checksum, out algorithmId);
         }
 
-        private sealed class Portable(MetadataReader pdbReader) : EditAndContinueMethodDebugInfoReader
+        private sealed class Portable : EditAndContinueMethodDebugInfoReader
         {
-            private readonly MetadataReader _pdbReader = pdbReader;
+            private readonly MetadataReader _pdbReader;
+
+            public Portable(MetadataReader pdbReader)
+                => _pdbReader = pdbReader;
 
             public override bool IsPortable => true;
 

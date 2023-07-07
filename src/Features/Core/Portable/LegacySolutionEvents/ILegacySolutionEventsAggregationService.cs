@@ -31,12 +31,17 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
     }
 
     [ExportWorkspaceService(typeof(ILegacySolutionEventsAggregationService)), Shared]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal class DefaultLegacySolutionEventsAggregationService(
-        [ImportMany] IEnumerable<Lazy<ILegacySolutionEventsListener>> eventsServices) : ILegacySolutionEventsAggregationService
+    internal class DefaultLegacySolutionEventsAggregationService : ILegacySolutionEventsAggregationService
     {
-        private readonly ImmutableArray<Lazy<ILegacySolutionEventsListener>> _eventsServices = eventsServices.ToImmutableArray();
+        private readonly ImmutableArray<Lazy<ILegacySolutionEventsListener>> _eventsServices;
+
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public DefaultLegacySolutionEventsAggregationService(
+            [ImportMany] IEnumerable<Lazy<ILegacySolutionEventsListener>> eventsServices)
+        {
+            _eventsServices = eventsServices.ToImmutableArray();
+        }
 
         public bool ShouldReportChanges(SolutionServices services)
         {

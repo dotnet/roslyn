@@ -11,30 +11,38 @@ namespace Microsoft.CodeAnalysis.QuickInfo
     /// <summary>
     /// The context presented to a <see cref="QuickInfoProvider"/> when providing quick info.
     /// </summary>
-    /// <remarks>
-    /// Creates a <see cref="QuickInfoContext"/> instance.
-    /// </remarks>
-    internal sealed class QuickInfoContext(
-        Document document,
-        int position,
-        SymbolDescriptionOptions options,
-        CancellationToken cancellationToken)
+    internal sealed class QuickInfoContext
     {
         /// <summary>
         /// The document that quick info was requested within.
         /// </summary>
-        public Document Document { get; } = document ?? throw new ArgumentNullException(nameof(document));
+        public Document Document { get; }
 
         /// <summary>
         /// The caret position where quick info was requested from.
         /// </summary>
-        public int Position { get; } = position;
+        public int Position { get; }
 
-        public SymbolDescriptionOptions Options { get; } = options;
+        public SymbolDescriptionOptions Options { get; }
 
         /// <summary>
         /// The cancellation token to use for this operation.
         /// </summary>
-        public CancellationToken CancellationToken { get; } = cancellationToken;
+        public CancellationToken CancellationToken { get; }
+
+        /// <summary>
+        /// Creates a <see cref="QuickInfoContext"/> instance.
+        /// </summary>
+        public QuickInfoContext(
+            Document document,
+            int position,
+            SymbolDescriptionOptions options,
+            CancellationToken cancellationToken)
+        {
+            Document = document ?? throw new ArgumentNullException(nameof(document));
+            Position = position;
+            Options = options;
+            CancellationToken = cancellationToken;
+        }
     }
 }

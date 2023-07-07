@@ -10,9 +10,12 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal sealed class ActiveStatementSpanProviderCallback(ActiveStatementSpanProvider provider)
+    internal sealed class ActiveStatementSpanProviderCallback
     {
-        private readonly ActiveStatementSpanProvider _provider = provider;
+        private readonly ActiveStatementSpanProvider _provider;
+
+        public ActiveStatementSpanProviderCallback(ActiveStatementSpanProvider provider)
+            => _provider = provider;
 
         /// <summary>
         /// Remote API.

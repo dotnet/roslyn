@@ -15,22 +15,32 @@ namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue
     /// </summary>
     [DataContract]
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    internal readonly struct ManagedInstructionId(
-        ManagedMethodId method,
-        int ilOffset) : IEquatable<ManagedInstructionId>
+    internal readonly struct ManagedInstructionId : IEquatable<ManagedInstructionId>
     {
+        /// <summary>
+        /// Creates an ActiveInstructionId.
+        /// </summary>
+        /// <param name="method">Method which the instruction is scoped to.</param>
+        /// <param name="ilOffset">IL offset for the instruction.</param>
+        public ManagedInstructionId(
+            ManagedMethodId method,
+            int ilOffset)
+        {
+            Method = method;
+            ILOffset = ilOffset;
+        }
 
         /// <summary>
         /// Method which the instruction is scoped to.
         /// </summary>
         [DataMember(Name = "method")]
-        public ManagedMethodId Method { get; } = method;
+        public ManagedMethodId Method { get; }
 
         /// <summary>
         /// The IL offset for the instruction.
         /// </summary>
         [DataMember(Name = "ilOffset")]
-        public int ILOffset { get; } = ilOffset;
+        public int ILOffset { get; }
 
         public bool Equals(ManagedInstructionId other)
         {

@@ -49,14 +49,20 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
     }
 
     [DataContract]
-    internal readonly struct SerializableConvertTupleToStructResult(
-        ImmutableArray<(DocumentId, ImmutableArray<TextChange>)> documentTextChanges,
-        (DocumentId, TextSpan) renamedToken)
+    internal readonly struct SerializableConvertTupleToStructResult
     {
         [DataMember(Order = 0)]
-        public readonly ImmutableArray<(DocumentId, ImmutableArray<TextChange>)> DocumentTextChanges = documentTextChanges;
+        public readonly ImmutableArray<(DocumentId, ImmutableArray<TextChange>)> DocumentTextChanges;
 
         [DataMember(Order = 1)]
-        public readonly (DocumentId, TextSpan) RenamedToken = renamedToken;
+        public readonly (DocumentId, TextSpan) RenamedToken;
+
+        public SerializableConvertTupleToStructResult(
+            ImmutableArray<(DocumentId, ImmutableArray<TextChange>)> documentTextChanges,
+            (DocumentId, TextSpan) renamedToken)
+        {
+            DocumentTextChanges = documentTextChanges;
+            RenamedToken = renamedToken;
+        }
     }
 }

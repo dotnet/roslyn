@@ -17,18 +17,26 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
     {
         internal partial class WorkCoordinator
         {
-            private abstract class AsyncWorkItemQueue<TKey>(SolutionCrawlerProgressReporter progressReporter, Workspace workspace) : IDisposable
+            private abstract class AsyncWorkItemQueue<TKey> : IDisposable
                 where TKey : class
             {
                 private readonly object _gate = new();
-                private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(initialCount: 0);
+                private readonly SemaphoreSlim _semaphore;
                 private bool _disposed;
 
-                private readonly Workspace _workspace = workspace;
-                private readonly SolutionCrawlerProgressReporter _progressReporter = progressReporter;
+                private readonly Workspace _workspace;
+                private readonly SolutionCrawlerProgressReporter _progressReporter;
 
                 // map containing cancellation source for the item given out.
                 private readonly Dictionary<object, CancellationTokenSource> _cancellationMap = new();
+
+                public AsyncWorkItemQueue(SolutionCrawlerProgressReporter progressReporter, Workspace workspace)
+                {
+                    _semaphore = new SemaphoreSlim(initialCount: 0);
+
+                    _workspace = workspace;
+                    _progressReporter = progressReporter;
+                }
 
                 protected abstract int WorkItemCount_NoLock { get; }
 

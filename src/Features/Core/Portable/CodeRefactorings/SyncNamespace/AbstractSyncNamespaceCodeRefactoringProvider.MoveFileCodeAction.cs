@@ -23,15 +23,21 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
         where TCompilationUnitSyntax : SyntaxNode
         where TMemberDeclarationSyntax : SyntaxNode
     {
-        private class MoveFileCodeAction(State state, ImmutableArray<string> newFolders) : CodeAction
+        private class MoveFileCodeAction : CodeAction
         {
-            private readonly State _state = state;
-            private readonly ImmutableArray<string> _newfolders = newFolders;
+            private readonly State _state;
+            private readonly ImmutableArray<string> _newfolders;
 
             public override string Title
                 => _newfolders.Length > 0
                 ? string.Format(FeaturesResources.Move_file_to_0, string.Join(PathUtilities.DirectorySeparatorStr, _newfolders))
                 : FeaturesResources.Move_file_to_project_root_folder;
+
+            public MoveFileCodeAction(State state, ImmutableArray<string> newFolders)
+            {
+                _state = state;
+                _newfolders = newFolders;
+            }
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             {

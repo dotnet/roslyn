@@ -7,9 +7,12 @@ using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
 namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
 {
-    internal abstract class RQMember(RQUnconstructedType containingType) : RQNode
+    internal abstract class RQMember : RQNode
     {
-        public readonly RQUnconstructedType ContainingType = containingType;
+        public readonly RQUnconstructedType ContainingType;
+
+        public RQMember(RQUnconstructedType containingType)
+            => ContainingType = containingType;
 
         public abstract string MemberName { get; }
 

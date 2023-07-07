@@ -16,11 +16,14 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
     [ExportLanguageService(typeof(IFormattingService), InternalLanguageNames.TypeScript), Shared]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class VSTypeScriptFormattingService([Import(AllowDefault = true)] IVSTypeScriptFormattingServiceImplementation impl) : IFormattingService
+    internal sealed class VSTypeScriptFormattingService : IFormattingService
     {
-        private readonly IVSTypeScriptFormattingServiceImplementation _impl = impl ?? throw new ArgumentNullException(nameof(impl));
+        private readonly IVSTypeScriptFormattingServiceImplementation _impl;
+
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public VSTypeScriptFormattingService([Import(AllowDefault = true)] IVSTypeScriptFormattingServiceImplementation impl)
+            => _impl = impl ?? throw new ArgumentNullException(nameof(impl));
 
         public Task<Document> FormatAsync(Document document, IEnumerable<TextSpan>? spans, LineFormattingOptions lineFormattingOptions, SyntaxFormattingOptions? syntaxFormattingOptions, CancellationToken cancellationToken)
         {

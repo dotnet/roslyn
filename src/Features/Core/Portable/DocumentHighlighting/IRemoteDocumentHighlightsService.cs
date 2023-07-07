@@ -17,13 +17,19 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
     }
 
     [DataContract]
-    internal readonly struct SerializableDocumentHighlights(DocumentId documentId, ImmutableArray<HighlightSpan> highlightSpans)
+    internal readonly struct SerializableDocumentHighlights
     {
         [DataMember(Order = 0)]
-        public readonly DocumentId DocumentId = documentId;
+        public readonly DocumentId DocumentId;
 
         [DataMember(Order = 1)]
-        public readonly ImmutableArray<HighlightSpan> HighlightSpans = highlightSpans;
+        public readonly ImmutableArray<HighlightSpan> HighlightSpans;
+
+        public SerializableDocumentHighlights(DocumentId documentId, ImmutableArray<HighlightSpan> highlightSpans)
+        {
+            DocumentId = documentId;
+            HighlightSpans = highlightSpans;
+        }
 
         public async ValueTask<DocumentHighlights> RehydrateAsync(Solution solution)
             => new(await solution.GetRequiredDocumentAsync(DocumentId, includeSourceGenerated: true).ConfigureAwait(false), HighlightSpans);

@@ -19,12 +19,18 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
     }
 
     [DataContract]
-    internal readonly struct UnitTestingSourceLocation(DocumentIdSpan documentIdSpan, FileLinePositionSpan span)
+    internal readonly struct UnitTestingSourceLocation
     {
         [DataMember(Order = 0)]
-        public readonly DocumentIdSpan DocumentIdSpan = documentIdSpan;
+        public readonly DocumentIdSpan DocumentIdSpan;
         [DataMember(Order = 1)]
-        public readonly FileLinePositionSpan Span = span;
+        public readonly FileLinePositionSpan Span;
+
+        public UnitTestingSourceLocation(DocumentIdSpan documentIdSpan, FileLinePositionSpan span)
+        {
+            DocumentIdSpan = documentIdSpan;
+            Span = span;
+        }
 
         public async Task<UnitTestingDocumentSpan?> TryRehydrateAsync(Solution solution, CancellationToken cancellationToken)
         {

@@ -18,25 +18,32 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 {
     internal abstract partial class AbstractInlineMethodRefactoringProvider<TMethodDeclarationSyntax, TStatementSyntax, TExpressionSyntax, TInvocationSyntax>
     {
-        private readonly struct InlineMethodContext(
-            ImmutableArray<TStatementSyntax> statementsToInsertBeforeInvocationOfCallee,
-            TExpressionSyntax inlineExpression,
-            bool containsAwaitExpression)
+        private readonly struct InlineMethodContext
         {
             /// <summary>
             /// Statements that should be inserted to before the invocation location of callee.
             /// </summary>
-            public ImmutableArray<TStatementSyntax> StatementsToInsertBeforeInvocationOfCallee { get; } = statementsToInsertBeforeInvocationOfCallee;
+            public ImmutableArray<TStatementSyntax> StatementsToInsertBeforeInvocationOfCallee { get; }
 
             /// <summary>
             /// Inline content for the callee method.
             /// </summary>
-            public TExpressionSyntax InlineExpression { get; } = inlineExpression;
+            public TExpressionSyntax InlineExpression { get; }
 
             /// <summary>
             /// Indicate if <see cref="InlineExpression"/> has AwaitExpression in it.
             /// </summary>
-            public bool ContainsAwaitExpression { get; } = containsAwaitExpression;
+            public bool ContainsAwaitExpression { get; }
+
+            public InlineMethodContext(
+                ImmutableArray<TStatementSyntax> statementsToInsertBeforeInvocationOfCallee,
+                TExpressionSyntax inlineExpression,
+                bool containsAwaitExpression)
+            {
+                StatementsToInsertBeforeInvocationOfCallee = statementsToInsertBeforeInvocationOfCallee;
+                InlineExpression = inlineExpression;
+                ContainsAwaitExpression = containsAwaitExpression;
+            }
         }
 
         private async Task<InlineMethodContext> GetInlineMethodContextAsync(

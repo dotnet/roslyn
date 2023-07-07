@@ -425,19 +425,34 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             return document.WithSyntaxRoot(newRoot);
         }
 
-        protected sealed class ForEachInfo(
-            ISemanticFactsService semanticFacts, string collectionNameSuggestion, string countName,
-            ITypeSymbol? explicitCastInterface, ITypeSymbol forEachElementType,
-            bool requireCollectionStatement, TForEachStatement forEachStatement)
+        protected sealed class ForEachInfo
         {
-            public ISemanticFactsService SemanticFacts { get; } = semanticFacts;
+            public ForEachInfo(
+                ISemanticFactsService semanticFacts, string collectionNameSuggestion, string countName,
+                ITypeSymbol? explicitCastInterface, ITypeSymbol forEachElementType,
+                bool requireCollectionStatement, TForEachStatement forEachStatement)
+            {
+                SemanticFacts = semanticFacts;
 
-            public string CollectionNameSuggestion { get; } = collectionNameSuggestion;
-            public string CountName { get; } = countName;
-            public ITypeSymbol? ExplicitCastInterface { get; } = explicitCastInterface;
-            public ITypeSymbol ForEachElementType { get; } = forEachElementType;
-            public bool RequireCollectionStatement { get; } = requireCollectionStatement || (explicitCastInterface != null);
-            public TForEachStatement ForEachStatement { get; } = forEachStatement;
+                CollectionNameSuggestion = collectionNameSuggestion;
+                CountName = countName;
+
+                ExplicitCastInterface = explicitCastInterface;
+                ForEachElementType = forEachElementType;
+
+                RequireCollectionStatement = requireCollectionStatement || (explicitCastInterface != null);
+
+                ForEachStatement = forEachStatement;
+            }
+
+            public ISemanticFactsService SemanticFacts { get; }
+
+            public string CollectionNameSuggestion { get; }
+            public string CountName { get; }
+            public ITypeSymbol? ExplicitCastInterface { get; }
+            public ITypeSymbol ForEachElementType { get; }
+            public bool RequireCollectionStatement { get; }
+            public TForEachStatement ForEachStatement { get; }
         }
     }
 }

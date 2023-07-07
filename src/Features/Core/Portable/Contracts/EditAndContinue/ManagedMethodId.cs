@@ -15,10 +15,21 @@ namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue
     /// </summary>
     [DataContract]
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    internal readonly struct ManagedMethodId(
-        Guid module,
-        ManagedModuleMethodId method) : IEquatable<ManagedMethodId>
+    internal readonly struct ManagedMethodId : IEquatable<ManagedMethodId>
     {
+        /// <summary>
+        /// Creates a ManagedMethodId.
+        /// </summary>
+        /// <param name="module">Module version ID in which the method exists.</param>
+        /// <param name="method">Method ID.</param>
+        public ManagedMethodId(
+            Guid module,
+            ManagedModuleMethodId method)
+        {
+            Module = module;
+            Method = method;
+        }
+
         public ManagedMethodId(Guid module, int token, int version)
             : this(module, new(token, version))
         {
@@ -28,13 +39,13 @@ namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue
         /// The module version ID in which the method exists.
         /// </summary>
         [DataMember(Name = "module")]
-        public Guid Module { get; } = module;
+        public Guid Module { get; }
 
         /// <summary>
         /// The unique identifier for the method within <see cref="Module"/>.
         /// </summary>
         [DataMember(Name = "method")]
-        public ManagedModuleMethodId Method { get; } = method;
+        public ManagedModuleMethodId Method { get; }
 
         public int Token => Method.Token;
 

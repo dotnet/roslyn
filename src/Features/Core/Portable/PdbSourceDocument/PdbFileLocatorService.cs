@@ -17,16 +17,22 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.PdbSourceDocument
 {
     [Export(typeof(IPdbFileLocatorService)), Shared]
-    [method: ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code")]
-    internal sealed class PdbFileLocatorService(
-        [Import(AllowDefault = true)] ISourceLinkService? sourceLinkService,
-        [Import(AllowDefault = true)] IPdbSourceDocumentLogger? logger) : IPdbFileLocatorService
+    internal sealed class PdbFileLocatorService : IPdbFileLocatorService
     {
         private const int SymbolLocatorTimeout = 2000;
 
-        private readonly ISourceLinkService? _sourceLinkService = sourceLinkService;
-        private readonly IPdbSourceDocumentLogger? _logger = logger;
+        private readonly ISourceLinkService? _sourceLinkService;
+        private readonly IPdbSourceDocumentLogger? _logger;
+
+        [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code")]
+        public PdbFileLocatorService(
+            [Import(AllowDefault = true)] ISourceLinkService? sourceLinkService,
+            [Import(AllowDefault = true)] IPdbSourceDocumentLogger? logger)
+        {
+            _sourceLinkService = sourceLinkService;
+            _logger = logger;
+        }
 
         public async Task<DocumentDebugInfoReader?> GetDocumentDebugInfoReaderAsync(string dllPath, bool useDefaultSymbolServers, TelemetryMessage telemetry, CancellationToken cancellationToken)
         {

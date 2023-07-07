@@ -101,10 +101,16 @@ namespace Microsoft.CodeAnalysis.Features.Workspaces
         }
     }
 
-    internal class LanguageInformation(string languageName, string scriptExtension)
+    internal class LanguageInformation
     {
-        public string LanguageName { get; } = languageName;
-        public string ScriptExtension { get; } = scriptExtension;
+        public LanguageInformation(string languageName, string scriptExtension)
+        {
+            this.LanguageName = languageName;
+            this.ScriptExtension = scriptExtension;
+        }
+
+        public string LanguageName { get; }
+        public string ScriptExtension { get; }
     }
 }
 

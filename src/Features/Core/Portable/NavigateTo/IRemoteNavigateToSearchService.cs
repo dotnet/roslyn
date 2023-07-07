@@ -46,9 +46,14 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             => GetCallback(callbackId).OnResultFoundAsync(result);
     }
 
-    internal sealed class NavigateToSearchServiceCallback(Func<RoslynNavigateToItem, Task> onResultFound)
+    internal sealed class NavigateToSearchServiceCallback
     {
-        private readonly Func<RoslynNavigateToItem, Task> _onResultFound = onResultFound;
+        private readonly Func<RoslynNavigateToItem, Task> _onResultFound;
+
+        public NavigateToSearchServiceCallback(Func<RoslynNavigateToItem, Task> onResultFound)
+        {
+            _onResultFound = onResultFound;
+        }
 
         public async ValueTask OnResultFoundAsync(RoslynNavigateToItem result)
         {

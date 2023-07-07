@@ -6,9 +6,12 @@ using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
 namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
 {
-    internal class RQTypeVariableType(string name) : RQType
+    internal class RQTypeVariableType : RQType
     {
-        public readonly string Name = name;
+        public readonly string Name;
+
+        public RQTypeVariableType(string name)
+            => Name = name;
 
         public override SimpleTreeNode ToSimpleTree()
             => new SimpleGroupNode(RQNameStrings.TyVar, Name);

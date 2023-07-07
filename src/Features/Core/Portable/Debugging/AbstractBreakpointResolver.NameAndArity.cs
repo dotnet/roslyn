@@ -8,10 +8,16 @@ namespace Microsoft.CodeAnalysis.Debugging
 {
     internal partial class AbstractBreakpointResolver
     {
-        protected struct NameAndArity(string name, int arity)
+        protected struct NameAndArity
         {
-            public string Name = name;
-            public int Arity = arity;
+            public string Name;
+            public int Arity;
+
+            public NameAndArity(string name, int arity)
+            {
+                Name = name;
+                Arity = arity;
+            }
         }
     }
 }

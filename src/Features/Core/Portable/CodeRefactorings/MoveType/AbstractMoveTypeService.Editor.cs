@@ -18,16 +18,24 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         /// <summary>
         /// An abstract class for different edits performed by the Move Type Code Action.
         /// </summary>
-        private abstract class Editor(
-            TService service,
-            State state,
-            string fileName,
-            CancellationToken cancellationToken)
+        private abstract class Editor
         {
-            protected State State { get; } = state;
-            protected TService Service { get; } = service;
-            protected string FileName { get; } = fileName;
-            protected CancellationToken CancellationToken { get; } = cancellationToken;
+            public Editor(
+                TService service,
+                State state,
+                string fileName,
+                CancellationToken cancellationToken)
+            {
+                State = state;
+                Service = service;
+                FileName = fileName;
+                CancellationToken = cancellationToken;
+            }
+
+            protected State State { get; }
+            protected TService Service { get; }
+            protected string FileName { get; }
+            protected CancellationToken CancellationToken { get; }
             protected SemanticDocument SemanticDocument => State.SemanticDocument;
 
             /// <summary>

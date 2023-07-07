@@ -11,30 +11,40 @@ namespace Microsoft.CodeAnalysis.Completion
     /// <summary>
     /// Provides context information for argument completion.
     /// </summary>
-    internal sealed class ArgumentContext(
-        ArgumentProvider provider,
-        SemanticModel semanticModel,
-        int position,
-        IParameterSymbol parameter,
-        string? previousValue,
-        CancellationToken cancellationToken)
+    internal sealed class ArgumentContext
     {
-        internal ArgumentProvider Provider { get; } = provider ?? throw new ArgumentNullException(nameof(provider));
+        public ArgumentContext(
+            ArgumentProvider provider,
+            SemanticModel semanticModel,
+            int position,
+            IParameterSymbol parameter,
+            string? previousValue,
+            CancellationToken cancellationToken)
+        {
+            Provider = provider ?? throw new ArgumentNullException(nameof(provider));
+            SemanticModel = semanticModel ?? throw new ArgumentNullException(nameof(semanticModel));
+            Position = position;
+            Parameter = parameter ?? throw new ArgumentNullException(nameof(parameter));
+            PreviousValue = previousValue;
+            CancellationToken = cancellationToken;
+        }
+
+        internal ArgumentProvider Provider { get; }
 
         /// <summary>
         /// Gets the semantic model where argument completion is requested.
         /// </summary>
-        public SemanticModel SemanticModel { get; } = semanticModel ?? throw new ArgumentNullException(nameof(semanticModel));
+        public SemanticModel SemanticModel { get; }
 
         /// <summary>
         /// Gets the position within <see cref="SemanticModel"/> where argument completion is requested.
         /// </summary>
-        public int Position { get; } = position;
+        public int Position { get; }
 
         /// <summary>
         /// Gets the symbol for the parameter for which an argument value is requested.
         /// </summary>
-        public IParameterSymbol Parameter { get; } = parameter ?? throw new ArgumentNullException(nameof(parameter));
+        public IParameterSymbol Parameter { get; }
 
         /// <summary>
         /// Gets the previously-provided argument value for this parameter.
@@ -43,12 +53,12 @@ namespace Microsoft.CodeAnalysis.Completion
         /// The existing text of the argument value, if the argument is already in code; otherwise,
         /// <see langword="null"/> when requesting a new argument value.
         /// </value>
-        public string? PreviousValue { get; } = previousValue;
+        public string? PreviousValue { get; }
 
         /// <summary>
         /// Gets a cancellation token that argument providers may observe.
         /// </summary>
-        public CancellationToken CancellationToken { get; } = cancellationToken;
+        public CancellationToken CancellationToken { get; }
 
         /// <summary>
         /// Gets or sets the default argument value.

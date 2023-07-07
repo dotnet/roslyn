@@ -7,10 +7,15 @@ using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
 namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
 {
-    internal class RQMemberParameterIndexFromPartialImplementation(
-        RQMember containingMember,
-        int parameterIndex) : RQMemberParameterIndex(containingMember, parameterIndex)
+    internal class RQMemberParameterIndexFromPartialImplementation : RQMemberParameterIndex
     {
+        public RQMemberParameterIndexFromPartialImplementation(
+            RQMember containingMember,
+            int parameterIndex)
+            : base(containingMember, parameterIndex)
+        {
+        }
+
         protected override void AppendChildren(List<SimpleTreeNode> childList)
         {
             childList.Add(ContainingMember.ToSimpleTree());

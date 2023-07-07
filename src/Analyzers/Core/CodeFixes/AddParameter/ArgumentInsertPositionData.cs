@@ -4,10 +4,17 @@
 
 namespace Microsoft.CodeAnalysis.AddParameter
 {
-    internal readonly struct ArgumentInsertPositionData<TArgumentSyntax>(IMethodSymbol methodToUpdate, TArgumentSyntax argumentToInsert, int argumentInsertionIndex) where TArgumentSyntax : SyntaxNode
+    internal readonly struct ArgumentInsertPositionData<TArgumentSyntax> where TArgumentSyntax : SyntaxNode
     {
-        public IMethodSymbol MethodToUpdate { get; } = methodToUpdate;
-        public TArgumentSyntax ArgumentToInsert { get; } = argumentToInsert;
-        public int ArgumentInsertionIndex { get; } = argumentInsertionIndex;
+        public ArgumentInsertPositionData(IMethodSymbol methodToUpdate, TArgumentSyntax argumentToInsert, int argumentInsertionIndex)
+        {
+            MethodToUpdate = methodToUpdate;
+            ArgumentToInsert = argumentToInsert;
+            ArgumentInsertionIndex = argumentInsertionIndex;
+        }
+
+        public IMethodSymbol MethodToUpdate { get; }
+        public TArgumentSyntax ArgumentToInsert { get; }
+        public int ArgumentInsertionIndex { get; }
     }
 }

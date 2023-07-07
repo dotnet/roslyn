@@ -36,8 +36,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 => throw new InvalidOperationException();
         }
 
-        protected class ErrorSelectionResult(OperationStatus status) : NullSelectionResult(status.MakeFail())
+        protected class ErrorSelectionResult : NullSelectionResult
         {
+            public ErrorSelectionResult(OperationStatus status)
+                : base(status.MakeFail())
+            {
+            }
         }
     }
 }

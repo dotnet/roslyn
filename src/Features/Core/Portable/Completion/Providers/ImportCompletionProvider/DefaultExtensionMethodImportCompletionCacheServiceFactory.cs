@@ -14,10 +14,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     /// We don't use PE cache from the service, so just pass in type `object` for PE entries.
     /// </summary>
     [ExportWorkspaceServiceFactory(typeof(IImportCompletionCacheService<ExtensionMethodImportCompletionCacheEntry, object>), ServiceLayer.Default), Shared]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class DefaultExtensionMethodImportCompletionCacheServiceFactory(IAsynchronousOperationListenerProvider listenerProvider)
-                : AbstractImportCompletionCacheServiceFactory<ExtensionMethodImportCompletionCacheEntry, object>(listenerProvider, ExtensionMethodImportCompletionHelper.BatchUpdateCacheAsync, CancellationToken.None)
+    internal sealed class DefaultExtensionMethodImportCompletionCacheServiceFactory
+        : AbstractImportCompletionCacheServiceFactory<ExtensionMethodImportCompletionCacheEntry, object>
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public DefaultExtensionMethodImportCompletionCacheServiceFactory(IAsynchronousOperationListenerProvider listenerProvider)
+            : base(listenerProvider, ExtensionMethodImportCompletionHelper.BatchUpdateCacheAsync, CancellationToken.None)
+        {
+        }
     }
 }

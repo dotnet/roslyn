@@ -8,8 +8,13 @@ namespace Microsoft.CodeAnalysis.NavigationBar
 {
     internal abstract partial class RoslynNavigationBarItem
     {
-        public class GenerateDefaultConstructor(string text, SymbolKey destinationTypeSymbolKey) : AbstractGenerateCodeItem(RoslynNavigationBarItemKind.GenerateDefaultConstructor, text, Glyph.MethodPublic, destinationTypeSymbolKey), IEquatable<GenerateDefaultConstructor>
+        public class GenerateDefaultConstructor : AbstractGenerateCodeItem, IEquatable<GenerateDefaultConstructor>
         {
+            public GenerateDefaultConstructor(string text, SymbolKey destinationTypeSymbolKey)
+                : base(RoslynNavigationBarItemKind.GenerateDefaultConstructor, text, Glyph.MethodPublic, destinationTypeSymbolKey)
+            {
+            }
+
             protected internal override SerializableNavigationBarItem Dehydrate()
                 => SerializableNavigationBarItem.GenerateDefaultConstructor(Text, DestinationTypeSymbolKey);
 

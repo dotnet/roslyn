@@ -7,10 +7,15 @@ using Microsoft.CodeAnalysis.AddImport;
 
 namespace Microsoft.CodeAnalysis.AddMissingImports
 {
-    internal sealed class AddMissingImportsAnalysisResult(
-        ImmutableArray<AddImportFixData> addImportFixData)
+    internal sealed class AddMissingImportsAnalysisResult
     {
-        public ImmutableArray<AddImportFixData> AddImportFixData { get; } = addImportFixData;
+        public ImmutableArray<AddImportFixData> AddImportFixData { get; }
         public bool CanAddMissingImports => !AddImportFixData.IsEmpty;
+
+        public AddMissingImportsAnalysisResult(
+            ImmutableArray<AddImportFixData> addImportFixData)
+        {
+            AddImportFixData = addImportFixData;
+        }
     }
 }

@@ -23,21 +23,17 @@ namespace Microsoft.CodeAnalysis.CodeLens
     /// <remarks>
     /// All public methods of this type could be called from multiple threads.
     /// </remarks>
-    internal sealed class CodeLensFindReferencesProgress(
-        ISymbol queriedDefinition,
-        SyntaxNode queriedNode,
-        int searchCap,
-        CancellationToken cancellationToken) : IFindReferencesProgress, IDisposable
+    internal sealed class CodeLensFindReferencesProgress : IFindReferencesProgress, IDisposable
     {
-        private readonly CancellationTokenSource _aggregateCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        private readonly SyntaxNode _queriedNode = queriedNode;
-        private readonly ISymbol _queriedSymbol = queriedDefinition;
-        private readonly ConcurrentSet<Location> _locations = new ConcurrentSet<Location>(LocationComparer.Instance);
+        private readonly CancellationTokenSource _aggregateCancellationTokenSource;
+        private readonly SyntaxNode _queriedNode;
+        private readonly ISymbol _queriedSymbol;
+        private readonly ConcurrentSet<Location> _locations;
 
         /// <remarks>
         /// If the cap is 0, then there is no cap.
         /// </remarks>
-        public int SearchCap { get; } = searchCap;
+        public int SearchCap { get; }
 
         /// <summary>
         /// The cancellation token that aggregates the original cancellation token + this progress
@@ -49,6 +45,20 @@ namespace Microsoft.CodeAnalysis.CodeLens
         public int ReferencesCount => _locations.Count;
 
         public ImmutableArray<Location> Locations => _locations.ToImmutableArray();
+
+        public CodeLensFindReferencesProgress(
+            ISymbol queriedDefinition,
+            SyntaxNode queriedNode,
+            int searchCap,
+            CancellationToken cancellationToken)
+        {
+            _queriedSymbol = queriedDefinition;
+            _queriedNode = queriedNode;
+            _aggregateCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            _locations = new ConcurrentSet<Location>(LocationComparer.Instance);
+
+            SearchCap = searchCap;
+        }
 
         public void OnStarted()
         {

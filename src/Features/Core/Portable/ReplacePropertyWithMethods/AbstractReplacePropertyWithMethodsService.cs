@@ -443,12 +443,20 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 return token;
             }
 
-            private readonly struct ReplaceParentArgs(ReferenceReplacer replacer, GetWriteValue getWriteValue, bool keepTrivia, string? conflictMessage)
+            private readonly struct ReplaceParentArgs
             {
-                public readonly ReferenceReplacer Replacer = replacer;
-                public readonly GetWriteValue GetWriteValue = getWriteValue;
-                public readonly bool KeepTrivia = keepTrivia;
-                public readonly string? ConflictMessage = conflictMessage;
+                public readonly ReferenceReplacer Replacer;
+                public readonly GetWriteValue GetWriteValue;
+                public readonly bool KeepTrivia;
+                public readonly string? ConflictMessage;
+
+                public ReplaceParentArgs(ReferenceReplacer replacer, GetWriteValue getWriteValue, bool keepTrivia, string? conflictMessage)
+                {
+                    Replacer = replacer;
+                    GetWriteValue = getWriteValue;
+                    KeepTrivia = keepTrivia;
+                    ConflictMessage = conflictMessage;
+                }
             }
         }
     }

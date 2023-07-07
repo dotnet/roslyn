@@ -146,9 +146,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal TestAccessor GetTestAccessor()
             => new(this);
 
-        internal readonly struct TestAccessor(AbstractHostDiagnosticUpdateSource abstractHostDiagnosticUpdateSource)
+        internal readonly struct TestAccessor
         {
-            private readonly AbstractHostDiagnosticUpdateSource _abstractHostDiagnosticUpdateSource = abstractHostDiagnosticUpdateSource;
+            private readonly AbstractHostDiagnosticUpdateSource _abstractHostDiagnosticUpdateSource;
+
+            public TestAccessor(AbstractHostDiagnosticUpdateSource abstractHostDiagnosticUpdateSource)
+                => _abstractHostDiagnosticUpdateSource = abstractHostDiagnosticUpdateSource;
 
             internal ImmutableArray<DiagnosticData> GetReportedDiagnostics()
                 => _abstractHostDiagnosticUpdateSource._analyzerHostDiagnosticsMap.Values.Flatten().ToImmutableArray();
@@ -164,10 +167,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private sealed class HostArgsId(AbstractHostDiagnosticUpdateSource source, DiagnosticAnalyzer analyzer, ProjectId? projectId) : AnalyzerUpdateArgsId(analyzer)
+        private sealed class HostArgsId : AnalyzerUpdateArgsId
         {
-            private readonly AbstractHostDiagnosticUpdateSource _source = source;
-            private readonly ProjectId? _projectId = projectId;
+            private readonly AbstractHostDiagnosticUpdateSource _source;
+            private readonly ProjectId? _projectId;
+
+            public HostArgsId(AbstractHostDiagnosticUpdateSource source, DiagnosticAnalyzer analyzer, ProjectId? projectId) : base(analyzer)
+            {
+                _source = source;
+                _projectId = projectId;
+            }
 
             public override bool Equals(object? obj)
             {

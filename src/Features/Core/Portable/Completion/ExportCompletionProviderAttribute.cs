@@ -13,10 +13,17 @@ namespace Microsoft.CodeAnalysis.Completion
     /// </summary>
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
-    public sealed class ExportCompletionProviderAttribute(string name, string language) : ExportAttribute(typeof(CompletionProvider))
+    public sealed class ExportCompletionProviderAttribute : ExportAttribute
     {
-        public string Name { get; } = name ?? throw new ArgumentNullException(nameof(name));
-        public string Language { get; } = language ?? throw new ArgumentNullException(nameof(language));
+        public string Name { get; }
+        public string Language { get; }
         public string[]? Roles { get; set; }
+
+        public ExportCompletionProviderAttribute(string name, string language)
+            : base(typeof(CompletionProvider))
+        {
+            Name = name ?? throw new ArgumentNullException(nameof(name));
+            Language = language ?? throw new ArgumentNullException(nameof(language));
+        }
     }
 }

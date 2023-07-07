@@ -22,29 +22,42 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 {
     internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
     {
-        private sealed partial class SymbolStartAnalyzer(
-            AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer compilationAnalyzer,
-            INamedTypeSymbol eventArgsTypeOpt,
-            ImmutableHashSet<INamedTypeSymbol> attributeSetForMethodsToIgnore,
-            DeserializationConstructorCheck deserializationConstructorCheck,
-            INamedTypeSymbol iCustomMarshaler,
-            SymbolStartAnalysisContext symbolStartAnalysisContext)
+        private sealed partial class SymbolStartAnalyzer
         {
-            private readonly AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer _compilationAnalyzer = compilationAnalyzer;
+            private readonly AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer _compilationAnalyzer;
 
-            private readonly INamedTypeSymbol _eventArgsTypeOpt = eventArgsTypeOpt;
-            private readonly ImmutableHashSet<INamedTypeSymbol> _attributeSetForMethodsToIgnore = attributeSetForMethodsToIgnore;
-            private readonly DeserializationConstructorCheck _deserializationConstructorCheck = deserializationConstructorCheck;
-            private readonly ConcurrentDictionary<IMethodSymbol, bool> _methodsUsedAsDelegates = new ConcurrentDictionary<IMethodSymbol, bool>();
-            private readonly INamedTypeSymbol _iCustomMarshaler = iCustomMarshaler;
-            private readonly SymbolStartAnalysisContext _symbolStartAnalysisContext = symbolStartAnalysisContext;
+            private readonly INamedTypeSymbol _eventArgsTypeOpt;
+            private readonly ImmutableHashSet<INamedTypeSymbol> _attributeSetForMethodsToIgnore;
+            private readonly DeserializationConstructorCheck _deserializationConstructorCheck;
+            private readonly ConcurrentDictionary<IMethodSymbol, bool> _methodsUsedAsDelegates;
+            private readonly INamedTypeSymbol _iCustomMarshaler;
+            private readonly SymbolStartAnalysisContext _symbolStartAnalysisContext;
 
             /// <summary>
             /// Map from unused parameters to a boolean value indicating if the parameter has a read reference or not.
             /// For example, a parameter whose initial value is overwritten before any reads
             /// is an unused parameter with read reference(s).
             /// </summary>
-            private readonly ConcurrentDictionary<IParameterSymbol, bool> _unusedParameters = new ConcurrentDictionary<IParameterSymbol, bool>();
+            private readonly ConcurrentDictionary<IParameterSymbol, bool> _unusedParameters;
+
+            public SymbolStartAnalyzer(
+                AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer compilationAnalyzer,
+                INamedTypeSymbol eventArgsTypeOpt,
+                ImmutableHashSet<INamedTypeSymbol> attributeSetForMethodsToIgnore,
+                DeserializationConstructorCheck deserializationConstructorCheck,
+                INamedTypeSymbol iCustomMarshaler,
+                SymbolStartAnalysisContext symbolStartAnalysisContext)
+            {
+                _compilationAnalyzer = compilationAnalyzer;
+
+                _eventArgsTypeOpt = eventArgsTypeOpt;
+                _attributeSetForMethodsToIgnore = attributeSetForMethodsToIgnore;
+                _deserializationConstructorCheck = deserializationConstructorCheck;
+                _unusedParameters = new ConcurrentDictionary<IParameterSymbol, bool>();
+                _methodsUsedAsDelegates = new ConcurrentDictionary<IMethodSymbol, bool>();
+                _iCustomMarshaler = iCustomMarshaler;
+                _symbolStartAnalysisContext = symbolStartAnalysisContext;
+            }
 
             public static void CreateAndRegisterActions(
                 CompilationStartAnalysisContext context,

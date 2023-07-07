@@ -26,14 +26,11 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         ValueTask<bool> IsFullyLoadedAsync(CancellationToken cancellationToken);
     }
 
-    internal class DefaultNavigateToSearchHost(
-        Solution solution,
-        IAsynchronousOperationListener asyncListener,
-        CancellationToken disposalToken) : INavigateToSearcherHost
+    internal class DefaultNavigateToSearchHost : INavigateToSearcherHost
     {
-        private readonly Solution _solution = solution;
-        private readonly IAsynchronousOperationListener _asyncListener = asyncListener;
-        private readonly CancellationToken _disposalToken = disposalToken;
+        private readonly Solution _solution;
+        private readonly IAsynchronousOperationListener _asyncListener;
+        private readonly CancellationToken _disposalToken;
 
         /// <summary>
         /// Single task used to both hydrate the remote host with the initial workspace solution,
@@ -43,6 +40,16 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         /// </summary>
         private static readonly object s_gate = new();
         private static Task? s_remoteHostHydrateTask = null;
+
+        public DefaultNavigateToSearchHost(
+            Solution solution,
+            IAsynchronousOperationListener asyncListener,
+            CancellationToken disposalToken)
+        {
+            _solution = solution;
+            _asyncListener = asyncListener;
+            _disposalToken = disposalToken;
+        }
 
         public INavigateToSearchService? GetNavigateToSearchService(Project project)
             => project.GetLanguageService<INavigateToSearchService>();

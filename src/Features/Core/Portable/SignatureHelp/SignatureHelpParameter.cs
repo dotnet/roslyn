@@ -17,56 +17,67 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
     /// Once that it done, this will be converted to normal SignatureHelpParameters which only 
     /// point to TaggedText parts.
     /// </summary>
-    internal class SignatureHelpSymbolParameter(
-        string name,
-        bool isOptional,
-        Func<CancellationToken, IEnumerable<TaggedText>>? documentationFactory,
-        IEnumerable<SymbolDisplayPart> displayParts,
-        IEnumerable<SymbolDisplayPart>? prefixDisplayParts = null,
-        IEnumerable<SymbolDisplayPart>? suffixDisplayParts = null,
-        IEnumerable<SymbolDisplayPart>? selectedDisplayParts = null)
+    internal class SignatureHelpSymbolParameter
     {
         /// <summary>
         /// The name of this parameter.
         /// </summary>
-        public string Name { get; } = name ?? string.Empty;
+        public string Name { get; }
 
         /// <summary>
         /// Documentation for this parameter.  This should normally be presented to the user when
         /// this parameter is selected.
         /// </summary>
-        public Func<CancellationToken, IEnumerable<TaggedText>> DocumentationFactory { get; } = documentationFactory ?? s_emptyDocumentationFactory;
+        public Func<CancellationToken, IEnumerable<TaggedText>> DocumentationFactory { get; }
 
         /// <summary>
         /// Display parts to show before the normal display parts for the parameter.
         /// </summary>
-        public IList<SymbolDisplayPart> PrefixDisplayParts { get; } = prefixDisplayParts.ToImmutableArrayOrEmpty();
+        public IList<SymbolDisplayPart> PrefixDisplayParts { get; }
 
         /// <summary>
         /// Display parts to show after the normal display parts for the parameter.
         /// </summary>
-        public IList<SymbolDisplayPart> SuffixDisplayParts { get; } = suffixDisplayParts.ToImmutableArrayOrEmpty();
+        public IList<SymbolDisplayPart> SuffixDisplayParts { get; }
 
         /// <summary>
         /// Display parts for this parameter.  This should normally be presented to the user as part
         /// of the entire signature display.
         /// </summary>
-        public IList<SymbolDisplayPart> DisplayParts { get; } = displayParts.ToImmutableArrayOrEmpty();
+        public IList<SymbolDisplayPart> DisplayParts { get; }
 
         /// <summary>
         /// True if this parameter is optional or not.  Optional parameters may be presented in a
         /// different manner to users.
         /// </summary>
-        public bool IsOptional { get; } = isOptional;
+        public bool IsOptional { get; }
 
         /// <summary>
         /// Display parts for this parameter that should be presented to the user when this
         /// parameter is selected.
         /// </summary>
-        public IList<SymbolDisplayPart> SelectedDisplayParts { get; } = selectedDisplayParts.ToImmutableArrayOrEmpty();
+        public IList<SymbolDisplayPart> SelectedDisplayParts { get; }
 
         private static readonly Func<CancellationToken, IEnumerable<TaggedText>> s_emptyDocumentationFactory =
             _ => SpecializedCollections.EmptyEnumerable<TaggedText>();
+
+        public SignatureHelpSymbolParameter(
+            string name,
+            bool isOptional,
+            Func<CancellationToken, IEnumerable<TaggedText>>? documentationFactory,
+            IEnumerable<SymbolDisplayPart> displayParts,
+            IEnumerable<SymbolDisplayPart>? prefixDisplayParts = null,
+            IEnumerable<SymbolDisplayPart>? suffixDisplayParts = null,
+            IEnumerable<SymbolDisplayPart>? selectedDisplayParts = null)
+        {
+            Name = name ?? string.Empty;
+            IsOptional = isOptional;
+            DocumentationFactory = documentationFactory ?? s_emptyDocumentationFactory;
+            DisplayParts = displayParts.ToImmutableArrayOrEmpty();
+            PrefixDisplayParts = prefixDisplayParts.ToImmutableArrayOrEmpty();
+            SuffixDisplayParts = suffixDisplayParts.ToImmutableArrayOrEmpty();
+            SelectedDisplayParts = selectedDisplayParts.ToImmutableArrayOrEmpty();
+        }
 
         internal IEnumerable<SymbolDisplayPart> GetAllParts()
         {
@@ -86,53 +97,46 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         }
     }
 
-    internal class SignatureHelpParameter(
-        string name,
-        bool isOptional,
-        Func<CancellationToken, IEnumerable<TaggedText>>? documentationFactory,
-        IEnumerable<TaggedText> displayParts,
-        IEnumerable<TaggedText>? prefixDisplayParts = null,
-        IEnumerable<TaggedText>? suffixDisplayParts = null,
-        IEnumerable<TaggedText>? selectedDisplayParts = null)
+    internal class SignatureHelpParameter
     {
         /// <summary>
         /// The name of this parameter.
         /// </summary>
-        public string Name { get; } = name ?? string.Empty;
+        public string Name { get; }
 
         /// <summary>
         /// Documentation for this parameter.  This should normally be presented to the user when
         /// this parameter is selected.
         /// </summary>
-        public Func<CancellationToken, IEnumerable<TaggedText>> DocumentationFactory { get; } = documentationFactory ?? s_emptyDocumentationFactory;
+        public Func<CancellationToken, IEnumerable<TaggedText>> DocumentationFactory { get; }
 
         /// <summary>
         /// Display parts to show before the normal display parts for the parameter.
         /// </summary>
-        public IList<TaggedText> PrefixDisplayParts { get; } = prefixDisplayParts.ToImmutableArrayOrEmpty();
+        public IList<TaggedText> PrefixDisplayParts { get; }
 
         /// <summary>
         /// Display parts to show after the normal display parts for the parameter.
         /// </summary>
-        public IList<TaggedText> SuffixDisplayParts { get; } = suffixDisplayParts.ToImmutableArrayOrEmpty();
+        public IList<TaggedText> SuffixDisplayParts { get; }
 
         /// <summary>
         /// Display parts for this parameter.  This should normally be presented to the user as part
         /// of the entire signature display.
         /// </summary>
-        public IList<TaggedText> DisplayParts { get; } = displayParts.ToImmutableArrayOrEmpty();
+        public IList<TaggedText> DisplayParts { get; }
 
         /// <summary>
         /// True if this parameter is optional or not.  Optional parameters may be presented in a
         /// different manner to users.
         /// </summary>
-        public bool IsOptional { get; } = isOptional;
+        public bool IsOptional { get; }
 
         /// <summary>
         /// Display parts for this parameter that should be presented to the user when this
         /// parameter is selected.
         /// </summary>
-        public IList<TaggedText> SelectedDisplayParts { get; } = selectedDisplayParts.ToImmutableArrayOrEmpty();
+        public IList<TaggedText> SelectedDisplayParts { get; }
 
         private static readonly Func<CancellationToken, IEnumerable<TaggedText>> s_emptyDocumentationFactory =
             _ => SpecializedCollections.EmptyEnumerable<TaggedText>();
@@ -153,6 +157,24 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                   suffixDisplayParts.ToTaggedText(),
                   selectedDisplayParts.ToTaggedText())
         {
+        }
+
+        public SignatureHelpParameter(
+            string name,
+            bool isOptional,
+            Func<CancellationToken, IEnumerable<TaggedText>>? documentationFactory,
+            IEnumerable<TaggedText> displayParts,
+            IEnumerable<TaggedText>? prefixDisplayParts = null,
+            IEnumerable<TaggedText>? suffixDisplayParts = null,
+            IEnumerable<TaggedText>? selectedDisplayParts = null)
+        {
+            Name = name ?? string.Empty;
+            IsOptional = isOptional;
+            DocumentationFactory = documentationFactory ?? s_emptyDocumentationFactory;
+            DisplayParts = displayParts.ToImmutableArrayOrEmpty();
+            PrefixDisplayParts = prefixDisplayParts.ToImmutableArrayOrEmpty();
+            SuffixDisplayParts = suffixDisplayParts.ToImmutableArrayOrEmpty();
+            SelectedDisplayParts = selectedDisplayParts.ToImmutableArrayOrEmpty();
         }
 
         internal IEnumerable<TaggedText> GetAllParts()

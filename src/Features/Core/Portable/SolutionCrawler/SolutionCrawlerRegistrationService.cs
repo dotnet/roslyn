@@ -304,11 +304,18 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
         }
 
-        internal sealed class Registration(int correlationId, Workspace workspace, SolutionCrawlerProgressReporter progressReporter)
+        internal sealed class Registration
         {
-            public readonly int CorrelationId = correlationId;
-            public readonly Workspace Workspace = workspace;
-            public readonly SolutionCrawlerProgressReporter ProgressReporter = progressReporter;
+            public readonly int CorrelationId;
+            public readonly Workspace Workspace;
+            public readonly SolutionCrawlerProgressReporter ProgressReporter;
+
+            public Registration(int correlationId, Workspace workspace, SolutionCrawlerProgressReporter progressReporter)
+            {
+                CorrelationId = correlationId;
+                Workspace = workspace;
+                ProgressReporter = progressReporter;
+            }
 
             public Solution GetSolutionToAnalyze()
                 => Workspace.CurrentSolution;

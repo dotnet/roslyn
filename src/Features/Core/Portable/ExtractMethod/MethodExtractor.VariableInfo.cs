@@ -15,14 +15,21 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 {
     internal abstract partial class MethodExtractor
     {
-        protected class VariableInfo(
-            VariableSymbol variableSymbol,
-            VariableStyle variableStyle,
-            bool useAsReturnValue = false)
+        protected class VariableInfo
         {
-            private readonly VariableSymbol _variableSymbol = variableSymbol;
-            private readonly VariableStyle _variableStyle = variableStyle;
-            private readonly bool _useAsReturnValue = useAsReturnValue;
+            private readonly VariableSymbol _variableSymbol;
+            private readonly VariableStyle _variableStyle;
+            private readonly bool _useAsReturnValue;
+
+            public VariableInfo(
+                VariableSymbol variableSymbol,
+                VariableStyle variableStyle,
+                bool useAsReturnValue = false)
+            {
+                _variableSymbol = variableSymbol;
+                _variableStyle = variableStyle;
+                _useAsReturnValue = useAsReturnValue;
+            }
 
             public bool UseAsReturnValue
             {

@@ -19,14 +19,21 @@ namespace Microsoft.CodeAnalysis.AddImport
 {
     internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
-        private partial class MetadataSymbolReference(
-            AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
-            SymbolResult<INamespaceOrTypeSymbol> symbolResult,
-            ProjectId referenceProjectId,
-            PortableExecutableReference reference) : SymbolReference(provider, symbolResult)
+        private partial class MetadataSymbolReference : SymbolReference
         {
-            private readonly ProjectId _referenceProjectId = referenceProjectId;
-            private readonly PortableExecutableReference _reference = reference;
+            private readonly ProjectId _referenceProjectId;
+            private readonly PortableExecutableReference _reference;
+
+            public MetadataSymbolReference(
+                AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
+                SymbolResult<INamespaceOrTypeSymbol> symbolResult,
+                ProjectId referenceProjectId,
+                PortableExecutableReference reference)
+                : base(provider, symbolResult)
+            {
+                _referenceProjectId = referenceProjectId;
+                _reference = reference;
+            }
 
             /// <summary>
             /// If we're adding a metadata-reference, then we always offer to do the add,

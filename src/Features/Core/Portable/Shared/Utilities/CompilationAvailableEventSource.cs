@@ -19,15 +19,20 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     /// is asked for for a particular project, any existing outstanding work to produce a <see cref="Compilation"/> for
     /// a prior <see cref="Project"/> will be cancelled.
     /// </summary>
-    internal class CompilationAvailableEventSource(
-        IAsynchronousOperationListener asyncListener) : IDisposable
+    internal class CompilationAvailableEventSource : IDisposable
     {
-        private readonly IAsynchronousOperationListener _asyncListener = asyncListener;
+        private readonly IAsynchronousOperationListener _asyncListener;
 
         /// <summary>
         /// Cancellation tokens controlling background computation of the compilation.
         /// </summary>
         private readonly ReferenceCountedDisposable<CancellationSeries> _cancellationSeries = new(new CancellationSeries());
+
+        public CompilationAvailableEventSource(
+            IAsynchronousOperationListener asyncListener)
+        {
+            _asyncListener = asyncListener;
+        }
 
         public void Dispose()
             => _cancellationSeries.Dispose();

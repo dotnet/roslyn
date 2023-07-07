@@ -15,12 +15,18 @@ namespace Microsoft.CodeAnalysis.AddImport
 {
     internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
-        private class InstallWithPackageManagerCodeAction(
-            IPackageInstallerService installerService,
-            string packageName) : CodeAction
+        private class InstallWithPackageManagerCodeAction : CodeAction
         {
-            private readonly IPackageInstallerService _installerService = installerService;
-            private readonly string _packageName = packageName;
+            private readonly IPackageInstallerService _installerService;
+            private readonly string _packageName;
+
+            public InstallWithPackageManagerCodeAction(
+                IPackageInstallerService installerService,
+                string packageName)
+            {
+                _installerService = installerService;
+                _packageName = packageName;
+            }
 
             public override string Title => FeaturesResources.Install_with_package_manager;
 
@@ -30,12 +36,18 @@ namespace Microsoft.CodeAnalysis.AddImport
                     new InstallWithPackageManagerCodeActionOperation(_installerService, _packageName)));
             }
 
-            private class InstallWithPackageManagerCodeActionOperation(
-                IPackageInstallerService installerService,
-                string packageName) : CodeActionOperation
+            private class InstallWithPackageManagerCodeActionOperation : CodeActionOperation
             {
-                private readonly IPackageInstallerService _installerService = installerService;
-                private readonly string _packageName = packageName;
+                private readonly IPackageInstallerService _installerService;
+                private readonly string _packageName;
+
+                public InstallWithPackageManagerCodeActionOperation(
+                    IPackageInstallerService installerService,
+                    string packageName)
+                {
+                    _installerService = installerService;
+                    _packageName = packageName;
+                }
 
                 public override string Title => FeaturesResources.Install_with_package_manager;
 

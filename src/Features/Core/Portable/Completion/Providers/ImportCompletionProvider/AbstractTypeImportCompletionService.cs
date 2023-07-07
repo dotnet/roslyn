@@ -294,14 +294,21 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
         }
 
-        private readonly struct TypeOverloadInfo(INamedTypeSymbol nonGenericOverload, INamedTypeSymbol bestGenericOverload, bool containsPublicGenericOverload)
+        private readonly struct TypeOverloadInfo
         {
-            public INamedTypeSymbol NonGenericOverload { get; } = nonGenericOverload;
+            public TypeOverloadInfo(INamedTypeSymbol nonGenericOverload, INamedTypeSymbol bestGenericOverload, bool containsPublicGenericOverload)
+            {
+                NonGenericOverload = nonGenericOverload;
+                BestGenericOverload = bestGenericOverload;
+                ContainsPublicGenericOverload = containsPublicGenericOverload;
+            }
+
+            public INamedTypeSymbol NonGenericOverload { get; }
 
             // Generic with fewest type parameters is considered best symbol to show in description.
-            public INamedTypeSymbol BestGenericOverload { get; } = bestGenericOverload;
+            public INamedTypeSymbol BestGenericOverload { get; }
 
-            public bool ContainsPublicGenericOverload { get; } = containsPublicGenericOverload;
+            public bool ContainsPublicGenericOverload { get; }
 
             public TypeOverloadInfo Aggregate(INamedTypeSymbol type)
             {

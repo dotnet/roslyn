@@ -16,16 +16,22 @@ namespace Microsoft.CodeAnalysis.Wrapping
     ///         wrap all optoin 2
     ///         ...
     /// </summary>
-    internal readonly struct WrappingGroup(bool isInlinable, ImmutableArray<WrapItemsAction> wrappingActions)
+    internal readonly struct WrappingGroup
     {
         /// <summary>
         /// Whether or not the items in this group can be inlined in the topmost lightbulb.
         /// </summary>
-        public readonly bool IsInlinable = isInlinable;
+        public readonly bool IsInlinable;
 
         /// <summary>
         /// The actual wrapping code actions for this group to present to the user.
         /// </summary>
-        public readonly ImmutableArray<WrapItemsAction> WrappingActions = wrappingActions;
+        public readonly ImmutableArray<WrapItemsAction> WrappingActions;
+
+        public WrappingGroup(bool isInlinable, ImmutableArray<WrapItemsAction> wrappingActions)
+        {
+            IsInlinable = isInlinable;
+            WrappingActions = wrappingActions;
+        }
     }
 }

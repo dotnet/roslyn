@@ -15,17 +15,26 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 {
     internal abstract partial class MethodExtractor
     {
-        protected abstract class TriviaResult(SemanticDocument document, ITriviaSavedResult result, int endOfLineKind, int whitespaceKind)
+        protected abstract class TriviaResult
         {
-            private readonly int _endOfLineKind = endOfLineKind;
-            private readonly int _whitespaceKind = whitespaceKind;
+            private readonly int _endOfLineKind;
+            private readonly int _whitespaceKind;
 
-            private readonly ITriviaSavedResult _result = result;
+            private readonly ITriviaSavedResult _result;
+
+            public TriviaResult(SemanticDocument document, ITriviaSavedResult result, int endOfLineKind, int whitespaceKind)
+            {
+                SemanticDocument = document;
+
+                _result = result;
+                _endOfLineKind = endOfLineKind;
+                _whitespaceKind = whitespaceKind;
+            }
 
             protected abstract AnnotationResolver GetAnnotationResolver(SyntaxNode callsite, SyntaxNode methodDefinition);
             protected abstract TriviaResolver GetTriviaResolver(SyntaxNode methodDefinition);
 
-            public SemanticDocument SemanticDocument { get; } = document;
+            public SemanticDocument SemanticDocument { get; }
 
             public async Task<OperationStatus<SemanticDocument>> ApplyAsync(GeneratedCode generatedCode, CancellationToken cancellationToken)
             {

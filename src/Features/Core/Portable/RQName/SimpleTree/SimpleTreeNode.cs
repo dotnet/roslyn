@@ -4,8 +4,11 @@
 
 namespace Microsoft.CodeAnalysis.Features.RQName.SimpleTree
 {
-    internal abstract class SimpleTreeNode(string text)
+    internal abstract class SimpleTreeNode
     {
-        public readonly string Text = text;
+        public readonly string Text;
+
+        public SimpleTreeNode(string text)
+            => Text = text;
     }
 }

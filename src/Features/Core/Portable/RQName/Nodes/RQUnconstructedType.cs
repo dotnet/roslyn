@@ -9,9 +9,15 @@ using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
 namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
 {
-    internal class RQUnconstructedType(IList<string> namespaceNames, IList<RQUnconstructedTypeInfo> typeInfos) : RQTypeOrNamespace(namespaceNames)
+    internal class RQUnconstructedType : RQTypeOrNamespace
     {
-        public readonly ReadOnlyCollection<RQUnconstructedTypeInfo> TypeInfos = new ReadOnlyCollection<RQUnconstructedTypeInfo>(typeInfos);
+        public readonly ReadOnlyCollection<RQUnconstructedTypeInfo> TypeInfos;
+
+        public RQUnconstructedType(IList<string> namespaceNames, IList<RQUnconstructedTypeInfo> typeInfos)
+            : base(namespaceNames)
+        {
+            TypeInfos = new ReadOnlyCollection<RQUnconstructedTypeInfo>(typeInfos);
+        }
 
         protected override string RQKeyword
         {
@@ -30,9 +36,15 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
         }
     }
 
-    internal readonly struct RQUnconstructedTypeInfo(string typeName, int typeVariableCount)
+    internal readonly struct RQUnconstructedTypeInfo
     {
-        public readonly string TypeName = typeName;
-        public readonly int TypeVariableCount = typeVariableCount;
+        public readonly string TypeName;
+        public readonly int TypeVariableCount;
+
+        public RQUnconstructedTypeInfo(string typeName, int typeVariableCount)
+        {
+            TypeName = typeName;
+            TypeVariableCount = typeVariableCount;
+        }
     }
 }

@@ -25,15 +25,21 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         event EventHandler<UnitTestingProgressData> ProgressChanged;
     }
 
-    internal readonly struct UnitTestingProgressData(UnitTestingProgressStatus type, int? pendingItemCount)
+    internal readonly struct UnitTestingProgressData
     {
-        public UnitTestingProgressStatus Status { get; } = type;
+        public UnitTestingProgressStatus Status { get; }
 
         /// <summary>
         /// number of pending work item in the queue. 
         /// null means N/A for the associated <see cref="Status"/>
         /// </summary>
-        public int? PendingItemCount { get; } = pendingItemCount;
+        public int? PendingItemCount { get; }
+
+        public UnitTestingProgressData(UnitTestingProgressStatus type, int? pendingItemCount)
+        {
+            Status = type;
+            PendingItemCount = pendingItemCount;
+        }
     }
 
     internal enum UnitTestingProgressStatus

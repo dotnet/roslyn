@@ -7,7 +7,11 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
 {
-    internal class FailedExtractMethodResult(OperationStatus status) : ExtractMethodResult(status.Flag, status.Reasons, null, ImmutableArray<AbstractFormattingRule>.Empty, default, null)
+    internal class FailedExtractMethodResult : ExtractMethodResult
     {
+        public FailedExtractMethodResult(OperationStatus status)
+            : base(status.Flag, status.Reasons, null, ImmutableArray<AbstractFormattingRule>.Empty, default, null)
+        {
+        }
     }
 }

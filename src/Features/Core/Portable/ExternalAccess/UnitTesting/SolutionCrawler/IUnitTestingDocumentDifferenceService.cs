@@ -9,10 +9,16 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
-    internal class UnitTestingDocumentDifferenceResult(UnitTestingInvocationReasons changeType, SyntaxNode? changedMember = null)
+    internal class UnitTestingDocumentDifferenceResult
     {
-        public UnitTestingInvocationReasons ChangeType { get; } = changeType;
-        public SyntaxNode? ChangedMember { get; } = changedMember;
+        public UnitTestingInvocationReasons ChangeType { get; }
+        public SyntaxNode? ChangedMember { get; }
+
+        public UnitTestingDocumentDifferenceResult(UnitTestingInvocationReasons changeType, SyntaxNode? changedMember = null)
+        {
+            ChangeType = changeType;
+            ChangedMember = changedMember;
+        }
     }
 
     internal interface IUnitTestingDocumentDifferenceService : ILanguageService

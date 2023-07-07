@@ -305,14 +305,23 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     return graph.GetProjectsThatDirectlyDependOnThisProject(projectId).Concat(projectId);
                 }
 
-                private readonly struct UnitTestingData(Project project, DocumentId documentId, Document? document, SyntaxPath? changedMember, IAsyncToken asyncToken)
+                private readonly struct UnitTestingData
                 {
-                    private readonly DocumentId _documentId = documentId;
-                    private readonly Document? _document = document;
+                    private readonly DocumentId _documentId;
+                    private readonly Document? _document;
 
-                    public readonly Project Project = project;
-                    public readonly SyntaxPath? ChangedMember = changedMember;
-                    public readonly IAsyncToken AsyncToken = asyncToken;
+                    public readonly Project Project;
+                    public readonly SyntaxPath? ChangedMember;
+                    public readonly IAsyncToken AsyncToken;
+
+                    public UnitTestingData(Project project, DocumentId documentId, Document? document, SyntaxPath? changedMember, IAsyncToken asyncToken)
+                    {
+                        _documentId = documentId;
+                        _document = document;
+                        Project = project;
+                        ChangedMember = changedMember;
+                        AsyncToken = asyncToken;
+                    }
 
                     public Document GetRequiredDocument()
                         => UnitTestingWorkCoordinator.GetRequiredDocument(Project, _documentId, _document);
@@ -436,11 +445,18 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                             await EnqueueWorkItemAsync(project, documentId, document: null).ConfigureAwait(false);
                     }
 
-                    private readonly struct UnitTestingData(ProjectId projectId, bool needDependencyTracking, IAsyncToken asyncToken)
+                    private readonly struct UnitTestingData
                     {
-                        public readonly IAsyncToken AsyncToken = asyncToken;
-                        public readonly ProjectId ProjectId = projectId;
-                        public readonly bool NeedDependencyTracking = needDependencyTracking;
+                        public readonly IAsyncToken AsyncToken;
+                        public readonly ProjectId ProjectId;
+                        public readonly bool NeedDependencyTracking;
+
+                        public UnitTestingData(ProjectId projectId, bool needDependencyTracking, IAsyncToken asyncToken)
+                        {
+                            AsyncToken = asyncToken;
+                            ProjectId = projectId;
+                            NeedDependencyTracking = needDependencyTracking;
+                        }
                     }
                 }
             }

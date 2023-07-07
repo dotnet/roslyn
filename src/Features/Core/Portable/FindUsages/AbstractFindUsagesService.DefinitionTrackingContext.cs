@@ -21,11 +21,14 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// definitions found to third parties in case they want to add any additional definitions
         /// to the results we present.
         /// </summary>
-        private sealed class DefinitionTrackingContext(IFindUsagesContext underlyingContext) : IFindUsagesContext
+        private sealed class DefinitionTrackingContext : IFindUsagesContext
         {
-            private readonly IFindUsagesContext _underlyingContext = underlyingContext;
+            private readonly IFindUsagesContext _underlyingContext;
             private readonly object _gate = new();
             private readonly List<DefinitionItem> _definitions = new();
+
+            public DefinitionTrackingContext(IFindUsagesContext underlyingContext)
+                => _underlyingContext = underlyingContext;
 
             public ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
                 => _underlyingContext.GetOptionsAsync(language, cancellationToken);

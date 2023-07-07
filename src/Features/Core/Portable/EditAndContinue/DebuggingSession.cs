@@ -823,9 +823,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal TestAccessor GetTestAccessor()
             => new(this);
 
-        internal readonly struct TestAccessor(DebuggingSession instance)
+        internal readonly struct TestAccessor
         {
-            private readonly DebuggingSession _instance = instance;
+            private readonly DebuggingSession _instance;
+
+            public TestAccessor(DebuggingSession instance)
+                => _instance = instance;
 
             public ImmutableHashSet<Guid> GetModulesPreparedForUpdate()
             {

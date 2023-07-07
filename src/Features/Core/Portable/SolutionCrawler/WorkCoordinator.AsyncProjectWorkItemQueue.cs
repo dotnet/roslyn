@@ -15,9 +15,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
     {
         internal partial class WorkCoordinator
         {
-            private sealed class AsyncProjectWorkItemQueue(SolutionCrawlerProgressReporter progressReporter, Workspace workspace) : AsyncWorkItemQueue<ProjectId>(progressReporter, workspace)
+            private sealed class AsyncProjectWorkItemQueue : AsyncWorkItemQueue<ProjectId>
             {
                 private readonly Dictionary<ProjectId, WorkItem> _projectWorkQueue = new();
+
+                public AsyncProjectWorkItemQueue(SolutionCrawlerProgressReporter progressReporter, Workspace workspace)
+                    : base(progressReporter, workspace)
+                {
+                }
 
                 protected override int WorkItemCount_NoLock => _projectWorkQueue.Count;
 

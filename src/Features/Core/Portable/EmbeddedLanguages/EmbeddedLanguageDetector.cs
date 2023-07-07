@@ -13,13 +13,20 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages
 {
-    internal readonly struct EmbeddedLanguageDetector(
-        EmbeddedLanguageInfo info,
-        ImmutableArray<string> languageIdentifiers)
+    internal readonly struct EmbeddedLanguageDetector
     {
-        private readonly EmbeddedLanguageInfo Info = info;
-        private readonly HashSet<string> LanguageIdentifiers = new HashSet<string>(languageIdentifiers, StringComparer.OrdinalIgnoreCase);
-        private readonly EmbeddedLanguageCommentDetector _commentDetector = new EmbeddedLanguageCommentDetector(languageIdentifiers);
+        private readonly EmbeddedLanguageInfo Info;
+        private readonly HashSet<string> LanguageIdentifiers;
+        private readonly EmbeddedLanguageCommentDetector _commentDetector;
+
+        public EmbeddedLanguageDetector(
+            EmbeddedLanguageInfo info,
+            ImmutableArray<string> languageIdentifiers)
+        {
+            Info = info;
+            LanguageIdentifiers = new HashSet<string>(languageIdentifiers, StringComparer.OrdinalIgnoreCase);
+            _commentDetector = new EmbeddedLanguageCommentDetector(languageIdentifiers);
+        }
 
         /// <summary>
         /// Determines if <paramref name="token"/> is an embedded language token.  If the token is, the specific

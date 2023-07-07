@@ -17,11 +17,17 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
     /// This is used instead of <see cref="ApplyChangesOperation"/> as we need to show a confirmation
     /// dialog to the user before applying the change.
     /// </summary>
-    internal sealed class ChangeSignatureCodeActionOperation(Solution changedSolution, string? confirmationMessage) : CodeActionOperation
+    internal sealed class ChangeSignatureCodeActionOperation : CodeActionOperation
     {
-        public Solution ChangedSolution { get; } = changedSolution ?? throw new ArgumentNullException(nameof(changedSolution));
+        public Solution ChangedSolution { get; }
 
-        public string? ConfirmationMessage { get; } = confirmationMessage;
+        public string? ConfirmationMessage { get; }
+
+        public ChangeSignatureCodeActionOperation(Solution changedSolution, string? confirmationMessage)
+        {
+            ChangedSolution = changedSolution ?? throw new ArgumentNullException(nameof(changedSolution));
+            ConfirmationMessage = confirmationMessage;
+        }
 
         internal override bool ApplyDuringTests => true;
 

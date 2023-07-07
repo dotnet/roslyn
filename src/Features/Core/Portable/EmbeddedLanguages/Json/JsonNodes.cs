@@ -186,9 +186,15 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
             => visitor.Visit(this);
     }
 
-    internal sealed class JsonLiteralNode(JsonToken literalToken) : JsonValueNode(JsonKind.Literal)
+    internal sealed class JsonLiteralNode : JsonValueNode
     {
-        public JsonToken LiteralToken { get; } = literalToken;
+        public JsonLiteralNode(JsonToken literalToken)
+            : base(JsonKind.Literal)
+        {
+            LiteralToken = literalToken;
+        }
+
+        public JsonToken LiteralToken { get; }
 
         internal override int ChildCount => 1;
 

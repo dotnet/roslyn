@@ -20,9 +20,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
     /// <summary>
     /// Helper class to detect json in string tokens in a document efficiently.
     /// </summary>
-    internal class JsonLanguageDetector(
-        EmbeddedLanguageInfo info,
-        ISet<INamedTypeSymbol> typesOfInterest) : AbstractLanguageDetector<JsonOptions, JsonTree>(info, LanguageIdentifiers)
+    internal class JsonLanguageDetector : AbstractLanguageDetector<JsonOptions, JsonTree>
     {
         public static readonly ImmutableArray<string> LanguageIdentifiers = ImmutableArray.Create("Json");
 
@@ -39,7 +37,15 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
 
         private static readonly ConditionalWeakTable<Compilation, JsonLanguageDetector> s_compilationToDetector = new();
 
-        private readonly ISet<INamedTypeSymbol> _typesOfInterest = typesOfInterest;
+        private readonly ISet<INamedTypeSymbol> _typesOfInterest;
+
+        public JsonLanguageDetector(
+            EmbeddedLanguageInfo info,
+            ISet<INamedTypeSymbol> typesOfInterest)
+            : base(info, LanguageIdentifiers)
+        {
+            _typesOfInterest = typesOfInterest;
+        }
 
         public static JsonLanguageDetector GetOrCreate(
             Compilation compilation, EmbeddedLanguageInfo info)

@@ -8,11 +8,17 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.StackTraceExplorer
 {
-    internal readonly struct StackTraceAnalysisResult(
-        string originalString,
-        ImmutableArray<ParsedFrame> parsedLines)
+    internal readonly struct StackTraceAnalysisResult
     {
-        public string OriginalString { get; } = originalString;
-        public ImmutableArray<ParsedFrame> ParsedFrames { get; } = parsedLines;
+        public StackTraceAnalysisResult(
+            string originalString,
+            ImmutableArray<ParsedFrame> parsedLines)
+        {
+            OriginalString = originalString;
+            ParsedFrames = parsedLines;
+        }
+
+        public string OriginalString { get; }
+        public ImmutableArray<ParsedFrame> ParsedFrames { get; }
     }
 }

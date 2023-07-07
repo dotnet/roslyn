@@ -8,13 +8,20 @@ using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
-    internal partial class FixMultipleCodeAction(
-        IFixAllState fixAllState,
-        string title,
-        string computingFixWaitDialogMessage) : AbstractFixAllCodeFixCodeAction(fixAllState, showPreviewChangesDialog: false)
+    internal partial class FixMultipleCodeAction : AbstractFixAllCodeFixCodeAction
     {
-        private readonly string _title = title;
-        private readonly string _computingFixWaitDialogMessage = computingFixWaitDialogMessage;
+        private readonly string _title;
+        private readonly string _computingFixWaitDialogMessage;
+
+        public FixMultipleCodeAction(
+            IFixAllState fixAllState,
+            string title,
+            string computingFixWaitDialogMessage)
+            : base(fixAllState, showPreviewChangesDialog: false)
+        {
+            _title = title;
+            _computingFixWaitDialogMessage = computingFixWaitDialogMessage;
+        }
 
         public override string Title => _title;
 

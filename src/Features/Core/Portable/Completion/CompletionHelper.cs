@@ -11,12 +11,15 @@ using Microsoft.CodeAnalysis.Tags;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
-    internal sealed class CompletionHelper(bool isCaseSensitive)
+    internal sealed class CompletionHelper
     {
         private static CompletionHelper CaseSensitiveInstance { get; } = new CompletionHelper(isCaseSensitive: true);
         private static CompletionHelper CaseInsensitiveInstance { get; } = new CompletionHelper(isCaseSensitive: false);
 
-        private readonly bool _isCaseSensitive = isCaseSensitive;
+        private readonly bool _isCaseSensitive;
+
+        public CompletionHelper(bool isCaseSensitive)
+            => _isCaseSensitive = isCaseSensitive;
 
         public static CompletionHelper GetHelper(Document document)
         {

@@ -12,22 +12,29 @@ namespace Microsoft.CodeAnalysis.CodeLens
     /// Represents the result of a FindReferences Count operation.
     /// </summary>
     [DataContract]
-    internal readonly struct ReferenceCount(int count, bool isCapped, string version) : IEquatable<ReferenceCount>
+    internal readonly struct ReferenceCount : IEquatable<ReferenceCount>
     {
         /// <summary>
         /// Represents the number of references to a given symbol.
         /// </summary>
         [DataMember(Order = 0)]
-        public int Count { get; } = count;
+        public int Count { get; }
 
         /// <summary>
         /// Represents if the count is capped by a certain maximum.
         /// </summary>
         [DataMember(Order = 1)]
-        public bool IsCapped { get; } = isCapped;
+        public bool IsCapped { get; }
 
         [DataMember(Order = 2)]
-        public string Version { get; } = version;
+        public string Version { get; }
+
+        public ReferenceCount(int count, bool isCapped, string version)
+        {
+            Count = count;
+            IsCapped = isCapped;
+            Version = version;
+        }
 
         public static bool operator ==(ReferenceCount left, ReferenceCount right)
         {

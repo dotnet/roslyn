@@ -891,13 +891,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        internal readonly struct ActiveNode(int activeStatementIndex, SyntaxNode oldNode, SyntaxNode? enclosingLambdaBody, int statementPart, SyntaxNode? newTrackedNode)
+        internal readonly struct ActiveNode
         {
-            public readonly int ActiveStatementIndex = activeStatementIndex;
-            public readonly SyntaxNode OldNode = oldNode;
-            public readonly SyntaxNode? NewTrackedNode = newTrackedNode;
-            public readonly SyntaxNode? EnclosingLambdaBody = enclosingLambdaBody;
-            public readonly int StatementPart = statementPart;
+            public readonly int ActiveStatementIndex;
+            public readonly SyntaxNode OldNode;
+            public readonly SyntaxNode? NewTrackedNode;
+            public readonly SyntaxNode? EnclosingLambdaBody;
+            public readonly int StatementPart;
+
+            public ActiveNode(int activeStatementIndex, SyntaxNode oldNode, SyntaxNode? enclosingLambdaBody, int statementPart, SyntaxNode? newTrackedNode)
+            {
+                ActiveStatementIndex = activeStatementIndex;
+                OldNode = oldNode;
+                NewTrackedNode = newTrackedNode;
+                EnclosingLambdaBody = enclosingLambdaBody;
+                StatementPart = statementPart;
+            }
         }
 
         /// <summary>
@@ -2360,21 +2369,27 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Aggregates information needed to emit updates of constructors that contain member initialization.
         /// </summary>
-        private sealed class MemberInitializationUpdates(INamedTypeSymbol oldType)
+        private sealed class MemberInitializationUpdates
         {
-            public readonly INamedTypeSymbol OldType = oldType;
+            public readonly INamedTypeSymbol OldType;
 
             /// <summary>
             /// Contains syntax maps for all changed data member initializers or constructor declarations (of constructors emitting initializers)
             /// in the currently analyzed document. The key is the new declaration of the member.
             /// </summary>
-            public readonly Dictionary<SyntaxNode, Func<SyntaxNode, SyntaxNode?>?> ChangedDeclarations = new Dictionary<SyntaxNode, Func<SyntaxNode, SyntaxNode?>?>();
+            public readonly Dictionary<SyntaxNode, Func<SyntaxNode, SyntaxNode?>?> ChangedDeclarations;
 
             /// <summary>
             /// True if a member initializer has been deleted
             /// (<see cref="ChangedDeclarations"/> only contains syntax nodes of new declarations, which are not available for deleted members).
             /// </summary>
             public bool HasDeletedMemberInitializer;
+
+            public MemberInitializationUpdates(INamedTypeSymbol oldType)
+            {
+                OldType = oldType;
+                ChangedDeclarations = new Dictionary<SyntaxNode, Func<SyntaxNode, SyntaxNode?>?>();
+            }
         }
 
         private async Task<ImmutableArray<SemanticEditInfo>> AnalyzeSemanticsAsync(
@@ -6693,9 +6708,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal TestAccessor GetTestAccessor()
             => new(this);
 
-        internal readonly struct TestAccessor(AbstractEditAndContinueAnalyzer abstractEditAndContinueAnalyzer)
+        internal readonly struct TestAccessor
         {
-            private readonly AbstractEditAndContinueAnalyzer _abstractEditAndContinueAnalyzer = abstractEditAndContinueAnalyzer;
+            private readonly AbstractEditAndContinueAnalyzer _abstractEditAndContinueAnalyzer;
+
+            public TestAccessor(AbstractEditAndContinueAnalyzer abstractEditAndContinueAnalyzer)
+                => _abstractEditAndContinueAnalyzer = abstractEditAndContinueAnalyzer;
 
             internal void ReportTopLevelSyntacticRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, EditScript<SyntaxNode> syntacticEdits, Dictionary<SyntaxNode, EditKind> editMap)
                 => _abstractEditAndContinueAnalyzer.ReportTopLevelSyntacticRudeEdits(diagnostics, syntacticEdits, editMap);

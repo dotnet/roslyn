@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     /// An alternative for <see cref="FileLinePositionSpan"/> without <see cref="FileLinePositionSpan.HasMappedPath"/> bit.
     /// </summary>
     [DataContract]
-    internal readonly struct SourceFileSpan(string path, LinePositionSpan span) : IEquatable<SourceFileSpan>
+    internal readonly struct SourceFileSpan : IEquatable<SourceFileSpan>
     {
         /// <summary>
         /// Path, or null if the span represents an invalid value.
@@ -23,13 +23,25 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Path may be <see cref="string.Empty"/> if not available.
         /// </remarks>
         [DataMember(Order = 0)]
-        public string Path { get; } = path ?? throw new ArgumentNullException(nameof(path));
+        public string Path { get; }
 
         /// <summary>
         /// Gets the span.
         /// </summary>
         [DataMember(Order = 1)]
-        public LinePositionSpan Span { get; } = span;
+        public LinePositionSpan Span { get; }
+
+        /// <summary>
+        /// Initializes the <see cref="SourceFileSpan"/> instance.
+        /// </summary>
+        /// <param name="path">The file identifier - typically a relative or absolute path.</param>
+        /// <param name="span">The span.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="path"/> is null.</exception>
+        public SourceFileSpan(string path, LinePositionSpan span)
+        {
+            Path = path ?? throw new ArgumentNullException(nameof(path));
+            Span = span;
+        }
 
         public SourceFileSpan WithSpan(LinePositionSpan span)
             => new(Path, span);

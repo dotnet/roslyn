@@ -20,12 +20,17 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
     [ExportLanguageService(typeof(INavigateToSearchService), InternalLanguageNames.TypeScript), Shared]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class VSTypeScriptNavigateToSearchService(
-        [Import(AllowDefault = true)] IVSTypeScriptNavigateToSearchService? searchService) : INavigateToSearchService
+    internal sealed class VSTypeScriptNavigateToSearchService : INavigateToSearchService
     {
-        private readonly IVSTypeScriptNavigateToSearchService? _searchService = searchService;
+        private readonly IVSTypeScriptNavigateToSearchService? _searchService;
+
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public VSTypeScriptNavigateToSearchService(
+            [Import(AllowDefault = true)] IVSTypeScriptNavigateToSearchService? searchService)
+        {
+            _searchService = searchService;
+        }
 
         public IImmutableSet<string> KindsProvided => _searchService?.KindsProvided ?? ImmutableHashSet<string>.Empty;
 
@@ -92,9 +97,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         private static INavigateToSearchResult Convert(IVSTypeScriptNavigateToSearchResult result)
             => new WrappedNavigateToSearchResult(result);
 
-        private class WrappedNavigateToSearchResult(IVSTypeScriptNavigateToSearchResult result) : INavigateToSearchResult
+        private class WrappedNavigateToSearchResult : INavigateToSearchResult
         {
-            private readonly IVSTypeScriptNavigateToSearchResult _result = result;
+            private readonly IVSTypeScriptNavigateToSearchResult _result;
+
+            public WrappedNavigateToSearchResult(IVSTypeScriptNavigateToSearchResult result)
+            {
+                _result = result;
+            }
 
             public string AdditionalInformation => _result.AdditionalInformation;
 

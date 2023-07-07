@@ -8,25 +8,31 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.AddParameter
 {
-    internal readonly struct CodeFixData(
-        IMethodSymbol method,
-        Func<CancellationToken, Task<Solution>> createChangedSolutionNonCascading,
-        Func<CancellationToken, Task<Solution>>? createChangedSolutionCascading)
+    internal readonly struct CodeFixData
     {
+        public CodeFixData(
+            IMethodSymbol method,
+            Func<CancellationToken, Task<Solution>> createChangedSolutionNonCascading,
+            Func<CancellationToken, Task<Solution>>? createChangedSolutionCascading)
+        {
+            Method = method ?? throw new ArgumentNullException(nameof(method));
+            CreateChangedSolutionNonCascading = createChangedSolutionNonCascading ?? throw new ArgumentNullException(nameof(createChangedSolutionNonCascading));
+            CreateChangedSolutionCascading = createChangedSolutionCascading;
+        }
 
         /// <summary>
         /// The overload to fix.
         /// </summary>
-        public IMethodSymbol Method { get; } = method ?? throw new ArgumentNullException(nameof(method));
+        public IMethodSymbol Method { get; }
 
         /// <summary>
         /// A mandatory fix for the overload without cascading.
         /// </summary>
-        public Func<CancellationToken, Task<Solution>> CreateChangedSolutionNonCascading { get; } = createChangedSolutionNonCascading ?? throw new ArgumentNullException(nameof(createChangedSolutionNonCascading));
+        public Func<CancellationToken, Task<Solution>> CreateChangedSolutionNonCascading { get; }
 
         /// <summary>
         /// An optional fix for the overload with cascading.
         /// </summary>
-        public Func<CancellationToken, Task<Solution>>? CreateChangedSolutionCascading { get; } = createChangedSolutionCascading;
+        public Func<CancellationToken, Task<Solution>>? CreateChangedSolutionCascading { get; }
     }
 }

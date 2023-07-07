@@ -7,12 +7,16 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
 {
-    internal class SimpleExtractMethodResult(
-        OperationStatus status,
-        Document documentWithoutFinalFormatting,
-        ImmutableArray<AbstractFormattingRule> formattingRules,
-        SyntaxToken invocationNameToken,
-        SyntaxNode methodDefinition) : ExtractMethodResult(status.Flag, status.Reasons, documentWithoutFinalFormatting, formattingRules, invocationNameToken, methodDefinition)
+    internal class SimpleExtractMethodResult : ExtractMethodResult
     {
+        public SimpleExtractMethodResult(
+            OperationStatus status,
+            Document documentWithoutFinalFormatting,
+            ImmutableArray<AbstractFormattingRule> formattingRules,
+            SyntaxToken invocationNameToken,
+            SyntaxNode methodDefinition)
+            : base(status.Flag, status.Reasons, documentWithoutFinalFormatting, formattingRules, invocationNameToken, methodDefinition)
+        {
+        }
     }
 }

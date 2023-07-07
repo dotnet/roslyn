@@ -6,8 +6,14 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
-    internal class MetadataAsSourceWorkspace(MetadataAsSourceFileService fileService, HostServices hostServices) : Workspace(hostServices, WorkspaceKind.MetadataAsSource)
+    internal class MetadataAsSourceWorkspace : Workspace
     {
-        public readonly MetadataAsSourceFileService FileService = fileService;
+        public readonly MetadataAsSourceFileService FileService;
+
+        public MetadataAsSourceWorkspace(MetadataAsSourceFileService fileService, HostServices hostServices)
+            : base(hostServices, WorkspaceKind.MetadataAsSource)
+        {
+            this.FileService = fileService;
+        }
     }
 }

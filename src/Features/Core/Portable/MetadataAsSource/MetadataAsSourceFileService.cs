@@ -22,15 +22,13 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
     [Export(typeof(IMetadataAsSourceFileService)), Shared]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal class MetadataAsSourceFileService([ImportMany] IEnumerable<Lazy<IMetadataAsSourceFileProvider, MetadataAsSourceFileProviderMetadata>> providers) : IMetadataAsSourceFileService
+    internal class MetadataAsSourceFileService : IMetadataAsSourceFileService
     {
         /// <summary>
         /// Set of providers that can be used to generate source for a symbol (for example, by decompiling, or by
         /// extracting it from a pdb).
         /// </summary>
-        private readonly ImmutableArray<Lazy<IMetadataAsSourceFileProvider, MetadataAsSourceFileProviderMetadata>> _providers = ExtensionOrderer.Order(providers).ToImmutableArray();
+        private readonly ImmutableArray<Lazy<IMetadataAsSourceFileProvider, MetadataAsSourceFileProviderMetadata>> _providers;
 
         /// <summary>
         /// Workspace created the first time we generate any metadata for any symbol.
@@ -49,7 +47,15 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         /// </summary>
         private Mutex? _mutex;
         private string? _rootTemporaryPathWithGuid;
-        private readonly string _rootTemporaryPath = Path.Combine(Path.GetTempPath(), "MetadataAsSource");
+        private readonly string _rootTemporaryPath;
+
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public MetadataAsSourceFileService([ImportMany] IEnumerable<Lazy<IMetadataAsSourceFileProvider, MetadataAsSourceFileProviderMetadata>> providers)
+        {
+            _providers = ExtensionOrderer.Order(providers).ToImmutableArray();
+            _rootTemporaryPath = Path.Combine(Path.GetTempPath(), "MetadataAsSource");
+        }
 
         private static string CreateMutexName(string directoryName)
             => "MetadataAsSource-" + directoryName;

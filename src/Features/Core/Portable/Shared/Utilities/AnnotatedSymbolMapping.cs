@@ -12,32 +12,40 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
-    internal class AnnotatedSymbolMapping(
-        ImmutableDictionary<ISymbol, SyntaxAnnotation> symbolToDeclarationAnnotationMap,
-        Solution annotatedSolution,
-        ImmutableDictionary<DocumentId, ImmutableArray<ISymbol>> documentIdsToSymbolMap,
-        SyntaxAnnotation typeNodeAnnotation)
+    internal class AnnotatedSymbolMapping
     {
         /// <summary>
         /// Used to map a symbol to the annotation that was added at the beginning of it's definition. Use the 
         /// annotation the symbol declaration again across edits.
         /// </summary>
-        public ImmutableDictionary<ISymbol, SyntaxAnnotation> SymbolToDeclarationAnnotationMap { get; } = symbolToDeclarationAnnotationMap;
+        public ImmutableDictionary<ISymbol, SyntaxAnnotation> SymbolToDeclarationAnnotationMap { get; }
 
         /// <summary>
         /// The original solution that modifications made to annotate the symbol declarations
         /// </summary>
-        public Solution AnnotatedSolution { get; } = annotatedSolution;
+        public Solution AnnotatedSolution { get; }
 
         /// <summary>
         /// A map of the document ids that were used and what symbols are in them. 
         /// </summary>
-        public ImmutableDictionary<DocumentId, ImmutableArray<ISymbol>> DocumentIdsToSymbolMap { get; } = documentIdsToSymbolMap;
+        public ImmutableDictionary<DocumentId, ImmutableArray<ISymbol>> DocumentIdsToSymbolMap { get; }
 
         /// <summary>
         /// The annotation added to the type declaration that was passed in to create the mapping
         /// </summary>
-        public SyntaxAnnotation TypeNodeAnnotation { get; } = typeNodeAnnotation;
+        public SyntaxAnnotation TypeNodeAnnotation { get; }
+
+        public AnnotatedSymbolMapping(
+            ImmutableDictionary<ISymbol, SyntaxAnnotation> symbolToDeclarationAnnotationMap,
+            Solution annotatedSolution,
+            ImmutableDictionary<DocumentId, ImmutableArray<ISymbol>> documentIdsToSymbolMap,
+            SyntaxAnnotation typeNodeAnnotation)
+        {
+            SymbolToDeclarationAnnotationMap = symbolToDeclarationAnnotationMap;
+            AnnotatedSolution = annotatedSolution;
+            DocumentIdsToSymbolMap = documentIdsToSymbolMap;
+            TypeNodeAnnotation = typeNodeAnnotation;
+        }
 
         /// <summary>
         /// Creates a <see cref="AnnotatedSymbolMapping"/> where the first token of each symbol is annotated

@@ -9,11 +9,18 @@ using Microsoft.CodeAnalysis.TaskList;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 
-internal readonly struct VSTypeScriptTaskListItem(VSTypeScriptTaskListItemDescriptorWrapper descriptor, string message, int position)
+internal readonly struct VSTypeScriptTaskListItem
 {
-    public VSTypeScriptTaskListItemDescriptorWrapper Descriptor { get; } = descriptor;
-    public string Message { get; } = message;
-    public int Position { get; } = position;
+    public VSTypeScriptTaskListItem(VSTypeScriptTaskListItemDescriptorWrapper descriptor, string message, int position)
+    {
+        Descriptor = descriptor;
+        Message = message;
+        Position = position;
+    }
+
+    public VSTypeScriptTaskListItemDescriptorWrapper Descriptor { get; }
+    public string Message { get; }
+    public int Position { get; }
 }
 
 internal readonly struct VSTypeScriptTaskListItemDescriptorWrapper

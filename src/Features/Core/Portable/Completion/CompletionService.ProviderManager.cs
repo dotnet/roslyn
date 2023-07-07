@@ -269,9 +269,14 @@ namespace Microsoft.CodeAnalysis.Completion
             internal TestAccessor GetTestAccessor()
                 => new(this);
 
-            internal readonly struct TestAccessor(ProviderManager providerManager)
+            internal readonly struct TestAccessor
             {
-                private readonly ProviderManager _providerManager = providerManager;
+                private readonly ProviderManager _providerManager;
+
+                public TestAccessor(ProviderManager providerManager)
+                {
+                    _providerManager = providerManager;
+                }
 
                 public ImmutableArray<CompletionProvider> GetImportedAndBuiltInProviders(ImmutableHashSet<string> roles)
                 {

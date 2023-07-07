@@ -11,14 +11,21 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
-    internal sealed class SupportedPlatformData(Solution solution, List<ProjectId> invalidProjects, IEnumerable<ProjectId> candidateProjects)
+    internal sealed class SupportedPlatformData
     {
         // Because completion finds lots of symbols that exist in 
         // all projects, we'll instead maintain a list of projects 
         // missing the symbol.
-        public readonly List<ProjectId> InvalidProjects = invalidProjects;
-        public readonly IEnumerable<ProjectId> CandidateProjects = candidateProjects;
-        public readonly Solution Solution = solution;
+        public readonly List<ProjectId> InvalidProjects;
+        public readonly IEnumerable<ProjectId> CandidateProjects;
+        public readonly Solution Solution;
+
+        public SupportedPlatformData(Solution solution, List<ProjectId> invalidProjects, IEnumerable<ProjectId> candidateProjects)
+        {
+            InvalidProjects = invalidProjects;
+            CandidateProjects = candidateProjects;
+            Solution = solution;
+        }
 
         public IList<SymbolDisplayPart> ToDisplayParts()
         {

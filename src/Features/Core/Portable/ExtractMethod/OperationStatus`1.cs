@@ -9,10 +9,16 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
     /// <summary>
     /// operation status paired with data
     /// </summary>
-    internal class OperationStatus<T>(OperationStatus status, T data)
+    internal class OperationStatus<T>
     {
-        public OperationStatus Status { get; } = status;
-        public T Data { get; } = data;
+        public OperationStatus(OperationStatus status, T data)
+        {
+            Status = status;
+            Data = data;
+        }
+
+        public OperationStatus Status { get; }
+        public T Data { get; }
 
         public OperationStatus<T> With(OperationStatus status)
             => new(status, Data);

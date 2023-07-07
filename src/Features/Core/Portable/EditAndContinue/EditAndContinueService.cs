@@ -27,11 +27,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     internal sealed class EditAndContinueService : IEditAndContinueService
     {
         [ExportWorkspaceService(typeof(IEditAndContinueWorkspaceService)), Shared]
-        [method: ImportingConstructor]
-        [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        internal sealed class WorkspaceService(IEditAndContinueService service) : IEditAndContinueWorkspaceService
+        internal sealed class WorkspaceService : IEditAndContinueWorkspaceService
         {
-            public IEditAndContinueService Service { get; } = service;
+            public IEditAndContinueService Service { get; }
+
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public WorkspaceService(IEditAndContinueService service)
+                => Service = service;
         }
 
         internal static readonly TraceLog Log;
@@ -260,9 +263,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal TestAccessor GetTestAccessor()
             => new(this);
 
-        internal readonly struct TestAccessor(EditAndContinueService service)
+        internal readonly struct TestAccessor
         {
-            private readonly EditAndContinueService _service = service;
+            private readonly EditAndContinueService _service;
+
+            public TestAccessor(EditAndContinueService service)
+            {
+                _service = service;
+            }
 
             public void SetOutputProvider(Func<Project, CompilationOutputs> value)
                 => _service._compilationOutputsProvider = value;

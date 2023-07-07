@@ -10,12 +10,16 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
 {
     internal abstract partial class AbstractGenerateDefaultConstructorsService<TService>
     {
-        private sealed class CodeActionAll(
-            Document document,
-            State state,
-            IList<IMethodSymbol> constructors,
-            CodeAndImportGenerationOptionsProvider fallbackOptions) : AbstractCodeAction(document, state, constructors, FeaturesResources.Generate_all, fallbackOptions)
+        private sealed class CodeActionAll : AbstractCodeAction
         {
+            public CodeActionAll(
+                Document document,
+                State state,
+                IList<IMethodSymbol> constructors,
+                CodeAndImportGenerationOptionsProvider fallbackOptions)
+                : base(document, state, constructors, FeaturesResources.Generate_all, fallbackOptions)
+            {
+            }
         }
     }
 }

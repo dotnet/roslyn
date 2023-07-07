@@ -25,9 +25,14 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
             => new SymbolMappingService(((MetadataAsSourceWorkspace)workspaceServices.Workspace).FileService);
 
-        private sealed class SymbolMappingService(MetadataAsSourceFileService fileService) : ISymbolMappingService
+        private sealed class SymbolMappingService : ISymbolMappingService
         {
-            private readonly MetadataAsSourceFileService _fileService = fileService;
+            private readonly MetadataAsSourceFileService _fileService;
+
+            public SymbolMappingService(MetadataAsSourceFileService fileService)
+            {
+                _fileService = fileService;
+            }
 
             public Task<SymbolMappingResult?> MapSymbolAsync(Document document, SymbolKey symbolId, CancellationToken cancellationToken)
             {

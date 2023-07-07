@@ -6,8 +6,10 @@ using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
 namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
 {
-    internal class RQNormalParameter(RQType type) : RQParameter(type)
+    internal class RQNormalParameter : RQParameter
     {
+        public RQNormalParameter(RQType type) : base(type) { }
+
         public override SimpleTreeNode CreateSimpleTreeForType()
             => Type.ToSimpleTree();
     }

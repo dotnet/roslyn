@@ -14,9 +14,13 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 {
     internal static partial class ValueTracker
     {
-        private class FindReferencesProgress(OperationCollector valueTrackingProgressCollector) : IStreamingFindReferencesProgress, IStreamingProgressTracker
+        private class FindReferencesProgress : IStreamingFindReferencesProgress, IStreamingProgressTracker
         {
-            private readonly OperationCollector _operationCollector = valueTrackingProgressCollector;
+            private readonly OperationCollector _operationCollector;
+            public FindReferencesProgress(OperationCollector valueTrackingProgressCollector)
+            {
+                _operationCollector = valueTrackingProgressCollector;
+            }
 
             public IStreamingProgressTracker ProgressTracker => this;
 

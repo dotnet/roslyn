@@ -6,9 +6,15 @@ using Microsoft;
 
 namespace Microsoft.CodeAnalysis.BraceMatching
 {
-    internal readonly struct BraceCharacterAndKind(char character, int kind)
+    internal readonly struct BraceCharacterAndKind
     {
-        public char Character { get; } = character;
-        public int Kind { get; } = kind;
+        public char Character { get; }
+        public int Kind { get; }
+
+        public BraceCharacterAndKind(char character, int kind)
+        {
+            this.Character = character;
+            this.Kind = kind;
+        }
     }
 }

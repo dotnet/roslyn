@@ -6,11 +6,17 @@ using System;
 
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat
 {
-    internal sealed class SymbolMoniker(string scheme, string identifier)
+    internal sealed class SymbolMoniker
     {
-        public string Scheme { get; } = scheme;
+        public string Scheme { get; }
 
-        public string Identifier { get; } = identifier;
+        public string Identifier { get; }
+
+        public SymbolMoniker(string scheme, string identifier)
+        {
+            this.Scheme = scheme;
+            this.Identifier = identifier;
+        }
 
         public static bool HasMoniker(ISymbol symbol)
         {

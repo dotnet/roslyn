@@ -19,13 +19,19 @@ namespace Microsoft.CodeAnalysis.AddImport
 {
     internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
-        private abstract partial class SymbolReference(
-            AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
-            SymbolResult<INamespaceOrTypeSymbol> symbolResult) : Reference(provider, new SearchResult(symbolResult))
+        private abstract partial class SymbolReference : Reference
         {
-            public readonly SymbolResult<INamespaceOrTypeSymbol> SymbolResult = symbolResult;
+            public readonly SymbolResult<INamespaceOrTypeSymbol> SymbolResult;
 
             protected abstract bool ShouldAddWithExistingImport(Document document);
+
+            public SymbolReference(
+                AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
+                SymbolResult<INamespaceOrTypeSymbol> symbolResult)
+                : base(provider, new SearchResult(symbolResult))
+            {
+                SymbolResult = symbolResult;
+            }
 
             protected abstract ImmutableArray<string> GetTags(Document document);
 

@@ -56,14 +56,21 @@ namespace Microsoft.CodeAnalysis.AddImport
                 }
             }
 
-            private sealed class AddAssemblyReferenceCodeActionOperation(
-                string assemblyReferenceAssemblyName,
-                string assemblyReferenceFullyQualifiedTypeName,
-                Project newProject) : CodeActionOperation
+            private sealed class AddAssemblyReferenceCodeActionOperation : CodeActionOperation
             {
-                private readonly string _assemblyReferenceAssemblyName = assemblyReferenceAssemblyName;
-                private readonly string _assemblyReferenceFullyQualifiedTypeName = assemblyReferenceFullyQualifiedTypeName;
-                private readonly Project _newProject = newProject;
+                private readonly string _assemblyReferenceAssemblyName;
+                private readonly string _assemblyReferenceFullyQualifiedTypeName;
+                private readonly Project _newProject;
+
+                public AddAssemblyReferenceCodeActionOperation(
+                    string assemblyReferenceAssemblyName,
+                    string assemblyReferenceFullyQualifiedTypeName,
+                    Project newProject)
+                {
+                    _assemblyReferenceAssemblyName = assemblyReferenceAssemblyName;
+                    _assemblyReferenceFullyQualifiedTypeName = assemblyReferenceFullyQualifiedTypeName;
+                    _newProject = newProject;
+                }
 
                 internal override bool ApplyDuringTests => true;
 

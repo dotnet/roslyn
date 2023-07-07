@@ -10,10 +10,13 @@ namespace Microsoft.CodeAnalysis.LanguageService
 {
     internal partial class AbstractStructuralTypeDisplayService
     {
-        private class StructuralTypeCollectorVisitor(Dictionary<INamedTypeSymbol, (int order, int count)> namedTypes) : SymbolVisitor
+        private class StructuralTypeCollectorVisitor : SymbolVisitor
         {
             private readonly ISet<INamedTypeSymbol> _seenTypes = new HashSet<INamedTypeSymbol>();
-            private readonly Dictionary<INamedTypeSymbol, (int order, int count)> _namedTypes = namedTypes;
+            private readonly Dictionary<INamedTypeSymbol, (int order, int count)> _namedTypes;
+
+            public StructuralTypeCollectorVisitor(Dictionary<INamedTypeSymbol, (int order, int count)> namedTypes)
+                => _namedTypes = namedTypes;
 
             public override void DefaultVisit(ISymbol node)
                 => throw new NotImplementedException();

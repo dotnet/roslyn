@@ -35,10 +35,16 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         }
     }
 
-    internal readonly struct DocumentHighlights(Document document, ImmutableArray<HighlightSpan> highlightSpans)
+    internal readonly struct DocumentHighlights
     {
-        public Document Document { get; } = document;
-        public ImmutableArray<HighlightSpan> HighlightSpans { get; } = highlightSpans;
+        public Document Document { get; }
+        public ImmutableArray<HighlightSpan> HighlightSpans { get; }
+
+        public DocumentHighlights(Document document, ImmutableArray<HighlightSpan> highlightSpans)
+        {
+            Document = document;
+            HighlightSpans = highlightSpans;
+        }
     }
 
     /// <summary>

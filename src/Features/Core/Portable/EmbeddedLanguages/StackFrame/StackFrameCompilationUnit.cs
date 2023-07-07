@@ -16,25 +16,33 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
     /// Any leading "at " is considered trivia of <see cref="MethodDeclaration"/>, and " in " is put as trivia for the <see cref="FileInformationExpression"/>.
     /// Remaining unparsable text is put as leading trivia on the <see cref="EndOfLineToken"/>
     /// </summary>
-    internal class StackFrameCompilationUnit(StackFrameMethodDeclarationNode methodDeclaration, StackFrameFileInformationNode? fileInformationExpression, StackFrameToken endOfLineToken) : StackFrameNode(StackFrameKind.CompilationUnit)
+    internal class StackFrameCompilationUnit : StackFrameNode
     {
         /// <summary>
         /// Represents the method declaration for a stack frame. Requires at least a member 
         /// access and argument list with no parameters to be considered valid
         /// </summary>
-        public readonly StackFrameMethodDeclarationNode MethodDeclaration = methodDeclaration;
+        public readonly StackFrameMethodDeclarationNode MethodDeclaration;
 
         /// <summary>
         /// File information for a stack frame. May be optionally contained. If available, represents
         /// the file path of a stackframe and optionally the line number. This is available as hint information
         /// and may be useful for a user, but is not always accurate when mapping back to source.
         /// </summary>
-        public readonly StackFrameFileInformationNode? FileInformationExpression = fileInformationExpression;
+        public readonly StackFrameFileInformationNode? FileInformationExpression;
 
         /// <summary>
         /// The end token of a frame. Any trailing text is added as leading trivia of this token.
         /// </summary>
-        public readonly StackFrameToken EndOfLineToken = endOfLineToken;
+        public readonly StackFrameToken EndOfLineToken;
+
+        public StackFrameCompilationUnit(StackFrameMethodDeclarationNode methodDeclaration, StackFrameFileInformationNode? fileInformationExpression, StackFrameToken endOfLineToken)
+            : base(StackFrameKind.CompilationUnit)
+        {
+            MethodDeclaration = methodDeclaration;
+            FileInformationExpression = fileInformationExpression;
+            EndOfLineToken = endOfLineToken;
+        }
 
         internal override int ChildCount => 3;
 

@@ -15,23 +15,38 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 {
     internal abstract partial class MethodExtractor
     {
-        protected class AnalyzerResult(
-            SemanticDocument document,
-            IEnumerable<ITypeParameterSymbol> typeParametersInDeclaration,
-            IEnumerable<ITypeParameterSymbol> typeParametersInConstraintList,
-            ImmutableArray<VariableInfo> variables,
-            VariableInfo variableToUseAsReturnValue,
-            ITypeSymbol returnType,
-            bool awaitTaskReturn,
-            bool instanceMemberIsUsed,
-            bool shouldBeReadOnly,
-            bool endOfSelectionReachable,
-            OperationStatus status)
+        protected class AnalyzerResult
         {
-            private readonly IList<ITypeParameterSymbol> _typeParametersInDeclaration = typeParametersInDeclaration.ToList();
-            private readonly IList<ITypeParameterSymbol> _typeParametersInConstraintList = typeParametersInConstraintList.ToList();
-            private readonly ImmutableArray<VariableInfo> _variables = variables;
-            private readonly VariableInfo _variableToUseAsReturnValue = variableToUseAsReturnValue;
+            private readonly IList<ITypeParameterSymbol> _typeParametersInDeclaration;
+            private readonly IList<ITypeParameterSymbol> _typeParametersInConstraintList;
+            private readonly ImmutableArray<VariableInfo> _variables;
+            private readonly VariableInfo _variableToUseAsReturnValue;
+
+            public AnalyzerResult(
+                SemanticDocument document,
+                IEnumerable<ITypeParameterSymbol> typeParametersInDeclaration,
+                IEnumerable<ITypeParameterSymbol> typeParametersInConstraintList,
+                ImmutableArray<VariableInfo> variables,
+                VariableInfo variableToUseAsReturnValue,
+                ITypeSymbol returnType,
+                bool awaitTaskReturn,
+                bool instanceMemberIsUsed,
+                bool shouldBeReadOnly,
+                bool endOfSelectionReachable,
+                OperationStatus status)
+            {
+                UseInstanceMember = instanceMemberIsUsed;
+                ShouldBeReadOnly = shouldBeReadOnly;
+                EndOfSelectionReachable = endOfSelectionReachable;
+                AwaitTaskReturn = awaitTaskReturn;
+                SemanticDocument = document;
+                _typeParametersInDeclaration = typeParametersInDeclaration.ToList();
+                _typeParametersInConstraintList = typeParametersInConstraintList.ToList();
+                _variables = variables;
+                ReturnType = returnType;
+                _variableToUseAsReturnValue = variableToUseAsReturnValue;
+                Status = status;
+            }
 
             public AnalyzerResult With(SemanticDocument document)
             {
@@ -57,37 +72,37 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             /// <summary>
             /// used to determine whether static can be used
             /// </summary>
-            public bool UseInstanceMember { get; } = instanceMemberIsUsed;
+            public bool UseInstanceMember { get; }
 
             /// <summary>
             /// Indicates whether the extracted method should have a 'readonly' modifier.
             /// </summary>
-            public bool ShouldBeReadOnly { get; } = shouldBeReadOnly;
+            public bool ShouldBeReadOnly { get; }
 
             /// <summary>
             /// used to determine whether "return" statement needs to be inserted
             /// </summary>
-            public bool EndOfSelectionReachable { get; } = endOfSelectionReachable;
+            public bool EndOfSelectionReachable { get; }
 
             /// <summary>
             /// document this result is based on
             /// </summary>
-            public SemanticDocument SemanticDocument { get; } = document;
+            public SemanticDocument SemanticDocument { get; }
 
             /// <summary>
             /// flag to show whether task return type is due to await
             /// </summary>
-            public bool AwaitTaskReturn { get; } = awaitTaskReturn;
+            public bool AwaitTaskReturn { get; }
 
             /// <summary>
             /// return type
             /// </summary>
-            public ITypeSymbol ReturnType { get; } = returnType;
+            public ITypeSymbol ReturnType { get; }
 
             /// <summary>
             /// analyzer result operation status
             /// </summary>
-            public OperationStatus Status { get; } = status;
+            public OperationStatus Status { get; }
 
             public ReadOnlyCollection<ITypeParameterSymbol> MethodTypeParametersInDeclaration
             {

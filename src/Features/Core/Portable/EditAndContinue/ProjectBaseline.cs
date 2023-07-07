@@ -6,9 +6,16 @@ using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
-internal sealed class ProjectBaseline(ProjectId projectId, EmitBaseline emitBaseline, int generation)
+internal sealed class ProjectBaseline
 {
-    public ProjectId ProjectId { get; } = projectId;
-    public EmitBaseline EmitBaseline { get; } = emitBaseline;
-    public int Generation { get; } = generation;
+    public ProjectId ProjectId { get; }
+    public EmitBaseline EmitBaseline { get; }
+    public int Generation { get; }
+
+    public ProjectBaseline(ProjectId projectId, EmitBaseline emitBaseline, int generation)
+    {
+        ProjectId = projectId;
+        EmitBaseline = emitBaseline;
+        Generation = generation;
+    }
 }

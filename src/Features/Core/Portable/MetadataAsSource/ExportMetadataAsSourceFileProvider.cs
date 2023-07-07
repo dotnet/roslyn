@@ -13,8 +13,14 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
     /// </summary>
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
-    internal sealed class ExportMetadataAsSourceFileProviderAttribute(string name) : ExportAttribute(typeof(IMetadataAsSourceFileProvider))
+    internal sealed class ExportMetadataAsSourceFileProviderAttribute : ExportAttribute
     {
-        public string Name { get; } = name ?? throw new ArgumentNullException(nameof(name));
+        public string Name { get; }
+
+        public ExportMetadataAsSourceFileProviderAttribute(string name)
+            : base(typeof(IMetadataAsSourceFileProvider))
+        {
+            Name = name ?? throw new ArgumentNullException(nameof(name));
+        }
     }
 }

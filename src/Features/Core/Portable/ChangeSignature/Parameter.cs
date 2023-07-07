@@ -16,9 +16,14 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         public abstract string Name { get; }
     }
 
-    internal sealed class ExistingParameter(IParameterSymbol param) : Parameter
+    internal sealed class ExistingParameter : Parameter
     {
-        public IParameterSymbol Symbol { get; } = param;
+        public IParameterSymbol Symbol { get; }
+
+        public ExistingParameter(IParameterSymbol param)
+        {
+            Symbol = param;
+        }
 
         public override bool HasDefaultValue => Symbol.HasExplicitDefaultValue;
         public override string Name => Symbol.Name;

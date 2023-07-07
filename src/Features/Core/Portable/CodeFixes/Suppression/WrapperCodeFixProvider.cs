@@ -11,10 +11,16 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
-    internal sealed class WrapperCodeFixProvider(IConfigurationFixProvider suppressionFixProvider, IEnumerable<string> diagnosticIds) : CodeFixProvider
+    internal sealed class WrapperCodeFixProvider : CodeFixProvider
     {
-        private readonly ImmutableArray<string> _originalDiagnosticIds = diagnosticIds.Distinct().ToImmutableArray();
-        private readonly IConfigurationFixProvider _suppressionFixProvider = suppressionFixProvider;
+        private readonly ImmutableArray<string> _originalDiagnosticIds;
+        private readonly IConfigurationFixProvider _suppressionFixProvider;
+
+        public WrapperCodeFixProvider(IConfigurationFixProvider suppressionFixProvider, IEnumerable<string> diagnosticIds)
+        {
+            _suppressionFixProvider = suppressionFixProvider;
+            _originalDiagnosticIds = diagnosticIds.Distinct().ToImmutableArray();
+        }
 
         public IConfigurationFixProvider SuppressionFixProvider => _suppressionFixProvider;
         public override ImmutableArray<string> FixableDiagnosticIds => _originalDiagnosticIds;

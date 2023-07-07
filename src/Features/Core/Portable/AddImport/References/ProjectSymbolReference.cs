@@ -26,12 +26,18 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// light bulb and we say "(from ProjectXXX)" to make it clear that this will do more than
         /// just add a using/import.
         /// </summary>
-        private partial class ProjectSymbolReference(
-            AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
-            SymbolResult<INamespaceOrTypeSymbol> symbolResult,
-            Project project) : SymbolReference(provider, symbolResult)
+        private partial class ProjectSymbolReference : SymbolReference
         {
-            private readonly Project _project = project;
+            private readonly Project _project;
+
+            public ProjectSymbolReference(
+                AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
+                SymbolResult<INamespaceOrTypeSymbol> symbolResult,
+                Project project)
+                : base(provider, symbolResult)
+            {
+                _project = project;
+            }
 
             protected override ImmutableArray<string> GetTags(Document document)
             {

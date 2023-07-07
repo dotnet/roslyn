@@ -18,16 +18,19 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
         Name = PredefinedCodeRefactoringProviderNames.GenerateOverrides), Shared]
     [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.AddConstructorParametersFromMembers)]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
-    internal partial class GenerateOverridesCodeRefactoringProvider(IPickMembersService? pickMembersService) : CodeRefactoringProvider
+    internal partial class GenerateOverridesCodeRefactoringProvider : CodeRefactoringProvider
     {
-        private readonly IPickMembersService? _pickMembersService_forTestingPurposes = pickMembersService;
+        private readonly IPickMembersService? _pickMembersService_forTestingPurposes;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public GenerateOverridesCodeRefactoringProvider() : this(null)
         {
         }
+
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
+        public GenerateOverridesCodeRefactoringProvider(IPickMembersService? pickMembersService)
+            => _pickMembersService_forTestingPurposes = pickMembersService;
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {

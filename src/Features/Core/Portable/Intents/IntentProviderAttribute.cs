@@ -9,9 +9,15 @@ namespace Microsoft.CodeAnalysis.Features.Intents
 {
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-    internal class IntentProviderAttribute(string intentName, string languageName) : ExportAttribute(typeof(IIntentProvider)), IIntentProviderMetadata
+    internal class IntentProviderAttribute : ExportAttribute, IIntentProviderMetadata
     {
-        public string IntentName { get; } = intentName;
-        public string LanguageName { get; } = languageName;
+        public string IntentName { get; }
+        public string LanguageName { get; }
+
+        public IntentProviderAttribute(string intentName, string languageName) : base(typeof(IIntentProvider))
+        {
+            IntentName = intentName;
+            LanguageName = languageName;
+        }
     }
 }

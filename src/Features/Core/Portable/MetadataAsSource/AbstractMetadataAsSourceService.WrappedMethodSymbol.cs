@@ -12,9 +12,15 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
     internal partial class AbstractMetadataAsSourceService
     {
-        private class WrappedMethodSymbol(IMethodSymbol methodSymbol, bool canImplementImplicitly, IDocumentationCommentFormattingService docCommentFormattingService) : AbstractWrappedSymbol(methodSymbol, canImplementImplicitly, docCommentFormattingService), IMethodSymbol
+        private class WrappedMethodSymbol : AbstractWrappedSymbol, IMethodSymbol
         {
-            private readonly IMethodSymbol _symbol = methodSymbol;
+            private readonly IMethodSymbol _symbol;
+
+            public WrappedMethodSymbol(IMethodSymbol methodSymbol, bool canImplementImplicitly, IDocumentationCommentFormattingService docCommentFormattingService)
+                : base(methodSymbol, canImplementImplicitly, docCommentFormattingService)
+            {
+                _symbol = methodSymbol;
+            }
 
             public int Arity => _symbol.Arity;
 

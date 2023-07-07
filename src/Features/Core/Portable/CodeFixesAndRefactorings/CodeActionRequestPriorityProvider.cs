@@ -97,12 +97,17 @@ namespace Microsoft.CodeAnalysis.CodeActions
         }
     }
 
-    internal sealed class DefaultCodeActionRequestPriorityProvider(CodeActionRequestPriority priority = CodeActionRequestPriority.None) : ICodeActionRequestPriorityProvider
+    internal sealed class DefaultCodeActionRequestPriorityProvider : ICodeActionRequestPriorityProvider
     {
         private readonly object _gate = new();
         private HashSet<DiagnosticAnalyzer>? _lowPriorityAnalyzers;
 
-        public CodeActionRequestPriority Priority { get; } = priority;
+        public DefaultCodeActionRequestPriorityProvider(CodeActionRequestPriority priority = CodeActionRequestPriority.None)
+        {
+            Priority = priority;
+        }
+
+        public CodeActionRequestPriority Priority { get; }
 
         public void AddDeprioritizedAnalyzerWithLowPriority(DiagnosticAnalyzer analyzer)
         {
