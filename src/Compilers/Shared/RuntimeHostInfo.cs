@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Pipes;
-using Microsoft.CodeAnalysis.BuildTasks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
