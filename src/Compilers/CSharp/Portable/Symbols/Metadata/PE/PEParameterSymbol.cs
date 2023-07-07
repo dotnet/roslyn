@@ -1043,6 +1043,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 bool filterIsReadOnlyAttribute = this.RefKind == RefKind.In;
+                bool filterRequiresLocationAttribute = this.RefKind == RefKind.RefReadOnlyParameter;
 
                 CustomAttributeHandle paramArrayAttribute;
                 CustomAttributeHandle constantAttribute;
@@ -1057,9 +1058,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         out _,
                         filterIsReadOnlyAttribute ? AttributeDescription.IsReadOnlyAttribute : default,
                         out _,
-                        AttributeDescription.ScopedRefAttribute,
+                        filterRequiresLocationAttribute ? AttributeDescription.RequiresLocationAttribute : default,
                         out _,
-                        default,
+                        AttributeDescription.ScopedRefAttribute,
                         out _,
                         default);
 
