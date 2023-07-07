@@ -526,7 +526,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
-        public void CommandLineArgsNoRuntimeInfo()
+        public void CommandLineArgs1()
         {
             var engine = new MockEngine();
             var csc = new Csc()
@@ -536,6 +536,20 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             };
 
             TaskTestUtil.AssertCommandLine(csc, engine, "/out:test.exe", "test.cs");
+        }
+
+        [Fact]
+        public void CommandLineArgs2()
+        {
+            var engine = new MockEngine();
+            var csc = new Csc()
+            {
+                BuildEngine = engine,
+                Sources = MSBuildUtil.CreateTaskItems("test.cs", "blah.cs"),
+                TargetType = "library"
+            };
+
+            TaskTestUtil.AssertCommandLine(csc, engine, "/out:test.dll", "/target:library", "test.cs", "blah.cs");
         }
     }
 }

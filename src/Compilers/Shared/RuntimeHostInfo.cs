@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Pipes;
+using Microsoft.CodeAnalysis.BuildTasks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -17,9 +18,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal static class RuntimeHostInfo
     {
-        internal static bool IsCoreClrRuntime => !IsDesktopRuntime;
-
-        internal static string ToolExtension => IsCoreClrRuntime ? "dll" : "exe";
+        internal static bool IsDesktopRuntime => !IsCoreClrRuntime;
 
         /// <summary>
         /// This gets information about invoking a tool on the current runtime. This will attempt to 
@@ -27,48 +26,29 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal static (string processFilePath, string commandLineArguments, string toolFilePath) GetProcessInfo(string toolFilePathWithoutExtension, string commandLineArguments)
         {
-            Debug.Assert(!toolFilePathWithoutExtension.EndsWith(".dll") && !toolFilePathWithoutExtension.EndsWith(".exe"));
+#if NETCOREAPP
+            // First check for an app host file and return that if it's available.
+            var appHostSuffix = PlatformInformation.IsWindows ? ".exe" : "";
+            var appFilePath = $"{toolFilePathWithoutExtension}{appHostSuffix}";
+            if (File.Exists(appFilePath))
+            {
+                return (appFilePath, commandLineArguments, appFilePath);
+            }
 
-            var nativeToolSuffix = PlatformInformation.IsWindows ? ".exe" : "";
-            var nativeToolFilePath = $"{toolFilePathWithoutExtension}{nativeToolSuffix}";
-            if (IsCoreClrRuntime && File.Exists(nativeToolFilePath))
-            {
-                return (nativeToolFilePath, commandLineArguments, nativeToolFilePath);
-            }
-            var toolFilePath = $"{toolFilePathWithoutExtension}.{ToolExtension}";
-            if (IsDotNetHost(out string? pathToDotNet))
-            {
-                commandLineArguments = $@"exec ""{toolFilePath}"" {commandLineArguments}";
-                return (pathToDotNet!, commandLineArguments, toolFilePath);
-            }
-            else
-            {
-                return (toolFilePath, commandLineArguments, toolFilePath);
-            }
+            // Fallback to the dotnet exec path if there is no apphost
+            var toolFilePath = $"{toolFilePathWithoutExtension}.dll";
+            var dotnetFilePath = GetDotNetPathOrDefault();
+            commandLineArguments = $@"exec ""{toolFilePath}"" {commandLineArguments}";
+            return (dotnetFilePath, commandLineArguments, toolFilePath);
+#else
+            var toolFilePath = $"{toolFilePathWithoutExtension}.exe";
+            return (toolFilePath, commandLineArguments, toolFilePath);
+#endif
         }
 
-#if NET472
-        internal static bool IsDesktopRuntime => true;
+#if NETCOREAPP
 
-        internal static bool IsDotNetHost([NotNullWhen(true)] out string? pathToDotNet)
-        {
-            pathToDotNet = null;
-            return false;
-        }
-
-        internal static NamedPipeClientStream CreateNamedPipeClient(string serverName, string pipeName, PipeDirection direction, PipeOptions options) =>
-            new NamedPipeClientStream(serverName, pipeName, direction, options);
-
-#elif NETCOREAPP
-        internal static bool IsDesktopRuntime => false;
-
-        private const string DotNetHostPathEnvironmentName = "DOTNET_HOST_PATH";
-
-        private static bool IsDotNetHost(out string? pathToDotNet)
-        {
-            pathToDotNet = GetDotNetPathOrDefault();
-            return true;
-        }
+        internal static bool IsCoreClrRuntime => true;
 
         /// <summary>
         /// Get the path to the dotnet executable. In the case the host did not provide this information
@@ -76,11 +56,38 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal static string GetDotNetPathOrDefault()
         {
-            var pathToDotNet = Environment.GetEnvironmentVariable(DotNetHostPathEnvironmentName);
-            return pathToDotNet ?? "dotnet";
+            if (Environment.GetEnvironmentVariable("DOTNET_ROOT") is { } rootStr)
+            {
+                return rootStr;
+            }
+
+            var (fileName, sep) = PlatformInformation.IsWindows
+                ? ("dotnet.exe", ';')
+                : ("dotnet", ':');
+            var path = Environment.GetEnvironmentVariable("PATH") ?? "";
+            foreach (var item in path.Split(sep, StringSplitOptions.RemoveEmptyEntries))
+            {
+                try
+                {
+                    var filePath = Path.Combine(item, fileName);
+                    if (File.Exists(filePath))
+                    {
+                        return filePath;
+                    }
+                }
+                catch
+                {
+                    // If we can't read a directory for any reason just skip it
+                }
+            }
+
+            return fileName;
         }
+
 #else
-#error Unsupported configuration
+
+        internal static bool IsCoreClrRuntime => false;
+
 #endif
     }
 }

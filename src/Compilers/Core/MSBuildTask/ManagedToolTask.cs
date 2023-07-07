@@ -128,7 +128,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// as the implementation of IsManagedTool calls this property. See the comment in
         /// <see cref="ManagedToolTask.IsManagedTool"/>.
         /// </remarks>
-        protected sealed override string ToolName => $"{ToolNameWithoutExtension}.{RuntimeHostInfo.ToolExtension}";
+        protected sealed override string ToolName => RuntimeHostInfo.IsCoreClrRuntime
+            ? $"{ToolNameWithoutExtension}.dll"
+            : $"{ToolNameWithoutExtension}.exe";
 
         /// <summary>
         /// This generates the command line arguments passed to the tool.

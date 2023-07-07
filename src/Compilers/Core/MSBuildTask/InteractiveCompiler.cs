@@ -231,15 +231,5 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
             }
         }
-
-        /// <summary>
-        /// Get the command line arguments to pass to the compiler.
-        /// </summary>
-        private string[] GetArguments(string commandLineCommands, string responseFileCommands)
-        {
-            var commandLineArguments = CommandLineUtilities.SplitCommandLineIntoArguments(commandLineCommands, removeHashComments: true);
-            var responseFileArguments = CommandLineUtilities.SplitCommandLineIntoArguments(responseFileCommands, removeHashComments: true);
-            return commandLineArguments.Concat(responseFileArguments).ToArray();
-        }
     }
 }
