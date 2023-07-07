@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -116,41 +113,34 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                 // find the sequences of letters in a row that should be spell checked. if any part of that sequence is
                 // an escaped character (like `\u0065`) then filter that out.  The platform won't be able to understand
                 // this word and will report bogus spell checking mistakes.
-                var start = 0;
-                while (start < virtualChars.Length)
+                var currentCharIndex = 0;
+                while (currentCharIndex < virtualChars.Length)
                 {
-                    var startChar = virtualChars[start];
-                    if (!startChar.IsLetter)
+                    var currentChar = virtualChars[currentCharIndex];
+                    if (!currentChar.IsLetter)
+                    {
+                        currentCharIndex++;
                         continue;
+                    }
 
-                    var spanStart = startChar.Span.Start;
-                    var spanEnd = startChar.Span.End;
+                    var spanStart = currentChar.Span.Start;
+                    var spanEnd = currentChar.Span.End;
 
-                    var end = start;
                     var seenEscape = false;
-                    while (end < virtualChars.Length && virtualChars[end] is { IsLetter: true } endChar)
+                    while (
+                        currentCharIndex < virtualChars.Length &&
+                        virtualChars[currentCharIndex] is { IsLetter: true } endChar)
                     {
                         // we know if we've seen a letter that is an escape character if it takes more than two actual
                         // characters in the source.
-                        seenEscape = seenEscape || virtualChars[end].Span.Length > 1;
+                        seenEscape = seenEscape || endChar.Span.Length > 1;
                         spanEnd = endChar.Span.End;
-                        end++;
+                        currentCharIndex++;
                     }
-
-                    Debug.Assert(end > start);
 
                     if (!seenEscape)
-                    {
-                        AddSpan(new SpellCheckSpan(TextSpan.FromBounds(
-                            virtualChars[start].Span.Start,
-                            virtualChars[end]), SpellCheckKind.String))
-                    }
-
-                    start = end;
+                        AddSpan(new SpellCheckSpan(TextSpan.FromBounds(spanStart, spanEnd), SpellCheckKind.String));
                 }
-
-                AddSpan(new SpellCheckSpan(token.Span, SpellCheckKind.String));
-
             }
 
             private void TryAddSpanForIdentifier(SyntaxToken token)
