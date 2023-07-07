@@ -552,10 +552,4 @@
   <data name="Unexpected_value_0_in_DocumentKinds_array" xml:space="preserve">
     <value>Unexpected value '{0}' in DocumentKinds array.</value>
   </data>
-  <data name="CSharp_Coding_Conventions" xml:space="preserve">
-    <value>C# Coding Conventions</value>
-  </data>
-  <data name="CSharp_Formatting_Rules" xml:space="preserve">
-    <value>C# Formatting Rules</value>
-  </data>
 </root>

@@ -5,7 +5,7 @@
 using System;
 using System.Composition;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig
+namespace Microsoft.CodeAnalysis.Options
 {
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]

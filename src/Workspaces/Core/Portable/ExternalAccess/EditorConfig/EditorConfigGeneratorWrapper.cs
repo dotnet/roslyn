@@ -10,41 +10,30 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Options.EditorConfig;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig
 {
-    [Export(typeof(EditorConfigGenerator)), Shared]
-    internal sealed class EditorConfigGenerator
-
+    [Export(typeof(EditorConfigGeneratorWrapper)), Shared]
+    internal sealed class EditorConfigGeneratorWrapper
     {
         private readonly IGlobalOptionService _globalOptions;
-        private readonly ImmutableArray<Lazy<IEditorConfigOptionsCollection, LanguageMetadata>> _editorConfigGenerators;
+        private readonly EditorConfigOptionsGenerator _editorConfigGenerator;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public EditorConfigGenerator(
+        public EditorConfigGeneratorWrapper(
             IGlobalOptionService globalOptions,
-            [ImportMany] IEnumerable<Lazy<IEditorConfigOptionsCollection, LanguageMetadata>> generators)
+            EditorConfigOptionsGenerator optionsGenerator)
         {
             _globalOptions = globalOptions;
-            _editorConfigGenerators = generators.ToImmutableArray();
+            _editorConfigGenerator = optionsGenerator;
         }
 
         public string? Generate(string language)
         {
-            var groupOptions = GetDefaultOptions(language);
+            var groupOptions = _editorConfigGenerator.GetDefaultOptions(language);
             return EditorConfigFileGenerator.Generate(groupOptions, _globalOptions, language);
-        }
-
-        public ImmutableArray<(string feature, ImmutableArray<IOption2> options)> GetDefaultOptions(string language)
-        {
-            var generators = _editorConfigGenerators.Where(b => b.Metadata.Language == language);
-            foreach (var generator in generators)
-            {
-                return generator.Value.GetEditorConfigOptions();
-            }
-
-            return default;
         }
     }
 }

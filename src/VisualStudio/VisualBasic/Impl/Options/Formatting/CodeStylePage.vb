@@ -5,8 +5,8 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.ExternalAccess.EditorConfig
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Options.EditorConfig
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
 Imports Microsoft.VisualStudio.ComponentModelHost
@@ -18,7 +18,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options.Formatting
         Inherits AbstractOptionPage
 
         Protected Overrides Function CreateOptionPage(serviceProvider As IServiceProvider, optionStore As OptionStore) As AbstractOptionPageControl
-            Dim editorService = DirectCast(serviceProvider.GetService(GetType(EditorConfigGenerator)), EditorConfigGenerator)
+            Dim editorService = DirectCast(serviceProvider.GetService(GetType(EditorConfigOptionsGenerator)), EditorConfigOptionsGenerator)
             Return New GridOptionPreviewControl(serviceProvider,
                                                 optionStore,
                                                 Function(o, s) New StyleViewModel(o, s),

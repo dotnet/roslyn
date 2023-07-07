@@ -4,8 +4,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.ExternalAccess.EditorConfig
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PooledObjects
@@ -20,11 +18,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
         Public Sub New()
         End Sub
 
-        Public Function GetEditorConfigOptions() As ImmutableArray(Of (String, ImmutableArray(Of IOption2))) Implements IEditorConfigOptionsCollection.GetEditorConfigOptions
+        Public Function GetLanguageSpecificEditorConfigOptions() As IEnumerable(Of (String, ImmutableArray(Of IOption2))) Implements IEditorConfigOptionsCollection.GetLanguageSpecificEditorConfigOptions
             Dim builder = ArrayBuilder(Of (String, ImmutableArray(Of IOption2))).GetInstance()
-            builder.AddRange(EditorConfigFileGenerator.GetLanguageAgnosticEditorConfigOptions())
             builder.Add((VBWorkspaceResources.VB_Coding_Conventions, VisualBasicCodeStyleOptions.AllOptions.As(Of IOption2)))
-            Return builder.ToImmutableAndFree()
+            Return builder.ToArrayAndFree()
         End Function
     End Class
 End Namespace

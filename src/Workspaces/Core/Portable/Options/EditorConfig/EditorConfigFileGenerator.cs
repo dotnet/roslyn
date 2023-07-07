@@ -7,10 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
-using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
@@ -52,12 +49,6 @@ namespace Microsoft.CodeAnalysis.Options
             }
 
             return editorconfig.ToString();
-        }
-
-        internal static IEnumerable<(string feature, ImmutableArray<IOption2> options)> GetLanguageAgnosticEditorConfigOptions()
-        {
-            yield return (WorkspacesResources.Core_EditorConfig_Options, FormattingOptions2.Options);
-            yield return (WorkspacesResources.dot_NET_Coding_Conventions, GenerationOptions.AllOptions.AddRange(CodeStyleOptions2.AllOptions));
         }
 
         private static void AppendOptionsToEditorConfig(IOptionsReader configOptions, string feature, ImmutableArray<IOption2> options, string language, StringBuilder editorconfig)
