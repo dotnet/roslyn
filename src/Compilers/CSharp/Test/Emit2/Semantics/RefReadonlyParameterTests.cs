@@ -18,6 +18,15 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
     private const string RequiresLocationAttributeNamespace = "System.Runtime.CompilerServices";
     private const string RequiresLocationAttributeQualifiedName = $"{RequiresLocationAttributeNamespace}.{RequiresLocationAttributeName}";
 
+    private const string RequiresLocationAttributeDefinition = $$"""
+        namespace {{RequiresLocationAttributeNamespace}}
+        {
+            class {{RequiresLocationAttributeName}} : System.Attribute
+            {
+            }
+        }
+        """;
+
     private static void VerifyRequiresLocationAttributeSynthesized(ModuleSymbol module)
     {
         var attributeType = module.GlobalNamespace.GetMember<NamedTypeSymbol>(RequiresLocationAttributeQualifiedName);
@@ -96,20 +105,14 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
     [Fact]
     public void ManuallyDefinedAttribute()
     {
-        var source = $$"""
+        var source = """
             class C
             {
                 public void M(ref readonly int p) { }
             }
-
-            namespace {{RequiresLocationAttributeNamespace}}
-            {
-                class {{RequiresLocationAttributeName}} : System.Attribute
-                {
-                }
-            }
             """;
-        var verifier = CompileAndVerify(source, sourceSymbolValidator: verify, symbolValidator: verify);
+        var verifier = CompileAndVerify(new[] { source, RequiresLocationAttributeDefinition },
+            sourceSymbolValidator: verify, symbolValidator: verify);
         verifier.VerifyDiagnostics();
 
         static void verify(ModuleSymbol m)
@@ -120,6 +123,196 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             var p = m.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
             VerifyRefReadonlyParameter(p);
         }
+    }
+
+    [Fact]
+    public void ManuallyAppliedAttribute()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            [RequiresLocation] class C
+            {
+                void M1([RequiresLocation] ref readonly int p) { }
+                void M2([RequiresLocation] in int p) { }
+                void M3([RequiresLocation] ref int p) { }
+                void M4([RequiresLocation] int p) { }
+                [return: RequiresLocation] int M5() => 5;
+                [return: RequiresLocation] ref int M6() => throw null;
+                [return: RequiresLocation] ref readonly int M7() => throw null;
+                [RequiresLocation] void M8() { }
+            }
+            """;
+
+        CreateCompilation(new[] { source, RequiresLocationAttributeDefinition }, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+            // 0.cs(4,14): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
+            //     void M1([RequiresLocation] ref readonly int p) { }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(4, 14),
+            // 0.cs(4,36): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     void M1([RequiresLocation] ref readonly int p) { }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(4, 36),
+            // 0.cs(5,14): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
+            //     void M2([RequiresLocation] in int p) { }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(5, 14),
+            // 0.cs(6,14): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
+            //     void M3([RequiresLocation] ref int p) { }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(6, 14),
+            // 0.cs(7,14): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
+            //     void M4([RequiresLocation] int p) { }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(7, 14));
+
+        var expectedDiagnostics = new[]
+        {
+            // 0.cs(4,14): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
+            //     void M1([RequiresLocation] ref readonly int p) { }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(4, 14),
+            // 0.cs(5,14): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
+            //     void M2([RequiresLocation] in int p) { }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(5, 14),
+            // 0.cs(6,14): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
+            //     void M3([RequiresLocation] ref int p) { }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(6, 14),
+            // 0.cs(7,14): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
+            //     void M4([RequiresLocation] int p) { }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(7, 14)
+        };
+
+        CreateCompilation(new[] { source, RequiresLocationAttributeDefinition }, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(new[] { source, RequiresLocationAttributeDefinition }).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact]
+    public void ManuallyAppliedAttribute_NotDefined()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            class C
+            {
+                void M([RequiresLocation] ref int p) { }
+            }
+            """;
+
+        CreateCompilation(source).VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using System.Runtime.CompilerServices;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Runtime.CompilerServices;").WithLocation(1, 1),
+            // (4,13): error CS0246: The type or namespace name 'RequiresLocationAttribute' could not be found (are you missing a using directive or an assembly reference?)
+            //     void M([RequiresLocation] ref int p) { }
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "RequiresLocation").WithArguments("RequiresLocationAttribute").WithLocation(4, 13),
+            // (4,13): error CS0246: The type or namespace name 'RequiresLocation' could not be found (are you missing a using directive or an assembly reference?)
+            //     void M([RequiresLocation] ref int p) { }
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "RequiresLocation").WithArguments("RequiresLocation").WithLocation(4, 13));
+
+        CreateCompilation(new[] { source, RequiresLocationAttributeDefinition }).VerifyDiagnostics(
+            // 0.cs(4,13): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
+            //     void M([RequiresLocation] ref int p) { }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(4, 13));
+    }
+
+    [Fact]
+    public void ManuallyAppliedAttributes_RequiresLocationIn()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System.Runtime.InteropServices;
+            class C
+            {
+                void M1([RequiresLocation, In] ref int p) { }
+                void M2([RequiresLocation, In] in int p) { }
+                void M3([RequiresLocation, In] int p) { }
+            }
+            """;
+        CreateCompilation(new[] { source, RequiresLocationAttributeDefinition }).VerifyDiagnostics(
+            // 0.cs(5,14): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
+            //     void M1([RequiresLocation, In] ref int p) { }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(5, 14),
+            // 0.cs(6,14): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
+            //     void M2([RequiresLocation, In] in int p) { }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(6, 14),
+            // 0.cs(7,14): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
+            //     void M3([RequiresLocation, In] int p) { }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(7, 14));
+    }
+
+    [Fact]
+    public void ManuallyAppliedAttributes_In()
+    {
+        var source = """
+            using System.Runtime.InteropServices;
+            class C
+            {
+                public void M([In] ref readonly int p) { }
+            }
+            """;
+        var verifier = CompileAndVerify(source, sourceSymbolValidator: verify, symbolValidator: verify);
+        verifier.VerifyDiagnostics();
+
+        static void verify(ModuleSymbol m)
+        {
+            VerifyRequiresLocationAttributeSynthesized(m);
+
+            var p = m.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
+            VerifyRefReadonlyParameter(p, attributes: m is not SourceModuleSymbol);
+            if (m is SourceModuleSymbol)
+            {
+                var attribute = Assert.Single(p.GetAttributes());
+                Assert.Equal("System.Runtime.InteropServices.InAttribute", attribute.AttributeClass.ToTestDisplayString());
+                Assert.Empty(attribute.ConstructorArguments);
+                Assert.Empty(attribute.NamedArguments);
+            }
+        }
+    }
+
+    [Fact]
+    public void ManuallyAppliedAttributes_InOut()
+    {
+        var source = """
+            using System.Runtime.InteropServices;
+            class C
+            {
+                void M1([Out] ref readonly int p) { }
+                void M2([In, Out] ref readonly int p) { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (4,36): error CS9520: A ref readonly parameter cannot have the Out attribute.
+            //     void M1([Out] ref readonly int p) { }
+            Diagnostic(ErrorCode.ERR_OutAttrOnRefReadonlyParam, "p").WithLocation(4, 36),
+            // (5,40): error CS9520: A ref readonly parameter cannot have the Out attribute.
+            //     void M2([In, Out] ref readonly int p) { }
+            Diagnostic(ErrorCode.ERR_OutAttrOnRefReadonlyParam, "p").WithLocation(5, 40));
+    }
+
+    [Fact]
+    public void ManuallyAppliedAttributes_IsReadOnly()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System.Runtime.InteropServices;
+            class C
+            {
+                void M1([IsReadOnly] ref readonly int p) { }
+                void M2([In, IsReadOnly] ref readonly int p) { }
+                void M3([In, RequiresLocation, IsReadOnly] ref int p) { }
+            }
+
+            namespace System.Runtime.CompilerServices
+            {
+                public class IsReadOnlyAttribute : System.Attribute { }
+            }
+            """;
+        CreateCompilation(new[] { source, RequiresLocationAttributeDefinition }).VerifyDiagnostics(
+            // 0.cs(5,14): error CS8335: Do not use 'System.Runtime.CompilerServices.IsReadOnlyAttribute'. This is reserved for compiler usage.
+            //     void M1([IsReadOnly] ref readonly int p) { }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsReadOnly").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(5, 14),
+            // 0.cs(6,18): error CS8335: Do not use 'System.Runtime.CompilerServices.IsReadOnlyAttribute'. This is reserved for compiler usage.
+            //     void M2([In, IsReadOnly] ref readonly int p) { }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsReadOnly").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(6, 18),
+            // 0.cs(7,18): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
+            //     void M3([In, RequiresLocation, IsReadOnly] ref int p) { }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(7, 18),
+            // 0.cs(7,36): error CS8335: Do not use 'System.Runtime.CompilerServices.IsReadOnlyAttribute'. This is reserved for compiler usage.
+            //     void M3([In, RequiresLocation, IsReadOnly] ref int p) { }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsReadOnly").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(7, 36));
     }
 
     [Fact]

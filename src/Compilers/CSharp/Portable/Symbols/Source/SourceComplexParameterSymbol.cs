@@ -802,7 +802,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
                 ReservedAttributes.DynamicAttribute |
                 ReservedAttributes.IsReadOnlyAttribute |
-                // PROTOTYPE: RequiresLocationAttribute
+                ReservedAttributes.RequiresLocationAttribute |
                 ReservedAttributes.IsUnmanagedAttribute |
                 ReservedAttributes.IsByRefLikeAttribute |
                 ReservedAttributes.TupleElementNamesAttribute |
@@ -1410,6 +1410,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             // error CS8355: An in parameter cannot have the Out attribute.
                             diagnostics.Add(ErrorCode.ERR_OutAttrOnInParam, this.GetFirstLocation());
+                        }
+                        break;
+                    case RefKind.RefReadOnlyParameter:
+                        if (data.HasOutAttribute)
+                        {
+                            // error: A ref readonly parameter cannot have the Out attribute.
+                            diagnostics.Add(ErrorCode.ERR_OutAttrOnRefReadonlyParam, this.GetFirstLocation());
                         }
                         break;
                 }
