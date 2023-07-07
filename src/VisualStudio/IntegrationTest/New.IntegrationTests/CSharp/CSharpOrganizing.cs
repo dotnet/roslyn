@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using Xunit;
@@ -37,7 +38,9 @@ namespace A { public class CA { } }
 namespace B { public class CB { } }
 namespace C { public class CC { } }", HangMitigatingCancellationToken);
             await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.RemoveAndSort, HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.TextContainsAsync(@"
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.OrganizeDocument, HangMitigatingCancellationToken);
+
+    await TestServices.EditorVerifier.TextContainsAsync(@"
 using A;
 using C;
 
