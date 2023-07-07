@@ -115,8 +115,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             TokenTypeToIndex = tokenTypeToIndex;
         }
 
-        public static SemanticTokensSchema GetSchema(ClientCapabilities capabilities)
-            => capabilities.HasVisualStudioLspCapability()
+        public static SemanticTokensSchema GetSchema(bool clientSupportsVisualStudioExtensions)
+            => clientSupportsVisualStudioExtensions
                 ? s_vsTokenSchema
                 : s_pureLspTokenSchema;
 
@@ -125,5 +125,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
         public static SemanticTokensSchema LegacyTokensSchemaForLSIF
             => s_vsTokenSchema;
+
+        public static string[] TokenModifiers = new string[]
+        {
+            // This must be in the same order as SemanticTokens.TokenModifiers, but skip the "None" item
+            SemanticTokenModifiers.Static,
+            nameof(SemanticTokens.TokenModifiers.ReassignedVariable)
+        };
     }
 }

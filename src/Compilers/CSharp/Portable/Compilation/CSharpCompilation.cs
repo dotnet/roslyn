@@ -1141,6 +1141,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal override TSymbol? GetSymbolInternal<TSymbol>(ISymbol? symbol) where TSymbol : class
+        {
+            return (TSymbol?)(object?)symbol.GetSymbol<Symbol>();
+        }
+
         public override IEnumerable<AssemblyIdentity> ReferencedAssemblyNames
         {
             get

@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Completion
             return context;
         }
 
-        private class DisplayNameToItemsMap : IEnumerable<CompletionItem>, IDisposable
+        private class DisplayNameToItemsMap(CompletionService service) : IEnumerable<CompletionItem>, IDisposable
         {
             // We might need to handle large amount of items with import completion enabled,
             // so use a dedicated pool to minimize array allocations. Set the size of pool to a small
@@ -331,16 +331,10 @@ namespace Microsoft.CodeAnalysis.Completion
             private static readonly ObjectPool<Dictionary<string, object>> s_uniqueSourcesPool = new(factory: () => new Dictionary<string, object>(), size: 5);
             private static readonly ObjectPool<List<CompletionItem>> s_sortListPool = new(factory: () => new List<CompletionItem>(), size: 5);
 
-            private readonly Dictionary<string, object> _displayNameToItemsMap;
-            private readonly CompletionService _service;
+            private readonly Dictionary<string, object> _displayNameToItemsMap = s_uniqueSourcesPool.Allocate();
+            private readonly CompletionService _service = service;
 
             public int Count { get; private set; }
-
-            public DisplayNameToItemsMap(CompletionService service)
-            {
-                _service = service;
-                _displayNameToItemsMap = s_uniqueSourcesPool.Allocate();
-            }
 
             public SegmentedList<CompletionItem> SortToSegmentedList()
             {

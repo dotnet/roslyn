@@ -21,30 +21,19 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ImplementAbstractClass
 {
-    internal sealed class ImplementAbstractClassData
+    internal sealed class ImplementAbstractClassData(
+        Document document, ImplementTypeGenerationOptions options, SyntaxNode classNode, SyntaxToken classIdentifier,
+        INamedTypeSymbol classType, INamedTypeSymbol abstractClassType,
+        ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers)
     {
-        private readonly Document _document;
-        private readonly ImplementTypeGenerationOptions _options;
-        private readonly SyntaxNode _classNode;
-        private readonly SyntaxToken _classIdentifier;
-        private readonly ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> _unimplementedMembers;
+        private readonly Document _document = document;
+        private readonly ImplementTypeGenerationOptions _options = options;
+        private readonly SyntaxNode _classNode = classNode;
+        private readonly SyntaxToken _classIdentifier = classIdentifier;
+        private readonly ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> _unimplementedMembers = unimplementedMembers;
 
-        public readonly INamedTypeSymbol ClassType;
-        public readonly INamedTypeSymbol AbstractClassType;
-
-        public ImplementAbstractClassData(
-            Document document, ImplementTypeGenerationOptions options, SyntaxNode classNode, SyntaxToken classIdentifier,
-            INamedTypeSymbol classType, INamedTypeSymbol abstractClassType,
-            ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers)
-        {
-            _document = document;
-            _options = options;
-            _classNode = classNode;
-            _classIdentifier = classIdentifier;
-            ClassType = classType;
-            AbstractClassType = abstractClassType;
-            _unimplementedMembers = unimplementedMembers;
-        }
+        public readonly INamedTypeSymbol ClassType = classType;
+        public readonly INamedTypeSymbol AbstractClassType = abstractClassType;
 
         public static async Task<ImplementAbstractClassData?> TryGetDataAsync(
             Document document, SyntaxNode classNode, SyntaxToken classIdentifier, ImplementTypeGenerationOptions options, CancellationToken cancellationToken)

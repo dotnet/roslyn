@@ -50,6 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public int GreaterThanToken => (int)SyntaxKind.GreaterThanToken;
         public int InterpolatedStringTextToken => (int)SyntaxKind.InterpolatedStringTextToken;
         public int LessThanToken => (int)SyntaxKind.LessThanToken;
+        public int LessThanSlashToken => (int)SyntaxKind.LessThanSlashToken;
         public int OpenBraceToken => (int)SyntaxKind.OpenBraceToken;
         public int? OpenBracketToken => (int)SyntaxKind.OpenBracketToken;
         public int OpenParenToken => (int)SyntaxKind.OpenParenToken;

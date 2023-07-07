@@ -96,24 +96,16 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
         }
 
-        private class InstallPackageAndAddImportOperation : CodeActionOperation
+        private class InstallPackageAndAddImportOperation(
+            DocumentId changedDocumentId,
+            SourceText oldText,
+            SourceText newText,
+            InstallPackageDirectlyCodeActionOperation item2) : CodeActionOperation
         {
-            private readonly DocumentId _changedDocumentId;
-            private readonly SourceText _oldText;
-            private readonly SourceText _newText;
-            private readonly InstallPackageDirectlyCodeActionOperation _installPackageOperation;
-
-            public InstallPackageAndAddImportOperation(
-                DocumentId changedDocumentId,
-                SourceText oldText,
-                SourceText newText,
-                InstallPackageDirectlyCodeActionOperation item2)
-            {
-                _changedDocumentId = changedDocumentId;
-                _oldText = oldText;
-                _newText = newText;
-                _installPackageOperation = item2;
-            }
+            private readonly DocumentId _changedDocumentId = changedDocumentId;
+            private readonly SourceText _oldText = oldText;
+            private readonly SourceText _newText = newText;
+            private readonly InstallPackageDirectlyCodeActionOperation _installPackageOperation = item2;
 
             internal override bool ApplyDuringTests => _installPackageOperation.ApplyDuringTests;
             public override string Title => _installPackageOperation.Title;

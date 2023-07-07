@@ -20349,12 +20349,6 @@ struct R : IEnumerable
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,5): warning CS0219: The variable 'x' is assigned but its value is never used
-                // int x = 42;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(4, 5),
-                // (5,5): warning CS0219: The variable 'y' is assigned but its value is never used
-                // int y = 43;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(5, 5),
                 // (6,19): error CS1073: Unexpected token 'ref'
                 // var r = new R() { ref x, ref y };
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(6, 19),

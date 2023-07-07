@@ -45,6 +45,14 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
         public static string GetResource(string keyword, string symbolDisplayName)
             => string.Format(FeaturesResources.member_kind_and_name, TryGetResource(keyword) ?? throw ExceptionUtilities.UnexpectedValue(keyword), symbolDisplayName);
 
+        public static string GetResource(string keyword, string symbolDisplayName, string containerKeyword, string containerDisplayName)
+            => string.Format(
+                FeaturesResources.symbol_kind_and_name_of_member_kind_and_name,
+                TryGetResource(keyword) ?? throw ExceptionUtilities.UnexpectedValue(keyword),
+                symbolDisplayName,
+                TryGetResource(containerKeyword) ?? throw ExceptionUtilities.UnexpectedValue(containerKeyword),
+                containerDisplayName);
+
         public static string GetResource(string keyword)
             => TryGetResource(keyword) ?? throw ExceptionUtilities.UnexpectedValue(keyword);
 
@@ -63,6 +71,8 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
                 "field" => FeaturesResources.field,
                 "method" => FeaturesResources.method,
                 "property" => FeaturesResources.property_,
+                "property getter" => CSharpFeaturesResources.property_getter,
+                "property setter" => CSharpFeaturesResources.property_setter,
                 "auto-property" => FeaturesResources.auto_property,
                 "indexer" => CSharpFeaturesResources.indexer,
                 "indexer getter" => CSharpFeaturesResources.indexer_getter,

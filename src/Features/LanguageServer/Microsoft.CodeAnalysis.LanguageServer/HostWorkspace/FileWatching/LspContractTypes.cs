@@ -1,8 +1,9 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System.Runtime.Serialization;
+using Newtonsoft.Json;
 
 namespace Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -27,7 +28,8 @@ internal class FileSystemWatcher
 internal class RelativePattern
 {
     [DataMember(Name = "baseUri")]
-    public required string BaseUri { get; set; }
+    [JsonConverter(typeof(DocumentUriConverter))]
+    public required Uri BaseUri { get; set; }
 
     [DataMember(Name = "pattern")]
     public required string Pattern { get; set; }

@@ -10,34 +10,20 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
     {
     }
 
-    internal sealed class ChangeSignatureAnalysisSucceededContext : ChangeSignatureAnalyzedContext
+    internal sealed class ChangeSignatureAnalysisSucceededContext(
+        Document document, int positionForTypeBinding, ISymbol symbol, ParameterConfiguration parameterConfiguration, CodeCleanupOptionsProvider fallbackOptions) : ChangeSignatureAnalyzedContext
     {
-        public readonly Document Document;
-        public readonly ISymbol Symbol;
-        public readonly ParameterConfiguration ParameterConfiguration;
-        public readonly int PositionForTypeBinding;
-        public readonly CodeCleanupOptionsProvider FallbackOptions;
-
-        public ChangeSignatureAnalysisSucceededContext(
-            Document document, int positionForTypeBinding, ISymbol symbol, ParameterConfiguration parameterConfiguration, CodeCleanupOptionsProvider fallbackOptions)
-        {
-            Document = document;
-            Symbol = symbol;
-            ParameterConfiguration = parameterConfiguration;
-            PositionForTypeBinding = positionForTypeBinding;
-            FallbackOptions = fallbackOptions;
-        }
+        public readonly Document Document = document;
+        public readonly ISymbol Symbol = symbol;
+        public readonly ParameterConfiguration ParameterConfiguration = parameterConfiguration;
+        public readonly int PositionForTypeBinding = positionForTypeBinding;
+        public readonly CodeCleanupOptionsProvider FallbackOptions = fallbackOptions;
 
         public Solution Solution => Document.Project.Solution;
     }
 
-    internal sealed class CannotChangeSignatureAnalyzedContext : ChangeSignatureAnalyzedContext
+    internal sealed class CannotChangeSignatureAnalyzedContext(ChangeSignatureFailureKind reason) : ChangeSignatureAnalyzedContext
     {
-        public readonly ChangeSignatureFailureKind CannotChangeSignatureReason;
-
-        public CannotChangeSignatureAnalyzedContext(ChangeSignatureFailureKind reason)
-        {
-            CannotChangeSignatureReason = reason;
-        }
+        public readonly ChangeSignatureFailureKind CannotChangeSignatureReason = reason;
     }
 }
