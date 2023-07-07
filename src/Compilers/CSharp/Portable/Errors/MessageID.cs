@@ -82,6 +82,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureAutoPropertyInitializer = MessageBase + 12649,
 
         IDS_SK_TYPE_OR_NAMESPACE = MessageBase + 12652,
+        IDS_SK_ARRAY = MessageBase + 12653,
+        IDS_SK_POINTER = MessageBase + 12654,
+        IDS_SK_FUNCTION_POINTER = MessageBase + 12655,
+        IDS_SK_DYNAMIC = MessageBase + 12656,
+
         IDS_Contravariant = MessageBase + 12659,
         IDS_Contravariantly = MessageBase + 12660,
         IDS_Covariant = MessageBase + 12661,
@@ -267,7 +272,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureUsingTypeAlias = MessageBase + 12834,
 
         IDS_FeatureInstanceMemberInNameof = MessageBase + 12835,
+<<<<<<< HEAD
         IDS_FeatureExtensions = MessageBase + 12836,
+||||||| 55e39535694
+=======
+
+        IDS_FeatureInlineArrays = MessageBase + 12836,
+        IDS_FeatureCollectionLiterals = MessageBase + 12837,
+>>>>>>> dotnet/main
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -453,7 +465,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeaturePrimaryConstructors: // declaration table check
                 case MessageID.IDS_FeatureUsingTypeAlias: // semantic check
                 case MessageID.IDS_FeatureInstanceMemberInNameof: // semantic check
+<<<<<<< HEAD
                 case MessageID.IDS_FeatureExtensions:
+||||||| 55e39535694
+=======
+                case MessageID.IDS_FeatureInlineArrays: // semantic check
+                case MessageID.IDS_FeatureCollectionLiterals: // semantic check
+>>>>>>> dotnet/main
                     return LanguageVersion.Preview;
 
                 // C# 11.0 features.

@@ -856,7 +856,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal bool IsNew => HasFlag(DeclarationModifiers.New);
 
-        internal bool IsFileLocal => HasFlag(DeclarationModifiers.File);
+        internal sealed override bool IsFileLocal => HasFlag(DeclarationModifiers.File);
 
         internal bool IsUnsafe => HasFlag(DeclarationModifiers.Unsafe);
 
@@ -2223,7 +2223,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (Locations.Length == 1 || IsPartial)
                 {
+#pragma warning disable CA1854 //Prefer a 'TryGetValue' call over a Dictionary indexer access guarded by a 'ContainsKey' check to avoid double lookup
                     if (membersByName.ContainsKey(indexerName.AsMemory()))
+#pragma warning restore CA1854
                     {
                         // The name of the indexer is reserved - it can only be used by other indexers.
                         Debug.Assert(!membersByName[indexerName.AsMemory()].Any(SymbolExtensions.IsIndexer));
@@ -4140,7 +4142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingDeconstructMethod))
                 {
-                    members.Add(new SynthesizedRecordDeconstruct(this, ctor, positionalMembers, memberOffset: members.Count, diagnostics));
+                    members.Add(new SynthesizedRecordDeconstruct(this, ctor, positionalMembers, memberOffset: members.Count));
                 }
                 else
                 {
@@ -4209,7 +4211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             void addCloneMethod()
             {
                 Debug.Assert(isRecordClass);
-                members.Add(new SynthesizedRecordClone(this, memberOffset: members.Count, diagnostics));
+                members.Add(new SynthesizedRecordClone(this, memberOffset: members.Count));
             }
 
             MethodSymbol addPrintMembersMethod(IEnumerable<Symbol> userDefinedMembers)
@@ -4235,7 +4237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 MethodSymbol printMembersMethod;
                 if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingPrintMembersMethod))
                 {
-                    printMembersMethod = new SynthesizedRecordPrintMembers(this, userDefinedMembers, memberOffset: members.Count, diagnostics);
+                    printMembersMethod = new SynthesizedRecordPrintMembers(this, userDefinedMembers, memberOffset: members.Count);
                     members.Add(printMembersMethod);
                 }
                 else
@@ -4309,9 +4311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var toStringMethod = new SynthesizedRecordToString(
                             this,
                             printMethod,
-                            memberOffset: members.Count,
-                            isReadOnly: printMethod.IsEffectivelyReadOnly,
-                            diagnostics);
+                            memberOffset: members.Count);
                         members.Add(toStringMethod);
                     }
                     else
@@ -4442,7 +4442,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             void addObjectEquals(MethodSymbol thisEquals)
             {
-                members.Add(new SynthesizedRecordObjEquals(this, thisEquals, memberOffset: members.Count, diagnostics));
+                members.Add(new SynthesizedRecordObjEquals(this, thisEquals, memberOffset: members.Count));
             }
 
             MethodSymbol addGetHashCode(PropertySymbol? equalityContract)
@@ -4465,7 +4465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingHashCodeMethod))
                 {
-                    getHashCode = new SynthesizedRecordGetHashCode(this, equalityContract, memberOffset: members.Count, diagnostics);
+                    getHashCode = new SynthesizedRecordGetHashCode(this, equalityContract, memberOffset: members.Count);
                     members.Add(getHashCode);
                 }
                 else
@@ -4563,7 +4563,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingEqualsMethod))
                 {
-                    thisEquals = new SynthesizedRecordEquals(this, equalityContract, memberOffset: members.Count, diagnostics);
+                    thisEquals = new SynthesizedRecordEquals(this, equalityContract, memberOffset: members.Count);
                     members.Add(thisEquals);
                 }
                 else
@@ -4605,7 +4605,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(isRecordClass);
                 if (!BaseTypeNoUseSiteDiagnostics.IsObjectType())
                 {
-                    members.Add(new SynthesizedRecordBaseEquals(this, memberOffset: members.Count, diagnostics));
+                    members.Add(new SynthesizedRecordBaseEquals(this, memberOffset: members.Count));
                 }
             }
 

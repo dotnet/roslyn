@@ -2478,6 +2478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract bool IsRecord { get; }
 
         internal abstract bool IsRecordStruct { get; }
+<<<<<<< HEAD
 
 #nullable enable
         internal abstract bool IsExtension { get; }
@@ -2495,5 +2496,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// list.
         /// </summary>
         internal abstract ImmutableArray<NamedTypeSymbol> AllBaseExtensionsNoUseSiteDiagnostics { get; }
+||||||| 55e39535694
+=======
+
+        internal abstract bool HasInlineArrayAttribute(out int length);
+
+#nullable enable
+        internal FieldSymbol? TryGetPossiblyUnsupportedByLanguageInlineArrayElementField()
+        {
+            Debug.Assert(HasInlineArrayAttribute(out var length) && length > 0);
+
+            FieldSymbol? elementField = null;
+
+            if (this.TypeKind == TypeKind.Struct)
+            {
+                foreach (FieldSymbol field in ((NamedTypeSymbol)this).OriginalDefinition.GetFieldsToEmit())
+                {
+                    if (!field.IsStatic)
+                    {
+                        if (elementField is not null)
+                        {
+                            return null;
+                        }
+                        else
+                        {
+                            elementField = field;
+                        }
+                    }
+                }
+            }
+
+            if (elementField is not null && elementField.ContainingType.IsGenericType)
+            {
+                elementField = elementField.AsMember((NamedTypeSymbol)this);
+            }
+
+            return elementField;
+        }
+
+        internal FieldSymbol? TryGetInlineArrayElementField()
+        {
+            return TryGetPossiblyUnsupportedByLanguageInlineArrayElementField() is { RefKind: RefKind.None } field ? field : null;
+        }
+>>>>>>> dotnet/main
     }
 }

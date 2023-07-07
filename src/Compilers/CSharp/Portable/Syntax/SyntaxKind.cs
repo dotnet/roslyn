@@ -911,8 +911,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         InterpolatedRawStringEndToken = 9074,               // """ (preceding whitespace and newline are included in the Text for this token)
 
         ScopedType = 9075,
+<<<<<<< HEAD
 
         ExtensionDeclaration = 9076,
         ForType = 9077,
+||||||| 55e39535694
+=======
+
+        CollectionExpression = 9076,
+        ExpressionElement = 9077,
+        SpreadElement = 9078,
+>>>>>>> dotnet/main
     }
 }

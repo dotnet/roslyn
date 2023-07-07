@@ -736,6 +736,7 @@ expression
   | binary_expression
   | cast_expression
   | checked_expression
+  | collection_expression
   | conditional_access_expression
   | conditional_expression
   | declaration_expression
@@ -843,6 +844,23 @@ cast_expression
 checked_expression
   : 'checked' '(' expression ')'
   | 'unchecked' '(' expression ')'
+  ;
+
+collection_expression
+  : '[' (collection_element (',' collection_element)* ','?)? ']'
+  ;
+
+collection_element
+  : expression_element
+  | spread_element
+  ;
+
+expression_element
+  : expression
+  ;
+
+spread_element
+  : '..' expression
   ;
 
 conditional_access_expression

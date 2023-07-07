@@ -237,6 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ExplicitDynamic:
                 case ConversionKind.InterpolatedString:
                 case ConversionKind.InterpolatedStringHandler:
+                case ConversionKind.InlineArray:
                     isTrivial = true;
                     break;
 
@@ -263,6 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static Conversion ImplicitEnumeration => new Conversion(ConversionKind.ImplicitEnumeration);
         internal static Conversion ImplicitThrow => new Conversion(ConversionKind.ImplicitThrow);
         internal static Conversion ObjectCreation => new Conversion(ConversionKind.ObjectCreation);
+        internal static Conversion CollectionLiteral => new Conversion(ConversionKind.CollectionLiteral);
         internal static Conversion AnonymousFunction => new Conversion(ConversionKind.AnonymousFunction);
         internal static Conversion Boxing => new Conversion(ConversionKind.Boxing);
         internal static Conversion NullLiteral => new Conversion(ConversionKind.NullLiteral);
@@ -285,6 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static Conversion PinnedObjectToPointer => new Conversion(ConversionKind.PinnedObjectToPointer);
         internal static Conversion ImplicitPointer => new Conversion(ConversionKind.ImplicitPointer);
         internal static Conversion FunctionType => new Conversion(ConversionKind.FunctionType);
+        internal static Conversion InlineArray => new Conversion(ConversionKind.InlineArray);
 
         // trivial conversions that could be underlying in nullable conversion
         // NOTE: tuple conversions can be underlying as well, but they are not trivial 
@@ -412,14 +415,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     underlying.AssertUnderlyingConversionsCheckedRecursive();
                 }
             }
+
+            if (IsUserDefined)
+            {
+                UserDefinedFromConversion.AssertUnderlyingConversionsCheckedRecursive();
+                UserDefinedToConversion.AssertUnderlyingConversionsCheckedRecursive();
+            }
         }
 
         [Conditional("DEBUG")]
         internal void MarkUnderlyingConversionsChecked()
         {
 #if DEBUG
-            Debug.Assert(_uncommonData is not null);
-            _uncommonData._nestedConversionsChecked = true;
+            if (_uncommonData is not null)
+            {
+                _uncommonData._nestedConversionsChecked = true;
+            }
 #endif
         }
 
@@ -439,6 +450,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         underlying.MarkUnderlyingConversionsCheckedRecursive();
                     }
+                }
+
+                if (IsUserDefined)
+                {
+                    UserDefinedFromConversion.MarkUnderlyingConversionsCheckedRecursive();
+                    UserDefinedToConversion.MarkUnderlyingConversionsCheckedRecursive();
                 }
             }
 #endif
@@ -682,6 +699,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Returns true if the conversion is an implicit collection literal expression conversion.
+        /// </summary>
+        public bool IsCollectionLiteral => Kind == ConversionKind.CollectionLiteral;
+
+        /// <summary>
         /// Returns true if the conversion is an implicit switch expression conversion.
         /// </summary>
         public bool IsSwitchExpression
@@ -726,6 +748,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return Kind == ConversionKind.InterpolatedStringHandler;
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the conversion is an inline array conversion.
+        /// </summary>
+        public bool IsInlineArray
+        {
+            get
+            {
+                return Kind == ConversionKind.InlineArray;
             }
         }
 

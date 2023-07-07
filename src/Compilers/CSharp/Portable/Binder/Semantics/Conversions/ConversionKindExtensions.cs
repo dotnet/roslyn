@@ -51,7 +51,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case StackAllocToSpanType:
                 case ImplicitPointer:
                 case ObjectCreation:
+<<<<<<< HEAD
                 case ExtensionMember:
+||||||| 55e39535694
+=======
+                case InlineArray:
+                case CollectionLiteral:
+>>>>>>> dotnet/main
                     return true;
 
                 case ExplicitNumeric:

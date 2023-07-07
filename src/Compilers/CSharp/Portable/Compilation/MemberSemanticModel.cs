@@ -2239,11 +2239,12 @@ done:
             return node;
         }
 
+#nullable enable
         /// <summary>
         /// If the node is an expression, return the nearest parent node
         /// with semantic meaning. Otherwise return null.
         /// </summary>
-        protected CSharpSyntaxNode GetBindableParentNode(CSharpSyntaxNode node)
+        protected CSharpSyntaxNode? GetBindableParentNode(CSharpSyntaxNode node)
         {
             if (!(node is ExpressionSyntax))
             {
@@ -2251,7 +2252,7 @@ done:
             }
 
             // The node is an expression, but its parent is null
-            CSharpSyntaxNode parent = node.Parent;
+            CSharpSyntaxNode? parent = node.Parent;
             if (parent == null)
             {
                 // For speculative model, expression might be the root of the syntax tree, in which case it can have a null parent.
@@ -2289,17 +2290,25 @@ foundParent:;
             // the node is the instance associated with the method invocation.
             // In that case, return the invocation expression so that any conversion
             // of the receiver can be included in the resulting SemanticInfo.
-            if ((bindableParent.Kind() == SyntaxKind.SimpleMemberAccessExpression) && (bindableParent.Parent.Kind() == SyntaxKind.InvocationExpression))
+            switch (bindableParent)
             {
-                bindableParent = bindableParent.Parent;
-            }
-            else if (bindableParent.Kind() == SyntaxKind.ArrayType)
-            {
-                bindableParent = SyntaxFactory.GetStandaloneExpression((ArrayTypeSyntax)bindableParent);
+                case { RawKind: (int)SyntaxKind.SimpleMemberAccessExpression, Parent.RawKind: (int)SyntaxKind.InvocationExpression }:
+                    bindableParent = bindableParent.Parent;
+                    break;
+                case ArrayTypeSyntax arrayType:
+                    bindableParent = SyntaxFactory.GetStandaloneExpression(arrayType);
+                    break;
+                case { RawKind: (int)SyntaxKind.ComplexElementInitializerExpression }:
+                    // The { "a", "b" } node in a collection initializer is marked as compiler-generated, and will never
+                    // end up in the bound node map. We don't need the parent node for any calculations here, so just return
+                    // null to avoid rebinding the initializer (which can cause exponential binding problems, see EndToEndTests.LongInitializerList).
+                    bindableParent = null;
+                    break;
             }
 
             return bindableParent;
         }
+#nullable disable
 
         internal override Symbol RemapSymbolIfNecessaryCore(Symbol symbol)
         {

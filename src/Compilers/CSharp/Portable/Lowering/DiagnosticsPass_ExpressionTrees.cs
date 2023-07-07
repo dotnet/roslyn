@@ -108,6 +108,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitImplicitIndexerAccess(node);
         }
 
+        public override BoundNode VisitInlineArrayAccess(BoundInlineArrayAccess node)
+        {
+            if (_inExpressionLambda)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsInlineArrayOperation, node);
+            }
+
+            return base.VisitInlineArrayAccess(node);
+        }
+
         public override BoundNode VisitFromEndIndexExpression(BoundFromEndIndexExpression node)
         {
             if (_inExpressionLambda)
@@ -787,6 +797,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                case ConversionKind.InlineArray:
+                    if (_inExpressionLambda)
+                    {
+                        Error(ErrorCode.ERR_ExpressionTreeContainsInlineArrayOperation, node);
+                    }
+                    break;
+
                 case ConversionKind.InterpolatedStringHandler:
                     if (_inExpressionLambda)
                     {
@@ -1013,6 +1030,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return base.VisitFunctionPointerInvocation(node);
+        }
+
+        public override BoundNode VisitCollectionLiteralExpression(BoundCollectionLiteralExpression node)
+        {
+            if (_inExpressionLambda)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsCollectionLiteral, node);
+            }
+
+            return base.VisitCollectionLiteralExpression(node);
         }
     }
 }

@@ -52,6 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property GreaterThanToken As Integer = SyntaxKind.GreaterThanToken Implements ISyntaxKinds.GreaterThanToken
         Public ReadOnly Property InterpolatedStringTextToken As Integer = SyntaxKind.InterpolatedStringTextToken Implements ISyntaxKinds.InterpolatedStringTextToken
         Public ReadOnly Property LessThanToken As Integer = SyntaxKind.LessThanToken Implements ISyntaxKinds.LessThanToken
+        Public ReadOnly Property LessThanSlashToken As Integer = SyntaxKind.LessThanSlashToken Implements ISyntaxKinds.LessThanSlashToken
         Public ReadOnly Property OpenBraceToken As Integer = SyntaxKind.OpenBraceToken Implements ISyntaxKinds.OpenBraceToken
         Public ReadOnly Property OpenBracketToken As Integer? = Nothing Implements ISyntaxKinds.OpenBracketToken
         Public ReadOnly Property OpenParenToken As Integer = SyntaxKind.OpenParenToken Implements ISyntaxKinds.OpenParenToken
@@ -138,6 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
         Public ReadOnly Property ExpressionStatement As Integer = SyntaxKind.ExpressionStatement Implements ISyntaxKinds.ExpressionStatement
         Public ReadOnly Property ForEachStatement As Integer = SyntaxKind.ForEachStatement Implements ISyntaxKinds.ForEachStatement
+        Public ReadOnly Property ForStatement As Integer = SyntaxKind.ForStatement Implements ISyntaxKinds.ForStatement
         Public ReadOnly Property IfStatement As Integer = SyntaxKind.IfStatement Implements ISyntaxKinds.IfStatement
         Public ReadOnly Property LocalDeclarationStatement As Integer = SyntaxKind.LocalDeclarationStatement Implements ISyntaxKinds.LocalDeclarationStatement
         Public ReadOnly Property LocalFunctionStatement As Integer? Implements ISyntaxKinds.LocalFunctionStatement

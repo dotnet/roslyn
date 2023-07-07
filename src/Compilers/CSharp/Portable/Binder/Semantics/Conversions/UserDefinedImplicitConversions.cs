@@ -664,6 +664,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Added for C# 9
                 case ConversionKind.ImplicitPointer:
+                // Added for C# 12
+                case ConversionKind.InlineArray:
                     return true;
 
                 default:

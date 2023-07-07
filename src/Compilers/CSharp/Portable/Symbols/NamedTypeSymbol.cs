@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Returns the type arguments that have been substituted for the type parameters. 
-        /// If nothing has been substituted for a give type parameters,
+        /// If nothing has been substituted for a given type parameter,
         /// then the type parameter itself is consider the type argument.
         /// </summary>
         internal abstract ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics { get; }
@@ -494,6 +494,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     : Name;
             }
         }
+
+        internal abstract bool IsFileLocal { get; }
 
         /// <summary>
         /// If this type is a file-local type, returns an identifier for the file this type was declared in. Otherwise, returns null.

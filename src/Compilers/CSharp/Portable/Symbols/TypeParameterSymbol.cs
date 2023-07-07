@@ -711,6 +711,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
         }
+<<<<<<< HEAD
 
 #nullable enable
         internal sealed override bool IsExtension => false;
@@ -721,5 +722,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => ImmutableArray<NamedTypeSymbol>.Empty;
         internal sealed override ImmutableArray<NamedTypeSymbol> AllBaseExtensionsNoUseSiteDiagnostics
             => ImmutableArray<NamedTypeSymbol>.Empty;
+||||||| 55e39535694
+=======
+
+        internal sealed override bool HasInlineArrayAttribute(out int length)
+        {
+            length = 0;
+            return false;
+        }
+>>>>>>> dotnet/main
     }
 }

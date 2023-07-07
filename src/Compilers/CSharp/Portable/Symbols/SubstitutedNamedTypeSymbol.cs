@@ -429,6 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable();
         }
 
+        internal sealed override bool IsFileLocal => _underlyingType.IsFileLocal;
         internal sealed override FileIdentifier? AssociatedFileIdentifier => _underlyingType.AssociatedFileIdentifier;
 
         internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable();
@@ -438,6 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool IsRecord => _underlyingType.IsRecord;
         internal sealed override bool IsRecordStruct => _underlyingType.IsRecordStruct;
         internal sealed override bool HasPossibleWellKnownCloneMethod() => _underlyingType.HasPossibleWellKnownCloneMethod();
+<<<<<<< HEAD
 
 #nullable enable
         internal sealed override bool IsExtension => _underlyingType.IsExtension;
@@ -456,5 +458,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions(ConsList<TypeSymbol>? basesBeingResolved)
             => throw new InvalidOperationException("PROTOTYPE"); // PROTOTYPE
+||||||| 55e39535694
+=======
+
+        internal sealed override bool HasInlineArrayAttribute(out int length)
+        {
+            return _underlyingType.HasInlineArrayAttribute(out length);
+        }
+>>>>>>> dotnet/main
     }
 }

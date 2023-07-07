@@ -186,6 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool MangleName => Arity > 0;
 
 #nullable enable
+        internal sealed override bool IsFileLocal => false;
         internal sealed override FileIdentifier? AssociatedFileIdentifier => null;
 #nullable disable
 
@@ -225,6 +226,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
         {
             return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
+        }
+
+        internal sealed override bool HasInlineArrayAttribute(out int length)
+        {
+            length = 0;
+            return false;
         }
     }
 }

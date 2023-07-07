@@ -74,6 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
+            internal sealed override bool IsFileLocal => false;
             internal sealed override FileIdentifier? AssociatedFileIdentifier => null;
 
             public sealed override int Arity
@@ -293,6 +294,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal sealed override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
             {
                 return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
+            }
+
+            internal sealed override bool HasInlineArrayAttribute(out int length)
+            {
+                length = 0;
+                return false;
             }
         }
     }

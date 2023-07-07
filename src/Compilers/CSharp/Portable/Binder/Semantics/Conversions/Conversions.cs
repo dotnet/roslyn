@@ -460,5 +460,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return (Conversions)base.WithNullability(includeNullability);
         }
+
+        protected override bool IsAttributeArgumentBinding => _binder.InAttributeArgument;
+
+        protected override bool IsParameterDefaultValueBinding => _binder.InParameterDefaultValue;
     }
 }
