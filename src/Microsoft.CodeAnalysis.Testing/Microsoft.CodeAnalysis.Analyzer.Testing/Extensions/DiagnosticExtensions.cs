@@ -22,10 +22,19 @@ namespace Microsoft.CodeAnalysis.Testing.Extensions
                 nameof(IsSuppressed),
                 defaultValue: false);
 
+        private static readonly Func<Diagnostic, object?> s_grogrammaticSuppressionInfo =
+            LightupHelpers.CreatePropertyAccessor<Diagnostic, object?>(
+                typeof(Diagnostic),
+                nameof(ProgrammaticSuppressionInfo),
+                defaultValue: null);
+
         public static IReadOnlyList<object?> Arguments(this Diagnostic diagnostic)
             => s_arguments(diagnostic);
 
         public static bool IsSuppressed(this Diagnostic diagnostic)
             => s_isSuppressed(diagnostic);
+
+        public static ProgrammaticSuppressionInfoWrapper? ProgrammaticSuppressionInfo(this Diagnostic diagnostic)
+            => s_grogrammaticSuppressionInfo(diagnostic) is { } info ? ProgrammaticSuppressionInfoWrapper.FromInstance(info) : null;
     }
 }
