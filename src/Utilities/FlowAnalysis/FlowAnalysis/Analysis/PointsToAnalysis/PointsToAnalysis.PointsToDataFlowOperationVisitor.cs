@@ -237,38 +237,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 }
             }
 
-            private static void SetAbstractValueFromPredicate(
-                AnalysisEntity analysisEntity,
-                NullAbstractValue nullState,
-                DefaultPointsToValueGenerator defaultPointsToValueGenerator,
-                PointsToAnalysisData sourceAnalysisData,
-                PointsToAnalysisData targetAnalysisData)
-            {
-                AssertValidPointsToAnalysisData(sourceAnalysisData);
-                AssertValidPointsToAnalysisData(targetAnalysisData);
-
-                Debug.Assert(IsValidValueForPredicateAnalysis(nullState) || nullState == NullAbstractValue.Invalid);
-
-                if (!sourceAnalysisData.TryGetValue(analysisEntity, out var existingValue))
-                {
-                    existingValue = defaultPointsToValueGenerator.GetOrCreateDefaultValue(analysisEntity);
-                }
-
-                var newPointsToValue = nullState switch
-                {
-                    NullAbstractValue.Null => existingValue.MakeNull(),
-
-                    NullAbstractValue.NotNull => existingValue.MakeNonNull(),
-
-                    NullAbstractValue.Invalid => PointsToAbstractValue.Invalid,
-
-                    _ => throw new InvalidProgramException(),
-                };
-
-                targetAnalysisData.SetAbstractValue(analysisEntity, newPointsToValue);
-                AssertValidPointsToAnalysisData(targetAnalysisData);
-            }
-
             // Create a dummy PointsTo value for each reference type parameter.
             protected override PointsToAbstractValue GetDefaultValueForParameterOnEntry(IParameterSymbol parameter, AnalysisEntity analysisEntity)
                 => PointsToAnalysis.ShouldBeTracked(parameter.Type) ?
@@ -446,15 +414,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                     {
                         foreach (var analysisEntity in copyValue.AnalysisEntities)
                         {
-                            SetValueForNullCompareFromPredicate(analysisEntity, value, equals, inferInTargetAnalysisData,
-                                ref predicateValueKind, _defaultPointsToValueGenerator,
+                            SetValueForNullCompareFromPredicate(analysisEntity, value, targetEntity.Type, equals, inferInTargetAnalysisData,
+                                ref predicateValueKind, _defaultPointsToValueGenerator, WellKnownTypeProvider.Compilation,
                                 sourceAnalysisData: CurrentAnalysisData, targetAnalysisData: targetAnalysisData);
                         }
                     }
                     else
                     {
-                        SetValueForNullCompareFromPredicate(targetEntity, value, equals, inferInTargetAnalysisData,
-                            ref predicateValueKind, _defaultPointsToValueGenerator,
+                        SetValueForNullCompareFromPredicate(targetEntity, value, targetEntity.Type, equals, inferInTargetAnalysisData,
+                            ref predicateValueKind, _defaultPointsToValueGenerator, WellKnownTypeProvider.Compilation,
                             sourceAnalysisData: CurrentAnalysisData, targetAnalysisData: targetAnalysisData);
                     }
 
@@ -467,10 +435,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             private static void SetValueForNullCompareFromPredicate(
                 AnalysisEntity key,
                 NullAbstractValue value,
+                ITypeSymbol targetType,
                 bool equals,
                 bool inferInTargetAnalysisData,
                 ref PredicateValueKind predicateValueKind,
                 DefaultPointsToValueGenerator defaultPointsToValueGenerator,
+                Compilation compilation,
                 PointsToAnalysisData sourceAnalysisData,
                 PointsToAnalysisData targetAnalysisData)
             {
@@ -522,7 +492,67 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 if (inferInTargetAnalysisData)
                 {
                     // Set value for the CurrentAnalysisData.
-                    SetAbstractValueFromPredicate(key, value, defaultPointsToValueGenerator, sourceAnalysisData, targetAnalysisData);
+                    SetAbstractValueFromPredicate(key, value, targetType, defaultPointsToValueGenerator, compilation, sourceAnalysisData, targetAnalysisData);
+                }
+
+                return;
+
+                static void SetAbstractValueFromPredicate(
+                    AnalysisEntity analysisEntity,
+                    NullAbstractValue nullState,
+                    ITypeSymbol targetType,
+                    DefaultPointsToValueGenerator defaultPointsToValueGenerator,
+                    Compilation compilation,
+                    PointsToAnalysisData sourceAnalysisData,
+                    PointsToAnalysisData targetAnalysisData)
+                {
+                    AssertValidPointsToAnalysisData(sourceAnalysisData);
+                    AssertValidPointsToAnalysisData(targetAnalysisData);
+
+                    Debug.Assert(IsValidValueForPredicateAnalysis(nullState) || nullState == NullAbstractValue.Invalid);
+
+                    // Ensure that the predicated 'value' can be flowed from the target type to the analysis entity.
+                    if (!SymbolEqualityComparer.Default.Equals(targetType, analysisEntity.Type))
+                    {
+                        var conversion = compilation.ClassifyCommonConversion(targetType, analysisEntity.Type);
+                        if (!conversion.Exists)
+                        {
+                            // No conversion exists, so we bail out from flowing the predicated value.
+                            return;
+                        }
+
+                        if (!conversion.IsIdentity && !conversion.IsNumeric && !conversion.IsNullable)
+                        {
+                            // For 'Null' predicated value, there needs to be an explicit conversion
+                            // from targetType to the analysisEntity's type to flow the predicated value.
+                            // For 'NotNull' predicated value, there needs to be an implicit conversion
+                            // from targetType to the analysisEntity's type to flow the predicated value.
+                            if (nullState == NullAbstractValue.Null && conversion.IsImplicit ||
+                                nullState == NullAbstractValue.NotNull && !conversion.IsImplicit)
+                            {
+                                return;
+                            }
+                        }
+                    }
+
+                    if (!sourceAnalysisData.TryGetValue(analysisEntity, out var existingValue))
+                    {
+                        existingValue = defaultPointsToValueGenerator.GetOrCreateDefaultValue(analysisEntity);
+                    }
+
+                    var newPointsToValue = nullState switch
+                    {
+                        NullAbstractValue.Null => existingValue.MakeNull(),
+
+                        NullAbstractValue.NotNull => existingValue.MakeNonNull(),
+
+                        NullAbstractValue.Invalid => PointsToAbstractValue.Invalid,
+
+                        _ => throw new InvalidProgramException(),
+                    };
+
+                    targetAnalysisData.SetAbstractValue(analysisEntity, newPointsToValue);
+                    AssertValidPointsToAnalysisData(targetAnalysisData);
                 }
             }
 
