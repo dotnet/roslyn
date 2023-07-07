@@ -5905,6 +5905,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_OutAttrOnInParam" xml:space="preserve">
     <value>An in parameter cannot have the Out attribute.</value>
   </data>
+  <data name="ERR_OutAttrOnRefReadonlyParam" xml:space="preserve">
+    <value>A ref readonly parameter cannot have the Out attribute.</value>
+  </data>
   <data name="ICompoundAssignmentOperationIsNotCSharpCompoundAssignment" xml:space="preserve">
     <value>{0} is not a valid C# compound assignment operation</value>
   </data>

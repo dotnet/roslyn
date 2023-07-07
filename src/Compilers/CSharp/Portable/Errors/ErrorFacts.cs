@@ -2320,6 +2320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_RefReadonlyNotVariable:
                 case ErrorCode.ERR_BadArgExtraRefLangVersion:
                 case ErrorCode.WRN_ArgExpectedIn:
+                case ErrorCode.ERR_OutAttrOnRefReadonlyParam:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

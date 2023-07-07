@@ -1222,6 +1222,11 @@
         <target state="translated">Nie można zadeklarować operatora „{0}” zdefiniowanego przez użytkownika</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OutAttrOnRefReadonlyParam">
+        <source>A ref readonly parameter cannot have the Out attribute.</source>
+        <target state="new">A ref readonly parameter cannot have the Out attribute.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
         <target state="translated">Zmiennej out nie można zadeklarować jako lokalnej zmiennej ref</target>

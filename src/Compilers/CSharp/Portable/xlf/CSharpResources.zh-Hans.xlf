@@ -1222,6 +1222,11 @@
         <target state="translated">用户定义的运算符 '{0}' 无法声明为已验证</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OutAttrOnRefReadonlyParam">
+        <source>A ref readonly parameter cannot have the Out attribute.</source>
+        <target state="new">A ref readonly parameter cannot have the Out attribute.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
         <target state="translated">out 变量无法声明为 ref 局部变量</target>

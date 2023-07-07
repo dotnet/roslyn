@@ -1222,6 +1222,11 @@
         <target state="translated">使用者定義的運算子 '{0}' 無法宣告為已檢查</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OutAttrOnRefReadonlyParam">
+        <source>A ref readonly parameter cannot have the Out attribute.</source>
+        <target state="new">A ref readonly parameter cannot have the Out attribute.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
         <target state="translated">out 變數不可宣告為 ref local</target>

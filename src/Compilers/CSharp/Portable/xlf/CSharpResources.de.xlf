@@ -1222,6 +1222,11 @@
         <target state="translated">Der benutzerdefinierte Operator "{0}" kann nicht als überprüft deklariert werden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OutAttrOnRefReadonlyParam">
+        <source>A ref readonly parameter cannot have the Out attribute.</source>
+        <target state="new">A ref readonly parameter cannot have the Out attribute.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
         <target state="translated">Eine out-Variable kann nicht als lokales ref-Element deklariert werden.</target>

@@ -1222,6 +1222,11 @@
         <target state="translated">사용자 정의 연산자 '{0}'은(는) 선언할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OutAttrOnRefReadonlyParam">
+        <source>A ref readonly parameter cannot have the Out attribute.</source>
+        <target state="new">A ref readonly parameter cannot have the Out attribute.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
         <target state="translated">출력 변수는 참조 로컬로 선언할 수 없습니다.</target>

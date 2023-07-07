@@ -1432,6 +1432,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             RequiredMemberAttribute = 1 << 11,
             ScopedRefAttribute = 1 << 12,
             RefSafetyRulesAttribute = 1 << 13,
+            RequiresLocationAttribute = 1 << 14,
         }
 
         internal bool ReportExplicitUseOfReservedAttributes(in DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, ReservedAttributes reserved)
@@ -1447,6 +1448,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if ((reserved & ReservedAttributes.IsReadOnlyAttribute) != 0 &&
                 reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.IsReadOnlyAttribute))
+            {
+            }
+            else if ((reserved & ReservedAttributes.RequiresLocationAttribute) != 0 &&
+                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.RequiresLocationAttribute))
             {
             }
             else if ((reserved & ReservedAttributes.IsUnmanagedAttribute) != 0 &&
