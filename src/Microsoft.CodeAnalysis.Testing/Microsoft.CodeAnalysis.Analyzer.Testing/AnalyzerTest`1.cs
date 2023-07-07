@@ -1157,7 +1157,8 @@ namespace Microsoft.CodeAnalysis.Testing
             }
 
             diagnostics.AddRange(additionalDiagnostics);
-            var results = SortDistinctDiagnostics(diagnostics);
+            var filteredDiagnostics = FilterDiagnostics(diagnostics.ToImmutable());
+            var results = SortDistinctDiagnostics(filteredDiagnostics);
             return results;
 
             static async Task<ImmutableArray<Diagnostic>> GetCompilerDiagnosticsAsync(AnalyzerTest<TVerifier> self, Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
@@ -1678,12 +1679,27 @@ namespace Microsoft.CodeAnalysis.Testing
         protected abstract ParseOptions CreateParseOptions();
 
         /// <summary>
+        /// Filter <see cref="Diagnostic"/>s to only include items of interest to testing. By default, this includes all
+        /// unsuppressed diagnostics, and all diagnostics suppressed by a
+        /// <see cref="T:Microsoft.CodeAnalysis.Diagnostics.DiagnosticSuppressor"/>.
+        /// </summary>
+        /// <param name="diagnostics">A collection of <see cref="Diagnostic"/>s to be filtered.</param>
+        /// <returns>A collection containing the input <paramref name="diagnostics"/>, filtered to only include
+        /// diagnostics relevant for testing.</returns>
+        protected virtual ImmutableArray<(Project project, Diagnostic diagnostic)> FilterDiagnostics(ImmutableArray<(Project project, Diagnostic diagnostic)> diagnostics)
+        {
+            return diagnostics
+                .Where(d => !d.diagnostic.IsSuppressed() || d.diagnostic.ProgrammaticSuppressionInfo() != null)
+                .ToImmutableArray();
+        }
+
+        /// <summary>
         /// Sort <see cref="Diagnostic"/>s by location in source document.
         /// </summary>
         /// <param name="diagnostics">A collection of <see cref="Diagnostic"/>s to be sorted.</param>
         /// <returns>A collection containing the input <paramref name="diagnostics"/>, sorted by
         /// <see cref="Diagnostic.Location"/> and <see cref="Diagnostic.Id"/>.</returns>
-        protected virtual ImmutableArray<(Project project, Diagnostic diagnostic)> SortDistinctDiagnostics(IEnumerable<(Project project, Diagnostic diagnostic)> diagnostics)
+        protected virtual ImmutableArray<(Project project, Diagnostic diagnostic)> SortDistinctDiagnostics(ImmutableArray<(Project project, Diagnostic diagnostic)> diagnostics)
         {
             return diagnostics
                 .OrderBy(d => d.diagnostic.Location.GetLineSpan().Path, StringComparer.Ordinal)

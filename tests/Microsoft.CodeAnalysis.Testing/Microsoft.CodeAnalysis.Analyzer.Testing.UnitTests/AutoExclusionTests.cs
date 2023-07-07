@@ -220,6 +220,54 @@ End Class
             }.RunAsync();
         }
 
+        [Fact]
+        public async Task TestCSharpTestIgnoresPragmaSuppressedWarnings()
+        {
+            var testCode = @"class TestClass {|#0:{|} }";
+
+            // A diagnostic is produced in the original code
+            await new CSharpAnalyzerTest<HighlightBraceSpanAnalyzer>
+            {
+                TestCode = testCode,
+                ExpectedDiagnostics =
+                {
+                    new DiagnosticResult("Brace", DiagnosticSeverity.Warning).WithLocation(0),
+                },
+            }.RunAsync();
+
+            // The same diagnostic is ignored when suppressed using '#pragma warning disable'
+            await new CSharpAnalyzerTest<HighlightBraceSpanAnalyzer>
+            {
+                TestCode = $@"#pragma warning disable Brace
+{testCode}",
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestVisualBasicTestIgnoresPragmaSuppressedWarnings()
+        {
+            var testCode = @"Class TestClass
+    Dim Field As Integer() = {|#0:{|} }
+End Class";
+
+            // A diagnostic is produced in the original code
+            await new VisualBasicAnalyzerTest<HighlightBraceSpanAnalyzer>
+            {
+                TestCode = testCode,
+                ExpectedDiagnostics =
+                {
+                    new DiagnosticResult("Brace", DiagnosticSeverity.Warning).WithLocation(0),
+                },
+            }.RunAsync();
+
+            // The same diagnostic is ignored when suppressed using '#Disable Warning'
+            await new VisualBasicAnalyzerTest<HighlightBraceSpanAnalyzer>
+            {
+                TestCode = $@"#Disable Warning Brace
+{testCode}",
+            }.RunAsync();
+        }
+
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         private class ReplaceThisWithBaseAnalyzer : DiagnosticAnalyzer
         {
@@ -311,6 +359,15 @@ End Class
                 context.ReportDiagnostic(Diagnostic.Create(
                     Descriptor,
                     Location.Create(context.Tree, new TextSpan(0, 0))));
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        private class HighlightBraceSpanAnalyzer : AbstractHighlightBracesAnalyzer
+        {
+            protected override Diagnostic CreateDiagnostic(SyntaxToken token)
+            {
+                return Diagnostic.Create(Descriptor, token.GetLocation());
             }
         }
 
