@@ -15863,6 +15863,44 @@ class C1(int p1)
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68796")]
+        public void ParameterCapturing_165_ColorColor_MemberAccess_InstanceAndStatic_MethodAndExtensionMethod_Generic()
+        {
+            var source = """
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(this);
+    }
+}
+
+static class E
+{
+    public static void M1<T>(this T c, S1 x, int y = 0)
+    {
+    }
+}
+
+class Color
+{
+    public static void M1<T>(T x) where T : unmanaged
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+                //         Color.M1(this);
+                Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(5, 9)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
         public void CycleDueToIndexerNameAttribute_01()
         {
             var source = @"
