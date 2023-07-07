@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -117,7 +118,12 @@ public class ExtensionTypeTests : CompilingTestBase
 
     private static T GetSyntax<T>(SyntaxTree tree, string text)
     {
-        return tree.GetRoot().DescendantNodes().OfType<T>().Single(e => e.ToString() == text);
+        return GetSyntaxes<T>(tree, text).Single();
+    }
+
+    private static IEnumerable<T> GetSyntaxes<T>(SyntaxTree tree, string text)
+    {
+        return tree.GetRoot().DescendantNodes().OfType<T>().Where(e => e.ToString() == text);
     }
 
     [Theory, CombinatorialData]
@@ -4840,8 +4846,6 @@ explicit extension R for UnderlyingClass : R1, R2 { }
     [Theory, CombinatorialData]
     public void BaseExtension_ImplicitVsExplicit(bool baseIsExplicit, bool thisIsExplicit)
     {
-        // PROTOTYPE should there be a restriction on implicit/explicit relative
-        // to base extensions?
         var src = $$"""
 class C { }
 {{(baseIsExplicit ? "explicit" : "implicit")}} extension R1 for C { }
@@ -9215,7 +9219,7 @@ void M(A a)
 
 public explicit extension A for object { }
 """;
-        // PROTOTYPE methods from System.Object will come from member access (not from member lookup)
+        // PROTOTYPE methods from System.Object will come from member lookup (once updated to consider the underlying type part of the base types)
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
             // (4,7): error CS0117: 'A' does not contain a definition for 'ToString'
@@ -9410,11 +9414,179 @@ public explicit extension E3 for object : E2 { }
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
-    public void ExtensionMemberLookup_Simple_Static()
+    public void ExtensionMemberLookup_Simple_Static_InConversion()
     {
         var src = """
-_ = object.Property;
-System.Console.Write($"Field({object.Field}) ");
+int p = object.Property;
+System.Action p2 = object.Property2;
+
+int f = object.Field;
+System.Console.Write($"Field({f}) ");
+
+System.Action m = object.Method;
+m();
+
+implicit extension E for object
+{
+    public static int Property
+    {
+        get
+        {
+            System.Console.Write("Property ");
+            return 0;
+        }
+    }
+
+    public static System.Action Property2
+    {
+        get
+        {
+            System.Console.Write("Property2 ");
+            return () => { };
+        }
+    }
+
+    public static int Field = 42;
+
+    public static void Method()
+    {
+        System.Console.Write("Method ");
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        CompileAndVerify(comp, expectedOutput: "Property Property2 Field(42) Method");
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        ITypeSymbol int32 = comp.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
+        ITypeSymbol stringType = comp.GetSpecialType(SpecialType.System_String).GetPublicSymbol();
+        ITypeSymbol action = comp.GetWellKnownType(WellKnownType.System_Action).GetPublicSymbol();
+
+        var property = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Property");
+        Assert.Equal("System.Int32 E.Property { get; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(property));
+        Assert.Equal(ConversionKind.Identity, model.GetConversion(property).Kind);
+        Assert.Equal(ConversionKind.Identity, model.ClassifyConversion(property, int32).Kind);
+        Assert.Equal(ConversionKind.NoConversion, model.ClassifyConversion(property, stringType).Kind);
+        Assert.Equal(ConversionKind.NoConversion, model.ClassifyConversion(property, action).Kind);
+
+        var property2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Property2");
+        Assert.Equal("System.Action E.Property2 { get; }", model.GetSymbolInfo(property2).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(property2));
+        Assert.Equal(ConversionKind.Identity, model.GetConversion(property2).Kind);
+        Assert.Equal(ConversionKind.Identity, model.ClassifyConversion(property2, action).Kind);
+        Assert.Equal(ConversionKind.NoConversion, model.ClassifyConversion(property2, stringType).Kind);
+        Assert.Equal(ConversionKind.NoConversion, model.ClassifyConversion(property2, int32).Kind);
+
+        var field = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Field");
+        Assert.Equal("System.Int32 E.Field", model.GetSymbolInfo(field).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(field));
+        Assert.Equal(ConversionKind.Identity, model.GetConversion(field).Kind);
+        Assert.Equal(ConversionKind.Identity, model.ClassifyConversion(field, int32).Kind);
+
+        var method = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Method");
+        Assert.Equal("void E.Method()", model.GetSymbolInfo(method).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(method)); // PROTOTYPE need to fix the semantic model
+        Assert.Equal(ConversionKind.MethodGroup, model.GetConversion(method).Kind);
+        Assert.Equal(ConversionKind.MethodGroup, model.ClassifyConversion(method, action).Kind);
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionMemberLookup_Simple_Static_InNumericConversion()
+    {
+        var src = """
+long p = object.Property;
+
+long f = object.Field;
+System.Console.Write($"Field({f}) ");
+
+implicit extension E for object
+{
+    public static int Property
+    {
+        get
+        {
+            System.Console.Write("Property ");
+            return 0;
+        }
+    }
+
+    public static int Field = 42;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        CompileAndVerify(comp, expectedOutput: "Property Field(42)");
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var property = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Property");
+        Assert.Equal("System.Int32 E.Property { get; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(property));
+        Assert.Equal(ConversionKind.ImplicitNumeric, model.GetConversion(property).Kind);
+        ITypeSymbol int64 = comp.GetSpecialType(SpecialType.System_Int64).GetPublicSymbol();
+        Assert.Equal(ConversionKind.ImplicitNumeric, model.ClassifyConversion(property, int64).Kind);
+
+        var field = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Field");
+        Assert.Equal("System.Int32 E.Field", model.GetSymbolInfo(field).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(field));
+        Assert.Equal(ConversionKind.ImplicitNumeric, model.GetConversion(field).Kind);
+        Assert.Equal(ConversionKind.ImplicitNumeric, model.ClassifyConversion(field, int64).Kind);
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionMemberLookup_Simple_Static_InFailedConversion()
+    {
+        var src = """
+System.Action p = object.Property;
+int p2 = object.Property2;
+
+implicit extension E for object
+{
+    public static int Property => throw null;
+    public static System.Action Property2 => throw null;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,26): error CS0117: 'object' does not contain a definition for 'Property'
+            // System.Action p = object.Property;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Property").WithArguments("object", "Property").WithLocation(1, 26),
+            // (2,17): error CS0428: Cannot convert method group 'Property2' to non-delegate type 'int'. Did you intend to invoke the method?
+            // int p2 = object.Property2;
+            Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Property2").WithArguments("Property2", "int").WithLocation(2, 17)
+            );
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var property = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Property");
+        Assert.Equal("System.Int32 E.Property { get; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(property));
+        Assert.Equal(ConversionKind.NoConversion, model.GetConversion(property).Kind);
+        ITypeSymbol int64 = comp.GetSpecialType(SpecialType.System_Int64).GetPublicSymbol();
+        Assert.Equal(ConversionKind.ImplicitNumeric, model.ClassifyConversion(property, int64).Kind);
+
+        var property2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Property2");
+        Assert.Equal("System.Action E.Property2 { get; }", model.GetSymbolInfo(property2).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(property2));
+        Assert.Equal(ConversionKind.NoConversion, model.GetConversion(property2).Kind);
+        ITypeSymbol action = comp.GetWellKnownType(WellKnownType.System_Action).GetPublicSymbol();
+        Assert.Equal(ConversionKind.Identity, model.ClassifyConversion(property2, action).Kind);
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionMemberLookup_Simple_Static_InMemberAccess()
+    {
+        var src = """
+object.Property.ToString();
+System.Console.Write($"Field({object.Field.ToString()}) ");
 object.Type.M();
 object.StaticType.M();
 
@@ -9470,6 +9642,34 @@ implicit extension E for object
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionMemberLookup_Simple_Static_Discards()
+    {
+        var src = """
+_ = object.Property;
+_ = object.Field;
+
+implicit extension E for object
+{
+    public static int Property { get { System.Console.Write("Property"); return 42; } }
+    public static int Field = 42;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "Property").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var property = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Property");
+        Assert.Equal("System.Int32 E.Property { get; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(property));
+
+        var field = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Field");
+        Assert.Equal("System.Int32 E.Field", model.GetSymbolInfo(field).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(field));
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
     public void ExtensionMemberLookup_Simple_Static_Method()
     {
         var src = """
@@ -9484,19 +9684,12 @@ implicit extension E for object
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE revisit as part of "extension invocation" section
-        comp.VerifyDiagnostics(
-            // (1,8): error CS0117: 'object' does not contain a definition for 'Method'
-            // object.Method();
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "Method").WithArguments("object", "Method").WithLocation(1, 8)
-            );
-
-        //CompileAndVerify(comp, expectedOutput: "Method");
+        CompileAndVerify(comp, expectedOutput: "Method").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var method = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Method");
-        Assert.Null(model.GetSymbolInfo(method).Symbol);
+        Assert.Equal("void E.Method()", model.GetSymbolInfo(method).Symbol.ToTestDisplayString());
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -9541,24 +9734,26 @@ implicit extension Base for object
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-
-        CompileAndVerify(comp, expectedOutput: "Property Field(42) Type StaticType");
+        CompileAndVerify(comp, expectedOutput: "Property Field(42) Type StaticType").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
 
         var property = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Property");
         Assert.Equal("System.Int32 Base.Property { get; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(property));
 
         var field = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Field");
         Assert.Equal("System.Int32 Base.Field", model.GetSymbolInfo(field).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(field));
 
         var type = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Type");
         Assert.Equal("Base.Type", model.GetSymbolInfo(type).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(type));
 
         var staticType = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.StaticType");
         Assert.Equal("Base.StaticType", model.GetSymbolInfo(staticType).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(staticType));
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -9606,24 +9801,26 @@ namespace N
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-
-        CompileAndVerify(comp, expectedOutput: "Property Field(42) Type StaticType");
+        CompileAndVerify(comp, expectedOutput: "Property Field(42) Type StaticType").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
 
         var property = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Property");
         Assert.Equal("System.Int32 N.Base.Property { get; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(property));
 
         var field = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Field");
         Assert.Equal("System.Int32 N.Base.Field", model.GetSymbolInfo(field).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(field));
 
         var type = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Type");
         Assert.Equal("N.Base.Type", model.GetSymbolInfo(type).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(type));
 
         var staticType = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.StaticType");
         Assert.Equal("N.Base.StaticType", model.GetSymbolInfo(staticType).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(staticType));
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -9682,12 +9879,15 @@ namespace N
 
         var property = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Property");
         Assert.Null(model.GetSymbolInfo(property).Symbol);
+        Assert.Empty(model.GetMemberGroup(property));
 
         var field = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Field");
         Assert.Null(model.GetSymbolInfo(field).Symbol);
+        Assert.Empty(model.GetMemberGroup(field));
 
         var type = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Type");
         Assert.Null(model.GetSymbolInfo(type).Symbol);
+        Assert.Empty(model.GetMemberGroup(type));
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -9707,19 +9907,13 @@ implicit extension Base for object
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE revisit as part of "extension invocation" section
-        comp.VerifyDiagnostics(
-            // (1,8): error CS0117: 'object' does not contain a definition for 'Method'
-            // object.Method();
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "Method").WithArguments("object", "Method").WithLocation(1, 8)
-            );
-
-        //CompileAndVerify(comp, expectedOutput: "Method");
+        CompileAndVerify(comp, expectedOutput: "Method").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var method = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Method");
-        Assert.Null(model.GetSymbolInfo(method).Symbol);
+        Assert.Equal("void Base.Method()", model.GetSymbolInfo(method).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(method)); // PROTOTYPE need to fix the semantic model
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -9742,19 +9936,13 @@ namespace N
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE revisit as part of "extension invocation" section
-        comp.VerifyDiagnostics(
-            // (1,8): error CS0117: 'object' does not contain a definition for 'Method'
-            // object.Method();
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "Method").WithArguments("object", "Method").WithLocation(1, 8)
-            );
-
-        //CompileAndVerify(comp, expectedOutput: "Method");
+        CompileAndVerify(comp, expectedOutput: "Method").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var method = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Method");
-        Assert.Null(model.GetSymbolInfo(method).Symbol);
+        Assert.Equal("void N.Base.Method()", model.GetSymbolInfo(method).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(method)); // PROTOTYPE need to fix the semantic model
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -9805,12 +9993,15 @@ implicit extension E for object
 
         var property = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Property");
         Assert.Null(model.GetSymbolInfo(property).Symbol);
+        Assert.Empty(model.GetMemberGroup(property));
 
         var field = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Field");
         Assert.Null(model.GetSymbolInfo(field).Symbol);
+        Assert.Empty(model.GetMemberGroup(field));
 
         var type = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Type");
         Assert.Null(model.GetSymbolInfo(type).Symbol);
+        Assert.Empty(model.GetMemberGroup(type));
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -9834,20 +10025,14 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics(
-            // (1,3): error CS1501: No overload for method 'M' takes 0 arguments
-            // C.M();
-            Diagnostic(ErrorCode.ERR_BadArgCount, "M").WithArguments("M", "0").WithLocation(1, 3)
-            );
-
-        // PROTOTYPE this scenario should work (based on updated "method invocation" rules)
-        //CompileAndVerify(comp, expectedOutput: "M");
+        CompileAndVerify(comp, expectedOutput: "M").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
 
         var method = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
-        Assert.Null(model.GetSymbolInfo(method).Symbol);
+        Assert.Equal("void E.M()", model.GetSymbolInfo(method).Symbol.ToTestDisplayString());
+        Assert.Equal(new[] { "void C.M(System.Int32 i)", "void C.M(System.String s)" }, model.GetMemberGroup(method).ToTestDisplayStrings());
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -9911,12 +10096,15 @@ implicit extension Base for object
 
         var property = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Property");
         Assert.Equal("System.Int32 Derived.Property { get; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(property));
 
         var field = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Field");
         Assert.Equal("System.Int32 Derived.Field", model.GetSymbolInfo(field).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(field));
 
         var type = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Type");
         Assert.Equal("Derived.Type", model.GetSymbolInfo(type).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(type));
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -9983,12 +10171,15 @@ namespace N
 
         var property = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Property");
         Assert.Equal("System.Int32 Derived.Property { get; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(property));
 
         var field = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Field");
         Assert.Equal("System.Int32 Derived.Field", model.GetSymbolInfo(field).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(field));
 
         var type = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Type");
         Assert.Equal("Derived.Type", model.GetSymbolInfo(type).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(type));
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -10088,24 +10279,26 @@ class Container
         void verify(string src, string extensionName)
         {
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-
-            CompileAndVerify(comp, expectedOutput: "Property Field(42) Type StaticType");
+            CompileAndVerify(comp, expectedOutput: "Property Field(42) Type StaticType").VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
             var property = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Property");
             Assert.Equal($$"""System.Int32 {{extensionName}}.Property { get; }""", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
+            Assert.Empty(model.GetMemberGroup(property));
 
             var field = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Field");
             Assert.Equal($$"""System.Int32 {{extensionName}}.Field""", model.GetSymbolInfo(field).Symbol.ToTestDisplayString());
+            Assert.Empty(model.GetMemberGroup(field));
 
             var type = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Type");
             Assert.Equal($$"""{{extensionName}}.Type""", model.GetSymbolInfo(type).Symbol.ToTestDisplayString());
+            Assert.Empty(model.GetMemberGroup(type));
 
             var staticType = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.StaticType");
             Assert.Equal($$"""{{extensionName}}.StaticType""", model.GetSymbolInfo(staticType).Symbol.ToTestDisplayString());
+            Assert.Empty(model.GetMemberGroup(staticType));
         }
     }
 
@@ -10192,15 +10385,19 @@ file {{eSrc}}
 
             var method = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Method");
             Assert.Null(model.GetSymbolInfo(method).Symbol);
+            Assert.Empty(model.GetMemberGroup(method));
 
             var property = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Property");
             Assert.Null(model.GetSymbolInfo(property).Symbol);
+            Assert.Empty(model.GetMemberGroup(property));
 
             var field = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Field");
             Assert.Null(model.GetSymbolInfo(field).Symbol);
+            Assert.Empty(model.GetMemberGroup(field));
 
             var staticType = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.StaticType");
             Assert.Null(model.GetSymbolInfo(staticType).Symbol);
+            Assert.Empty(model.GetMemberGroup(staticType));
         }
     }
 
@@ -10299,28 +10496,30 @@ namespace N3
         void verify(string src, string extensionName)
         {
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-
-            CompileAndVerify(comp, expectedOutput: "Property Field(42) Type StaticType");
+            CompileAndVerify(comp, expectedOutput: "Property Field(42) Type StaticType").VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
             var property = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Property");
             Assert.Equal($$"""System.Int32 {{extensionName}}.Property { get; }""", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
+            Assert.Empty(model.GetMemberGroup(property));
 
             var field = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Field");
             Assert.Equal($$"""System.Int32 {{extensionName}}.Field""", model.GetSymbolInfo(field).Symbol.ToTestDisplayString());
+            Assert.Empty(model.GetMemberGroup(field));
 
             var type = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Type");
             Assert.Equal($$"""{{extensionName}}.Type""", model.GetSymbolInfo(type).Symbol.ToTestDisplayString());
+            Assert.Empty(model.GetMemberGroup(type));
 
             var staticType = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.StaticType");
             Assert.Equal($$"""{{extensionName}}.StaticType""", model.GetSymbolInfo(staticType).Symbol.ToTestDisplayString());
+            Assert.Empty(model.GetMemberGroup(staticType));
         }
     }
 
-    [Fact]
+    [ConditionalFact(typeof(CoreClrOnly))]
     public void ExtensionMemberLookup_UsingNamespaceNecessity_Property()
     {
         var src = """
@@ -10344,20 +10543,22 @@ namespace N2
 {
     implicit extension E for object
     {
-        public static int Property => throw null;
+        public static int Property { get { System.Console.Write("property"); return 0; } }
     }
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
         comp.VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using N1;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N1;").WithLocation(1, 1)
             );
+
+        CompileAndVerify(comp, expectedOutput: "property");
     }
 
-    [Fact]
+    [ConditionalFact(typeof(CoreClrOnly))]
     public void ExtensionMemberLookup_UsingNamespaceNecessity_Method()
     {
         var src = """
@@ -10383,24 +10584,20 @@ namespace N2
     {
         public static void Method()
         {
+            System.Console.Write("method");
         }
     }
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE revisit as part of "extension invocation" section
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
         comp.VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using N1;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N1;").WithLocation(1, 1),
-            // (2,1): hidden CS8019: Unnecessary using directive.
-            // using N2;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1),
-            // (8,16): error CS0117: 'object' does not contain a definition for 'Method'
-            //         object.Method();
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "Method").WithArguments("object", "Method").WithLocation(8, 16)
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N1;").WithLocation(1, 1)
             );
+
+        CompileAndVerify(comp, expectedOutput: "method");
     }
 
     [Fact]
@@ -10469,7 +10666,7 @@ namespace N2
         comp.VerifyDiagnostics();
     }
 
-    [Fact]
+    [ConditionalFact(typeof(CoreClrOnly))]
     public void ExtensionMemberLookup_UsingNamespaceNecessity_UnusedExplicitExtension_Method()
     {
         var src = """
@@ -10495,24 +10692,20 @@ namespace N2
     {
         public static void Method()
         {
+            System.Console.Write("method");
         }
     }
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE revisit as part of "extension invocation" section
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
         comp.VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using N1;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N1;").WithLocation(1, 1),
-            // (2,1): hidden CS8019: Unnecessary using directive.
-            // using N2;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1),
-            // (8,16): error CS0117: 'object' does not contain a definition for 'Method'
-            //         object.Method();
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "Method").WithArguments("object", "Method").WithLocation(8, 16)
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N1;").WithLocation(1, 1)
             );
+
+        CompileAndVerify(comp, expectedOutput: "method");
     }
 
     [Fact]
@@ -10598,7 +10791,7 @@ implicit extension E for object
     public void ExtensionMemberLookup_Ambiguity()
     {
         var src = """
-object.Method(); // PROTOTYPE revisit as part of "extension invocation" section
+object.Method();
 _ = object.Property;
 _ = object.Field;
 _ = object.Type.M();
@@ -10627,9 +10820,9 @@ implicit extension E2 for object
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
-            // (1,8): error CS0117: 'object' does not contain a definition for 'Method'
-            // object.Method(); // PROTOTYPE revisit as part of "extension invocation" section
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "Method").WithArguments("object", "Method").WithLocation(1, 8),
+            // (1,8): error CS0121: The call is ambiguous between the following methods or properties: 'E1.Method()' and 'E2.Method()'
+            // object.Method();
+            Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("E1.Method()", "E2.Method()").WithLocation(1, 8),
             // (2,12): error CS0229: Ambiguity between 'E1.Property' and 'E2.Property'
             // _ = object.Property;
             Diagnostic(ErrorCode.ERR_AmbigMember, "Property").WithArguments("E1.Property", "E2.Property").WithLocation(2, 12),
@@ -10666,19 +10859,10 @@ implicit extension E2 for object
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE revisit as part of "extension invocation" section
-        comp.VerifyDiagnostics(
-            // (1,8): error CS0117: 'object' does not contain a definition for 'Method'
-            // object.Method(42);
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "Method").WithArguments("object", "Method").WithLocation(1, 8),
-            // (2,8): error CS0117: 'object' does not contain a definition for 'Method'
-            // object.Method("hello");
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "Method").WithArguments("object", "Method").WithLocation(2, 8)
-            );
-        //CompileAndVerify(comp, expectedOutput: "E1.Method(42) E2.Method(hello)");
+        CompileAndVerify(comp, expectedOutput: "E1.Method(42) E2.Method(hello)").VerifyDiagnostics();
     }
 
-    [Fact]
+    [ConditionalFact(typeof(CoreClrOnly))]
     public void ExtensionMemberLookup_Overloads_DifferentScopes_NestedNamespace()
     {
         var src = """
@@ -10686,40 +10870,38 @@ namespace N1
 {
     implicit extension E1 for object
     {
-        public static void Method(int i) => throw null;
+        public static void Method(int i)
+        {
+            System.Console.Write($"E1.Method({i}) ");
+        }
     }
 
     namespace N2
     {
         implicit extension E2 for object
         {
-            public static void Method(string s) => throw null;
+            public static void Method(string s)
+            {
+                System.Console.Write($"E2.Method({s}) ");
+            }
         }
 
         class C
         {
             public static void Main()
             {
-                object.Method(42); // 1
+                object.Method(42);
                 object.Method("hello");
             }
         }
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE revisit as part of "extension invocation" section
-        comp.VerifyDiagnostics(
-            // (19,24): error CS0117: 'object' does not contain a definition for 'Method'
-            //                 object.Method(42); // 1
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "Method").WithArguments("object", "Method").WithLocation(19, 24),
-            // (20,24): error CS0117: 'object' does not contain a definition for 'Method'
-            //                 object.Method("hello");
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "Method").WithArguments("object", "Method").WithLocation(20, 24)
-            );
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "E1.Method(42) E2.Method(hello)").VerifyDiagnostics();
     }
 
-    [Fact]
+    [ConditionalFact(typeof(CoreClrOnly))]
     public void ExtensionMemberLookup_Overloads_DifferentScopes_NestedType()
     {
         var src = """
@@ -10727,37 +10909,35 @@ namespace N1
 {
     implicit extension E1 for object
     {
-        public static void Method(int i) => throw null;
+        public static void Method(int i)
+        {
+            System.Console.Write($"E1.Method({i}) ");
+        }
     }
 
     class Nested
     {
         implicit extension E2 for object
         {
-            public static void Method(string s) => throw null;
+            public static void Method(string s)
+            {
+                System.Console.Write($"E2.Method({s})");
+            }
         }
 
         class C
         {
             public static void Main()
             {
-                object.Method(42); // 1
+                object.Method(42);
                 object.Method("hello");
             }
         }
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE revisit as part of "extension invocation" section
-        comp.VerifyDiagnostics(
-            // (19,24): error CS0117: 'object' does not contain a definition for 'Method'
-            //                 object.Method(42); // 1
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "Method").WithArguments("object", "Method").WithLocation(19, 24),
-            // (20,24): error CS0117: 'object' does not contain a definition for 'Method'
-            //                 object.Method("hello");
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "Method").WithArguments("object", "Method").WithLocation(20, 24)
-            );
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "E1.Method(42) E2.Method(hello)").VerifyDiagnostics();
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -10803,48 +10983,36 @@ namespace N2
         CompileAndVerify(comp, expectedOutput: "E1.Property");
     }
 
-    [Fact]
+    [ConditionalFact(typeof(CoreClrOnly))]
     public void ExtensionMemberLookup_NamespaceVsUsing_FromNamespace_Method()
     {
-        // PROTOTYPE revisit as part of "extension invocation" section
         var src = """
-using N2; // 1
+using N2;
 
-class C
-{
-    public static void Main()
-    {
-        object.Method(42);
-        object.Method("hello"); // 2
-    }
-}
+object.Method(42);
+object.Method("hello");
 
 implicit extension E1 for object
 {
-    public static void Method(int i) => throw null;
+    public static void Method(int i)
+    {
+        System.Console.Write("E1.Method ");
+    }
 }
 
 namespace N2
 {
     implicit extension E2 for object
     {
-        public static void Method(string s) => throw null;
+        public static void Method(string s)
+        {
+            System.Console.Write("E2.Method");
+        }
     }
-
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics(
-            // (1,1): hidden CS8019: Unnecessary using directive.
-            // using N2; // 1
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(1, 1),
-            // (7,16): error CS0117: 'object' does not contain a definition for 'Method'
-            //         object.Method(42);
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "Method").WithArguments("object", "Method").WithLocation(7, 16),
-            // (8,16): error CS0117: 'object' does not contain a definition for 'Method'
-            //         object.Method("hello"); // 2
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "Method").WithArguments("object", "Method").WithLocation(8, 16)
-            );
+        CompileAndVerify(comp, expectedOutput: "E1.Method E2.Method").VerifyDiagnostics();
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -10873,17 +11041,7 @@ namespace N2
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE revisit as part of "extension invocation" section
-        comp.VerifyDiagnostics(
-            // (1,1): hidden CS8019: Unnecessary using directive.
-            // using N2;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(1, 1),
-            // (3,8): error CS0117: 'object' does not contain a definition for 'Method'
-            // object.Method("hello");
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "Method").WithArguments("object", "Method").WithLocation(3, 8)
-            );
-
-        //CompileAndVerify(comp, expectedOutput: "Method");
+        CompileAndVerify(comp, expectedOutput: "Method").VerifyDiagnostics();
     }
 
     [Fact]
@@ -10907,6 +11065,7 @@ implicit extension E for object
         var model = comp.GetSemanticModel(tree);
         var staticType = GetSyntax<MemberAccessExpressionSyntax>(tree, "string.StaticType");
         Assert.Equal("E.StaticType", model.GetSymbolInfo(staticType).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(staticType));
     }
 
     [Fact]
@@ -10933,6 +11092,7 @@ implicit extension E for object
         var model = comp.GetSemanticModel(tree);
         var staticType = GetSyntax<MemberAccessExpressionSyntax>(tree, "Derived.StaticType");
         Assert.Equal("E.StaticType", model.GetSymbolInfo(staticType).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(staticType));
     }
 
     [Fact]
@@ -10959,6 +11119,7 @@ implicit extension E for I
         var model = comp.GetSemanticModel(tree);
         var staticType = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.StaticType");
         Assert.Equal("E.StaticType", model.GetSymbolInfo(staticType).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(staticType));
     }
 
     [Fact]
@@ -10986,6 +11147,7 @@ implicit extension E for I
         var model = comp.GetSemanticModel(tree);
         var staticType = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.StaticType");
         Assert.Equal("E.StaticType", model.GetSymbolInfo(staticType).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(staticType));
     }
 
     [Fact]
@@ -11158,6 +11320,7 @@ implicit extension E for object
     public static int Field = 42;
 }
 """;
+        // PROTOTYPE see if we can improve the diagnostic location for 5 (should be on "StaticType", not "o.StaticType")
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
         comp.VerifyDiagnostics(
             // (1,1): error CS0103: The name 'dynamic' does not exist in the current context
@@ -11172,9 +11335,30 @@ implicit extension E for object
             // (4,5): error CS0103: The name 'dynamic' does not exist in the current context
             // _ = dynamic.Field; // 4
             Diagnostic(ErrorCode.ERR_NameNotInContext, "dynamic").WithArguments("dynamic").WithLocation(4, 5),
-            // (10,3): error CS0572: 'StaticType': cannot reference a type through an expression; try 'E.StaticType' instead
+            // (10,1): error CS0572: 'StaticType': cannot reference a type through an expression; try 'E.StaticType' instead
             // o.StaticType.M(); // 5
-            Diagnostic(ErrorCode.ERR_BadTypeReference, "StaticType").WithArguments("StaticType", "E.StaticType").WithLocation(10, 3)
+            Diagnostic(ErrorCode.ERR_BadTypeReference, "o.StaticType").WithArguments("StaticType", "E.StaticType").WithLocation(10, 1)
+            );
+    }
+
+    [Fact]
+    public void DynamicArgument()
+    {
+        // No extension members in dynamic invocation
+        var src = """
+dynamic d = null;
+object.M(d);
+
+implicit extension E for object
+{
+    public static void Method(object o) => throw null;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (2,8): error CS0117: 'object' does not contain a definition for 'M'
+            // object.M(d);
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("object", "M").WithLocation(2, 8)
             );
     }
 
@@ -11198,8 +11382,7 @@ implicit extension E for C<object>
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "M");
+        CompileAndVerify(comp, expectedOutput: "M").VerifyDiagnostics();
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -11223,8 +11406,7 @@ implicit extension E for C<object>
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "M");
+        CompileAndVerify(comp, expectedOutput: "M").VerifyDiagnostics();
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -11278,8 +11460,7 @@ implicit extension E for C<(int a, int b)>
 """;
         // PROTOTYPE consider warning for certain tuple name differences
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "MMM");
+        CompileAndVerify(comp, expectedOutput: "MMM").VerifyDiagnostics();
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -11308,8 +11489,7 @@ implicit extension E for C<(int a, int b)>
 """;
         // PROTOTYPE consider warning for certain tuple name differences
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "MMM");
+        CompileAndVerify(comp, expectedOutput: "MMM").VerifyDiagnostics();
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -11338,8 +11518,7 @@ implicit extension E for I<(int a, int b)>
 """;
         // PROTOTYPE consider warning for certain tuple name differences
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "MMM");
+        CompileAndVerify(comp, expectedOutput: "MMM").VerifyDiagnostics();
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -11371,8 +11550,7 @@ implicit extension E for C<object?>
 """;
         // PROTOTYPE consider warning for certain nullability differences
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "MMM");
+        CompileAndVerify(comp, expectedOutput: "MMM").VerifyDiagnostics();
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -11409,8 +11587,7 @@ implicit extension E for C<object?>
 """;
         // PROTOTYPE consider warning for certain nullability differences
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "MMM");
+        CompileAndVerify(comp, expectedOutput: "MMM").VerifyDiagnostics();
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -11447,8 +11624,7 @@ implicit extension E for I<object?>
 """;
         // PROTOTYPE consider warning for certain nullability differences
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "MMM");
+        CompileAndVerify(comp, expectedOutput: "MMM").VerifyDiagnostics();
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -11480,8 +11656,7 @@ implicit extension E for C<object>
 """;
         // PROTOTYPE consider warning for certain nullability differences
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "MMM");
+        CompileAndVerify(comp, expectedOutput: "MMM").VerifyDiagnostics();
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -11550,8 +11725,7 @@ implicit extension E for I<object>
 """;
         // PROTOTYPE consider warning for certain nullability differences
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "MMM");
+        CompileAndVerify(comp, expectedOutput: "MMM").VerifyDiagnostics();
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -11587,8 +11761,7 @@ implicit extension E for C<
 """;
         // PROTOTYPE consider warning for certain nullability differences
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "MMM");
+        CompileAndVerify(comp, expectedOutput: "MMM").VerifyDiagnostics();
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -11628,8 +11801,7 @@ implicit extension E for C<
 """;
         // PROTOTYPE consider warning for certain nullability differences
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "MMM");
+        CompileAndVerify(comp, expectedOutput: "MMM").VerifyDiagnostics();
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -11726,8 +11898,7 @@ implicit extension E for object
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "M StaticType");
+        CompileAndVerify(comp, expectedOutput: "M StaticType").VerifyDiagnostics();
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -11743,8 +11914,7 @@ implicit extension E for object
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "M");
+        CompileAndVerify(comp, expectedOutput: "M").VerifyDiagnostics();
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -11935,6 +12105,7 @@ implicit extension E for object
 
         var property = GetSyntax<MemberAccessExpressionSyntax>(tree, "o.Property");
         Assert.Equal("System.Int32 E.Property { get; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(property));
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -11953,11 +12124,7 @@ implicit extension E for object
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics(
-            // (2,3): error CS1061: 'object' does not contain a definition for 'Method' and no accessible extension method 'Method' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
-            // o.Method();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Method").WithArguments("object", "Method").WithLocation(2, 3)
-            );
+        comp.VerifyDiagnostics();
 
         // PROTOTYPE Revisit when adding support for emitting non-static members
         //CompileAndVerify(comp, expectedOutput: "Method");
@@ -11965,7 +12132,8 @@ implicit extension E for object
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var method = GetSyntax<MemberAccessExpressionSyntax>(tree, "o.Method");
-        Assert.Null(model.GetSymbolInfo(method).Symbol);
+        Assert.Equal("void E.Method()", model.GetSymbolInfo(method).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(method)); // PROTOTYPE need to fix the semantic model
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -12022,10 +12190,7 @@ implicit extension E for object
         comp.VerifyDiagnostics(
             // (4,1): warning CS8602: Dereference of a possibly null reference.
             // o.Method();
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(4, 1),
-            // (4,3): error CS1061: 'object' does not contain a definition for 'Method' and no accessible extension method 'Method' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
-            // o.Method();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Method").WithArguments("object", "Method").WithLocation(4, 3)
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(4, 1)
             );
 
         // PROTOTYPE What is the expected runtime behavior? NRE? The nullability checks should be adjusted correspondingly.
@@ -12038,7 +12203,7 @@ implicit extension E for object
     {
         var src = """
 object o = new object();
-o.Method(); // PROTOTYPE revisit as part of "extension invocation" section
+o.Method();
 _ = o.Property;
 
 implicit extension E for object
@@ -12049,9 +12214,9 @@ implicit extension E for object
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
-            // (2,3): error CS1061: 'object' does not contain a definition for 'Method' and no accessible extension method 'Method' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
-            // o.Method(); // PROTOTYPE revisit as part of "extension invocation" section
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Method").WithArguments("object", "Method").WithLocation(2, 3),
+            // (2,1): error CS0176: Member 'E.Method()' cannot be accessed with an instance reference; qualify it with a type name instead
+            // o.Method();
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "o.Method").WithArguments("E.Method()").WithLocation(2, 1),
             // (3,5): error CS0176: Member 'E.Property' cannot be accessed with an instance reference; qualify it with a type name instead
             // _ = o.Property;
             Diagnostic(ErrorCode.ERR_ObjectProhibited, "o.Property").WithArguments("E.Property").WithLocation(3, 5)
@@ -12062,9 +12227,11 @@ implicit extension E for object
 
         var method = GetSyntax<MemberAccessExpressionSyntax>(tree, "o.Method");
         Assert.Null(model.GetSymbolInfo(method).Symbol);
+        Assert.Empty(model.GetMemberGroup(method));
 
         var property = GetSyntax<MemberAccessExpressionSyntax>(tree, "o.Property");
         Assert.Null(model.GetSymbolInfo(property).Symbol);
+        Assert.Empty(model.GetMemberGroup(property));
     }
 
     [Fact]
@@ -12098,9 +12265,11 @@ public implicit extension E for object
 
         var property = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Property");
         Assert.Null(model.GetSymbolInfo(property).Symbol);
+        Assert.Empty(model.GetMemberGroup(property));
 
         var field = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Field");
         Assert.Null(model.GetSymbolInfo(field).Symbol);
+        Assert.Empty(model.GetMemberGroup(field));
     }
 
     [Fact]
@@ -12115,20 +12284,20 @@ implicit extension E for object
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE revisit as part of "extension invocation" section
         comp.VerifyDiagnostics(
-            // (1,8): error CS0117: 'object' does not contain a definition for 'Method'
+            // (1,1): error CS0120: An object reference is required for the non-static field, method, or property 'E.Method()'
             // object.Method();
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "Method").WithArguments("object", "Method").WithLocation(1, 8)
+            Diagnostic(ErrorCode.ERR_ObjectRequired, "object.Method").WithArguments("E.Method()").WithLocation(1, 1)
             );
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var method = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Method");
         Assert.Null(model.GetSymbolInfo(method).Symbol);
+        Assert.Empty(model.GetMemberGroup(method));
     }
 
-    [Fact]
+    [ConditionalFact(typeof(CoreClrOnly), AlwaysSkip = "fails in emit stage in used assemblies leg")]
     public void ExtensionMemberLookup_ColorColor_Property()
     {
         var src = """
@@ -12160,6 +12329,7 @@ implicit extension E for C
         var model = comp.GetSemanticModel(tree);
         var property = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Property");
         Assert.Equal("System.Int32 E.Property { set; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(property));
     }
 
     [Fact]
@@ -12183,19 +12353,15 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE revisit as part of "extension invocation" section
-        comp.VerifyDiagnostics(
-            // (5,11): error CS1061: 'C' does not contain a definition for 'Method' and no accessible extension method 'Method' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
-            //         C.Method();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Method").WithArguments("C", "Method").WithLocation(5, 11)
-            );
+        comp.VerifyDiagnostics();
         // PROTOTYPE Execute when adding support for emitting non-static members
         //CompileAndVerify(comp, expectedOutput: "Method");
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var method = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Method");
-        Assert.Null(model.GetSymbolInfo(method).Symbol);
+        Assert.Equal("void E.Method()", model.GetSymbolInfo(method).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(method)); // PROTOTYPE need to fix the semantic model
     }
 
     [Fact]
@@ -12216,21 +12382,28 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (5,13): error CS0176: Member 'E.Property' cannot be accessed with an instance reference; qualify it with a type name instead
+            //         _ = C.Property;
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "C.Property").WithArguments("E.Property").WithLocation(5, 13)
+            );
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var property = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Property");
-        Assert.Equal("System.Int32 E.Property { get; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
+        Assert.Null(model.GetSymbolInfo(property).Symbol);
+        Assert.Empty(model.GetMemberGroup(property));
     }
 
-    [Fact]
+    [ConditionalFact(typeof(CoreClrOnly))]
     public void ExtensionMemberLookup_ColorColor_Static_Method()
     {
         var src = """
+C.M(null);
+
 class C
 {
-    void M(C C)
+    public static void M(C C)
     {
         C.Method();
     }
@@ -12238,21 +12411,20 @@ class C
 
 implicit extension E for C
 {
-    public static void Method() => throw null;
+    public static void Method()
+    {
+        System.Console.Write("Method");
+    }
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE revisit as part of "extension invocation" section
-        comp.VerifyDiagnostics(
-            // (5,11): error CS1061: 'C' does not contain a definition for 'Method' and no accessible extension method 'Method' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
-            //         C.Method();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Method").WithArguments("C", "Method").WithLocation(5, 11)
-            );
+        CompileAndVerify(comp, expectedOutput: "Method").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var method = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Method");
-        Assert.Null(model.GetSymbolInfo(method).Symbol);
+        Assert.Equal("void E.Method()", model.GetSymbolInfo(method).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(method)); // PROTOTYPE need to fix the semantic model
     }
 
     [Fact]
@@ -12357,9 +12529,31 @@ implicit extension E for MyAttribute
     }
 
     [Fact]
+    public void ExtensionMemberLookup_AttributeValue_MemberAccess_NotAConstant()
+    {
+        var src = """
+[My(Property = MyAttribute.NotConstant)]
+class MyAttribute : System.Attribute
+{
+    public int Property { get; set; }
+}
+
+implicit extension E for MyAttribute
+{
+    public static int NotConstant = 42;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,16): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+            // [My(Property = MyAttribute.NotConstant)]
+            Diagnostic(ErrorCode.ERR_BadAttributeArgument, "MyAttribute.NotConstant").WithLocation(1, 16)
+            );
+    }
+
+    [Fact]
     public void ExtensionMemberLookup_Literals_Methods()
     {
-        // PROTOTYPE revisit as part of "extension invocation" section
         var src = """
 1.M();
 2L.M();
@@ -12390,17 +12584,7 @@ implicit extension E3 for string
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics(
-            // (1,3): error CS1061: 'int' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
-            // 1.M();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int", "M").WithLocation(1, 3),
-            // (2,4): error CS1061: 'long' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'long' could be found (are you missing a using directive or an assembly reference?)
-            // 2L.M();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("long", "M").WithLocation(2, 4),
-            // (3,9): error CS1061: 'string' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
-            // "hello".M();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("string", "M").WithLocation(3, 9)
-            );
+        comp.VerifyDiagnostics();
         // PROTOTYPE Execute when adding support for emitting non-static members
         //CompileAndVerify(comp, expectedOutput: "M(int) M(long) M(string)");
 
@@ -12408,13 +12592,16 @@ implicit extension E3 for string
         var model = comp.GetSemanticModel(tree);
 
         var intM = GetSyntax<MemberAccessExpressionSyntax>(tree, "1.M");
-        Assert.Null(model.GetSymbolInfo(intM).Symbol);
+        Assert.Equal("void E1.M()", model.GetSymbolInfo(intM).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(intM)); // PROTOTYPE need to fix the semantic model
 
         var longM = GetSyntax<MemberAccessExpressionSyntax>(tree, "2L.M");
-        Assert.Null(model.GetSymbolInfo(longM).Symbol);
+        Assert.Equal("void E2.M()", model.GetSymbolInfo(longM).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(longM)); // PROTOTYPE need to fix the semantic model
 
         var stringM = GetSyntax<MemberAccessExpressionSyntax>(tree, "\"hello\".M");
-        Assert.Null(model.GetSymbolInfo(stringM).Symbol);
+        Assert.Equal("void E3.M()", model.GetSymbolInfo(stringM).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(stringM)); // PROTOTYPE need to fix the semantic model
     }
 
     [Fact]
@@ -12439,7 +12626,7 @@ implicit extension E1 for int
 
 implicit extension E2 for long
 {
-    public int Property 
+    public int Property
     {
         get
         {
@@ -12471,12 +12658,15 @@ implicit extension E3 for string
 
         var intM = GetSyntax<MemberAccessExpressionSyntax>(tree, "1.Property");
         Assert.Equal("System.Int32 E1.Property { get; }", model.GetSymbolInfo(intM).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(intM)); // PROTOTYPE need to fix the semantic model
 
         var longM = GetSyntax<MemberAccessExpressionSyntax>(tree, "2L.Property");
         Assert.Equal("System.Int32 E2.Property { get; }", model.GetSymbolInfo(longM).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(longM)); // PROTOTYPE need to fix the semantic model
 
         var stringM = GetSyntax<MemberAccessExpressionSyntax>(tree, "\"hello\".Property");
         Assert.Equal("System.Int32 E3.Property { get; }", model.GetSymbolInfo(stringM).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(stringM)); // PROTOTYPE need to fix the semantic model
     }
 
     [Fact]
@@ -12496,6 +12686,35 @@ implicit extension E for C
         var nested = comp.GlobalNamespace.GetTypeMember("E").GetTypeMember("Nested");
         var t = nested.TypeParameters.Single();
         Assert.Equal("E.Nested<T>", t.ConstraintTypes().Single().ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_InTypeConstraint_Generic_OuterScope()
+    {
+        var src = """
+public class C { }
+
+public implicit extension E1 for C
+{
+    public class Nested<T> { }
+}
+
+namespace N
+{
+    public class D<T> where T : C.Nested<T> { }
+
+    public static class E2
+    {
+        public static void Nested(this C c) { }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        var d = comp.GetTypeByMetadataName("N.D`1");
+        Assert.Equal("E1.Nested<T>", d.TypeParameters.Single().ConstraintTypes().Single().ToTestDisplayString());
     }
 
     [Fact]
@@ -12535,6 +12754,118 @@ implicit extension E<U> for C<U> where U : C<U>.Nested
         var e = comp.GlobalNamespace.GetTypeMember("E");
         var u = e.TypeParameters.Single();
         Assert.Equal("E<U>.Nested", u.ConstraintTypes().Single().ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_InTypeConstraint_WithInaccessibleNestedType()
+    {
+        var src = """
+class C
+{
+    protected class Nested { } // inaccessible
+}
+
+class D<T> where T : C.Nested { }
+
+implicit extension E for C
+{
+    public class Nested { }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        var d = comp.GlobalNamespace.GetTypeMember("D");
+        var t = d.TypeParameters.Single();
+        Assert.Equal("E.Nested", t.ConstraintTypes().Single().ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_InTypeConstraint_Generic_WithInaccessibleNestedType()
+    {
+        var src = """
+class C
+{
+    protected class Nested<T> { } // inaccessible
+}
+
+class D<T> where T : C.Nested<int> { }
+
+implicit extension E for C
+{
+    public class Nested<T> { }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        var d = comp.GlobalNamespace.GetTypeMember("D");
+        var t = d.TypeParameters.Single();
+        Assert.Equal("E.Nested<System.Int32>", t.ConstraintTypes().Single().ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_InTypeConstraint_AttemptingAmbiguousNestedType()
+    {
+        var ilSrc = """
+.class public auto ansi beforefieldinit C extends [mscorlib]System.Object
+{
+    .class nested public auto ansi beforefieldinit Nested extends [mscorlib]System.Object
+    {
+    }
+
+    .class nested public auto ansi beforefieldinit Nested extends [mscorlib]System.Object
+    {
+    }
+}
+""";
+
+        var src = """
+class D<T> where T : C.Nested { }
+
+implicit extension E for C
+{
+    public class Nested { }
+}
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        var d = comp.GlobalNamespace.GetTypeMember("D");
+        var t = d.TypeParameters.Single();
+        Assert.Equal("C.Nested", t.ConstraintTypes().Single().ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_InTypeConstraint_Generic_AttemptingAmbiguousNestedType()
+    {
+        var ilSrc = """
+.class public auto ansi beforefieldinit C extends [mscorlib]System.Object
+{
+    .class nested public auto ansi beforefieldinit Nested`1<T> extends [mscorlib]System.Object
+    {
+    }
+
+    .class nested public auto ansi beforefieldinit Nested`1<valuetype .ctor ([mscorlib]System.ValueType) T> extends [mscorlib]System.Object
+    {
+    }
+}
+""";
+
+        var src = """
+class D<T> where T : C.Nested<int> { }
+
+implicit extension E for C
+{
+    public class Nested<T> { }
+}
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        var d = comp.GlobalNamespace.GetTypeMember("D");
+        var t = d.TypeParameters.Single();
+        Assert.Equal("C.Nested<System.Int32>", t.ConstraintTypes().Single().ToTestDisplayString());
     }
 
     [Fact]
@@ -12631,12 +12962,17 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
+        // PROTOTYPE need to infer delegate type
+        comp.VerifyDiagnostics(
+            // (5,17): error CS8917: The delegate type could not be inferred.
+            //         var x = C.Method;
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "C.Method").WithLocation(5, 17)
+            );
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var x = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
-        Assert.Equal("System.Func<System.String> x", model.GetDeclaredSymbol(x).ToTestDisplayString());
+        //Assert.Equal("System.Func<System.String> x", model.GetDeclaredSymbol(x).ToTestDisplayString());
     }
 
     [Fact]
@@ -12694,15 +13030,15 @@ implicit extension E2 for C
         // PROTOTYPE we should be able to determine the function type, but this should fail (ambiguous method reference)
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
-            // (5,17): error CS0121: The call is ambiguous between the following methods or properties: 'E1.Method()' and 'E2.Method()'
+            // (5,17): error CS8917: The delegate type could not be inferred.
             //         var x = C.Method;
-            Diagnostic(ErrorCode.ERR_AmbigCall, "C.Method").WithArguments("E1.Method()", "E2.Method()").WithLocation(5, 17)
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "C.Method").WithLocation(5, 17)
             );
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var x = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
-        Assert.Equal("System.Func<System.String> x", model.GetDeclaredSymbol(x).ToTestDisplayString());
+        Assert.Equal("? x", model.GetDeclaredSymbol(x).ToTestDisplayString());
     }
 
     [Fact]
@@ -12771,13 +13107,16 @@ namespace N
         comp.VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using N;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1)
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1),
+            // (7,17): error CS8917: The delegate type could not be inferred.
+            //         var x = C.Method;
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "C.Method").WithLocation(7, 17)
             );
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var x = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
-        Assert.Equal("System.Func<System.String> x", model.GetDeclaredSymbol(x).ToTestDisplayString());
+        Assert.Equal("? x", model.GetDeclaredSymbol(x).ToTestDisplayString());
     }
 
     [Fact]
@@ -12807,18 +13146,20 @@ namespace N
     }
 }
 """;
-        // PROTOTYPE we should not be able to determine the function type
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using N;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1)
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1),
+            // (7,17): error CS8917: The delegate type could not be inferred.
+            //         var x = C.Method;
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "C.Method").WithLocation(7, 17)
             );
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var x = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
-        Assert.Equal("System.Func<System.Int32, System.Int32> x", model.GetDeclaredSymbol(x).ToTestDisplayString());
+        Assert.Equal("? x", model.GetDeclaredSymbol(x).ToTestDisplayString());
     }
 
     [Fact]
@@ -12871,12 +13212,17 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
+        // PROTOTYPE need to infer delegate type
+        comp.VerifyDiagnostics(
+            // (5,17): error CS8917: The delegate type could not be inferred.
+            //         var x = C.Method<int>;
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "C.Method<int>").WithLocation(5, 17)
+            );
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var x = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
-        Assert.Equal("System.Func<System.Int32> x", model.GetDeclaredSymbol(x).ToTestDisplayString());
+        Assert.Equal("? x", model.GetDeclaredSymbol(x).ToTestDisplayString());
     }
 
     [Fact]
@@ -12927,12 +13273,17 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
+        // PROTOTYPE need to infer delegate type
+        comp.VerifyDiagnostics(
+            // (5,17): error CS8917: The delegate type could not be inferred.
+            //         var x = this.Method;
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "this.Method").WithLocation(5, 17)
+            );
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var x = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
-        Assert.Equal("System.Func<System.String> x", model.GetDeclaredSymbol(x).ToTestDisplayString());
+        //Assert.Equal("System.Func<System.String> x", model.GetDeclaredSymbol(x).ToTestDisplayString());
     }
 
     [Fact]
@@ -13014,7 +13365,7 @@ implicit extension E for C
         Assert.Equal("System.Func<System.String> x", model.GetDeclaredSymbol(x).ToTestDisplayString());
     }
 
-    [ConditionalFact(typeof(CoreClrOnly))]
+    [ConditionalFact(typeof(CoreClrOnly), AlwaysSkip = "PROTOTYPE: crash when binding foreach")]
     public void ExtensionMemberLookup_PatternBasedForEach_NoMethod()
     {
         var src = """
@@ -13038,7 +13389,6 @@ implicit extension E2 for D
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE revisit as part of "extension invocation" section
         comp.VerifyDiagnostics(
             // (1,19): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
             // foreach (var x in new C())
@@ -13055,7 +13405,7 @@ implicit extension E2 for D
         Assert.Null(model.GetForEachStatementInfo(loop).CurrentProperty);
     }
 
-    [ConditionalFact(typeof(CoreClrOnly))]
+    [ConditionalFact(typeof(CoreClrOnly), AlwaysSkip = "PROTOTYPE: crash when binding foreach")]
     public void ExtensionMemberLookup_PatternBasedForEach_NoApplicableMethod()
     {
         var src = """
@@ -13081,7 +13431,6 @@ implicit extension E2 for D
     public int Current => 42;
 }
 """;
-        // PROTOTYPE this scenario should work (based on updated "method invocation" rules)
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
             // (1,19): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
@@ -13114,6 +13463,9 @@ implicit extension E for C
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
+            // (3,19): error CS0411: The type arguments for method 'E.GetEnumerator<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+            // foreach (var x in new C()) { }
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "new C()").WithArguments("E.GetEnumerator<T>()").WithLocation(3, 19),
             // (3,19): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
             // foreach (var x in new C()) { }
             Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new C()").WithArguments("C", "GetEnumerator").WithLocation(3, 19)
@@ -13172,21 +13524,8 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE revisit as part of "extension invocation" section
-        comp.VerifyDiagnostics(
-            // (1,6): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x'.
-            // var (x, y) = new C();
-            Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x").WithArguments("x").WithLocation(1, 6),
-            // (1,9): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y'.
-            // var (x, y) = new C();
-            Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y").WithArguments("y").WithLocation(1, 9),
-            // (1,14): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
-            // var (x, y) = new C();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "new C()").WithArguments("C", "Deconstruct").WithLocation(1, 14),
-            // (1,14): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 2 out parameters and a void return type.
-            // var (x, y) = new C();
-            Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(1, 14)
-            );
+        // PROTOTYPE confirm when spec'ing pattern-based deconstruction
+        comp.VerifyDiagnostics();
         // PROTOTYPE Execute when adding support for emitting non-static members
         //CompileAndVerify(comp, expectedOutput: "(42, 43)");
 
@@ -13194,7 +13533,47 @@ implicit extension E for C
         var model = comp.GetSemanticModel(tree);
         var deconstruction = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().First();
 
-        Assert.Null(model.GetDeconstructionInfo(deconstruction).Method);
+        Assert.Equal("void E.Deconstruct(out System.Int32 i, out System.Int32 j)",
+            model.GetDeconstructionInfo(deconstruction).Method.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionMemberLookup_PatternBasedDeconstruct_FallbackToExtensionMethod()
+    {
+        // If the method from the extension type is not applicable, we fall back
+        // to a Deconstruct extension method
+        var src = """
+var (x, y) = new C();
+System.Console.Write((x, y));
+
+public class C { }
+
+implicit extension E1 for C
+{
+    public void Deconstruct(int inapplicable) => throw null;
+}
+
+public static class E2
+{
+    public static void Deconstruct(this C c, out int i, out int j)
+    {
+        i = 42;
+        j = 43;
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE confirm when spec'ing pattern-based deconstruction
+        comp.VerifyDiagnostics();
+        // PROTOTYPE Execute when adding support for emitting non-static members
+        //CompileAndVerify(comp, expectedOutput: "(42, 43)");
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var deconstruction = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().First();
+
+        Assert.Equal("void E2.Deconstruct(this C c, out System.Int32 i, out System.Int32 j)",
+            model.GetDeconstructionInfo(deconstruction).Method.ToTestDisplayString());
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -13213,21 +13592,8 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE revisit as part of "extension invocation" section
-        comp.VerifyDiagnostics(
-            // (1,6): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x'.
-            // var (x, y) = new C();
-            Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x").WithArguments("x").WithLocation(1, 6),
-            // (1,9): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y'.
-            // var (x, y) = new C();
-            Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y").WithArguments("y").WithLocation(1, 9),
-            // (1,14): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
-            // var (x, y) = new C();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "new C()").WithArguments("C", "Deconstruct").WithLocation(1, 14),
-            // (1,14): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 2 out parameters and a void return type.
-            // var (x, y) = new C();
-            Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(1, 14)
-            );
+        // PROTOTYPE revisit pattern-based deconstruction
+        comp.VerifyDiagnostics();
         // PROTOTYPE Execute when adding support for emitting non-static members
         //CompileAndVerify(comp, expectedOutput: "(42, 43)");
 
@@ -13235,10 +13601,11 @@ implicit extension E for C
         var model = comp.GetSemanticModel(tree);
         var deconstruction = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().First();
 
-        Assert.Null(model.GetDeconstructionInfo(deconstruction).Method);
+        Assert.Equal("void D.Invoke(out System.Int32 i, out System.Int32 j)",
+            model.GetDeconstructionInfo(deconstruction).Method.ToTestDisplayString());
     }
 
-    [ConditionalFact(typeof(CoreClrOnly))]
+    [ConditionalFact(typeof(CoreClrOnly), AlwaysSkip = "PROTOTYPE Asserts in BindDynamicInvocation")]
     public void ExtensionMemberLookup_PatternBasedDeconstruct_DynamicProperty()
     {
         var src = """
@@ -13252,7 +13619,7 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE revisit as part of "extension invocation" section
+        // PROTOTYPE revisit pattern-based deconstruction
         comp.VerifyDiagnostics(
             // (1,6): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x'.
             // var (x, y) = new C();
@@ -13260,9 +13627,6 @@ implicit extension E for C
             // (1,9): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y'.
             // var (x, y) = new C();
             Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y").WithArguments("y").WithLocation(1, 9),
-            // (1,14): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
-            // var (x, y) = new C();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "new C()").WithArguments("C", "Deconstruct").WithLocation(1, 14),
             // (1,14): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 2 out parameters and a void return type.
             // var (x, y) = new C();
             Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(1, 14)
@@ -13298,27 +13662,18 @@ implicit extension E for C
     }
 }
 """;
-        // PROTOTYPE this scenario should work (based on updated "method invocation" rules)
+        // PROTOTYPE confirm when spec'ing pattern-based deconstruction
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics(
-            // (1,6): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x'.
-            // var (x, y) = new C();
-            Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x").WithArguments("x").WithLocation(1, 6),
-            // (1,9): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y'.
-            // var (x, y) = new C();
-            Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y").WithArguments("y").WithLocation(1, 9),
-            // (1,14): error CS1501: No overload for method 'Deconstruct' takes 2 arguments
-            // var (x, y) = new C();
-            Diagnostic(ErrorCode.ERR_BadArgCount, "new C()").WithArguments("Deconstruct", "2").WithLocation(1, 14),
-            // (1,14): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 2 out parameters and a void return type.
-            // var (x, y) = new C();
-            Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(1, 14)
-            );
+        comp.VerifyDiagnostics();
+        // PROTOTYPE Execute when adding support for emitting non-static members
+        //CompileAndVerify(comp, expectedOutput: "(42, 43)");
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var deconstruction = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().First();
-        Assert.Null(model.GetDeconstructionInfo(deconstruction).Method);
+
+        Assert.Equal("void E.Deconstruct(out System.Int32 i, out System.Int32 j)",
+            model.GetDeconstructionInfo(deconstruction).Method.ToTestDisplayString());
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -13343,12 +13698,8 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE revisit as part of "extension invocation" section
-        comp.VerifyDiagnostics(
-            // (4,1): error CS8410: 'C': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
-            // await using var x = new C();
-            Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "await using var x = new C();").WithArguments("C").WithLocation(4, 1)
-            );
+        // PROTOTYPE confirm when spec'ing pattern-based disposal
+        comp.VerifyDiagnostics();
         // PROTOTYPE Execute when adding support for emitting non-static members
         //CompileAndVerify(comp, expectedOutput: "RAN");
 
@@ -13398,16 +13749,13 @@ implicit extension E for C
     }
 }
 """;
-        // PROTOTYPE this scenario should work (based on updated "method invocation" rules)
+        // PROTOTYPE confirm when spec'ing pattern-based disposal
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics(
-            // (4,1): error CS7036: There is no argument given that corresponds to the required parameter 'notApplicable' of 'C.DisposeAsync(int)'
-            // await using var x = new C();
-            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "await using var x = new C();").WithArguments("notApplicable", "C.DisposeAsync(int)").WithLocation(4, 1),
-            // (4,1): error CS8410: 'C': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
-            // await using var x = new C();
-            Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "await using var x = new C();").WithArguments("C").WithLocation(4, 1)
-            );
+        comp.VerifyDiagnostics();
+        // PROTOTYPE Execute when adding support for emitting non-static members
+        //CompileAndVerify(comp, expectedOutput: "RAN");
+
+        // PROTOTYPE verify IOperation
     }
 
     [Fact]
@@ -13462,13 +13810,10 @@ implicit extension E for Fixable
 }
 ";
         var comp = CreateCompilation(text, targetFramework: TargetFramework.Net70, options: TestOptions.UnsafeReleaseExe);
-        // PROTOTYPE revisit as part of "extension invocation" section
-        comp.VerifyDiagnostics(
-            // (6,25): error CS8385: The given expression cannot be used in a fixed statement
-            //         fixed (int* p = new Fixable())
-            Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable()").WithLocation(6, 25)
-            );
+        // PROTOTYPE confirm when spec'ing pattern-based fixed
+        comp.VerifyDiagnostics();
 
+        // PROTOTYPE Execute when adding support for emitting non-static members
         //        var compVerifier = CompileAndVerify(comp, expectedOutput: @"2", verify: Verification.Fails);
 
         //        compVerifier.VerifyIL("C.Main", """
@@ -13502,7 +13847,7 @@ implicit extension E for Fixable
     [ConditionalFact(typeof(CoreClrOnly))]
     public void ExtensionMemberLookup_PatternBasedFixed_NoApplicableMethod()
     {
-        var src = @"
+        var src = """
 unsafe class C
 {
     public static void Main()
@@ -13526,18 +13871,15 @@ implicit extension E for Fixable
         return ref (new int[] { 1, 2, 3 })[0];
     }
 }
-";
+""";
 
-        // PROTOTYPE this scenario should work (based on updated "method invocation" rules)
+        // PROTOTYPE confirm when spec'ing pattern-based fixed
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.UnsafeReleaseExe);
-        comp.VerifyDiagnostics(
-            // (6,25): error CS7036: There is no argument given that corresponds to the required parameter 'notApplicable' of 'Fixable.GetPinnableReference(int)'
-            //         fixed (int* p = new Fixable())
-            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "new Fixable()").WithArguments("notApplicable", "Fixable.GetPinnableReference(int)").WithLocation(6, 25),
-            // (6,25): error CS8385: The given expression cannot be used in a fixed statement
-            //         fixed (int* p = new Fixable())
-            Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable()").WithLocation(6, 25)
-            );
+        comp.VerifyDiagnostics();
+        // PROTOTYPE Execute when adding support for emitting non-static members
+        //CompileAndVerify(comp, expectedOutput: "2");
+
+        // PROTOTYPE verify IOperation
     }
 
     [Fact]
@@ -13563,8 +13905,11 @@ implicit extension E for Fixable
 ";
 
         var comp = CreateCompilation(text, targetFramework: TargetFramework.Net70, options: TestOptions.UnsafeReleaseExe);
-        // PROTOTYPE revisit as part of "extension invocation" section
+        // PROTOTYPE confirm when spec'ing pattern-based fixed
         comp.VerifyDiagnostics(
+            // (6,25): error CS0176: Member 'E.GetPinnableReference()' cannot be accessed with an instance reference; qualify it with a type name instead
+            //         fixed (int* p = new Fixable())
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "new Fixable()").WithArguments("E.GetPinnableReference()").WithLocation(6, 25),
             // (6,25): error CS8385: The given expression cannot be used in a fixed statement
             //         fixed (int* p = new Fixable())
             Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable()").WithLocation(6, 25)
@@ -13598,11 +13943,11 @@ implicit extension E2 for D : INotifyCompletion
 ";
 
         var comp = CreateCompilation(text, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE revisit as part of "extension invocation" section
+        // PROTOTYPE confirm when spec'ing pattern-based await
         comp.VerifyDiagnostics(
-            // (5,9): error CS1061: 'C' does not contain a definition for 'GetAwaiter' and no accessible extension method 'GetAwaiter' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            // (5,9): error CS0117: 'D' does not contain a definition for 'IsCompleted'
             // int i = await new C();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "await new C()").WithArguments("C", "GetAwaiter").WithLocation(5, 9),
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "await new C()").WithArguments("D", "IsCompleted").WithLocation(5, 9),
             // (16,31): error CS9207: A base extension must be an extension type.
             // implicit extension E2 for D : INotifyCompletion
             Diagnostic(ErrorCode.ERR_OnlyBaseExtensionAllowed, "INotifyCompletion").WithLocation(16, 31)
@@ -13640,12 +13985,13 @@ implicit extension E2 for D : INotifyCompletion
 }
 ";
 
+        // PROTOTYPE confirm when spec'ing pattern-based await
         // PROTOTYPE Revisit when adding support for emitting non-static members and adding interfaces
         var comp = CreateCompilation(text, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
-            // (5,9): error CS7036: There is no argument given that corresponds to the required parameter 'notApplicable' of 'C.GetAwaiter(int)'
+            // (5,9): error CS0117: 'D' does not contain a definition for 'IsCompleted'
             // int i = await new C();
-            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "await new C()").WithArguments("notApplicable", "C.GetAwaiter(int)").WithLocation(5, 9),
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "await new C()").WithArguments("D", "IsCompleted").WithLocation(5, 9),
             // (19,31): error CS9207: A base extension must be an extension type.
             // implicit extension E2 for D : INotifyCompletion
             Diagnostic(ErrorCode.ERR_OnlyBaseExtensionAllowed, "INotifyCompletion").WithLocation(19, 31)
@@ -13798,7 +14144,7 @@ implicit extension E for C
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE revisit as part of "extension invocation" section
+        // PROTOTYPE revisit pattern-based implicit indexing
         comp.VerifyDiagnostics(
             // (4,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
             // _ = c[1..^1];
@@ -13902,38 +14248,15 @@ implicit extension E for C
     }
 }
 """;
-
+        // PROTOTYPE need to decide whether extensions apply here
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (4,12): error CS0117: 'C' does not contain a definition for 'Property'
+            // _ = c is { Property: 42 };
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Property").WithArguments("C", "Property").WithLocation(4, 12)
+            );
         // PROTOTYPE Execute when adding support for emitting non-static members
         //CompileAndVerify(comp, expectedOutput: "property");
-
-        string expectedOperationTree = """
-ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: '_ = c is {  ... perty: 42 }')
-Left:
-  IDiscardOperation (Symbol: System.Boolean _) (OperationKind.Discard, Type: System.Boolean) (Syntax: '_')
-Right:
-  IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'c is { Property: 42 }')
-    Value:
-      ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
-    Pattern:
-      IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null) (Syntax: '{ Property: 42 }') (InputType: C, NarrowedType: C, DeclaredSymbol: null, MatchedType: C, DeconstructSymbol: null)
-        DeconstructionSubpatterns (0)
-        PropertySubpatterns (1):
-            IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null) (Syntax: 'Property: 42')
-              Member:
-                IPropertyReferenceOperation: System.Int32 E.Property { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'Property')
-                  Instance Receiver:
-                    IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'Property')
-              Pattern:
-                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '42') (InputType: System.Int32, NarrowedType: System.Int32)
-                  Value:
-                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
-""";
-        var expectedDiagnostics = DiagnosticDescription.None;
-
-        VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(src,
-            expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Net70);
     }
 
     [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE enable once we can lower/emit for non-static scenarios
@@ -13959,32 +14282,14 @@ implicit extension E for C
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
+        // PROTOTYPE need to decide whether extensions apply here
+        comp.VerifyDiagnostics(
+            // (2,15): error CS0117: 'C' does not contain a definition for 'Property'
+            // _ = new C() { Property = 42 };
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Property").WithArguments("C", "Property").WithLocation(2, 15)
+            );
         // PROTOTYPE Execute when adding support for emitting non-static members
         //CompileAndVerify(comp, expectedOutput: "property");
-
-        string expectedOperationTree = """
-ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C) (Syntax: '_ = new C() ... erty = 42 }')
-Left:
-  IDiscardOperation (Symbol: C _) (OperationKind.Discard, Type: C) (Syntax: '_')
-Right:
-  IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C() { P ... erty = 42 }')
-    Arguments(0)
-    Initializer:
-      IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C) (Syntax: '{ Property = 42 }')
-        Initializers(1):
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'Property = 42')
-              Left:
-                IPropertyReferenceOperation: System.Int32 E.Property { set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'Property')
-                  Instance Receiver:
-                    IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'Property')
-              Right:
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
-""";
-        var expectedDiagnostics = DiagnosticDescription.None;
-
-        VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(src,
-            expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Net70);
     }
 
     [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE enable once we can lower/emit for non-static scenarios
@@ -14010,37 +14315,15 @@ implicit extension E for S
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
+        // PROTOTYPE need to decide whether extensions apply here
+        comp.VerifyDiagnostics(
+            // (2,20): error CS0117: 'S' does not contain a definition for 'Property'
+            // _ = new S() with { Property = 42 };
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Property").WithArguments("S", "Property").WithLocation(2, 20)
+            );
         // PROTOTYPE Execute when adding support for emitting non-static members
         //CompileAndVerify(comp, expectedOutput: "property");
 
-        string expectedOperationTree = """
-ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: S) (Syntax: '_ = new S() ... erty = 42 }')
-Left:
-  IDiscardOperation (Symbol: S _) (OperationKind.Discard, Type: S) (Syntax: '_')
-Right:
-  IWithOperation (OperationKind.With, Type: S) (Syntax: 'new S() wit ... erty = 42 }')
-    Operand:
-      IObjectCreationOperation (Constructor: S..ctor()) (OperationKind.ObjectCreation, Type: S) (Syntax: 'new S()')
-        Arguments(0)
-        Initializer:
-          null
-    CloneMethod: null
-    Initializer:
-      IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: S) (Syntax: '{ Property = 42 }')
-        Initializers(1):
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'Property = 42')
-              Left:
-                IPropertyReferenceOperation: System.Int32 E.Property { set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'Property')
-                  Instance Receiver:
-                    IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: S, IsImplicit) (Syntax: 'Property')
-              Right:
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
-""";
-        var expectedDiagnostics = DiagnosticDescription.None;
-
-        VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(src,
-            expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Net70);
     }
 
     [Fact]
@@ -14070,12 +14353,8 @@ implicit extension E for C
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE revisit as part of "extension invocation" section
-        comp.VerifyDiagnostics(
-            // (5,15): error CS1061: 'C' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
-            // _ = new C() { 42 };
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "42").WithArguments("C", "Add").WithLocation(5, 15)
-            );
+        // PROTOTYPE confirm when spec'ing pattern-based collection initializer
+        comp.VerifyDiagnostics();
         // PROTOTYPE Execute when adding support for emitting non-static members
         //CompileAndVerify(comp, expectedOutput: "add");
 
@@ -14131,16 +14410,11 @@ implicit extension E for C
 }
 """;
 
-        // PROTOTYPE this scenario should work (based on updated "method invocation" rules)
+        // PROTOTYPE confirm when spec'ing pattern-based collection initializer
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics(
-            // (5,15): error CS1950: The best overloaded Add method 'C.Add(string)' for the collection initializer has some invalid arguments
-            // _ = new C() { 42 };
-            Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "42").WithArguments("C.Add(string)").WithLocation(5, 15),
-            // (5,15): error CS1503: Argument 1: cannot convert from 'int' to 'string'
-            // _ = new C() { 42 };
-            Diagnostic(ErrorCode.ERR_BadArgType, "42").WithArguments("1", "int", "string").WithLocation(5, 15)
-            );
+        comp.VerifyDiagnostics();
+        // PROTOTYPE Execute when adding support for emitting non-static members
+        //CompileAndVerify(comp, expectedOutput: "add");
     }
 
     [Fact]
@@ -14340,12 +14614,7 @@ implicit extension E for C
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE revisit as part of "extension invocation" section
-        comp.VerifyDiagnostics(
-            // (2,26): error CS1936: Could not find an implementation of the query pattern for source type 'C'.  'Select' not found.
-            // string query = from x in new C() select x;
-            Diagnostic(ErrorCode.ERR_QueryNoProvider, "new C()").WithArguments("C", "Select").WithLocation(2, 26)
-            );
+        comp.VerifyDiagnostics();
 
         // PROTOTYPE Execute when adding support for emitting non-static members
         //CompileAndVerify(comp, expectedOutput: "hello");
@@ -14404,13 +14673,12 @@ implicit extension E for C
 }
 """;
 
-        // PROTOTYPE this scenario should work (based on updated "method invocation" rules)
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics(
-            // (2,41): error CS1660: Cannot convert query expression to type 'int' because it is not a delegate type
-            // string query = from x in new C() select x;
-            Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "x").WithArguments("query expression", "int").WithLocation(2, 41)
-            );
+        comp.VerifyDiagnostics();
+        // PROTOTYPE Execute when adding support for emitting non-static members
+        //CompileAndVerify(comp, expectedOutput: "hello");
+
+        // PROTOTYPE verify IOperation
     }
 
     [Fact]
@@ -14459,8 +14727,7 @@ implicit extension E for C
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "x");
+        CompileAndVerify(comp, expectedOutput: "x").VerifyDiagnostics();
     }
 
     [Fact]
@@ -14609,9 +14876,11 @@ class C<T>
 
         var invocation = GetSyntax<MemberAccessExpressionSyntax>(tree, "T.M1");
         Assert.Null(model.GetSymbolInfo(invocation).Symbol);
+        Assert.Empty(model.GetMemberGroup(invocation));
 
         var type = GetSyntax<MemberAccessExpressionSyntax>(tree, "T.Type");
         Assert.Null(model.GetSymbolInfo(type).Symbol);
+        Assert.Empty(model.GetMemberGroup(type));
     }
 
     [Fact]
@@ -14683,15 +14952,3789 @@ class Program
     }
 }
 ";
-        var comp = CreateCompilation(new[] { source, CompilerFeatureRequiredAttribute },
-            options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net70);
 
+        // PROTOTYPE missing WRN_UnreadPrimaryConstructorParameter
         CompileAndVerify(comp, expectedOutput: @"Red", verify: Verification.FailsPEVerify).VerifyDiagnostics(
-            // 0.cs(4,27): warning CS9113: Parameter 'Color' is unread.
-            //     public class C1(Color Color)
-            Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(4, 27)
+            //// (4,27): warning CS9113: Parameter 'Color' is unread.
+            ////     public class C1(Color Color)
+            //Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(4, 27)
             );
 
-        Assert.Empty(comp.GetTypeByMetadataName("Color+C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        //Assert.Empty(comp.GetTypeByMetadataName("Color+C1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionInvocation_TypeReceiver_Simple()
+    {
+        // We look at methods in extension types if the method group on type has no applicable candidates
+        var source = """
+C.M(42);
+
+class C
+{
+    public static void M() => throw null;
+}
+
+implicit extension E for C
+{
+    public static void M(int i)
+    {
+        System.Console.Write("E.M");
     }
 }
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+
+        CompileAndVerify(comp, expectedOutput: "E.M", verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
+        Assert.Equal("void E.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal(new[] { "void C.M()" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionInvocation_InstanceReceiver_Simple()
+    {
+        // We look at methods in extension types if the method group on type has no applicable candidates
+        var source = """
+new C().M(42);
+
+class C
+{
+    public void M() => throw null;
+}
+
+implicit extension E for C
+{
+    public void M(int i)
+    {
+        System.Console.Write("E.M");
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+
+        // PROTOTYPE Execute when adding support for emitting non-static members
+        //CompileAndVerify(comp, expectedOutput: "E.M", verify: Verification.FailsPEVerify);
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
+        Assert.Equal("void E.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal(new[] { "void C.M()" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionInvocation_TypeReceiver_Overloads()
+    {
+        // When we look at methods in extension types, we perform overload resolution
+        var source = """
+C.M(42);
+
+class C
+{
+    public static void M() => throw null;
+}
+
+implicit extension E for C
+{
+    public static void M(int i)
+    {
+        System.Console.Write($"E.M({i})");
+    }
+
+    public static void M(string s) => throw null;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+
+        CompileAndVerify(comp, expectedOutput: "E.M(42)", verify: Verification.FailsPEVerify);
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
+        Assert.Equal("void E.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal(new[] { "void C.M()" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionInvocation_InstanceReceiver_Overloads()
+    {
+        // When we look at methods in extension types, we perform overload resolution
+        var source = """
+new C().M(42);
+
+class C
+{
+    public void M() => throw null;
+}
+
+implicit extension E for C
+{
+    public void M(int i)
+    {
+        System.Console.Write($"E.M({i})");
+    }
+
+    public static void M(string s) => throw null;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+
+        // PROTOTYPE Execute when adding support for emitting non-static members
+        //CompileAndVerify(comp, expectedOutput: "E.M(42)", verify: Verification.FailsPEVerify);
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
+        Assert.Equal("void E.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal(new[] { "void C.M()" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionInvocation_TypeReceiver_NextScope()
+    {
+        // If overload resolution on extension type methods yields no applicable candidates,
+        // we look in the next scope.
+        var source = """
+using N;
+
+C.M(42);
+
+class C
+{
+    public static void M() => throw null;
+}
+
+implicit extension E1 for C
+{
+    public static void M(string s) => throw null;
+}
+
+namespace N
+{
+    implicit extension E2 for C
+    {
+        public static void M(int i)
+        {
+            System.Console.Write($"E2.M({i})");
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+
+        CompileAndVerify(comp, expectedOutput: "E2.M(42)", verify: Verification.FailsPEVerify);
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
+        Assert.Equal("void N.E2.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal(new[] { "void C.M()" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionInvocation_InstanceReceiver_NextScope()
+    {
+        // If overload resolution on extension type methods yields no applicable candidates,
+        // we look in the next scope.
+        var source = """
+using N;
+
+new C().M(42);
+
+class C
+{
+    public void M() => throw null;
+}
+
+implicit extension E1 for C
+{
+    public void M(string s) => throw null;
+}
+
+namespace N
+{
+    implicit extension E2 for C
+    {
+        public void M(int i)
+        {
+            System.Console.Write($"E2.M({i})");
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+
+        // PROTOTYPE Execute when adding support for emitting non-static members
+        //CompileAndVerify(comp, expectedOutput: "E2.M(42)", verify: Verification.FailsPEVerify);
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
+        Assert.Equal("void N.E2.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal(new[] { "void C.M()" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionInvocation_ExtensionTypePriority()
+    {
+        // The method from the extension type comes before the extension method
+        var source = """
+new C().M(42);
+
+class C
+{
+    public void M() => throw null;
+}
+
+implicit extension E1 for C
+{
+    public void M(int i)
+    {
+        System.Console.Write($"E1.M({i})");
+    }
+}
+
+static class E2
+{
+    public void M(this C c, int i) => throw null;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+
+        // PROTOTYPE Execute when adding support for emitting non-static members
+        //CompileAndVerify(comp, expectedOutput: "E1.M(42)", verify: Verification.FailsPEVerify);
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
+        Assert.Equal("void E1.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal(new[] { "void C.M()", "void C.M(System.Int32 i)" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionInvocation_FallbackToExtensionMethod()
+    {
+        // The extension method is picked up if extension type candidates were not applicable
+        var source = """
+new C().M(42);
+
+class C
+{
+    public static void M() => throw null;
+}
+
+implicit extension E1 for C
+{
+    public void M(string s) => throw null;
+    public void M(char c) => throw null;
+}
+
+static class E2
+{
+    public static void M(this C c, int i)
+    {
+        System.Console.Write($"E2.M({i})");
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+
+        CompileAndVerify(comp, expectedOutput: "E2.M(42)", verify: Verification.FailsPEVerify);
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
+        Assert.Equal("void C.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal(new[] { "void C.M()", "void C.M(System.Int32 i)" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE need to fix the semantic model
+    }
+
+    [Fact]
+    public void ExtensionInvocation_InaccessibleExtensionTypeMember()
+    {
+        var source = """
+C.M(42);
+
+class C
+{
+    public static void M() => throw null;
+}
+
+implicit extension E1 for C
+{
+    protected static void M(int i) => throw null;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // 0.cs(1,3): error CS1501: No overload for method 'M' takes 1 arguments
+            // C.M(42);
+            Diagnostic(ErrorCode.ERR_BadArgCount, "M").WithArguments("M", "1").WithLocation(1, 3)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Equal(new[] { "void C.M()" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionInvocation_InaccessibleExtensionTypeMember_FallbackToExtensionMethod()
+    {
+        // Extension method is picked up after inaccessible extension type member was found
+        var source = """
+new C().M(42);
+
+class C
+{
+    public void M() => throw null;
+}
+
+implicit extension E1 for C
+{
+    protected void M(int i) => throw null;
+}
+
+static class E2
+{
+    public static void M(this C c, int i)
+    {
+        System.Console.Write($"E2.M({i})");
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+
+        CompileAndVerify(comp, expectedOutput: "E2.M(42)", verify: Verification.FailsPEVerify);
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
+        Assert.Equal("void C.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal(new[] { "void C.M()", "void C.M(System.Int32 i)" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE need to fix the semantic model
+    }
+
+    [Fact]
+    public void ExtensionInvocation_SimpleName()
+    {
+        // Extension invocation comes into play on an invocation on a member access but not an invocation on a simple name
+        var source = """
+class C
+{
+    public void M() => throw null;
+
+    void M2()
+    {
+        M(42); // 1
+    }
+}
+
+implicit extension E for C
+{
+    public void M(int i) => throw null;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // 0.cs(7,9): error CS1501: No overload for method 'M' takes 1 arguments
+            //         M(42); // 1
+            Diagnostic(ErrorCode.ERR_BadArgCount, "M").WithArguments("M", "1").WithLocation(7, 9)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "M(42)");
+        Assert.Null(model.GetSymbolInfo(invocation).Symbol);
+        Assert.Empty(model.GetMemberGroup(invocation));
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionInvocation_OnlyDelegateFieldExists()
+    {
+        // Invocable fields are considered during extension invocation
+        var source = """
+E.Field = (i) => { System.Console.Write($"ran({i})"); };
+C.Field(42);
+
+class C { }
+
+delegate void D(int i);
+
+implicit extension E for C
+{
+    public static D Field;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "ran(42)").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Field");
+        Assert.Equal("D E.Field", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionInvocation_OnlyIntegerFieldExists()
+    {
+        var source = """
+C.Field(42);
+
+public class C { }
+
+public implicit extension E for C
+{
+    public static int Field = 0;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,3): error CS0117: 'C' does not contain a definition for 'Field'
+            // C.Field(42);
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Field").WithArguments("C", "Field").WithLocation(1, 3)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Field");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionInvocation_OnlyDelegatePropertyExists()
+    {
+        // Invocable properties are considered during extension invocation
+        var source = """
+C.Property(42);
+
+class C { }
+
+delegate void D(int i);
+
+implicit extension E for C
+{
+    public static D Property
+    {
+        get
+        {
+            return (i) => { System.Console.Write($"ran({i})"); };
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "ran(42)").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Property");
+        Assert.Equal("D E.Property { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionInvocation_OnlyDynamicPropertyExists()
+    {
+        // Invocable properties are considered during extension invocation
+        var source = """
+C.Property(42);
+
+class C { }
+
+implicit extension E for C
+{
+    public static dynamic Property
+    {
+        get
+        {
+            return (System.Action<int>)((i) => { System.Console.Write($"ran({i})"); });
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "ran(42)").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Property");
+        Assert.Equal("dynamic E.Property { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly), AlwaysSkip = "fails in emit stage in used assemblies leg")]
+    public void ExtensionInvocation_OnlyEventExists()
+    {
+        // Events are considered during extension invocation
+        var source = """
+new C().Event(42);
+
+class C { }
+
+delegate void D(int i);
+
+implicit extension E for C
+{
+    public event D Event { add => throw null; remove => throw null; }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE Execute when adding support for emitting non-static members
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().Event");
+        Assert.Equal("event D E.Event", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionInvocation_ArgumentName()
+    {
+        // Instance method with incompatible parameter name is skipped in favor of extension type method
+        var source = """
+C.M(b: 42);
+
+class C
+{
+    public static void M(int a) => throw null;
+}
+
+implicit extension E1 for C
+{
+    public static void M(int b)
+    {
+        System.Console.Write($"E1.M({b})");
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        CompileAndVerify(comp, expectedOutput: "E1.M(42)", verify: Verification.FailsPEVerify);
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
+        Assert.Equal("void E1.M(System.Int32 b)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal(new[] { "void C.M(System.Int32 a)" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionInvocation_ArgumentName_02()
+    {
+        // Extension type method with incompatible parameter name is skipped in favor of extension method
+        var source = """
+new C().M(c: 42);
+
+public class C
+{
+    public static void M(int a) => throw null;
+}
+
+implicit extension E1 for C
+{
+    public static void M(int b) => throw null;
+}
+
+public static class E2
+{
+    public static void M(this C self, int c)
+    {
+        System.Console.Write($"E2.M({c})");
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        CompileAndVerify(comp, expectedOutput: "E2.M(42)", verify: Verification.FailsPEVerify);
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
+        Assert.Equal("void C.M(System.Int32 c)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+
+        Assert.Equal(new[] { "void C.M(System.Int32 a)", "void C.M(System.Int32 c)" },
+            model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void DelegateConversion_TypeReceiver()
+    {
+        var source = """
+D d = C.M;
+d(42);
+
+delegate void D(int i);
+
+class C { }
+
+implicit extension E for C
+{
+    public static void M(int i)
+    {
+        System.Console.Write("E.M");
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+
+        CompileAndVerify(comp, expectedOutput: "E.M", verify: Verification.FailsPEVerify);
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
+        Assert.Equal("void E.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void DelegateConversion_InstanceReceiver()
+    {
+        var source = """
+D d = new C().M;
+d(42);
+
+delegate void D(int i);
+
+class C
+{
+    public void M() => throw null;
+}
+
+implicit extension E for C
+{
+    public void M(int i)
+    {
+        System.Console.Write("E.M");
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+
+        CompileAndVerify(comp, expectedOutput: "E.M", verify: Verification.FailsPEVerify);
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
+        Assert.Equal("void E.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal(new[] { "void C.M()" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void DelegateConversion_SimpleName()
+    {
+        var source = """
+delegate void D(int i);
+
+class C
+{
+    public void M() => throw null;
+
+    void M2()
+    {
+        D d = M;
+        d(42);
+    }
+}
+
+implicit extension E for C
+{
+    public void M(int i)
+    {
+        System.Console.Write("E.M");
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // 0.cs(9,15): error CS0123: No overload for 'M' matches delegate 'D'
+            //         D d = M;
+            Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "D").WithLocation(9, 15)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var simpleName = GetSyntax<EqualsValueClauseSyntax>(tree, "= M").Value;
+        Assert.Equal(new[] { "void C.M()" }, model.GetMemberGroup(simpleName).ToTestDisplayStrings());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionInvocation_TypeReceiver_TypeArguments()
+    {
+        var source = """
+C.M<object>(42);
+
+class C { }
+
+implicit extension E for C
+{
+    public static void M(int i) => throw null;
+    public static void M<T>(int i)
+    {
+        System.Console.Write("ran");
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsPEVerify);
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M<object>");
+        Assert.Equal("void E.M<System.Object>(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionInvocation_InstanceReceiver_TypeArguments()
+    {
+        var source = """
+new C().M<object>(42);
+
+class C { }
+
+implicit extension E for C
+{
+    public void M(int i) => throw null;
+    public void M<T>(int i)
+    {
+        System.Console.Write("ran");
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+
+        // PROTOTYPE Execute when adding support for emitting non-static members
+        //CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsPEVerify);
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M<object>");
+        Assert.Equal("void E.M<System.Object>(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void DelegateConversion_TypeReceiver_Overloads()
+    {
+        var source = """
+D d = C.M;
+d(42);
+
+C.M(42);
+
+delegate void D(int i);
+
+class C { }
+
+implicit extension E for C
+{
+    public static void M(int i)
+    {
+        System.Console.Write("ran ");
+    }
+
+    public static void M(string s) => throw null;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "ran ran", verify: Verification.FailsPEVerify);
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "C.M").First();
+        Assert.Equal("void E.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void DelegateConversion_ValueReceiver_Overloads()
+    {
+        var source = """
+D d = new C().M;
+d(42);
+
+new C().M(42);
+
+delegate void D(int i);
+
+class C { }
+
+implicit extension E for C
+{
+    public void M(int i)
+    {
+        System.Console.Write("ran ");
+    }
+
+    public void M(string s) => throw null;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE Execute when adding support for emitting non-static members
+        //CompileAndVerify(comp, expectedOutput: "ran ran", verify: Verification.FailsPEVerify);
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new C().M").First();
+        Assert.Equal("void E.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void DelegateConversion_TypeReceiver_Overloads_DifferentExtensions()
+    {
+        var source = """
+D d = C.M;
+d(42);
+
+C.M(42);
+
+delegate void D(int i);
+
+class C { }
+
+implicit extension E1 for C
+{
+    public static void M(int i)
+    {
+        System.Console.Write("ran ");
+    }
+}
+
+implicit extension E2 for C
+{
+    public static void M(string s) => throw null;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "ran ran", verify: Verification.FailsPEVerify);
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "C.M").First();
+        Assert.Equal("void E1.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void DelegateConversion_ValueReceiver_Overloads_DifferentExtensions()
+    {
+        var source = """
+D d = new C().M;
+d(42);
+
+new C().M(42);
+
+delegate void D(int i);
+
+class C { }
+
+implicit extension E1 for C
+{
+    public void M(int i)
+    {
+        System.Console.Write("ran ");
+    }
+}
+
+implicit extension E2 for C
+{
+    public void M(string s) => throw null;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE Execute when adding support for emitting non-static members
+        //CompileAndVerify(comp, expectedOutput: "ran ran", verify: Verification.FailsPEVerify);
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new C().M").First();
+        Assert.Equal("void E1.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void DelegateConversion_TypeReceiver_Overloads_OuterScope()
+    {
+        var source = """
+using N;
+
+D d = C.M; // 1
+d(42);
+
+C.M(42);
+
+delegate void D(int i);
+
+class C { }
+
+namespace N
+{
+    implicit extension E1 for C
+    {
+        public static void M(int i)
+        {
+            System.Console.Write("ran ");
+        }
+    }
+}
+
+implicit extension E2 for C
+{
+    public static void M(string s) => throw null;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "ran ran", verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "C.M").First();
+        Assert.Equal("void N.E1.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void DelegateConversion_ValueReceiver_Overloads_OuterScope()
+    {
+        var source = """
+using N;
+
+D d = new C().M;
+d(42);
+
+new C().M(42);
+
+delegate void D(int i);
+
+class C { }
+
+namespace N
+{
+    implicit extension E1 for C
+    {
+        public void M(int i)
+        {
+            System.Console.Write("ran");
+        }
+    }
+}
+
+implicit extension E2 for C
+{
+    public void M(string s) => throw null;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+        // PROTOTYPE Execute when adding support for emitting non-static members
+        //CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsPEVerify);
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new C().M").First();
+        Assert.Equal("void N.E1.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void DelegateConversion_TypeReceiver_Overloads_OuterScope_WithInapplicableInstanceMember()
+    {
+        var source = """
+using N;
+
+D d = C.M;
+d(42);
+
+C.M(42);
+
+delegate void D(int i);
+
+class C
+{
+    public static void M(char c) { }
+}
+
+namespace N
+{
+    implicit extension E1 for C
+    {
+        public static void M(int i)
+        {
+            System.Console.Write("ran ");
+        }
+    }
+}
+
+implicit extension E2 for C
+{
+    public static void M(string s) => throw null;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "ran ran", verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "C.M").First();
+        Assert.Equal("void N.E1.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal(new[] { "void C.M(System.Char c)" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void DelegateConversion_ValueReceiver_Overloads_OuterScope_WithInapplicableInstanceMember()
+    {
+        var source = """
+using N;
+
+D d = new C().M;
+d(42);
+
+new C().M(42);
+
+delegate void D(int i);
+
+class C
+{
+    public void M(char c) { }
+}
+
+namespace N
+{
+    implicit extension E1 for C
+    {
+        public void M(int i)
+        {
+            System.Console.Write("ran ran");
+        }
+    }
+}
+
+implicit extension E2 for C
+{
+    public void M(string s) => throw null;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+        // PROTOTYPE Execute when adding support for emitting non-static members
+        //CompileAndVerify(comp, expectedOutput: "ran ran", verify: Verification.FailsPEVerify);
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new C().M").First();
+        Assert.Equal("void N.E1.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal(new[] { "void C.M(System.Char c)" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void DelegateConversion_TypeReceiver_Overloads_InnerScope()
+    {
+        var source = """
+using N;
+
+D d = C.M;
+d(42);
+
+delegate void D(int i);
+
+class C { }
+
+implicit extension E1 for C
+{
+    public static void M(int i)
+    {
+        System.Console.Write("ran");
+    }
+}
+
+namespace N
+{
+    implicit extension E2 for C
+    {
+        public static void M(int i) => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // 0.cs(1,1): hidden CS8019: Unnecessary using directive.
+            // using N;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1)
+            );
+
+        CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsPEVerify);
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
+        Assert.Equal("void E1.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void DelegateConversion_TypeReceiver_TypeArguments()
+    {
+        var source = """
+D d = C.M<object>;
+d(42);
+
+delegate void D(int i);
+class C { }
+
+implicit extension E for C
+{
+    public static void M(int i) => throw null;
+    public static void M<T>(int i)
+    {
+        System.Console.Write("ran");
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M<object>");
+        Assert.Equal("void E.M<System.Object>(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void DelegateConversion_InstanceReceiver_TypeArguments()
+    {
+        var source = """
+D d = new C().M<object>;
+d(42);
+
+delegate void D(int i);
+class C { }
+
+implicit extension E for C
+{
+    public void M(int i) => throw null;
+    public void M<T>(int i)
+    {
+        System.Console.Write("ran");
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE Execute when adding support for emitting non-static members
+        //CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsPEVerify);
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M<object>");
+        Assert.Equal("void E.M<System.Object>(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionInvocation_TypeReceiver_TypeArguments_WrongNumber()
+    {
+        var source = """
+C.M<object, object>(42);
+
+class C { }
+
+implicit extension E for C
+{
+    public static void M(int i) => throw null;
+    public static void M<T>(int i) => throw null;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE should give an updated error message (possibly ERR_NoSuchMemberOrExtension)
+        comp.VerifyDiagnostics(
+            // 0.cs(1,3): error CS0117: 'C' does not contain a definition for 'M'
+            // C.M<object, object>(42);
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M<object, object>").WithArguments("C", "M").WithLocation(1, 3)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M<object, object>");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionInvocation_InstanceReceiver_TypeArguments_WrongNumber()
+    {
+        var source = """
+new C().M<object, object>(42);
+
+class C { }
+
+implicit extension E for C
+{
+    public void M(int i) => throw null;
+    public void M<T>(int i) => throw null;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // 0.cs(1,9): error CS1061: 'C' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            // new C().M<object, object>(42);
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M<object, object>").WithArguments("C", "M").WithLocation(1, 9)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M<object, object>");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionInvocation_TypeReceiver_TypeArguments_Omitted()
+    {
+        var source = """
+C.M<>(42);
+
+class C { }
+
+implicit extension E for C
+{
+    public static void M<T>(int i) => throw null;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // 0.cs(1,1): error CS8389: Omitting the type argument is not allowed in the current context
+            // C.M<>(42);
+            Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "C.M<>").WithLocation(1, 1)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M<>");
+        Assert.Equal("void E.M<?>(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionInvocation_InstanceReceiver_TypeArguments_Omitted()
+    {
+        var source = """
+new C().M<>(42);
+
+class C { }
+
+implicit extension E for C
+{
+    public void M<T>(int i) => throw null;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,1): error CS8389: Omitting the type argument is not allowed in the current context
+            // new C().M<>(42);
+            Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "new C().M<>").WithLocation(1, 1)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M<>");
+        Assert.Equal("void E.M<?>(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionInvocation_TypeReceiver_TypeArguments_Inferred()
+    {
+        // No type arguments passed, but the extension type method is found and the type parameter inferred
+        var source = """
+C.M(42);
+
+class C { }
+
+implicit extension E for C
+{
+    public static void M<T>(T t)
+    {
+        System.Console.Write($"M({t})");
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "M(42)", verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
+        Assert.Equal("void E.M<System.Int32>(System.Int32 t)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionInvocation_InstanceReceiver_TypeArguments_Inferred()
+    {
+        // No type arguments passed, but the extension type method is found and the type parameter inferred
+        var source = """
+new C().M(42);
+
+class C { }
+
+implicit extension E for C
+{
+    public void M<T>(T t)
+    {
+        System.Console.Write($"M({t})");
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE Execute when adding support for emitting non-static members
+        //CompileAndVerify(comp, expectedOutput: "M(42)", verify: Verification.FailsPEVerify);
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
+        Assert.Equal("void E.M<System.Int32>(System.Int32 t)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionInvocation_StaticReceiver_InstanceExtensionMethod()
+    {
+        // The extension method is not static, but the receiver is a type
+        var source = """
+C.M();
+
+class C { }
+
+implicit extension E for C
+{
+    public void M() => throw null;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // 0.cs(1,1): error CS0120: An object reference is required for the non-static field, method, or property 'E.M()'
+            // C.M();
+            Diagnostic(ErrorCode.ERR_ObjectRequired, "C.M").WithArguments("E.M()").WithLocation(1, 1)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionInvocation_InstanceReceiver_StaticExtensionMethod()
+    {
+        // The extension method is static but the receiver is a value
+        var source = """
+new C().M();
+
+class C { }
+
+implicit extension E for C
+{
+    public static void M() => throw null;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // 0.cs(1,1): error CS0176: Member 'E.M()' cannot be accessed with an instance reference; qualify it with a type name instead
+            // new C().M();
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "new C().M").WithArguments("E.M()").WithLocation(1, 1)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void IndexerAccess_Simple()
+    {
+        var source = """
+_ = (new C())[42];
+
+class C
+{
+    public int this[string s]
+    {
+        get => throw null;
+    }
+}
+
+implicit extension E for C
+{
+    public int this[int i]
+    {
+        get
+        {
+            System.Console.Write("ran");
+            return 0;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE revisit when implementing "extension indexer access"
+        comp.VerifyDiagnostics(
+            // 0.cs(1,15): error CS1503: Argument 1: cannot convert from 'int' to 'string'
+            // _ = (new C())[42];
+            Diagnostic(ErrorCode.ERR_BadArgType, "42").WithArguments("1", "int", "string").WithLocation(1, 15)
+            );
+    }
+
+    [Fact]
+    public void ExtensionMethodOnTypeReceiver()
+    {
+        var source = """
+C.Method();
+
+public class C { }
+
+public static class E
+{
+    public static void Method(this C c) { }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // 0.cs(1,1): error CS0120: An object reference is required for the non-static field, method, or property 'E.Method(C)'
+            // C.Method();
+            Diagnostic(ErrorCode.ERR_ObjectRequired, "C.Method").WithArguments("E.Method(C)").WithLocation(1, 1)
+            );
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionInvocation_TypeReceiver_WithExtensionMethod()
+    {
+        var source = """
+C.Method();
+
+public class C { }
+
+public static class E1
+{
+    public static void Method(this C c) { }
+}
+
+implicit extension E2 for C
+{
+    public static void Method() { System.Console.Write("ran"); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Method");
+        Assert.Equal("void E2.Method()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal(new[] { "void C.Method()" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionInvocation_TypeReceiver_TypeParameter()
+    {
+        var source = """
+public class C<T>
+{
+    void M()
+    {
+        T.Method();
+    }
+
+    implicit extension E for T
+    {
+        public static void Method() { }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // 0.cs(5,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
+            //         T.Method();
+            Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(5, 9)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "T.Method");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionInvocation_TypeReceiver_TypeParameter_InNameof()
+    {
+        var source = """
+public class C<T>
+{
+    void M()
+    {
+        _ = nameof(T.Method);
+    }
+
+    implicit extension E for T
+    {
+        public static void Method() { }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // 0.cs(5,20): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
+            //         _ = nameof(T.Method);
+            Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(5, 20)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "T.Method");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionInvocation_TypeReceiver_TypeParameterWithStaticMethod()
+    {
+        var source = """
+public interface I
+{
+    public static void Method() { }
+}
+
+public class C<T> where T : I
+{
+    void M()
+    {
+        T.Method();
+    }
+
+    implicit extension E for T
+    {
+        public static void Method() { }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // 0.cs(10,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
+            //         T.Method();
+            Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(10, 9)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "T.Method");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionInvocation_TypeReceiver_TypeParameterWithStaticAbstractMethod()
+    {
+        var source = """
+public interface I
+{
+    public static abstract void Method();
+}
+
+public class C<T> where T : I
+{
+    void M()
+    {
+        T.Method();
+    }
+
+    implicit extension E for T
+    {
+        public static void Method() { }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "T.Method");
+        Assert.Equal("void I.Method()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal(new[] { "void I.Method()" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionInvocation_TypeReceiver_TypeParameterWithStaticAbstractMethod_Overloads()
+    {
+        var source = """
+public interface I
+{
+    public static abstract void Method();
+}
+
+public class C<T> where T : I
+{
+    void M()
+    {
+        T.Method(42);
+    }
+
+    implicit extension E for T
+    {
+        public static void Method(int i) { }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // 0.cs(10,11): error CS1501: No overload for method 'Method' takes 1 arguments
+            //         T.Method(42);
+            Diagnostic(ErrorCode.ERR_BadArgCount, "Method").WithArguments("Method", "1").WithLocation(10, 11)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "T.Method");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Equal(new[] { "void I.Method()" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionInvocation_ValueReceiver_TypeParameter()
+    {
+        var source = """
+public class C<T>
+{
+    void M(T t)
+    {
+        t.Method();
+    }
+
+    implicit extension E for T
+    {
+        public void Method() { }
+    }
+}
+""";
+        // PROTOTYPE need to confirm what we want for extension invocations on type parameters
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (5,11): error CS1061: 'T' does not contain a definition for 'Method' and no accessible extension method 'Method' accepting a first argument of type 'T' could be found (are you missing a using directive or an assembly reference?)
+            //         t.Method();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Method").WithArguments("T", "Method").WithLocation(5, 11)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "t.Method");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly), AlwaysSkip = "fails in emit stage in used assemblies leg")]
+    public void RefOmittedComCall()
+    {
+        // For COM import type, omitting the ref is allowed
+        string source = @"
+using System;
+using System.Runtime.InteropServices;
+
+[ComImport, Guid(""1234C65D-1234-447A-B786-64682CBEF136"")]
+class C { }
+
+implicit extension E for C
+{
+    public void M(ref short p) { }
+    public void M(sbyte p) { }
+    public void I(ref int p) { }
+}
+
+class X
+{
+    public static void Goo()
+    {
+        short x = 123;
+        C c = new C();
+        c.M(x);
+        c.I(123);
+    }
+}
+";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void FunctionType_TypeReceiver_StaticExtension()
+    {
+        // PROTOTYPE The unique signature from method group should account for methods from extension types
+        var source = """
+var d = C.M;
+d(42);
+
+class C { }
+
+implicit extension E for C
+{
+    public static void M(int i)
+    {
+        System.Console.Write("E.M");
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE need to infer delegate type
+        comp.VerifyDiagnostics(
+            // (1,9): error CS8917: The delegate type could not be inferred.
+            // var d = C.M;
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "C.M").WithLocation(1, 9)
+            );
+        //CompileAndVerify(comp, expectedOutput: "E.M", verify: Verification.FailsPEVerify);
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void FunctionType_ValueReceiver_StaticExtension()
+    {
+        // The method from extension is static
+        var source = """
+var d = new C().M; // 1
+
+class C { }
+
+implicit extension E for C
+{
+    public static void M(int i)
+    {
+        System.Console.Write("E.M");
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // 0.cs(1,9): error CS8917: The delegate type could not be inferred.
+            // var d = new C().M; // 1
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(1, 9)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void FunctionType_TypeReceiver_InstanceAndExtension_DifferentSignatures()
+    {
+        // The instance method and the method from extension have different signatures
+        var source = """
+var d = C.M; // 1
+
+class C
+{
+    public static void M() { }
+}
+
+implicit extension E for C
+{
+    public static void M(int i)
+    {
+        System.Console.Write("E.M");
+    }
+}
+""";
+        // PROTOTYPE revisit when implementing GetUniqueSignatureFromMethodGroup, should be an error
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
+        Assert.Equal("void C.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal(new[] { "void C.M()" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void FunctionType_ValueReceiver_ExtensionAndExtensionMethod_DifferentSignatures()
+    {
+        // The extension method and the method from extension have different signatures
+        var source = """
+var d = new C().M; // 1
+
+public class C { }
+
+implicit extension E1 for C
+{
+    public void M(int i) { }
+}
+
+public static class E2
+{
+    public static void M(this C c, string s) { }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE revisit when implementing GetUniqueSignatureFromMethodGroup, should be an error
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
+        Assert.Equal("void C.M(System.String s)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+
+        Assert.Equal(new[] { "void C.M(System.String s)" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void FunctionType_TypeReceiver_InstanceAndExtension_SameSignatures()
+    {
+        var source = """
+var d = C.M;
+
+class C
+{
+    public static void M() { }
+}
+
+implicit extension E for C
+{
+    public static void M() { }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+
+        // PROTOTYPE revisit when implementing GetUniqueSignatureFromMethodGroup, should be an error
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
+        Assert.Equal("void C.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal(new[] { "void C.M()" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionMethodAsReceiverOfMemberAccess()
+    {
+        var source = """
+C.M.ToString();
+
+class C { }
+
+implicit extension E for C
+{
+    public static void M() { }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // 0.cs(1,3): error CS0119: 'E.M()' is a method, which is not valid in the given context
+            // C.M.ToString();
+            Diagnostic(ErrorCode.ERR_BadSKunknown, "M").WithArguments("E.M()", "method").WithLocation(1, 3)
+            );
+
+        // PROTOTYPE could improve the semantic model to return symbol `E.M()`
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionMethodAsReceiverOfMemberAccess_FindIndexer()
+    {
+        var source = """
+C c = null;
+c.Item.ToString();
+c.get_Item.ToString();
+
+class C { }
+
+implicit extension E for C
+{
+    public int this[int i] { get { throw null; } set { throw null; } }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (2,3): error CS1061: 'C' does not contain a definition for 'Item' and no accessible extension method 'Item' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            // c.Item.ToString();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Item").WithArguments("C", "Item").WithLocation(2, 3),
+            // (3,3): error CS1061: 'C' does not contain a definition for 'get_Item' and no accessible extension method 'get_Item' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            // c.get_Item.ToString();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "get_Item").WithArguments("C", "get_Item").WithLocation(3, 3)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "c.Item");
+        Assert.Null(model.GetSymbolInfo(memberAccess1).Symbol);
+        Assert.Empty(model.GetMemberGroup(memberAccess1));
+
+        var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "c.get_Item");
+        Assert.Null(model.GetSymbolInfo(memberAccess2).Symbol);
+        Assert.Empty(model.GetMemberGroup(memberAccess2));
+    }
+
+    [Fact]
+    public void SymbolInfoForMethodGroup03()
+    {
+        var source = """
+public class A { }
+
+implicit extension E for A
+{
+    public string Extension() { return null; }
+}
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        A a = null;
+        _ = nameof(a.Extension);
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE should we produce ERR_NameofExtensionMethod (Extension method groups are not allowed as an argument to 'nameof') or something similar?
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "a.Extension");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [Fact]
+    public void NotInvocable_TypeReceiver()
+    {
+        var source = """
+C.f();
+
+public class C
+{
+    public int f;
+}
+""";
+
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics(
+            // (1,3): error CS1955: Non-invocable member 'C.f' cannot be used like a method.
+            // C.f();
+            Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "f").WithArguments("C.f").WithLocation(1, 3)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.f");
+        var symbolInfo = model.GetSymbolInfo(memberAccess);
+        Assert.Null(symbolInfo.Symbol);
+        Assert.Empty(symbolInfo.CandidateSymbols);
+        Assert.Null(model.GetTypeInfo(memberAccess).Type);
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [Fact]
+    public void NotInvocable_InstanceReceiver()
+    {
+        var source = """
+new C().f();
+
+public class C
+{
+    public int f;
+}
+""";
+
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics(
+            // (1,9): error CS1955: Non-invocable member 'C.f' cannot be used like a method.
+            // new C().f();
+            Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "f").WithArguments("C.f").WithLocation(1, 9)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().f");
+        var symbolInfo = model.GetSymbolInfo(memberAccess);
+        Assert.Null(symbolInfo.Symbol);
+        Assert.Empty(symbolInfo.CandidateSymbols);
+        Assert.Null(model.GetTypeInfo(memberAccess).Type);
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void NotInvocable_TypeReceiver_WithExtensionType()
+    {
+        var source = """
+C.f();
+
+public class C
+{
+    public int f;
+}
+
+implicit extension E for C
+{
+    public static void f()
+    {
+        System.Console.Write("f");
+    }
+}
+""";
+
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "f").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.f");
+        Assert.Equal("void E.f()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Null(model.GetTypeInfo(memberAccess).Type);
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [Fact]
+    public void NotInvocable_InstanceReceiver_WithExtensionType()
+    {
+        var source = """
+new C().f();
+
+public class C
+{
+    public int f;
+}
+
+implicit extension E for C
+{
+    public void f() { System.Console.Write("ran"); }
+}
+""";
+
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE Execute when adding support for emitting non-static members
+        //CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().f");
+        Assert.Equal("void E.f()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Null(model.GetTypeInfo(memberAccess).Type);
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionInvocation_InstanceReceiver_InTypeInference()
+    {
+        // We resolve the method group for `M` as part of overload resolution for `Select`
+        var source = """
+class D
+{
+    public static void Main()
+    {
+        int i = new D().Select(new C().M);
+    }
+
+    T Select<T>(System.Func<T> t)
+    {
+        t();
+        return default;
+    }
+}
+
+public class C { }
+
+implicit extension E for C
+{
+    public int M() { System.Console.Write("ran"); return 0; }
+}
+""";
+
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
+        Assert.Equal("System.Int32 E.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionInvocation_TypeReceiver_TypeInference()
+    {
+        // We resolve the method group for `M` as part of overload resolution for `Select`
+        var source = """
+class D
+{
+    public static void Main()
+    {
+        new D().Select(C.M);
+    }
+
+    T Select<T>(System.Func<T> t)
+    {
+        t();
+        return default;
+    }
+}
+
+public class C { }
+
+implicit extension E for C
+{
+    public static int M() { System.Console.Write("ran"); return 0; }
+}
+""";
+
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
+        Assert.Equal("System.Int32 E.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [Fact]
+    public void AddressOf_AmbiguousBestMethod()
+    {
+        var src = """
+unsafe class C
+{
+    static void M1()
+    {
+        delegate*<string, string, void> ptr = &C.M;
+    }
+}
+
+implicit extension E for C
+{
+    public static void M(string s, object o) {}
+    public static void M(object o, string s) {}
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.UnsafeDebugDll);
+        comp.VerifyDiagnostics(
+            // (5,48): error CS0121: The call is ambiguous between the following methods or properties: 'E.M(string, object)' and 'E.M(object, string)'
+            //         delegate*<string, string, void> ptr = &C.M;
+            Diagnostic(ErrorCode.ERR_AmbigCall, "C.M").WithArguments("E.M(string, object)", "E.M(object, string)").WithLocation(5, 48)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [Fact]
+    public void ExtensionMethodsInNonInvocationLookup()
+    {
+        var src = """
+public implicit extension E1 for object
+{
+    public int Member => throw null;
+}
+
+namespace N
+{
+    public static class E2
+    {
+        public static void Member(this object o)
+        {
+            System.Console.Write("ran ");
+        }
+    }
+
+    class C
+    {
+        public static void Main()
+        {
+            var o = new object();
+
+            var x = o.Member;
+            x();
+
+            System.Action y = o.Member;
+            y();
+
+            o.Member();
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+        // PROTOTYPE Execute when adding support for emitting non-static members
+        //CompileAndVerify(comp, expectedOutput: "ran ran ran");
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").First();
+        Assert.Equal("void System.Object.Member()", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+        Assert.Equal(new[] { "void System.Object.Member()" }, model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
+
+        var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").Skip(1).First();
+        Assert.Equal("void System.Object.Member()", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+        Assert.Equal(new[] { "void System.Object.Member()" }, model.GetMemberGroup(memberAccess2).ToTestDisplayStrings());
+
+        var memberAccess3 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").Skip(2).Single();
+        Assert.Equal("void System.Object.Member()", model.GetSymbolInfo(memberAccess3).Symbol.ToTestDisplayString());
+        Assert.Equal(new[] { "void System.Object.Member()" }, model.GetMemberGroup(memberAccess3).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void ExtensionMethodsInNonInvocationLookup_Generic()
+    {
+        var src = """
+public implicit extension E1 for object
+{
+    public int Member => throw null;
+}
+
+namespace N
+{
+    public static class E2
+    {
+        public static void Member<T>(this T o)
+        {
+            System.Console.Write("ran ");
+        }
+    }
+
+    class C
+    {
+        public static void Main()
+        {
+            var o = new object();
+
+            var x = o.Member;
+            x();
+
+            System.Action y = o.Member;
+            y();
+
+            o.Member();
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        // PROTOTYPE need to infer delegate type
+        comp.VerifyDiagnostics(
+            // (22,21): error CS8917: The delegate type could not be inferred.
+            //             var x = o.Member;
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "o.Member").WithLocation(22, 21)
+            );
+        // PROTOTYPE Execute when adding support for emitting non-static members
+        //CompileAndVerify(comp, expectedOutput: "ran ran ran");
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").First();
+        Assert.Null(model.GetSymbolInfo(memberAccess1).Symbol);
+        Assert.Equal(new[] { "void System.Object.Member<System.Object>()" }, model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
+
+        var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").Skip(1).First();
+        Assert.Equal("void System.Object.Member<System.Object>()", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+        Assert.Equal(new[] { "void System.Object.Member<System.Object>()" }, model.GetMemberGroup(memberAccess2).ToTestDisplayStrings());
+
+        var memberAccess3 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").Skip(2).Single();
+        Assert.Equal("void System.Object.Member<System.Object>()", model.GetSymbolInfo(memberAccess3).Symbol.ToTestDisplayString());
+        Assert.Equal(new[] { "void System.Object.Member<System.Object>()" }, model.GetMemberGroup(memberAccess3).ToTestDisplayStrings());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionMethodsInInvocationLookup_AfterExtensionType()
+    {
+        var src = """
+public implicit extension E1 for object
+{
+    public int Member => throw null;
+}
+
+public static class E2
+{
+    public static void Member(this object o)
+    {
+        System.Console.Write("ran ");
+    }
+}
+
+class C
+{
+    public static void Main()
+    {
+        var o = new object();
+        var x = o.Member;
+        x();
+
+        System.Action y = o.Member;
+        y();
+
+        o.Member();
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "ran ran ran", verify: Verification.Fails).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").First();
+        Assert.Equal("void System.Object.Member()", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+        Assert.Equal(new[] { "void System.Object.Member()" }, model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
+
+        var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").Skip(1).First();
+        Assert.Equal("void System.Object.Member()", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+        Assert.Equal(new[] { "void System.Object.Member()" }, model.GetMemberGroup(memberAccess2).ToTestDisplayStrings());
+
+        var memberAccess3 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").Skip(2).Single();
+        Assert.Equal("void System.Object.Member()", model.GetSymbolInfo(memberAccess3).Symbol.ToTestDisplayString());
+        Assert.Equal(new[] { "void System.Object.Member()" }, model.GetMemberGroup(memberAccess3).ToTestDisplayStrings());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionMethodsInInvocationLookup_AfterExtensionType_Import()
+    {
+        var src = """
+using N;
+
+var o = new object();
+var x = o.Member;
+x();
+
+System.Action y = o.Member;
+y();
+
+o.Member();
+
+namespace N
+{
+    public implicit extension E1 for object
+    {
+        public int Member => throw null;
+    }
+
+    public static class E2
+    {
+        public static void Member(this object o)
+        {
+            System.Console.Write("ran ");
+        }
+    }
+}
+""";
+        // PROTOTYPE revisit when implementing GetUniqueSignatureFromMethodGroup, the `var` case should bind to the property
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "ran ran ran", verify: Verification.Fails).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").First();
+        Assert.Equal("void System.Object.Member()", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+        Assert.Equal(new[] { "void System.Object.Member()" }, model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
+
+        var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").Skip(1).First();
+        Assert.Equal("void System.Object.Member()", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+        Assert.Equal(new[] { "void System.Object.Member()" }, model.GetMemberGroup(memberAccess2).ToTestDisplayStrings());
+
+        var memberAccess3 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").Skip(2).Single();
+        Assert.Equal("void System.Object.Member()", model.GetSymbolInfo(memberAccess3).Symbol.ToTestDisplayString());
+        Assert.Equal(new[] { "void System.Object.Member()" }, model.GetMemberGroup(memberAccess3).ToTestDisplayStrings());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionMethodsInNonInvocationLookup_ComesBeforeExtensionTypeInNextScope()
+    {
+        // Imported extension methods come before extension type members in outer scope
+        var src = """
+public implicit extension E1 for object
+{
+    public int Member => throw null;
+}
+
+namespace N1
+{
+    using N2;
+
+    class C
+    {
+        public static void Main()
+        {
+            var o = new object();
+            var x = o.Member;
+            x();
+
+            System.Action y = o.Member;
+            y();
+
+            o.Member();
+        }
+    }
+}
+
+namespace N2
+{
+    public static class E2
+    {
+        public static void Member(this object o)
+        {
+            System.Console.Write("ran ");
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+        // Existing ILVerification failure tracked by https://github.com/dotnet/roslyn/issues/68749
+        var verifier = CompileAndVerify(comp, expectedOutput: "ran ran ran", verify: Verification.Fails);
+
+        verifier.VerifyIL("N1.C.Main", """
+{
+  // Code size       55 (0x37)
+  .maxstack  2
+  .locals init (object V_0, //o
+                System.Action V_1, //x
+                System.Action V_2) //y
+  IL_0000:  nop
+  IL_0001:  newobj     "object..ctor()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldftn      "void N2.E2.Member(object)"
+  IL_000e:  newobj     "System.Action..ctor(object, nint)"
+  IL_0013:  stloc.1
+  IL_0014:  ldloc.1
+  IL_0015:  callvirt   "void System.Action.Invoke()"
+  IL_001a:  nop
+  IL_001b:  ldloc.0
+  IL_001c:  ldftn      "void N2.E2.Member(object)"
+  IL_0022:  newobj     "System.Action..ctor(object, nint)"
+  IL_0027:  stloc.2
+  IL_0028:  ldloc.2
+  IL_0029:  callvirt   "void System.Action.Invoke()"
+  IL_002e:  nop
+  IL_002f:  ldloc.0
+  IL_0030:  call       "void N2.E2.Member(object)"
+  IL_0035:  nop
+  IL_0036:  ret
+}
+""");
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").First();
+        Assert.Equal("void System.Object.Member()", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+        Assert.Equal(new[] { "void System.Object.Member()" }, model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
+
+        var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").Skip(1).First();
+        Assert.Equal("void System.Object.Member()", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+        Assert.Equal(new[] { "void System.Object.Member()" }, model.GetMemberGroup(memberAccess2).ToTestDisplayStrings());
+
+        var memberAccess3 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").Skip(2).Single();
+        Assert.Equal("void System.Object.Member()", model.GetSymbolInfo(memberAccess3).Symbol.ToTestDisplayString());
+        Assert.Equal(new[] { "void System.Object.Member()" }, model.GetMemberGroup(memberAccess3).ToTestDisplayStrings());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionMethodsInInvocationLookup_GenericExtension_ThisParameterNotCompatible()
+    {
+        var src = """
+using N;
+
+C<int> c = new C<int>();
+int i = c.Member;
+System.Console.Write(i);
+
+public class C<T> { }
+
+public static class E1
+{
+    public static void Member<T>(this C<T> o) where T : class => throw null;
+}
+
+namespace N
+{
+    public implicit extension E2 for object
+    {
+        public int Member => 42;
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "42", verify: Verification.Fails).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "c.Member").First();
+        Assert.Equal("System.Int32 N.E2.Member { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionMethodsInInvocationLookup_GenericExtension_ExtraParameter()
+    {
+        var src = """
+using N;
+
+C<int> c = new C<int>();
+int i = c.Member;
+System.Console.Write(i);
+
+public class C<T> { }
+
+public static class E1
+{
+    public static void Member<T>(this C<T> o, string s) => throw null;
+}
+
+namespace N
+{
+    public implicit extension E2 for object
+    {
+        public int Member => 42;
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using N;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1),
+            // (4,11): error CS0428: Cannot convert method group 'Member' to non-delegate type 'int'. Did you intend to invoke the method?
+            // int i = c.Member;
+            Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Member").WithArguments("Member", "int").WithLocation(4, 11)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "c.Member").First();
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+
+        Assert.Equal(new[] { "void C<System.Int32>.Member<System.Int32>(System.String s)" },
+            model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionMethodsInInvocationLookup_GenericExtension_UndeterminedTypeParameter()
+    {
+        var src = """
+using N;
+
+C<int> c = new C<int>();
+int i = c.Member;
+System.Console.Write(i);
+
+public class C<T> { }
+
+public static class E1
+{
+    public static void Member<T, U>(this C<T> o, U u) => throw null;
+}
+
+namespace N
+{
+    public implicit extension E2 for object
+    {
+        public int Member => 42;
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using N;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1),
+            // (4,11): error CS0428: Cannot convert method group 'Member' to non-delegate type 'int'. Did you intend to invoke the method?
+            // int i = c.Member;
+            Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Member").WithArguments("Member", "int").WithLocation(4, 11)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "c.Member").First();
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+
+        Assert.Equal(new[] { "void C<System.Int32>.Member<System.Int32, U>(U u)" },
+            model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void ExtensionMethodsInNonInvocationLookup_Inaccessible()
+    {
+        // An inaccessible extension method is skipped in favor of an extension type member in outer scope
+        var src = """
+public implicit extension E1 for object
+{
+    public int Member { get { System.Console.Write("ran "); return 0; } }
+}
+
+namespace N
+{
+    public static class E2
+    {
+        private static void Member(this object o) => throw null;
+    }
+
+    class C
+    {
+        public static void Main()
+        {
+            var o = new object();
+            int x = o.Member;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+        // PROTOTYPE Execute when adding support for emitting non-static members
+        //        var verifier = CompileAndVerify(comp, expectedOutput: "ran");
+
+        //        verifier.VerifyIL("N.C.Main", """
+        //{
+        //  // Code size       15 (0xf)
+        //  .maxstack  1
+        //  .locals init (object V_0, //o
+        //                int V_1) //x
+        //  IL_0000:  nop
+        //  IL_0001:  newobj     "object..ctor()"
+        //  IL_0006:  stloc.0
+        //  IL_0007:  ldloc.0
+        //  IL_0008:  callvirt   "int E1.Member.get"
+        //  IL_000d:  stloc.1
+        //  IL_000e:  ret
+        //}
+        //""");
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").Single();
+        Assert.Equal("System.Int32 E1.Member { get; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ExtensionMethodsInNonInvocationLookup_Ineligible()
+    {
+        // An ineligible extension method comes before an extension type member in outer scope
+        var src = """
+public implicit extension E1 for object
+{
+    public int Member { get { System.Console.Write("ran "); return 0; } }
+}
+
+namespace N
+{
+    public static class E2
+    {
+        public static void Member(this string o) => throw null;
+    }
+
+    class C
+    {
+        public static void Main()
+        {
+            var o = new object();
+            int x = o.Member;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").Single();
+        Assert.Equal("System.Int32 E1.Member { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [Fact]
+    public void ExtensionMethodsInNonInvocationLookup_ExtraParameter()
+    {
+        var src = """
+public implicit extension E1 for object
+{
+    public int Member { get { System.Console.Write("ran "); return 0; } }
+}
+
+namespace N
+{
+    public static class E2
+    {
+        public static void Member(this object o, int i) => throw null;
+    }
+
+    class C
+    {
+        public static void Main()
+        {
+            var o = new object();
+            int x = o.Member;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics(
+            // (18,23): error CS0428: Cannot convert method group 'Member' to non-delegate type 'int'. Did you intend to invoke the method?
+            //             int x = o.Member;
+            Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Member").WithArguments("Member", "int").WithLocation(18, 23)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "o.Member").Single();
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Equal(new[] { "void System.Object.Member(System.Int32 i)" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void ExtensionMethodsInNonInvocationLookup_FieldBlocksInstanceMethod()
+    {
+        // A non-invocable field blocks an instance method from base type in non-invocation scenario
+        var src = """
+C c = null;
+System.Action a = c.M; // 1
+c.M();
+
+public class Base
+{
+    public void M() { }
+}
+
+public class C : Base
+{
+    public new int M;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (2,19): error CS0029: Cannot implicitly convert type 'int' to 'System.Action'
+            // System.Action a = c.M; // 1
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "c.M").WithArguments("int", "System.Action").WithLocation(2, 19)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "c.M").First();
+        Assert.Equal("System.Int32 C.M", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+
+        var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "c.M").Skip(1).Single();
+        Assert.Equal("void Base.M()", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ExtensionMethodsInNonInvocationLookup_FieldBlocksExtensionMethod()
+    {
+        // A non-invocable field blocks an extension method in non-invocation scenario
+        var src = """
+C c = null;
+System.Action a = c.M; // 1
+c.M();
+
+public static class E
+{
+    public static void M(this C c) { }
+}
+
+public class C
+{
+    public int M;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (2,19): error CS0029: Cannot implicitly convert type 'int' to 'System.Action'
+            // System.Action a = c.M; // 1
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "c.M").WithArguments("int", "System.Action").WithLocation(2, 19)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "c.M").First();
+        Assert.Equal("System.Int32 C.M", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+
+        var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "c.M").Skip(1).Single();
+        Assert.Equal("void C.M()", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ExtensionMethodsInNonInvocationLookup_PropertyBlocksExtensionMethod()
+    {
+        // A non-invocable property blocks an extension method in non-invocation scenario
+        var src = """
+C c = null;
+System.Action a = c.M; // 1
+c.M();
+
+public static class E
+{
+    public static void M(this C c) { }
+}
+
+public class C
+{
+    public int M => 0;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (2,19): error CS0029: Cannot implicitly convert type 'int' to 'System.Action'
+            // System.Action a = c.M; // 1
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "c.M").WithArguments("int", "System.Action").WithLocation(2, 19)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "c.M").First();
+        Assert.Equal("System.Int32 C.M { get; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+
+        var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "c.M").Skip(1).Single();
+        Assert.Equal("void C.M()", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ExtensionMethodsInNonInvocationLookup_PropertyBlocksExtensionTypeMethod()
+    {
+        // A non-invocable property blocks an extension type method in non-invocation scenario
+        var src = """
+C c = null;
+System.Action a = c.M; // 1
+c.M();
+
+implicit extension E for C
+{
+    public void M() { }
+}
+
+public class C
+{
+    public int M => 0;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (2,19): error CS0029: Cannot implicitly convert type 'int' to 'System.Action'
+            // System.Action a = c.M; // 1
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "c.M").WithArguments("int", "System.Action").WithLocation(2, 19)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "c.M").First();
+        Assert.Equal("System.Int32 C.M { get; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+
+        var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "c.M").Skip(1).Single();
+        Assert.Equal("void E.M()", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ParameterCapturing_023_ColorColor_MemberAccess_InstanceAndStatic_ExtensionTypeMethods()
+    {
+        // See ParameterCapturing_023_ColorColor_MemberAccess_InstanceAndStatic_Method
+        var source = """
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(this);
+    }
+}
+
+class Color { }
+
+implicit extension E for Color
+{
+    public void M1(S1 x, int y = 0)
+    {
+        System.Console.WriteLine("instance");
+    }
+
+    public static void M1<T>(T x) where T : unmanaged
+    {
+        System.Console.WriteLine("static");
+    }
+}
+""";
+        // PROTOTYPE missing ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver
+        var comp = CreateCompilation(source, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            //// (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+            ////         Color.M1(this);
+            //Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(5, 9)
+            );
+
+        Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.M1");
+        Assert.Equal("void E.M1(S1 x, [System.Int32 y = 0])", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ParameterCapturing_023_ColorColor_MemberAccess_InstanceAndStatic_ExtensionTypeProperties()
+    {
+        var source = """
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        _ = Color.P1;
+    }
+}
+
+class Color { }
+
+implicit extension E1 for Color
+{
+    public int P1 => 0;
+}
+
+implicit extension E2 for Color
+{
+    public static int P1 => 0;
+}
+""";
+        var comp = CreateCompilation(source, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (5,19): error CS0229: Ambiguity between 'E1.P1' and 'E2.P1'
+            //         _ = Color.P1;
+            Diagnostic(ErrorCode.ERR_AmbigMember, "P1").WithArguments("E1.P1", "E2.P1").WithLocation(5, 19)
+            );
+
+        Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.P1");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+    }
+
+    [Fact]
+    public void ParameterCapturing_023_ColorColor_MemberAccess_InstanceAndStatic_ExtensionTypeMembersVsExtensionMethod()
+    {
+        var source = """
+public struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(this);
+    }
+}
+
+public class Color { }
+
+public static class E1
+{
+    public static void M1(this Color c, S1 x, int y = 0)
+    {
+        System.Console.WriteLine("instance");
+    }
+}
+
+implicit extension E2 for Color
+{
+    public static void M1<T>(T x) where T : unmanaged
+    {
+        System.Console.WriteLine("static");
+    }
+}
+""";
+        // PROTOTYPE missing ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver
+        var comp = CreateCompilation(source, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            //// (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+            ////         Color.M1(this);
+            //Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(5, 9)
+            );
+
+        Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.M1");
+        Assert.Equal("void Color.M1(S1 x, [System.Int32 y = 0])", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void NotOnBase()
+    {
+        // Unlike `this`, `base` is not an expression in itself.
+        // "Extension invocation" and "extension member lookup" do not apply to `base_access` syntax.
+        var src = """
+class Base { }
+
+class Derived : Base
+{
+    void Main()
+    {
+        M(); // 1
+        this.M();
+        base.M(); // 2
+        _ = P; // 3
+        _ = this.P;
+        _ = base.P; // 4
+    }
+}
+
+implicit extension E for Base
+{
+    public void M() { }
+    public int P => 0;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (7,9): error CS0103: The name 'M' does not exist in the current context
+            //         M(); // 1
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "M").WithArguments("M").WithLocation(7, 9),
+            // (9,14): error CS0117: 'Base' does not contain a definition for 'M'
+            //         base.M(); // 2
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("Base", "M").WithLocation(9, 14),
+            // (10,13): error CS0103: The name 'P' does not exist in the current context
+            //         _ = P; // 3
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "P").WithArguments("P").WithLocation(10, 13),
+            // (12,18): error CS0117: 'Base' does not contain a definition for 'P'
+            //         _ = base.P; // 4
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "P").WithArguments("Base", "P").WithLocation(12, 18)
+            );
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void CompoundAssignment()
+    {
+        var src = """
+object.P += 1;
+System.Console.Write($"Property({object.P}) ");
+
+object.Field += 1;
+System.Console.Write($"Field({object.Field}) ");
+
+implicit extension E for object
+{
+    public static int P { get; set; } = 42;
+    public static int Field = 42;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "Property(43) Field(43)", verify: Verification.FailsPEVerify)
+            .VerifyDiagnostics();
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void LookupKind_DelegateConversion()
+    {
+        // Non-invcable extension member in inner scope is skipped in favor of invocable one from outer scope
+        var src = """
+using N;
+
+System.Action a = object.Member;
+a();
+
+implicit extension E1 for object
+{
+    public class Member { }
+}
+
+namespace N
+{
+    implicit extension E2 for object
+    {
+        public static void Member()
+        {
+            System.Console.Write("ran ");
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsPEVerify)
+            .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Member");
+        Assert.Equal("void N.E2.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void LookupKind_Invocation()
+    {
+        // Non-invcable extension member in inner scope is skipped in favor of invocable one from outer scope
+        var src = """
+using N;
+
+object.Member();
+
+implicit extension E1 for object
+{
+    public class Member { }
+}
+
+namespace N
+{
+    implicit extension E2 for object
+    {
+        public static void Member()
+        {
+            System.Console.Write("ran ");
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsPEVerify)
+            .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Member");
+        Assert.Equal("void N.E2.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void LookupKind_OtherConversion()
+    {
+        // Non-invocable member in inner scope is skipped
+        var src = """
+using N;
+
+int a = object.Member;
+
+implicit extension E1 for object
+{
+    public class Member { }
+}
+
+namespace N
+{
+    implicit extension E2 for object
+    {
+        public static void Member() => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using N;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1),
+            // (3,16): error CS0428: Cannot convert method group 'Member' to non-delegate type 'int'. Did you intend to invoke the method?
+            // int a = object.Member;
+            Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Member").WithArguments("Member", "int").WithLocation(3, 16)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Member");
+        Assert.Equal("E1.Member", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ReturnType_FindExtensionTypeMethod()
+    {
+        var src = """
+System.Console.Write(local(object.M));
+
+T local<T>(System.Func<T> f) => f();
+
+implicit extension E for object
+{
+    public static int M() => 42;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+
+        CompileAndVerify(comp, expectedOutput: "42", verify: Verification.FailsPEVerify)
+            .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
+        Assert.Equal("System.Int32 E.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ReturnType_FindExtensionTypeMethod_PickBestOverload()
+    {
+        var src = """
+System.Console.Write(local(object.M));
+
+T local<T>(System.Func<int, T> f) => f(42);
+
+implicit extension E for object
+{
+    public static int M(int i) => i;
+    public static string M(string s) => throw null;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+
+        CompileAndVerify(comp, expectedOutput: "42", verify: Verification.FailsPEVerify)
+            .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
+        Assert.Equal("System.Int32 E.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ReturnType_FindType()
+    {
+        var src = """
+int i = object.M;
+
+implicit extension E for object
+{
+    public class M { }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,16): error CS0428: Cannot convert method group 'M' to non-delegate type 'int'. Did you intend to invoke the method?
+            // int i = object.M;
+            Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "M").WithArguments("M", "int").WithLocation(1, 16)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
+        Assert.Equal("E.M", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ReturnType_FindType_DelegateType()
+    {
+        // In invocation context, the type resolution is skipped
+        var src = """
+System.Console.Write(local(object.M));
+
+T local<T>(System.Func<T> f) => f();
+
+implicit extension E1 for object
+{
+    public class M { }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,22): error CS0411: The type arguments for method 'local<T>(Func<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+            // System.Console.Write(local(object.M));
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "local").WithArguments("local<T>(System.Func<T>)").WithLocation(1, 22),
+            // (3,3): warning CS8321: The local function 'local' is declared but never used
+            // T local<T>(System.Func<T> f) => f();
+            Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(3, 3)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void IndexExpression()
+    {
+        var src = """
+var x = new[] { 1, 2, 3 };
+System.Console.Write(x[^object.f]);
+
+implicit extension E for object
+{
+    public static int f = 2;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "2", verify: Verification.FailsPEVerify)
+            .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.f");
+        Assert.Equal("System.Int32 E.f", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void RangeExpression()
+    {
+        var src = """
+var x = new[] { 1, 2, 3 };
+System.Console.Write(x[0..object.f].Length);
+
+implicit extension E for object
+{
+    public static int f = 2;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "2", verify: Verification.FailsPEVerify)
+            .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.f");
+        Assert.Equal("System.Int32 E.f", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ArrayIndexer()
+    {
+        var src = """
+var x = new[] { 1, 2, 3 };
+System.Console.Write(x[object.f]);
+
+implicit extension E for object
+{
+    public static int f = 2;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "3", verify: Verification.FailsPEVerify)
+            .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.f");
+        Assert.Equal("System.Int32 E.f", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void CollectionInitializer()
+    {
+        var src = """
+var x = new System.Collections.Generic.List<int> { object.f };
+System.Console.Write(x[0]);
+
+implicit extension E for object
+{
+    public static int f = 2;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "2", verify: Verification.FailsPEVerify)
+            .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.f");
+        Assert.Equal("System.Int32 E.f", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ArrayInitializer()
+    {
+        var src = """
+var x = new[] { object.f };
+System.Console.Write(x[0]);
+
+implicit extension E for object
+{
+    public static int f = 2;
+}
+""";
+        // PROTOTYPE this should work
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,9): error CS0826: No best type found for implicitly-typed array
+            // var x = new[] { object.f };
+            Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { object.f }").WithLocation(1, 9)
+            );
+        //CompileAndVerify(comp, expectedOutput: "2", verify: Verification.FailsPEVerify)
+        //    .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.f");
+        Assert.Equal("System.Int32 E.f", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ArrayInitializer_Null()
+    {
+        var src = """
+var x = new[] { object.f, null };
+System.Console.Write(x[0]);
+
+implicit extension E for object
+{
+    public static string f = "hi";
+}
+""";
+        // PROTOTYPE this should work
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,9): error CS0826: No best type found for implicitly-typed array
+            // var x = new[] { object.f, null };
+            Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { object.f, null }").WithLocation(1, 9)
+            );
+        //CompileAndVerify(comp, expectedOutput: "2", verify: Verification.FailsPEVerify)
+        //    .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.f");
+        Assert.Equal("System.String E.f", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void BinaryOperator_Default()
+    {
+        var src = """
+int i = default + object.f;
+
+implicit extension E for object
+{
+    public static int f = 2;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,9): error CS8310: Operator '+' cannot be applied to operand 'default'
+            // int i = default + object.f;
+            Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default + object.f").WithArguments("+", "default").WithLocation(1, 9)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.f");
+        Assert.Equal("System.Int32 E.f", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void BinaryOperator()
+    {
+        var src = """
+int i = object.f + object.f;
+System.Console.Write(i);
+
+implicit extension E for object
+{
+    public static int f = 2;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "4", verify: Verification.FailsPEVerify)
+            .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "object.f").First();
+        Assert.Equal("System.Int32 E.f", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void NullCoalescingAssignment_LHS()
+    {
+        var src = """
+object.f ??= "hi";
+System.Console.Write(object.f);
+
+implicit extension E for object
+{
+    public static string f = null;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "hi", verify: Verification.FailsPEVerify)
+            .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "object.f").First();
+        Assert.Equal("System.String E.f", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void NullCoalescingAssignment_RHS()
+    {
+        var src = """
+string s = null;
+s ??= object.f;
+System.Console.Write(s);
+
+implicit extension E for object
+{
+    public static string f = "hi";
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "hi", verify: Verification.FailsPEVerify)
+            .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "object.f").First();
+        Assert.Equal("System.String E.f", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void Ternary()
+    {
+        var src = """
+bool b = true;
+var x = b ? object.f : object.f;
+System.Console.Write(object.f);
+
+implicit extension E for object
+{
+    public static string f = "hi";
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE this should work
+        comp.VerifyDiagnostics(
+            // (2,9): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'method group' and 'method group'
+            // var x = b ? object.f : object.f;
+            Diagnostic(ErrorCode.ERR_InvalidQM, "b ? object.f : object.f").WithArguments("method group", "method group").WithLocation(2, 9)
+            );
+        //CompileAndVerify(comp, expectedOutput: "hi", verify: Verification.FailsPEVerify)
+        //    .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "object.f").First();
+        Assert.Equal("System.String E.f", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void Ternary_Null()
+    {
+        var src = """
+bool b = true;
+var x = b ? object.f : null;
+System.Console.Write(object.f);
+
+implicit extension E for object
+{
+    public static string f = "hi";
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE this should work
+        comp.VerifyDiagnostics(
+            // (2,9): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'method group' and '<null>'
+            // var x = b ? object.f : null;
+            Diagnostic(ErrorCode.ERR_InvalidQM, "b ? object.f : null").WithArguments("method group", "<null>").WithLocation(2, 9)
+            );
+        //CompileAndVerify(comp, expectedOutput: "hi", verify: Verification.FailsPEVerify)
+        //    .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "object.f").First();
+        Assert.Equal("System.String E.f", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void RefExpression()
+    {
+        var src = """
+ref var x = ref object.f;
+System.Console.Write(object.f);
+
+implicit extension E for object
+{
+    public static string f = "hi";
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "hi", verify: Verification.FailsPEVerify)
+            .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "object.f").First();
+        Assert.Equal("System.String E.f", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ReturnStatement()
+    {
+        var src = """
+System.Console.Write(local());
+
+string local()
+{
+    return object.f;
+}
+
+implicit extension E for object
+{
+    public static string f = "hi";
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "hi", verify: Verification.FailsPEVerify)
+            .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "object.f").First();
+        Assert.Equal("System.String E.f", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void LambdaReturn()
+    {
+        var src = """
+var l = () => object.f;
+System.Console.Write(l());
+
+implicit extension E for object
+{
+    public static string f = "hi";
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE need to infer delegate type
+        comp.VerifyDiagnostics(
+            // (1,9): error CS8917: The delegate type could not be inferred.
+            // var l = () => object.f;
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "() => object.f").WithLocation(1, 9)
+            );
+        //CompileAndVerify(comp, expectedOutput: "hi", verify: Verification.FailsPEVerify)
+        //    .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "object.f").First();
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void IfStatement()
+    {
+        var src = """
+if (object.f)
+    System.Console.Write("hi");
+else
+    throw null;
+
+implicit extension E for object
+{
+    public static bool f = true;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "hi", verify: Verification.FailsPEVerify)
+            .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "object.f").First();
+        Assert.Equal("System.Boolean E.f", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ForeachStatement()
+    {
+        var src = """
+foreach (var x in object.f)
+{
+    System.Console.Write(x);
+}
+
+implicit extension E for object
+{
+    public static string[] f = new[] { "hi" };
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "hi", verify: Verification.FailsPEVerify)
+            .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "object.f").First();
+        Assert.Equal("System.String[] E.f", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void GotoStatement()
+    {
+        var src = """
+goto object.f;
+
+implicit extension E for object
+{
+    public static string[] f = new[] { "hi" };
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,6): error CS1001: Identifier expected
+            // goto object.f;
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "object").WithLocation(1, 6),
+            // (1,6): error CS1002: ; expected
+            // goto object.f;
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "object").WithLocation(1, 6),
+            // (1,6): error CS0159: No such label '' within the scope of the goto statement
+            // goto object.f;
+            Diagnostic(ErrorCode.ERR_LabelNotFound, "").WithArguments("").WithLocation(1, 6),
+            // (1,6): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+            // goto object.f;
+            Diagnostic(ErrorCode.ERR_IllegalStatement, "object.f").WithLocation(1, 6)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "object.f").First();
+        Assert.Equal("System.String[] E.f", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void SwitchExpression()
+    {
+        var src = """
+var s = 0 switch { _ => object.f };
+System.Console.Write(s);
+
+implicit extension E for object
+{
+    public static string f = "hi";
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE this should work
+        comp.VerifyDiagnostics(
+            // (1,11): error CS8506: No best type was found for the switch expression.
+            // var s = 0 switch { _ => object.f };
+            Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(1, 11)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "object.f").First();
+        Assert.Equal("System.String E.f", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+}
+

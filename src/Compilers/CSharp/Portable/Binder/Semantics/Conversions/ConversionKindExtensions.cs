@@ -51,6 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case StackAllocToSpanType:
                 case ImplicitPointer:
                 case ObjectCreation:
+                case ExtensionMember:
                     return true;
 
                 case ExplicitNumeric:

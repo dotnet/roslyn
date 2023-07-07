@@ -1287,9 +1287,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private MethodArgumentInfo FindForEachPatternMethodViaExtension(BoundExpression collectionExpr, string methodName, BindingDiagnosticBag diagnostics)
         {
+            // PROTOTYPE we'll want extension types to contribute and not crash below
             var analyzedArguments = AnalyzedArguments.GetInstance();
 
-            var methodGroupResolutionResult = this.BindExtensionMethod(
+            var methodGroupResolutionResult = this.ResolveExtension(
                 _syntax.Expression,
                 methodName,
                 analyzedArguments,

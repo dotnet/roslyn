@@ -4,16 +4,17 @@
 
 #nullable disable
 
-using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// Packages up the various parts returned when resolving a method group. 
+    /// Packages up the various parts returned when resolving a method group.
+    ///
+    /// A resolution may find a non-method group result (an extension member).
+    /// That is represented as a viable ResultKind with an OtherSymbol, but no MethodGroup.
     /// </summary>
     internal readonly struct MethodGroupResolution
     {
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public MethodGroupResolution(Symbol otherSymbol, LookupResultKind resultKind, ImmutableBindingDiagnostic<AssemblySymbol> diagnostics)
             : this(methodGroup: null, otherSymbol, overloadResolutionResult: null, analyzedArguments: null, resultKind, diagnostics)
         {
-            Debug.Assert(resultKind != LookupResultKind.Viable);
+            Debug.Assert(resultKind != LookupResultKind.Viable || otherSymbol.ContainingType.IsExtension);
         }
 
         public MethodGroupResolution(
@@ -51,6 +52,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!diagnostics.Diagnostics.IsDefault);
             Debug.Assert(!diagnostics.Dependencies.IsDefault);
             Debug.Assert(overloadResolutionResult == null || methodGroup != null);
+
+            // If we have an extension member (viable result but which isn't a method group), it is stored in other symbol.
+            Debug.Assert((otherSymbol is not null) || !(ResultKind == LookupResultKind.Viable && MethodGroup is null));
 
             this.MethodGroup = methodGroup;
             this.OtherSymbol = otherSymbol;
@@ -84,6 +88,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get { return (this.MethodGroup != null) && this.MethodGroup.IsExtensionMethodGroup; }
         }
+
+#nullable enable
+        public bool IsExtensionMember([NotNullWhen(true)] out Symbol? extensionMember)
+        {
+            bool isExtensionMember = ResultKind == LookupResultKind.Viable && MethodGroup is null;
+            extensionMember = isExtensionMember ? OtherSymbol : null;
+            Debug.Assert((extensionMember is not null) || !isExtensionMember);
+
+            return isExtensionMember;
+        }
+#nullable disable
 
         public bool IsLocalFunctionInvocation =>
             MethodGroup?.Methods.Count == 1 && // Local functions cannot be overloaded

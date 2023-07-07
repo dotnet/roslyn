@@ -10,6 +10,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal enum BoundMethodGroupFlags
     {
         None = 0,
+
+        /// <summary>
+        /// Set to search methods from extension types and extension methods.
+        /// </summary>
         SearchExtensionMethods = 1,
 
         /// <summary>

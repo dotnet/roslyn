@@ -382,6 +382,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression CheckValue(BoundExpression expr, BindValueKind valueKind, BindingDiagnosticBag diagnostics)
         {
+            if (RequiresAssignableVariable(valueKind))
+            {
+                expr = ResolveToExtensionMemberIfPossible(expr, diagnostics);
+            }
+
             switch (expr.Kind)
             {
                 case BoundKind.PropertyGroup:
@@ -446,7 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var resolution = this.ResolveMethodGroup(methodGroup, analyzedArguments: null, isMethodGroupConversion: false, useSiteInfo: ref useSiteInfo);
                 diagnostics.Add(expr.Syntax, useSiteInfo);
                 Symbol otherSymbol = null;
-                bool resolvedToMethodGroup = resolution.MethodGroup != null;
+                bool resolvedToUnusableSymbol = resolution.MethodGroup == null && !resolution.IsExtensionMember(out _);
                 if (!expr.HasAnyErrors) diagnostics.AddRange(resolution.Diagnostics); // Suppress cascading.
                 hasResolutionErrors = resolution.HasAnyErrors;
                 if (hasResolutionErrors)
@@ -460,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // field or property), or nothing at all. In those cases, the member should not be exposed as a
                 // method group, not even within a BoundBadExpression. Instead, the
                 // BoundBadExpression simply refers to the receiver and the resolved symbol (if any).
-                if (!resolvedToMethodGroup)
+                if (resolvedToUnusableSymbol)
                 {
                     Debug.Assert(methodGroup.ResultKind != LookupResultKind.Viable);
                     var receiver = methodGroup.ReceiverOpt;

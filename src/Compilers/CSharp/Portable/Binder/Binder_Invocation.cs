@@ -629,6 +629,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methodGroup, expression, methodName, analyzedArguments, isMethodGroupConversion: false,
                 useSiteInfo: ref useSiteInfo, allowUnexpandedForm: allowUnexpandedForm);
             diagnostics.Add(expression, useSiteInfo);
+
+            if (resolution.IsExtensionMember(out Symbol extensionMember))
+            {
+                diagnostics.AddRange(resolution.Diagnostics);
+                var extensionMemberAccess = GetExtensionMemberAccess(expression, methodGroup.ReceiverOpt, extensionMember, diagnostics);
+                Debug.Assert(extensionMemberAccess.Kind != BoundKind.MethodGroup);
+
+                var extensionMemberInvocation = BindInvocationExpression(syntax, expression, methodName, extensionMemberAccess, analyzedArguments, diagnostics);
+                anyApplicableCandidates = !extensionMemberInvocation.HasAnyErrors;
+                return extensionMemberInvocation;
+            }
+
             anyApplicableCandidates = resolution.ResultKind == LookupResultKind.Viable && resolution.OverloadResolutionResult.HasAnyApplicableMember;
 
             if (!methodGroup.HasAnyErrors) diagnostics.AddRange(resolution.Diagnostics); // Suppress cascading.
@@ -1966,6 +1978,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Check that the method group contains something applicable. Otherwise error.
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             var resolution = ResolveMethodGroup(methodGroup, analyzedArguments: null, isMethodGroupConversion: false, useSiteInfo: ref useSiteInfo);
+            // PROTOTYPE we probably want this error for extension members too
             diagnostics.Add(methodGroup.Syntax, useSiteInfo);
             diagnostics.AddRange(resolution.Diagnostics);
             if (resolution.IsExtensionMethodGroup)

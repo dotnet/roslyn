@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -95,6 +96,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal readonly ImmutableArray<(BoundValuePlaceholder? placeholder, BoundExpression? conversion)> DeconstructConversionInfo;
         }
 
+        private class ExtensionMemberUncommonData : UncommonData
+        {
+            internal readonly Symbol ExtensionMember;
+
+            internal ExtensionMemberUncommonData(Symbol extensionMember, ImmutableArray<Conversion> nestedConversions)
+                : base(isExtensionMethod: false, isArrayIndex: false, conversionResult: default, conversionMethod: null, nestedConversions)
+            {
+                Debug.Assert(extensionMember is not null);
+                Debug.Assert(nestedConversions.Length == 1);
+                Debug.Assert(nestedConversions[0].Kind != ConversionKind.ExtensionMember);
+
+                ExtensionMember = extensionMember;
+            }
+        }
+
         private Conversion(
             ConversionKind kind,
             UncommonData? uncommonData)
@@ -134,6 +150,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversionResult: default,
                 conversionMethod: conversionMethod,
                 nestedConversions: default);
+        }
+
+        // For extension member conversion
+        internal Conversion(Symbol extensionMember, Conversion nestedConversion)
+        {
+            this._kind = ConversionKind.ExtensionMember;
+            _uncommonData = new ExtensionMemberUncommonData(extensionMember, nestedConversions: ImmutableArray.Create(nestedConversion));
         }
 
         internal Conversion(ConversionKind kind, ImmutableArray<Conversion> nestedConversions)
@@ -486,6 +509,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var uncommonData = (DeconstructionUncommonData?)_uncommonData;
                 return uncommonData == null ? default : uncommonData.DeconstructConversionInfo;
             }
+        }
+
+        internal bool IsExtensionMemberConversion([NotNullWhen(true)] out Symbol? extensionMember, out Conversion nestedConversion)
+        {
+            if (Kind != ConversionKind.ExtensionMember)
+            {
+                extensionMember = null;
+                nestedConversion = default;
+                return false;
+            }
+
+            var uncommonData = (ExtensionMemberUncommonData?)_uncommonData;
+
+            Debug.Assert(uncommonData is not null);
+            extensionMember = uncommonData.ExtensionMember;
+
+            Debug.Assert(uncommonData._nestedConversionsOpt.Length == 1);
+            nestedConversion = uncommonData._nestedConversionsOpt[0];
+
+            return true;
         }
 
         // CONSIDER: public?

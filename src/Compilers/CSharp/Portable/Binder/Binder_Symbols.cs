@@ -869,11 +869,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var result = LookupResult.GetInstance();
-            LookupOptions options = GetSimpleNameLookupOptions(node, node.Identifier.IsVerbatimIdentifier(), qualifierOpt);
+            LookupOptions options = GetSimpleNameLookupOptions(node, node.Identifier.IsVerbatimIdentifier());
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             this.LookupSymbolsSimpleName(result, qualifierOpt, identifierValueText, 0, basesBeingResolved, options, diagnose: true, useSiteInfo: ref useSiteInfo);
             diagnostics.Add(node, useSiteInfo);
+
+            if (result.Kind != LookupResultKind.Viable && qualifierOpt is TypeSymbol typeSymbol)
+            {
+                Debug.Assert(result.Kind != LookupResultKind.Ambiguous);
+                this.LookupExtensionTypeMembersIfNeeded(result, typeSymbol, identifierValueText, arity: 0, basesBeingResolved, options, ref useSiteInfo);
+            }
 
             Symbol bindingResult = null;
 
@@ -1062,7 +1068,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Gets the name lookup options for simple generic or non-generic name.
-        private static LookupOptions GetSimpleNameLookupOptions(NameSyntax node, bool isVerbatimIdentifier, NamespaceOrTypeSymbol qualifierOpt)
+        private static LookupOptions GetSimpleNameLookupOptions(NameSyntax node, bool isVerbatimIdentifier)
         {
             LookupOptions result;
             if (SyntaxFacts.IsAttributeName(node))
@@ -1079,13 +1085,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 result = LookupOptions.NamespacesOrTypesOnly;
-            }
-
-            if (qualifierOpt is not null)
-            {
-                // Extension member lookup comes into play for member access (ie. with a qualifier),
-                // but not for simple names (ie. without a qualifier).
-                result |= LookupOptions.SearchInExtensionTypes;
             }
 
             return result;
@@ -1214,7 +1213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SeparatedSyntaxList<TypeSyntax> typeArguments = node.TypeArgumentList.Arguments;
 
             bool isUnboundTypeExpr = node.IsUnboundGenericName;
-            LookupOptions options = GetSimpleNameLookupOptions(node, isVerbatimIdentifier: false, qualifierOpt);
+            LookupOptions options = GetSimpleNameLookupOptions(node, isVerbatimIdentifier: false);
 
             NamedTypeSymbol unconstructedType = LookupGenericTypeName(
                 diagnostics, basesBeingResolved, qualifierOpt, node, plainName, node.Arity, options);
@@ -1285,6 +1284,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             this.LookupSymbolsSimpleName(lookupResult, qualifierOpt, plainName, arity, basesBeingResolved, options, diagnose: true, useSiteInfo: ref useSiteInfo);
             diagnostics.Add(node, useSiteInfo);
+
+            if (lookupResult.Kind != LookupResultKind.Viable && qualifierOpt is TypeSymbol typeSymbol)
+            {
+                Debug.Assert(lookupResult.Kind != LookupResultKind.Ambiguous);
+                this.LookupExtensionTypeMembersIfNeeded(lookupResult, typeSymbol, plainName, arity, basesBeingResolved, options, ref useSiteInfo);
+            }
 
             bool wasError;
             Symbol lookupResultSymbol = ResultSymbol(lookupResult, plainName, arity, node, diagnostics, (basesBeingResolved != null), out wasError, qualifierOpt, options);
@@ -1528,6 +1533,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // See if there could be extension methods in scope
                 foreach (var scope in new ExtensionScopes(this))
                 {
+                    // PROTOTYPE We'll probably want to check for extension type members here
                     lookupResult ??= LookupResult.GetInstance();
                     LookupExtensionMethods(lookupResult, scope, plainName, arity, ref useSiteInfo);
 

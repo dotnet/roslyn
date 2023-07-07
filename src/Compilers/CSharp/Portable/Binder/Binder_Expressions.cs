@@ -280,6 +280,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal BoundExpression BindToNaturalType(BoundExpression expression, BindingDiagnosticBag diagnostics, bool reportNoTargetType = true)
         {
+            expression = ResolveToExtensionMemberIfPossible(expression, diagnostics);
+
             if (!expression.NeedsToBeConverted())
                 return expression;
 
@@ -6658,10 +6660,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     options |= LookupOptions.MustBeInvocableIfMember;
                 }
-                else
-                {
-                    options |= LookupOptions.SearchInExtensionTypes;
-                }
 
                 var typeArgumentsSyntax = right.Kind() == SyntaxKind.GenericName ? ((GenericNameSyntax)right).TypeArgumentList.Arguments : default(SeparatedSyntaxList<TypeSyntax>);
                 var typeArguments = typeArgumentsSyntax.Count > 0 ? BindTypeArguments(typeArgumentsSyntax, diagnostics) : default(ImmutableArray<TypeWithAnnotations>);
@@ -6841,6 +6839,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((object)leftType != null);
                 if (leftType.TypeKind == TypeKind.TypeParameter)
                 {
+                    // PROTOTYPE need to confirm what we want for extension invocations on type parameters
                     CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                     this.LookupMembersWithFallback(lookupResult, leftType, rightName, rightArity, ref useSiteInfo, basesBeingResolved: null, options: options | LookupOptions.MustNotBeInstance | LookupOptions.MustBeAbstractOrVirtual);
                     diagnostics.Add(right, useSiteInfo);
@@ -6865,10 +6864,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                     this.LookupMembersWithFallback(lookupResult, leftType, rightName, rightArity, ref useSiteInfo, basesBeingResolved: null, options: options);
                     diagnostics.Add(right, useSiteInfo);
+
                     if (lookupResult.IsMultiViable)
                     {
-                        return BindMemberOfType(node, right, rightName, rightArity, indexed, boundLeft, typeArgumentsSyntax, typeArguments, lookupResult, BoundMethodGroupFlags.None, diagnostics: diagnostics);
+                        return BindMemberOfType(node, right, rightName, rightArity, indexed, boundLeft, typeArgumentsSyntax, typeArguments, lookupResult, BoundMethodGroupFlags.SearchExtensionMethods, diagnostics: diagnostics);
                     }
+
+                    return MakeBoundMethodGroupAndCheckOmittedTypeArguments(boundLeft, rightName, typeArguments, lookupResult,
+                        flags: BoundMethodGroupFlags.SearchExtensionMethods, node, typeArgumentsSyntax, diagnostics);
                 }
 
                 return null;
@@ -6899,6 +6902,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                         var resolution = this.ResolveMethodGroup(methodGroup, analyzedArguments: null, isMethodGroupConversion: false, useSiteInfo: ref useSiteInfo);
                         diagnostics.Add(expr.Syntax, useSiteInfo);
+
+                        if (resolution.IsExtensionMember(out Symbol extensionMember))
+                        {
+                            diagnostics.AddRange(resolution.Diagnostics);
+                            return GetExtensionMemberAccess(methodGroup.Syntax, methodGroup.ReceiverOpt, extensionMember, diagnostics);
+                        }
+
                         if (!expr.HasAnyErrors)
                         {
                             diagnostics.AddRange(resolution.Diagnostics);
@@ -6920,6 +6930,35 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 default:
                     return BindToNaturalType(expr, diagnostics);
+            }
+        }
+
+        private BoundExpression ResolveToExtensionMemberIfPossible(BoundExpression expr, BindingDiagnosticBag diagnostics)
+        {
+            switch (expr.Kind)
+            {
+                case BoundKind.MethodGroup:
+                    if (expr is BoundMethodGroup { Methods: [], SearchExtensionMethods: true } methodGroup)
+                    {
+                        CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                        var resolution = this.ResolveMethodGroup(methodGroup, analyzedArguments: null, isMethodGroupConversion: false, ref useSiteInfo);
+                        diagnostics.Add(expr.Syntax, useSiteInfo);
+
+                        if (resolution.IsExtensionMember(out Symbol extensionMember))
+                        {
+                            diagnostics.AddRange(resolution.Diagnostics);
+                            resolution.Free();
+                            return GetExtensionMemberAccess(methodGroup.Syntax, methodGroup.ReceiverOpt, extensionMember, diagnostics);
+                        }
+
+                        resolution.Free();
+                    }
+
+                    return expr;
+                // PROTOTYPE need to handle PropertyGroup as well
+
+                default:
+                    return expr;
             }
         }
 
@@ -6957,7 +6996,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // SPEC: If this fails, E.I is an invalid member reference, and a binding-time error occurs.
                 searchExtensionMethodsIfNecessary = searchExtensionMethodsIfNecessary && !leftIsBaseReference;
 
-                BoundMethodGroupFlags flags = 0;
+                BoundMethodGroupFlags flags = BoundMethodGroupFlags.None;
                 if (searchExtensionMethodsIfNecessary)
                 {
                     flags |= BoundMethodGroupFlags.SearchExtensionMethods;
@@ -6977,22 +7016,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         boundLeft = ReplaceTypeOrValueReceiver(boundLeft, useType: false, diagnostics);
                     }
 
-                    var boundMethodGroup = new BoundMethodGroup(
-                        node,
-                        typeArgumentsWithAnnotations,
-                        boundLeft,
-                        rightName,
-                        lookupResult.Symbols.All(s => s.Kind == SymbolKind.Method) ? lookupResult.Symbols.SelectAsArray(s_toMethodSymbolFunc) : ImmutableArray<MethodSymbol>.Empty,
-                        lookupResult,
-                        flags,
-                        this);
-
-                    if (!boundMethodGroup.HasErrors && typeArgumentsSyntax.Any(SyntaxKind.OmittedTypeArgument))
-                    {
-                        Error(diagnostics, ErrorCode.ERR_OmittedTypeArgument, node);
-                    }
-
-                    return boundMethodGroup;
+                    return MakeBoundMethodGroupAndCheckOmittedTypeArguments(boundLeft, rightName, typeArgumentsWithAnnotations, lookupResult,
+                        flags, node, typeArgumentsSyntax, diagnostics);
                 }
 
                 this.BindMemberAccessReportError(node, right, rightName, boundLeft, lookupResult.Error, diagnostics);
@@ -7004,16 +7029,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private BoundMethodGroup MakeBoundMethodGroupAndCheckOmittedTypeArguments(BoundExpression boundLeft, string rightName,
+            ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations, LookupResult lookupResult, BoundMethodGroupFlags flags, SyntaxNode node,
+            SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax, BindingDiagnosticBag diagnostics)
+        {
+            var boundMethodGroup = new BoundMethodGroup(
+                node,
+                typeArgumentsWithAnnotations,
+                boundLeft,
+                rightName,
+                lookupResult.Symbols.All(s => s.Kind == SymbolKind.Method) ? lookupResult.Symbols.SelectAsArray(s_toMethodSymbolFunc) : ImmutableArray<MethodSymbol>.Empty,
+                lookupResult,
+                flags,
+                this);
+
+            if (!boundMethodGroup.HasErrors && typeArgumentsSyntax.Any(SyntaxKind.OmittedTypeArgument))
+            {
+                Error(diagnostics, ErrorCode.ERR_OmittedTypeArgument, node);
+            }
+
+            return boundMethodGroup;
+        }
+
         private void LookupInstanceMember(LookupResult lookupResult, TypeSymbol leftType, bool leftIsBaseReference, string rightName, int rightArity, bool invoked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             LookupOptions options = LookupOptions.AllMethodsOnArityZero;
             if (invoked)
             {
                 options |= LookupOptions.MustBeInvocableIfMember;
-            }
-            else
-            {
-                options |= LookupOptions.SearchInExtensionTypes;
             }
 
             if (leftIsBaseReference)
@@ -7060,7 +7103,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-
                 if ((object)boundLeft.Type == null)
                 {
                     Error(diagnostics, ErrorCode.ERR_NoSuchMember, name, boundLeft.Display, plainName);
@@ -7288,12 +7330,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SymbolKind.NamedType:
                     case SymbolKind.ErrorType:
-                        if (IsInstanceReceiver(left) == true && !wasError)
-                        {
-                            // CS0572: 'B': cannot reference a type through an expression; try 'A.B' instead
-                            Error(diagnostics, ErrorCode.ERR_BadTypeReference, right, plainName, symbol);
-                            wasError = true;
-                        }
 
                         // If I identifies a type, then the result is that type constructed with
                         // the given type arguments.
@@ -7303,12 +7339,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             type = ConstructNamedTypeUnlessTypeArgumentOmitted(right, type, typeArgumentsSyntax, typeArgumentsWithAnnotations, diagnostics);
                         }
 
-                        result = new BoundTypeExpression(
-                            syntax: node,
-                            aliasOpt: null,
-                            boundContainingTypeOpt: left as BoundTypeExpression,
-                            boundDimensionsOpt: ImmutableArray<BoundExpression>.Empty,
-                            typeWithAnnotations: TypeWithAnnotations.Create(type));
+                        result = BindTypeMemberOfType(left, plainName, type, node, right, diagnostics, ref wasError);
                         break;
 
                     case SymbolKind.Property:
@@ -7342,11 +7373,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        private BoundExpression BindTypeMemberOfType(BoundExpression left, string plainName, NamedTypeSymbol symbol,
+            SyntaxNode node, SyntaxNode right, BindingDiagnosticBag diagnostics, ref bool wasError)
+        {
+            if (IsInstanceReceiver(left) == true && !wasError)
+            {
+                // CS0572: 'B': cannot reference a type through an expression; try 'A.B' instead
+                Error(diagnostics, ErrorCode.ERR_BadTypeReference, right, plainName, symbol);
+                wasError = true;
+            }
+
+            return new BoundTypeExpression(
+                syntax: node,
+                aliasOpt: null,
+                boundContainingTypeOpt: left as BoundTypeExpression,
+                boundDimensionsOpt: ImmutableArray<BoundExpression>.Empty,
+                typeWithAnnotations: TypeWithAnnotations.Create(symbol));
+        }
+
 #nullable enable
-        protected MethodGroupResolution BindExtensionMethod(
+        protected MethodGroupResolution ResolveExtension(
             SyntaxNode expression,
-            string methodName,
-            AnalyzedArguments analyzedArguments,
+            string memberName,
+            AnalyzedArguments? analyzedArguments,
             BoundExpression left,
             ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations,
             bool isMethodGroupConversion,
@@ -7354,37 +7403,62 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol returnType,
             bool withDependencies)
         {
+            Debug.Assert(left.Type is not null);
+
             var firstResult = new MethodGroupResolution();
             AnalyzedArguments? actualArguments = null;
 
             foreach (var scope in new ExtensionScopes(this))
             {
-                if (tryResolveExtensionMethod(this, expression, methodName, analyzedArguments, left, typeArgumentsWithAnnotations,
-                    isMethodGroupConversion, returnRefKind, returnType, withDependencies, scope,
-                    ref actualArguments, out MethodGroupResolution result))
+                if (!left.Type.IsTypeParameter()
+                    && tryResolveExtensionTypeMember(this, expression, memberName, analyzedArguments, left, typeArgumentsWithAnnotations,
+                        isMethodGroupConversion, returnRefKind, returnType, withDependencies, scope,
+                        out MethodGroupResolution extensionResult))
                 {
-                    if (analyzedArguments == null)
+                    if (extensionResult.IsExtensionMember(out _))
                     {
-                        // Found a match and didn't need to do overload resolution
-                        return result;
+                        return extensionResult;
                     }
 
-                    // If the search in the current scope resulted in any applicable method (regardless of whether a best
-                    // applicable method could be determined) then our search is complete. Otherwise, store aside the
-                    // first non-applicable result and continue searching for an applicable result.
-                    if (result.HasAnyApplicableMethod)
+                    // If the search in the current scope resulted in any applicable method from an extension type
+                    // (regardless of whether a best applicable method could be determined) then our search is complete.
+                    // Otherwise, store aside the first non-applicable result and continue searching for an applicable result.
+                    if (extensionResult.HasAnyApplicableMethod)
                     {
                         firstResult.Free();
-                        return result;
+                        return extensionResult;
                     }
                     else if (firstResult.IsEmpty)
                     {
-                        firstResult = result;
+                        firstResult = extensionResult;
                     }
                     else
                     {
                         // Neither the first result, nor applicable. No need to save result.
-                        result.Free();
+                        extensionResult.Free();
+                    }
+                }
+
+                if (tryResolveExtensionMethod(this, expression, memberName, analyzedArguments, left, typeArgumentsWithAnnotations,
+                    isMethodGroupConversion, returnRefKind, returnType, withDependencies, scope,
+                    ref actualArguments, out MethodGroupResolution extensionMethodResult))
+                {
+                    // If the search in the current scope resulted in any applicable method (regardless of whether a best
+                    // applicable method could be determined) then our search is complete. Otherwise, store aside the
+                    // first non-applicable result and continue searching for an applicable result.
+                    if (extensionMethodResult.HasAnyApplicableMethod)
+                    {
+                        firstResult.Free();
+                        return extensionMethodResult;
+                    }
+                    else if (firstResult.IsEmpty)
+                    {
+                        firstResult = extensionMethodResult;
+                    }
+                    else
+                    {
+                        // Neither the first result, nor applicable. No need to save result.
+                        extensionMethodResult.Free();
                     }
                 }
             }
@@ -7393,11 +7467,74 @@ namespace Microsoft.CodeAnalysis.CSharp
             actualArguments?.Free();
             return firstResult;
 
+            static bool tryResolveExtensionTypeMember(Binder binder, SyntaxNode expression, string methodName, AnalyzedArguments? analyzedArguments, BoundExpression left,
+                ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations, bool isMethodGroupConversion, RefKind returnRefKind,
+                TypeSymbol returnType, bool withDependencies, ExtensionScope scope, out MethodGroupResolution extensionResult)
+            {
+                var lookupResult = LookupResult.GetInstance();
+                var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies);
+
+                int arity = typeArgumentsWithAnnotations.IsDefault ? 0 : typeArgumentsWithAnnotations.Length;
+                var options = (arity == 0) ? LookupOptions.AllMethodsOnArityZero : LookupOptions.Default;
+                if (analyzedArguments is not null)
+                {
+                    options |= LookupOptions.MustBeInvocableIfMember;
+                }
+
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
+                binder.LookupImplicitExtensionMembersInSingleBinder(lookupResult, scope.Binder, left.Type!, methodName, arity, basesBeingResolved: null, options, binder, ref useSiteInfo);
+
+                // PROTOTYPE test use-site diagnostics
+                diagnostics.Add(expression, useSiteInfo);
+
+                if (!lookupResult.IsMultiViable)
+                {
+                    lookupResult.Free();
+                    diagnostics.Free();
+                    extensionResult = default;
+                    return false;
+                }
+
+                var members = ArrayBuilder<Symbol>.GetInstance();
+
+                Symbol symbol = binder.GetSymbolOrMethodOrPropertyGroup(lookupResult, expression, methodName, arity, members, diagnostics, wasError: out _, qualifierOpt: null);
+                if (symbol is not null)
+                {
+                    lookupResult.Free();
+                    members.Free();
+                    extensionResult = new MethodGroupResolution(symbol, LookupResultKind.Viable, diagnostics.ToReadOnlyAndFree());
+                    return true;
+                }
+
+                if (members[0].Kind is not SymbolKind.Method)
+                {
+                    lookupResult.Free();
+                    diagnostics.Free();
+                    members.Free();
+                    extensionResult = default;
+                    return false;
+                }
+
+                var methodGroup = MethodGroup.GetInstance();
+                methodGroup.PopulateWithMethods(left, members, typeArgumentsWithAnnotations, isExtensionMethodGroup: false, resultKind: lookupResult.Kind);
+                members.Free();
+
+                if (analyzedArguments is null)
+                {
+                    lookupResult.Free();
+                    extensionResult = new MethodGroupResolution(methodGroup, diagnostics.ToReadOnlyAndFree());
+                    return true;
+                }
+
+                extensionResult = resolveOverloads(binder, methodGroup, analyzedArguments, isMethodGroupConversion, returnType, returnRefKind, expression, diagnostics);
+                return true;
+            }
+
             static bool tryResolveExtensionMethod(
                 Binder binder,
                 SyntaxNode expression,
                 string methodName,
-                AnalyzedArguments analyzedArguments,
+                AnalyzedArguments? analyzedArguments,
                 BoundExpression left,
                 ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations,
                 bool isMethodGroupConversion,
@@ -7413,18 +7550,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 binder.PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, expression, left, methodName, typeArgumentsWithAnnotations, diagnostics);
 
-                // analyzedArguments will be null if the caller is resolving for error recovery to the first method group
-                // that can accept that receiver, regardless of arguments, when the signature cannot be inferred.
-                // (In the error case of nameof(o.M) or the error case of o.M = null; for instance.)
                 if (analyzedArguments == null)
                 {
-                    if (expression == binder.EnclosingNameofArgument)
+                    for (int i = methodGroup.Methods.Count - 1; i >= 0; i--)
                     {
-                        for (int i = methodGroup.Methods.Count - 1; i >= 0; i--)
-                        {
-                            if ((object)methodGroup.Methods[i].ReduceExtensionMethod(left.Type, binder.Compilation) == null)
-                                methodGroup.Methods.RemoveAt(i);
-                        }
+                        if ((object)methodGroup.Methods[i].ReduceExtensionMethod(left.Type, binder.Compilation) == null)
+                            methodGroup.Methods.RemoveAt(i);
                     }
 
                     if (methodGroup.Methods.Count != 0)
@@ -7450,8 +7581,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CombineExtensionMethodArguments(left, analyzedArguments, actualArguments);
                 }
 
+                result = resolveOverloads(binder, methodGroup, actualArguments, isMethodGroupConversion, returnType, returnRefKind, expression, diagnostics);
+                return true;
+            }
+
+            static MethodGroupResolution resolveOverloads(Binder binder, MethodGroup methodGroup, AnalyzedArguments actualArguments, bool isMethodGroupConversion,
+                TypeSymbol returnType, RefKind returnRefKind, SyntaxNode expression, BindingDiagnosticBag diagnostics)
+            {
                 var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
                 bool allowRefOmittedArguments = methodGroup.Receiver.IsExpressionOfComImportType();
+
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
                 binder.OverloadResolution.MethodInvocationOverloadResolution(
                     methods: methodGroup.Methods,
@@ -7464,12 +7603,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     allowRefOmittedArguments: allowRefOmittedArguments,
                     returnRefKind: returnRefKind,
                     returnType: returnType);
+
+                // PROTOTYPE test use-site diagnostics
                 diagnostics.Add(expression, useSiteInfo);
                 var sealedDiagnostics = diagnostics.ToReadOnlyAndFree();
 
-                // Note: the MethodGroupResolution instance is responsible for freeing its copy of actual arguments
-                result = new MethodGroupResolution(methodGroup, null, overloadResolutionResult, AnalyzedArguments.GetInstance(actualArguments), methodGroup.ResultKind, sealedDiagnostics);
-                return true;
+                // Note: the MethodGroupResolution instance is responsible for freeing the method group,
+                //   the overload resolution result and its copy of arguments
+                return new MethodGroupResolution(methodGroup, null, overloadResolutionResult, AnalyzedArguments.GetInstance(actualArguments), methodGroup.ResultKind, sealedDiagnostics);
             }
         }
 #nullable disable
@@ -7506,7 +7647,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Symbol symbol = GetSymbolOrMethodOrPropertyGroup(lookupResult, node, rightName, arity, members, diagnostics, out wasError, qualifierOpt: null);
                 Debug.Assert((object)symbol == null);
                 Debug.Assert(members.Count > 0);
-                methodGroup.PopulateWithExtensionMethods(left, members, typeArgumentsWithAnnotations, lookupResult.Kind);
+                methodGroup.PopulateWithMethods(left, members, typeArgumentsWithAnnotations, isExtensionMethodGroup: true, resultKind: lookupResult.Kind);
                 members.Free();
             }
 
@@ -8877,6 +9018,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     method, lookupError: null, BoundMethodGroupFlags.None, functionType: null, receiver, LookupResultKind.Viable)
                 { WasCompilerGenerated = true };
 
+                // PROTOTYPE revisit when spec'ing pattern-based implicit indexing
                 indexerOrSliceAccess = BindMethodGroupInvocation(syntax, syntax, method.Name, boundMethodGroup, analyzedArguments,
                     diagnostics, queryClause: null, allowUnexpandedForm: false, anyApplicableCandidates: out bool _).MakeCompilerGenerated();
 
@@ -9033,31 +9175,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return methodResolution;
         }
 
-        internal MethodGroupResolution ResolveMethodGroupForFunctionPointer(
-            BoundMethodGroup methodGroup,
-            AnalyzedArguments analyzedArguments,
-            TypeSymbol returnType,
-            RefKind returnRefKind,
-            in CallingConventionInfo callingConventionInfo,
-            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-        {
-            return ResolveDefaultMethodGroup(
-                methodGroup,
-                analyzedArguments,
-                isMethodGroupConversion: true,
-                ref useSiteInfo,
-                inferWithDynamic: false,
-                allowUnexpandedForm: true,
-                returnRefKind,
-                returnType,
-                isFunctionPointerResolution: true,
-                callingConventionInfo);
-        }
-
         private MethodGroupResolution ResolveMethodGroupInternal(
             BoundMethodGroup methodGroup,
             SyntaxNode expression,
-            string methodName,
+            string memberName,
             AnalyzedArguments analyzedArguments,
             bool isMethodGroupConversion,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
@@ -9073,15 +9194,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 inferWithDynamic, allowUnexpandedForm,
                 returnRefKind, returnType, isFunctionPointerResolution, callingConvention);
 
-            // If the method group's receiver is dynamic then there is no point in looking for extension methods; 
+            // If the method group's receiver is dynamic then there is no point in looking for extension methods;
             // it's going to be a dynamic invocation.
             if (!methodGroup.SearchExtensionMethods || methodResolution.HasAnyApplicableMethod || methodGroup.MethodGroupReceiverIsDynamic())
             {
                 return methodResolution;
             }
 
-            var extensionMethodResolution = BindExtensionMethod(
-                expression, methodName, analyzedArguments, methodGroup.ReceiverOpt, methodGroup.TypeArgumentsOpt, isMethodGroupConversion,
+            var extensionMethodResolution = ResolveExtension(
+                expression, memberName, analyzedArguments, methodGroup.ReceiverOpt, methodGroup.TypeArgumentsOpt, isMethodGroupConversion,
                 returnRefKind: returnRefKind, returnType: returnType, withDependencies: useSiteInfo.AccumulatesDependencies);
             bool preferExtensionMethodResolution = false;
 
@@ -9248,7 +9369,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
             }
-            if (node.SearchExtensionMethods)
+
+            if (node.ReceiverOpt is not BoundTypeExpression && node.SearchExtensionMethods)
             {
                 var receiver = node.ReceiverOpt!;
                 foreach (var scope in new ExtensionScopes(this))
