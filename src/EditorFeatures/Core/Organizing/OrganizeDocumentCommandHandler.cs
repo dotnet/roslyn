@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
             if (currentDocument == newDocument)
                 return;
 
-            var changes = newDocument.GetTextChangesAsync(currentDocument, cancellationToken).WaitAndGetResult(cancellationToken);
+            var changes = await newDocument.GetTextChangesAsync(currentDocument, cancellationToken).ConfigureAwait(false);
 
             // Required to switch back to the UI thread to call TryApplyChanges
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -197,8 +197,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
                     var formattingOptions = document.SupportsSyntaxTree
                         ? await document.GetSyntaxFormattingOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false)
                         : null;
-                    var newDocument = document.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>().RemoveUnnecessaryImportsAsync(document, formattingOptions, cancellationToken).WaitAndGetResult(cancellationToken);
+
+                    var removeImportsService = document.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
                     var organizeImportsService = document.GetRequiredLanguageService<IOrganizeImportsService>();
+
+                    var newDocument = await removeImportsService.RemoveUnnecessaryImportsAsync(document, formattingOptions, cancellationToken).ConfigureAwait(false);
                     var options = await document.GetOrganizeImportsOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
                     return await organizeImportsService.OrganizeImportsAsync(newDocument, options, cancellationToken).ConfigureAwait(false);
                 });
