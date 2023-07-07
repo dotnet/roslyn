@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Build.Framework;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests.TestUtilities;
@@ -16,6 +17,7 @@ internal static class TaskTestUtil
 {
     public static void AssertCommandLine(
         ManagedToolTask task,
+        MockEngine engine,
         params string[] expected)
     {
         var line = string.Join(" ", expected);
@@ -24,8 +26,7 @@ internal static class TaskTestUtil
         Assert.Equal(expected, task.GenerateCommandLineArgsTaskItems(rsp).Select(x => x.ItemSpec));
 
 #if NETCOREAPP
-        line = $"exec \"{task.PathToManagedTool}\" {line}";
-        Assert.Equal(line, task.GenerateCommandLineContents().Replace("  ", " "));
+        Assert.Equal($"exec \"{task.PathToManagedTool}\"", task.GenerateCommandLineContents().Trim());
 
         // Can only run the Execute path on .NET Core presently. The internal workings of ToolTask 
         // will fail if it can't find the tool exe and we don't have csc.exe, vbc.exe, etc ... 
@@ -37,8 +38,12 @@ internal static class TaskTestUtil
             Assert.True(compilerTask.Execute());
             Assert.Equal(expected, compilerTask.CommandLineArgs!.Select(x => x.ItemSpec));
 
+            var message = engine.BuildMessages.OfType<TaskCommandLineEventArgs>().Single();
+            var commandLine = message.CommandLine.Replace("  ", " ").Trim();
+            Assert.Equal($@"{RuntimeHostInfo.GetDotNetPathOrDefault()} exec ""{task.PathToManagedTool}"" {line}", commandLine);
+
             compilerTask.NoConfig = true;
-            Assert.Equal("/noconfig", compilerTask.GenerateCommandLineContents());
+            Assert.Equal("/noconfig", compilerTask.ToolArguments);
         }
 #endif
     }

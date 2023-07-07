@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
     {
         private StringBuilder _log = new StringBuilder();
         public MessageImportance MinimumMessageImportance = MessageImportance.Low;
+        public List<BuildMessageEventArgs> BuildMessages = new List<BuildMessageEventArgs>();
 
         internal string Log
         {
@@ -47,6 +48,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         public void LogMessageEvent(BuildMessageEventArgs eventArgs)
         {
             _log.AppendLine(eventArgs.Message);
+            BuildMessages.Add(eventArgs);
         }
 
         public string ProjectFileOfTaskNode => "";

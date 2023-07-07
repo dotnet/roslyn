@@ -528,12 +528,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         [Fact]
         public void CommandLineArgsNoRuntimeInfo()
         {
+            var engine = new MockEngine();
             var csc = new Csc()
             {
+                BuildEngine = engine,
                 Sources = MSBuildUtil.CreateTaskItems("test.cs"),
             };
 
-            TaskTestUtil.AssertCommandLine(csc, "/out:test.exe", "test.cs");
+            TaskTestUtil.AssertCommandLine(csc, engine, "/out:test.exe", "test.cs");
         }
     }
 }
