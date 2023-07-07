@@ -424,6 +424,9 @@ class A
         [Fact]
         public void CS1056ERR_UnexpectedCharacter_UnpairedSurrogate_Long()
         {
+            // Create a file with 200 slashes in a row.  This will cause 200 'expected character' errors, after which
+            // the compiler will give up and make a single error (with a multi-char message) for the remainder of the doc.
+
             var test = $$"""
                 using System;
                 class Test
@@ -438,27 +441,25 @@ class A
             var descriptions = new List<DiagnosticDescription>
             { 
                 // (6,13): error CS1001: Identifier expected
-                //         int \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\𫓧龦 = 1;
+                //         int \..200 more slashes..\𫓧龦 = 1;
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, @"\").WithLocation(6, 13),
             };
 
-            // Create 200 errors.  This is the point that the compiler gives up and created a single 'unexpected' error
-            // for the remainder of the document.
             for (int i = 0; i < 200; i++)
             {
                 descriptions.Add(
                     // (6,13 + i): error CS1056: Unexpected character '\'
-                    //         int \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\𫓧龦 = 1;
+                    //         int \..200 more slashes..\𫓧龦 = 1;
                     Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("\\").WithLocation(6, 13 + i));
             }
 
             descriptions.AddRange(new[]
             { 
                 // (6,213): error CS1056: Unexpected character '\ud86d'
-                //         int \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\𫓧龦 = 1;
+                //         int \..200 more slashes..\𫓧龦 = 1;
                 Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\ud86d").WithLocation(6, 213),
                 // (6,214): error CS1056: Unexpected character '\udce7龦 = 1;\r\n    }\r\n}'
-                //         int \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\𫓧龦 = 1;
+                //         int \..200 more slashes..\𫓧龦 = 1;
                 Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\udce7龦 = 1;\r\n    }\r\n}").WithLocation(6, 214),
                 // (8,2): error CS1002: ; expected
                 // }
