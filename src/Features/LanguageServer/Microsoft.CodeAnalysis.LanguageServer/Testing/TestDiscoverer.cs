@@ -76,7 +76,7 @@ internal partial class TestDiscoverer(ILoggerFactory loggerFactory)
 
         // Match what we found from vs test to what we found in the document to figure out exactly which tests to run.
         var matchedTests = await MatchDiscoveredTestsToTestsInRangeAsync(testCases, potentialTestMethods, testMethodFinder, document, cancellationToken);
-        progress.Report(partialResult with { Message = $"Found {matchedTests.Length} tests in {elapsed:g}"});
+        progress.Report(partialResult with { Message = $"Found {matchedTests.Length} tests in {elapsed:g}" });
 
         return matchedTests;
 
@@ -99,7 +99,7 @@ internal partial class TestDiscoverer(ILoggerFactory loggerFactory)
         //   1.  This only runs when the user explicitly asks to run tests.  Any delay here would be dominated by build, discovery, and test running time.
         //   2.  We're only looking at semantic information (the FQN) for methods we've already determined have an appropriate test attribute.
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken);
-        foreach(var discoveredTest in discoveredTests)
+        foreach (var discoveredTest in discoveredTests)
         {
             var isMatch = testMethods.Any((m) => testMethodFinder.IsMatch(semanticModel, m, discoveredTest.FullyQualifiedName, cancellationToken));
             if (isMatch)
