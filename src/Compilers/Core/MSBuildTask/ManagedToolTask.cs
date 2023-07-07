@@ -29,14 +29,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         protected bool IsManagedTool => string.IsNullOrEmpty(ToolPath) && ToolExe == ToolName;
 
         /// <summary>
-        /// ToolArguments are the arguments intended to be passed to the tool,
-        /// without taking into account any runtime-specific modifications.
+        /// Generate the arguments to pass directly to the managed tool. These do not include
+        /// arguments in the response file.
         /// </summary>
         /// <remarks>
         /// This will be the same value whether the build occurs on .NET Core or .NET Framework. 
-        /// There will be no 'dotnet' or 'exec' values inserted here for those purposes.
         /// </remarks>
-        protected string ToolArguments
+        internal string ToolArguments
         {
             get
             {
@@ -46,9 +45,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
         }
 
-        protected internal string PathToManagedTool => Utilities.GenerateFullPathToTool(ToolName);
+        internal string PathToManagedTool => Utilities.GenerateFullPathToTool(ToolName);
 
-        protected string PathToManagedToolWithoutExtension
+        internal string PathToManagedToolWithoutExtension
         {
             get
             {
@@ -63,9 +62,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
 
         /// <summary>
-        /// GenerateCommandLineCommands generates the actual OS-level arguments:
-        /// if dotnet needs to be executed and the managed assembly is the first argument,
-        /// then this will contain the managed assembly followed by ToolArguments
+        /// <see cref="GenerateCommandLineContents" />
         /// </summary>
         protected sealed override string GenerateCommandLineCommands()
         {
@@ -78,6 +75,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return commandLineArguments;
         }
 
+        /// <summary>
+        /// <see cref="GenerateResponseFileContents"/>
+        /// </summary>
         protected sealed override string GenerateResponseFileCommands()
         {
             var commandLineBuilder = new CommandLineBuilderExtension();
@@ -85,8 +85,21 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return commandLineBuilder.ToString();
         }
 
+        /// <summary>
+        /// Generate the arguments to pass directly to the managed tool. These do not include
+        /// arguments in the response file.
+        /// </summary>
+        /// <remarks>
+        /// This will include target specific arguments like 'exec'
+        /// </remarks>
         internal string GenerateCommandLineContents() => GenerateCommandLineCommands();
 
+        /// <summary>
+        /// Generate the arguments to pass via a response file. 
+        /// </summary>
+        /// <remarks>
+        /// This will be the same value whether the build occurs on .NET Core or .NET Framework. 
+        /// </remarks>
         internal string GenerateResponseFileContents() => GenerateResponseFileCommands();
 
         /// <summary>
@@ -136,6 +149,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// Generates the <see cref="ITaskItem"/> entries for the CommandLineArgs output ItemGroup
         /// for our tool tasks
         /// </summary>
+        /// <remarks>
+        /// This does not include any runtime specific arguments like 'dotnet' or 'exec'.
+        /// </remarks>
         protected internal ITaskItem[] GenerateCommandLineArgsTaskItems(string responseFileCommands) =>
             GenerateCommandLineArgsTaskItems(GenerateCommandLineArgsList(responseFileCommands));
 

@@ -533,8 +533,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 Sources = MSBuildUtil.CreateTaskItems("test.cs"),
             };
 
-            Assert.Equal(new[] { "/out:test.exe", "test.cs" }, csc.Generate!.Select(x => x.ItemSpec));
-            TaskTestUtil.AssertCommandLine(csc, "/out:test.exe test.cs");
+            TaskTestUtil.AssertCommandLine(csc, "/out:test.exe", "test.cs");
         }
     }
 }

@@ -18,14 +18,28 @@ internal static class TaskTestUtil
         ManagedToolTask task,
         params string[] expected)
     {
-        var line = string.Join(' ', expected);
-        Assert.Equal(line, task.GenerateResponseFileContents());
+        var line = string.Join(" ", expected);
+        var rsp = task.GenerateResponseFileContents();
+        Assert.Equal(line, rsp);
+        Assert.Equal(expected, task.GenerateCommandLineArgsTaskItems(rsp).Select(x => x.ItemSpec));
 
-        if (RuntimeHostInfo.IsCoreClrRuntime)
+#if NETCOREAPP
+        line = $"exec \"{task.PathToManagedTool}\" {line}";
+        Assert.Equal(line, task.GenerateCommandLineContents().Replace("  ", " "));
+
+        // Can only run the Execute path on .NET Core presently. The internal workings of ToolTask 
+        // will fail if it can't find the tool exe and we don't have csc.exe, vbc.exe, etc ... 
+        // deployed in the unit tests. The .NET exe though is available hence Execute will run
+        if (task is ManagedCompiler compilerTask)
         {
-            line = $"{RuntimeHostInfo.GetDotNetPathOrDefault()} exec \"{task.PathToManagedTool}\" {line}";
-        }
+            compilerTask.SkipCompilerExecution = true;
+            compilerTask.ProvideCommandLineArgs = true;
+            Assert.True(compilerTask.Execute());
+            Assert.Equal(expected, compilerTask.CommandLineArgs!.Select(x => x.ItemSpec));
 
-        Assert.Equal("/noconfig", task.GenerateCommandLineContents());
+            compilerTask.NoConfig = true;
+            Assert.Equal("/noconfig", compilerTask.GenerateCommandLineContents());
+        }
+#endif
     }
 }
