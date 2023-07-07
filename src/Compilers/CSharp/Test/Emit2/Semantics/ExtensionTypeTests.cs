@@ -2702,9 +2702,66 @@ implicit extension R3<T> for C { } // 1
 implicit extension R4<T> for D<T> { }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE type parameters of implicit extensions must appear
-        // in the underlying type
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (7,20): error CS9228: The underlying type 'C' of implicit extension 'R3<T>' must reference all the type parameters declared by the extension, but type parameter 'T' is missing.
+            // implicit extension R3<T> for C { } // 1
+            Diagnostic(ErrorCode.ERR_UnderspecifiedImplicitExtension, "R3").WithArguments("C", "R3<T>", "T").WithLocation(7, 20)
+            );
+    }
+
+    [Fact]
+    public void UnderlyingType_TypeParametersMustBeUsed_MissingOne()
+    {
+        var src = """
+string s = C<int>.f;
+
+class C<T> { }
+
+implicit extension E<T, U> for C<T>
+{
+    public static string f = "hi";
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (5,20): error CS9228: The underlying type 'C<T>' of implicit extension 'E<T, U>' must reference all the type parameters declared by the extension, but type parameter 'U' is missing.
+            // implicit extension E<T, U> for C<T>
+            Diagnostic(ErrorCode.ERR_UnderspecifiedImplicitExtension, "E").WithArguments("C<T>", "E<T, U>", "U").WithLocation(5, 20)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<int>.f");
+        Assert.Equal("System.String E<System.Int32, U>.f", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void UnderlyingType_TypeParametersMustBeUsed_MissingTwo()
+    {
+        var src = """
+string s = C.f;
+
+class C { }
+
+implicit extension E<T, U> for C
+{
+    public static string f = "hi";
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (5,20): error CS9228: The underlying type 'C' of implicit extension 'E<T, U>' must reference all the type parameters declared by the extension, but type parameter 'T' is missing.
+            // implicit extension E<T, U> for C
+            Diagnostic(ErrorCode.ERR_UnderspecifiedImplicitExtension, "E").WithArguments("C", "E<T, U>", "T").WithLocation(5, 20),
+            // (5,20): error CS9228: The underlying type 'C' of implicit extension 'E<T, U>' must reference all the type parameters declared by the extension, but type parameter 'U' is missing.
+            // implicit extension E<T, U> for C
+            Diagnostic(ErrorCode.ERR_UnderspecifiedImplicitExtension, "E").WithArguments("C", "E<T, U>", "U").WithLocation(5, 20)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.f");
+        Assert.Equal("System.String E<T, U>.f", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -6323,8 +6380,22 @@ unsafe class C
 explicit extension E2 for int : E1<object> { }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+        if (isExplicit)
+        {
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+        }
+        else
+        {
+            comp.VerifyDiagnostics(
+                // (1,20): error CS9228: The underlying type 'int' of implicit extension 'E1<T>' must reference all the type parameters declared by the extension, but type parameter 'T' is missing.
+                // implicit extension E1<T> for int { }
+                Diagnostic(ErrorCode.ERR_UnderspecifiedImplicitExtension, "E1").WithArguments("int", "E1<T>", "T").WithLocation(1, 20)
+                );
+
+            validate(comp.SourceModule);
+        }
+
         return;
 
         void validate(ModuleSymbol module)
@@ -11236,7 +11307,7 @@ implicit extension E for string
             );
     }
 
-    [Fact]
+    [ConditionalFact(typeof(CoreClrOnly))]
     public void ExtensionMemberLookup_MatchingExtendedType_GenericType()
     {
         var src = """
@@ -11248,20 +11319,21 @@ implicit extension E<T> for C<T>
 {
     public static class StaticType
     {
-        public static void M() => throw null;
+        public static void M() { System.Console.Write("ran"); }
     }
 }
 """;
-        // PROTOTYPE add support for generic types
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        comp.VerifyDiagnostics(
-            // (1,8): error CS0117: 'C<int>' does not contain a definition for 'StaticType'
-            // C<int>.StaticType.M();
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "StaticType").WithArguments("C<int>", "StaticType").WithLocation(1, 8)
-            );
+        CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsPEVerify)
+           .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<int>.StaticType");
+        Assert.Equal("E<System.Int32>.StaticType", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
-    [Fact]
+    [ConditionalFact(typeof(CoreClrOnly))]
     public void ExtensionMemberLookup_MatchingExtendedType_GenericType_Nested()
     {
         var src = """
@@ -11276,17 +11348,18 @@ implicit extension E<T> for C<T>.D
 {
     public static class StaticType
     {
-        public static void M() => throw null;
+        public static void M() { System.Console.Write("ran"); }
     }
 }
 """;
-        // PROTOTYPE add support for generic types
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        comp.VerifyDiagnostics(
-            // (1,10): error CS0117: 'C<int>.D' does not contain a definition for 'StaticType'
-            // C<int>.D.StaticType.M();
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "StaticType").WithArguments("C<int>.D", "StaticType").WithLocation(1, 10)
-            );
+        CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsPEVerify)
+            .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<int>.D.StaticType");
+        Assert.Equal("E<System.Int32>.StaticType", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -11821,24 +11894,22 @@ implicit extension E<T> for C<T?>
 {
     public static class StaticType
     {
-        public static void M() { }
+        public static void M() { System.Console.Write("ran "); }
     }
 }
 """;
-        // PROTOTYPE add support for generic types
         // PROTOTYPE consider warning for certain nullability differences
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics(
-            // (2,11): error CS0117: 'C<object>' does not contain a definition for 'StaticType'
-            // C<object>.StaticType.M();
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "StaticType").WithArguments("C<object>", "StaticType").WithLocation(2, 11),
-            // (3,12): error CS0117: 'C<object?>' does not contain a definition for 'StaticType'
-            // C<object?>.StaticType.M();
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "StaticType").WithArguments("C<object?>", "StaticType").WithLocation(3, 12),
-            // (9,7): error CS0117: 'C<object>' does not contain a definition for 'StaticType'
-            //     >.StaticType.M();
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "StaticType").WithArguments("C<object>", "StaticType").WithLocation(9, 7)
-            );
+        CompileAndVerify(comp, expectedOutput: "ran ran ran", verify: Verification.FailsPEVerify)
+          .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<object>.StaticType");
+        Assert.Equal("E<System.Object>.StaticType", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+
+        var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<object?>.StaticType");
+        Assert.Equal("E<System.Object?>.StaticType", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -11861,24 +11932,24 @@ implicit extension E<T> for C<T?> where T : class
 {
     public static class StaticType
     {
-        public static void M() { }
+        public static void M() { System.Console.Write("ran "); }
     }
 }
 """;
-        // PROTOTYPE add support for generic types
         // PROTOTYPE consider warning for certain nullability differences
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics(
-            // (2,11): error CS0117: 'C<object>' does not contain a definition for 'StaticType'
-            // C<object>.StaticType.M();
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "StaticType").WithArguments("C<object>", "StaticType").WithLocation(2, 11),
-            // (3,12): error CS0117: 'C<object?>' does not contain a definition for 'StaticType'
-            // C<object?>.StaticType.M();
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "StaticType").WithArguments("C<object?>", "StaticType").WithLocation(3, 12),
-            // (9,7): error CS0117: 'C<object>' does not contain a definition for 'StaticType'
-            //     >.StaticType.M();
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "StaticType").WithArguments("C<object>", "StaticType").WithLocation(9, 7)
-            );
+        comp.VerifyDiagnostics();
+
+        CompileAndVerify(comp, expectedOutput: "ran ran ran", verify: Verification.FailsPEVerify)
+           .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<object>.StaticType");
+        Assert.Equal("E<System.Object>.StaticType", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+
+        var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<object?>.StaticType");
+        Assert.Equal("E<System.Object?>.StaticType", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -18732,6 +18803,401 @@ implicit extension E for object
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "object.f").First();
         Assert.Equal("System.String E.f", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void RefArgument()
+    {
+        var src = """
+write(ref object.P);
+
+void write(ref object o)
+{
+    System.Console.Write(o.ToString());
+}
+
+implicit extension E for object
+{
+    static object o = "hi";
+    public static ref object P => ref o;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "hi", verify: Verification.FailsPEVerify)
+            .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.P");
+        Assert.Equal("ref System.Object E.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void GenericExtension_Simple()
+    {
+        var src = """
+string s = C<int>.f;
+System.Console.Write(s);
+
+class C<T> { }
+
+implicit extension E<T> for C<T>
+{
+    public static string f = "hi";
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+
+        CompileAndVerify(comp, expectedOutput: "hi", verify: Verification.FailsPEVerify)
+           .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<int>.f");
+        Assert.Equal("System.String E<System.Int32>.f", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void GenericExtension_NotUnique()
+    {
+        var src = """
+string s1 = C<object, dynamic>.f;
+string s2 = C<dynamic, object>.f;
+
+class C<T ,U> { }
+
+implicit extension E<T> for C<T ,T>
+{
+    public static string f = "hi";
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<object, dynamic>.f");
+        Assert.Equal("System.String E<System.Object>.f", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+
+        // PROTOTYPE we could refine the algorithm to "merge" options
+        var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<dynamic, object>.f");
+        Assert.Equal("System.String E<dynamic>.f", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void GenericExtension_GenericNestedType()
+    {
+        var src = """
+string s = C<string>.Nested<int>.f;
+System.Console.Write(s);
+
+internal class C<T>
+{
+    internal class Nested<U> { }
+}
+
+implicit extension E<T1, T2> for C<T1>.Nested<T2>
+{
+    public static string f = "hi";
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: "hi", verify: Verification.FailsPEVerify)
+            .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<string>.Nested<int>.f");
+        Assert.Equal("System.String E<System.String, System.Int32>.f", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void GenericExtension_InGenericContainer()
+    {
+        var src = """
+string s = C<string>.Nested1<bool>.Nested2<int>.f;
+System.Console.Write(s);
+
+internal class C<T>
+{
+    internal class Nested1<U>
+    {
+        internal class Nested2<V> { }
+    }
+}
+
+implicit extension E<T1, T2, T3> for C<T1>.Nested1<T2>.Nested2<T3>
+{
+    public static string f = "hi";
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "hi", verify: Verification.FailsPEVerify)
+            .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<string>.Nested1<bool>.Nested2<int>.f");
+        Assert.Equal("System.String E<System.String, System.Boolean, System.Int32>.f",
+            model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void GenericExtension_InaccessibleNestedType()
+    {
+        var src = """
+string s = C<string>.Nested<int>.f;
+System.Console.Write(s);
+
+class C<T>
+{
+    private class Nested<U> { }
+}
+
+implicit extension E<T1, T2> for C<T1>.Nested<T2>
+{
+    public static string f = "hi";
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,22): error CS0122: 'C<string>.Nested<U>' is inaccessible due to its protection level
+            // string s = C<string>.Nested<int>.f;
+            Diagnostic(ErrorCode.ERR_BadAccess, "Nested<int>").WithArguments("C<string>.Nested<U>").WithLocation(1, 22),
+            // (9,40): error CS0122: 'C<T1>.Nested<U>' is inaccessible due to its protection level
+            // implicit extension E<T1, T2> for C<T1>.Nested<T2>
+            Diagnostic(ErrorCode.ERR_BadAccess, "Nested<T2>").WithArguments("C<T1>.Nested<U>").WithLocation(9, 40)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<string>.Nested<int>");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void GenericExtension_Tuples()
+    {
+        var src = """
+string s = C<(string, string)>.Nested<(int, int)>.f;
+System.Console.Write(s);
+
+class C<T>
+{
+    internal class Nested<U> { }
+}
+
+implicit extension E<T1, T2> for C<(T1, T1)>.Nested<(T2, T2)>
+{
+    public static string f = "hi";
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<(string, string)>.Nested<(int, int)>.f");
+        Assert.Equal("System.String E<System.String, System.Int32>.f", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void GenericExtension_PointerArray()
+    {
+        var src = """
+unsafe
+{
+    string s = C<long*[]>.Nested<int*[]>.f;
+    System.Console.Write(s);
+}
+
+unsafe class C<T>
+{
+    internal class Nested<U> { }
+}
+
+unsafe implicit extension E<T1, T2> for C<T1*[]>.Nested<T2*[]>
+    where T1 : unmanaged
+    where T2 : unmanaged
+{
+    public static string f = "hi";
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.UnsafeDebugExe);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<long*[]>.Nested<int*[]>.f");
+        Assert.Equal("System.String E<System.Int64, System.Int32>.f", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void GenericExtension_Pointer()
+    {
+        // A type parameter cannot unify with a pointer type
+        var src = """
+unsafe
+{
+    string s = C<long*[]>.Nested<int*[]>.f;
+    System.Console.Write(s);
+}
+
+unsafe class C<T>
+{
+    internal class Nested<U> { }
+}
+
+unsafe implicit extension E<T1, T2> for C<T1[]>.Nested<T2[]>
+{
+    public static string f = "hi";
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.UnsafeDebugExe);
+        comp.VerifyDiagnostics(
+            // (3,42): error CS0117: 'C<long*[]>.Nested<int*[]>' does not contain a definition for 'f'
+            //     string s = C<long*[]>.Nested<int*[]>.f;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "f").WithArguments("C<long*[]>.Nested<int*[]>", "f").WithLocation(3, 42)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<long*[]>.Nested<int*[]>.f");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void GenericExtension_OccursCheck()
+    {
+        var src = """
+class C<T>
+{
+    internal class Nested<U> { }
+}
+
+implicit extension E<T1, T2> for C<T1>.Nested<T2>
+{
+    public static string f = "hi";
+
+    public static void M()
+    {
+        string s = C<C<T1>>.Nested<int>.f;
+        System.Console.Write(s);
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (12,41): error CS0117: 'C<C<T1>>.Nested<int>' does not contain a definition for 'f'
+            //         string s = C<C<T1>>.Nested<int>.f;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "f").WithArguments("C<C<T1>>.Nested<int>", "f").WithLocation(12, 41)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<C<T1>>.Nested<int>.f");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void GenericExtension_ForInterface()
+    {
+        var src = """
+string s = C<int>.f;
+System.Console.Write(s);
+
+class C<T> : I<T> { }
+class I<T> { }
+
+implicit extension E<T> for I<T>
+{
+    public static string f = "hi";
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+
+        CompileAndVerify(comp, expectedOutput: "hi", verify: Verification.FailsPEVerify)
+           .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<int>.f");
+        Assert.Equal("System.String E<System.Int32>.f", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void UnderlyingType_SelfReference_Generic()
+    {
+        // While binding the underlying type of an extension type,
+        // we cannot afford to involve the extension type (that would be a cycle)
+        var src = """
+string s = C<string>.Nested<int>.f;
+System.Console.Write(s);
+
+class C<T>
+{
+}
+
+implicit extension E<T1, T2> for C<T1>.Nested<T2>
+{
+    public static string f = "hi";
+    public class Nested<U> { }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE could give a better diagnostic, such as the underlying type of an extension type may not rely on the extension declaration
+        comp.VerifyDiagnostics(
+            // (1,22): error CS0117: 'C<string>' does not contain a definition for 'Nested'
+            // string s = C<string>.Nested<int>.f;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Nested<int>").WithArguments("C<string>", "Nested").WithLocation(1, 22),
+            // (8,40): error CS0426: The type name 'Nested<>' does not exist in the type 'C<T1>'
+            // implicit extension E<T1, T2> for C<T1>.Nested<T2>
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Nested<T2>").WithArguments("Nested<>", "C<T1>").WithLocation(8, 40)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<string>.Nested<int>");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+    }
+
+    [Fact]
+    public void UnderlyingType_SelfReference()
+    {
+        // While binding the underlying type of an extension type,
+        // we cannot afford to involve the extension type (that would be a cycle)
+        var src = """
+string s = C.Nested.f;
+System.Console.Write(s);
+
+class C
+{
+}
+
+implicit extension E for C.Nested
+{
+    public static string f = "hi";
+    public class Nested { }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,14): error CS0117: 'C' does not contain a definition for 'Nested'
+            // string s = C.Nested.f;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Nested").WithArguments("C", "Nested").WithLocation(1, 14),
+            // (8,28): error CS0426: The type name 'Nested' does not exist in the type 'C'
+            // implicit extension E for C.Nested
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Nested").WithArguments("Nested", "C").WithLocation(8, 28)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Nested");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
     }
 }
 

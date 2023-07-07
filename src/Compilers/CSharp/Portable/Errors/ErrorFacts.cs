@@ -2380,6 +2380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_DuplicateExtensionInBaseList:
                 case ErrorCode.ERR_ExtensionMethodInExtension:
                 case ErrorCode.ERR_MalformedExtensionInMetadata:
+                case ErrorCode.ERR_UnderspecifiedImplicitExtension:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement
