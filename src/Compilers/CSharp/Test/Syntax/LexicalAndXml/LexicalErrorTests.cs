@@ -442,6 +442,8 @@ class A
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, @"\").WithLocation(6, 13),
             };
 
+            // Create 200 errors.  This is the point that the compiler gives up and created a single 'unexpected' error
+            // for the remainder of the document.
             for (int i = 0; i < 200; i++)
             {
                 descriptions.Add(
