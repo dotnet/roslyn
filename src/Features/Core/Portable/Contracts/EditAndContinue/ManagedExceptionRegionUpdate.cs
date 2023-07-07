@@ -8,6 +8,12 @@ namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue
     /// <summary>
     /// Exception region affected by a managed update.
     /// </summary>
+    /// <remarks>
+    /// Creates an ExceptionRegionUpdate.
+    /// </remarks>
+    /// <param name="method">Method information before the change was made.</param>
+    /// <param name="delta">Total of lines modified after the update.</param>
+    /// <param name="newSpan">Updated text span for the active statement.</param>
     [DataContract]
     internal readonly struct ManagedExceptionRegionUpdate(
         ManagedModuleMethodId method,

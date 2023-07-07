@@ -9,6 +9,14 @@ namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue
     /// <summary>
     /// Diagnostic information about a particular edit made through hot reload.
     /// </summary>
+    /// <remarks>
+    /// Creates a new <see cref="ManagedHotReloadDiagnostic"/> for an edit made by the user.
+    /// </remarks>
+    /// <param name="id">Diagnostic information identifier.</param>
+    /// <param name="message">User message.</param>
+    /// <param name="severity">Severity of the edit, whether it's an error or a warning.</param>
+    /// <param name="filePath">File path for the target edit.</param>
+    /// <param name="span">Source span of the edit.</param>
     [DataContract]
     internal readonly struct ManagedHotReloadDiagnostic(
         string id,
