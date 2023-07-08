@@ -1401,7 +1401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             {
                 case SyntaxKind.CompilationUnit:
                     var unit = (CompilationUnitSyntax)node;
-                    
+
                     // When deleting something from a compilation unit we just report diagnostics for the last global statement
                     var globalStatements = unit.Members.OfType<GlobalStatementSyntax>();
                     var globalNode =

@@ -144,7 +144,7 @@ internal static class SourceMarkers
     public static ImmutableArray<ImmutableArray<TextSpan>> GetNodeSpans(string markedSource)
     {
         var result = new List<List<TextSpan>>();
-      
+
         foreach (var (span, ids) in GetSpans(markedSource, s_nodePattern, "Node"))
         {
             Debug.Assert(ids.Length == 1);
