@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
         Public ReadOnly Property PropertyStatement As PropertyStatementSyntax
 
-        Sub New(propertyStatement As PropertyStatementSyntax)
+        Public Sub New(propertyStatement As PropertyStatementSyntax)
             Me.PropertyStatement = propertyStatement
         End Sub
 

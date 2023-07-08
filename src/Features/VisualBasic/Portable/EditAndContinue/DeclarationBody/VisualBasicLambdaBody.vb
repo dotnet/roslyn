@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
         Private ReadOnly _node As SyntaxNode
 
-        Sub New(node As SyntaxNode)
+        Public Sub New(node As SyntaxNode)
             Debug.Assert(TypeOf node.Parent Is LambdaExpressionSyntax OrElse TypeOf node Is ExpressionSyntax)
             _node = node
         End Sub

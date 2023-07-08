@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
     Friend NotInheritable Class MethodBody
         Inherits AbstractSimpleMemberBody
 
-        Sub New(node As MethodBlockBaseSyntax)
+        Public Sub New(node As MethodBlockBaseSyntax)
             MyBase.New(node)
         End Sub
 

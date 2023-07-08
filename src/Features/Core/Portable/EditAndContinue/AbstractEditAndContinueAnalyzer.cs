@@ -6476,9 +6476,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         #region Helpers
 
-        protected static OneOrMany<T> OneOrNone<T>(T? item)
-            => item is null ? OneOrMany<T>.Empty : OneOrMany.Create(item);
-
         private static bool AreEqualIgnoringTrivia(SyntaxToken oldToken, SyntaxToken newToken)
         {
             if (oldToken.Span.Length != newToken.Span.Length)

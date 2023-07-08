@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
@@ -17,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
         Private ReadOnly _identifier As ModifiedIdentifierSyntax
 
-        Sub New(identifier As ModifiedIdentifierSyntax)
+        Public Sub New(identifier As ModifiedIdentifierSyntax)
             _identifier = identifier
         End Sub
 

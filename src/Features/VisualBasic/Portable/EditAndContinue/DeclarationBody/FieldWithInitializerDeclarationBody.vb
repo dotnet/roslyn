@@ -2,8 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
@@ -18,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
         Private ReadOnly _variableDeclarator As VariableDeclaratorSyntax
 
-        Sub New(variableDeclarator As VariableDeclaratorSyntax)
+        Public Sub New(variableDeclarator As VariableDeclaratorSyntax)
             Debug.Assert(variableDeclarator.Names.Count = 1)
             _variableDeclarator = variableDeclarator
         End Sub
