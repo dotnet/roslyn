@@ -17,7 +17,7 @@ namespace Analyzer.Utilities
     /// <remarks>
     /// Used when a collection usually contains a single item but sometimes might contain multiple.
     /// </remarks>
-    internal readonly struct OneOrMany<T>
+    public readonly struct OneOrMany<T>
     {
         public static readonly OneOrMany<T> Empty = new OneOrMany<T>(ImmutableArray<T>.Empty);
 
@@ -129,14 +129,14 @@ namespace Analyzer.Utilities
         {
             return HasOne ?
                 OneOrMany.Create(selector(_one)) :
-                OneOrMany.Create(_many.Sel);
+                OneOrMany.Create(ImmutableArray.CreateRange(_many, selector));
         }
 
         public OneOrMany<TResult> Select<TResult, TArg>(Func<T, TArg, TResult> selector, TArg arg)
         {
             return HasOne ?
                 OneOrMany.Create(selector(_one, arg)) :
-                OneOrMany.Create(_many.SelectAsArray(selector, arg));
+                OneOrMany.Create(ImmutableArray.CreateRange(_many, selector, arg));
         }
 
         public IEnumerable<TResult> OfType<TResult>()
@@ -231,7 +231,7 @@ namespace Analyzer.Utilities
         public Enumerator GetEnumerator()
             => new(this);
 
-        internal struct Enumerator
+        public struct Enumerator
         {
             private readonly OneOrMany<T> _collection;
             private int _index;
