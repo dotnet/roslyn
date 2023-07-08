@@ -666,12 +666,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Expression Visitors
 
+#if DEBUG
         public override BoundNode VisitLoweredIsPatternExpression(BoundLoweredIsPatternExpression node)
         {
             // Ensure this node won't trigger spilling
-            Debug.Assert(this.VisitList(node.Statements) == node.Statements);
-            return node;
+            var result = base.VisitLoweredIsPatternExpression(node);
+            Debug.Assert(result == node);
+            return result;
         }
+#endif
 
         public override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
         {
