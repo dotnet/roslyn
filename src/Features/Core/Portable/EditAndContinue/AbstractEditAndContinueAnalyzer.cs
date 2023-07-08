@@ -3166,7 +3166,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 continue;
                             }
                         }
-                        
+
                         semanticEdits.Add(new SemanticEditInfo(editKind, symbolKey, syntaxMap, syntaxMapTree: null,
                             IsPartialEdit(oldSymbol, newSymbol, editScript.Match.OldRoot.SyntaxTree, editScript.Match.NewRoot.SyntaxTree) ? symbolKey : null));
                     }
