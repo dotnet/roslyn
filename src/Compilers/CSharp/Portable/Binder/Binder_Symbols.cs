@@ -2696,11 +2696,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool CheckFeatureAvailability(SyntaxNode syntax, MessageID feature, BindingDiagnosticBag diagnostics, Location? location = null)
             => CheckFeatureAvailability(syntax, feature, diagnostics.DiagnosticBag, location);
 
-        internal static bool CheckFeatureAvailability(SyntaxToken syntax, MessageID feature, BindingDiagnosticBag diagnostics, Location? location = null)
-            => CheckFeatureAvailability(syntax, feature, diagnostics.DiagnosticBag, location);
-
-        internal static bool CheckFeatureAvailability(SyntaxNodeOrToken syntax, MessageID feature, BindingDiagnosticBag diagnostics, Location? location = null)
-            => CheckFeatureAvailability(syntax, feature, diagnostics.DiagnosticBag, location);
+        internal static bool CheckFeatureAvailability(SyntaxToken syntax, MessageID feature, BindingDiagnosticBag diagnostics)
+            => CheckFeatureAvailability(syntax, feature, diagnostics.DiagnosticBag, null);
 
         internal static bool CheckFeatureAvailability(SyntaxTree tree, MessageID feature, BindingDiagnosticBag diagnostics, Location location)
             => CheckFeatureAvailability(tree, feature, diagnostics.DiagnosticBag, location);
@@ -2710,9 +2707,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool CheckFeatureAvailability(SyntaxToken syntax, MessageID feature, DiagnosticBag? diagnostics, Location? location = null)
             => CheckFeatureAvailability(syntax.SyntaxTree!, feature, diagnostics, (location, syntax), static tuple => tuple.location ?? tuple.syntax.GetLocation());
-
-        private static bool CheckFeatureAvailability(SyntaxNodeOrToken syntax, MessageID feature, DiagnosticBag? diagnostics, Location? location = null)
-            => CheckFeatureAvailability(syntax.SyntaxTree!, feature, diagnostics, (location, syntax), static tuple => tuple.location ?? tuple.syntax.GetLocation()!);
 
         private static bool CheckFeatureAvailability(SyntaxTree tree, MessageID feature, DiagnosticBag? diagnostics, Location location)
             => CheckFeatureAvailability(tree, feature, diagnostics, location, static location => location);

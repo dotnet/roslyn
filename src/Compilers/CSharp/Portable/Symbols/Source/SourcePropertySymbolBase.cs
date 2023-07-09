@@ -654,6 +654,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public sealed override Location TryGetFirstLocation() => Location;
+
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
 #nullable enable

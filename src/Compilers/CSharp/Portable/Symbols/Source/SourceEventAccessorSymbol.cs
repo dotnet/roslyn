@@ -204,6 +204,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
             => ImmutableArray<TypeParameterConstraintKind>.Empty;
 
+        public sealed override Location TryGetFirstLocation() => _location;
+
         internal Location Location
         {
             get
