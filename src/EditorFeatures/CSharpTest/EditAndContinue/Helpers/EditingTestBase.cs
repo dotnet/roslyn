@@ -175,7 +175,6 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
         public static MatchingPairs ToMatchingPairs(IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> matches)
             => EditAndContinueTestHelpers.ToMatchingPairs(matches);
 
-
         internal static MemberBody MakeMethodBody(
             string bodySource,
             MethodKind kind = MethodKind.Regular)

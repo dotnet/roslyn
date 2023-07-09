@@ -10860,7 +10860,6 @@ End Class
                 capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
 
-
         <Fact>
         Public Sub ParameterUpdate_TypeChange_Identifier()
             Dim src1 = "Class C : " & vbLf & "Public ReadOnly Property P(a$) As Integer" & vbLf & "Get" & vbLf & "Return 0 : End Get : End Property : End Class"
