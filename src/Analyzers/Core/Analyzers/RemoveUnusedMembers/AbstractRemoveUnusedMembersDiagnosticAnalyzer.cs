@@ -405,8 +405,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     {
                         // Handle potential references to methods/properties from missing IOperation
                         // for method group/property group.
-                        case SymbolKind.Method:
                         case SymbolKind.Property:
+                            throw new Exception("Hit this case");
+                        case SymbolKind.Method:
                             OnSymbolUsage(symbol.OriginalDefinition, ValueUsageInfo.ReadWrite);
                             break;
                     }
