@@ -574,6 +574,39 @@ class C
                 semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Bar"), preserveLocalVariables: true) });
         }
 
+        [Fact]
+        public void Lambda_Recompile()
+        {
+            var src1 = @"
+class C
+{
+    void F()
+    {
+        var x = new System.Func<int>(
+            () => 1
+
+        );
+    }
+}";
+            var src2 = @"
+class C
+{
+    void F()
+    {
+        var x = new System.Func<int>(
+            () =>
+                  1
+        );
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyLineEdits(
+                Array.Empty<SequencePointUpdates>(),
+                semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true) });
+        }
+
         #endregion
 
         #region Constructors
@@ -608,9 +641,9 @@ class C
             edits.VerifyLineEdits(
                 new[]
                 {
-                    new SourceLineUpdate(4, 8),
+                    new SourceLineUpdate(3, 7),
                     new SourceLineUpdate(6, 6),
-                    new SourceLineUpdate(8, 4)
+                    new SourceLineUpdate(7, 3)
                 });
         }
 

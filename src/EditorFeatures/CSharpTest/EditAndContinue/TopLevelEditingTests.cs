@@ -2308,7 +2308,7 @@ interface I { void F() {} }
             var src2 = ReloadableAttributeSrc;
 
             GetTopEdits(src1, src2).VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, null, DeletedSymbolDisplay(FeaturesResources.class_, "C")));
+                Diagnostic(RudeEditKind.Delete, "using System.Runtime.CompilerServices;", GetResource("class", "C")));
         }
 
         [Fact]
@@ -12462,10 +12462,10 @@ partial class C
 {
     int B { get; } = F(<N:0.1>b => b + 1</N:0.1>);
 
-    public C()
+    <N:0.3>public C()
     {
         F(<N:0.2>c => c + 1</N:0.2>);
-    }
+    }</N:0.3>
 }
 ";
             var src2 = @"
@@ -12482,10 +12482,10 @@ partial class C
 {
     int B { get; } = F(<N:0.1>b => b + 1</N:0.1>);
 
-    public C()
+    <N:0.3>public C()
     {
         F(<N:0.2>c => c + 2</N:0.2>);
-    }
+    }</N:0.3>
 }
 ";
             var edits = GetTopEdits(src1, src2);
@@ -14153,7 +14153,7 @@ class C
     int A = F(<N:0.0>a => a + 1</N:0.0>);
     int B = F(<N:0.1>b => b + 1</N:0.1>);
 
-    public C() {}
+    <N:0.2>public C() {}</N:0.2>
 }
 ";
             var src2 = @"
@@ -14166,7 +14166,7 @@ class C
     int A = F(<N:0.0>a => a + 1</N:0.0>);
     int B = F(<N:0.1>b => b + 2</N:0.1>);
 
-    public C() {}
+    <N:0.2>public C() {}</N:0.2>
 }
 ";
             var edits = GetTopEdits(src1, src2);
@@ -19848,7 +19848,8 @@ using System;
 
             edits.VerifyEdits("Delete [Console.WriteLine(\"Hello World\");]@19");
 
-            edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Delete, null, CSharpFeaturesResources.global_statement));
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Delete, "using System;", GetResource("top-level statement")));
         }
 
         [Fact]
@@ -19881,7 +19882,7 @@ Console.WriteLine(""Hello"");
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", CSharpFeaturesResources.global_statement));
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", GetResource("top-level code")));
         }
 
         [Fact]
@@ -19893,7 +19894,7 @@ Console.WriteLine(""Hello"");
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", CSharpFeaturesResources.global_statement));
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", GetResource("top-level code")));
         }
 
         [Fact]
@@ -19905,7 +19906,7 @@ Console.WriteLine(""Hello"");
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", CSharpFeaturesResources.global_statement));
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", GetResource("top-level code")));
         }
 
         [Fact]
@@ -19984,27 +19985,80 @@ int Goo()
         }
 
         [Fact]
-        public void TopLevelStatements_AddAwait()
+        public void TopLevelStatements_Await_Insert_First()
         {
             var src1 = @"
 using System.Threading.Tasks;
 
-await Task.Delay(100);
+return 1;
 ";
             var src2 = @"
 using System.Threading.Tasks;
 
-await Task.Delay(100);
 await Task.Delay(200);
+return 1;
 ";
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), preserveLocalVariables: true));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "await Task.Delay(200);") });
         }
 
         [Fact]
-        public void TopLevelStatements_DeleteAwait()
+        public void TopLevelStatements_Await_Insert_Second()
+        {
+            var src1 = @"
+using System.Threading.Tasks;
+
+await Task.Delay(100);
+";
+            var src2 = @"
+using System.Threading.Tasks;
+
+await Task.Delay(100);
+await Task.Delay(200);
+";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), preserveLocalVariables: true) },
+                capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
+
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.UpdatingStateMachineMethodNotSupportedByRuntime, "await Task.Delay(100);") },
+                capabilities: EditAndContinueCapabilities.Baseline);
+        }
+
+        [Fact]
+        public void TopLevelStatements_Await_Delete_Last()
+        {
+            var src1 = @"
+using System.Threading.Tasks;
+
+await Task.Delay(100);
+return 1;
+";
+            var src2 = @"
+using System.Threading.Tasks;
+
+return 1;
+";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                new[]
+                {
+                    Diagnostic(RudeEditKind.ChangingFromAsynchronousToSynchronous, "return 1;", GetResource("top-level code")),
+                    Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "return 1;")
+                },
+                capabilities: EditAndContinueCapabilities.Baseline);
+        }
+
+        [Fact]
+        public void TopLevelStatements_Await_Delete_Second()
         {
             var src1 = @"
 using System.Threading.Tasks;
@@ -20020,7 +20074,13 @@ await Task.Delay(100);
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), preserveLocalVariables: true));
+            edits.VerifySemantics(
+                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), preserveLocalVariables: true) },
+                capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
+
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.UpdatingStateMachineMethodNotSupportedByRuntime, "await Task.Delay(100);") },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -20232,6 +20292,7 @@ Console.Write(1);
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingFromAsynchronousToSynchronous, "Console.Write(1);", GetResource("top-level code")),
                 Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "Console.Write(1);"));
         }
 
@@ -20285,6 +20346,7 @@ Console.Write(1);
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingFromAsynchronousToSynchronous, "Console.Write(1);", GetResource("top-level code")),
                 Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "Console.Write(1);"));
         }
 
