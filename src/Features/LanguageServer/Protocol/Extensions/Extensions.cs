@@ -11,6 +11,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -56,6 +58,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             Contract.ThrowIfNull(directoryName);
 
             var path = Path.Combine(directoryName, document.Name);
+            return ProtocolConversions.GetUriFromFilePath(path);
+        }
+
+        public static Uri GetUriFromFolders(this TextDocument document)
+        {
+            Contract.ThrowIfNull(document.Name);
+            Contract.ThrowIfNull(document.Project.FilePath);
+            Contract.ThrowIfFalse(document.Folders.Any());
+
+            var projectDirectoryName = Path.GetDirectoryName(document.Project.FilePath);
+            Contract.ThrowIfNull(projectDirectoryName);
+            using var _ = ArrayBuilder<string>.GetInstance(out var pathBuilder);
+            pathBuilder.Add(projectDirectoryName);
+            pathBuilder.AddRange(document.Folders);
+            pathBuilder.Add(document.Name);
+
+            var path = Path.Combine(pathBuilder.ToArray());
             return ProtocolConversions.GetUriFromFilePath(path);
         }
 

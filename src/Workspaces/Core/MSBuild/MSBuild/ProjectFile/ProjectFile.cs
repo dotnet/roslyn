@@ -206,8 +206,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var isLinked = IsDocumentLinked(documentItem);
             var isGenerated = IsDocumentGenerated(documentItem);
             var sourceCodeKind = GetSourceCodeKind(filePath);
+            var relativePath = PathUtilities.GetDirectoryName(
+                PathUtilities.GetRelativePath(_projectDirectory, filePath));
 
-            return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated, sourceCodeKind);
+            var folders = relativePath.Split(PathUtilities.DirectorySeparatorChar).ToImmutableArray();
+            return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated, sourceCodeKind, folders);
         }
 
         private DocumentFileInfo MakeNonSourceFileDocumentFileInfo(MSB.Framework.ITaskItem documentItem)
@@ -217,7 +220,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var isLinked = IsDocumentLinked(documentItem);
             var isGenerated = IsDocumentGenerated(documentItem);
 
-            return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated, SourceCodeKind.Regular);
+            var relativePath = PathUtilities.GetDirectoryName(
+                PathUtilities.GetRelativePath(_projectDirectory, filePath));
+
+            var folders = relativePath.Split(PathUtilities.DirectorySeparatorChar).ToImmutableArray();
+            return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated, SourceCodeKind.Regular, folders);
         }
 
         /// <summary>

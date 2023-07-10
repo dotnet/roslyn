@@ -424,7 +424,7 @@ class BCD
         [WpfTheory, CombinatorialData]
         public async Task TestMoveTypeToDifferentFileInDirectory(bool mutatingLspWorkspace)
         {
-            var markUp =
+            var markup =
 @"class ABC
 {
 }
@@ -432,7 +432,7 @@ class {|caret:BCD|}
 {
 }";
 
-            await using var testLspServer = await CreateTestLspServerAsync(markUp, mutatingLspWorkspace, new InitializationOptions
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions
             {
                 ClientCapabilities = new ClientCapabilities()
                 {

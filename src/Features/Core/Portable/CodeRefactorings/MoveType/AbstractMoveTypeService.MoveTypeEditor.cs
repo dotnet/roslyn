@@ -143,14 +143,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 var modifiedRoot = documentEditor.GetChangedRoot();
                 modifiedRoot = await AddFinalNewLineIfDesiredAsync(document, modifiedRoot).ConfigureAwait(false);
 
-                var directoryPath = Path.GetDirectoryName(document.FilePath);
-                var newFilePath = directoryPath != null ? Path.Combine(directoryPath, FileName) : null;
                 // add an empty document to solution, so that we'll have options from the right context.
                 var solutionWithNewDocument = projectToBeUpdated.Solution.AddDocument(newDocumentId,
                     FileName,
                     text: string.Empty,
-                    folders: document.Folders,
-                    filePath: newFilePath);
+                    folders: document.Folders);
 
                 // update the text for the new document
                 solutionWithNewDocument = solutionWithNewDocument.WithDocumentSyntaxRoot(newDocumentId, modifiedRoot, PreservationMode.PreserveIdentity);
