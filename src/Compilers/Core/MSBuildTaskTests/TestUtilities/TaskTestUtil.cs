@@ -43,7 +43,7 @@ internal static class TaskTestUtil
             Assert.Equal($@"{RuntimeHostInfo.GetDotNetPathOrDefault()} exec ""{task.PathToManagedTool}"" {line}", commandLine);
 
             compilerTask.NoConfig = true;
-            Assert.Equal("/noconfig", compilerTask.ToolArguments);
+            Assert.Equal("/noconfig", compilerTask.GenerateToolArguments());
         }
 #endif
     }

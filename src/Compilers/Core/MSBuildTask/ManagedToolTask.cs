@@ -28,26 +28,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </remarks>
         protected bool IsManagedTool => string.IsNullOrEmpty(ToolPath) && ToolExe == ToolName;
 
-        /// <summary>
-        /// Generate the arguments to pass directly to the managed tool. These do not include
-        /// arguments in the response file.
-        /// </summary>
-        /// <remarks>
-        /// This will be the same value whether the build occurs on .NET Core or .NET Framework. 
-        /// </remarks>
-        internal string ToolArguments
-        {
-            get
-            {
-                var builder = new CommandLineBuilderExtension();
-                AddCommandLineCommands(builder);
-                return builder.ToString();
-            }
-        }
-
         internal string PathToManagedTool => Utilities.GenerateFullPathToTool(ToolName);
 
-        internal string PathToManagedToolWithoutExtension
+        private string PathToManagedToolWithoutExtension
         {
             get
             {
@@ -62,11 +45,25 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
 
         /// <summary>
+        /// Generate the arguments to pass directly to the managed tool. These do not include
+        /// arguments in the response file.
+        /// </summary>
+        /// <remarks>
+        /// This will be the same value whether the build occurs on .NET Core or .NET Framework. 
+        /// </remarks>
+        internal string GenerateToolArguments()
+        {
+            var builder = new CommandLineBuilderExtension();
+            AddCommandLineCommands(builder);
+            return builder.ToString();
+        }
+
+        /// <summary>
         /// <see cref="GenerateCommandLineContents" />
         /// </summary>
         protected sealed override string GenerateCommandLineCommands()
         {
-            var commandLineArguments = ToolArguments;
+            var commandLineArguments = GenerateToolArguments();
             if (IsManagedTool)
             {
                 (_, commandLineArguments, _) = RuntimeHostInfo.GetProcessInfo(PathToManagedToolWithoutExtension, commandLineArguments);
@@ -142,7 +139,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             var argumentList = new List<string>();
             var builder = new StringBuilder();
-            CommandLineUtilities.SplitCommandLineIntoArguments(ToolArguments.AsSpan(), removeHashComments: true, builder, argumentList, out _);
+            CommandLineUtilities.SplitCommandLineIntoArguments(GenerateToolArguments().AsSpan(), removeHashComments: true, builder, argumentList, out _);
             CommandLineUtilities.SplitCommandLineIntoArguments(responseFileCommands.AsSpan(), removeHashComments: true, builder, argumentList, out _);
             return argumentList;
         }

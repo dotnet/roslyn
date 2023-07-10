@@ -897,7 +897,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         public void CompilerApiVersionIsSet()
         {
             var assembly = typeof(TargetTests).Assembly;
-            var path = Path.Combine(Path.GetDirectoryName(assembly.Location), "Microsoft.Managed.Core.targets");
+            var path = Path.Combine(Path.GetDirectoryName(assembly.Location)!, "Microsoft.Managed.Core.targets");
             XmlReader xmlReader = XmlReader.Create(new StringReader($"""
 <Project>
     <Import Project="{path}" />
