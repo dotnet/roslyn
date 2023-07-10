@@ -16,7 +16,15 @@
             ResizeMode="CanResizeWithGrip"
             ShowInTaskbar="False"
             HasDialogFrame="True"
-            WindowStartupLocation="CenterOwner">
+            WindowStartupLocation="CenterOwner"
+            Background="{DynamicResource {x:Static vs:ThemedDialogColors.WindowPanelBrushKey}}">
+    <vs:DialogWindow.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../VSThemeDictionary.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </vs:DialogWindow.Resources>
     <StackPanel Margin="0,0,0,9" >
         <Label Content="{Binding ElementName=dialog, Path=TypeDetails}" FontWeight="Bold" Margin="20,10,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.5,0.5"/>
         <Grid Margin="20,0,1,0" Height="49">

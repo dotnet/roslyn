@@ -65,7 +65,7 @@ Friend Module Extensions
         Dim lastContainer As NamespaceOrTypeSymbol = Nothing
         Dim members = GetMembers(container, qualifiedName, lastContainer)
         If members.Length = 0 Then
-            Assert.True(False, "Available members:" & vbCrLf + String.Join(vbCrLf, lastContainer.GetMembers()))
+            Return Nothing
         ElseIf members.Length > 1 Then
             Assert.True(False, "Found multiple members of specified name:" & vbCrLf + String.Join(vbCrLf, members))
         End If
@@ -415,7 +415,11 @@ Friend Module Extensions
 
     <Extension>
     Friend Function GetBoundMethodBody(this As MethodSymbol, compilationState As TypeCompilationState, diagnostics As DiagnosticBag, <Out()> Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
-        Return this.GetBoundMethodBody(compilationState, New BindingDiagnosticBag(diagnostics), methodBodyBinder)
+        Dim builder = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
+        Dim result = this.GetBoundMethodBody(compilationState, builder, methodBodyBinder)
+        diagnostics.AddRange(builder.DiagnosticBag)
+        builder.Free()
+        Return result
     End Function
 
 End Module

@@ -44,17 +44,17 @@ namespace Microsoft.Cci
 
         bool ITypeReference.IsEnum
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         bool ITypeReference.IsValueType
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         ITypeDefinition ITypeReference.GetResolvedType(EmitContext context)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         PrimitiveTypeCode ITypeReference.TypeCode
@@ -64,7 +64,7 @@ namespace Microsoft.Cci
 
         TypeDefinitionHandle ITypeReference.TypeDef
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         IEnumerable<ICustomAttribute> IReference.GetAttributes(EmitContext context)
@@ -150,13 +150,13 @@ namespace Microsoft.Cci
         public sealed override bool Equals(object? obj)
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
         }
 
         public sealed override int GetHashCode()
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
         }
     }
 }

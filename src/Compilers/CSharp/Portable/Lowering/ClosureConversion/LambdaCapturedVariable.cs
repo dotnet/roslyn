@@ -57,8 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return GeneratedNames.ThisProxyFieldName();
             }
 
-            var local = variable as LocalSymbol;
-            if ((object)local != null)
+            if (variable is LocalSymbol local)
             {
                 if (local.SynthesizedKind == SynthesizedLocalKind.LambdaDisplayClass)
                 {
@@ -74,6 +73,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return GeneratedNames.MakeSynthesizedInstrumentationPayloadLocalFieldName(uniqueId++);
                 }
+
+                // should never be captured:
+                Debug.Assert(local.SynthesizedKind != SynthesizedLocalKind.LocalStoreTracker);
 
                 if (local.SynthesizedKind == SynthesizedLocalKind.UserDefined &&
                     (local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchSection ||
@@ -113,6 +115,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return frame.TypeMap.SubstituteType(((object)local != null ? local.TypeWithAnnotations : ((ParameterSymbol)variable).TypeWithAnnotations).Type).Type;
         }
+
+        public override RefKind RefKind => RefKind.None;
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
 
         internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {

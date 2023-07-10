@@ -7,7 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.NewLines.MultipleBlankLines
@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.NewLines.MultipleBlankLines
             : base(IDEDiagnosticIds.MultipleBlankLinesDiagnosticId,
                    EnforceOnBuildValues.MultipleBlankLines,
                    CodeStyleOptions2.AllowMultipleBlankLines,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(
                        nameof(AnalyzersResources.Avoid_multiple_blank_lines), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
@@ -39,10 +38,7 @@ namespace Microsoft.CodeAnalysis.NewLines.MultipleBlankLines
             if (option.Value)
                 return;
 
-            var cancellationToken = context.CancellationToken;
-            var root = context.Tree.GetRoot(cancellationToken);
-
-            Recurse(context, option.Notification.Severity, root, cancellationToken);
+            Recurse(context, option.Notification.Severity, context.GetAnalysisRoot(findInTrivia: false), context.CancellationToken);
         }
 
         private void Recurse(
@@ -59,6 +55,9 @@ namespace Microsoft.CodeAnalysis.NewLines.MultipleBlankLines
 
             foreach (var child in node.ChildNodesAndTokens())
             {
+                if (!context.ShouldAnalyzeSpan(child.FullSpan))
+                    continue;
+
                 if (child.IsNode)
                     Recurse(context, severity, child.AsNode()!, cancellationToken);
                 else if (child.IsToken)

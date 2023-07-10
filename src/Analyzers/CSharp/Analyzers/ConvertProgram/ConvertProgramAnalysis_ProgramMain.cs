@@ -4,11 +4,11 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.ConvertProgram
 {
@@ -34,13 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.ConvertProgram
             if (!CanOfferUseProgramMain(option, forAnalyzer))
                 return false;
 
-            // resiliency check for later on.  This shouldn't happen but we don't want to crash if we are in a weird
-            // state where we have top level statements but no 'Program' type.
-            var programType = compilation.GetBestTypeByMetadataName(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName);
-            if (programType == null)
-                return false;
-
-            if (programType.GetMembers(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName).FirstOrDefault() is not IMethodSymbol)
+            // Ensure that top-level method actually exists.
+            if (compilation.GetTopLevelStatementsMethod() is null)
                 return false;
 
             return true;
@@ -52,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.ConvertProgram
             var analyzerDisabled = option.Notification.Severity == ReportDiagnostic.Suppress;
             var forRefactoring = !forAnalyzer;
 
-            // If the user likes Program.Main, then we offer to conver to Program.Main from the diagnostic analyzer.
+            // If the user likes Program.Main, then we offer to convert to Program.Main from the diagnostic analyzer.
             // If the user prefers Top-level-statements then we offer to use Program.Main from the refactoring provider.
             // If the analyzer is disabled completely, the refactoring is enabled in both directions.
             var canOffer = userPrefersProgramMain == forAnalyzer || (forRefactoring && analyzerDisabled);

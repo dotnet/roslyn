@@ -57,11 +57,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Clears all diagnostics reported thru this source.
         /// We do not track the particular reported diagnostics here since we can just clear all of them at once.
         /// </summary>
-        public void ClearDiagnostics()
+        public void ClearDiagnostics(bool isSessionEnding = false)
         {
             // If ClearDiagnostics is called and there weren't any diagnostics previously, then there is no point incrementing
             // our version number and potentially invalidating caches unnecessarily.
-            if (_previouslyHadDiagnostics)
+            // If the debug session is ending, however, we want to always increment otherwise we can get stuck. eg if the user
+            // makes a rude edit during a debug session, but doesn't apply the changes, the rude edit will be raised without
+            // this class knowing about it, and then if the debug session is stopped, we have no knowledge of any diagnostics here
+            // so don't bump our version number, but the document checksum also doesn't change, so we get stuck with the rude edit.
+            if (isSessionEnding || _previouslyHadDiagnostics)
             {
                 _previouslyHadDiagnostics = false;
                 _diagnosticsVersion++;
@@ -100,7 +104,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             if (documentDiagnostics.Length > 0)
             {
-                foreach (var (documentId, diagnosticData) in documentDiagnostics.ToDictionary(data => data.DocumentId!))
+                foreach (var (documentId, diagnosticData) in documentDiagnostics.GroupBy(static data => data.DocumentId!))
                 {
                     var diagnosticGroupId = (this, documentId);
 
@@ -110,13 +114,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         solution,
                         documentId.ProjectId,
                         documentId: documentId,
-                        diagnostics: diagnosticData));
+                        diagnostics: diagnosticData.ToImmutableArray()));
                 }
             }
 
             if (projectDiagnostics.Length > 0)
             {
-                foreach (var (projectId, diagnosticData) in projectDiagnostics.ToDictionary(data => data.ProjectId!))
+                foreach (var (projectId, diagnosticData) in projectDiagnostics.GroupBy(static data => data.ProjectId!))
                 {
                     var diagnosticGroupId = (this, projectId);
 
@@ -126,7 +130,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         solution,
                         projectId,
                         documentId: null,
-                        diagnostics: diagnosticData));
+                        diagnostics: diagnosticData.ToImmutableArray()));
                 }
             }
 

@@ -56,13 +56,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     equivalenceKey: title);
             }
 
-            private class GlobalSuppressionSolutionChangeAction : SolutionChangeAction
+            private class GlobalSuppressionSolutionChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string equivalenceKey) : SolutionChangeAction(title, createChangedSolution, equivalenceKey)
             {
-                public GlobalSuppressionSolutionChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string equivalenceKey)
-                    : base(title, createChangedSolution, equivalenceKey)
-                {
-                }
-
                 protected override Task<Document> PostProcessChangesAsync(Document document, CancellationToken cancellationToken)
                 {
                     // PERF: We don't to formatting on the entire global suppressions document, but instead do it for each attribute individual in the fixer.
@@ -136,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             protected override async Task<Document> GetChangedSuppressionDocumentAsync(CancellationToken cancellationToken)
             {
                 var suppressionsDoc = await GetOrCreateSuppressionsDocumentAsync(cancellationToken).ConfigureAwait(false);
-                var services = suppressionsDoc.Project.Solution.Workspace.Services;
+                var services = suppressionsDoc.Project.Solution.Services;
                 var suppressionsRoot = await suppressionsDoc.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var addImportsService = suppressionsDoc.GetRequiredLanguageService<IAddImportsService>();
                 var cleanupOptions = await suppressionsDoc.GetCodeCleanupOptionsAsync(_fallbackOptions, cancellationToken).ConfigureAwait(false);

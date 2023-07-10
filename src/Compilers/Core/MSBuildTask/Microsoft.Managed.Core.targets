@@ -92,6 +92,7 @@
     <PropertyGroup Condition="'$(_SkipAnalyzers)' == '' and
                               '$(IsImplicitlyTriggeredBuild)' == 'true' and
                               '$(UsingMicrosoftNETSdk)' == 'true' and
+                              '$(OptimizeImplicitlyTriggeredBuild)' != 'false' and
                               ('$(TreatWarningsAsErrors)' != 'true' or '$(OptimizeImplicitlyTriggeredBuild)' == 'true')">
       <_ImplicitlySkipAnalyzers>true</_ImplicitlySkipAnalyzers>
       <_SkipAnalyzers>true</_SkipAnalyzers>

@@ -2,17 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PatternMatching
 {
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         /// <param name="allowFuzzyMatching">Whether or not close matches should count as matches.</param>
         protected PatternMatcher(
             bool includeMatchedSpans,
-            CultureInfo culture,
+            CultureInfo? culture,
             bool allowFuzzyMatching = false)
         {
             culture ??= CultureInfo.CurrentCulture;
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
         public static PatternMatcher CreatePatternMatcher(
             string pattern,
-            CultureInfo culture = null,
+            CultureInfo? culture = null,
             bool includeMatchedSpans = false,
             bool allowFuzzyMatching = false)
         {
@@ -76,35 +76,37 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         public static PatternMatcher CreateContainerPatternMatcher(
             string[] patternParts,
             char[] containerSplitCharacters,
-            CultureInfo culture = null,
+            bool includeMatchedSpans = false,
+            CultureInfo? culture = null,
             bool allowFuzzyMatching = false)
         {
             return new ContainerPatternMatcher(
-                patternParts, containerSplitCharacters, culture, allowFuzzyMatching);
+                patternParts, containerSplitCharacters, includeMatchedSpans, culture, allowFuzzyMatching);
         }
 
         public static PatternMatcher CreateDotSeparatedContainerMatcher(
             string pattern,
-            CultureInfo culture = null,
+            bool includeMatchedSpans = false,
+            CultureInfo? culture = null,
             bool allowFuzzyMatching = false)
         {
             return CreateContainerPatternMatcher(
                 pattern.Split(s_dotCharacterArray, StringSplitOptions.RemoveEmptyEntries),
-                s_dotCharacterArray, culture, allowFuzzyMatching);
+                s_dotCharacterArray, includeMatchedSpans, culture, allowFuzzyMatching);
         }
 
-        internal static (string name, string containerOpt) GetNameAndContainer(string pattern)
+        internal static (string name, string? containerOpt) GetNameAndContainer(string pattern)
         {
             var dotIndex = pattern.LastIndexOf('.');
             var containsDots = dotIndex >= 0;
             return containsDots
-                ? (name: pattern.Substring(dotIndex + 1), containerOpt: pattern.Substring(0, dotIndex))
+                ? (name: pattern[(dotIndex + 1)..], containerOpt: pattern[..dotIndex])
                 : (name: pattern, containerOpt: null);
         }
 
-        public abstract bool AddMatches(string candidate, ref TemporaryArray<PatternMatch> matches);
+        public abstract bool AddMatches(string? candidate, ref TemporaryArray<PatternMatch> matches);
 
-        private bool SkipMatch(string candidate)
+        private bool SkipMatch([NotNullWhen(false)] string? candidate)
             => _invalidPattern || string.IsNullOrWhiteSpace(candidate);
 
         private static bool ContainsUpperCaseLetter(string pattern)
@@ -137,7 +139,8 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             in TextChunk patternChunk,
             bool punctuationStripped)
         {
-            if (patternChunk.SimilarityChecker.AreSimilar(candidate))
+            Contract.ThrowIfNull(patternChunk.SimilarityChecker);
+            if (patternChunk.SimilarityChecker.Value.AreSimilar(candidate))
             {
                 return new PatternMatch(
                     PatternMatchKind.Fuzzy, punctuationStripped, isCaseSensitive: false, matchedSpan: null);

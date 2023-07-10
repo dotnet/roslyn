@@ -36,6 +36,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
             End Get
         End Property
 
+        Protected Overrides Function AllowDelegateAndEnumConstraints(options As ParseOptions) As Boolean
+            Return False
+        End Function
+
         Protected Overrides Function TryInitializeState(
                 document As Document, model As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken,
                 ByRef classOrStructDecl As SyntaxNode, ByRef classOrStructType As INamedTypeSymbol, ByRef interfaceTypes As IEnumerable(Of INamedTypeSymbol)) As Boolean

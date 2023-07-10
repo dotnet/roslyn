@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -84,6 +85,18 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 #pragma warning disable RS0042 // Do not copy value
             this = array;
 #pragma warning restore RS0042 // Do not copy value
+        }
+
+        public static TemporaryArray<T> GetInstance(int capacity)
+        {
+            // Capacity <= 4 is already supported by the Empty array value. so can just return that without allocating anything.
+            if (capacity <= InlineCapacity)
+                return Empty;
+
+            return new TemporaryArray<T>()
+            {
+                _builder = ArrayBuilder<T>.GetInstance(capacity)
+            };
         }
 
         public static TemporaryArray<T> Empty => default;
@@ -214,6 +227,39 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             }
         }
 
+        public T RemoveLast()
+        {
+            var count = this.Count;
+
+            var last = this[count - 1];
+            this[count - 1] = default!;
+
+            if (_builder != null)
+            {
+                _builder.Count--;
+            }
+            else
+            {
+                _count--;
+            }
+
+            return last;
+        }
+
+        public readonly bool Contains(T value)
+        {
+            if (_builder != null)
+                return _builder.Contains(value);
+
+            foreach (var v in this)
+            {
+                if (EqualityComparer<T>.Default.Equals(v, value))
+                    return true;
+            }
+
+            return false;
+        }
+
         public readonly Enumerator GetEnumerator()
         {
             return new Enumerator(in this);
@@ -239,7 +285,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                     2 => ImmutableArray.Create(_item0, _item1),
                     3 => ImmutableArray.Create(_item0, _item1, _item2),
                     4 => ImmutableArray.Create(_item0, _item1, _item2, _item3),
-                    _ => throw ExceptionUtilities.Unreachable,
+                    _ => throw ExceptionUtilities.Unreachable(),
                 };
 
                 // Since _builder is null on this path, we can overwrite the whole structure to Empty to reset all
@@ -275,6 +321,34 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
             _count = 0;
             _builder = builder;
+        }
+
+        public void ReverseContents()
+        {
+            if (_builder is not null)
+            {
+                _builder.ReverseContents();
+                return;
+            }
+
+            switch (_count)
+            {
+                case <= 1:
+                    // if we have one or zero items, we're already reversed.
+                    return;
+                case 2:
+                    (_item0, _item1) = (_item1, _item0);
+                    return;
+                case 3:
+                    // Just need to swap the first and last items.  The middle one stays where it is.
+                    (_item0, _item2) = (_item2, _item0);
+                    return;
+                case 4:
+                    (_item0, _item1, _item2, _item3) = (_item3, _item2, _item1, _item0);
+                    return;
+                default:
+                    throw ExceptionUtilities.Unreachable();
+            }
         }
 
         /// <summary>

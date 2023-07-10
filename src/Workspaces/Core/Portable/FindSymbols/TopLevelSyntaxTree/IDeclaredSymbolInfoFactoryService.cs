@@ -13,6 +13,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         // `rootNamespace` is required for VB projects that has non-global namespace as root namespace,
         // otherwise we would not be able to get correct data from syntax.
-        void AddDeclaredSymbolInfos(Document document, SyntaxNode root, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, Dictionary<string, ArrayBuilder<int>> extensionMethodInfo, CancellationToken cancellationToken);
+        void AddDeclaredSymbolInfos(ProjectState project, SyntaxNode root, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, Dictionary<string, ArrayBuilder<int>> extensionMethodInfo, CancellationToken cancellationToken);
     }
 }

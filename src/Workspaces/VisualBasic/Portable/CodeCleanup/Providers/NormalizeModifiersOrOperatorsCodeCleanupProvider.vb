@@ -7,6 +7,7 @@ Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Shared.Collections
@@ -33,12 +34,12 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
         Public Async Function CleanupAsync(document As Document, spans As ImmutableArray(Of TextSpan), options As CodeCleanupOptions, cancellationToken As CancellationToken) As Task(Of Document) Implements ICodeCleanupProvider.CleanupAsync
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim newRoot = Await CleanupAsync(root, spans, options.FormattingOptions, document.Project.Solution.Workspace.Services, cancellationToken).ConfigureAwait(False)
+            Dim newRoot = Await CleanupAsync(root, spans, options.FormattingOptions, document.Project.Solution.Services, cancellationToken).ConfigureAwait(False)
 
             Return If(root Is newRoot, document, document.WithSyntaxRoot(newRoot))
         End Function
 
-        Public Function CleanupAsync(root As SyntaxNode, spans As ImmutableArray(Of TextSpan), options As SyntaxFormattingOptions, services As HostWorkspaceServices, cancellationToken As CancellationToken) As Task(Of SyntaxNode) Implements ICodeCleanupProvider.CleanupAsync
+        Public Function CleanupAsync(root As SyntaxNode, spans As ImmutableArray(Of TextSpan), options As SyntaxFormattingOptions, services As SolutionServices, cancellationToken As CancellationToken) As Task(Of SyntaxNode) Implements ICodeCleanupProvider.CleanupAsync
             Dim rewriter = New Rewriter(spans, cancellationToken)
             Dim newRoot = rewriter.Visit(root)
 
@@ -52,7 +53,13 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             ' this order will be used when the rewriter re-order modifiers
             ' PERF: Using UShort instead of SyntaxKind as the element type so that the compiler can use array literal initialization
             Private Shared ReadOnly s_modifierKindsInOrder As SyntaxKind() =
-                VisualBasicIdeCodeStyleOptions.DefaultPreferredModifierOrder.ToArray()
+                {SyntaxKind.PartialKeyword, SyntaxKind.DefaultKeyword, SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword,
+                SyntaxKind.PublicKeyword, SyntaxKind.FriendKeyword, SyntaxKind.NotOverridableKeyword, SyntaxKind.OverridableKeyword,
+                SyntaxKind.MustOverrideKeyword, SyntaxKind.OverloadsKeyword, SyntaxKind.OverridesKeyword, SyntaxKind.MustInheritKeyword,
+                SyntaxKind.NotInheritableKeyword, SyntaxKind.StaticKeyword, SyntaxKind.SharedKeyword, SyntaxKind.ShadowsKeyword,
+                SyntaxKind.ReadOnlyKeyword, SyntaxKind.WriteOnlyKeyword, SyntaxKind.DimKeyword, SyntaxKind.ConstKeyword,
+                SyntaxKind.WithEventsKeyword, SyntaxKind.WideningKeyword, SyntaxKind.NarrowingKeyword, SyntaxKind.CustomKeyword,
+                SyntaxKind.AsyncKeyword, SyntaxKind.IteratorKeyword}
 
             Private Shared ReadOnly s_removeDimKeywordSet As HashSet(Of SyntaxKind) = New HashSet(Of SyntaxKind)(SyntaxFacts.EqualityComparer) From {
                 SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword, SyntaxKind.PublicKeyword, SyntaxKind.FriendKeyword,
@@ -66,6 +73,10 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
             Private ReadOnly _spans As SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector)
             Private ReadOnly _cancellationToken As CancellationToken
+
+            Shared Sub New()
+                Debug.Assert(String.Join(",", s_modifierKindsInOrder.Select(AddressOf SyntaxFacts.GetText)) = VisualBasicIdeCodeStyleOptions.Default.PreferredModifierOrder.Value)
+            End Sub
 
             Public Sub New(spans As ImmutableArray(Of TextSpan), cancellationToken As CancellationToken)
                 MyBase.New(visitIntoStructuredTrivia:=True)

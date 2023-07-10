@@ -2,18 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal class SearchQuery : IDisposable
+    internal readonly struct SearchQuery : IDisposable
     {
         /// <summary>The name being searched for.  Is null in the case of custom predicate searching..  But 
         /// can be used for faster index based searching when it is available.</summary> 
-        public readonly string Name;
+        public readonly string? Name;
 
         ///<summary>The kind of search this is.  Faster index-based searching can be used if the 
         /// SearchKind is not <see cref="SearchKind.Custom"/>.</summary>
@@ -22,7 +20,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         ///<summary>The predicate to fall back on if faster index searching is not possible.</summary>
         private readonly Func<string, bool> _predicate;
 
-        private readonly WordSimilarityChecker _wordSimilarityChecker;
+        private readonly WordSimilarityChecker? _wordSimilarityChecker;
 
         private SearchQuery(string name, SearchKind kind)
         {
@@ -42,8 +40,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // its 'AreSimilar' method. That way we only create the WordSimilarityChecker
                     // once and it can cache all the information it needs while it does the AreSimilar
                     // check against all the possible candidates.
-                    _wordSimilarityChecker = WordSimilarityChecker.Allocate(name, substringsAreSimilar: false);
-                    _predicate = _wordSimilarityChecker.AreSimilar;
+                    _wordSimilarityChecker = new WordSimilarityChecker(name, substringsAreSimilar: false);
+                    _predicate = _wordSimilarityChecker.Value.AreSimilar;
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
@@ -57,7 +55,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         public void Dispose()
-            => _wordSimilarityChecker?.Free();
+            => _wordSimilarityChecker?.Dispose();
 
         public static SearchQuery Create(string name, SearchKind kind)
             => new(name, kind);

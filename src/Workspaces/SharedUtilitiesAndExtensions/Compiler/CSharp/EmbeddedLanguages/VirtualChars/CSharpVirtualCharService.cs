@@ -7,10 +7,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
 
         protected override bool IsMultiLineRawStringToken(SyntaxToken token)
         {
-            if (token.Kind() is SyntaxKind.MultiLineRawStringLiteralToken or SyntaxKind.UTF8MultiLineRawStringLiteralToken)
+            if (token.Kind() is SyntaxKind.MultiLineRawStringLiteralToken or SyntaxKind.Utf8MultiLineRawStringLiteralToken)
                 return true;
 
             if (token.Parent?.Parent is InterpolatedStringExpressionSyntax { StringStartToken.RawKind: (int)SyntaxKind.InterpolatedMultiLineRawStringStartToken })
@@ -67,17 +67,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                         ? TryConvertVerbatimStringToVirtualChars(token, "@\"", "\"", escapeBraces: false)
                         : TryConvertStringToVirtualChars(token, "\"", "\"", escapeBraces: false);
 
-                case SyntaxKind.UTF8StringLiteralToken:
+                case SyntaxKind.Utf8StringLiteralToken:
                     return token.IsVerbatimStringLiteral()
                         ? TryConvertVerbatimStringToVirtualChars(token, "@\"", "\"u8", escapeBraces: false)
                         : TryConvertStringToVirtualChars(token, "\"", "\"u8", escapeBraces: false);
 
                 case SyntaxKind.SingleLineRawStringLiteralToken:
-                case SyntaxKind.UTF8SingleLineRawStringLiteralToken:
+                case SyntaxKind.Utf8SingleLineRawStringLiteralToken:
                     return TryConvertSingleLineRawStringToVirtualChars(token);
 
                 case SyntaxKind.MultiLineRawStringLiteralToken:
-                case SyntaxKind.UTF8MultiLineRawStringLiteralToken:
+                case SyntaxKind.Utf8MultiLineRawStringLiteralToken:
                     return token.GetRequiredParent() is LiteralExpressionSyntax literalExpression
                         ? TryConvertMultiLineRawStringToVirtualChars(token, literalExpression, tokenIncludeDelimiters: true)
                         : default;
@@ -135,13 +135,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             var startIndexInclusive = 0;
             var endIndexExclusive = tokenText.Length;
 
-            if (token.Kind() is SyntaxKind.UTF8SingleLineRawStringLiteralToken)
+            if (token.Kind() is SyntaxKind.Utf8SingleLineRawStringLiteralToken)
             {
                 Contract.ThrowIfFalse(tokenText is [.., 'u' or 'U', '8']);
                 endIndexExclusive -= "u8".Length;
             }
 
-            if (token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.UTF8SingleLineRawStringLiteralToken)
+            if (token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.Utf8SingleLineRawStringLiteralToken)
             {
                 Contract.ThrowIfFalse(tokenText[0] == '"');
 

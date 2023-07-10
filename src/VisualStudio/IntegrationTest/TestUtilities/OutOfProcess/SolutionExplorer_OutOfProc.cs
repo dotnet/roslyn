@@ -21,9 +21,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             _inProc = CreateInProcComponent<SolutionExplorer_InProc>(visualStudioInstance);
         }
 
-        public string DirectoryName
-            => _inProc.DirectoryName;
-
         public void CloseSolution(bool saveFirst = false)
             => _inProc.CloseSolution(saveFirst);
 
@@ -32,9 +29,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         /// </summary>
         public void CreateSolution(string solutionName, bool saveExistingSolutionIfExists = false)
             => _inProc.CreateSolution(solutionName, saveExistingSolutionIfExists);
-
-        public void CreateSolution(string solutionName, XElement solutionElement)
-            => _inProc.CreateSolution(solutionName, solutionElement.ToString());
 
         public void AddProject(ProjectUtils.Project projectName, string projectTemplate, string languageName)
         {
@@ -48,27 +42,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
         }
 
-        public void RemoveProjectReference(ProjectUtils.Project projectName, ProjectUtils.ProjectReference projectReferenceName)
-        {
-            _inProc.RemoveProjectReference(projectName.Name, projectReferenceName.Name);
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
-        }
-
         public void AddMetadataReference(ProjectUtils.AssemblyReference fullyQualifiedAssemblyName, ProjectUtils.Project projectName)
         {
             _inProc.AddMetadataReference(fullyQualifiedAssemblyName.Name, projectName.Name);
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
-        }
-
-        public void RemoveMetadataReference(ProjectUtils.AssemblyReference assemblyName, ProjectUtils.Project projectName)
-        {
-            _inProc.RemoveMetadataReference(assemblyName.Name, projectName.Name);
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
-        }
-
-        public void AddAnalyzerReference(string filePath, ProjectUtils.Project projectName)
-        {
-            _inProc.AddAnalyzerReference(filePath, projectName.Name);
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
         }
 
@@ -77,9 +53,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void AddFile(ProjectUtils.Project project, string fileName, string? contents = null, bool open = false)
             => _inProc.AddFile(project.Name, fileName, contents, open);
-
-        public void SetFileContents(ProjectUtils.Project project, string fileName, string contents)
-            => _inProc.SetFileContents(project.Name, fileName, contents);
 
         public string GetFileContents(ProjectUtils.Project project, string fileName)
             => _inProc.GetFileContents(project.Name, fileName);
@@ -97,20 +70,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
         }
 
-        public void RenameFile(ProjectUtils.Project project, string oldFileName, string newFileName)
-        {
-            // Wireup to open files can happen asynchronously in the case we're being notified of changes on background threads.
-            _inProc.RenameFile(project.Name, oldFileName, newFileName);
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
-        }
-
-        public void RenameFileViaDTE(ProjectUtils.Project project, string oldFileName, string newFileName)
-        {
-            // Wireup to open files can happen asynchronously in the case we're being notified of changes on background threads.
-            _inProc.RenameFileViaDTE(project.Name, oldFileName, newFileName);
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
-        }
-
         public void CloseDesignerFile(ProjectUtils.Project project, string fileName, bool saveFile)
             => _inProc.CloseDesignerFile(project.Name, fileName, saveFile);
 
@@ -124,7 +83,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             => _inProc.RestoreNuGetPackages(project.Name);
 
         public void SaveAll()
-            => _inProc.SaveAll();
+        {
+            _inProc.SaveAll();
+
+            // Wait for async save operations to complete before proceeding
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
+        }
 
         /// <summary>
         /// Selects an item named by the <paramref name="itemName"/> parameter.
@@ -140,11 +104,5 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         /// </summary>
         public void SelectItemAtPath(params string[] path)
             => _inProc.SelectItemAtPath(path);
-
-        public void EditProjectFile(ProjectUtils.Project project)
-            => _inProc.EditProjectFile(project.Name);
-
-        public void AddStandaloneFile(string fileName)
-            => _inProc.AddStandaloneFile(fileName);
     }
 }

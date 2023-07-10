@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         {
             public static async Task<CSharpTriviaResult> ProcessAsync(SelectionResult selectionResult, CancellationToken cancellationToken)
             {
-                var preservationService = selectionResult.SemanticDocument.Document.Project.LanguageServices.GetService<ISyntaxTriviaService>();
+                var preservationService = selectionResult.SemanticDocument.Document.Project.Services.GetService<ISyntaxTriviaService>();
                 var root = selectionResult.SemanticDocument.Root;
                 var result = preservationService.SaveTriviaAroundSelection(root, selectionResult.FinalSpan);
                 return new CSharpTriviaResult(
@@ -118,10 +118,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     }
                 }
 
-                var previousTriviaPair = triviaMap.ContainsKey(tokenPair.PreviousToken) ? triviaMap[tokenPair.PreviousToken] : default;
-                var nextTriviaPair = triviaMap.ContainsKey(tokenPair.NextToken) ? triviaMap[tokenPair.NextToken] : default;
-
+                triviaMap.TryGetValue(tokenPair.PreviousToken, out var previousTriviaPair);
                 var trailingTrivia = previousTriviaPair.TrailingTrivia ?? SpecializedCollections.EmptyEnumerable<SyntaxTrivia>();
+
+                triviaMap.TryGetValue(tokenPair.NextToken, out var nextTriviaPair);
                 var leadingTrivia = nextTriviaPair.LeadingTrivia ?? SpecializedCollections.EmptyEnumerable<SyntaxTrivia>();
 
                 var list = trailingTrivia.Concat(leadingTrivia);

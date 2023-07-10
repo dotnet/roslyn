@@ -1,10 +1,11 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft;
@@ -12,9 +13,11 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.LanguageServices;
+using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -52,8 +55,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 
             var expectedCaretMarkupEndIndex = expectedCaretIndex + "$$".Length;
 
-            var expectedTextBeforeCaret = expectedText.Substring(0, expectedCaretIndex);
-            var expectedTextAfterCaret = expectedText.Substring(expectedCaretMarkupEndIndex);
+            var expectedTextBeforeCaret = expectedText[..expectedCaretIndex];
+            var expectedTextAfterCaret = expectedText[expectedCaretMarkupEndIndex..];
 
             var lineText = await TestServices.Editor.GetCurrentLineTextAsync(cancellationToken);
             var lineTextBeforeCaret = await TestServices.Editor.GetLineTextBeforeCaretAsync(cancellationToken);
@@ -62,6 +65,17 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             Assert.Equal(expectedTextBeforeCaret, lineTextBeforeCaret);
             Assert.Equal(expectedTextAfterCaret, lineTextAfterCaret);
             Assert.Equal(expectedTextBeforeCaret.Length + expectedTextAfterCaret.Length, lineText.Length);
+        }
+
+        public async Task TextEqualsAsync(
+            string expectedText,
+            CancellationToken cancellationToken)
+        {
+            var view = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
+            var editorText = view.TextSnapshot.GetText();
+            var caretPosition = await TestServices.Editor.GetCaretPositionAsync(cancellationToken);
+            editorText = editorText.Insert(caretPosition, "$$");
+            AssertEx.EqualOrDiff(expectedText, editorText);
         }
 
         public async Task TextContainsAsync(
@@ -232,16 +246,64 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             Assert.Equal(expectedCaretPosition, await TestServices.Editor.GetCaretPositionAsync(cancellationToken));
         }
 
-        public async Task ErrorTagsAsync(string[] expectedTags, CancellationToken cancellationToken)
+        public async Task ErrorTagsAsync(
+            (string errorType, TextSpan textSpan, string taggedText, string tooltipText)[] expectedTags, CancellationToken cancellationToken)
         {
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawler, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles },
+                new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles },
                 cancellationToken);
 
             var actualTags = await TestServices.Editor.GetErrorTagsAsync(cancellationToken);
-            AssertEx.EqualOrDiff(
-                string.Join(Environment.NewLine, expectedTags),
-                string.Join(Environment.NewLine, actualTags));
+            Assert.Equal(expectedTags.Length, actualTags.Length);
+            for (var i = 0; i < expectedTags.Length; i++)
+            {
+                var expectedTag = expectedTags[i];
+                var actualTaggedSpan = actualTags[i];
+                Assert.Equal(expectedTag.errorType, actualTaggedSpan.Tag.ErrorType);
+                Assert.Equal(expectedTag.textSpan.Start, actualTaggedSpan.Span.Start.Position);
+                Assert.Equal(expectedTag.textSpan.Length, actualTaggedSpan.Span.Length);
+
+                var actualTaggedText = actualTaggedSpan.Span.GetText();
+                Assert.Equal(expectedTag.taggedText, actualTaggedText);
+
+                AssertEx.NotNull(actualTaggedSpan.Tag.ToolTipContent);
+                var containerElement = (ContainerElement)actualTaggedSpan.Tag.ToolTipContent;
+                var actualTooltipText = CollectTextInRun(containerElement);
+                Assert.Equal(expectedTag.tooltipText, actualTooltipText);
+            }
+
+            static string CollectTextInRun(ContainerElement? containerElement)
+            {
+                var builder = new StringBuilder();
+
+                if (containerElement is not null)
+                {
+                    foreach (var element in containerElement.Elements)
+                    {
+                        if (element is ClassifiedTextElement classifiedTextElement)
+                        {
+                            foreach (var run in classifiedTextElement.Runs)
+                            {
+                                builder.Append(run.Text);
+                            }
+                        }
+                    }
+                }
+
+                return builder.ToString();
+            }
+        }
+
+        public async Task CurrentTokenTypeAsync(string tokenType, CancellationToken cancellationToken)
+        {
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
+                new[] { FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.Classification },
+                cancellationToken);
+
+            var actualTokenTypes = await TestServices.Editor.GetCurrentClassificationsAsync(cancellationToken);
+            Assert.Equal(1, actualTokenTypes.Length);
+            Assert.Contains(tokenType, actualTokenTypes[0]);
+            Assert.NotEqual("text", tokenType);
         }
 
         private static WorkspaceEventRestorer WithWorkspaceChangedHandler(Workspace workspace, EventHandler<WorkspaceChangeEventArgs> eventHandler)

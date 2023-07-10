@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             => container is TCompilationUnitSyntax or TNamespaceDeclarationSyntax;
 
         protected static bool IsGlobalNamespace(ImmutableArray<string> parts)
-            => parts.Length == 1 && parts[0].Length == 0;
+            => parts is [""];
 
         public override async Task<bool> CanChangeNamespaceAsync(Document document, SyntaxNode container, CancellationToken cancellationToken)
         {
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
                 return syntaxRoot
                     .DescendantNodes(n => !syntaxFacts.IsDeclaration(n))
-                    .Where(n => syntaxFacts.IsBaseNamespaceDeclaration(n))
+                    .Where(syntaxFacts.IsBaseNamespaceDeclaration)
                     .ToImmutableArray();
             }
         }
@@ -276,9 +276,9 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             // those documents, then we know we can't make a proper code change. We will return null and the check 
             // will return false. We use span of namespace declaration found in each document to decide if they are identical.            
 
-            var documents = ids.SelectAsArray(id => solution.GetRequiredDocument(id));
-            using var containersDisposer = ArrayBuilder<(DocumentId, SyntaxNode)>.GetInstance(ids.Length, out var containers);
-            using var spanForContainersDisposer = PooledHashSet<TextSpan>.GetInstance(out var spanForContainers);
+            var documents = ids.SelectAsArray(solution.GetRequiredDocument);
+            using var _1 = ArrayBuilder<(DocumentId, SyntaxNode)>.GetInstance(ids.Length, out var containers);
+            using var _2 = PooledHashSet<TextSpan>.GetInstance(out var spanForContainers);
 
             foreach (var document in documents)
             {
@@ -401,13 +401,11 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         private static ImmutableArray<SyntaxNode> CreateImports(Document document, ImmutableArray<string> names, bool withFormatterAnnotation)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
-            using var builderDisposer = ArrayBuilder<SyntaxNode>.GetInstance(names.Length, out var builder);
+            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(names.Length, out var builder);
             for (var i = 0; i < names.Length; ++i)
-            {
                 builder.Add(CreateImport(generator, names[i], withFormatterAnnotation));
-            }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndClear();
         }
 
         private static SyntaxNode CreateImport(SyntaxGenerator syntaxGenerator, string name, bool withFormatterAnnotation)
@@ -500,17 +498,11 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             return originalSolution;
         }
 
-        private readonly struct LocationForAffectedSymbol
+        private readonly struct LocationForAffectedSymbol(ReferenceLocation location, bool isReferenceToExtensionMethod)
         {
-            public LocationForAffectedSymbol(ReferenceLocation location, bool isReferenceToExtensionMethod)
-            {
-                ReferenceLocation = location;
-                IsReferenceToExtensionMethod = isReferenceToExtensionMethod;
-            }
+            public ReferenceLocation ReferenceLocation { get; } = location;
 
-            public ReferenceLocation ReferenceLocation { get; }
-
-            public bool IsReferenceToExtensionMethod { get; }
+            public bool IsReferenceToExtensionMethod { get; } = isReferenceToExtensionMethod;
 
             public Document Document => ReferenceLocation.Document;
         }
@@ -630,7 +622,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 .WithAdditionalAnnotations(Formatter.Annotation);
 
             // Need to invoke formatter explicitly since we are doing the diff merge ourselves.
-            var services = documentWithAddedImports.Project.Solution.Workspace.Services;
+            var services = documentWithAddedImports.Project.Solution.Services;
             root = Formatter.Format(root, Formatter.Annotation, services, documentOptions.FormattingOptions, cancellationToken);
 
             root = root.WithAdditionalAnnotations(Simplifier.Annotation);

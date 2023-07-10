@@ -33,7 +33,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private readonly StateManager _stateManager;
         private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
         private readonly IDocumentTrackingService _documentTrackingService;
+        private readonly IncrementalMemberEditAnalyzer _incrementalMemberEditAnalyzer = new();
+
+#if NETSTANDARD
         private ConditionalWeakTable<Project, CompilationWithAnalyzers?> _projectCompilationsWithAnalyzers = new();
+#else
+        private readonly ConditionalWeakTable<Project, CompilationWithAnalyzers?> _projectCompilationsWithAnalyzers = new();
+#endif
 
         internal DiagnosticAnalyzerService AnalyzerService { get; }
         internal Workspace Workspace { get; }
@@ -59,16 +65,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(analyzerInfoCache, analyzerService.Listener);
 
-            GlobalOptions.OptionChanged += OnGlobalOptionChanged;
+            GlobalOptions.AddOptionChangedHandler(this, OnGlobalOptionChanged);
         }
 
         private void OnGlobalOptionChanged(object? sender, OptionChangedEventArgs e)
         {
-            if (e.Option.Feature == nameof(SimplificationOptions) ||
-                e.Option.Feature == nameof(CodeStyleOptions) ||
-                e.Option == SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption ||
-                e.Option == SolutionCrawlerOptionsStorage.SolutionBackgroundAnalysisScopeOption ||
-                e.Option == SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption)
+            if (DiagnosticAnalyzerService.IsGlobalOptionAffectingDiagnostics(e.Option) &&
+                GlobalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
             {
                 var service = Workspace.Services.GetService<ISolutionCrawlerService>();
                 service?.Reanalyze(Workspace, this, projectIds: null, documentIds: null, highPriority: false);
@@ -77,13 +80,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         internal IGlobalOptionService GlobalOptions => AnalyzerService.GlobalOptions;
         internal DiagnosticAnalyzerInfoCache DiagnosticAnalyzerInfoCache => _diagnosticAnalyzerRunner.AnalyzerInfoCache;
-
-        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/54400", Constraint = "Avoid calling GetAllHostStateSets on this hot path.")]
-        public bool ContainsDiagnostics(ProjectId projectId)
-        {
-            return _stateManager.HasAnyHostStateSet(static (stateSet, arg) => stateSet.ContainsAnyDocumentOrProjectDiagnostics(arg), projectId)
-                || _stateManager.HasAnyProjectStateSet(projectId, static (stateSet, arg) => stateSet.ContainsAnyDocumentOrProjectDiagnostics(arg), projectId);
-        }
 
         private void OnProjectAnalyzerReferenceChanged(object? sender, ProjectAnalyzerReferenceChangedEventArgs e)
         {
@@ -108,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         public void Shutdown()
         {
-            GlobalOptions.OptionChanged -= OnGlobalOptionChanged;
+            GlobalOptions.RemoveOptionChangedHandler(this, OnGlobalOptionChanged);
 
             var stateSets = _stateManager.GetAllStateSets();
 
@@ -153,12 +149,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         private void RaiseDiagnosticsCreated(
-            Project project, StateSet stateSet, ImmutableArray<DiagnosticData> items, Action<DiagnosticsUpdatedArgs> raiseEvents)
+            Project project, DiagnosticAnalyzer analyzer, ImmutableArray<DiagnosticData> items, Action<DiagnosticsUpdatedArgs> raiseEvents)
         {
             Contract.ThrowIfFalse(project.Solution.Workspace == Workspace);
 
             raiseEvents(DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                CreateId(stateSet, project.Id, AnalysisKind.NonLocal),
+                CreateId(analyzer, project.Id, AnalysisKind.NonLocal),
                 project.Solution.Workspace,
                 project.Solution,
                 project.Id,
@@ -167,12 +163,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         private void RaiseDiagnosticsRemoved(
-            ProjectId projectId, Solution? solution, StateSet stateSet, Action<DiagnosticsUpdatedArgs> raiseEvents)
+            ProjectId projectId, Solution? solution, DiagnosticAnalyzer analyzer, Action<DiagnosticsUpdatedArgs> raiseEvents)
         {
             Contract.ThrowIfFalse(solution == null || solution.Workspace == Workspace);
 
             raiseEvents(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
-                CreateId(stateSet, projectId, AnalysisKind.NonLocal),
+                CreateId(analyzer, projectId, AnalysisKind.NonLocal),
                 Workspace,
                 solution,
                 projectId,
@@ -180,12 +176,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         private void RaiseDiagnosticsCreated(
-            TextDocument document, StateSet stateSet, AnalysisKind kind, ImmutableArray<DiagnosticData> items, Action<DiagnosticsUpdatedArgs> raiseEvents)
+            TextDocument document, DiagnosticAnalyzer analyzer, AnalysisKind kind, ImmutableArray<DiagnosticData> items, Action<DiagnosticsUpdatedArgs> raiseEvents)
         {
             Contract.ThrowIfFalse(document.Project.Solution.Workspace == Workspace);
 
             raiseEvents(DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                CreateId(stateSet, document.Id, kind),
+                CreateId(analyzer, document.Id, kind),
                 document.Project.Solution.Workspace,
                 document.Project.Solution,
                 document.Project.Id,
@@ -194,23 +190,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         private void RaiseDiagnosticsRemoved(
-            DocumentId documentId, Solution? solution, StateSet stateSet, AnalysisKind kind, Action<DiagnosticsUpdatedArgs> raiseEvents)
+            DocumentId documentId, Solution? solution, DiagnosticAnalyzer analyzer, AnalysisKind kind, Action<DiagnosticsUpdatedArgs> raiseEvents)
         {
             Contract.ThrowIfFalse(solution == null || solution.Workspace == Workspace);
 
             raiseEvents(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
-                CreateId(stateSet, documentId, kind),
+                CreateId(analyzer, documentId, kind),
                 Workspace,
                 solution,
                 documentId.ProjectId,
                 documentId));
         }
 
-        private static object CreateId(StateSet stateSet, DocumentId documentId, AnalysisKind kind)
-            => new LiveDiagnosticUpdateArgsId(stateSet.Analyzer, documentId, kind, stateSet.ErrorSourceName);
+        private static object CreateId(DiagnosticAnalyzer analyzer, DocumentId documentId, AnalysisKind kind)
+            => new LiveDiagnosticUpdateArgsId(analyzer, documentId, kind);
 
-        private static object CreateId(StateSet stateSet, ProjectId projectId, AnalysisKind kind)
-            => new LiveDiagnosticUpdateArgsId(stateSet.Analyzer, projectId, kind, stateSet.ErrorSourceName);
+        private static object CreateId(DiagnosticAnalyzer analyzer, ProjectId projectId, AnalysisKind kind)
+            => new LiveDiagnosticUpdateArgsId(analyzer, projectId, kind);
 
         public static Task<VersionStamp> GetDiagnosticVersionAsync(Project project, CancellationToken cancellationToken)
             => project.GetDependentVersionAsync(cancellationToken);

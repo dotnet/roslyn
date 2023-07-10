@@ -11,5 +11,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class ParameterEarlyWellKnownAttributeData : CommonParameterEarlyWellKnownAttributeData
     {
+        private bool _hasUnscopedRefAttribute;
+        public bool HasUnscopedRefAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasUnscopedRefAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasUnscopedRefAttribute = value;
+                SetDataStored();
+            }
+        }
     }
 }

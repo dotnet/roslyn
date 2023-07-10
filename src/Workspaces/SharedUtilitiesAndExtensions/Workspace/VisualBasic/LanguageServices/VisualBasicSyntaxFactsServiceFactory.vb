@@ -5,7 +5,7 @@
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     <ExportLanguageServiceFactory(GetType(ISyntaxFactsService), LanguageNames.VisualBasic), [Shared]>

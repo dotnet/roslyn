@@ -14,10 +14,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#endif
-
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
     /// <summary>
@@ -53,15 +49,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         protected static AccessorDeclarationSyntax? GetSingleGetAccessor(AccessorListSyntax? accessorList)
         {
-            if (accessorList != null &&
-                accessorList.Accessors.Count == 1 &&
-                accessorList.Accessors[0].AttributeLists.Count == 0 &&
-                accessorList.Accessors[0].IsKind(SyntaxKind.GetAccessorDeclaration))
-            {
-                return accessorList.Accessors[0];
-            }
-
-            return null;
+            return accessorList is { Accessors: [{ AttributeLists.Count: 0, RawKind: (int)SyntaxKind.GetAccessorDeclaration } accessor] }
+                ? accessor
+                : null;
         }
 
         protected static BlockSyntax? GetBodyFromSingleGetAccessor(AccessorListSyntax accessorList)

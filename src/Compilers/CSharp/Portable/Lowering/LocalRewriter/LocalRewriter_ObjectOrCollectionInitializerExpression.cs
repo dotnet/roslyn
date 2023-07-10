@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var placeholder = collectionInitializer.Placeholder;
                         AddPlaceholderReplacement(placeholder, rewrittenReceiver);
-                        AddCollectionInitializers(ref dynamicSiteInitializers, result, rewrittenReceiver, collectionInitializer.Initializers);
+                        AddCollectionInitializers(result, rewrittenReceiver, collectionInitializer.Initializers);
                         RemovePlaceholderReplacement(placeholder);
                     }
                     return;
@@ -75,12 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.CollectionInitializerExpression:
                     var result = ArrayBuilder<BoundExpression>.GetInstance();
-                    ArrayBuilder<BoundExpression>? dynamicSiteInitializers = null;
-                    AddCollectionInitializers(ref dynamicSiteInitializers, result, null, ((BoundCollectionInitializerExpression)initializerExpression).Initializers);
-
-                    // dynamic sites not allowed in ET:
-                    Debug.Assert(dynamicSiteInitializers == null);
-
+                    AddCollectionInitializers(result, null, ((BoundCollectionInitializerExpression)initializerExpression).Initializers);
                     return result.ToImmutableAndFree();
 
                 default:
@@ -91,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Rewrite collection initializer add method calls:
         // 2) new List<int> { 1 };
         //                    ~
-        private void AddCollectionInitializers(ref ArrayBuilder<BoundExpression>? dynamicSiteInitializers, ArrayBuilder<BoundExpression> result, BoundExpression? rewrittenReceiver, ImmutableArray<BoundExpression> initializers)
+        private void AddCollectionInitializers(ArrayBuilder<BoundExpression> result, BoundExpression? rewrittenReceiver, ImmutableArray<BoundExpression> initializers)
         {
             Debug.Assert(rewrittenReceiver is { } || _inExpressionLambda);
 
@@ -141,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Rewrite collection initializer element Add method call:
-        //  new List<int> { 1, 2, 3 };  OR  new List<int> { { 1, 2 }, 3 };
+        //  new List<int> { 1, 2, 3 };  OR  new List<int> { { 1, 2 }, 3 }; OR [1, 2, 3]
         //                  ~                               ~~~~~~~~
         private BoundExpression? MakeCollectionInitializer(BoundExpression? rewrittenReceiver, BoundCollectionElementInitializer initializer)
         {
@@ -178,13 +173,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // The receiver for a collection initializer is already a temp, so we don't need to preserve any additional temp stores beyond this method.
-            ImmutableArray<BoundExpression> rewrittenArguments = VisitArguments(
+            ArrayBuilder<LocalSymbol>? temps = null;
+            ImmutableArray<BoundExpression> rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
+                ref rewrittenReceiver,
+                captureReceiverMode: ReceiverCaptureMode.Default,
                 initializer.Arguments,
                 addMethod,
                 initializer.ArgsToParamsOpt,
                 argumentRefKindsOpt,
-                ref rewrittenReceiver,
-                out ArrayBuilder<LocalSymbol>? temps);
+                storesOpt: null,
+                ref temps);
             rewrittenArguments = MakeArguments(syntax, rewrittenArguments, addMethod, initializer.Expanded, initializer.ArgsToParamsOpt, ref argumentRefKindsOpt, ref temps);
 
             var rewrittenType = VisitType(initializer.Type);
@@ -201,10 +199,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(temps.Count == 0);
                 temps.Free();
-                return initializer.Update(addMethod, rewrittenArguments, rewrittenReceiver, expanded: false, argsToParamsOpt: default, defaultArguments: default, initializer.InvokedAsExtensionMethod, initializer.ResultKind, rewrittenType);
+                return initializer.Update(addMethod, rewrittenArguments, rewrittenReceiver, expanded: false, argsToParamsOpt: default, defaultArguments: default, invokedAsExtensionMethod: false, initializer.ResultKind, rewrittenType);
             }
 
-            return MakeCall(null, syntax, rewrittenReceiver, addMethod, rewrittenArguments, argumentRefKindsOpt, initializer.InvokedAsExtensionMethod, initializer.ResultKind, addMethod.ReturnType, temps.ToImmutableAndFree());
+            return MakeCall(null, syntax, rewrittenReceiver, addMethod, rewrittenArguments, argumentRefKindsOpt, initializer.ResultKind, addMethod.ReturnType, temps.ToImmutableAndFree());
         }
 
         private BoundExpression VisitObjectInitializerMember(BoundObjectInitializerMember node, ref BoundExpression rewrittenReceiver, ArrayBuilder<BoundExpression> sideEffects, ref ArrayBuilder<LocalSymbol>? temps)
@@ -215,7 +213,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var originalReceiver = rewrittenReceiver;
-            var rewrittenArguments = VisitArguments(node.Arguments, node.MemberSymbol, node.ArgsToParamsOpt, node.ArgumentRefKindsOpt, ref rewrittenReceiver, out ArrayBuilder<LocalSymbol>? constructionTemps);
+            ArrayBuilder<LocalSymbol>? constructionTemps = null;
+            var rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(ref rewrittenReceiver, captureReceiverMode: ReceiverCaptureMode.Default, node.Arguments, node.MemberSymbol, node.ArgsToParamsOpt, node.ArgumentRefKindsOpt,
+                storesOpt: null, ref constructionTemps);
 
             if (constructionTemps != null)
             {
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 // Rewrite simple assignment to field/property.
                                 var rewrittenRight = VisitExpression(assignment.Right);
-                                result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, false, assignment.Type, used: false));
+                                result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, isRef: assignment.IsRef, assignment.Type, used: false));
                                 return;
                             }
                         }

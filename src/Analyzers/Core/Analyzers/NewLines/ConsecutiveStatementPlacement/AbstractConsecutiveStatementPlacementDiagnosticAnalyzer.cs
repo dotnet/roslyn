@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
 {
@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
             : base(IDEDiagnosticIds.ConsecutiveStatementPlacementDiagnosticId,
                    EnforceOnBuildValues.ConsecutiveStatementPlacement,
                    CodeStyleOptions2.AllowStatementImmediatelyAfterBlock,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(
                        nameof(AnalyzersResources.Blank_line_required_between_block_and_subsequent_statement), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
@@ -43,10 +42,7 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
             if (option.Value)
                 return;
 
-            var cancellationToken = context.CancellationToken;
-            var root = context.Tree.GetRoot(cancellationToken);
-
-            Recurse(context, option.Notification.Severity, root, cancellationToken);
+            Recurse(context, option.Notification.Severity, context.GetAnalysisRoot(findInTrivia: false), context.CancellationToken);
         }
 
         private void Recurse(SyntaxTreeAnalysisContext context, ReportDiagnostic severity, SyntaxNode node, CancellationToken cancellationToken)
@@ -59,6 +55,9 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
 
             foreach (var child in node.ChildNodesAndTokens())
             {
+                if (!context.ShouldAnalyzeSpan(child.FullSpan))
+                    continue;
+
                 if (child.IsNode)
                     Recurse(context, severity, child.AsNode()!, cancellationToken);
             }

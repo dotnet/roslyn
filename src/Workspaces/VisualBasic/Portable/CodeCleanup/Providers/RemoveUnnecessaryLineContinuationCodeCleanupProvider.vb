@@ -37,12 +37,12 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             End If
 
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim newRoot = Await CleanupAsync(root, spans, options.FormattingOptions, document.Project.Solution.Workspace.Services, cancellationToken).ConfigureAwait(False)
+            Dim newRoot = Await CleanupAsync(root, spans, options.FormattingOptions, document.Project.Solution.Services, cancellationToken).ConfigureAwait(False)
 
             Return If(newRoot Is root, document, document.WithSyntaxRoot(newRoot))
         End Function
 
-        Public Function CleanupAsync(root As SyntaxNode, spans As ImmutableArray(Of TextSpan), options As SyntaxFormattingOptions, services As HostWorkspaceServices, cancellationToken As CancellationToken) As Task(Of SyntaxNode) Implements ICodeCleanupProvider.CleanupAsync
+        Public Function CleanupAsync(root As SyntaxNode, spans As ImmutableArray(Of TextSpan), options As SyntaxFormattingOptions, services As SolutionServices, cancellationToken As CancellationToken) As Task(Of SyntaxNode) Implements ICodeCleanupProvider.CleanupAsync
             Return Task.FromResult(Replacer.Process(root, spans, cancellationToken))
         End Function
 
@@ -76,21 +76,21 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                                                      Dim token = n
 
                                                      ' replace token if needed
-                                                     If _tokens.ContainsKey(token) Then
-                                                         token = _tokens(token)
+                                                     Dim remappedToken As SyntaxToken = Nothing
+                                                     If _tokens.TryGetValue(token, remappedToken) Then
+                                                         token = remappedToken
                                                      End If
 
                                                      ' replace leading trivia if needed
                                                      Dim current = token
-                                                     If _leading.ContainsKey(token) Then
-                                                         Dim leading = _leading(token)
-                                                         current = current.WithLeadingTrivia(leading)
+                                                     Dim triviaList As SyntaxTriviaList = Nothing
+                                                     If _leading.TryGetValue(token, triviaList) Then
+                                                         current = current.WithLeadingTrivia(triviaList)
                                                      End If
 
                                                      ' replace trailing trivia if needed
-                                                     If _trailing.ContainsKey(token) Then
-                                                         Dim trailing = _trailing(token)
-                                                         current = current.WithTrailingTrivia(trailing)
+                                                     If _trailing.TryGetValue(token, triviaList) Then
+                                                         current = current.WithTrailingTrivia(triviaList)
                                                      End If
 
                                                      Return current

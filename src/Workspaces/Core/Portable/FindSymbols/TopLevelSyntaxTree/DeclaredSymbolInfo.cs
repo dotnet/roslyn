@@ -37,19 +37,27 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     }
 
     [DataContract]
-    internal readonly struct DeclaredSymbolInfo : IEquatable<DeclaredSymbolInfo>
+    [method: Obsolete("Do not call directly.  Only around for serialization.  Use Create instead")]
+    internal readonly struct DeclaredSymbolInfo(
+        string name,
+        string? nameSuffix,
+        string? containerDisplayName,
+        string fullyQualifiedContainerName,
+        TextSpan span,
+        ImmutableArray<string> inheritanceNames,
+        uint flags) : IEquatable<DeclaredSymbolInfo>
     {
         /// <summary>
         /// The name to pattern match against, and to show in a final presentation layer.
         /// </summary>
         [DataMember(Order = 0)]
-        public readonly string Name;
+        public readonly string Name = name;
 
         /// <summary>
         /// An optional suffix to be shown in a presentation layer appended to <see cref="Name"/>.
         /// </summary>
         [DataMember(Order = 1)]
-        public readonly string? NameSuffix;
+        public readonly string? NameSuffix = nameSuffix;
 
         /// <summary>
         /// Container of the symbol that can be shown in a final presentation layer. 
@@ -59,7 +67,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// to indicate where the symbol is located.
         /// </summary>
         [DataMember(Order = 2)]
-        public readonly string? ContainerDisplayName;
+        public readonly string? ContainerDisplayName = containerDisplayName;
 
         /// <summary>
         /// Dotted container name of the symbol, used for pattern matching.  For example
@@ -69,21 +77,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// match against this.  This should not be shown in a presentation layer.
         /// </summary>
         [DataMember(Order = 3)]
-        public readonly string FullyQualifiedContainerName;
+        public readonly string FullyQualifiedContainerName = fullyQualifiedContainerName;
 
         [DataMember(Order = 4)]
-        public readonly TextSpan Span;
+        public readonly TextSpan Span = span;
 
         /// <summary>
         /// The names directly referenced in source that this type inherits from.
         /// </summary>
         [DataMember(Order = 5)]
-        public ImmutableArray<string> InheritanceNames { get; }
+        public ImmutableArray<string> InheritanceNames { get; } = inheritanceNames;
 
         // Store the kind (5 bits), accessibility (4 bits), parameter-count (4 bits), and type-parameter-count (4 bits)
         // in a single int.
         [DataMember(Order = 6)]
-        private readonly uint _flags;
+        private readonly uint _flags = flags;
 
         private const uint Lower4BitMask = 0b1111;
         private const uint Lower5BitMask = 0b11111;
@@ -94,25 +102,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public byte TypeParameterCount => GetTypeParameterCount(_flags);
         public bool IsNestedType => GetIsNestedType(_flags);
         public bool IsPartial => GetIsPartial(_flags);
-
-        [Obsolete("Do not call directly.  Only around for serialization.  Use Create instead")]
-        public DeclaredSymbolInfo(
-            string name,
-            string? nameSuffix,
-            string? containerDisplayName,
-            string fullyQualifiedContainerName,
-            TextSpan span,
-            ImmutableArray<string> inheritanceNames,
-            uint flags)
-        {
-            Name = name;
-            NameSuffix = nameSuffix;
-            ContainerDisplayName = containerDisplayName;
-            FullyQualifiedContainerName = fullyQualifiedContainerName;
-            Span = span;
-            InheritanceNames = inheritanceNames;
-            _flags = flags;
-        }
+        public bool HasAttributes => GetHasAttributes(_flags);
 
         public static DeclaredSymbolInfo Create(
             StringTable stringTable,
@@ -121,6 +111,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             string? containerDisplayName,
             string fullyQualifiedContainerName,
             bool isPartial,
+            bool hasAttributes,
             DeclaredSymbolInfoKind kind,
             Accessibility accessibility,
             TextSpan span,
@@ -145,7 +136,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 ((uint)parameterCount << 9) |
                 ((uint)typeParameterCount << 13) |
                 ((isNestedType ? 1u : 0u) << 17) |
-                ((isPartial ? 1u : 0u) << 18);
+                ((isPartial ? 1u : 0u) << 18) |
+                ((hasAttributes ? 1u : 0u) << 19);
 
 #pragma warning disable CS0618 // Type or member is obsolete
             return new DeclaredSymbolInfo(
@@ -159,7 +151,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
-        [return: NotNullIfNotNull("name")]
+        [return: NotNullIfNotNull(nameof(name))]
         public static string? Intern(StringTable stringTable, string? name)
             => name == null ? null : stringTable.Add(name);
 
@@ -180,6 +172,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static bool GetIsPartial(uint flags)
             => ((flags >> 18) & 1) == 1;
+
+        private static bool GetHasAttributes(uint flags)
+            => ((flags >> 19) & 1) == 1;
 
         internal void WriteTo(ObjectWriter writer)
         {
@@ -207,24 +202,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var spanLength = reader.ReadInt32();
 
             var inheritanceNamesLength = reader.ReadInt32();
-            var builder = ArrayBuilder<string>.GetInstance(inheritanceNamesLength);
+            using var _ = ArrayBuilder<string>.GetInstance(inheritanceNamesLength, out var inheritanceNames);
             for (var i = 0; i < inheritanceNamesLength; i++)
-                builder.Add(reader.ReadString());
+                inheritanceNames.Add(reader.ReadString());
 
             var span = new TextSpan(spanStart, spanLength);
             return Create(
                 stringTable,
-                name: name,
-                nameSuffix: nameSuffix,
-                containerDisplayName: containerDisplayName,
-                fullyQualifiedContainerName: fullyQualifiedContainerName,
-                isPartial: GetIsPartial(flags),
-                kind: GetKind(flags),
-                accessibility: GetAccessibility(flags),
-                span: span,
-                inheritanceNames: builder.ToImmutableAndFree(),
-                parameterCount: GetParameterCount(flags),
-                typeParameterCount: GetTypeParameterCount(flags));
+                name,
+                nameSuffix,
+                containerDisplayName,
+                fullyQualifiedContainerName,
+                GetIsPartial(flags),
+                GetHasAttributes(flags),
+                GetKind(flags),
+                GetAccessibility(flags),
+                span,
+                inheritanceNames.ToImmutableAndClear(),
+                GetIsNestedType(flags),
+                GetParameterCount(flags),
+                GetTypeParameterCount(flags));
         }
 
         public ISymbol? TryResolve(SemanticModel semanticModel, CancellationToken cancellationToken)

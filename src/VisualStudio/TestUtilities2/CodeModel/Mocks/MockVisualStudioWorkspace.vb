@@ -34,7 +34,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(
-            exportProvider As Composition.ExportProvider,
+            exportProvider As ExportProvider,
             asynchronousOperationListenerProvider As IAsynchronousOperationListenerProvider,
             threadingContext As IThreadingContext,
             globalOptions As IGlobalOptionService,
@@ -42,9 +42,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
             textBufferFactoryService As ITextBufferFactoryService,
             projectionBufferFactoryService As IProjectionBufferFactoryService,
             projectCodeModelFactory As Lazy(Of IProjectCodeModelFactory),
-            visualStudioProjectFactory As Lazy(Of VisualStudioProjectFactory),
             fileChangeWatcherProvider As FileChangeWatcherProvider,
-            fileWatchedPortableExecutableReferenceFactory As MetadataReferences.FileWatchedPortableExecutableReferenceFactory,
             asyncServiceProvider As MockServiceProvider)
             MyBase.New(
                     exportProvider,
@@ -55,15 +53,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
                     textBufferFactoryService,
                     projectionBufferFactoryService,
                     projectCodeModelFactory,
-                    visualStudioProjectFactory,
                     fileChangeWatcherProvider,
-                    fileWatchedPortableExecutableReferenceFactory,
                     asyncServiceProvider)
         End Sub
 
         Public Sub SetWorkspace(testWorkspace As TestWorkspace)
             _workspace = testWorkspace
-            SetCurrentSolution(testWorkspace.CurrentSolution)
+            SetCurrentSolutionEx(testWorkspace.CurrentSolution)
 
             ' HACK: ensure this service is created so it can be used during disposal
             Me.Services.GetService(Of IWorkspaceEventListenerService)()
@@ -75,17 +71,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
 
         Protected Overrides Sub ApplyDocumentTextChanged(documentId As DocumentId, newText As SourceText)
             Assert.True(_workspace.TryApplyChanges(_workspace.CurrentSolution.WithDocumentText(documentId, newText)))
-            SetCurrentSolution(_workspace.CurrentSolution)
+            SetCurrentSolutionEx(_workspace.CurrentSolution)
         End Sub
 
         Public Overrides Sub CloseDocument(documentId As DocumentId)
             _workspace.CloseDocument(documentId)
-            SetCurrentSolution(_workspace.CurrentSolution)
+            SetCurrentSolutionEx(_workspace.CurrentSolution)
         End Sub
 
         Protected Overrides Sub ApplyDocumentRemoved(documentId As DocumentId)
             Assert.True(_workspace.TryApplyChanges(_workspace.CurrentSolution.RemoveDocument(documentId)))
-            SetCurrentSolution(_workspace.CurrentSolution)
+            SetCurrentSolutionEx(_workspace.CurrentSolution)
         End Sub
 
         Friend Overrides Function OpenInvisibleEditor(documentId As DocumentId) As IInvisibleEditor

@@ -81,6 +81,12 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             }
         }
 
+        public bool TryGetValue(string key, out object? value)
+        {
+            EnsureMap();
+            return _lazyMap.TryGetValue(key, out value);
+        }
+
         protected override string CreateMessage()
         {
             EnsureMap();
@@ -160,9 +166,11 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         private void EnsureMap()
         {
             // always create _map
-            _lazyMap ??= SharedPools.Default<Dictionary<string, object?>>().AllocateAndClear();
-
-            _propertySetter?.Invoke(_lazyMap);
+            if (_lazyMap == null)
+            {
+                _lazyMap = SharedPools.Default<Dictionary<string, object?>>().AllocateAndClear();
+                _propertySetter?.Invoke(_lazyMap);
+            }
         }
     }
 
@@ -174,11 +182,11 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         /// <summary>
         /// Log some traces of an activity (default)
         /// </summary>
-        Trace,
+        Trace = 0,
 
         /// <summary>
         /// Log an user explicit action
         /// </summary>
-        UserAction,
+        UserAction = 1,
     }
 }

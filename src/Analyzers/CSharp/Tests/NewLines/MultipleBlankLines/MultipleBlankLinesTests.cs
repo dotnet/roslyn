@@ -24,11 +24,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.MultipleBlankL
 @"
 // comment";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -43,11 +43,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.MultipleBlankL
 @"
 // comment";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -59,11 +59,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.MultipleBlankL
 
 // comment";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.TrueWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.TrueWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -79,11 +79,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.MultipleBlankL
 @"
 // comment";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -100,11 +100,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.MultipleBlankL
 @"
 // comment";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -115,11 +115,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.MultipleBlankL
 @"
 ";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -134,11 +134,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.MultipleBlankL
 @"
 ";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -154,11 +154,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.MultipleBlankL
 @"
 ";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -175,11 +175,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.MultipleBlankL
 @"
 ";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -191,11 +191,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.MultipleBlankL
 {
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -208,11 +208,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.MultipleBlankL
 }
 ";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -226,11 +226,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.MultipleBlankL
 
 ";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -251,11 +251,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.MultipleBlankL
 
 ";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -277,11 +277,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.MultipleBlankL
 
 ";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -304,11 +304,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.MultipleBlankL
 
 ";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -320,11 +320,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.MultipleBlankL
 {
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -337,11 +337,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.MultipleBlankL
 
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -360,11 +360,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.MultipleBlankL
 
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -384,11 +384,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.MultipleBlankL
 
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -409,11 +409,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.MultipleBlankL
 
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -426,11 +426,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.MultipleBlankL
     // comment
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -444,11 +444,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.MultipleBlankL
 
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -469,11 +469,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.MultipleBlankL
 
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -495,11 +495,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.MultipleBlankL
 
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -521,11 +521,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.MultipleBlankL
 
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -538,12 +538,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.MultipleBlankL
     #nullable enable
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -557,12 +557,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.MultipleBlankL
 
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -583,12 +583,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.MultipleBlankL
 
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -610,12 +610,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.MultipleBlankL
 
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -637,12 +637,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.MultipleBlankL
 
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -656,11 +656,11 @@ class C
 {
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -675,11 +675,11 @@ class C
 {
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -702,11 +702,11 @@ class C
 {
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -730,11 +730,11 @@ class C
 {
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -759,11 +759,11 @@ class C
 {
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -778,12 +778,12 @@ class C
 {
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -802,12 +802,12 @@ class C
 {
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = code,
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -841,12 +841,12 @@ class C
 {
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -884,12 +884,12 @@ class C
 {
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -931,12 +931,12 @@ class C
 {
 }";
 
-            await new Verify.Test()
+            await new Verify.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
-                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
+                Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
             }.RunAsync();
         }
     }

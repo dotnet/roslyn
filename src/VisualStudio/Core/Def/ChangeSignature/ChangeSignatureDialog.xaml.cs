@@ -223,10 +223,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         private static void FocusRow(DataGridRow row)
         {
             var cell = row.FindDescendant<DataGridCell>();
-            if (cell != null)
-            {
-                cell.Focus();
-            }
+            cell?.Focus();
         }
 
         private void MoveSelectionUp_Click(object sender, EventArgs e)

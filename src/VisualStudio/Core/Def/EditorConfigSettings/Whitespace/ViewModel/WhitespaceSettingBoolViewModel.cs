@@ -8,7 +8,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespac
 {
     internal class WhitespaceSettingBoolViewModel
     {
-        private readonly WhitespaceSetting _setting;
+        private readonly Setting _setting;
         private bool _isChecked;
 
         public bool IsChecked
@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespac
 
         public string AutomationName => ServicesVSResources.Value;
 
-        public WhitespaceSettingBoolViewModel(WhitespaceSetting setting)
+        public WhitespaceSettingBoolViewModel(Setting setting)
         {
             if (setting.GetValue() is bool value)
             {

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
             state.TestCopyPaste(expectedMarkup, pasteText, pasteTextIsKnown: true, afterUndo);
         }
 
-        [WpfFact, WorkItem(61316, "https://github.com/dotnet/roslyn/issues/61316")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/61316")]
         public void TestLineCopyPaste()
         {
             TestCopyPaste(

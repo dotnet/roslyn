@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            If Me.IsMinimizing OrElse symbol.IsTupleType Then
+            If Me.IsMinimizing OrElse (symbol.IsTupleType AndAlso Not ShouldDisplayAsValueTuple(symbol)) Then
                 MinimallyQualify(symbol)
                 Return
             End If
@@ -160,7 +160,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If containingType IsNot Nothing Then
                     visitedParents = True
                     containingType.Accept(Me.NotFirstVisitor())
-                    AddOperator(SyntaxKind.DotToken)
+
+                    If format.CompilerInternalOptions.HasFlag(SymbolDisplayCompilerInternalOptions.UsePlusForNestedTypes) Then
+                        AddOperator(SyntaxKind.PlusToken)
+                    Else
+                        AddOperator(SyntaxKind.DotToken)
+                    End If
                 End If
             End If
 
@@ -204,11 +209,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If symbol.IsAnonymousType Then
                 AddAnonymousTypeName(symbol)
                 Return
-
             ElseIf symbol.IsTupleType Then
                 ' If top level tuple uses non-default names, there is no way to preserve them
                 ' unless we use tuple syntax for the type. So, we give them priority.
-                If HasNonDefaultTupleElements(symbol) OrElse CanUseTupleTypeName(symbol) Then
+                If Not ShouldDisplayAsValueTuple(symbol) Then
                     AddTupleTypeName(symbol)
                     Return
                 End If
@@ -304,6 +308,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 builder.Add(CreatePart(SymbolDisplayPartKind.Punctuation, Nothing, "]", False))
             End If
         End Sub
+
+        Private Function ShouldDisplayAsValueTuple(symbol As INamedTypeSymbol) As Boolean
+            Debug.Assert(symbol.IsTupleType)
+
+            If format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.ExpandValueTuple) Then
+                Return True
+            End If
+
+            Return Not (HasNonDefaultTupleElements(symbol) OrElse CanUseTupleTypeName(symbol))
+        End Function
 
         Private Sub AddAnonymousTypeName(symbol As INamedTypeSymbol)
             Select Case symbol.TypeKind

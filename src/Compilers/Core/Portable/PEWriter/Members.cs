@@ -259,13 +259,24 @@ namespace Microsoft.Cci
         ITypeReference GetType(EmitContext context);
 
         /// <summary>
+        /// The list of custom modifiers, if any, associated with the ref modifier. 
+        /// </summary>
+        ImmutableArray<ICustomModifier> RefCustomModifiers
+        {
+            get;
+        }
+
+        /// <summary>
+        /// True if the field contains a managed pointer.
+        /// </summary>
+        bool IsByReference { get; }
+
+        /// <summary>
         /// The Field being referred to.
         /// </summary>
         IFieldDefinition? GetResolvedField(EmitContext context);
 
-
         ISpecializedFieldReference? AsSpecializedFieldReference { get; }
-
 
         /// <summary>
         /// True, if field is an IContextualNamedEntity, even if field reference implements the interface,
@@ -477,7 +488,16 @@ namespace Microsoft.Cci
         ImmutableArray<LambdaDebugInfo> LambdaDebugInfo { get; }
         StateMachineStatesDebugInfo StateMachineStatesDebugInfo { get; }
 
-        DynamicAnalysisMethodBodyData DynamicAnalysisData { get; }
+        /// <summary>
+        /// Code coverage spans produced by <see cref="InstrumentationKind.TestCoverage"/> instrumentation.
+        /// <see cref="ImmutableArray{SourceSpan}.Empty"/> if not applicable.
+        /// </summary>
+        ImmutableArray<SourceSpan> CodeCoverageSpans { get; }
+
+        /// <summary>
+        /// True if this is a body of a Primary Constructor.
+        /// </summary>
+        bool IsPrimaryConstructor { get; }
     }
 
     /// <summary>

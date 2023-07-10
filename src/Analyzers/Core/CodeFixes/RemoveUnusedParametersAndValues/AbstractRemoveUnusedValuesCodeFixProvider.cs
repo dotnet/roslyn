@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.MoveDeclarationNearReference;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -117,9 +117,19 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         /// <param name="newNameNode">The rewritten node produced by <see cref="TryUpdateNameForFlaggedNode"/>.</param>
         /// <param name="editor">The syntax editor for the code fix.</param>
         /// <param name="syntaxFacts">The syntax facts for the current language.</param>
+        /// <param name="semanticModel">Semantic model for the tree.</param>
         /// <returns>The replacement node to use in the rewritten syntax tree; otherwise, <see langword="null"/> to only
         /// rewrite the node originally rewritten by <see cref="TryUpdateNameForFlaggedNode"/>.</returns>
-        protected virtual SyntaxNode? TryUpdateParentOfUpdatedNode(SyntaxNode parent, SyntaxNode newNameNode, SyntaxEditor editor, ISyntaxFacts syntaxFacts) => null;
+        protected virtual SyntaxNode? TryUpdateParentOfUpdatedNode(SyntaxNode parent, SyntaxNode newNameNode, SyntaxEditor editor, ISyntaxFacts syntaxFacts, SemanticModel semanticModel) => null;
+
+        /// <summary>
+        /// Computes correct replacement node, including cases with recursive changes (e.g. recursive pattern node rewrite in fix-all scenario)
+        /// </summary>
+        /// <param name="originalOldNode">The original node for replacement</param>
+        /// <param name="changedOldNode">Node for replacement transformed by previous replacements</param>
+        /// <param name="proposedReplacementNode">Proposed replacement node with changes relative to <paramref name="originalOldNode"/></param>
+        /// <returns>The final replacement for the node</returns>
+        protected abstract SyntaxNode ComputeReplacementNode(SyntaxNode originalOldNode, SyntaxNode changedOldNode, SyntaxNode proposedReplacementNode);
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -166,9 +176,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         {
                             title = CodeFixesResources.Remove_redundant_assignment;
                         }
-                        // Also we want to show "Remove redundant assignment" title in pattern matching, e.g.
-                        // if (obj is SomeType someType) <-- "someType" will be fully removed here
-                        else if (syntaxFacts.IsDeclarationPattern(node.Parent))
+                        // Also we want to show "Remove redundant assignment" title for variable designation in pattern matching,
+                        // since this assignment will be fully removed. Cases:
+                        // 1) `if (obj is SomeType someType)`
+                        // 2) `if (obj is { } someType)`
+                        // 3) `if (obj is [] someType)`
+                        else if (syntaxFacts.IsDeclarationPattern(node.Parent) ||
+                                 syntaxFacts.IsRecursivePattern(node.Parent) ||
+                                 syntaxFacts.IsListPattern(node.Parent))
                         {
                             title = CodeFixesResources.Remove_redundant_assignment;
                         }
@@ -288,7 +303,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace.Services);
+            var editor = new SyntaxEditor(root, document.Project.Solution.Services);
 
             // We compute the code fix in two passes:
             //   1. The first pass groups the diagnostics to fix by containing member declaration and
@@ -363,7 +378,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     break;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -554,7 +569,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     }
                     else
                     {
-                        var newParentNode = TryUpdateParentOfUpdatedNode(node.GetRequiredParent(), newNameNode, editor, syntaxFacts);
+                        var newParentNode = TryUpdateParentOfUpdatedNode(node.GetRequiredParent(), newNameNode, editor, syntaxFacts, semanticModel);
                         if (newParentNode is not null)
                         {
                             nodeReplacementMap.Add(node.GetRequiredParent(), newParentNode);
@@ -653,7 +668,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             }
 
             foreach (var (node, replacement) in nodeReplacementMap)
-                editor.ReplaceNode(node, replacement.WithAdditionalAnnotations(Formatter.Annotation));
+                editor.ReplaceNode(node, (oldNode, _) => ComputeReplacementNode(node, oldNode, replacement));
 
             return;
 
@@ -795,12 +810,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         {
             var service = document.GetLanguageService<IReplaceDiscardDeclarationsWithAssignmentsService>();
             if (service == null)
-            {
                 return memberDeclaration;
-            }
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            return await service.ReplaceAsync(memberDeclaration, semanticModel, document.Project.Solution.Workspace.Services, cancellationToken).ConfigureAwait(false);
+            return await service.ReplaceAsync(document, memberDeclaration, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -841,7 +853,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             var provider = GetSyntaxFormatting();
             rootWithTrackedNodes = FormatterHelper.Format(rootWithTrackedNodes, originalDeclStatementsToMoveOrRemove.Select(s => s.Span), provider, options, rules: null, cancellationToken);
 #else
-            var provider = document.Project.Solution.Workspace.Services;
+            var provider = document.Project.Solution.Services;
             rootWithTrackedNodes = Formatter.Format(rootWithTrackedNodes, originalDeclStatementsToMoveOrRemove.Select(s => s.Span), provider, options, rules: null, cancellationToken);
 #endif
 
@@ -918,27 +930,17 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 referencedSymbols.Single().Locations.IsEmpty();
         }
 
-        protected sealed class UniqueVariableNameGenerator : IDisposable
+        protected sealed class UniqueVariableNameGenerator(
+            SyntaxNode memberDeclaration,
+            SemanticModel semanticModel,
+            ISemanticFactsService semanticFacts,
+            CancellationToken cancellationToken) : IDisposable
         {
-            private readonly SyntaxNode _memberDeclaration;
-            private readonly SemanticModel _semanticModel;
-            private readonly ISemanticFactsService _semanticFacts;
-            private readonly CancellationToken _cancellationToken;
-            private readonly PooledHashSet<string> _usedNames;
-
-            public UniqueVariableNameGenerator(
-                SyntaxNode memberDeclaration,
-                SemanticModel semanticModel,
-                ISemanticFactsService semanticFacts,
-                CancellationToken cancellationToken)
-            {
-                _memberDeclaration = memberDeclaration;
-                _semanticModel = semanticModel;
-                _semanticFacts = semanticFacts;
-                _cancellationToken = cancellationToken;
-
-                _usedNames = PooledHashSet<string>.GetInstance();
-            }
+            private readonly SyntaxNode _memberDeclaration = memberDeclaration;
+            private readonly SemanticModel _semanticModel = semanticModel;
+            private readonly ISemanticFactsService _semanticFacts = semanticFacts;
+            private readonly CancellationToken _cancellationToken = cancellationToken;
+            private readonly PooledHashSet<string> _usedNames = PooledHashSet<string>.GetInstance();
 
             public SyntaxToken GenerateUniqueNameAtSpanStart(SyntaxNode node)
             {

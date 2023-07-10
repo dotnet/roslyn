@@ -11,8 +11,11 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using ICSharpCode.Decompiler.Metadata;
 using Microsoft.CodeAnalysis;
@@ -113,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     }
                     else
                     {
-                        throw new Exception($"Didn't find method '{methodName}'. Available/distinguishable methods are: \r\n{string.Join("\r\n", map.Keys)}");
+                        throw new Exception($"Didn't find method '{methodName}'. Available/distinguishable methods are: {Environment.NewLine}{string.Join(Environment.NewLine, map.Keys)}");
                     }
                 }
 
@@ -159,6 +162,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
+        public string DumpIL()
+        {
+            var output = new ICSharpCode.Decompiler.PlainTextOutput();
+            using var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies);
+            string mainModuleFullName = Emit(testEnvironment, manifestResources: null, EmitOptions.Default);
+            using var moduleMetadata = ModuleMetadata.CreateFromImage(testEnvironment.GetMainImage());
+            var peFile = new PEFile(mainModuleFullName, moduleMetadata.Module.PEReaderOpt);
+            var disassembler = new ICSharpCode.Decompiler.Disassembler.ReflectionDisassembler(output, default);
+            disassembler.WriteModuleContents(peFile);
+            return output.ToString();
+        }
+
         /// <summary>
 		/// Asserts that the emitted IL for a type is the same as the expected IL.
 		/// Many core library types are in different assemblies on .Net Framework, and .Net Core.
@@ -169,6 +184,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 		/// <param name="typeName">The non-fully-qualified name of the type</param>
 		/// <param name="expected">The expected IL</param>
         public void VerifyTypeIL(string typeName, string expected)
+        {
+            VerifyTypeIL(typeName, output => AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, output, escapeQuotes: false));
+        }
+
+        /// <summary>
+        /// Invokes <paramref name="validateExpected"/> with the emitted IL for a type to validate it's expected.
+        /// Many core library types are in different assemblies on .Net Framework, and .Net Core.
+        /// Therefore this test is likely to fail unless you  only run it only only on one of these frameworks,
+        /// or you run it on both, but provide a different expected output string for each.
+        /// See <see cref="ExecutionConditionUtil"/>.
+        /// </summary>
+        /// <param name="typeName">The non-fully-qualified name of the type</param>
+        /// <param name="validateExpected">An action to invoke with the emitted IL.</param>
+        public void VerifyTypeIL(string typeName, Action<string> validateExpected)
         {
             var output = new ICSharpCode.Decompiler.PlainTextOutput();
             using (var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies))
@@ -196,7 +225,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     Assert.True(found, "Could not find type named " + typeName);
                 }
             }
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, output.ToString(), escapeQuotes: false);
+
+            validateExpected(output.ToString());
         }
 
         public void Emit(
@@ -213,10 +243,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             string mainModuleName = Emit(testEnvironment, manifestResources, emitOptions);
             _allModuleData = testEnvironment.GetAllModuleData();
-            testEnvironment.Verify(peVerify);
+
+            try
+            {
+                testEnvironment.Verify(peVerify);
 #if NETCOREAPP
-            ILVerify(peVerify);
+                ILVerify(peVerify);
 #endif
+            }
+            catch (Exception) when (peVerify.Status.HasFlag(VerificationStatus.PassesOrFailFast))
+            {
+                var il = DumpIL();
+                Console.WriteLine(il);
+
+                Environment.FailFast("Investigating flaky IL verification issue. Tracked by https://github.com/dotnet/roslyn/issues/63782");
+            }
 
             if (expectedSignatures != null)
             {
@@ -256,7 +297,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private void ILVerify(Verification verification)
         {
-            if (verification == Verification.Skipped)
+            if (verification.Status.HasFlag(VerificationStatus.Skipped))
             {
                 return;
             }
@@ -267,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 string name = module.SimpleName;
                 if (imagesByName.ContainsKey(name))
                 {
-                    if ((verification & Verification.FailsILVerify) != 0)
+                    if (verification.Status.HasFlag(VerificationStatus.FailsILVerify) && verification.ILVerifyMessage is null)
                     {
                         return;
                     }
@@ -282,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var mscorlibModule = _allModuleData.SingleOrDefault(m => m.IsCorLib);
             if (mscorlibModule is null)
             {
-                if ((verification & Verification.FailsILVerify) != 0)
+                if (verification.Status.HasFlag(VerificationStatus.FailsILVerify) && verification.ILVerifyMessage is null)
                 {
                     return;
                 }
@@ -293,19 +334,27 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             // Main module is the first one
             var mainModuleReader = resolver.Resolve(_allModuleData[0].SimpleName);
 
-            var (succeeded, errorMessage) = verify(verifier, mscorlibModule.SimpleName, mainModuleReader);
+            var (actualSuccess, actualMessage) = verify(verifier, mscorlibModule.SimpleName, mainModuleReader);
+            var expectedSuccess = !verification.Status.HasFlag(VerificationStatus.FailsILVerify);
 
-            switch (succeeded, (verification & Verification.FailsILVerify) == 0)
+            if (actualSuccess != expectedSuccess)
             {
-                case (true, true):
-                    return;
-                case (true, false):
-                    throw new Exception("IL Verify succeeded unexpectedly");
-                case (false, false):
-                    return;
-                case (false, true):
-                    throw new Exception("IL Verify failed unexpectedly: \r\n" + errorMessage);
+                throw new Exception(expectedSuccess ?
+                    $"IL Verify failed unexpectedly:{Environment.NewLine}{actualMessage}" :
+                    "IL Verify succeeded unexpectedly");
             }
+
+            if (!actualSuccess && verification.ILVerifyMessage != null && !IsEnglishLocal.Instance.ShouldSkip)
+            {
+                if (!verification.IncludeTokensAndModuleIds)
+                {
+                    actualMessage = Regex.Replace(actualMessage, @"\[[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\]", "");
+                }
+
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(verification.ILVerifyMessage, actualMessage);
+            }
+
+            return;
 
             static (bool, string) verify(ILVerify.Verifier verifier, string corlibName, PEReader mainModule)
             {
@@ -333,7 +382,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             static string printVerificationResult(IEnumerable<ILVerify.VerificationResult> result, MetadataReader metadataReader)
             {
-                return string.Join("\r\n", result.Select(r => printMethod(r.Method, metadataReader) + r.Message + printErrorArguments(r.ErrorArguments)));
+                return string.Join(Environment.NewLine, result.Select(r => printMethod(r.Method, metadataReader) + r.Message + printErrorArguments(r.ErrorArguments)));
             }
 
             static string printMethod(MethodDefinitionHandle method, MetadataReader metadataReader)
@@ -414,6 +463,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return _compilation.Assembly.Identity.GetDisplayName();
         }
 
+        /// <summary>
+        /// Obsolete. Use <see cref="VerifyMethodBody(string, string, bool, string, int)"/> instead.
+        /// </summary>
         public CompilationVerifier VerifyIL(
             string qualifiedMethodName,
             XCData expectedIL,
@@ -422,9 +474,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             [CallerFilePath] string callerPath = null,
             [CallerLineNumber] int callerLine = 0)
         {
-            return VerifyILImpl(qualifiedMethodName, expectedIL.Value, realIL, sequencePoints, callerPath, callerLine, escapeQuotes: false);
+            return VerifyILImpl(qualifiedMethodName, expectedIL.Value, realIL, sequencePoints: sequencePoints != null, sequencePointsSource: false, callerPath, callerLine, escapeQuotes: false);
         }
 
+        /// <summary>
+        /// Obsolete. Use <see cref="VerifyMethodBody(string, string, bool, string, int)"/> instead.
+        /// </summary>
         public CompilationVerifier VerifyIL(
             string qualifiedMethodName,
             string expectedIL,
@@ -434,7 +489,43 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             [CallerLineNumber] int callerLine = 0,
             string source = null)
         {
-            return VerifyILImpl(qualifiedMethodName, expectedIL, realIL, sequencePoints, callerPath, callerLine, escapeQuotes: true, source: source);
+            return VerifyILImpl(qualifiedMethodName, expectedIL, realIL, sequencePoints: sequencePoints != null, sequencePointsSource: source != null, callerPath, callerLine, escapeQuotes: false);
+        }
+
+        public CompilationVerifier VerifyMethodBody(
+            string qualifiedMethodName,
+            string expectedILWithSequencePoints,
+            bool realIL = false,
+            [CallerFilePath] string callerPath = null,
+            [CallerLineNumber] int callerLine = 0)
+        {
+            return VerifyILImpl(qualifiedMethodName, expectedILWithSequencePoints, realIL, sequencePoints: true, sequencePointsSource: true, callerPath, callerLine, escapeQuotes: false);
+        }
+
+        public void VerifyILMultiple(params string[] qualifiedMethodNamesAndExpectedIL)
+        {
+            var names = ArrayBuilder<string>.GetInstance();
+            var expected = ArrayBuilder<string>.GetInstance();
+            var actual = ArrayBuilder<string>.GetInstance();
+            for (int i = 0; i < qualifiedMethodNamesAndExpectedIL.Length;)
+            {
+                var qualifiedName = qualifiedMethodNamesAndExpectedIL[i++];
+                names.Add(qualifiedName);
+                actual.Add(AssertEx.NormalizeWhitespace(VisualizeIL(qualifiedName)));
+                expected.Add(AssertEx.NormalizeWhitespace(qualifiedMethodNamesAndExpectedIL[i++]));
+            }
+            if (!expected.SequenceEqual(actual))
+            {
+                var builder = new StringBuilder();
+                for (int i = 0; i < expected.Count; i++)
+                {
+                    builder.AppendLine(AssertEx.GetAssertMessage(expected[i], actual[i], prefix: names[i], escapeQuotes: true));
+                }
+                Assert.True(false, builder.ToString());
+            }
+            actual.Free();
+            expected.Free();
+            names.Free();
         }
 
         public CompilationVerifier VerifyMissing(
@@ -463,30 +554,25 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string qualifiedMethodName,
             string expectedIL,
             bool realIL,
-            string sequencePoints,
+            bool sequencePoints,
+            bool sequencePointsSource,
             string callerPath,
             int callerLine,
-            bool escapeQuotes,
-            string source = null)
+            bool escapeQuotes)
         {
-            string actualIL = VisualizeIL(qualifiedMethodName, realIL, sequencePoints, source);
+            string actualIL = VisualizeIL(qualifiedMethodName, realIL, sequencePoints, sequencePointsSource);
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, message: null, escapeQuotes, callerPath, callerLine);
             return this;
         }
 
-        public string VisualizeIL(string qualifiedMethodName, bool realIL = false, string sequencePoints = null, string source = null)
-        {
-            // TODO: Currently the qualifiedMethodName is a symbol display name while PDB need metadata name.
-            // So we need to pass the PDB metadata name of the method to sequencePoints (instead of just bool).
+        public string VisualizeIL(string qualifiedMethodName, bool realIL = false, bool sequencePoints = false, bool sequencePointsSource = true)
+            => VisualizeIL(_testData.GetMethodData(qualifiedMethodName), realIL, sequencePoints, sequencePointsSource);
 
-            return VisualizeIL(_testData.GetMethodData(qualifiedMethodName), realIL, sequencePoints, source);
-        }
-
-        internal string VisualizeIL(CompilationTestData.MethodData methodData, bool realIL, string sequencePoints = null, string source = null)
+        internal string VisualizeIL(CompilationTestData.MethodData methodData, bool realIL = false, bool sequencePoints = false, bool sequencePointsSource = true)
         {
             Dictionary<int, string> markers = null;
 
-            if (sequencePoints != null)
+            if (sequencePoints)
             {
                 if (EmittedAssemblyPdb == null)
                 {
@@ -503,17 +589,29 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     peStream: new MemoryStream(EmittedAssemblyData.ToArray()),
                     options: PdbToXmlOptions.ResolveTokens |
                              PdbToXmlOptions.ThrowOnError |
-                             PdbToXmlOptions.ExcludeDocuments |
                              PdbToXmlOptions.ExcludeCustomDebugInformation |
-                             PdbToXmlOptions.ExcludeScopes,
-                    methodName: sequencePoints);
+                             PdbToXmlOptions.ExcludeScopes |
+                             PdbToXmlOptions.IncludeTokens);
 
                 if (actualPdbXml.StartsWith("<error>"))
                 {
-                    throw new Exception($"Failed to extract PDB information for method '{sequencePoints}'. PdbToXmlConverter returned:\r\n{actualPdbXml}");
+                    throw new Exception($"Failed to extract PDB information. PdbToXmlConverter returned:{Environment.NewLine}{actualPdbXml}");
                 }
 
-                markers = ILValidation.GetSequencePointMarkers(actualPdbXml, source);
+                var methodDef = (Cci.IMethodDefinition)methodData.Method.GetCciAdapter();
+                var methodToken = MetadataTokens.GetToken(_testData.MetadataWriter.GetMethodDefinitionOrReferenceHandle(methodDef));
+                var xmlDocument = XElement.Parse(actualPdbXml);
+                var xmlMethod = ILValidation.GetMethodElement(xmlDocument, methodToken);
+
+                // method may not have any debug info and thus no sequence points
+                if (xmlMethod != null)
+                {
+                    var documentMap = ILValidation.GetDocumentIdToPathMap(xmlDocument);
+
+                    markers = sequencePointsSource ?
+                        ILValidation.GetSequencePointMarkers(xmlMethod, id => _compilation.SyntaxTrees.Single(tree => tree.FilePath == documentMap[id]).GetText()) :
+                        ILValidation.GetSequencePointMarkers(xmlMethod);
+                }
             }
 
             if (!realIL)

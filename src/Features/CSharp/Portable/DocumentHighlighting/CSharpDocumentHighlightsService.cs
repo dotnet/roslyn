@@ -2,18 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
+using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.DocumentHighlighting
 {
@@ -22,7 +25,12 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentHighlighting
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpDocumentHighlightsService()
+        public CSharpDocumentHighlightsService(
+            [ImportMany] IEnumerable<Lazy<IEmbeddedLanguageDocumentHighlighter, EmbeddedLanguageMetadata>> services)
+            : base(LanguageNames.CSharp,
+                  CSharpEmbeddedLanguagesProvider.Info,
+                  CSharpSyntaxKinds.Instance,
+                  services)
         {
         }
 
@@ -37,39 +45,34 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentHighlighting
             //
             // So we look for the references through 'var' directly in this file and add them to the
             // results found by the engine.
-            var results = ArrayBuilder<Location>.GetInstance();
+            using var _ = ArrayBuilder<Location>.GetInstance(out var results);
 
             if (symbol is INamedTypeSymbol && symbol.Name != "var")
             {
                 var originalSymbol = symbol.OriginalDefinition;
-                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                var descendents = root.DescendantNodes();
-                var semanticModel = (SemanticModel)null;
+                var descendants = root.DescendantNodes();
+                var semanticModel = (SemanticModel?)null;
 
-                foreach (var type in descendents.OfType<IdentifierNameSyntax>())
+                foreach (var type in descendants.OfType<IdentifierNameSyntax>())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
                     if (type.IsVar)
                     {
-                        if (semanticModel == null)
-                        {
-                            semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                        }
+                        semanticModel ??= await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                         var boundSymbol = semanticModel.GetSymbolInfo(type, cancellationToken).Symbol;
                         boundSymbol = boundSymbol?.OriginalDefinition;
 
                         if (originalSymbol.Equals(boundSymbol))
-                        {
                             results.Add(type.GetLocation());
-                        }
                     }
                 }
             }
 
-            return results.ToImmutableAndFree();
+            return results.ToImmutable();
         }
     }
 }

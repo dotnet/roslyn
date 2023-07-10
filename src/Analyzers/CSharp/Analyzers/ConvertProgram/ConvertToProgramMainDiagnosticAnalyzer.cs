@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp.TopLevelStatements
                   IDEDiagnosticIds.UseProgramMainId,
                   EnforceOnBuildValues.UseProgramMain,
                   CSharpCodeStyleOptions.PreferTopLevelStatements,
-                  LanguageNames.CSharp,
                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Convert_to_Program_Main_style_program), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }

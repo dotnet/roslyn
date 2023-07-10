@@ -11,7 +11,6 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
@@ -27,7 +26,7 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
-Imports Microsoft.VisualStudio.Shell
+Imports Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Projection
@@ -59,9 +58,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             .AddParts(
                 GetType(FileChangeWatcherProvider),
                 GetType(MockVisualStudioWorkspace),
-                GetType(MetadataReferences.FileWatchedPortableExecutableReferenceFactory),
                 GetType(VisualStudioProjectFactory),
+                GetType(MockVisualStudioDiagnosticAnalyzerProviderFactory),
                 GetType(MockServiceProvider),
+                GetType(StubVsServiceExporter(Of )),
+                GetType(StubVsServiceExporter(Of ,)),
                 GetType(SolutionEventsBatchScopeCreator),
                 GetType(ProjectCodeModelFactory),
                 GetType(CPSProjectFactory),
@@ -82,7 +83,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             ExportProvider = composition.ExportProviderFactory.CreateExportProvider()
             _workspace = ExportProvider.GetExportedValue(Of VisualStudioWorkspaceImpl)
             ThreadingContext = ExportProvider.GetExportedValue(Of IThreadingContext)()
-            Interop.WrapperPolicy.s_ComWrapperFactory = MockComWrapperFactory.Instance
+            Implementation.Interop.WrapperPolicy.s_ComWrapperFactory = MockComWrapperFactory.Instance
 
             Dim mockServiceProvider As MockServiceProvider = ExportProvider.GetExportedValue(Of MockServiceProvider)()
             mockServiceProvider.MockMonitorSelection = New MockShellMonitorSelection(True)
@@ -112,9 +113,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 textBufferFactoryService As ITextBufferFactoryService,
                 projectionBufferFactoryService As IProjectionBufferFactoryService,
                 projectCodeModelFactory As Lazy(Of IProjectCodeModelFactory),
-                visualStudioProjectFactory As Lazy(Of VisualStudioProjectFactory),
                 fileChangeWatcherProvider As FileChangeWatcherProvider,
-                fileWatchedPortableExecutableReferenceFactory As MetadataReferences.FileWatchedPortableExecutableReferenceFactory,
                 asyncServiceProvider As MockServiceProvider)
                 MyBase.New(
                     exportProvider,
@@ -125,9 +124,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                     textBufferFactoryService,
                     projectionBufferFactoryService,
                     projectCodeModelFactory,
-                    visualStudioProjectFactory,
                     fileChangeWatcherProvider,
-                    fileWatchedPortableExecutableReferenceFactory,
                     asyncServiceProvider)
             End Sub
 

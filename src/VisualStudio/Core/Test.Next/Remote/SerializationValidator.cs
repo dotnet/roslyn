@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             public AssetProvider(SerializationValidator validator)
                 => _validator = validator;
 
-            public override Task<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
-                => _validator.GetValueAsync<T>(checksum);
+            public override async ValueTask<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
+                => await _validator.GetValueAsync<T>(checksum).ConfigureAwait(false);
         }
 
         internal sealed class ChecksumObjectCollection<T> : IEnumerable<T> where T : ChecksumWithChildren
@@ -258,9 +258,9 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         internal static void ChecksumWithChildrenEqual(ChecksumWithChildren checksums1, ChecksumWithChildren checksums2)
         {
             Assert.Equal(checksums1.Checksum, checksums2.Checksum);
-            Assert.Equal(checksums1.Children.Count, checksums2.Children.Count);
+            Assert.Equal(checksums1.Children.Length, checksums2.Children.Length);
 
-            for (var i = 0; i < checksums1.Children.Count; i++)
+            for (var i = 0; i < checksums1.Children.Length; i++)
             {
                 var child1 = checksums1.Children[i];
                 var child2 = checksums2.Children[i];

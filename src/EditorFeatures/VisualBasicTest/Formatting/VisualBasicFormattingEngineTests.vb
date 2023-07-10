@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
+    <Trait(Traits.Feature, Traits.Features.Formatting)>
     Public Class VisualBasicFormattingEngineTests
         Inherits VisualBasicFormatterTestBase
 
@@ -21,8 +22,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
             }
         End Function
 
-        <WorkItem(25003, "https://github.com/dotnet/roslyn/issues/25003")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/25003")>
+        <WpfFact>
         Public Async Function SeparateGroups_KeepMultipleLinesBetweenGroups() As Task
             Dim code = "[|
 Imports System.A
@@ -46,8 +47,8 @@ Imports MS.B
                 expected, code, baseIndentation:=0, options:=SeparateImportDirectiveGroups)
         End Function
 
-        <WorkItem(25003, "https://github.com/dotnet/roslyn/issues/25003")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/25003")>
+        <WpfFact>
         Public Async Function SeparateGroups_DoNotGroupIfNotSorted() As Task
             Dim code = "[|
 Imports System.B
@@ -67,8 +68,8 @@ Imports MS.A
                 expected, code, baseIndentation:=0, options:=SeparateImportDirectiveGroups)
         End Function
 
-        <WorkItem(25003, "https://github.com/dotnet/roslyn/issues/25003")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/25003")>
+        <WpfFact>
         Public Async Function SeparateGroups_GroupIfSorted() As Task
             Dim code = "[|
 Imports System.A
@@ -89,8 +90,8 @@ Imports MS.B
                 expected, code, baseIndentation:=0, options:=SeparateImportDirectiveGroups)
         End Function
 
-        <WorkItem(25003, "https://github.com/dotnet/roslyn/issues/25003")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/25003")>
+        <WpfFact>
         Public Async Function SeparateGroups_GroupIfSorted_RecognizeSystemNotFirst() As Task
             Dim code = "[|
 Imports MS.A

@@ -4,6 +4,7 @@
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
+Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.ErrorReporting
@@ -11,6 +12,7 @@ Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -70,6 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ' lazily populated with the bound imports
         Private _lazyBoundImports As BoundImports
+        Private _lazyBoundImportsAdditionalDiagnostics As StrongBox(Of ImmutableBindingDiagnostic(Of AssemblySymbol))
 
         ' lazily populate with quick attribute checker that is initialized with the imports.
         Private _lazyQuickAttributeChecker As QuickAttributeChecker
@@ -348,14 +351,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Sub EnsureImportsAreBound(cancellationToken As CancellationToken)
             If _lazyBoundImports Is Nothing Then
                 If Interlocked.CompareExchange(_lazyBoundImports, BindImports(cancellationToken), Nothing) Is Nothing Then
-                    ValidateImports(_lazyBoundImports.MemberImports, _lazyBoundImports.MemberImportsInfo, _lazyBoundImports.AliasImports, _lazyBoundImports.AliasImportsInfo, _lazyBoundImports.Diagnostics)
+                    EnsureImportsAreValidated()
                 End If
+            End If
+        End Sub
+
+        Private Sub EnsureImportsAreValidated()
+            If _lazyBoundImportsAdditionalDiagnostics Is Nothing Then
+                Dim diagnosticBag = BindingDiagnosticBag.GetInstance()
+                ValidateImports(_lazyBoundImports.MemberImports, _lazyBoundImports.MemberImportsInfo, _lazyBoundImports.AliasImports, _lazyBoundImports.AliasImportsInfo, diagnosticBag)
+                Interlocked.CompareExchange(_lazyBoundImportsAdditionalDiagnostics, New StrongBox(Of ImmutableBindingDiagnostic(Of AssemblySymbol))(diagnosticBag.ToReadOnlyAndFree()), Nothing)
             End If
         End Sub
 
         ' Bind the project level imports.
         Private Function BindImports(cancellationToken As CancellationToken) As BoundImports
-            Dim diagBag As New BindingDiagnosticBag
+            Dim diagBag = BindingDiagnosticBag.GetInstance()
 
             Dim membersMap = New HashSet(Of NamespaceOrTypeSymbol)
             Dim aliasesMap = New Dictionary(Of String, AliasAndImportsClausePosition)(IdentifierComparison.Comparer)
@@ -379,7 +390,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' Note, it is safe to resolve diagnostics here because we suppress obsolete diagnostics
                     ' in ProjectImportsBinder.
                     For Each d As Diagnostic In diagBagForThisImport.DiagnosticBag.AsEnumerable()
-                        ' NOTE: Dev10 doesn't report 'ERR_DuplicateImport1' for project level imports. 
+                        ' NOTE: Dev10 doesn't report 'ERR_DuplicateImport1' for project level imports.
                         If d.Code <> ERRID.ERR_DuplicateImport1 Then
                             diagBag.Add(globalImport.MapDiagnostic(d))
                         End If
@@ -395,13 +406,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     aliasesBuilder.ToImmutable(),
                     aliasesInfoBuilder.ToImmutable(),
                     If(xmlNamespaces.Count > 0, xmlNamespaces, Nothing),
-                    diagBag)
+                    diagBag.ToReadOnly())
             Finally
                 membersBuilder.Free()
                 membersInfoBuilder.Free()
                 aliasesBuilder.Free()
                 aliasesInfoBuilder.Free()
                 diagBagForThisImport.Free()
+                diagBag.Free()
             End Try
         End Function
 
@@ -603,7 +615,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                  If typeOrNamespace.IsNamespace Then
                                                      DirectCast(typeOrNamespace, SourceNamespaceSymbol).GenerateDeclarationErrorsInTree(tree, filterSpanWithinTree, cancellationToken)
                                                  Else
-                                                     ' synthetic event delegates are not source types so use NamedTypeSymbol. 
+                                                     ' synthetic event delegates are not source types so use NamedTypeSymbol.
                                                      Dim sourceType = DirectCast(typeOrNamespace, NamedTypeSymbol)
                                                      sourceType.GenerateDeclarationErrors(cancellationToken)
                                                  End If
@@ -617,7 +629,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End While
             End If
 
-            ' Get all the errors that were generated. 
+            ' Get all the errors that were generated.
             Dim declarationDiagnostics = sourceFile.DeclarationDiagnostics.AsEnumerable()
 
             ' Filter diagnostics outside the tree/span of interest.
@@ -639,6 +651,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Sub GetAllDeclarationErrors(diagnostics As BindingDiagnosticBag, cancellationToken As CancellationToken, ByRef hasExtensionMethods As Boolean)
             ' Bind project level imports
             EnsureImportsAreBound(cancellationToken)
+            EnsureImportsAreValidated()
 
             ' Force all source files to generate errors for imports and the like.
             If ContainingSourceAssembly.DeclaringCompilation.Options.ConcurrentBuild Then
@@ -675,7 +688,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                  If typeOrNamespace.IsNamespace Then
                                                      DirectCast(typeOrNamespace, SourceNamespaceSymbol).GenerateDeclarationErrors(cancellationToken)
                                                  Else
-                                                     ' synthetic event delegates are not source types so use NamedTypeSymbol. 
+                                                     ' synthetic event delegates are not source types so use NamedTypeSymbol.
                                                      Dim sourceType = DirectCast(typeOrNamespace, NamedTypeSymbol)
                                                      sourceType.GenerateDeclarationErrors(cancellationToken)
                                                  End If
@@ -699,6 +712,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Accumulate all the errors that were generated.
             diagnostics.AddRange(Me._diagnosticBagDeclare)
             diagnostics.AddRange(Me._lazyBoundImports.Diagnostics, allowMismatchInDependencyAccumulation:=True)
+            diagnostics.AddRange(Me._lazyBoundImportsAdditionalDiagnostics.Value, allowMismatchInDependencyAccumulation:=True)
             diagnostics.AddRange(Me._lazyLinkedAssemblyDiagnostics)
 
             For Each tree In SyntaxTrees
@@ -1096,7 +1110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If attrData.IsTargetAttribute(Me, AttributeDescription.DefaultCharSetAttribute) Then
                 Dim charSet As CharSet = attrData.GetConstructorArgument(Of CharSet)(0, SpecialType.System_Enum)
                 If Not CommonModuleWellKnownAttributeData.IsValidCharSet(charSet) Then
-                    DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_BadAttribute1, arguments.AttributeSyntaxOpt.ArgumentList.Arguments(0).GetLocation(), attrData.AttributeClass)
+                    DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_BadAttribute1, VisualBasicAttributeData.GetFirstArgumentLocation(arguments.AttributeSyntaxOpt), attrData.AttributeClass)
                 Else
                     arguments.GetOrCreateData(Of CommonModuleWellKnownAttributeData)().DefaultCharacterSet = charSet
                 End If

@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => Hash.Combine(_containingSymbol.GetHashCode(), _name.GetHashCode());
 
         public override bool Equals(Symbol obj, TypeCompareKind compareKind)
-            => obj is SynthesizedNamespaceSymbol other && Equals(other, compareKind);
+            => obj is SynthesizedNamespaceSymbol other && Equals(other);
 
-        public bool Equals(SynthesizedNamespaceSymbol other, TypeCompareKind compareKind)
+        public bool Equals(SynthesizedNamespaceSymbol other)
         {
             if (ReferenceEquals(this, other))
             {
@@ -67,16 +67,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers()
             => ImmutableArray<NamedTypeSymbol>.Empty;
 
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name)
             => ImmutableArray<NamedTypeSymbol>.Empty;
 
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity)
             => ImmutableArray<NamedTypeSymbol>.Empty;
 
         public override ImmutableArray<Symbol> GetMembers()
             => ImmutableArray<Symbol>.Empty;
 
-        public override ImmutableArray<Symbol> GetMembers(string name)
+        public override ImmutableArray<Symbol> GetMembers(ReadOnlyMemory<char> name)
             => ImmutableArray<Symbol>.Empty;
     }
 }

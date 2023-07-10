@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -20,17 +21,17 @@ namespace Microsoft.CodeAnalysis.Classification
 {
     internal abstract class AbstractClassificationService : IClassificationService
     {
-        public abstract void AddLexicalClassifications(SourceText text, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken);
+        public abstract void AddLexicalClassifications(SourceText text, TextSpan textSpan, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken);
         public abstract ClassifiedSpan AdjustStaleClassification(SourceText text, ClassifiedSpan classifiedSpan);
 
         public Task AddSemanticClassificationsAsync(
-            Document document, TextSpan textSpan, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+            Document document, TextSpan textSpan, ClassificationOptions options, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             return AddClassificationsAsync(document, textSpan, options, ClassificationType.Semantic, result, cancellationToken);
         }
 
         public Task AddEmbeddedLanguageClassificationsAsync(
-            Document document, TextSpan textSpan, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+            Document document, TextSpan textSpan, ClassificationOptions options, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             return AddClassificationsAsync(document, textSpan, options, ClassificationType.EmbeddedLanguage, result, cancellationToken);
         }
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Classification
             TextSpan textSpan,
             ClassificationOptions options,
             ClassificationType type,
-            ArrayBuilder<ClassifiedSpan> result,
+            SegmentedList<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
             var classificationService = document.GetLanguageService<ISyntaxClassificationService>();
@@ -96,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
         private static bool IsFullyLoaded(Document document, CancellationToken cancellationToken)
         {
-            var workspaceStatusService = document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
+            var workspaceStatusService = document.Project.Solution.Services.GetRequiredService<IWorkspaceStatusService>();
 
             // Importantly, we do not await/wait on the fullyLoadedStateTask.  We do not want to ever be waiting on work
             // that may end up touching the UI thread (As we can deadlock if GetTagsSynchronous waits on us).  Instead,
@@ -114,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Classification
             ClassificationType type,
             RemoteHostClient client,
             bool isFullyLoaded,
-            ArrayBuilder<ClassifiedSpan> result,
+            SegmentedList<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
             // Only try to get cached classifications if we're not fully loaded yet.
@@ -143,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Classification
             TextSpan textSpan,
             ClassificationType type,
             ClassificationOptions options,
-            ArrayBuilder<ClassifiedSpan> result,
+            SegmentedList<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
             if (type == ClassificationType.Semantic)
@@ -151,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 var classificationService = document.GetRequiredLanguageService<ISyntaxClassificationService>();
                 var reassignedVariableService = document.GetRequiredLanguageService<IReassignedVariableService>();
 
-                var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
+                var extensionManager = document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
                 var classifiers = classificationService.GetDefaultSyntaxClassifiers();
 
                 var getNodeClassifiers = extensionManager.CreateNodeExtensionGetter(classifiers, c => c.SyntaxNodeTypes);
@@ -182,19 +183,19 @@ namespace Microsoft.CodeAnalysis.Classification
             }
         }
 
-        public async Task AddSyntacticClassificationsAsync(Document document, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+        public async Task AddSyntacticClassificationsAsync(Document document, TextSpan textSpan, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            AddSyntacticClassifications(document.Project.Solution.Workspace, root, textSpan, result, cancellationToken);
+            AddSyntacticClassifications(document.Project.Solution.Services, root, textSpan, result, cancellationToken);
         }
 
         public void AddSyntacticClassifications(
-            Workspace workspace, SyntaxNode? root, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+            SolutionServices services, SyntaxNode? root, TextSpan textSpan, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             if (root == null)
                 return;
 
-            var classificationService = workspace.Services.GetLanguageServices(root.Language).GetService<ISyntaxClassificationService>();
+            var classificationService = services.GetLanguageServices(root.Language).GetService<ISyntaxClassificationService>();
             if (classificationService == null)
                 return;
 
@@ -216,9 +217,9 @@ namespace Microsoft.CodeAnalysis.Classification
         public ValueTask<TextChangeRange?> ComputeSyntacticChangeRangeAsync(Document oldDocument, Document newDocument, TimeSpan timeout, CancellationToken cancellationToken)
             => default;
 
-        public TextChangeRange? ComputeSyntacticChangeRange(Workspace workspace, SyntaxNode oldRoot, SyntaxNode newRoot, TimeSpan timeout, CancellationToken cancellationToken)
+        public TextChangeRange? ComputeSyntacticChangeRange(SolutionServices services, SyntaxNode oldRoot, SyntaxNode newRoot, TimeSpan timeout, CancellationToken cancellationToken)
         {
-            var classificationService = workspace.Services.GetLanguageServices(oldRoot.Language).GetService<ISyntaxClassificationService>();
+            var classificationService = services.GetLanguageServices(oldRoot.Language).GetService<ISyntaxClassificationService>();
             return classificationService?.ComputeSyntacticChangeRange(oldRoot, newRoot, timeout, cancellationToken);
         }
     }

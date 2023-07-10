@@ -7,6 +7,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 
+#if COMPILERCORE
+using Roslyn.Utilities;
+#endif
+
 namespace Microsoft.CodeAnalysis.PooledObjects
 {
     [DebuggerDisplay("Count = {Count,nq}")]
@@ -270,9 +274,10 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         }
 
         public T Last()
-        {
-            return _builder[_builder.Count - 1];
-        }
+            => _builder[_builder.Count - 1];
+
+        internal T? LastOrDefault()
+            => Count == 0 ? default : Last();
 
         public T First()
         {
@@ -315,6 +320,13 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             }
 
             return tmp.ToImmutableAndFree();
+        }
+
+        public ImmutableArray<U> ToDowncastedImmutableAndFree<U>() where U : T
+        {
+            var result = ToDowncastedImmutable<U>();
+            this.Free();
+            return result;
         }
 
         /// <summary>
@@ -578,6 +590,8 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public void AddMany(T item, int count)
         {
+            EnsureCapacity(Count + count);
+
             for (var i = 0; i < count; i++)
             {
                 Add(item);

@@ -36,6 +36,7 @@ usage()
   echo "  --prepareMachine           Prepare machine for CI run, clean up processes after build"
   echo "  --warnAsError              Treat all warnings as errors"
   echo "  --sourceBuild              Simulate building for source-build"
+  echo "  --solution                 Soluton to build (Default is Compilers.slnf)"
   echo ""
   echo "Command line arguments starting with '/p:' are passed through to MSBuild."
 }
@@ -67,6 +68,7 @@ binary_log=false
 ci=false
 helix=false
 helix_queue_name=""
+helix_api_access_token=""
 bootstrap=false
 run_analyzers=false
 skip_documentation=false
@@ -74,6 +76,7 @@ prepare_machine=false
 warn_as_error=false
 properties=""
 source_build=false
+solution_to_build="Compilers.slnf"
 
 args=""
 
@@ -138,6 +141,11 @@ while [[ $# > 0 ]]; do
       args="$args $1"
       shift
       ;;
+    --helixapiaccesstoken)
+      helix_api_access_token=$2
+      args="$args $1"
+      shift
+      ;;
     --bootstrap)
       bootstrap=true
       # Bootstrap requires restore
@@ -159,6 +167,11 @@ while [[ $# > 0 ]]; do
       # Arcade specifies /p:ArcadeBuildFromSource=true instead of --sourceBuild, but that's not developer friendly so we
       # have an alias.
       source_build=true
+      ;;
+    --solution)
+      solution_to_build=$2
+      args="$args $1"
+      shift
       ;;
     /p:*)
       properties="$properties $1"
@@ -203,7 +216,7 @@ function MakeBootstrapBuild {
 }
 
 function BuildSolution {
-  local solution="Compilers.sln"
+  local solution=$solution_to_build
   echo "$solution:"
 
   InitializeToolset
@@ -313,6 +326,10 @@ if [[ "$test_core_clr" == true ]]; then
     runtests_args="$runtests_args --helixQueueName $helix_queue_name"
   fi
 
+  if [[ -n "$helix_api_access_token" ]]; then
+    runtests_args="$runtests_args --helixApiAccessToken $helix_api_access_token"
+  fi
+
   if [[ "$helix" == true ]]; then
     runtests_args="$runtests_args --helix"
   fi
@@ -320,6 +337,6 @@ if [[ "$test_core_clr" == true ]]; then
   if [[ "$ci" != true ]]; then
     runtests_args="$runtests_args --html"
   fi
-  dotnet exec "$scriptroot/../artifacts/bin/RunTests/${configuration}/net6.0/RunTests.dll" --tfm net6.0 --configuration ${configuration} --dotnet ${_InitializeDotNetCli}/dotnet $runtests_args
+  dotnet exec "$scriptroot/../artifacts/bin/RunTests/${configuration}/net7.0/RunTests.dll" --tfm net7.0 --configuration ${configuration} --logs ${log_dir} --dotnet ${_InitializeDotNetCli}/dotnet $runtests_args
 fi
 ExitWithExitCode 0

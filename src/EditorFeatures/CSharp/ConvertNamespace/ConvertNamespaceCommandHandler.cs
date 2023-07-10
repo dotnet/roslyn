@@ -3,17 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.Linq;
+using Microsoft.CodeAnalysis.AutomaticCompletion;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertNamespace;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -23,10 +19,10 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 {
@@ -50,17 +46,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
         private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
+        private readonly EditorOptionsService _editorOptionsService;
+        private readonly IIndentationManagerService _indentationManager;
         private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ConvertNamespaceCommandHandler(
             ITextUndoHistoryRegistry textUndoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService, IGlobalOptionService globalOptions)
+            IEditorOperationsFactoryService editorOperationsFactoryService,
+            EditorOptionsService editorOptionsService,
+            IGlobalOptionService globalOptions,
+            IIndentationManagerService indentationManager)
         {
             _textUndoHistoryRegistry = textUndoHistoryRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
+            _editorOptionsService = editorOptionsService;
             _globalOptions = globalOptions;
+            _indentationManager = indentationManager;
         }
 
         public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextCommandHandler)
@@ -108,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             if (args.TypedChar != ';' || !args.TextView.Selection.IsEmpty)
                 return default;
 
-            if (!_globalOptions.GetOption(FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon))
+            if (!_globalOptions.GetOption(CompleteStatementOptionsStorage.AutomaticallyCompleteStatementOnSemicolon))
                 return default;
 
             var subjectBuffer = args.SubjectBuffer;
@@ -122,10 +125,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 return default;
 
             var cancellationToken = executionContext.OperationContext.UserCancellationToken;
-            var root = (CompilationUnitSyntax)document.GetRequiredSyntaxRootSynchronously(cancellationToken);
+            var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
 
             // User has to be *after* an identifier token.
-            var token = root.FindToken(caret);
+            var token = parsedDocument.Root.FindToken(caret);
             if (token.Kind() != SyntaxKind.IdentifierToken)
                 return default;
 
@@ -144,13 +147,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 return default;
 
             // Pass in our special options, and C#10 so that if we can convert this to file-scoped, we will.
-            if (!ConvertNamespaceAnalysis.CanOfferUseFileScoped(s_fileScopedNamespacePreferenceOption, root, namespaceDecl, forAnalyzer: true, LanguageVersion.CSharp10))
+            if (!ConvertNamespaceAnalysis.CanOfferUseFileScoped(s_fileScopedNamespacePreferenceOption, (CompilationUnitSyntax)parsedDocument.Root, namespaceDecl, forAnalyzer: true, LanguageVersion.CSharp10))
                 return default;
 
-            var formattingOptions = document.GetSyntaxFormattingOptionsAsync(_globalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
-            var (converted, semicolonSpan) = ConvertNamespaceTransform.ConvertNamespaceDeclarationAsync(document, namespaceDecl, formattingOptions, cancellationToken).WaitAndGetResult(cancellationToken);
-            var text = converted.GetTextSynchronously(cancellationToken);
-            return (text, semicolonSpan);
+            var formattingOptions = subjectBuffer.GetSyntaxFormattingOptions(_editorOptionsService, document.Project.Services, explicitFormat: false);
+            return ConvertNamespaceTransform.ConvertNamespaceDeclaration(parsedDocument, namespaceDecl, formattingOptions, cancellationToken);
         }
     }
 }

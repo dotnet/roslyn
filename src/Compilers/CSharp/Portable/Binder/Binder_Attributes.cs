@@ -51,7 +51,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // BindType for AttributeSyntax's name is handled specially during lookup, see Binder.LookupAttributeType.
                     // When looking up a name in attribute type context, we generate a diagnostic + error type if it is not an attribute type, i.e. named type deriving from System.Attribute.
                     // Hence we can assume here that BindType returns a NamedTypeSymbol.
-                    boundAttributeTypes[i] = (NamedTypeSymbol)binder.BindType(attributeToBind.Name, diagnostics).Type;
+                    var boundType = binder.BindType(attributeToBind.Name, diagnostics);
+                    var boundTypeSymbol = (NamedTypeSymbol)boundType.Type;
+
+                    // Check the attribute type (unless the attribute type is already an error).
+                    if (boundTypeSymbol.TypeKind != TypeKind.Error)
+                    {
+                        binder.CheckDisallowedAttributeDependentType(boundType, attributeToBind.Name, diagnostics);
+                    }
+
+                    boundAttributeTypes[i] = boundTypeSymbol;
 
                     afterAttributePartBound?.Invoke(attributeToBind);
                 }
@@ -185,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                bool found = TryPerformConstructorOverloadResolution(
+                bool found = attributeArgumentBinder.TryPerformConstructorOverloadResolution(
                     attributeTypeForBinding,
                     analyzedArguments.ConstructorArguments,
                     attributeTypeForBinding.Name,
@@ -202,12 +211,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!found)
                 {
-                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = attributeArgumentBinder.GetNewCompoundUseSiteInfo(diagnostics);
                     resultKind = resultKind.WorseResultKind(
-                        memberResolutionResult.IsValid && !IsConstructorAccessible(memberResolutionResult.Member, ref useSiteInfo) ?
+                        memberResolutionResult.IsValid && !attributeArgumentBinder.IsConstructorAccessible(memberResolutionResult.Member, ref useSiteInfo) ?
                             LookupResultKind.Inaccessible :
                             LookupResultKind.OverloadResolutionFailure);
-                    boundConstructorArguments = BuildArgumentsForErrorRecovery(analyzedArguments.ConstructorArguments, candidateConstructors);
+                    boundConstructorArguments = attributeArgumentBinder.BuildArgumentsForErrorRecovery(analyzedArguments.ConstructorArguments, candidateConstructors);
                     diagnostics.Add(node, useSiteInfo);
                 }
                 else
@@ -224,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics,
                         attributedMember: attributedMember);
                     boundConstructorArguments = analyzedArguments.ConstructorArguments.Arguments.ToImmutable();
-                    ReportDiagnosticsIfObsolete(diagnostics, attributeConstructor, node, hasBaseReceiver: false);
+                    attributeArgumentBinder.ReportDiagnosticsIfObsolete(diagnostics, attributeConstructor, node, hasBaseReceiver: false);
 
                     if (attributeConstructor.Parameters.Any(static p => p.RefKind == RefKind.In))
                     {
@@ -492,10 +501,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundAssignmentOperator BindNamedAttributeArgument(AttributeArgumentSyntax namedArgument, NamedTypeSymbol attributeType, BindingDiagnosticBag diagnostics)
         {
+            Debug.Assert(namedArgument.NameEquals is not null);
+            IdentifierNameSyntax nameSyntax = namedArgument.NameEquals.Name;
+
+            if (attributeType.IsErrorType())
+            {
+                var badLHS = BadExpression(nameSyntax, lookupResultKind: LookupResultKind.Empty);
+                var rhs = BindRValueWithoutTargetType(namedArgument.Expression, diagnostics);
+                return new BoundAssignmentOperator(namedArgument, badLHS, rhs, CreateErrorType());
+            }
+
             bool wasError;
             LookupResultKind resultKind;
             Symbol namedArgumentNameSymbol = BindNamedAttributeArgumentName(namedArgument, attributeType, diagnostics, out wasError, out resultKind);
-
             ReportDiagnosticsIfObsolete(diagnostics, namedArgumentNameSymbol, namedArgument, hasBaseReceiver: false);
 
             if (namedArgumentNameSymbol.Kind == SymbolKind.Property)
@@ -533,8 +551,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // TODO: should we create an entry even if there are binding errors?
             var fieldSymbol = namedArgumentNameSymbol as FieldSymbol;
-            RoslynDebug.Assert(namedArgument.NameEquals is object);
-            IdentifierNameSyntax nameSyntax = namedArgument.NameEquals.Name;
             BoundExpression lvalue;
             if (fieldSymbol is object)
             {
@@ -834,7 +850,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Walk a custom attribute argument bound node and return a TypedConstant.  Verify that the expression is a constant expression.
         /// </summary>
-        private struct AttributeExpressionVisitor
+        private readonly struct AttributeExpressionVisitor
         {
             private readonly Binder _binder;
 
@@ -931,7 +947,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Validate Statement 2) of the spec comment above.
 
-                ConstantValue? constantValue = node.ConstantValue;
+                ConstantValue? constantValue = node.ConstantValueOpt;
                 if (constantValue != null)
                 {
                     if (constantValue.IsBad)
@@ -959,7 +975,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private TypedConstant VisitConversion(BoundConversion node, BindingDiagnosticBag diagnostics, ref bool attrHasErrors, bool curArgumentHasErrors)
             {
-                Debug.Assert(node.ConstantValue == null);
+                Debug.Assert(node.ConstantValueOpt == null);
 
                 // We have a bound conversion with a non-constant value.
                 // According to statement 2) of the spec comment, this is not a valid attribute argument.
@@ -1119,7 +1135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region AnalyzedAttributeArguments
 
-        private struct AnalyzedAttributeArguments
+        private readonly struct AnalyzedAttributeArguments
         {
             internal readonly AnalyzedArguments ConstructorArguments;
             internal readonly ArrayBuilder<BoundAssignmentOperator>? NamedArguments;

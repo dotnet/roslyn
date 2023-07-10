@@ -24,12 +24,11 @@ namespace Microsoft.CodeAnalysis.Recommendations
             CancellationToken cancellationToken = default)
         {
             var solution = workspace.CurrentSolution;
-            options ??= solution.Options;
             var document = solution.GetRequiredDocument(semanticModel.SyntaxTree);
             var context = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
 
             var languageRecommender = document.GetRequiredLanguageService<IRecommendationService>();
-            return languageRecommender.GetRecommendedSymbolsInContext(context, RecommendationServiceOptions.From(options, document.Project.Language), cancellationToken).NamedSymbols;
+            return languageRecommender.GetRecommendedSymbolsInContext(context, GetOptions(options, document.Project), cancellationToken).NamedSymbols;
         }
 
         [Obsolete("Use GetRecommendedSymbolsAtPositionAsync(Document, ...)")]
@@ -49,12 +48,24 @@ namespace Microsoft.CodeAnalysis.Recommendations
             OptionSet? options = null,
             CancellationToken cancellationToken = default)
         {
-            var solution = document.Project.Solution;
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            options ??= solution.Options;
             var context = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
             var languageRecommender = document.GetRequiredLanguageService<IRecommendationService>();
-            return languageRecommender.GetRecommendedSymbolsInContext(context, RecommendationServiceOptions.From(options, document.Project.Language), cancellationToken).NamedSymbols;
+            return languageRecommender.GetRecommendedSymbolsInContext(context, GetOptions(options, document.Project), cancellationToken).NamedSymbols;
         }
+
+#pragma warning disable RS0030 // Do not used banned APIs: RecommendationOptions
+        private static RecommendationServiceOptions GetOptions(OptionSet? options, Project project)
+        {
+            options ??= project.Solution.Options;
+            var language = project.Language;
+
+            return new RecommendationServiceOptions()
+            {
+                HideAdvancedMembers = options.GetOption(RecommendationOptions.HideAdvancedMembers, language),
+                FilterOutOfScopeLocals = options.GetOption(RecommendationOptions.FilterOutOfScopeLocals, language),
+            };
+        }
+#pragma warning restore
     }
 }

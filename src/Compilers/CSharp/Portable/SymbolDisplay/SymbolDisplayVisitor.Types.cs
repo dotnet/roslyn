@@ -6,9 +6,11 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SymbolDisplay;
 using Roslyn.Utilities;
 
@@ -177,8 +179,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitNamedType(INamedTypeSymbol symbol)
         {
+            if ((format.CompilerInternalOptions & SymbolDisplayCompilerInternalOptions.IncludeFileLocalTypesPrefix) != 0
+                && symbol is Symbols.PublicModel.Symbol { UnderlyingSymbol: NamedTypeSymbol { } internalSymbol1 }
+                && internalSymbol1.GetFileLocalTypeMetadataNamePrefix() is { } fileLocalNamePrefix)
+            {
+                builder.Add(CreatePart(SymbolDisplayPartKind.ModuleName, symbol, fileLocalNamePrefix));
+            }
+
             VisitNamedTypeWithoutNullability(symbol);
             AddNullableAnnotations(symbol);
+
+            if ((format.CompilerInternalOptions & SymbolDisplayCompilerInternalOptions.IncludeContainingFileForFileTypes) != 0
+                && symbol is Symbols.PublicModel.Symbol { UnderlyingSymbol: NamedTypeSymbol { AssociatedFileIdentifier: { } identifier } internalSymbol2 })
+            {
+                var fileDescription = identifier.DisplayFilePath is { Length: not 0 } path ? path
+                    : internalSymbol2.GetFirstLocationOrNone().SourceTree is { } tree ? $"<tree {internalSymbol2.DeclaringCompilation.GetSyntaxTreeOrdinal(tree)}>"
+                    : "<unknown>";
+
+                builder.Add(CreatePart(SymbolDisplayPartKind.Punctuation, symbol, "@"));
+                builder.Add(CreatePart(SymbolDisplayPartKind.ModuleName, symbol, fileDescription));
+            }
         }
 
         private void VisitNamedTypeWithoutNullability(INamedTypeSymbol symbol)
@@ -274,7 +294,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (IncludeNamedType(symbol.ContainingType))
                 {
                     symbol.ContainingType.Accept(this.NotFirstVisitor);
-                    AddPunctuation(SyntaxKind.DotToken);
+
+                    if (format.CompilerInternalOptions.HasFlag(SymbolDisplayCompilerInternalOptions.UsePlusForNestedTypes))
+                    {
+                        AddPunctuation(SyntaxKind.PlusToken);
+                    }
+                    else
+                    {
+                        AddPunctuation(SyntaxKind.DotToken);
+                    }
                 }
             }
 
@@ -285,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(symbol.IsTupleType);
 
-            if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseValueTuple))
+            if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.ExpandValueTuple))
             {
                 return true;
             }

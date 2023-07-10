@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -38,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RefactoringHelpers
             var resultNode = await GetNodeForSelectionAsync(text, selection, predicate, allowEmptyNodes).ConfigureAwait(false);
 
             Assert.NotNull(resultNode);
-            Assert.Equal(result, resultNode.Span);
+            Assert.Equal(result, resultNode!.Span);
         }
 
         protected async Task TestUnderselectedAsync<TNode>(string text) where TNode : SyntaxNode
@@ -55,7 +53,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RefactoringHelpers
             text = GetSelectionAndResultSpans(text, out var selection, out var result);
             var resultNode = await GetNodeForSelectionAsync<TNode>(text, selection, Functions<TNode>.True).ConfigureAwait(false);
 
-            Assert.Equal(result, resultNode.Span);
+            Assert.NotNull(resultNode);
+            Assert.Equal(result, resultNode!.Span);
             Assert.False(CodeRefactoringHelpers.IsNodeUnderselected(resultNode, selection));
         }
 
@@ -101,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RefactoringHelpers
             return text;
         }
 
-        private async Task<TNode> GetNodeForSelectionAsync<TNode>(string text, TextSpan selection, Func<TNode, bool> predicate, bool allowEmptyNodes = false) where TNode : SyntaxNode
+        private async Task<TNode?> GetNodeForSelectionAsync<TNode>(string text, TextSpan selection, Func<TNode, bool> predicate, bool allowEmptyNodes = false) where TNode : SyntaxNode
         {
             using var workspaceFixture = GetOrCreateWorkspaceFixture();
 

@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
         protected override async Task<CodeAction?> GetCodeFixAsync(SyntaxNode root, SyntaxNode node, Document document, Diagnostic diagnostics, CancellationToken cancellationToken)
         {
             // Check if node is return statement
-            if (!node.IsKind(SyntaxKind.ReturnStatement, out ReturnStatementSyntax? returnStatement))
+            if (node is not ReturnStatementSyntax returnStatement)
             {
                 return null;
             }
@@ -66,9 +66,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
 
             var typeArguments = methodReturnType.GetAllTypeArguments();
 
-            var shouldOfferYieldReturn = typeArguments.Length != 1 ?
-                IsCorrectTypeForYieldReturn(methodReturnType, model) :
-                IsCorrectTypeForYieldReturn(typeArguments.Single(), returnExpressionType, methodReturnType, model);
+            var shouldOfferYieldReturn = typeArguments.Length != 1
+                ? IsCorrectTypeForYieldReturn(methodReturnType, model)
+                : IsCorrectTypeForYieldReturn(typeArguments.Single(), returnExpressionType, methodReturnType, model);
 
             if (!shouldOfferYieldReturn)
             {
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
             return methodReturnType != null;
         }
 
-        private bool IsCorrectTypeForYieldReturn(ITypeSymbol typeArgument, ITypeSymbol returnExpressionType, ITypeSymbol methodReturnType, SemanticModel model)
+        private static bool IsCorrectTypeForYieldReturn(ITypeSymbol typeArgument, ITypeSymbol returnExpressionType, ITypeSymbol methodReturnType, SemanticModel model)
         {
             var ienumerableSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName!);
             var ienumeratorSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerator).FullName!);
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
             return true;
         }
 
-        private bool CanConvertTypes(ITypeSymbol typeArgument, ITypeSymbol returnExpressionType, SemanticModel model)
+        private static bool CanConvertTypes(ITypeSymbol typeArgument, ITypeSymbol returnExpressionType, SemanticModel model)
         {
             // return false if there is no conversion for the top level type
             if (!model.Compilation.ClassifyConversion(typeArgument, returnExpressionType).Exists)

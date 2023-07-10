@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -270,11 +270,8 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             var syntaxRoot = await mergedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxNode = syntaxRoot.GetAnnotatedNodes(AbstractMoveTypeService.NamespaceScopeMovedAnnotation).SingleOrDefault();
 
-            if (syntaxNode == null)
-            {
-                // The type might be declared in global namespace
-                syntaxNode = container.FirstAncestorOrSelf<TNamespaceDeclarationSyntax>() ?? syntaxRoot;
-            }
+            // The type might be declared in global namespace
+            syntaxNode ??= container.FirstAncestorOrSelf<TNamespaceDeclarationSyntax>() ?? syntaxRoot;
 
             return await MoveItemsInNamespaceAsync(
                 mergedDocument,
@@ -288,7 +285,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         {
             // Need to make sure elastic trivia is formatted properly before pushing the text to other documents.
             var formattedDocument = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, formattingOptions, cancellationToken).ConfigureAwait(false);
-            var formattedText = await formattedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var formattedText = await formattedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var solution = formattedDocument.Project.Solution;
 
             foreach (var documentId in formattedDocument.GetLinkedDocumentIds())

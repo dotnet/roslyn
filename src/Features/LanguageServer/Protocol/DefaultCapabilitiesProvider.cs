@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -44,15 +45,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
-            var capabilities = clientCapabilities is VSInternalClientCapabilities { SupportsVisualStudioExtensions: true }
-                ? GetVSServerCapabilities()
-                : new ServerCapabilities();
+            var supportsVsExtensions = clientCapabilities.HasVisualStudioLspCapability();
+            var capabilities = supportsVsExtensions ? GetVSServerCapabilities() : new VSInternalServerCapabilities();
 
-            var commitCharacters = CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString()).ToArray();
+            var commitCharacters = AbstractLspCompletionResultCreationService.DefaultCommitCharactersArray;
             var triggerCharacters = _completionProviders.SelectMany(
                 lz => CommonCompletionUtilities.GetTriggerCharacters(lz.Value)).Distinct().Select(c => c.ToString()).ToArray();
 
             capabilities.DefinitionProvider = true;
+            capabilities.DocumentHighlightProvider = true;
             capabilities.RenameProvider = true;
             capabilities.ImplementationProvider = true;
             capabilities.CodeActionProvider = new CodeActionOptions { CodeActionKinds = new[] { CodeActionKind.QuickFix, CodeActionKind.Refactor }, ResolveProvider = true };
@@ -69,7 +70,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             capabilities.DocumentFormattingProvider = true;
             capabilities.DocumentRangeFormattingProvider = true;
             capabilities.DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions { FirstTriggerCharacter = "}", MoreTriggerCharacter = new[] { ";", "\n" } };
-            capabilities.ReferencesProvider = true;
+            capabilities.ReferencesProvider = new ReferenceOptions
+            {
+                WorkDoneProgress = true,
+            };
+
             capabilities.FoldingRangeProvider = true;
             capabilities.ExecuteCommandProvider = new ExecuteCommandOptions();
             capabilities.TextDocumentSync = new TextDocumentSyncOptions
@@ -80,29 +85,54 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             capabilities.HoverProvider = true;
 
-            // Using only range handling has shown to be more performant than using a combination of full/edits/range handling,
-            // especially for larger files. With range handling, we only need to compute tokens for whatever is in view, while
-            // with full/edits handling we need to compute tokens for the entire file and then potentially run a diff between
-            // the old and new tokens.
+            // Using only range handling has shown to be more performant than using a combination of full/edits/range
+            // handling, especially for larger files. With range handling, we only need to compute tokens for whatever
+            // is in view, while with full/edits handling we need to compute tokens for the entire file and then
+            // potentially run a diff between the old and new tokens.
             capabilities.SemanticTokensOptions = new SemanticTokensOptions
             {
                 Full = false,
                 Range = true,
                 Legend = new SemanticTokensLegend
                 {
-                    TokenTypes = SemanticTokenTypes.AllTypes.Concat(SemanticTokensHelpers.RoslynCustomTokenTypes).ToArray(),
-                    TokenModifiers = new string[] { SemanticTokenModifiers.Static }
+                    TokenTypes = SemanticTokensSchema.GetSchema(clientCapabilities.HasVisualStudioLspCapability()).AllTokenTypes.ToArray(),
+                    TokenModifiers = SemanticTokensSchema.TokenModifiers
                 }
             };
+
+            capabilities.CodeLensProvider = new CodeLensOptions
+            {
+                ResolveProvider = true,
+                // TODO - Code lens should support streaming
+                // See https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1730465
+                WorkDoneProgress = false,
+            };
+
+            capabilities.InlayHintOptions = new InlayHintOptions
+            {
+                ResolveProvider = true,
+                WorkDoneProgress = false,
+            };
+
+            // Using VS server capabilities because we have our own custom client.
+            capabilities.OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions { TriggerCharacters = new[] { "'", "/", "\n" } };
+
+            if (!supportsVsExtensions)
+            {
+                capabilities.DiagnosticOptions = new DiagnosticOptions
+                {
+                    InterFileDependencies = true,
+                    WorkDoneProgress = true,
+                    WorkspaceDiagnostics = true,
+                };
+            }
 
             return capabilities;
         }
 
-        private static VSServerCapabilities GetVSServerCapabilities()
-            => new VSInternalServerCapabilities
+        private static VSInternalServerCapabilities GetVSServerCapabilities()
+            => new()
             {
-                OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions { TriggerCharacters = new[] { "'", "/", "\n" } },
-                DocumentHighlightProvider = true,
                 ProjectContextProvider = true,
                 BreakableRangeProvider = true,
 

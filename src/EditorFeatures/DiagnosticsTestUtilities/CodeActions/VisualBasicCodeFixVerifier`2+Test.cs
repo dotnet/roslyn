@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Net;
 using System.Threading;
@@ -15,6 +16,8 @@ using Microsoft.CodeAnalysis.VisualBasic.Testing;
 using Xunit;
 
 #if !CODE_STYLE
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 #endif
 
@@ -47,14 +50,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 _sharedState = new SharedVerifierState(this, DefaultFileExt);
 
                 MarkupOptions = Testing.MarkupOptions.UseFirstDescriptor;
-
-                SolutionTransforms.Add((solution, projectId) =>
-                {
-                    var parseOptions = (VisualBasicParseOptions)solution.GetProject(projectId)!.ParseOptions!;
-                    solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion));
-
-                    return solution;
-                });
             }
 
             /// <summary>
@@ -86,15 +81,40 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 await base.RunImplAsync(cancellationToken);
             }
 
+            protected override ParseOptions CreateParseOptions()
+            {
+                var parseOptions = (VisualBasicParseOptions)base.CreateParseOptions();
+                return parseOptions.WithLanguageVersion(LanguageVersion);
+            }
+
 #if !CODE_STYLE
+
             protected override AnalyzerOptions GetAnalyzerOptions(Project project)
-                => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), project.Solution, _sharedState.GetIdeAnalyzerOptions(project));
+                => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), _sharedState.GetIdeAnalyzerOptions(project));
+
+            protected override CodeFixContext CreateCodeFixContext(Document document, TextSpan span, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix, CancellationToken cancellationToken)
+                => new(document, span, diagnostics, registerCodeFix, _sharedState.CodeActionOptions, cancellationToken);
+
 #endif
 
             protected override Diagnostic? TrySelectDiagnosticToFix(ImmutableArray<Diagnostic> fixableDiagnostics)
             {
                 return DiagnosticSelector?.Invoke(fixableDiagnostics)
                     ?? base.TrySelectDiagnosticToFix(fixableDiagnostics);
+            }
+
+            protected override ImmutableArray<(Project project, Diagnostic diagnostic)> SortDistinctDiagnostics(IEnumerable<(Project project, Diagnostic diagnostic)> diagnostics)
+            {
+                var baseResult = base.SortDistinctDiagnostics(diagnostics);
+                if (typeof(DiagnosticSuppressor).IsAssignableFrom(typeof(TAnalyzer)))
+                {
+                    // Include suppressed diagnostics when testing diagnostic suppressors
+                    return baseResult;
+                }
+
+                // Treat suppressed diagnostics as non-existent. Normally this wouldn't be necessary, but some of the
+                // tests include diagnostics reported in code wrapped in '#Disable Warning'.
+                return baseResult.WhereAsArray(diagnostic => !diagnostic.diagnostic.IsSuppressed);
             }
         }
     }

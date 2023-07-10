@@ -7,6 +7,7 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -27,7 +28,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         private readonly IUIThreadOperationExecutor _operationExecutor;
         private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
         private readonly IAsynchronousOperationListener _listener;
-        private readonly IGlobalOptionService _globalOptions;
+        private readonly EditorOptionsService _editorOptionsService;
+        private readonly IInlineRenameService _inlineRenameService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -36,13 +38,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             IUIThreadOperationExecutor operationExecutor,
             IAsynchronousOperationListenerProvider listenerProvider,
             Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
-            IGlobalOptionService globalOptions)
+            EditorOptionsService editorOptionsService,
+            IInlineRenameService inlineRenameService)
         {
             _threadingContext = threadingContext;
             _operationExecutor = operationExecutor;
             _streamingPresenter = streamingPresenter;
             _listener = listenerProvider.GetListener(FeatureAttribute.QuickInfo);
-            _globalOptions = globalOptions;
+            _editorOptionsService = editorOptionsService;
+            _inlineRenameService = inlineRenameService;
         }
 
         public IAsyncQuickInfoSource TryCreateQuickInfoSource(ITextBuffer textBuffer)
@@ -51,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 return null;
 
             return new QuickInfoSource(
-                textBuffer, _threadingContext, _operationExecutor, _listener, _streamingPresenter, _globalOptions);
+                textBuffer, _threadingContext, _operationExecutor, _listener, _streamingPresenter, _editorOptionsService, _inlineRenameService);
         }
     }
 }

@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
                 var formattingSpan = selection[0].Span.ToTextSpan();
 
-                Format(args.TextView, document, formattingSpan, context.OperationContext.UserCancellationToken);
+                Format(args.TextView, buffer, document, formattingSpan, context.OperationContext.UserCancellationToken);
 
                 // make behavior same as dev12.
                 // make sure we set selection back and set caret position at the end of selection

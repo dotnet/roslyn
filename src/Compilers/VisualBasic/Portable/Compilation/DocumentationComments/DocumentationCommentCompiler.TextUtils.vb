@@ -41,15 +41,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             ''' <summary>
-            ''' Given a string, find the index of the first non-whitespace char.
-            ''' </summary>
-            ''' <param name="str">The string to search</param>
-            ''' <returns>The index of the first non-whitespace char in the string</returns>
-            Private Shared Function GetIndexOfFirstNonWhitespaceChar(str As String) As Integer
-                Return GetIndexOfFirstNonWhitespaceChar(str, 0, str.Length)
-            End Function
-
-            ''' <summary>
             ''' Find the first non-whitespace character in a given substring.
             ''' </summary>
             ''' <param name="str">The string to search</param>
@@ -69,34 +60,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End While
 
                 Return start
-            End Function
-
-            ''' <summary>
-            ''' Determine if the given string starts with the given prefix if whitespace
-            ''' is first trimmed from the beginning.
-            ''' </summary>
-            ''' <param name="str">The string to search</param>
-            ''' <param name="prefix">The prefix</param>
-            ''' <returns>true if "str.TrimStart().StartsWith(prefix)"</returns>
-            Private Shared Function TrimmedStringStartsWith(str As String, prefix As String) As Boolean
-                ' PERF: Avoid calling string.Trim() because that allocates a new substring
-                Dim start As Integer = GetIndexOfFirstNonWhitespaceChar(str)
-                Dim len As Integer = str.Length - start
-                If len < prefix.Length Then
-                    Return False
-                End If
-
-                Dim i As Integer = 0
-                Dim j As Integer = start
-                While i < prefix.Length
-                    If prefix(i) <> str(j) Then
-                        Return False
-                    End If
-                    i += 1
-                    j += 1
-                End While
-
-                Return True
             End Function
 
             ''' <summary>

@@ -206,6 +206,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 using var scope = context.AddScope(allowCancellation: true, ServicesVSResources.Updating_severity);
                 await _editHandlerService.ApplyAsync(
                     _workspace,
+                    project.Solution,
                     fromDocument: null,
                     operations: operations,
                     title: ServicesVSResources.Updating_severity,
@@ -217,7 +218,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     // Kick off diagnostic re-analysis for affected document so that the configured diagnostic gets refreshed.
                     _ = Task.Run(() =>
                     {
-                        _diagnosticService.Reanalyze(_workspace, documentIds: SpecializedCollections.SingletonEnumerable(selectedDiagnostic.DocumentId), highPriority: true);
+                        _diagnosticService.Reanalyze(_workspace, projectIds: null, documentIds: SpecializedCollections.SingletonEnumerable(selectedDiagnostic.DocumentId), highPriority: true);
                     });
                 }
             }

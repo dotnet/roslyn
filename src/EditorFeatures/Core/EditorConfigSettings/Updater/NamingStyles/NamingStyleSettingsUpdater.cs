@@ -8,18 +8,24 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
+using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Extensions;
 using Microsoft.CodeAnalysis.EditorConfig.Parsing.NamingStyles;
 using Microsoft.CodeAnalysis.NamingStyles;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using static Microsoft.CodeAnalysis.EditorConfig.Parsing.NamingStyles.EditorConfigNamingStylesParser;
+using RoslynEnumerableExtensions = Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Extensions.EnumerableExtensions;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
 {
     internal partial class NamingStyleSettingsUpdater : SettingsUpdaterBase<(Action<(object, object?)> onSettingChange, NamingStyleSetting option), object>
     {
-        public NamingStyleSettingsUpdater(Workspace workspace, string editorconfigPath)
+        public readonly IGlobalOptionService GlobalOptions;
+
+        public NamingStyleSettingsUpdater(Workspace workspace, IGlobalOptionService globalOptions, string editorconfigPath)
                 : base(workspace, editorconfigPath)
         {
+            GlobalOptions = globalOptions;
         }
 
         protected override SourceText? GetNewText(
@@ -33,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                 // handle no naming style rules in the editorconfig file.
                 // The implementation does not allow naming style rules to layer meaning all rules are either 
                 // defined in Visual Studios settings or in an editorconfig file. 
-                analyzerConfigDocument = analyzerConfigDocument.WithNamingStyles(Workspace.Options);
+                analyzerConfigDocument = analyzerConfigDocument.WithNamingStyles(GlobalOptions);
                 result = Parse(analyzerConfigDocument, EditorconfigPath);
             }
 
@@ -54,12 +60,13 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                     {
                         var allCurrentStyles = result.Rules.Select(x => x.NamingScheme).Distinct().Select(x => (x, style: x.AsNamingStyle()));
                         var styleParseResult = TryGetStyleParseResult(prevStyle, allCurrentStyles);
+                        var allDistinctStyles = RoslynEnumerableExtensions.DistinctBy(allCurrentStyles.Select(x => x.style), x => x.Name).ToArray();
                         if (styleParseResult is (NamingScheme namingScheme, NamingStyle style))
                         {
                             var newLine = $"dotnet_naming_rule.{parseResult.RuleName.Value}.style = {namingScheme.OptionName.Value}";
                             analyzerConfigDocument = UpdateDocument(analyzerConfigDocument, newLine, parseResult.NamingScheme.OptionName.Span, endOfSection);
                             result = Parse(analyzerConfigDocument, EditorconfigPath);
-                            onSettingChange((style, allCurrentStyles.Select(x => x.style).ToArray()));
+                            onSettingChange((style, allDistinctStyles));
                         }
 
                         continue;

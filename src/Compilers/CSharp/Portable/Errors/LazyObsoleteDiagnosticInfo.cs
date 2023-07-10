@@ -5,52 +5,52 @@
 #nullable disable
 
 using System.Diagnostics;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal sealed class LazyObsoleteDiagnosticInfo : DiagnosticInfo
+    internal sealed class LazyObsoleteDiagnosticInfo : LazyDiagnosticInfo
     {
-        private DiagnosticInfo _lazyActualObsoleteDiagnostic;
-
         private readonly object _symbolOrSymbolWithAnnotations;
         private readonly Symbol _containingSymbol;
         private readonly BinderFlags _binderFlags;
 
         internal LazyObsoleteDiagnosticInfo(object symbol, Symbol containingSymbol, BinderFlags binderFlags)
-            : base(CSharp.MessageProvider.Instance, (int)ErrorCode.Unknown)
         {
             Debug.Assert(symbol is Symbol || symbol is TypeWithAnnotations);
             _symbolOrSymbolWithAnnotations = symbol;
             _containingSymbol = containingSymbol;
             _binderFlags = binderFlags;
-            _lazyActualObsoleteDiagnostic = null;
         }
 
-        internal override DiagnosticInfo GetResolvedInfo()
+        private LazyObsoleteDiagnosticInfo(LazyObsoleteDiagnosticInfo original, DiagnosticSeverity severity) : base(original, severity)
         {
-            if (_lazyActualObsoleteDiagnostic == null)
-            {
-                // A symbol's Obsoleteness may not have been calculated yet if the symbol is coming
-                // from a different compilation's source. In that case, force completion of attributes.
-                var symbol = (_symbolOrSymbolWithAnnotations as Symbol) ?? ((TypeWithAnnotations)_symbolOrSymbolWithAnnotations).Type;
-                symbol.ForceCompleteObsoleteAttribute();
+            _symbolOrSymbolWithAnnotations = original._symbolOrSymbolWithAnnotations;
+            _containingSymbol = original._containingSymbol;
+            _binderFlags = original._binderFlags;
+        }
 
-                var kind = ObsoleteAttributeHelpers.GetObsoleteDiagnosticKind(symbol, _containingSymbol, forceComplete: true);
-                Debug.Assert(kind != ObsoleteDiagnosticKind.Lazy);
-                Debug.Assert(kind != ObsoleteDiagnosticKind.LazyPotentiallySuppressed);
+        protected override DiagnosticInfo GetInstanceWithSeverityCore(DiagnosticSeverity severity)
+        {
+            return new LazyObsoleteDiagnosticInfo(this, severity);
+        }
 
-                var info = (kind == ObsoleteDiagnosticKind.Diagnostic) ?
-                    ObsoleteAttributeHelpers.CreateObsoleteDiagnostic(symbol, _binderFlags) :
-                    null;
+        protected override DiagnosticInfo ResolveInfo()
+        {
+            // A symbol's Obsoleteness may not have been calculated yet if the symbol is coming
+            // from a different compilation's source. In that case, force completion of attributes.
+            var symbol = (_symbolOrSymbolWithAnnotations as Symbol) ?? ((TypeWithAnnotations)_symbolOrSymbolWithAnnotations).Type;
+            symbol.ForceCompleteObsoleteAttribute();
 
-                // If this symbol is not obsolete or is in an obsolete context, we don't want to report any diagnostics.
-                // Therefore make this a Void diagnostic.
-                Interlocked.CompareExchange(ref _lazyActualObsoleteDiagnostic, info ?? CSDiagnosticInfo.VoidDiagnosticInfo, null);
-            }
+            var kind = ObsoleteAttributeHelpers.GetObsoleteDiagnosticKind(symbol, _containingSymbol, forceComplete: true);
+            Debug.Assert(kind != ObsoleteDiagnosticKind.Lazy);
+            Debug.Assert(kind != ObsoleteDiagnosticKind.LazyPotentiallySuppressed);
 
-            return _lazyActualObsoleteDiagnostic;
+            // If this symbol is not obsolete or is in an obsolete context, we don't want to report any diagnostics.
+            // Therefore return null.
+            return (kind == ObsoleteDiagnosticKind.Diagnostic) ?
+                ObsoleteAttributeHelpers.CreateObsoleteDiagnostic(symbol, _binderFlags) :
+                null;
         }
     }
 }

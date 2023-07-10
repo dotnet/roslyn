@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(this.IsDefinitionOrDistinct());
 
-            var synthesizedGlobalMethod = AdaptedMethodSymbol as SynthesizedGlobalMethodSymbol;
+            var synthesizedGlobalMethod = AdaptedMethodSymbol.OriginalDefinition as SynthesizedGlobalMethodSymbol;
             if ((object)synthesizedGlobalMethod != null)
             {
                 return synthesizedGlobalMethod.ContainingPrivateImplementationDetailsType;
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 CheckDefinitionInvariant();
 
-                var synthesizedGlobalMethod = AdaptedMethodSymbol as SynthesizedGlobalMethodSymbol;
+                var synthesizedGlobalMethod = AdaptedMethodSymbol.OriginalDefinition as SynthesizedGlobalMethodSymbol;
                 if ((object)synthesizedGlobalMethod != null)
                 {
                     return synthesizedGlobalMethod.ContainingPrivateImplementationDetailsType;
@@ -691,7 +691,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (underlyingMethodSymbol is NativeIntegerMethodSymbol)
             {
                 // Emit should use underlying symbol only.
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

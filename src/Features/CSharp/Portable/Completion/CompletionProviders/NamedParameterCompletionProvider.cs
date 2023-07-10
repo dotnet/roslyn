@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     .FindTokenOnLeftOfPosition(position, cancellationToken)
                     .GetPreviousTokenIfTouchingWord(position);
 
-                if (!token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.OpenBracketToken, SyntaxKind.CommaToken))
+                if (token.Kind() is not (SyntaxKind.OpenParenToken or SyntaxKind.OpenBracketToken or SyntaxKind.CommaToken))
                 {
                     return;
                 }
@@ -106,9 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     context.IsExclusive = true;
                 }
 
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-                var workspace = document.Project.Solution.Workspace;
+                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                 foreach (var parameter in unspecifiedParameters)
                 {

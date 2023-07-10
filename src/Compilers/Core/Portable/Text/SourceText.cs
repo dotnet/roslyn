@@ -12,7 +12,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -33,11 +32,11 @@ namespace Microsoft.CodeAnalysis.Text
         private SourceTextContainer? _lazyContainer;
         private TextLineCollection? _lazyLineInfo;
         private ImmutableArray<byte> _lazyChecksum;
-        private ImmutableArray<byte> _precomputedEmbeddedTextBlob;
+        private readonly ImmutableArray<byte> _precomputedEmbeddedTextBlob;
 
         private static readonly Encoding s_utf8EncodingWithNoBOM = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: false);
 
-        protected SourceText(ImmutableArray<byte> checksum = default(ImmutableArray<byte>), SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1, SourceTextContainer? container = null)
+        protected SourceText(ImmutableArray<byte> checksum = default, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1, SourceTextContainer? container = null)
         {
             ValidateChecksumAlgorithm(checksumAlgorithm);
 
@@ -613,22 +612,25 @@ namespace Microsoft.CodeAnalysis.Text
             CheckSubSpan(span);
 
             // default implementation constructs text using CopyTo
-            var builder = new StringBuilder();
-            var buffer = new char[Math.Min(span.Length, 1024)];
+            var builder = PooledStringBuilder.GetInstance();
+            var buffer = s_charArrayPool.Allocate();
 
             int position = Math.Max(Math.Min(span.Start, this.Length), 0);
             int length = Math.Min(span.End, this.Length) - position;
+            builder.Builder.EnsureCapacity(length);
 
             while (position < this.Length && length > 0)
             {
                 int copyLength = Math.Min(buffer.Length, length);
                 this.CopyTo(position, buffer, 0, copyLength);
-                builder.Append(buffer, 0, copyLength);
+                builder.Builder.Append(buffer, 0, copyLength);
                 length -= copyLength;
                 position += copyLength;
             }
 
-            return builder.ToString();
+            s_charArrayPool.Free(buffer);
+
+            return builder.ToStringAndFree();
         }
 
         #region Changes
@@ -732,13 +734,13 @@ namespace Microsoft.CodeAnalysis.Text
 
         /// <summary>
         /// Constructs a new SourceText from this text with the specified changes.
-        /// <exception cref="ArgumentException">If any changes are not in bounds of this <see cref="SourceText"/>.</exception>
-        /// <exception cref="ArgumentException">If any changes overlap other changes.</exception>
-        /// </summary>
+        /// </summary>        
         /// <remarks>
         /// Changes do not have to be in sorted order.  However, <see cref="WithChanges(IEnumerable{TextChange})"/> will
         /// perform better if they are.
         /// </remarks>
+        /// <exception cref="ArgumentException">If any changes are not in bounds of this <see cref="SourceText"/>.</exception>
+        /// <exception cref="ArgumentException">If any changes overlap other changes.</exception>        
         public SourceText WithChanges(params TextChange[] changes)
         {
             return this.WithChanges((IEnumerable<TextChange>)changes);

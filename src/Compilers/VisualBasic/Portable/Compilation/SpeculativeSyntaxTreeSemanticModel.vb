@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Sub New(parentSemanticModel As SyntaxTreeSemanticModel, root As ExpressionSyntax, binder As Binder, position As Integer, bindingOption As SpeculativeBindingOption)
-            MyBase.New(parentSemanticModel.Compilation, DirectCast(parentSemanticModel.Compilation.SourceModule, SourceModuleSymbol), root.SyntaxTree)
+            MyBase.New(parentSemanticModel.Compilation, DirectCast(parentSemanticModel.Compilation.SourceModule, SourceModuleSymbol), root.SyntaxTree, ignoreAccessibility:=parentSemanticModel.IgnoresAccessibility)
 
             _parentSemanticModel = parentSemanticModel
             _root = root

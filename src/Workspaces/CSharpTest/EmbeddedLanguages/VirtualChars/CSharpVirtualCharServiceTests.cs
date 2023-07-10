@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
             return true;
         }
 
-        [Fact, WorkItem(61270, "https://github.com/dotnet/roslyn/issues/61270")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61270")]
         public void TestRawStringInSkippedToken()
         {
             var text = """"

@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc
                     }),
                     endOfComment: Token(SyntaxKind.EndOfDocumentationCommentToken).WithoutTrivia());
 
-                sourceText ??= await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                sourceText ??= await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var indentation = sourceText.GetLeadingWhitespaceOfLineAtPosition(node.FullSpan.Start);
                 var newLeadingTrivia = TriviaList(
                     Whitespace(indentation),

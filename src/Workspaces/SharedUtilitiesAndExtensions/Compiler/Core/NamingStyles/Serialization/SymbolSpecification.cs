@@ -25,38 +25,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
     [DataContract]
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    internal sealed class SymbolSpecification : IEquatable<SymbolSpecification>, IObjectWritable
+    internal sealed class SymbolSpecification(
+        Guid id,
+        string name,
+        ImmutableArray<SymbolSpecification.SymbolKindOrTypeKind> symbolKindList,
+        ImmutableArray<Accessibility> accessibilityList = default,
+        ImmutableArray<SymbolSpecification.ModifierKind> modifiers = default) : IEquatable<SymbolSpecification>, IObjectWritable
     {
         private static readonly SymbolSpecification DefaultSymbolSpecificationTemplate = CreateDefaultSymbolSpecification();
 
         [DataMember(Order = 0)]
-        public Guid ID { get; }
+        public Guid ID { get; } = id;
 
         [DataMember(Order = 1)]
-        public string Name { get; }
+        public string Name { get; } = name;
 
         [DataMember(Order = 2)]
-        public ImmutableArray<SymbolKindOrTypeKind> ApplicableSymbolKindList { get; }
+        public ImmutableArray<SymbolKindOrTypeKind> ApplicableSymbolKindList { get; } = symbolKindList.IsDefault ? DefaultSymbolSpecificationTemplate.ApplicableSymbolKindList : symbolKindList;
 
         [DataMember(Order = 3)]
-        public ImmutableArray<Accessibility> ApplicableAccessibilityList { get; }
+        public ImmutableArray<Accessibility> ApplicableAccessibilityList { get; } = accessibilityList.IsDefault ? DefaultSymbolSpecificationTemplate.ApplicableAccessibilityList : accessibilityList;
 
         [DataMember(Order = 4)]
-        public ImmutableArray<ModifierKind> RequiredModifierList { get; }
-
-        public SymbolSpecification(
-            Guid id,
-            string name,
-            ImmutableArray<SymbolKindOrTypeKind> symbolKindList,
-            ImmutableArray<Accessibility> accessibilityList = default,
-            ImmutableArray<ModifierKind> modifiers = default)
-        {
-            ID = id;
-            Name = name;
-            ApplicableSymbolKindList = symbolKindList.IsDefault ? DefaultSymbolSpecificationTemplate.ApplicableSymbolKindList : symbolKindList;
-            ApplicableAccessibilityList = accessibilityList.IsDefault ? DefaultSymbolSpecificationTemplate.ApplicableAccessibilityList : accessibilityList;
-            RequiredModifierList = modifiers.IsDefault ? DefaultSymbolSpecificationTemplate.RequiredModifierList : modifiers;
-        }
+        public ImmutableArray<ModifierKind> RequiredModifierList { get; } = modifiers.IsDefault ? DefaultSymbolSpecificationTemplate.RequiredModifierList : modifiers;
 
         private string GetDebuggerDisplay()
             => Name;
@@ -253,9 +244,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return new SymbolSpecification(
                 reader.ReadGuid(),
                 reader.ReadString(),
-                reader.ReadArray(r => SymbolKindOrTypeKind.ReadFrom(r)),
+                reader.ReadArray(SymbolKindOrTypeKind.ReadFrom),
                 reader.ReadArray(r => (Accessibility)r.ReadInt32()),
-                reader.ReadArray(r => ModifierKind.ReadFrom(r)));
+                reader.ReadArray(ModifierKind.ReadFrom));
         }
 
         private XElement CreateSymbolKindsXElement()
@@ -408,7 +399,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     SymbolCategory.Other => new XElement(nameof(SymbolKind), (SymbolKind)_kind),
                     SymbolCategory.Type => new XElement(nameof(TypeKind), GetTypeKindString((TypeKind)_kind)),
                     SymbolCategory.Method => new XElement(nameof(MethodKind), GetMethodKindString((MethodKind)_kind)),
-                    _ => throw ExceptionUtilities.Unreachable
+                    _ => throw ExceptionUtilities.Unreachable()
                 };
 
             private static string GetTypeKindString(TypeKind typeKind)

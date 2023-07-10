@@ -15,30 +15,21 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
     internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurationFixProvider
     {
-        internal sealed class GlobalSuppressMessageCodeAction : AbstractGlobalSuppressMessageCodeAction
+        internal sealed class GlobalSuppressMessageCodeAction(
+            ISymbol targetSymbol, INamedTypeSymbol suppressMessageAttribute,
+            Project project, Diagnostic diagnostic,
+            AbstractSuppressionCodeFixProvider fixer,
+            CodeActionOptionsProvider fallbackOptions) : AbstractGlobalSuppressMessageCodeAction(fixer, project)
         {
-            private readonly ISymbol _targetSymbol;
-            private readonly INamedTypeSymbol _suppressMessageAttribute;
-            private readonly Diagnostic _diagnostic;
-            private readonly CodeActionOptionsProvider _fallbackOptions;
-
-            public GlobalSuppressMessageCodeAction(
-                ISymbol targetSymbol, INamedTypeSymbol suppressMessageAttribute,
-                Project project, Diagnostic diagnostic,
-                AbstractSuppressionCodeFixProvider fixer,
-                CodeActionOptionsProvider fallbackOptions)
-                : base(fixer, project)
-            {
-                _targetSymbol = targetSymbol;
-                _suppressMessageAttribute = suppressMessageAttribute;
-                _diagnostic = diagnostic;
-                _fallbackOptions = fallbackOptions;
-            }
+            private readonly ISymbol _targetSymbol = targetSymbol;
+            private readonly INamedTypeSymbol _suppressMessageAttribute = suppressMessageAttribute;
+            private readonly Diagnostic _diagnostic = diagnostic;
+            private readonly CodeActionOptionsProvider _fallbackOptions = fallbackOptions;
 
             protected override async Task<Document> GetChangedSuppressionDocumentAsync(CancellationToken cancellationToken)
             {
                 var suppressionsDoc = await GetOrCreateSuppressionsDocumentAsync(cancellationToken).ConfigureAwait(false);
-                var services = suppressionsDoc.Project.Solution.Workspace.Services;
+                var services = suppressionsDoc.Project.Solution.Services;
                 var suppressionsRoot = await suppressionsDoc.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var addImportsService = suppressionsDoc.GetRequiredLanguageService<IAddImportsService>();
                 var options = await suppressionsDoc.GetSyntaxFormattingOptionsAsync(_fallbackOptions, cancellationToken).ConfigureAwait(false);

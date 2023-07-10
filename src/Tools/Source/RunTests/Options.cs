@@ -6,6 +6,7 @@ using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -87,6 +88,12 @@ namespace RunTests
         public string? HelixQueueName { get; set; }
 
         /// <summary>
+        /// Access token to send jobs to helix (only valid when <see cref="UseHelix" /> is <see langword="true" />).
+        /// This should only be set when using internal helix queues.
+        /// </summary>
+        public string? HelixApiAccessToken { get; set; }
+
+        /// <summary>
         /// Path to the dotnet executable we should use for running dotnet test
         /// </summary>
         public string DotnetFilePath { get; set; }
@@ -102,6 +109,16 @@ namespace RunTests
         public string LogFilesDirectory { get; set; }
 
         public string Architecture { get; set; }
+
+        public string? AccessToken { get; set; }
+
+        public string? ProjectUri { get; set; }
+
+        public string? PipelineDefinitionId { get; set; }
+
+        public string? PhaseName { get; set; }
+
+        public string? TargetBranchName { get; set; }
 
         public Options(
             string dotnetFilePath,
@@ -131,6 +148,7 @@ namespace RunTests
             var sequential = false;
             var helix = false;
             var helixQueueName = "Windows.10.Amd64.Open";
+            string? helixApiAccessToken = null;
             var retry = false;
             string? testFilter = null;
             int? timeout = null;
@@ -140,6 +158,11 @@ namespace RunTests
             var collectDumps = false;
             string? procDumpFilePath = null;
             string? artifactsPath = null;
+            string? accessToken = null;
+            string? projectUri = null;
+            string? pipelineDefinitionId = null;
+            string? phaseName = null;
+            string? targetBranchName = null;
             var optionSet = new OptionSet()
             {
                 { "dotnet=", "Path to dotnet", (string s) => dotnetFilePath = s },
@@ -152,6 +175,7 @@ namespace RunTests
                 { "sequential", "Run tests sequentially", o => sequential = o is object },
                 { "helix", "Run tests on Helix", o => helix = o is object },
                 { "helixQueueName=", "Name of the Helix queue to run tests on", (string s) => helixQueueName = s },
+                { "helixApiAccessToken=", "Access token for internal helix queues", (string s) => helixApiAccessToken = s },
                 { "testfilter=", "xUnit string to pass to --filter, e.g. FullyQualifiedName~TestClass1|Category=CategoryA", (string s) => testFilter = s },
                 { "timeout=", "Minute timeout to limit the tests to", (int i) => timeout = i },
                 { "out=", "Test result file directory (when running on Helix, this is relative to the Helix work item directory)", (string s) => resultFileDirectory = s },
@@ -161,6 +185,11 @@ namespace RunTests
                 { "procdumppath=", "Path to procdump", (string s) => procDumpFilePath = s },
                 { "collectdumps", "Whether or not to gather dumps on timeouts and crashes", o => collectDumps = o is object },
                 { "retry", "Retry failed test a few times", o => retry = o is object },
+                { "accessToken=", "Pipeline access token with permissions to view test history", (string s) => accessToken = s },
+                { "projectUri=", "ADO project containing the pipeline", (string s) => projectUri = s },
+                { "pipelineDefinitionId=", "Pipeline definition id", (string s) => pipelineDefinitionId = s },
+                { "phaseName=", "Pipeline phase name associated with this test run", (string s) => phaseName = s },
+                { "targetBranchName=", "Target branch of this pipeline run", (string s) => targetBranchName = s },
             };
 
             List<string> assemblyList;
@@ -233,10 +262,16 @@ namespace RunTests
                 Sequential = sequential,
                 UseHelix = helix,
                 HelixQueueName = helixQueueName,
+                HelixApiAccessToken = helixApiAccessToken,
                 IncludeHtml = includeHtml,
                 TestFilter = testFilter,
                 Timeout = timeout is { } t ? TimeSpan.FromMinutes(t) : null,
                 Retry = retry,
+                AccessToken = accessToken,
+                ProjectUri = projectUri,
+                PipelineDefinitionId = pipelineDefinitionId,
+                PhaseName = phaseName,
+                TargetBranchName = targetBranchName,
             };
 
             static string? TryGetArtifactsPath()

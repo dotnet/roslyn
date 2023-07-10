@@ -72,7 +72,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                 "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=(Name=C GenericParameterCount=1) Member=(Name=M GenericParameterCount=1 OverloadingParameters=[(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=(Name=C GenericParameterCount=1) ParameterIdentifier=0),(ParameterIdentifier=0)]))")
         End Function
 
-        <WpfFact, WorkItem(547263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547263")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547263")>
         Public Async Function TestMemberWithParameterTypeConstructedWithMemberTypeParameter() As Task
             Await AssertMarkedNodeIdIsAsync(
                 "namespace N { class C { void $$M<T>(T t, System.Func<T, int> u) { } } }",
@@ -100,28 +100,28 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                 "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=C Member=(Name=M OverloadingParameters=[(Assembly=file:///Z:/FxReferenceAssembliesUri Namespace=System.Collections.Generic Type=(Name=List GenericParameterCount=1 GenericArguments=[(Assembly=file:///Z:/FxReferenceAssembliesUri Namespace=System Type=Int32)]))]))")
         End Function
 
-        <WpfFact, WorkItem(616549, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/616549")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/616549")>
         Public Async Function TestMemberWithDynamicType() As Task
             Await AssertMarkedNodeIdIsAsync(
                 "namespace N { class C { void $$M(dynamic d) { } } }",
                 "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=C Member=(Name=M OverloadingParameters=[(Namespace=System Type=Object)]))")
         End Function
 
-        <WpfFact, WorkItem(616549, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/616549")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/616549")>
         Public Async Function TestMemberWithGenericTypeOfDynamicType() As Task
             Await AssertMarkedNodeIdIsAsync(
                 "namespace N { class C { void $$M(System.Collections.Generic.List<dynamic> p) { } } }",
                 "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=C Member=(Name=M OverloadingParameters=[(Assembly=file:///Z:/FxReferenceAssembliesUri Namespace=System.Collections.Generic Type=(Name=List GenericParameterCount=1 GenericArguments=[(Namespace=System Type=Object)]))]))")
         End Function
 
-        <WpfFact, WorkItem(616549, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/616549")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/616549")>
         Public Async Function TestMemberWithArrayOfDynamicType() As Task
             Await AssertMarkedNodeIdIsAsync(
                 "namespace N { class C { void $$M(dynamic[] d) { } } }",
                 "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=C Member=(Name=M OverloadingParameters=[(Namespace=System Type=(Name=Object ArrayRank=1 ParentType=Object))]))")
         End Function
 
-        <WpfFact, WorkItem(547234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547234")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547234")>
         Public Async Function TestErrorType() As Task
             Await AssertMarkedNodeIdIsAsync(
                 "Class $$C : Inherits D : End Class",

@@ -10,9 +10,9 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -32,9 +32,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static readonly ImmutableDictionary<string, string> s_conversionProperties =
             ImmutableDictionary<string, string>.Empty.Add(KindName, ConversionKindName);
 
-        // We set conversion items' match priority to lower than default so completion selects other symbols over it when user starts typing.
+        // We set conversion items' match priority to "Deprioritize" so completion selects other symbols over it when user starts typing.
         // e.g. method symbol `Should` should be selected over `(short)` when "sh" is typed.
-        private static readonly CompletionItemRules s_conversionRules = CompletionItemRules.Default.WithMatchPriority(MatchPriority.Default - 1);
+        private static readonly CompletionItemRules s_conversionRules = CompletionItemRules.Default.WithMatchPriority(MatchPriority.Deprioritize);
 
         private static void AddConversion(CompletionContext context, SemanticModel semanticModel, int position, IMethodSymbol conversion)
         {
@@ -51,7 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 symbols: symbols,
                 rules: s_conversionRules,
                 contextPosition: position,
-                properties: properties));
+                properties: properties,
+                isComplexTextEdit: true));
         }
 
         private static (ImmutableArray<ISymbol> symbols, ImmutableDictionary<string, string> properties) GetConversionSymbolsAndProperties(
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             Document document, CompletionItem item, CancellationToken cancellationToken)
         {
             var position = SymbolCompletionItem.GetContextPosition(item);
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var (dotToken, _) = GetDotAndExpressionStart(root, position, cancellationToken);
 
@@ -141,10 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (item.Properties.ContainsKey(RehydrateName))
             {
                 var symbols = await SymbolCompletionItem.GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
-                if (symbols.Length == 3 &&
-                    symbols[0] is INamedTypeSymbol containingType &&
-                    symbols[1] is ITypeSymbol fromType &&
-                    symbols[2] is ITypeSymbol toType)
+                if (symbols is [INamedTypeSymbol containingType, ITypeSymbol fromType, ITypeSymbol toType])
                 {
                     return CodeGenerationSymbolFactory.CreateConversionSymbol(
                         toType: toType,

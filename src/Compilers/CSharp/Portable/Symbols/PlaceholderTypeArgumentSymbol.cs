@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override string Name
@@ -47,6 +47,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
         }
+
+        internal override bool IsFileLocal => false;
+        internal override FileIdentifier? AssociatedFileIdentifier => null;
 
         internal override DiagnosticInfo? ErrorInfo
         {

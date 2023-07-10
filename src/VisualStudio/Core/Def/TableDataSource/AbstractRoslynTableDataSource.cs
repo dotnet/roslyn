@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
@@ -22,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         protected ImmutableArray<DocumentId> GetDocumentsWithSameFilePath(Solution solution, DocumentId documentId)
         {
-            var document = solution.GetDocument(documentId);
+            var document = solution.GetTextDocument(documentId);
             if (document == null)
             {
                 return ImmutableArray<DocumentId>.Empty;

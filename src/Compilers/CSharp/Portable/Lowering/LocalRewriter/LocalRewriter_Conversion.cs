@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -56,16 +57,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                  BoundDelegateCreationExpression { WasTargetTyped: true });
 
                     return objectCreation;
+
+                case ConversionKind.CollectionLiteral:
+                    // Skip through target-typed collection literals
+                    Debug.Assert(node.Type.Equals(node.Operand.Type, TypeCompareKind.AllIgnoreOptions));
+                    return VisitExpression(node.Operand)!;
             }
 
             var rewrittenType = VisitType(node.Type);
 
             bool wasInExpressionLambda = _inExpressionLambda;
             _inExpressionLambda = _inExpressionLambda || (node.ConversionKind == ConversionKind.AnonymousFunction && !wasInExpressionLambda && rewrittenType.IsExpressionTree());
+            InstrumentationState.IsSuppressed = _inExpressionLambda;
+
             var rewrittenOperand = VisitExpression(node.Operand);
             _inExpressionLambda = wasInExpressionLambda;
+            InstrumentationState.IsSuppressed = _inExpressionLambda;
 
-            var result = MakeConversionNode(node, node.Syntax, rewrittenOperand, node.Conversion, node.Checked, node.ExplicitCastInCode, node.ConstantValue, rewrittenType);
+            var result = MakeConversionNode(node, node.Syntax, rewrittenOperand, node.Conversion, node.Checked, node.ExplicitCastInCode, node.ConstantValueOpt, rewrittenType);
 
             var toType = node.Type;
             Debug.Assert(result.Type!.Equals(toType, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
@@ -73,18 +82,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        public override BoundNode VisitUTF8String(BoundUTF8String node)
+        public override BoundNode VisitUtf8String(BoundUtf8String node)
         {
-            Debug.Assert(node.Type.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions));
+            return MakeUtf8Span(node, GetUtf8ByteRepresentation(node));
+        }
+
+        private BoundExpression MakeUtf8Span(BoundExpression node, IReadOnlyList<byte>? bytes)
+        {
+            Debug.Assert(node.Type is not null);
+            Debug.Assert(_compilation.IsReadOnlySpanType(node.Type));
             var byteType = ((NamedTypeSymbol)node.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Single().Type;
             Debug.Assert(byteType.SpecialType == SpecialType.System_Byte);
 
             var save_Syntax = _factory.Syntax;
             _factory.Syntax = node.Syntax;
 
-            int length;
-            BoundExpression utf8Bytes = createUTF8ByteRepresentation(node.Syntax, node.Value, ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, TypeWithAnnotations.Create(byteType)), out length);
-            BoundNode result;
+            int length = 0;
+            BoundExpression result;
+            var byteArray = ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, TypeWithAnnotations.Create(byteType));
+            BoundExpression utf8Bytes = bytes is null ?
+                                            BadExpression(node.Syntax, byteArray, ImmutableArray<BoundExpression>.Empty) :
+                                            MakeUnderlyingArrayForUtf8Span(node.Syntax, byteArray, bytes, out length);
 
             if (!TryGetWellKnownTypeMember<MethodSymbol>(node.Syntax, WellKnownMember.System_ReadOnlySpan_T__ctor_Array_Start_Length, out MethodSymbol ctor))
             {
@@ -98,48 +116,97 @@ namespace Microsoft.CodeAnalysis.CSharp
             _factory.Syntax = save_Syntax;
 
             return result;
+        }
 
-            BoundExpression createUTF8ByteRepresentation(SyntaxNode syntax, string value, ArrayTypeSymbol byteArray, out int length)
+        private byte[]? GetUtf8ByteRepresentation(BoundUtf8String node)
+        {
+            var utf8 = new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+
+            try
             {
-                Debug.Assert(byteArray.IsSZArray);
-                Debug.Assert(byteArray.ElementType.SpecialType == SpecialType.System_Byte);
-
-                var utf8 = new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
-                byte[] bytes;
-
-                try
-                {
-                    bytes = utf8.GetBytes(value);
-                }
-                catch (Exception ex)
-                {
-                    _diagnostics.Add(
-                        ErrorCode.ERR_CannotBeConvertedToUTF8,
-                        syntax.Location,
-                        ex.Message);
-
-                    length = 0;
-                    return BadExpression(syntax, byteArray, ImmutableArray<BoundExpression>.Empty);
-                }
-
-                var builder = ArrayBuilder<BoundExpression>.GetInstance(bytes.Length);
-                foreach (byte b in bytes)
-                {
-                    builder.Add(_factory.Literal(b));
-                }
-
-                length = builder.Count;
-
-                // Zero terminate memory
-                builder.Add(_factory.Literal((byte)0));
-
-                var utf8Bytes = new BoundArrayCreation(
-                                        syntax,
-                                        ImmutableArray.Create<BoundExpression>(_factory.Literal(builder.Count)),
-                                        new BoundArrayInitialization(syntax, isInferred: false, builder.ToImmutableAndFree()),
-                                        byteArray);
-                return utf8Bytes;
+                return utf8.GetBytes(node.Value);
             }
+            catch (Exception ex)
+            {
+                _diagnostics.Add(
+                    ErrorCode.ERR_CannotBeConvertedToUtf8,
+                    node.Syntax.Location,
+                    ex.Message);
+
+                return null;
+            }
+        }
+
+        private BoundArrayCreation MakeUnderlyingArrayForUtf8Span(SyntaxNode syntax, ArrayTypeSymbol byteArray, IReadOnlyList<byte> bytes, out int length)
+        {
+            Debug.Assert(byteArray.IsSZArray);
+            Debug.Assert(byteArray.ElementType.SpecialType == SpecialType.System_Byte);
+
+            var builder = ArrayBuilder<BoundExpression>.GetInstance(bytes.Count + 1);
+            foreach (byte b in bytes)
+            {
+                builder.Add(_factory.Literal(b));
+            }
+
+            length = builder.Count;
+
+            // Zero terminate memory
+            builder.Add(_factory.Literal((byte)0));
+
+            var utf8Bytes = new BoundArrayCreation(
+                                    syntax,
+                                    ImmutableArray.Create<BoundExpression>(_factory.Literal(builder.Count)),
+                                    new BoundArrayInitialization(syntax, isInferred: false, builder.ToImmutableAndFree()),
+                                    byteArray);
+            return utf8Bytes;
+        }
+
+        private BoundExpression VisitUtf8Addition(BoundBinaryOperator node)
+        {
+            Debug.Assert(node.OperatorKind is BinaryOperatorKind.Utf8Addition);
+
+            var bytesBuilder = ArrayBuilder<byte>.GetInstance();
+            bool haveRepresentationError = false;
+            var stack = ArrayBuilder<BoundExpression>.GetInstance();
+
+            stack.Add(node);
+
+            while (stack.Count != 0)
+            {
+                var current = stack.Pop();
+
+                switch (current)
+                {
+                    case BoundUtf8String literal:
+                        byte[]? bytes = GetUtf8ByteRepresentation(literal);
+
+                        if (bytes is null)
+                        {
+                            haveRepresentationError = true;
+                        }
+                        else if (!haveRepresentationError)
+                        {
+                            bytesBuilder.AddRange(bytes);
+                        }
+                        break;
+
+                    case BoundBinaryOperator utf8Addition:
+                        Debug.Assert(utf8Addition.OperatorKind is BinaryOperatorKind.Utf8Addition);
+                        stack.Push(utf8Addition.Right);
+                        stack.Push(utf8Addition.Left);
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(current);
+                }
+            }
+
+            stack.Free();
+
+            BoundExpression result = MakeUtf8Span(node, haveRepresentationError ? null : bytesBuilder);
+
+            bytesBuilder.Free();
+            return result;
         }
 
         private static bool IsFloatingPointExpressionOfUnknownPrecision(BoundExpression rewrittenNode)
@@ -149,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (rewrittenNode.ConstantValue != null)
+            if (rewrittenNode.ConstantValueOpt != null)
             {
                 return false;
             }
@@ -237,6 +304,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(oldNodeOpt == null || oldNodeOpt.Syntax == syntax);
             Debug.Assert(rewrittenType is { });
+            Debug.Assert(_factory.ModuleBuilderOpt is { });
+            Debug.Assert(_diagnostics.DiagnosticBag is { });
 
             if (_inExpressionLambda && !conversion.IsUserDefined)
             {
@@ -399,7 +468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             constantValueOpt,
                             rewrittenType.GetNullableUnderlyingType());
 
-                        var outerConversion = new Conversion(ConversionKind.ImplicitNullable, Conversion.IdentityUnderlying);
+                        var outerConversion = Conversion.ImplicitNullableWithIdentityUnderlying;
                         outerConversion.MarkUnderlyingConversionsChecked();
                         return MakeConversionNode(
                             oldNodeOpt,
@@ -517,6 +586,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             return boundDelegateCreation;
                         }
+                    }
+
+                case ConversionKind.InlineArray:
+                    {
+                        Debug.Assert(rewrittenOperand.Type is not null);
+
+                        NamedTypeSymbol spanType = (NamedTypeSymbol)rewrittenType;
+                        MethodSymbol createSpan;
+
+                        if (spanType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions))
+                        {
+                            createSpan = _factory.ModuleBuilderOpt.EnsureInlineArrayAsReadOnlySpanExists(syntax, spanType.OriginalDefinition, _factory.SpecialType(SpecialType.System_Int32), _diagnostics.DiagnosticBag);
+                        }
+                        else
+                        {
+                            Debug.Assert(spanType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.AllIgnoreOptions));
+                            createSpan = _factory.ModuleBuilderOpt.EnsureInlineArrayAsSpanExists(syntax, spanType.OriginalDefinition, _factory.SpecialType(SpecialType.System_Int32), _diagnostics.DiagnosticBag);
+                        }
+
+                        createSpan = createSpan.Construct(rewrittenOperand.Type, spanType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Single().Type);
+                        _ = rewrittenOperand.Type.HasInlineArrayAttribute(out int length);
+
+                        return _factory.Call(null, createSpan, rewrittenOperand, _factory.Literal(length), useStrictArgumentRefKinds: true);
                     }
 
                 default:
@@ -867,7 +959,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // SPEC: conversion from S to T.
 
                 // We can do a simple optimization here if we know that the source is never null:
-
 
                 BoundExpression? value = NullableAlwaysHasValue(rewrittenOperand);
                 if (value == null)
@@ -1430,7 +1521,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         // https://github.com/dotnet/roslyn/issues/42452: Test with native integers and expression trees.

@@ -442,15 +442,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         public void ConditionalAccess_05()
         {
             UsingNode("x?.y?![0].ToString()", options: null,
-                // (1,7): error CS1525: Invalid expression term '['
-                // x?.y?![0].ToString()
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[", isSuppressed: false).WithArguments("[").WithLocation(1, 7),
                 // (1,21): error CS1003: Syntax error, ':' expected
                 // x?.y?![0].ToString()
-                Diagnostic(ErrorCode.ERR_SyntaxError, "", isSuppressed: false).WithArguments(":").WithLocation(1, 21),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(1, 21),
                 // (1,21): error CS1733: Expected expression
                 // x?.y?![0].ToString()
-                Diagnostic(ErrorCode.ERR_ExpressionExpected, "", isSuppressed: false).WithLocation(1, 21));
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 21));
 
             N(SyntaxKind.ConditionalExpression);
             {
@@ -478,24 +475,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                     {
                         N(SyntaxKind.SimpleMemberAccessExpression);
                         {
-                            N(SyntaxKind.ElementAccessExpression);
+                            N(SyntaxKind.CollectionExpression);
                             {
-                                M(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.ExpressionElement);
                                 {
-                                    M(SyntaxKind.IdentifierToken);
-                                }
-                                N(SyntaxKind.BracketedArgumentList);
-                                {
-                                    N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.Argument);
+                                    N(SyntaxKind.NumericLiteralExpression);
                                     {
-                                        N(SyntaxKind.NumericLiteralExpression);
-                                        {
-                                            N(SyntaxKind.NumericLiteralToken, "0");
-                                        }
+                                        N(SyntaxKind.NumericLiteralToken, "0");
                                     }
-                                    N(SyntaxKind.CloseBracketToken);
                                 }
+                                N(SyntaxKind.CloseBracketToken);
                             }
                             N(SyntaxKind.DotToken);
                             N(SyntaxKind.IdentifierName);
@@ -798,13 +788,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact, WorkItem(47712, "https://github.com/dotnet/roslyn/pull/47712")]
         public void ConditionalAccess_Suppression_LangVersion()
         {
-            UsingNode("x?.y!.z", options: TestOptions.Regular7_3,
-                // (1,3): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+            var text = "x?.y!.z";
+
+            CreateCompilation(text, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (1,1): error CS8370: Feature 'top-level statements' is not available in C# 7.3. Please use language version 9.0 or greater.
                 // x?.y!.z
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, ".y!", isSuppressed: false).WithArguments("nullable reference types", "8.0").WithLocation(1, 3));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x?.y!.z").WithArguments("top-level statements", "9.0").WithLocation(1, 1),
+                // (1,1): error CS0103: The name 'x' does not exist in the current context
+                // x?.y!.z
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(1, 1),
+                // (1,5): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // x?.y!.z
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "!").WithArguments("nullable reference types", "8.0").WithLocation(1, 5),
+                // (1,8): error CS1002: ; expected
+                // x?.y!.z
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 8));
+            CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (1,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // x?.y!.z
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "x?.y!.z").WithArguments("top-level statements", "9.0").WithLocation(1, 1),
+                // (1,1): error CS0103: The name 'x' does not exist in the current context
+                // x?.y!.z
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(1, 1),
+                // (1,8): error CS1002: ; expected
+                // x?.y!.z
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 8));
+
+            UsingNode(text, options: TestOptions.Regular7_3);
             verify();
 
-            UsingNode("x?.y!.z", options: TestOptions.Regular8);
+            UsingNode(text, options: TestOptions.Regular8);
             verify();
 
             void verify()

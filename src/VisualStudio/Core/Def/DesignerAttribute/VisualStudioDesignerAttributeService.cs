@@ -30,8 +30,8 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribute
 {
     [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
-    internal class VisualStudioDesignerAttributeService
-        : ForegroundThreadAffinitizedObject, IDesignerAttributeListener, IEventListener<object>, IDisposable
+    internal class VisualStudioDesignerAttributeService :
+        ForegroundThreadAffinitizedObject, IDesignerAttributeDiscoveryService.ICallback, IEventListener<object>, IDisposable
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
 
@@ -41,27 +41,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         private readonly IServiceProvider _serviceProvider;
 
         /// <summary>
-        /// Our connection to the remote OOP server. Created on demand when we startup and then
-        /// kept around for the lifetime of this service.
-        /// </summary>
-        private RemoteServiceConnection<IRemoteDesignerAttributeDiscoveryService>? _lazyConnection;
-
-        /// <summary>
         /// Cache from project to the CPS designer service for it.  Computed on demand (which
         /// requires using the UI thread), but then cached for all subsequent notifications about
         /// that project.
         /// </summary>
-        private readonly ConcurrentDictionary<ProjectId, IProjectItemDesignerTypeUpdateService?> _cpsProjects
-            = new();
+        private readonly ConcurrentDictionary<ProjectId, IProjectItemDesignerTypeUpdateService?> _cpsProjects = new();
 
         /// <summary>
         /// Cached designer service for notifying legacy projects about designer attributes.
         /// </summary>
         private IVSMDDesignerService? _legacyDesignerService;
 
-        // We'll get notifications from the OOP server about new attribute arguments. Batch those
-        // notifications up and deliver them to VS every second.
-        private readonly AsyncBatchingWorkQueue<DesignerAttributeData>? _workQueue;
+        private readonly AsyncBatchingWorkQueue _workQueue;
+
+        // We'll get notifications from the OOP server about new attribute arguments. Collect those notifications and
+        // deliver them to VS in batches to prevent flooding the UI thread.
+        private readonly AsyncBatchingWorkQueue<DesignerAttributeData> _projectSystemNotificationQueue;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -75,76 +70,67 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             _workspace = workspace;
             _serviceProvider = serviceProvider;
 
-            _workQueue = new AsyncBatchingWorkQueue<DesignerAttributeData>(
-                TimeSpan.FromSeconds(1),
+            var listener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.DesignerAttributes);
+
+            _workQueue = new AsyncBatchingWorkQueue(
+                DelayTimeSpan.Idle,
+                this.ProcessWorkspaceChangeAsync,
+                listener,
+                ThreadingContext.DisposalToken);
+
+            _projectSystemNotificationQueue = new AsyncBatchingWorkQueue<DesignerAttributeData>(
+                DelayTimeSpan.Idle,
                 this.NotifyProjectSystemAsync,
-                asynchronousOperationListenerProvider.GetListener(FeatureAttribute.DesignerAttributes),
+                listener,
                 ThreadingContext.DisposalToken);
         }
 
         public void Dispose()
         {
-            _lazyConnection?.Dispose();
+            _workspace.WorkspaceChanged -= OnWorkspaceChanged;
         }
 
         void IEventListener<object>.StartListening(Workspace workspace, object _)
         {
-            if (workspace is VisualStudioWorkspace)
-                _ = StartAsync();
+            if (workspace != _workspace)
+                return;
+
+            _workspace.WorkspaceChanged += OnWorkspaceChanged;
+            _workQueue.AddWork(cancelExistingWork: true);
         }
 
-        private async Task StartAsync()
+        private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
         {
-            // Have to catch all exceptions coming through here as this is called from a
-            // fire-and-forget method and we want to make sure nothing leaks out.
-            try
-            {
-                await StartWorkerAsync().ConfigureAwait(false);
-            }
-            catch (OperationCanceledException)
-            {
-                // Cancellation is normal (during VS closing).  Just ignore.
-            }
-            catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Diagnostic))
-            {
-                // Otherwise report a watson for any other exception.  Don't bring down VS.  This is
-                // a BG service we don't want impacting the user experience.
-            }
+            _workQueue.AddWork(cancelExistingWork: true);
         }
 
-        private async Task StartWorkerAsync()
+        private async ValueTask ProcessWorkspaceChangeAsync(CancellationToken cancellationToken)
         {
-            var cancellationToken = ThreadingContext.DisposalToken;
+            var statusService = _workspace.Services.GetRequiredService<IWorkspaceStatusService>();
+            await statusService.WaitUntilFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var solution = _workspace.CurrentSolution;
+            foreach (var (projectId, _) in _cpsProjects)
+            {
+                if (!solution.ContainsProject(projectId))
+                    _cpsProjects.TryRemove(projectId, out _);
+            }
 
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
-            {
-                StartScanningForDesignerAttributesInCurrentProcess(cancellationToken);
                 return;
-            }
 
-            // Pass ourselves in as the callback target for the OOP service.  As it discovers
-            // designer attributes it will call back into us to notify VS about it.
-            _lazyConnection = client.CreateConnection<IRemoteDesignerAttributeDiscoveryService>(callbackTarget: this);
+            var trackingService = _workspace.Services.GetRequiredService<IDocumentTrackingService>();
+            var priorityDocument = trackingService.TryGetActiveDocument();
 
-            // Now kick off scanning in the OOP process.
-            // If the call fails an error has already been reported and there is nothing more to do.
-            _ = await _lazyConnection.TryInvokeAsync(
-                (service, callbackId, cancellationToken) => service.StartScanningForDesignerAttributesAsync(callbackId, cancellationToken),
+            await client.TryInvokeAsync<IRemoteDesignerAttributeDiscoveryService>(
+                solution,
+                (service, checksum, callbackId, cancellationToken) => service.DiscoverDesignerAttributesAsync(
+                    callbackId, checksum, priorityDocument, useFrozenSnapshots: true, cancellationToken),
+                callbackTarget: this,
                 cancellationToken).ConfigureAwait(false);
-        }
-
-        public void StartScanningForDesignerAttributesInCurrentProcess(CancellationToken cancellation)
-        {
-            var registrationService = _workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-            var analyzerProvider = new InProcDesignerAttributeIncrementalAnalyzerProvider(this);
-
-            registrationService.AddAnalyzerProvider(
-                analyzerProvider,
-                new IncrementalAnalyzerProviderMetadata(
-                    nameof(InProcDesignerAttributeIncrementalAnalyzerProvider),
-                    highPriorityForActiveFile: false,
-                    workspaceKinds: WorkspaceKind.Host));
         }
 
         private async ValueTask NotifyProjectSystemAsync(
@@ -152,19 +138,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var _1 = ArrayBuilder<DesignerAttributeData>.GetInstance(out var filteredInfos);
+            using var _ = ArrayBuilder<DesignerAttributeData>.GetInstance(out var filteredInfos);
             AddFilteredInfos(data, filteredInfos);
 
-            // Now, group all the notifications by project and update all the projects in parallel.
-            using var _2 = ArrayBuilder<Task>.GetInstance(out var tasks);
+            // Now, group all the notifications by project and update that project at once.
             foreach (var group in filteredInfos.GroupBy(a => a.DocumentId.ProjectId))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                tasks.Add(NotifyProjectSystemAsync(group.Key, group, cancellationToken));
+                await NotifyProjectSystemAsync(group.Key, group, cancellationToken).ConfigureAwait(false);
             }
-
-            // Wait until all project updates have happened before processing the next batch.
-            await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
         private static void AddFilteredInfos(ImmutableSegmentedList<DesignerAttributeData> data, ArrayBuilder<DesignerAttributeData> filteredData)
@@ -270,17 +252,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             if (!_workspace.IsPrimaryProject(projectId))
                 return;
 
-            // Broadcast all the information about all the documents in parallel to CPS.
-
-            using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
-
             foreach (var info in data)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                tasks.Add(NotifyCpsProjectSystemAsync(updateService, info, cancellationToken));
+                await NotifyCpsProjectSystemAsync(updateService, info, cancellationToken).ConfigureAwait(false);
             }
-
-            await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
         private static async Task NotifyCpsProjectSystemAsync(
@@ -338,14 +314,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         /// </summary>
         public ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(_workQueue);
-            _workQueue.AddWork(data);
-            return ValueTaskFactory.CompletedTask;
-        }
-
-        public ValueTask OnProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
-        {
-            _cpsProjects.TryRemove(projectId, out _);
+            Contract.ThrowIfNull(_projectSystemNotificationQueue);
+            _projectSystemNotificationQueue.AddWork(data);
             return ValueTaskFactory.CompletedTask;
         }
     }

@@ -11,7 +11,7 @@ using System.Text.Json;
 using System.Threading;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -20,7 +20,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
     /// <summary>
     /// Helper class to detect json in string tokens in a document efficiently.
     /// </summary>
-    internal class JsonLanguageDetector : AbstractLanguageDetector<JsonOptions, JsonTree>
+    internal class JsonLanguageDetector(
+        EmbeddedLanguageInfo info,
+        ISet<INamedTypeSymbol> typesOfInterest) : AbstractLanguageDetector<JsonOptions, JsonTree>(info, LanguageIdentifiers)
     {
         public static readonly ImmutableArray<string> LanguageIdentifiers = ImmutableArray.Create("Json");
 
@@ -37,15 +39,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
 
         private static readonly ConditionalWeakTable<Compilation, JsonLanguageDetector> s_compilationToDetector = new();
 
-        private readonly ISet<INamedTypeSymbol> _typesOfInterest;
-
-        public JsonLanguageDetector(
-            EmbeddedLanguageInfo info,
-            ISet<INamedTypeSymbol> typesOfInterest)
-            : base(info, LanguageIdentifiers)
-        {
-            _typesOfInterest = typesOfInterest;
-        }
+        private readonly ISet<INamedTypeSymbol> _typesOfInterest = typesOfInterest;
 
         public static JsonLanguageDetector GetOrCreate(
             Compilation compilation, EmbeddedLanguageInfo info)
@@ -60,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
         private static JsonLanguageDetector Create(
             Compilation compilation, EmbeddedLanguageInfo info)
         {
-            var types = s_typeNamesOfInterest.Select(t => compilation.GetTypeByMetadataName(t)).WhereNotNull().ToSet();
+            var types = s_typeNamesOfInterest.Select(compilation.GetTypeByMetadataName).WhereNotNull().ToSet();
             return new JsonLanguageDetector(info, types);
         }
 
@@ -212,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
         private bool IsArgumentToSuitableParameter(
             SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken)
         {
-            var parameter = Info.SemanticFacts.FindParameterForArgument(semanticModel, argumentNode, cancellationToken);
+            var parameter = Info.SemanticFacts.FindParameterForArgument(semanticModel, argumentNode, allowUncertainCandidates: true, allowParams: true, cancellationToken);
             return parameter?.Name == JsonParameterName;
         }
     }

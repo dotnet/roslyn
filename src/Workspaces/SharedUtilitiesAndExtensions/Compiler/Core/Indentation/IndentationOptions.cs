@@ -4,7 +4,10 @@
 
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Formatting;
+
+#if !CODE_STYLE
 using Microsoft.CodeAnalysis.Host;
+#endif
 
 namespace Microsoft.CodeAnalysis.Indentation
 {
@@ -18,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Indentation
         public const FormattingOptions2.IndentStyle DefaultIndentStyle = FormattingOptions2.IndentStyle.Smart;
 
 #if !CODE_STYLE
-        public static IndentationOptions GetDefault(HostLanguageServices languageServices)
+        public static IndentationOptions GetDefault(LanguageServices languageServices)
             => new(SyntaxFormattingOptions.GetDefault(languageServices));
 #endif
     }

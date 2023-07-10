@@ -22,19 +22,21 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
     public class MiscTests
     {
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ServiceTest1()
         {
-            var markupCode = @"class A
-{
-    /* test */ [|public|] void Test(int i, int b, int c)
-    {
+            var markupCode = """
+                class A
+                {
+                    /* test */ [|public|] void Test(int i, int b, int c)
+                    {
 
-    }
-}";
+                    }
+                }
+                """;
             MarkupTestFile.GetSpan(markupCode, out var code, out var span);
 
             var root = SyntaxFactory.ParseCompilationUnit(code);
@@ -51,32 +53,35 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             // restore trivia around it
             var rootWithTriviaRestored = result.RestoreTrivia(newRoot);
 
-            var expected = @"class A
-{
-    /* test */ private void Test(int i, int b, int c)
-    {
+            var expected = """
+                class A
+                {
+                    /* test */ private void Test(int i, int b, int c)
+                    {
 
-    }
-}";
+                    }
+                }
+                """;
 
             Assert.Equal(expected, rootWithTriviaRestored.ToFullString());
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ServiceTest2()
         {
-            var markupCode = @"class A
-{
+            var markupCode = """
+                class A
+                {
 
-#if true
-    [|/* test */ public|] void Test(int i, int b, int c)
-    {
+                #if true
+                    [|/* test */ public|] void Test(int i, int b, int c)
+                    {
 
-    }
-#endif
+                    }
+                #endif
 
-}";
+                }
+                """;
             MarkupTestFile.GetSpan(markupCode, out var code, out var span);
 
             var root = SyntaxFactory.ParseCompilationUnit(code);
@@ -93,29 +98,32 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             // restore trivia around it
             var rootWithTriviaRestored = result.RestoreTrivia(newRoot);
 
-            var expected = @"class A
-{
+            var expected = """
+                class A
+                {
 
-#if true
-    private void Test(int i, int b, int c)
-    {
+                #if true
+                    private void Test(int i, int b, int c)
+                    {
 
-    }
-#endif
+                    }
+                #endif
 
-}";
+                }
+                """;
 
             Assert.Equal(expected, rootWithTriviaRestored.ToFullString());
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void TestExtractMethodCommandHandlerErrorMessage()
         {
-            var markupCode = @"class A
-{
-    [|void Method() {}|]
-}";
+            var markupCode = """
+                class A
+                {
+                    [|void Method() {}|]
+                }
+                """;
 
             using var workspace = TestWorkspace.CreateCSharp(markupCode, composition: EditorTestCompositions.EditorFeaturesWpf);
             var testDocument = workspace.Documents.Single();

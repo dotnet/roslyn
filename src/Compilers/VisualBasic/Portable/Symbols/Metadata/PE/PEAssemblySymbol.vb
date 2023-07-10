@@ -122,6 +122,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return Assembly.GetInternalsVisibleToPublicKeys(simpleName)
         End Function
 
+        Friend Overrides Function GetInternalsVisibleToAssemblyNames() As IEnumerable(Of String)
+            Return Assembly.GetInternalsVisibleToAssemblyNames()
+        End Function
+
         Public Overloads Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
             If _lazyCustomAttributes.IsDefault Then
                 PrimaryModule.LoadCustomAttributes(Me.Assembly.Handle, _lazyCustomAttributes)
@@ -198,7 +202,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                         emittedName = MetadataTypeName.FromFullName(matchedName, emittedName.UseCLSCompliantNameArityEncoding, emittedName.ForcedArity)
                     End If
 
-                    Return forwardedToAssemblies.FirstSymbol.LookupTopLevelMetadataTypeWithCycleDetection(emittedName, visitedAssemblies, digThroughForwardedTypes:=True)
+                    Return forwardedToAssemblies.FirstSymbol.LookupDeclaredOrForwardedTopLevelMetadataType(emittedName, visitedAssemblies)
                 End If
             End If
 

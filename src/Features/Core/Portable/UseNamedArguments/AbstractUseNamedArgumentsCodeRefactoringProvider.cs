@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
                 var arguments = GetArguments(argumentList);
                 var namedArguments = arguments
                     .Select((argument, i) => ShouldAddName(argument, i)
-                        ? WithName((TSimpleArgumentSyntax)argument, parameters[i].Name).WithTriviaFrom(argument)
+                        ? WithName((TSimpleArgumentSyntax)argument.WithoutTrivia(), parameters[i].Name).WithTriviaFrom(argument)
                         : argument);
 
                 return WithArguments(argumentList, namedArguments, arguments.GetSeparators());
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, _, cancellationToken) = context;
-            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
+            if (document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
             {
                 return;
             }

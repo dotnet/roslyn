@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.EmbeddedStatementPlacement
             : base(IDEDiagnosticIds.EmbeddedStatementPlacementDiagnosticId,
                    EnforceOnBuildValues.EmbeddedStatementPlacement,
                    CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(
                        nameof(CSharpAnalyzersResources.Embedded_statements_must_be_on_their_own_line), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
@@ -38,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.EmbeddedStatementPlacement
             if (option.Value)
                 return;
 
-            Recurse(context, option.Notification.Severity, context.Tree.GetRoot(context.CancellationToken));
+            Recurse(context, option.Notification.Severity, context.GetAnalysisRoot(findInTrivia: false));
         }
 
         private void Recurse(SyntaxTreeAnalysisContext context, ReportDiagnostic severity, SyntaxNode node)
@@ -60,6 +59,9 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.EmbeddedStatementPlacement
 
             foreach (var child in node.ChildNodesAndTokens())
             {
+                if (!context.ShouldAnalyzeSpan(child.Span))
+                    continue;
+
                 if (child.IsNode)
                     Recurse(context, severity, child.AsNode()!);
             }

@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
             return new JsonSeparatedList(result.ToImmutable());
         }
 
-        private bool ShouldConsumeSequenceElement()
+        private readonly bool ShouldConsumeSequenceElement()
             => _currentToken.Kind switch
             {
                 JsonKind.EndOfFile => false,
@@ -371,13 +371,25 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
             };
 
         private JsonValueNode ParseValue()
-            => _currentToken.Kind switch
+        {
+            try
             {
-                JsonKind.OpenBraceToken => ParseObject(),
-                JsonKind.OpenBracketToken => ParseArray(),
-                JsonKind.CommaToken => ParseCommaValue(),
-                _ => ParseLiteralOrPropertyOrConstructor(),
-            };
+                _recursionDepth++;
+                StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
+
+                return _currentToken.Kind switch
+                {
+                    JsonKind.OpenBraceToken => ParseObject(),
+                    JsonKind.OpenBracketToken => ParseArray(),
+                    JsonKind.CommaToken => ParseCommaValue(),
+                    _ => ParseLiteralOrPropertyOrConstructor(),
+                };
+            }
+            finally
+            {
+                _recursionDepth--;
+            }
+        }
 
         private static void SplitLiteral(JsonToken literalToken, out JsonToken minusToken, out JsonToken newLiteralToken)
         {
@@ -575,7 +587,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
             return result.AddDiagnosticIfNone(new EmbeddedDiagnostic(error, GetTokenStartPositionSpan(_currentToken)));
         }
 
-        private TextSpan GetTokenStartPositionSpan(JsonToken token)
+        private readonly TextSpan GetTokenStartPositionSpan(JsonToken token)
             => token.Kind == JsonKind.EndOfFile
                 ? new TextSpan(_lexer.Text.Last().Span.End, 0)
                 : new TextSpan(token.VirtualChars[0].Span.Start, 0);

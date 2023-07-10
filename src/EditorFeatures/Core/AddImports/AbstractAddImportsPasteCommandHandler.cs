@@ -3,14 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImportOnPaste;
 using Microsoft.CodeAnalysis.AddMissingImports;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
@@ -21,6 +20,7 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
@@ -56,8 +56,10 @@ namespace Microsoft.CodeAnalysis.AddImport
 
         public void ExecuteCommand(PasteCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
         {
+            var language = args.SubjectBuffer.GetLanguageName();
+
             // If the feature is not explicitly enabled we can exit early
-            if (!_globalOptions.GetOption(FeatureOnOffOptions.AddImportsOnPaste, args.SubjectBuffer.GetLanguageName()))
+            if (language is null || !_globalOptions.GetOption(AddImportOnPasteOptionsStorage.AddImportsOnPaste, language))
             {
                 nextCommandHandler();
                 return;
@@ -139,7 +141,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
-            var indicatorFactory = document.Project.Solution.Workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
+            var indicatorFactory = document.Project.Solution.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
             using var backgroundWorkContext = indicatorFactory.Create(
                 textView,
                 snapshotSpan,
@@ -152,6 +154,8 @@ namespace Microsoft.CodeAnalysis.AddImport
             // We're going to log the same thing on success or failure since this blocks the UI thread. This measurement is 
             // intended to tell us how long we're blocking the user from typing with this action. 
             using var blockLogger = Logger.LogBlock(FunctionId.CommandHandler_Paste_ImportsOnPaste, KeyValueLogMessage.Create(LogType.UserAction), cancellationToken);
+
+            await TaskScheduler.Default;
 
             var addMissingImportsService = document.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
 

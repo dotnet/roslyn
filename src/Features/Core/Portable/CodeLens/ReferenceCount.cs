@@ -12,29 +12,22 @@ namespace Microsoft.CodeAnalysis.CodeLens
     /// Represents the result of a FindReferences Count operation.
     /// </summary>
     [DataContract]
-    internal readonly struct ReferenceCount : IEquatable<ReferenceCount>
+    internal readonly struct ReferenceCount(int count, bool isCapped, string version) : IEquatable<ReferenceCount>
     {
         /// <summary>
         /// Represents the number of references to a given symbol.
         /// </summary>
         [DataMember(Order = 0)]
-        public int Count { get; }
+        public int Count { get; } = count;
 
         /// <summary>
         /// Represents if the count is capped by a certain maximum.
         /// </summary>
         [DataMember(Order = 1)]
-        public bool IsCapped { get; }
+        public bool IsCapped { get; } = isCapped;
 
         [DataMember(Order = 2)]
-        public string Version { get; }
-
-        public ReferenceCount(int count, bool isCapped, string version)
-        {
-            Count = count;
-            IsCapped = isCapped;
-            Version = version;
-        }
+        public string Version { get; } = version;
 
         public static bool operator ==(ReferenceCount left, ReferenceCount right)
         {
@@ -67,5 +60,20 @@ namespace Microsoft.CodeAnalysis.CodeLens
             hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Version);
             return hashCode;
         }
+
+        public string GetDescription()
+        {
+            var referenceWord = Count == 1
+                ? FeaturesResources._0_reference_unquoted
+                : FeaturesResources._0_references_unquoted;
+
+            var description = string.Format(referenceWord, GetCappedReferenceCountString());
+            return description;
+        }
+
+        public string GetToolTip(string? codeElementKind)
+            => string.Format(FeaturesResources.This_0_has_1_references, codeElementKind, GetCappedReferenceCountString());
+
+        private string GetCappedReferenceCountString() => $"{Count}{(IsCapped ? "+" : string.Empty)}";
     }
 }

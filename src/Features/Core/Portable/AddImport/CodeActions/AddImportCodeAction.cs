@@ -43,20 +43,21 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             protected AddImportCodeAction(
                 Document originalDocument,
-                AddImportFixData fixData)
+                AddImportFixData fixData,
+                ImmutableArray<string> additionalTags)
             {
                 OriginalDocument = originalDocument;
                 FixData = fixData;
 
                 Title = fixData.Title;
-                Tags = fixData.Tags.ToImmutableArrayOrEmpty();
+                Tags = fixData.Tags.ToImmutableArrayOrEmpty().AddRange(additionalTags);
                 Priority = fixData.Priority;
                 _textChanges = fixData.TextChanges.ToImmutableArrayOrEmpty();
             }
 
             protected async Task<Document> GetUpdatedDocumentAsync(CancellationToken cancellationToken)
             {
-                var oldText = await OriginalDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var oldText = await OriginalDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var newText = oldText.WithChanges(_textChanges);
                 var newDocument = OriginalDocument.WithText(newText);
 

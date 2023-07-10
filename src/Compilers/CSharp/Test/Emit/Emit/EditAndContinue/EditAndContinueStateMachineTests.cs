@@ -42,8 +42,9 @@ class C
     }
 }
 ");
-            var compilation0 = CreateCompilation(Parse(source0, "a.cs"), options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(Parse(source1, "a.cs"));
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var compilation0 = CreateCompilation(Parse(source0, "a.cs", parseOptions), options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(Parse(source1, "a.cs", parseOptions));
 
             var g1 = compilation1.GetMember<MethodSymbol>("C.G");
 
@@ -223,7 +224,7 @@ class C
         return 20;
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib45(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0, emitOptions: EmitOptions.Default.WithDebugInformationFormat(format));
@@ -340,7 +341,7 @@ class C
         yield return 2;
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib45(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
@@ -442,7 +443,7 @@ class C
         return await Task.FromResult(1);
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib45(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
@@ -515,7 +516,7 @@ class C
         return new int[] { 1, 2, 3 };
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib45(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
@@ -566,7 +567,7 @@ class C
         return Task.FromResult(1);
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib45(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
@@ -637,7 +638,7 @@ class C
         return await Task.FromResult(4);
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib45(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
@@ -711,7 +712,7 @@ class C
         yield return 2;
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib45(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
@@ -848,7 +849,7 @@ class C
         return 20;
     }
 }");
-            var compilation0 = CreateCompilationWithMscorlib45(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib45(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
@@ -3303,7 +3304,7 @@ class C
 
     static IAsyncDisposable G() => null; 
 }");
-            var asyncStreamsTree = Parse(AsyncStreamsTypes);
+            var asyncStreamsTree = Parse(AsyncStreamsTypes, options: (CSharpParseOptions)source0.Tree.Options);
 
             var compilation0 = CreateCompilationWithTasksExtensions(new[] { source0.Tree, asyncStreamsTree }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(new[] { source1.Tree, asyncStreamsTree });
@@ -5811,7 +5812,7 @@ class C
     static int F2() => 1;
     static void End() { }
 }");
-            var asyncStreamsTree = Parse(AsyncStreamsTypes);
+            var asyncStreamsTree = Parse(AsyncStreamsTypes, options: (CSharpParseOptions)source0.Tree.Options);
 
             var compilation0 = CreateCompilationWithTasksExtensions(new[] { source0.Tree, asyncStreamsTree }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(new[] { source1.Tree, asyncStreamsTree });
@@ -7148,7 +7149,7 @@ class C
         return 1;
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(source0, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation0 = CreateCompilationWithMscorlib45(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
             CompileAndVerify(compilation0, symbolValidator: module =>
             {
@@ -7840,7 +7841,7 @@ public class C
 
             // Rude edit but the compiler should handle it.
 
-            var compilation0 = CreateCompilationWithMscorlib45(source0, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All), assemblyName: "A");
+            var compilation0 = CreateCompilationWithMscorlib45(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All), assemblyName: "A");
             var compilation1 = compilation0.WithSource(source1);
             var compilation2 = compilation1.WithSource(source2);
             var compilation3 = compilation2.WithSource(source3);
@@ -7923,7 +7924,7 @@ public class C
     public static IEnumerable<int> F()  { yield return 1; }
 }";
 
-            var compilation0 = CreateCompilationWithMscorlib45(source0, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All), assemblyName: "A");
+            var compilation0 = CreateCompilationWithMscorlib45(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All), assemblyName: "A");
             var compilation1 = compilation0.WithSource(source1);
             var compilation2 = compilation1.WithSource(source2);
 
@@ -8062,6 +8063,116 @@ class C
                 "<>4__this: C.<>c",
                 "<>u__1: System.Runtime.CompilerServices.TaskAwaiter<bool>",
                 "<>u__2: System.Runtime.CompilerServices.TaskAwaiter<int>");
+        }
+
+        [Fact, WorkItem(63294, "https://github.com/dotnet/roslyn/issues/63294")]
+        public void LiftedClosure()
+        {
+            var source0 = MarkedSource(@"
+using System.Threading.Tasks;
+static class C
+{
+    static async Task M()
+    <N:0>{
+        int <N:1>num</N:1> = 1;
+        F();
+                        
+        <N:2>await Task.Delay(1)</N:2>;
+                        
+        <N:3>int F() => num;</N:3>
+    }</N:0>
+}");
+
+            var source1 = MarkedSource(@"
+using System.Threading.Tasks;
+static class C
+{
+    static async Task M()
+    <N:0>{
+        int <N:1>num</N:1> = 1;
+        F();
+                        
+        <N:2>await Task.Delay(2)</N:2>;
+                        
+        <N:3>int F() => num;</N:3>
+    }</N:0>
+}");
+            var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var m0 = compilation0.GetMember<MethodSymbol>("C.M");
+            var m1 = compilation1.GetMember<MethodSymbol>("C.M");
+
+            var v0 = CompileAndVerify(compilation0);
+            using var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var reader0 = md0.MetadataReader;
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            // Notice encLocalSlotMap CDI on both M and MoveNext methods.
+            // The former is used to calculate mapping for variables lifted to fields of the state machine,
+            // the latter is used to map local variable slots in the MoveNext method.
+            // Here, the variable lifted to the state machine field is the closure pointer storage.
+            v0.VerifyPdb(@"
+<symbols>
+  <methods>
+    <method containingType=""C"" name=""M"">
+      <customDebugInfo>
+        <forwardIterator name=""&lt;M&gt;d__0"" />
+        <encLocalSlotMap>
+          <slot kind=""30"" offset=""0"" />
+        </encLocalSlotMap>
+        <encLambdaMap>
+          <methodOrdinal>0</methodOrdinal>
+          <closure offset=""0"" />
+          <lambda offset=""167"" />
+        </encLambdaMap>
+        <encStateMachineStateMap>
+          <state number=""0"" offset=""89"" />
+        </encStateMachineStateMap>
+      </customDebugInfo>
+    </method>
+    <method containingType=""C"" name=""&lt;M&gt;g__F|0_0"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+    </method>
+    <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""&lt;M&gt;g__F|0_0"" />
+        <hoistedLocalScopes>
+          <slot startOffset=""0x0"" endOffset=""0xb4"" />
+        </hoistedLocalScopes>
+        <encLocalSlotMap>
+          <slot kind=""27"" offset=""0"" />
+          <slot kind=""33"" offset=""89"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <asyncInfo>
+        <kickoffMethod declaringType=""C"" methodName=""M"" />
+        <await yield=""0x45"" resume=""0x60"" declaringType=""C+&lt;M&gt;d__0"" methodName=""MoveNext"" />
+      </asyncInfo>
+    </method>
+  </methods>
+</symbols>
+", options: PdbValidationOptions.ExcludeDocuments | PdbValidationOptions.ExcludeSequencePoints | PdbValidationOptions.ExcludeNamespaces | PdbValidationOptions.ExcludeScopes);
+
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C", "<>c__DisplayClass0_0", "<M>d__0");
+            CheckNames(reader0, reader0.GetFieldDefNames(), "num", "<>1__state", "<>t__builder", "<>8__1", "<>u__1");
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    SemanticEdit.Create(SemanticEditKind.Update, m0, m1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            // Notice that we reused field "<>8__1" (there is no "<>8__2"), which stores the local function closure pointer.
+            diff1.VerifySynthesizedMembers(
+                "C: {<M>g__F|0_0, <>c__DisplayClass0_0, <M>d__0}",
+                "C.<M>d__0: {<>1__state, <>t__builder, <>8__1, <>u__1, MoveNext, SetStateMachine}",
+                "C.<>c__DisplayClass0_0: {num}");
         }
 
         [Fact, WorkItem(1170899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1170899")]
@@ -10274,7 +10385,7 @@ class C
 
     public async void F(string? x)
     <N:4>{</N:4>
-        var <N:2>y = await G(<N:0>() => new { A = id(x) }</N:0>)</N:2>;
+        var <N:2>y = <N:5>await G(<N:0>() => new { A = id(x) }</N:0>)</N:5></N:2>;
         var <N:3>z = H(<N:1>() => y.A</N:1>)</N:3>;
     }
 }
@@ -10293,7 +10404,7 @@ class C
     public async void F(string? x)
     <N:4>{</N:4>
         if (x is null) throw new Exception();
-        var <N:2>y = await G(<N:0>() => new { A = id(x) }</N:0>)</N:2>;
+        var <N:2>y = <N:5>await G(<N:0>() => new { A = id(x) }</N:0>)</N:5></N:2>;
         var <N:3>z = H(<N:1>() => y.A</N:1>)</N:3>;
     }
 }
@@ -10329,7 +10440,7 @@ class C
                 "C: {<>c__DisplayClass3_0, <F>d__3}",
                 "<global namespace>: {Microsoft, System, System}",
                 "System: {Runtime, Runtime}",
-                "C.<F>d__3: {<>1__state, <>t__builder, x, <>4__this, <>8__4, <z>5__2, <>s__5, <>u__1, MoveNext, SetStateMachine}");
+                "C.<F>d__3: {<>1__state, <>t__builder, x, <>4__this, <>8__1, <z>5__2, <>s__3, <>u__1, MoveNext, SetStateMachine}");
 
             diff1.VerifyIL("C.<>c__DisplayClass3_0.<F>b__1()", @"
 {

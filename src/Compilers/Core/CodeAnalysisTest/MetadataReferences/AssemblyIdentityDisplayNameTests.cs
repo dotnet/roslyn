@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private const AssemblyIdentityParts NVK = NV | AssemblyIdentityParts.PublicKey;
         private const AssemblyIdentityParts NVT = NV | AssemblyIdentityParts.PublicKeyToken;
         private const AssemblyIdentityParts NVC = NV | AssemblyIdentityParts.Culture;
-        private const AssemblyIdentityParts NVCK = NVC | AssemblyIdentityParts.PublicKey;
         private const AssemblyIdentityParts NVCT = NVC | AssemblyIdentityParts.PublicKeyToken;
 
         private void TestParseVersionInvalid(string value)

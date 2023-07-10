@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode
                 return ImmutableArray<IntentSource>.Empty;
             }
 
-            var currentText = await currentDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var currentText = await currentDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var originalDocument = currentDocument.WithText(currentText.WithChanges(intentRequestContext.PriorTextEdits));
 
             var selectionTextSpan = intentRequestContext.PriorSelection;
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode
             var changedDocument = changedSolution.GetRequiredDocument(changedDocumentId);
             var currentDocument = currentSolution.GetRequiredDocument(changedDocumentId);
 
-            var textDiffService = changedSolution.Workspace.Services.GetRequiredService<IDocumentTextDifferencingService>();
+            var textDiffService = changedSolution.Services.GetRequiredService<IDocumentTextDifferencingService>();
             // Compute changes against the current version of the document.
             var textDiffs = await textDiffService.GetTextChangesAsync(currentDocument, changedDocument, cancellationToken).ConfigureAwait(false);
             if (textDiffs.IsEmpty)

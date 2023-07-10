@@ -12,7 +12,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -22,7 +22,10 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
     /// <summary>
     /// Helper class to detect regex pattern tokens in a document efficiently.
     /// </summary>
-    internal sealed class RegexLanguageDetector : AbstractLanguageDetector<RegexOptions, RegexTree>
+    internal sealed class RegexLanguageDetector(
+        EmbeddedLanguageInfo info,
+        INamedTypeSymbol? regexType,
+        HashSet<string> methodNamesOfInterest) : AbstractLanguageDetector<RegexOptions, RegexTree>(info, LanguageIdentifiers)
     {
         public static readonly ImmutableArray<string> LanguageIdentifiers = ImmutableArray.Create("Regex", "Regexp");
 
@@ -35,18 +38,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
         /// </summary>
         private static readonly ConditionalWeakTable<Compilation, RegexLanguageDetector> _modelToDetector = new();
 
-        private readonly INamedTypeSymbol? _regexType;
-        private readonly HashSet<string> _methodNamesOfInterest;
-
-        public RegexLanguageDetector(
-            EmbeddedLanguageInfo info,
-            INamedTypeSymbol? regexType,
-            HashSet<string> methodNamesOfInterest)
-            : base(info, LanguageIdentifiers)
-        {
-            _regexType = regexType;
-            _methodNamesOfInterest = methodNamesOfInterest;
-        }
+        private readonly INamedTypeSymbol? _regexType = regexType;
+        private readonly HashSet<string> _methodNamesOfInterest = methodNamesOfInterest;
 
         public static RegexLanguageDetector GetOrCreate(
             Compilation compilation, EmbeddedLanguageInfo info)
@@ -192,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
         {
             options = default;
 
-            var parameter = Info.SemanticFacts.FindParameterForArgument(semanticModel, argumentNode, cancellationToken);
+            var parameter = Info.SemanticFacts.FindParameterForArgument(semanticModel, argumentNode, allowUncertainCandidates: true, allowParams: true, cancellationToken);
             if (parameter?.Name != _patternName)
             {
                 return false;

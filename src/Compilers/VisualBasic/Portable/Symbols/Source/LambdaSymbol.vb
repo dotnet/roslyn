@@ -372,6 +372,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return hc
         End Function
 
+        Friend NotOverridable Overrides ReadOnly Property HasSetsRequiredMembers As Boolean
+            Get
+                Return False
+            End Get
+        End Property
     End Class
 End Namespace
 

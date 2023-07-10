@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -107,11 +107,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 if (constructorParameter == null)
                     return false;
 
-                // In VB the argument may not have been specified at all if the parameter is optional
-                if (expressions[i] is null && constructorParameter.IsOptional)
+                var expression = expressions[i];
+                if (expression is null)
                     continue;
 
-                var conversion = semanticFacts.ClassifyConversion(semanticModel, expressions[i], constructorParameter.Type);
+                var conversion = semanticFacts.ClassifyConversion(semanticModel, expression, constructorParameter.Type);
                 if (!conversion.IsIdentity && !conversion.IsImplicit)
                     return false;
             }

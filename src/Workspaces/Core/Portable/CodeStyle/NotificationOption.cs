@@ -20,15 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// </summary>
         public string Name
         {
-            get => Severity switch
-            {
-                ReportDiagnostic.Suppress => WorkspacesResources.None,
-                ReportDiagnostic.Hidden => WorkspacesResources.Refactoring_Only,
-                ReportDiagnostic.Info => WorkspacesResources.Suggestion,
-                ReportDiagnostic.Warn => WorkspacesResources.Warning,
-                ReportDiagnostic.Error => WorkspacesResources.Error,
-                _ => throw ExceptionUtilities.UnexpectedValue(Severity)
-            };
+            get => Severity.GetDisplayString();
 
             [Obsolete("Modifying a NotificationOption is not supported.", error: true)]
             set => throw new InvalidOperationException();

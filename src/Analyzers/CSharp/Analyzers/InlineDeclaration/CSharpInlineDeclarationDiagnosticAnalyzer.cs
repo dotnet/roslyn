@@ -38,7 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             : base(IDEDiagnosticIds.InlineDeclarationDiagnosticId,
                    EnforceOnBuildValues.InlineDeclaration,
                    CSharpCodeStyleOptions.PreferInlinedVariableDeclaration,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Inline_variable_declaration), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Variable_declaration_can_be_inlined), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
@@ -53,8 +52,15 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             {
                 var compilation = compilationContext.Compilation;
                 var expressionType = compilation.GetTypeByMetadataName(typeof(Expression<>).FullName!);
-                compilationContext.RegisterSyntaxNodeAction(
-                    syntaxContext => AnalyzeSyntaxNode(syntaxContext, expressionType), SyntaxKind.Argument);
+
+                // We wrap the SyntaxNodeAction within a CodeBlockStartAction, which allows us to
+                // get callbacks for Argument nodes, but analyze nodes across the entire code block
+                // and eventually report a diagnostic on the local declaration node.
+                // Without the containing CodeBlockStartAction, our reported diagnostic would be classified
+                // as a non-local diagnostic and would not participate in lightbulb for computing code fixes.
+                compilationContext.RegisterCodeBlockStartAction<SyntaxKind>(blockStartContext =>
+                    blockStartContext.RegisterSyntaxNodeAction(
+                        syntaxContext => AnalyzeSyntaxNode(syntaxContext, expressionType), SyntaxKind.Argument));
             });
         }
 
@@ -84,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             }
 
             var argumentExpression = argumentNode.Expression;
-            if (!argumentExpression.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax? identifierName))
+            if (argumentExpression is not IdentifierNameSyntax identifierName)
             {
                 // has to be exactly the form "out i".  i.e. "out this.i" or "out v[i]" are legal
                 // cases for out-arguments, but could not be converted to an out-variable-declaration.
@@ -145,6 +151,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             {
                 return;
             }
+
+            // Bail out early if the localDeclaration is outside the context's analysis span.
+            if (!context.ShouldAnalyzeSpan(localDeclaration.Span))
+                return;
 
             if (localDeclarator.SpanStart >= argumentNode.SpanStart)
             {
@@ -350,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                     break;
                 }
 
-                if (descendentNode.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax? identifierName))
+                if (descendentNode is IdentifierNameSyntax identifierName)
                 {
                     // See if this looks like an accessor to the local variable syntactically.
                     if (identifierName.Identifier.ValueText == variableName)

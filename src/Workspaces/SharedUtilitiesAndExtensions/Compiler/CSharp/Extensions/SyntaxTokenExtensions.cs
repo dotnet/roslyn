@@ -5,9 +5,9 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -16,6 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static partial class SyntaxTokenExtensions
     {
+        public static void Deconstruct(this SyntaxToken token, out SyntaxKind kind)
+            => kind = token.Kind();
+
         public static bool IsLastTokenOfNode<T>(this SyntaxToken token) where T : SyntaxNode
             => token.IsLastTokenOfNode<T>(out _);
 
@@ -37,39 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool HasMatchingText(this SyntaxToken token, SyntaxKind kind)
             => token.ToString() == SyntaxFacts.GetText(kind);
-
-        public static bool IsKind(this SyntaxToken token, SyntaxKind kind1, SyntaxKind kind2)
-        {
-            return token.Kind() == kind1
-                || token.Kind() == kind2;
-        }
-
-        public static bool IsKind(this SyntaxToken token, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3)
-        {
-            return token.Kind() == kind1
-                || token.Kind() == kind2
-                || token.Kind() == kind3;
-        }
-
-        public static bool IsKind(this SyntaxToken token, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3, SyntaxKind kind4)
-        {
-            return token.Kind() == kind1
-                || token.Kind() == kind2
-                || token.Kind() == kind3
-                || token.Kind() == kind4;
-        }
-
-        public static bool IsKind(this SyntaxToken token, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3, SyntaxKind kind4, SyntaxKind kind5)
-        {
-            return token.Kind() == kind1
-                || token.Kind() == kind2
-                || token.Kind() == kind3
-                || token.Kind() == kind4
-                || token.Kind() == kind5;
-        }
-
-        public static bool IsKind(this SyntaxToken token, params SyntaxKind[] kinds)
-            => kinds.Contains(token.Kind());
 
         public static bool IsOpenBraceOrCommaOfObjectInitializer(this SyntaxToken token)
         {
@@ -208,24 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     token.TrailingTrivia.Concat(SyntaxNodeOrTokenExtensions.GetTrivia(trailingNodesOrTokens).Concat(trailingTrivia))).FilterComments(addElasticMarker: false));
 
         public static SyntaxToken KeepCommentsAndAddElasticMarkers(this SyntaxToken token)
-            => token
-                    .WithTrailingTrivia(token.TrailingTrivia.FilterComments(addElasticMarker: true))
+            => token.WithTrailingTrivia(token.TrailingTrivia.FilterComments(addElasticMarker: true))
                     .WithLeadingTrivia(token.LeadingTrivia.FilterComments(addElasticMarker: true));
-
-        public static bool IsInCastExpressionTypeWhereExpressionIsMissingOrInNextLine(this SyntaxToken token)
-        {
-            // If there's a string in the parenthesis in the code below, the parser would return
-            // a CastExpression instead of ParenthesizedExpression. However, some features like keyword completion
-            // might be able tolerate this and still want to treat it as a ParenthesizedExpression.
-            //
-            //         var data = (n$$)
-            //         M();
-
-            var node = token.Parent;
-            return node.IsKind(SyntaxKind.IdentifierName)
-                && node.Parent is CastExpressionSyntax castExpression
-                && castExpression.Type == node
-                && (castExpression.Expression.IsMissing || castExpression.CloseParenToken.TrailingTrivia.GetFirstNewLine().HasValue);
-        }
     }
 }

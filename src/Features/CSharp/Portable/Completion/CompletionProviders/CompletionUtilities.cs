@@ -60,7 +60,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         internal static bool IsTriggerCharacter(SourceText text, int characterPosition, in CompletionOptions options)
         {
             var ch = text[characterPosition];
-            if (ch == '.')
+
+            // Trigger off of a normal `.`, but not off of `..`
+            if (ch == '.' && !(characterPosition >= 1 && text[characterPosition - 1] == '.'))
             {
                 return true;
             }
@@ -89,6 +91,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Tells if we are in positions like this: <c>#nullable $$</c> or <c>#pragma warning $$</c>
+        /// </summary>
+        internal static bool IsCompilerDirectiveTriggerCharacter(SourceText text, int characterPosition)
+        {
+            while (text[characterPosition] == ' ' ||
+                   char.IsLetter(text[characterPosition]))
+            {
+                characterPosition--;
+
+                if (characterPosition < 0)
+                    return false;
+            }
+
+            return text[characterPosition] == '#';
         }
 
         internal static ImmutableHashSet<char> CommonTriggerCharacters { get; } = ImmutableHashSet.Create('.', '#', '>', ':');

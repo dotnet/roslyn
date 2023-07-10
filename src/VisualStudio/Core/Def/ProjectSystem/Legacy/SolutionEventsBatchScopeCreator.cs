@@ -10,6 +10,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
@@ -24,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
     [Export(typeof(SolutionEventsBatchScopeCreator))]
     internal sealed class SolutionEventsBatchScopeCreator : ForegroundThreadAffinitizedObject
     {
-        private readonly List<(VisualStudioProject project, IVsHierarchy hierarchy, VisualStudioProject.BatchScope batchScope)> _fullSolutionLoadScopes = new List<(VisualStudioProject, IVsHierarchy, VisualStudioProject.BatchScope)>();
+        private readonly List<(ProjectSystemProject project, IVsHierarchy hierarchy, ProjectSystemProject.BatchScope batchScope)> _fullSolutionLoadScopes = new List<(ProjectSystemProject, IVsHierarchy, ProjectSystemProject.BatchScope)>();
 
         private uint? _runningDocumentTableEventsCookie;
 
@@ -41,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             _serviceProvider = serviceProvider;
         }
 
-        public void StartTrackingProject(VisualStudioProject project, IVsHierarchy hierarchy)
+        public void StartTrackingProject(ProjectSystemProject project, IVsHierarchy hierarchy)
         {
             AssertIsForeground();
 
@@ -55,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             }
         }
 
-        public void StopTrackingProject(VisualStudioProject project)
+        public void StopTrackingProject(ProjectSystemProject project)
         {
             AssertIsForeground();
 

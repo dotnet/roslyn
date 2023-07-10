@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis
         private static readonly AttributeValueExtractor<BoolAndStringArrayData> s_attributeBoolAndStringArrayValueExtractor = CrackBoolAndStringArrayInAttributeValue;
         private static readonly AttributeValueExtractor<BoolAndStringData> s_attributeBoolAndStringValueExtractor = CrackBoolAndStringInAttributeValue;
 
-        internal struct BoolAndStringArrayData
+        internal readonly struct BoolAndStringArrayData
         {
             public BoolAndStringArrayData(bool sense, ImmutableArray<string?> strings)
             {
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis
             public readonly ImmutableArray<string?> Strings;
         }
 
-        internal struct BoolAndStringData
+        internal readonly struct BoolAndStringData
         {
             public BoolAndStringData(bool sense, string? @string)
             {
@@ -605,7 +605,7 @@ namespace Microsoft.CodeAnalysis
             return MetadataReader.GetTypeDefinition(typeDef).Attributes.IsInterface();
         }
 
-        private struct TypeDefToNamespace
+        private readonly struct TypeDefToNamespace
         {
             internal readonly TypeDefinitionHandle TypeDef;
             internal readonly NamespaceDefinitionHandle NamespaceHandle;
@@ -1087,6 +1087,49 @@ namespace Microsoft.CodeAnalysis
             return TryExtractBoolArrayValueFromAttribute(info.Handle, out transformFlags);
         }
 
+        internal bool HasScopedRefAttribute(EntityHandle token)
+        {
+            return FindTargetAttribute(token, AttributeDescription.ScopedRefAttribute).HasValue;
+        }
+
+        internal bool HasUnscopedRefAttribute(EntityHandle token)
+        {
+            return FindTargetAttribute(token, AttributeDescription.UnscopedRefAttribute).HasValue;
+        }
+
+        internal bool HasRefSafetyRulesAttribute(EntityHandle token, out int version, out bool foundAttributeType)
+        {
+            AttributeInfo info = FindTargetAttribute(MetadataReader, token, AttributeDescription.RefSafetyRulesAttribute, out foundAttributeType);
+            if (info.HasValue)
+            {
+                Debug.Assert(info.SignatureIndex == 0);
+                if (TryExtractValueFromAttribute(info.Handle, out int value, s_attributeIntValueExtractor))
+                {
+                    version = value;
+                    return true;
+                }
+            }
+            version = 0;
+            return false;
+        }
+
+        internal bool HasInlineArrayAttribute(TypeDefinitionHandle token, out int length)
+        {
+            AttributeInfo info = FindTargetAttribute(token, AttributeDescription.InlineArrayAttribute);
+            if (info.HasValue)
+            {
+                Debug.Assert(info.SignatureIndex == 0);
+                if (TryExtractValueFromAttribute(info.Handle, out int value, s_attributeIntValueExtractor))
+                {
+                    length = value;
+                    return true;
+                }
+            }
+
+            length = 0;
+            return false;
+        }
+
         internal bool HasTupleElementNamesAttribute(EntityHandle token, out ImmutableArray<string> tupleElementNames)
         {
             var info = FindTargetAttribute(token, AttributeDescription.TupleElementNamesAttribute);
@@ -1137,18 +1180,86 @@ namespace Microsoft.CodeAnalysis
                 return obsoleteData;
             }
 
-            // [Experimental] is always a warning, not an
-            // error, so search for [Experimental] last.
+            // [Windows.Foundation.Metadata.Experimental] is always a warning, not an error.
+            info = FindTargetAttribute(token, AttributeDescription.WindowsExperimentalAttribute);
+            if (info.HasValue)
+            {
+                return TryExtractWindowsExperimentalDataFromAttribute(info);
+            }
+
+            // [Experimental] is always a warning, not an error, so search for it last.
             info = FindTargetAttribute(token, AttributeDescription.ExperimentalAttribute);
             if (info.HasValue)
             {
-                return TryExtractExperimentalDataFromAttribute(info);
+                return TryExtractExperimentalDataFromAttribute(info, decoder);
             }
 
             return null;
         }
 
 #nullable enable
+        private ObsoleteAttributeData? TryExtractExperimentalDataFromAttribute(AttributeInfo attributeInfo, IAttributeNamedArgumentDecoder decoder)
+        {
+            Debug.Assert(attributeInfo.HasValue);
+            if (!TryGetAttributeReader(attributeInfo.Handle, out var sig))
+            {
+                return null;
+            }
+
+            if (attributeInfo.SignatureIndex != 0)
+            {
+                throw ExceptionUtilities.UnexpectedValue(attributeInfo.SignatureIndex);
+            }
+
+            // ExperimentalAttribute(string)
+            if (sig.RemainingBytes <= 0 || !CrackStringInAttributeValue(out string? diagnosticId, ref sig))
+            {
+                return null;
+            }
+
+            if (string.IsNullOrWhiteSpace(diagnosticId))
+            {
+                diagnosticId = null;
+            }
+
+            string? urlFormat = crackUrlFormat(decoder, ref sig);
+            return new ObsoleteAttributeData(ObsoleteAttributeKind.Experimental, message: null, isError: false, diagnosticId, urlFormat);
+
+            static string? crackUrlFormat(IAttributeNamedArgumentDecoder decoder, ref BlobReader sig)
+            {
+                if (sig.RemainingBytes <= 0)
+                {
+                    return null;
+                }
+
+                string? urlFormat = null;
+
+                try
+                {
+                    // See CIL spec section II.23.3 Custom attributes
+                    //
+                    // Next is a description of the optional “named” fields and properties.
+                    // This starts with NumNamed– an unsigned int16 giving the number of “named” properties or fields that follow.
+                    var numNamed = sig.ReadUInt16();
+                    for (int i = 0; i < numNamed && urlFormat is null; i++)
+                    {
+                        var ((name, value), isProperty, typeCode, /* elementTypeCode */ _) = decoder.DecodeCustomAttributeNamedArgumentOrThrow(ref sig);
+                        if (typeCode == SerializationTypeCode.String && isProperty && value.ValueInternal is string stringValue)
+                        {
+                            if (urlFormat is null && name == ObsoleteAttributeData.UrlFormatPropertyName)
+                            {
+                                urlFormat = stringValue;
+                            }
+                        }
+                    }
+                }
+                catch (BadImageFormatException) { }
+                catch (UnsupportedSignatureContent) { }
+
+                return urlFormat;
+            }
+        }
+
         internal string? GetFirstUnsupportedCompilerFeatureFromToken(EntityHandle token, IAttributeNamedArgumentDecoder attributeNamedArgumentDecoder, CompilerFeatureRequiredFeatures allowedFeatures)
         {
             List<AttributeInfo>? infos = FindTargetAttributes(token, AttributeDescription.CompilerFeatureRequiredAttribute);
@@ -1602,14 +1713,14 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private ObsoleteAttributeData TryExtractExperimentalDataFromAttribute(AttributeInfo attributeInfo)
+        private ObsoleteAttributeData TryExtractWindowsExperimentalDataFromAttribute(AttributeInfo attributeInfo)
         {
             Debug.Assert(attributeInfo.HasValue);
 
             switch (attributeInfo.SignatureIndex)
             {
                 case 0: // ExperimentalAttribute() 
-                    return ObsoleteAttributeData.Experimental;
+                    return ObsoleteAttributeData.WindowsExperimental;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(attributeInfo.SignatureIndex);
@@ -1952,7 +2063,7 @@ namespace Microsoft.CodeAnalysis
 
                 value = null;
 
-                // Strings are stored as UTF8, but 0xFF means NULL string.
+                // Strings are stored as UTF-8, but 0xFF means NULL string.
                 return sig.RemainingBytes >= 1 && sig.ReadByte() == 0xFF;
             }
             catch (BadImageFormatException)
@@ -2006,7 +2117,7 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        internal static bool CrackBoolAndStringArrayInAttributeValue(out BoolAndStringArrayData value, ref BlobReader sig)
+        private static bool CrackBoolAndStringArrayInAttributeValue(out BoolAndStringArrayData value, ref BlobReader sig)
         {
             if (CrackBooleanInAttributeValue(out bool sense, ref sig) &&
                 CrackStringArrayInAttributeValue(out ImmutableArray<string?> strings, ref sig))
@@ -2019,7 +2130,7 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        internal static bool CrackBoolAndStringInAttributeValue(out BoolAndStringData value, ref BlobReader sig)
+        private static bool CrackBoolAndStringInAttributeValue(out BoolAndStringData value, ref BlobReader sig)
         {
             if (CrackBooleanInAttributeValue(out bool sense, ref sig) &&
                 CrackStringInAttributeValue(out string? @string, ref sig))
@@ -2032,7 +2143,20 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        internal static bool CrackBooleanInAttributeValue(out bool value, ref BlobReader sig)
+        private static bool CrackBoolAndBoolInAttributeValue(out (bool, bool) value, ref BlobReader sig)
+        {
+            if (CrackBooleanInAttributeValue(out bool item1, ref sig) &&
+                CrackBooleanInAttributeValue(out bool item2, ref sig))
+            {
+                value = (item1, item2);
+                return true;
+            }
+
+            value = default;
+            return false;
+        }
+
+        private static bool CrackBooleanInAttributeValue(out bool value, ref BlobReader sig)
         {
             if (sig.RemainingBytes >= 1)
             {
@@ -2044,7 +2168,7 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        internal static bool CrackByteInAttributeValue(out byte value, ref BlobReader sig)
+        private static bool CrackByteInAttributeValue(out byte value, ref BlobReader sig)
         {
             if (sig.RemainingBytes >= 1)
             {
@@ -2056,7 +2180,7 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        internal static bool CrackShortInAttributeValue(out short value, ref BlobReader sig)
+        private static bool CrackShortInAttributeValue(out short value, ref BlobReader sig)
         {
             if (sig.RemainingBytes >= 2)
             {
@@ -2068,7 +2192,7 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        internal static bool CrackIntInAttributeValue(out int value, ref BlobReader sig)
+        private static bool CrackIntInAttributeValue(out int value, ref BlobReader sig)
         {
             if (sig.RemainingBytes >= 4)
             {
@@ -2080,7 +2204,7 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        internal static bool CrackLongInAttributeValue(out long value, ref BlobReader sig)
+        private static bool CrackLongInAttributeValue(out long value, ref BlobReader sig)
         {
             if (sig.RemainingBytes >= 8)
             {
@@ -2115,7 +2239,7 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        internal static bool CrackBoolArrayInAttributeValue(out ImmutableArray<bool> value, ref BlobReader sig)
+        private static bool CrackBoolArrayInAttributeValue(out ImmutableArray<bool> value, ref BlobReader sig)
         {
             if (sig.RemainingBytes >= 4)
             {
@@ -2144,7 +2268,7 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        internal static bool CrackByteArrayInAttributeValue(out ImmutableArray<byte> value, ref BlobReader sig)
+        private static bool CrackByteArrayInAttributeValue(out ImmutableArray<byte> value, ref BlobReader sig)
         {
             if (sig.RemainingBytes >= 4)
             {
@@ -2174,7 +2298,7 @@ namespace Microsoft.CodeAnalysis
         }
 #nullable disable
 
-        internal struct AttributeInfo
+        internal readonly struct AttributeInfo
         {
             public readonly CustomAttributeHandle Handle;
             public readonly byte SignatureIndex;
@@ -2223,16 +2347,23 @@ namespace Microsoft.CodeAnalysis
 
         internal AttributeInfo FindTargetAttribute(EntityHandle hasAttribute, AttributeDescription description)
         {
-            return FindTargetAttribute(MetadataReader, hasAttribute, description);
+            return FindTargetAttribute(MetadataReader, hasAttribute, description, out _);
         }
 
-        internal static AttributeInfo FindTargetAttribute(MetadataReader metadataReader, EntityHandle hasAttribute, AttributeDescription description)
+        internal static AttributeInfo FindTargetAttribute(MetadataReader metadataReader, EntityHandle hasAttribute, AttributeDescription description, out bool foundAttributeType)
         {
+            foundAttributeType = false;
+
             try
             {
                 foreach (var attributeHandle in metadataReader.GetCustomAttributes(hasAttribute))
                 {
-                    int signatureIndex = GetTargetAttributeSignatureIndex(metadataReader, attributeHandle, description);
+                    bool matchedAttributeType;
+                    int signatureIndex = GetTargetAttributeSignatureIndex(metadataReader, attributeHandle, description, out matchedAttributeType);
+                    if (matchedAttributeType)
+                    {
+                        foundAttributeType = true;
+                    }
                     if (signatureIndex != -1)
                     {
                         // We found a match
@@ -2499,6 +2630,11 @@ namespace Microsoft.CodeAnalysis
             return default(AssemblyReferenceHandle);
         }
 
+        internal AssemblyReference GetAssemblyRef(AssemblyReferenceHandle assemblyRef)
+        {
+            return MetadataReader.GetAssemblyReference(assemblyRef);
+        }
+
         /// <summary>
         /// Returns MetadataToken for type ref matching resolution scope and name
         /// </summary>
@@ -2576,7 +2712,7 @@ namespace Microsoft.CodeAnalysis
         /// </returns>
         internal int GetTargetAttributeSignatureIndex(CustomAttributeHandle customAttribute, AttributeDescription description)
         {
-            return GetTargetAttributeSignatureIndex(MetadataReader, customAttribute, description);
+            return GetTargetAttributeSignatureIndex(MetadataReader, customAttribute, description, out _);
         }
 
         /// <summary>
@@ -2589,12 +2725,13 @@ namespace Microsoft.CodeAnalysis
         /// Handle of the custom attribute.
         /// </param>
         /// <param name="description">The attribute to match.</param>
+        /// <param name="matchedAttributeType">The custom attribute matched the target attribute namespace and type.</param>
         /// <returns>
         /// An index of the target constructor signature in
         /// signatures array, -1 if
         /// this is not the target attribute.
         /// </returns>
-        private static int GetTargetAttributeSignatureIndex(MetadataReader metadataReader, CustomAttributeHandle customAttribute, AttributeDescription description)
+        private static int GetTargetAttributeSignatureIndex(MetadataReader metadataReader, CustomAttributeHandle customAttribute, AttributeDescription description, out bool matchedAttributeType)
         {
             const int No = -1;
             EntityHandle ctor;
@@ -2602,8 +2739,11 @@ namespace Microsoft.CodeAnalysis
             // Check namespace and type name and get signature if a match is found
             if (!IsTargetAttribute(metadataReader, customAttribute, description.Namespace, description.Name, out ctor, description.MatchIgnoringCase))
             {
+                matchedAttributeType = false;
                 return No;
             }
+
+            matchedAttributeType = true;
 
             try
             {
@@ -3623,7 +3763,7 @@ namespace Microsoft.CodeAnalysis
             return metadataReader.StringComparer.Equals(nameHandle, name);
         }
 
-        // Provides a UTF8 decoder to the MetadataReader that reuses strings from the string table
+        // Provides a UTF-8 decoder to the MetadataReader that reuses strings from the string table
         // rather than allocating on each call to MetadataReader.GetString(handle).
         private sealed class StringTableDecoder : MetadataStringDecoder
         {
@@ -3633,7 +3773,7 @@ namespace Microsoft.CodeAnalysis
 
             public override unsafe string GetString(byte* bytes, int byteCount)
             {
-                return StringTable.AddSharedUTF8(new ReadOnlySpan<byte>(bytes, byteCount));
+                return StringTable.AddSharedUtf8(new ReadOnlySpan<byte>(bytes, byteCount));
             }
         }
 

@@ -34,10 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Notification
         {
             lock (s_gate)
             {
-                if (s_singleton == null)
-                {
-                    s_singleton = new VSDialogService(_uiShellService);
-                }
+                s_singleton ??= new VSDialogService(_uiShellService);
             }
 
             return s_singleton;

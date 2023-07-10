@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public static decimal Normalize(decimal value) => DecimalRep.FromValue(value).Normalize().Value;
 
-            private struct DecimalRep
+            private readonly struct DecimalRep
             {
                 public readonly uint low;
                 public readonly uint mid;

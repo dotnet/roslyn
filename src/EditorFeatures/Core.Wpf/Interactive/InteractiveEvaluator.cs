@@ -26,6 +26,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Interactive
 {
     using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
+    using Microsoft.VisualStudio.Text.Editor;
 
     // TODO: Rename to InteractiveEvaluator https://github.com/dotnet/roslyn/issues/6441
     // The code is not specific to C#, but Interactive Window has hardcoded "CSharpInteractiveEvaluator" name.
@@ -62,7 +63,6 @@ namespace Microsoft.CodeAnalysis.Interactive
             = new InteractiveEvaluatorResetOptions(InteractiveHostPlatform.Desktop64);
 
         internal CSharpInteractiveEvaluator(
-            IGlobalOptionService globalOptions,
             IThreadingContext threadingContext,
             IAsynchronousOperationListener listener,
             IContentType contentType,
@@ -71,6 +71,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             IInteractiveWindowCommandsFactory commandsFactory,
             ImmutableArray<IInteractiveWindowCommand> commands,
             ITextDocumentFactoryService textDocumentFactoryService,
+            EditorOptionsService editorOptionsService,
             InteractiveEvaluatorLanguageInfoProvider languageInfo,
             string initialWorkingDirectory)
         {
@@ -83,9 +84,17 @@ namespace Microsoft.CodeAnalysis.Interactive
             _commandsFactory = commandsFactory;
             _commands = commands;
 
-            _workspace = new InteractiveWindowWorkspace(hostServices, globalOptions);
+            _workspace = new InteractiveWindowWorkspace(hostServices, editorOptionsService.GlobalOptions);
 
-            _session = new InteractiveSession(_workspace, threadingContext, listener, textDocumentFactoryService, languageInfo, initialWorkingDirectory);
+            _session = new InteractiveSession(
+                _workspace,
+                threadingContext,
+                listener,
+                textDocumentFactoryService,
+                editorOptionsService,
+                languageInfo,
+                initialWorkingDirectory);
+
             _session.Host.ProcessInitialized += ProcessInitialized;
         }
 
@@ -251,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             }
             catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

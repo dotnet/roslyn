@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
@@ -35,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         protected readonly SuggestedActionsSourceProvider SourceProvider;
 
         protected readonly Workspace Workspace;
+        protected readonly Solution OriginalSolution;
         protected readonly ITextBuffer SubjectBuffer;
 
         protected readonly object Provider;
@@ -46,6 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             IThreadingContext threadingContext,
             SuggestedActionsSourceProvider sourceProvider,
             Workspace workspace,
+            Solution originalSolution,
             ITextBuffer subjectBuffer,
             object provider,
             CodeAction codeAction)
@@ -56,6 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             SourceProvider = sourceProvider;
             Workspace = workspace;
+            OriginalSolution = originalSolution;
             SubjectBuffer = subjectBuffer;
             Provider = provider;
             CodeAction = codeAction;
@@ -74,19 +78,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             return Task.Run(
-                () => CodeAction.GetOperationsAsync(progressTracker, cancellationToken), cancellationToken);
+                () => CodeAction.GetOperationsAsync(this.OriginalSolution, progressTracker, cancellationToken), cancellationToken);
         }
 
-        protected static Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(CodeActionWithOptions actionWithOptions, object options, CancellationToken cancellationToken)
+        protected Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(
+            CodeActionWithOptions actionWithOptions, object options, CancellationToken cancellationToken)
         {
             return Task.Run(
-                () => actionWithOptions.GetOperationsAsync(options, cancellationToken), cancellationToken);
+                () => actionWithOptions.GetOperationsAsync(this.OriginalSolution, options, cancellationToken), cancellationToken);
         }
 
         protected Task<ImmutableArray<CodeActionOperation>> GetPreviewOperationsAsync(CancellationToken cancellationToken)
         {
             return Task.Run(
-                () => CodeAction.GetPreviewOperationsAsync(cancellationToken), cancellationToken);
+                () => CodeAction.GetPreviewOperationsAsync(this.OriginalSolution, cancellationToken), cancellationToken);
         }
 
         public void Invoke(CancellationToken cancellationToken)
@@ -108,6 +113,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
             try
             {
+                using var _ = TelemetryLogging.LogBlockTimeAggregated(FunctionId.SuggestedAction_Application_Summary, $"Total");
+
                 using var token = SourceProvider.OperationListener.BeginAsyncOperation($"{nameof(SuggestedAction)}.{nameof(Invoke)}");
                 using var context = SourceProvider.UIThreadOperationExecutor.BeginExecute(
                     EditorFeaturesResources.Execute_Suggested_Action, CodeAction.Title, allowCancellation: true, showProgress: true);
@@ -164,9 +171,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
 
                     await EditHandler.ApplyAsync(
-                        Workspace, document,
-                        operations.ToImmutableArray(), CodeAction.Title,
-                        progressTracker, cancellationToken).ConfigureAwait(false);
+                        Workspace,
+                        OriginalSolution,
+                        document,
+                        operations.ToImmutableArray(),
+                        CodeAction.Title,
+                        progressTracker,
+                        cancellationToken).ConfigureAwait(false);
                 }
             }
         }

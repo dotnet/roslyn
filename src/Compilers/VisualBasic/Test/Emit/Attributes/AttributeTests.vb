@@ -6,7 +6,6 @@ Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Reflection
 Imports System.Runtime.InteropServices
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -203,7 +202,6 @@ Imports System.Runtime.CompilerServices
 ]]>
     </file>
 </compilation>
-
 
             Dim attributeValidator = Sub(m As ModuleSymbol)
                                          Dim assembly = m.ContainingSymbol
@@ -452,7 +450,6 @@ End Class
                         Assert.Equal(1, set_P.Parameters(0).GetAttributes().Length)
                         Assert.Equal(1, set_P.Parameters(1).GetAttributes().Length)
                     End Sub
-
 
             CompileAndVerify(source, sourceSymbolValidator:=attributeValidator(True), symbolValidator:=attributeValidator(False))
         End Sub
@@ -2217,6 +2214,228 @@ End Class
             CompileAndVerify(compilation, sourceSymbolValidator:=attributeValidator, symbolValidator:=attributeValidator)
         End Sub
 
+        <Fact>
+        Public Sub TestAttributeCallerInfoSemanticModel()
+            Dim source = "
+Imports System
+Imports System.Runtime.CompilerServices
+
+Class Attr
+    Inherits Attribute
+
+    Public Sub New(<CallerMemberName> Optional s As String = Nothing)
+    End Sub
+End Class
+
+Class C
+    <Attr()>'BIND:""Attr""
+    Sub M0()
+    End Sub
+End Class
+"
+            Dim comp = CreateCompilation(source)
+            comp.VerifyDiagnostics()
+            Dim tree = comp.SyntaxTrees(0)
+            Dim root = tree.GetRoot()
+            Dim attrSyntax = root.DescendantNodes().OfType(Of AttributeSyntax)().Last()
+            Dim semanticModel = comp.GetSemanticModel(tree)
+            Dim m0 = semanticModel.GetDeclaredSymbol(root.DescendantNodes().OfType(Of MethodStatementSyntax)().Last())
+            Dim attrs = m0.GetAttributes()
+            Assert.Equal("M0", attrs.Single().ConstructorArguments.Single().Value)
+            Dim expectedTree As String = "
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Attr()')
+  IObjectCreationOperation (Constructor: Sub Attr..ctor([s As System.String = Nothing])) (OperationKind.ObjectCreation, Type: Attr, IsImplicit) (Syntax: 'Attr()')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Attr')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""M0"", IsImplicit) (Syntax: 'Attr')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
+"
+            VerifyOperationTreeForTest(Of AttributeSyntax)(comp, fileName:="", expectedTree)
+
+            Dim operation = semanticModel.GetOperation(attrSyntax)
+            Dim operationTreeFromSemanticModel = OperationTreeVerifier.GetOperationTree(comp, operation)
+            OperationTreeVerifier.Verify(expectedTree, operationTreeFromSemanticModel)
+        End Sub
+
+        <Fact>
+        Public Sub TestAttributeCallerInfoSemanticModel_Method_Speculative()
+            Dim source = "
+Imports System
+Imports System.Runtime.CompilerServices
+
+Class Attr 
+    Inherits Attribute
+
+    Public Sub New(<CallerMemberName> Optional s As String = Nothing)
+    End Sub
+End Class
+
+Class C
+    <Attr(""a"")>
+    Sub M0()
+    End Sub
+End Class
+"
+            Dim comp = CreateCompilation(source)
+            comp.VerifyDiagnostics()
+            Dim tree = comp.SyntaxTrees(0)
+            Dim root = tree.GetRoot()
+            Dim attrSyntax = root.DescendantNodes().OfType(Of AttributeSyntax)().Last()
+            Dim semanticModel = comp.GetSemanticModel(tree)
+            Dim newRoot = root.ReplaceNode(attrSyntax, attrSyntax.WithArgumentList(SyntaxFactory.ParseArgumentList("()")))
+            Dim newAttrSyntax = newRoot.DescendantNodes().OfType(Of AttributeSyntax)().Last()
+            Dim speculativeModel As SemanticModel = Nothing
+            Assert.True(semanticModel.TryGetSpeculativeSemanticModel(attrSyntax.ArgumentList.Position, newAttrSyntax, speculativeModel))
+            Dim speculativeOperation = speculativeModel.GetOperation(newAttrSyntax)
+            Dim expectedTree As String = "
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Attr()')
+  IObjectCreationOperation (Constructor: Sub Attr..ctor([s As System.String = Nothing])) (OperationKind.ObjectCreation, Type: Attr, IsImplicit) (Syntax: 'Attr()')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Attr')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""M0"", IsImplicit) (Syntax: 'Attr')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
+"
+            Dim speculativeOperationTree = OperationTreeVerifier.GetOperationTree(comp, speculativeOperation)
+            OperationTreeVerifier.Verify(expectedTree, speculativeOperationTree)
+        End Sub
+
+        <Fact>
+        Public Sub TestAttributeCallerInfoSemanticModel_Parameter_Speculative()
+            Dim source = "
+Imports System
+Imports System.Runtime.CompilerServices
+
+Class Attr
+    Inherits Attribute
+
+    Public Sub New(<CallerMemberName> Optional s As String = Nothing)
+    End Sub
+End Class
+
+Class C
+    Sub M0(<Attr(""a"")> x As Integer)
+    End Sub
+End Class
+"
+            Dim comp = CreateCompilation(source)
+            comp.VerifyDiagnostics()
+            Dim tree = comp.SyntaxTrees(0)
+            Dim root = tree.GetRoot()
+            Dim attrSyntax = root.DescendantNodes().OfType(Of AttributeSyntax)().Last()
+            Dim semanticModel = comp.GetSemanticModel(tree)
+            Dim newRoot = root.ReplaceNode(attrSyntax, attrSyntax.WithArgumentList(SyntaxFactory.ParseArgumentList("()")))
+            Dim newAttrSyntax = newRoot.DescendantNodes().OfType(Of AttributeSyntax)().Last()
+            Dim speculativeModel As SemanticModel = Nothing
+            Assert.True(semanticModel.TryGetSpeculativeSemanticModel(attrSyntax.ArgumentList.Position, newAttrSyntax, speculativeModel))
+            Dim speculativeOperation = speculativeModel.GetOperation(newAttrSyntax)
+            Dim expectedTree As String = "
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Attr()')
+  IObjectCreationOperation (Constructor: Sub Attr..ctor([s As System.String = Nothing])) (OperationKind.ObjectCreation, Type: Attr, IsImplicit) (Syntax: 'Attr()')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Attr')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""M0"", IsImplicit) (Syntax: 'Attr')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
+"
+            Dim speculativeOperationTree = OperationTreeVerifier.GetOperationTree(comp, speculativeOperation)
+            OperationTreeVerifier.Verify(expectedTree, speculativeOperationTree)
+        End Sub
+
+        <Fact>
+        Public Sub TestAttributeCallerInfoSemanticModel_Class_Speculative()
+            Dim source = "
+Imports System
+Imports System.Runtime.CompilerServices
+
+Class Attr
+    Inherits Attribute
+
+    Public Sub New(<CallerMemberName> Optional s As String = Nothing)
+    End Sub
+End Class
+
+<Attr(""a"")>
+Class C
+End Class
+"
+            Dim comp = CreateCompilation(source)
+            comp.VerifyDiagnostics()
+            Dim tree = comp.SyntaxTrees(0)
+            Dim root = tree.GetRoot()
+            Dim attrSyntax = root.DescendantNodes().OfType(Of AttributeSyntax)().Last()
+            Dim semanticModel = comp.GetSemanticModel(tree)
+            Dim newRoot = root.ReplaceNode(attrSyntax, attrSyntax.WithArgumentList(SyntaxFactory.ParseArgumentList("()")))
+            Dim newAttrSyntax = newRoot.DescendantNodes().OfType(Of AttributeSyntax)().Last()
+            Dim speculativeModel As SemanticModel = Nothing
+            Assert.True(semanticModel.TryGetSpeculativeSemanticModel(attrSyntax.ArgumentList.Position, newAttrSyntax, speculativeModel))
+            Dim speculativeOperation = speculativeModel.GetOperation(newAttrSyntax)
+            Dim expectedTree As String = "
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Attr()')
+  IObjectCreationOperation (Constructor: Sub Attr..ctor([s As System.String = Nothing])) (OperationKind.ObjectCreation, Type: Attr, IsImplicit) (Syntax: 'Attr()')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Attr')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'Attr')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand:
+              ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsImplicit) (Syntax: 'Attr')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
+"
+            Dim speculativeOperationTree = OperationTreeVerifier.GetOperationTree(comp, speculativeOperation)
+            OperationTreeVerifier.Verify(expectedTree, speculativeOperationTree)
+        End Sub
+
+        <Fact>
+        Public Sub TestAttributeCallerInfoSemanticModel_Speculative_AssemblyTarget()
+            Dim source = "
+Imports System
+Imports System.Runtime.CompilerServices
+
+<Assembly: Attr(""a"")>
+
+Class Attr
+    Inherits Attribute
+
+    Public Sub New(<CallerMemberName> Optional s As String = ""default_value"")
+    End Sub
+End Class
+"
+            Dim comp = CreateCompilation(source)
+            comp.VerifyDiagnostics()
+            Dim tree = comp.SyntaxTrees(0)
+            Dim root = tree.GetRoot()
+            Dim attrSyntax = root.DescendantNodes().OfType(Of AttributeSyntax)().First()
+            Dim semanticModel = comp.GetSemanticModel(tree)
+            Dim newRoot = root.ReplaceNode(attrSyntax, attrSyntax.WithArgumentList(SyntaxFactory.ParseArgumentList("()")))
+            Dim newAttrSyntax = newRoot.DescendantNodes().OfType(Of AttributeSyntax)().First()
+            Dim speculativeModel As SemanticModel = Nothing
+            Assert.True(semanticModel.TryGetSpeculativeSemanticModel(attrSyntax.Position, newAttrSyntax, speculativeModel))
+            Dim speculativeOperation = speculativeModel.GetOperation(newAttrSyntax)
+            Dim expectedTree As String = "
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Assembly: Attr()')
+  IObjectCreationOperation (Constructor: Sub Attr..ctor([s As System.String = ""default_value""])) (OperationKind.ObjectCreation, Type: Attr, IsImplicit) (Syntax: 'Assembly: Attr()')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Attr')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""default_value"", IsImplicit) (Syntax: 'Attr')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
+"
+            Dim speculativeOperationTree = OperationTreeVerifier.GetOperationTree(comp, speculativeOperation)
+            OperationTreeVerifier.Verify(expectedTree, speculativeOperationTree)
+        End Sub
+
 #End Region
 
 #Region "Error Tests"
@@ -3813,7 +4032,6 @@ End Structure
 } // end of class Library1.Goo
 ]]>
 
-
             Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(
 <compilation>
     <file name="a.vb">
@@ -4298,7 +4516,6 @@ End Class
     </file>
 </compilation>
 
-
             Dim compilation2 = CreateCompilationWithMscorlib40AndReferences(source2, {New VisualBasicCompilationReference(compilation1)})
             CompileAndVerify(compilation2, symbolValidator:=validator)
 
@@ -4318,7 +4535,6 @@ End Class
 ]]>
     </file>
 </compilation>
-
 
             Dim compilation3 = CreateCompilationWithMscorlib40AndReferences(source3, {New VisualBasicCompilationReference(compilation1)})
             CompileAndVerify(compilation3, symbolValidator:=validator)
@@ -4677,5 +4893,223 @@ BC30045: Attribute constructor has a parameter of type 'Integer?', which is not 
  ~~
 ]]></expected>)
         End Sub
+
+        Private Shared ReadOnly experimentalAttributeCSharpSrc As String = "
+#nullable enable
+
+namespace System.Diagnostics.CodeAnalysis
+{
+    [AttributeUsage(AttributeTargets.All, Inherited = false)]
+    public sealed class ExperimentalAttribute : Attribute
+    {
+        public ExperimentalAttribute(string diagnosticId) { }
+
+        public string? UrlFormat { get; set; }
+    }
+}
+"
+
+        <Fact>
+        Public Sub ExperimentalWithDiagnosticsId()
+            Dim attrComp = CreateCSharpCompilation(experimentalAttributeCSharpSrc)
+
+            Dim src = <compilation>
+                          <file name="a.vb">
+                              <![CDATA[
+<System.Diagnostics.CodeAnalysis.Experimental("DiagID1")>
+Class C
+End Class
+
+Class D
+    Sub M(c As C)
+    End Sub
+End Class
+]]>
+                          </file>
+                      </compilation>
+
+            Dim comp = CreateCompilation(src, references:={attrComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+    Sub M(c As C)
+               ~
+]]></expected>)
+
+            Dim diag = comp.GetDiagnostics().Single()
+            Assert.Equal("DiagID1", diag.Id)
+            Assert.Equal(ERRID.WRN_Experimental, diag.Code)
+            Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(BC42380)", diag.Descriptor.HelpLinkUri)
+        End Sub
+
+        <Fact>
+        Public Sub ExperimentalWithDiagnosticsId_FullyQualified()
+            Dim attrComp = CreateCSharpCompilation(experimentalAttributeCSharpSrc)
+
+            Dim src = <compilation>
+                          <file name="a.vb">
+                              <![CDATA[
+Namespace N
+    <System.Diagnostics.CodeAnalysis.Experimental("DiagID1")>
+    Class C
+    End Class
+End Namespace
+
+Class D
+    Sub M(c As N.C)
+    End Sub
+End Class
+]]>
+                          </file>
+                      </compilation>
+
+            Dim comp = CreateCompilation(src, references:={attrComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+DiagID1: 'N.C' is for evaluation purposes only and is subject to change or removal in future updates.
+    Sub M(c As N.C)
+               ~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub ExperimentalWithDiagnosticsId_WithObsolete()
+            Dim attrComp = CreateCSharpCompilation(experimentalAttributeCSharpSrc)
+
+            Dim src = <compilation>
+                          <file name="a.vb">
+                              <![CDATA[
+<System.Obsolete("error", True)>
+<System.Diagnostics.CodeAnalysis.Experimental("DiagID1")>
+Class C
+End Class
+
+Class D
+    Sub M(c As C)
+    End Sub
+End Class
+]]>
+                          </file>
+                      </compilation>
+
+            Dim comp = CreateCompilation(src, references:={attrComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+    Sub M(c As C)
+               ~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub ExperimentalWithDiagnosticsId_WithObsolete_Metadata()
+            Dim attrReference = CreateCSharpCompilation(experimentalAttributeCSharpSrc).EmitToImageReference()
+
+            Dim libSrc = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+<System.Obsolete("error", True)>
+<System.Diagnostics.CodeAnalysis.Experimental("DiagID1")>
+Public Class C
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim libComp = CreateCompilation(libSrc, references:={attrReference})
+
+            Dim src = "
+Class D
+    Sub M(c As C)
+    End Sub
+End Class
+"
+
+            Dim comp = CreateCompilation(src, references:={attrReference, libComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30668: 'C' is obsolete: 'error'.
+    Sub M(c As C)
+               ~
+]]></expected>)
+
+        End Sub
+
+        <Fact>
+        Public Sub ExperimentalWithDiagnosticsIdAndUrlFormat()
+            Dim attrComp = CreateCSharpCompilation(experimentalAttributeCSharpSrc)
+
+            Dim src = <compilation>
+                          <file name="a.vb">
+                              <![CDATA[
+<System.Diagnostics.CodeAnalysis.Experimental("DiagID1", UrlFormat:="https://example.org/{0}")>
+Class C
+End Class
+
+Class D
+    Sub M(c As C)
+    End Sub
+End Class
+]]>
+                          </file>
+                      </compilation>
+
+            Dim comp = CreateCompilation(src, references:={attrComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+    Sub M(c As C)
+               ~
+]]></expected>)
+
+            Dim diag = Comp.GetDiagnostics().Single()
+            Assert.Equal("DiagID1", diag.Id)
+            Assert.Equal(ERRID.WRN_Experimental, diag.Code)
+            Assert.Equal("https://example.org/DiagID1", diag.Descriptor.HelpLinkUri)
+        End Sub
+
+        <Fact>
+        Public Sub ExperimentalWithDiagnosticsIdAndUrlFormat_InMetadata()
+            Dim attrReference = CreateCSharpCompilation(experimentalAttributeCSharpSrc).EmitToImageReference()
+
+            Dim libSrc = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+<System.Diagnostics.CodeAnalysis.Experimental("DiagID1", UrlFormat:="https://example.org/{0}")>
+Public Class C
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim libComp = CreateCompilation(libSrc, references:={attrReference})
+
+            Dim src = "
+Class D
+    Sub M(c As C)
+    End Sub
+End Class
+"
+
+            Dim comp = CreateCompilation(src, references:={attrReference, libComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+    Sub M(c As C)
+               ~
+]]></expected>)
+
+            Dim diag = comp.GetDiagnostics().Single()
+            Assert.Equal("DiagID1", diag.Id)
+            Assert.Equal(ERRID.WRN_Experimental, diag.Code)
+            Assert.Equal("https://example.org/DiagID1", diag.Descriptor.HelpLinkUri)
+        End Sub
+
     End Class
 End Namespace

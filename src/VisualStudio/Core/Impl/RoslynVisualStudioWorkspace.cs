@@ -26,7 +26,6 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.MetadataReferences;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Projection;
@@ -58,9 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             ITextBufferFactoryService textBufferFactoryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
             Lazy<IProjectCodeModelFactory> projectCodeModelFactory,
-            Lazy<VisualStudioProjectFactory> visualStudioProjectFactory,
             FileChangeWatcherProvider fileChangeWatcherProvider,
-            FileWatchedPortableExecutableReferenceFactory fileWatchedPortableExecutableReferenceFactory,
             Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
             [Import(typeof(SVsServiceProvider))] IAsyncServiceProvider asyncServiceProvider)
             : base(
@@ -72,9 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 textBufferFactoryService,
                 projectionBufferFactoryService,
                 projectCodeModelFactory,
-                visualStudioProjectFactory,
                 fileChangeWatcherProvider,
-                fileWatchedPortableExecutableReferenceFactory,
                 asyncServiceProvider)
         {
             _threadingContext = threadingContext;
@@ -179,7 +174,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 return null;
             }
 
-            var codeModelService = project.LanguageServices.GetService<ICodeModelService>();
+            var codeModelService = project.Services.GetService<ICodeModelService>();
             if (codeModelService == null)
             {
                 return null;

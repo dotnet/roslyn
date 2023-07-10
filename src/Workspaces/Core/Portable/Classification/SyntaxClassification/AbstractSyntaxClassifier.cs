@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.Classification.Classifiers
 {
@@ -18,11 +18,11 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
         protected static string? GetClassificationForType(ITypeSymbol type)
             => type.GetClassification();
 
-        public virtual void AddClassifications(SyntaxNode syntax, SemanticModel semanticModel, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+        public virtual void AddClassifications(SyntaxNode syntax, SemanticModel semanticModel, ClassificationOptions options, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
         }
 
-        public virtual void AddClassifications(SyntaxToken syntax, SemanticModel semanticModel, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+        public virtual void AddClassifications(SyntaxToken syntax, SemanticModel semanticModel, ClassificationOptions options, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
         }
 

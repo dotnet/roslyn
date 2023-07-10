@@ -6,7 +6,8 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis.LanguageServices;
+using System.Linq;
+using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -40,9 +41,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         public static bool HasEventHandlerSignature(this IMethodSymbol method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? eventArgsType)
             => eventArgsType != null &&
-               method.Parameters.Length == 2 &&
-               method.Parameters[0].Type.SpecialType == SpecialType.System_Object &&
-               method.Parameters[1].Type.InheritsFromOrEquals(eventArgsType);
+               method.Parameters is [{ Type.SpecialType: SpecialType.System_Object }, var secondParam] &&
+               secondParam.Type.InheritsFromOrEquals(eventArgsType);
 
         public static bool TryGetPredefinedComparisonOperator(this IMethodSymbol symbol, out PredefinedOperator op)
         {
@@ -105,5 +105,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 methodSymbol.ReturnType.SpecialType == SpecialType.System_Int32 ||
                 methodSymbol.ReturnType.OriginalDefinition.Equals(taskType) ||
                 methodSymbol.ReturnType.OriginalDefinition.Equals(genericTaskType));
+
+        /// <summary>
+        /// Tells if an async method returns a task-like type, awaiting for which produces <see langword="void"/> result
+        /// </summary>
+        public static bool IsAsyncReturningVoidTask(this IMethodSymbol method, Compilation compilation)
+        {
+            if (!method.IsAsync)
+                return false;
+
+            if (method.ReturnType is not INamedTypeSymbol { Arity: 0 })
+                return false;
+
+            // `Task` type doesn't have an `AsyncMethodBuilder` attribute, so we need to check for it separately
+            return method.ReturnType.Equals(compilation.TaskType()) ||
+                   method.ReturnType.GetAttributes().Any(a => a.AttributeClass?.Equals(compilation.AsyncMethodBuilderAttribute()) ?? false);
+        }
     }
 }

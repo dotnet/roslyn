@@ -19,23 +19,18 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// <see cref="DocumentSpan"/>.
         /// </summary>
         // internal for testing purposes.
-        internal sealed class DefaultDefinitionItem : DefinitionItem
+        internal sealed class DefaultDefinitionItem(
+            ImmutableArray<string> tags,
+            ImmutableArray<TaggedText> displayParts,
+            ImmutableArray<TaggedText> nameDisplayParts,
+            ImmutableArray<TaggedText> originationParts,
+            ImmutableArray<DocumentSpan> sourceSpans,
+            ImmutableDictionary<string, string>? properties,
+            ImmutableDictionary<string, string>? displayableProperties,
+            bool displayIfNoReferences) : DefinitionItem(tags, displayParts, nameDisplayParts, originationParts,
+                   sourceSpans, properties, displayableProperties, displayIfNoReferences)
         {
             internal sealed override bool IsExternal => false;
-
-            public DefaultDefinitionItem(
-                ImmutableArray<string> tags,
-                ImmutableArray<TaggedText> displayParts,
-                ImmutableArray<TaggedText> nameDisplayParts,
-                ImmutableArray<TaggedText> originationParts,
-                ImmutableArray<DocumentSpan> sourceSpans,
-                ImmutableDictionary<string, string>? properties,
-                ImmutableDictionary<string, string>? displayableProperties,
-                bool displayIfNoReferences)
-                : base(tags, displayParts, nameDisplayParts, originationParts,
-                       sourceSpans, properties, displayableProperties, displayIfNoReferences)
-            {
-            }
 
             public override async Task<INavigableLocation?> GetNavigableLocationAsync(Workspace workspace, CancellationToken cancellationToken)
             {
@@ -44,7 +39,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
                 if (Properties.TryGetValue(MetadataSymbolKey, out var symbolKey))
                 {
-                    var (project, symbol) = await TryResolveSymbolInCurrentSolutionAsync(workspace, symbolKey, cancellationToken).ConfigureAwait(false);
+                    var (project, symbol) = await TryResolveSymbolAsync(workspace.CurrentSolution, symbolKey, cancellationToken).ConfigureAwait(false);
                     if (symbol is { Kind: not SymbolKind.Namespace })
                     {
                         Contract.ThrowIfNull(project);
@@ -60,7 +55,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 return await SourceSpans[0].GetNavigableLocationAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            private async ValueTask<(Project? project, ISymbol? symbol)> TryResolveSymbolInCurrentSolutionAsync(Workspace workspace, string symbolKey, CancellationToken cancellationToken)
+            private async ValueTask<(Project? project, ISymbol? symbol)> TryResolveSymbolAsync(Solution solution, string symbolKey, CancellationToken cancellationToken)
             {
                 if (!Properties.TryGetValue(MetadataSymbolOriginatingProjectIdGuid, out var projectIdGuid) ||
                     !Properties.TryGetValue(MetadataSymbolOriginatingProjectIdDebugName, out var projectDebugName))
@@ -68,7 +63,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                     return default;
                 }
 
-                var project = workspace.CurrentSolution.GetProject(ProjectId.CreateFromSerialized(Guid.Parse(projectIdGuid), projectDebugName));
+                var project = solution.GetProject(ProjectId.CreateFromSerialized(Guid.Parse(projectIdGuid), projectDebugName));
                 if (project == null)
                     return default;
 

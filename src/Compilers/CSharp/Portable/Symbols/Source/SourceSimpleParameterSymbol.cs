@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -14,13 +16,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SourceSimpleParameterSymbol : SourceParameterSymbol
     {
         public SourceSimpleParameterSymbol(
-           Symbol owner,
-           TypeWithAnnotations parameterType,
-           int ordinal,
-           RefKind refKind,
-           string name,
-           ImmutableArray<Location> locations)
-           : base(owner, parameterType, ordinal, refKind, name, locations)
+            Symbol owner,
+            TypeWithAnnotations parameterType,
+            int ordinal,
+            RefKind refKind,
+            ScopedKind scope,
+            string name,
+            ImmutableArray<Location> locations)
+            : this(owner, parameterType, ordinal, refKind, scope, name, locations.FirstOrDefault())
+        {
+            Debug.Assert(locations.Length <= 1);
+        }
+
+        public SourceSimpleParameterSymbol(
+            Symbol owner,
+            TypeWithAnnotations parameterType,
+            int ordinal,
+            RefKind refKind,
+            ScopedKind scope,
+            string name,
+            Location? location)
+            : base(owner, parameterType, ordinal, refKind, scope, name, location)
         {
         }
 
@@ -127,5 +143,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return ConstantValue.NotAvailable; }
         }
+
+        internal override ScopedKind EffectiveScope => CalculateEffectiveScopeIgnoringAttributes();
+
+        internal override bool HasUnscopedRefAttribute => false;
     }
 }

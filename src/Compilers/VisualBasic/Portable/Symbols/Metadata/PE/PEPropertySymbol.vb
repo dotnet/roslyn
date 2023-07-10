@@ -10,6 +10,7 @@ Imports System.Reflection.Metadata
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports System.Reflection.Metadata.Ecma335
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -42,6 +43,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private Const s_unsetAccessibility As Integer = -1
         Private _lazyDeclaredAccessibility As Integer = s_unsetAccessibility
         Private _lazyObsoleteAttributeData As ObsoleteAttributeData = ObsoleteAttributeData.Uninitialized
+
+        Private _lazyIsRequired As ThreeState = ThreeState.Unknown
 
         Friend Shared Function Create(
             moduleSymbol As PEModuleSymbol,
@@ -336,7 +339,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return _lazyCustomAttributes
         End Function
 
-        Friend Overrides Function GetCustomAttributesToEmit(compilationState As ModuleCompilationState) As IEnumerable(Of VisualBasicAttributeData)
+        Friend Overrides Function GetCustomAttributesToEmit(moduleBuilder As PEModuleBuilder) As IEnumerable(Of VisualBasicAttributeData)
             Return GetAttributes()
         End Function
 
@@ -606,6 +609,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Friend Overrides ReadOnly Property DeclaringCompilation As VisualBasicCompilation
             Get
                 Return Nothing
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property IsRequired As Boolean
+            Get
+                If Not _lazyIsRequired.HasValue() Then
+                    _lazyIsRequired = _containingType.ContainingPEModule.Module.HasAttribute(Handle, AttributeDescription.RequiredMemberAttribute).ToThreeState()
+                End If
+
+                Return _lazyIsRequired.Value()
             End Get
         End Property
 

@@ -178,8 +178,8 @@ class Program
             SyntaxFactory.ParseExpression(code);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13719")]
-        public void ReportErrorForIncompleteMember()
+        [Fact, WorkItem(13719, "https://github.com/dotnet/roslyn/issues/13719")]
+        public void ReportErrorForIncompleteMember1()
         {
             var test = @"
 class A
@@ -190,11 +190,25 @@ class A
             ParseAndValidate(test,
                 // (6,1): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
                 // }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(6, 1),
-                // (4,16): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
-                //     [Obsolete(2l)]
-                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(4, 16)
-                );
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(6, 1));
+        }
+
+        [Fact, WorkItem(13719, "https://github.com/dotnet/roslyn/issues/13719")]
+        public void ReportErrorForIncompleteMember2()
+        {
+            var test = @"
+class A
+{
+    #warning hello
+    public int
+}";
+            ParseAndValidate(test,
+                // (4,14): warning CS1030: #warning: 'hello'
+                //     #warning hello
+                Diagnostic(ErrorCode.WRN_WarningDirective, "hello").WithArguments("hello").WithLocation(4, 14),
+                // (6,1): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                // }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(6, 1));
         }
 
         [Fact]
@@ -332,15 +346,14 @@ class A
         A::B.C<D> y;
     }
 }";
-            ParseAndValidate(source,
+
+            UsingTree(source,
                 // (6,10): error CS1002: ; expected
                 //         A::B.C<D> y;
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "::").WithLocation(6, 10),
                 // (6,10): error CS1001: Identifier expected
                 //         A::B.C<D> y;
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "::").WithLocation(6, 10));
-
-            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -470,12 +483,11 @@ class A
         ::A.B<C> x;
     }
 }";
-            ParseAndValidate(source,
+
+            UsingTree(source,
                 // (4,6): error CS1001: Identifier expected
                 //     {
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(4, 6));
-
-            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -561,12 +573,11 @@ class A
         ::A.B<C>();
     }
 }";
-            ParseAndValidate(source,
+
+            UsingTree(source,
                 // (4,6): error CS1001: Identifier expected
                 //     {
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(4, 6));
-
-            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -652,12 +663,11 @@ class A
         A<B>::C();
     }
 }";
-            ParseAndValidate(source,
+
+            UsingTree(source,
                 // (5,13): error CS1001: Identifier expected
                 //         A<B>::C();
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "::").WithLocation(5, 13));
-
-            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -742,12 +752,10 @@ class A
         A<B>::C d;
     }
 }";
-            ParseAndValidate(source,
+            UsingTree(source,
                 // (5,13): error CS7000: Unexpected use of an aliased name
                 //         A<B>::C d;
                 Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "::").WithLocation(5, 13));
-
-            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);

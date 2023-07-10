@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis
 
         public bool TryGetStateChecksums(ProjectId projectId, [NotNullWhen(true)] out SolutionStateChecksums? stateChecksums)
         {
-            ValueSource<SolutionStateChecksums>? checksums;
+            AsyncLazy<SolutionStateChecksums>? checksums;
             lock (_lazyProjectChecksums)
             {
                 if (!_lazyProjectChecksums.TryGetValue(projectId, out checksums) ||
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis
         {
             Contract.ThrowIfNull(projectId);
 
-            ValueSource<SolutionStateChecksums>? checksums;
+            AsyncLazy<SolutionStateChecksums>? checksums;
             lock (_lazyProjectChecksums)
             {
                 if (!_lazyProjectChecksums.TryGetValue(projectId, out checksums))
@@ -69,13 +69,12 @@ namespace Microsoft.CodeAnalysis
             return collection;
 
             // Extracted as a local function to prevent delegate allocations when not needed.
-            ValueSource<SolutionStateChecksums> Compute(ProjectId projectId)
+            AsyncLazy<SolutionStateChecksums> Compute(ProjectId projectId)
             {
                 var projectsToInclude = new HashSet<ProjectId>();
                 AddReferencedProjects(projectsToInclude, projectId);
 
-                return new AsyncLazy<SolutionStateChecksums>(
-                    c => ComputeChecksumsAsync(projectsToInclude, c), cacheResult: true);
+                return AsyncLazy.Create(c => ComputeChecksumsAsync(projectsToInclude, c));
             }
 
             void AddReferencedProjects(HashSet<ProjectId> result, ProjectId projectId)
@@ -142,7 +141,7 @@ namespace Microsoft.CodeAnalysis
                         })
                         .ToArray();
 
-                    var serializer = _solutionServices.Workspace.Services.GetRequiredService<ISerializerService>();
+                    var serializer = Services.GetRequiredService<ISerializerService>();
                     var attributesChecksum = serializer.CreateChecksum(SolutionAttributes, cancellationToken);
 
                     var frozenSourceGeneratedDocumentIdentityChecksum = Checksum.Null;
@@ -155,12 +154,12 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     var analyzerReferenceChecksums = ChecksumCache.GetOrCreate<ChecksumCollection>(AnalyzerReferences,
-                        _ => new ChecksumCollection(AnalyzerReferences.Select(r => serializer.CreateChecksum(r, cancellationToken)).ToArray()));
+                        _ => new ChecksumCollection(AnalyzerReferences.SelectAsArray(r => serializer.CreateChecksum(r, cancellationToken))));
 
                     var projectChecksums = await Task.WhenAll(projectChecksumTasks).ConfigureAwait(false);
                     return new SolutionStateChecksums(
                         attributesChecksum,
-                        new ChecksumCollection(projectChecksums.WhereNotNull().ToArray()),
+                        new ChecksumCollection(projectChecksums.WhereNotNull().ToImmutableArray()),
                         analyzerReferenceChecksums,
                         frozenSourceGeneratedDocumentIdentityChecksum,
                         frozenSourceGeneratedDocumentTextChecksum);
@@ -168,7 +167,7 @@ namespace Microsoft.CodeAnalysis
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
     }

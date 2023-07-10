@@ -9,29 +9,27 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    internal readonly struct NonRemappableRegion : IEquatable<NonRemappableRegion>
+    internal readonly struct NonRemappableRegion(SourceFileSpan oldSpan, SourceFileSpan newSpan, bool isExceptionRegion) : IEquatable<NonRemappableRegion>
     {
         /// <summary>
-        /// Pre-remap PDB span.
+        /// PDB span in pre-remap method version.
         /// </summary>
-        public readonly SourceFileSpan OldSpan;
+        /// <remarks>
+        /// When a thread is executing in an old version of a method before it is remapped to the new version
+        /// its active statement needs to be mapped from <see cref="OldSpan"/> in the old version 
+        /// to <see cref="NewSpan"/> in the new version of the method.
+        /// </remarks>
+        public readonly SourceFileSpan OldSpan = oldSpan;
 
         /// <summary>
-        /// New PDB span.
+        /// PDB span in the new method version.
         /// </summary>
-        public readonly SourceFileSpan NewSpan;
+        public readonly SourceFileSpan NewSpan = newSpan;
 
         /// <summary>
         /// True if the region represents an exception region, false if it represents an active statement.
         /// </summary>
-        public readonly bool IsExceptionRegion;
-
-        public NonRemappableRegion(SourceFileSpan oldSpan, SourceFileSpan newSpan, bool isExceptionRegion)
-        {
-            OldSpan = oldSpan;
-            NewSpan = newSpan;
-            IsExceptionRegion = isExceptionRegion;
-        }
+        public readonly bool IsExceptionRegion = isExceptionRegion;
 
         public override bool Equals(object? obj)
             => obj is NonRemappableRegion region && Equals(region);

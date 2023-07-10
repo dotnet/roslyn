@@ -20,12 +20,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// </summary>
         private readonly struct DocumentAnalysisData
         {
-            public static readonly DocumentAnalysisData Empty = new(VersionStamp.Default, ImmutableArray<DiagnosticData>.Empty);
+            public static readonly DocumentAnalysisData Empty = new(VersionStamp.Default, lineCount: 0, ImmutableArray<DiagnosticData>.Empty);
 
             /// <summary>
             /// Version of the diagnostic data.
             /// </summary>
             public readonly VersionStamp Version;
+
+            /// <summary>
+            /// Number of lines in the document.
+            /// </summary>
+            public readonly int LineCount;
 
             /// <summary>
             /// Current data that matches the version.
@@ -37,24 +42,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// </summary>
             public readonly ImmutableArray<DiagnosticData> OldItems;
 
-            public DocumentAnalysisData(VersionStamp version, ImmutableArray<DiagnosticData> items)
+            public DocumentAnalysisData(VersionStamp version, int lineCount, ImmutableArray<DiagnosticData> items)
             {
                 Debug.Assert(!items.IsDefault);
 
                 Version = version;
+                LineCount = lineCount;
                 Items = items;
                 OldItems = default;
             }
 
-            public DocumentAnalysisData(VersionStamp version, ImmutableArray<DiagnosticData> oldItems, ImmutableArray<DiagnosticData> newItems)
-                : this(version, newItems)
+            public DocumentAnalysisData(VersionStamp version, int lineCount, ImmutableArray<DiagnosticData> oldItems, ImmutableArray<DiagnosticData> newItems)
+                : this(version, lineCount, newItems)
             {
                 Debug.Assert(!oldItems.IsDefault);
                 OldItems = oldItems;
             }
 
             public DocumentAnalysisData ToPersistData()
-                => new(Version, Items);
+                => new(Version, LineCount, Items);
 
             public bool FromCache
             {
@@ -108,6 +114,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             public DiagnosticAnalysisResult GetResult(DiagnosticAnalyzer analyzer)
                 => GetResultOrEmpty(Result, analyzer, ProjectId, Version);
+
+            public bool TryGetResult(DiagnosticAnalyzer analyzer, out DiagnosticAnalysisResult result)
+                => Result.TryGetValue(analyzer, out result);
 
             public static async Task<ProjectAnalysisData> CreateAsync(Project project, IEnumerable<StateSet> stateSets, bool avoidLoadingData, CancellationToken cancellationToken)
             {

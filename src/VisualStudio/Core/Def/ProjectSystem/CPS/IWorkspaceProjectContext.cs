@@ -9,12 +9,12 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
 {
     /// <summary>
-    /// Project context to initialize properties and items of a Workspace project created with <see
-    /// cref="IWorkspaceProjectContextFactory.CreateProjectContextAsync"/>. 
+    /// Project context to initialize properties and items of a Workspace project created by <see cref="IWorkspaceProjectContextFactory"/>. 
     /// </summary>
     /// <remarks>
     /// <see cref="IDisposable.Dispose"/> is safe to call on instances of this type on any thread.
@@ -40,7 +40,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
 
         // Options.
 
-        [Obsolete("To avoid contributing to the large object heap, use SetOptions(ImmutableArray<string>). This API will be removed in the future.")]
         void SetOptions(string commandLineForOptions);
         void SetOptions(ImmutableArray<string> arguments);
 
@@ -73,11 +72,8 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         /// </summary>
         void RemoveAnalyzerConfigFile(string filePath);
 
-        void SetRuleSetFile(string filePath);
-
         void StartBatch();
-        [Obsolete($"Use {nameof(EndBatchAsync)}.")]
-        void EndBatch();
+        IAsyncDisposable CreateBatchScope();
         ValueTask EndBatchAsync();
 
         void ReorderSourceFiles(IEnumerable<string> filePaths);

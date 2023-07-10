@@ -11,13 +11,18 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.PdbSourceDocument
 {
     [Export(typeof(IPdbSourceDocumentLoaderService)), Shared]
-    internal sealed class PdbSourceDocumentLoaderService : IPdbSourceDocumentLoaderService
+    [method: ImportingConstructor]
+    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code")]
+    internal sealed class PdbSourceDocumentLoaderService(
+        [Import(AllowDefault = true)] Lazy<ISourceLinkService>? sourceLinkService,
+        [Import(AllowDefault = true)] IPdbSourceDocumentLogger? logger) : IPdbSourceDocumentLoaderService
     {
         private const int SourceLinkTimeout = 1000;
         private const int ExtendedSourceLinkTimeout = 4000;
@@ -26,18 +31,8 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         /// Lazy import ISourceLinkService because it can cause debugger 
         /// binaries to be eagerly loaded even if they are never used.
         /// </summary>
-        private readonly Lazy<ISourceLinkService>? _sourceLinkService;
-        private readonly IPdbSourceDocumentLogger? _logger;
-
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code")]
-        public PdbSourceDocumentLoaderService(
-            [Import(AllowDefault = true)] Lazy<ISourceLinkService>? sourceLinkService,
-            [Import(AllowDefault = true)] IPdbSourceDocumentLogger? logger)
-        {
-            _sourceLinkService = sourceLinkService;
-            _logger = logger;
-        }
+        private readonly Lazy<ISourceLinkService>? _sourceLinkService = sourceLinkService;
+        private readonly IPdbSourceDocumentLogger? _logger = logger;
 
         public async Task<SourceFileInfo?> LoadSourceDocumentAsync(string tempFilePath, SourceDocument sourceDocument, Encoding encoding, TelemetryMessage telemetry, bool useExtendedTimeout, CancellationToken cancellationToken)
         {
@@ -197,14 +192,14 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             {
                 using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
 
-                var sourceText = SourceText.From(stream, encoding, sourceDocument.HashAlgorithm, throwIfBinaryDetected: true);
+                var sourceText = SourceText.From(stream, encoding, sourceDocument.ChecksumAlgorithm, throwIfBinaryDetected: true);
 
                 var fileChecksum = sourceText.GetChecksum();
                 if (ignoreChecksum || fileChecksum.SequenceEqual(sourceDocument.Checksum))
                 {
                     var textAndVersion = TextAndVersion.Create(sourceText, VersionStamp.Default, filePath);
                     var textLoader = TextLoader.From(textAndVersion);
-                    return new SourceFileInfo(filePath, sourceDescription, textLoader, fromRemoteLocation);
+                    return new SourceFileInfo(filePath, sourceDescription, textLoader, sourceDocument.ChecksumAlgorithm, fromRemoteLocation);
                 }
 
                 return null;

@@ -19,9 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConstructorInitializerPlacement
     {
         public ConstructorInitializerPlacementDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.ConstructorInitializerPlacementDiagnosticId,
-                   EnforceOnBuildValues.ConsecutiveBracePlacement,
+                   EnforceOnBuildValues.ConstructorInitializerPlacement,
                    CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(
                        nameof(CSharpAnalyzersResources.Blank_line_not_allowed_after_constructor_initializer_colon), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
@@ -39,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConstructorInitializerPlacement
             if (option.Value)
                 return;
 
-            Recurse(context, option.Notification.Severity, context.Tree.GetRoot(context.CancellationToken));
+            Recurse(context, option.Notification.Severity, context.GetAnalysisRoot(findInTrivia: false));
         }
 
         private void Recurse(SyntaxTreeAnalysisContext context, ReportDiagnostic severity, SyntaxNode node)
@@ -55,6 +54,9 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConstructorInitializerPlacement
 
             foreach (var child in node.ChildNodesAndTokens())
             {
+                if (!context.ShouldAnalyzeSpan(child.Span))
+                    continue;
+
                 if (child.IsNode)
                     Recurse(context, severity, child.AsNode()!);
             }

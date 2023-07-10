@@ -33,11 +33,6 @@ Friend Class RedNodeWriter
             _writer.WriteLine()
         End If
 
-        ' We no longer generate SyntaxKind. Instead we write it by hand to ensure we do
-        ' so while maintaining compatibility (i.e. never change the numbering)
-        ''GenerateKindEnum()
-        ''_writer.WriteLine()
-
         If Not String.IsNullOrEmpty(_parseTree.VisitorName) Then
             GenerateVisitorClass(True)
             GenerateVisitorClass(False)
@@ -62,7 +57,6 @@ Friend Class RedNodeWriter
         GenerateEnumTypes()
         _writer.WriteLine()
 
-        'GenerateRedFactory()
         _writer.WriteLine()
 
         GenerateNodeStructures()
@@ -72,110 +66,10 @@ Friend Class RedNodeWriter
         End If
     End Sub
 
-    Private Sub GenerateKindEnum()
-        ' XML comment
-        GenerateXmlComment(_writer, "Enumeration with all Visual Basic syntax node kinds.", Nothing, 4)
-
-#If ListFlags Then
-        _writer.WriteLine("    <Flags()>", NodeKindType())
-#End If
-        _writer.WriteLine("    Public Enum {0} As UShort", NodeKindType())
-
-        _writer.WriteLine("        None")
-        _writer.WriteLine("        List = GreenNode.ListKind")
-
-        Dim count = 0
-        For Each kind In _parseTree.NodeKinds.Values
-            GenerateKindEnumerator(kind)
-            count += 1
-        Next
-
-#If ListFlags Then
-        Dim syntaxListKind = (2 * count) And MaxSyntaxKinds
-        _writer.WriteLine("        List = &h{0:x}", syntaxListKind)
-        _writer.WriteLine("        SeparatedList = &h{0:x}", syntaxListKind * 2 + syntaxListKind)
-#End If
-        _writer.WriteLine("    End Enum")
-    End Sub
-
-    Private Sub GenerateKindEnumerator(kind As ParseNodeKind)
-        ' XML comment
-        GenerateXmlComment(_writer, kind, 8)
-
-        _writer.Write("        {0}", Ident(kind.Name))
-
-        For i = 1 To 35 - Ident(kind.Name).Length
-            _writer.Write(" ")
-        Next
-
-        _writer.Write("' {0}", StructureTypeName(kind.NodeStructure))
-
-        ' Write the list of parent classes also.
-        Dim struct = kind.NodeStructure.ParentStructure
-        Do While struct IsNot Nothing AndAlso Not IsRoot(struct)
-            _writer.Write(" : {0}", StructureTypeName(struct))
-            struct = struct.ParentStructure
-        Loop
-
-        _writer.WriteLine()
-    End Sub
-
     Private Sub GenerateEnumTypes()
         For Each enumerationType In _parseTree.Enumerations.Values
             GenerateEnumerationType(enumerationType)
         Next
-    End Sub
-
-    Private Sub GenerateRedFactory()
-        'Private Shared Function CreateRed(ByVal green As GreenNode, ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
-        '    Requires(green IsNot Nothing)
-        '    Requires(startLocation >= 0)
-        '    
-        '       Select Case green.Kind
-        _writer.WriteLine("Partial Public MustInherit Class {0}", StructureTypeName(_parseTree.RootStructure))
-        _writer.WriteLine("    Friend Shared Function CreateRed(ByVal green As Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.{0}, ByVal parent As {0}, ByVal startLocation As Integer) As {0}", StructureTypeName(_parseTree.RootStructure))
-        _writer.WriteLine("        Debug.Assert(green IsNot Nothing)")
-        _writer.WriteLine("        Debug.Assert(startLocation >= 0)")
-        _writer.WriteLine("")
-        _writer.WriteLine("        Select Case green.Kind")
-
-        For Each nodeStructure In _parseTree.NodeStructures.Values
-            GenerateFactoryCase(nodeStructure)
-        Next
-
-        _writer.WriteLine("            Case Else")
-        _writer.WriteLine("                Throw New InvalidOperationException(""unexpected node kind"")")
-        _writer.WriteLine("        End Select")
-        _writer.WriteLine("    End Function")
-        _writer.WriteLine("End Class")
-
-        '       Case Else
-        '        Throw New InvalidOperationException("unexpected node kind")
-        '            End Select
-        '    End Sub
-        'End Class
-    End Sub
-
-    Private Sub GenerateFactoryCase(nodeStructure As ParseNodeStructure)
-        If nodeStructure.Abstract Then
-            Return
-        End If
-
-        Dim kinds = nodeStructure.NodeKinds
-        Dim first As Boolean = True
-        For Each kind In kinds
-            If first Then
-                _writer.Write("            Case SyntaxKind." & kind.Name)
-                first = False
-            Else
-                _writer.Write("," & Environment.NewLine)
-                _writer.Write("                 SyntaxKind." & kind.Name)
-
-            End If
-        Next
-        _writer.WriteLine("")
-        _writer.WriteLine("                Return New " & StructureTypeName(nodeStructure) & "(green, parent, startLocation)")
-        _writer.WriteLine("")
     End Sub
 
     Private Sub GenerateNodeStructures()
@@ -289,10 +183,8 @@ Friend Class RedNodeWriter
         Next
 
         If allChildren.Count > 0 Then
-            'GenerateGetSlot(nodeStructure, allChildren)
             GenerateGetCachedSlot(nodeStructure, allChildren)
             GenerateGetNodeSlot(nodeStructure, allChildren)
-            'GenerateGetSlotCount(nodeStructure, allChildren)
         End If
 
         ' Visitor accept method
@@ -902,65 +794,6 @@ Friend Class RedNodeWriter
     End Sub
 
     ' Generate GetChild, GetChildrenCount so members can be accessed by index
-    Private Sub GenerateGetSlot(nodeStructure As ParseNodeStructure, allChildren As List(Of ParseNodeChild))
-        If _parseTree.IsAbstract(nodeStructure) OrElse nodeStructure.IsToken Then
-            Return
-        End If
-
-        Dim childrenCount = allChildren.Count
-        If childrenCount = 0 Then
-            Return
-        End If
-
-        _writer.WriteLine("        Friend Overrides Function GetSlot(i as Integer) as IBaseSyntaxNodeExt")
-
-        ' Create the property accessor for each of the children
-        Dim children = allChildren
-
-        If childrenCount <> 1 Then
-            _writer.WriteLine("            Select case i")
-
-            For i = 0 To childrenCount - 1
-                Dim child = children(i)
-                _writer.WriteLine("                Case {0}", i)
-                If KindTypeStructure(child.ChildKind).IsToken Then
-                    _writer.WriteLine("                    Return DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.{0}).{1}", StructureTypeName(nodeStructure), ChildVarName(child))
-                ElseIf child.IsList Then
-                    If (i = 0) Then
-                        _writer.WriteLine("                    Return GetRedAtZero({0})", ChildVarName(child))
-                    Else
-                        _writer.WriteLine("                    Return GetRed({0}, {1})", ChildVarName(child), i)
-                    End If
-                Else
-                    _writer.WriteLine("                    Return Me.{0}", ChildPropertyName(child))
-                End If
-            Next
-            _writer.WriteLine("                Case Else")
-            _writer.WriteLine("                    Debug.Assert(false, ""child index out of range"")")
-            _writer.WriteLine("                    Return Nothing")
-            _writer.WriteLine("            End Select")
-        Else
-            _writer.WriteLine("            If i = 0 Then")
-            Dim child = children(0)
-            If KindTypeStructure(child.ChildKind).IsToken Then
-                _writer.WriteLine("                Return DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.{0}).{1}", StructureTypeName(nodeStructure), ChildVarName(child))
-            ElseIf child.IsList Then
-                _writer.WriteLine("                Return GetRedAtZero({0})", ChildVarName(child))
-            Else
-                _writer.WriteLine("                Return Me.{0}", ChildPropertyName(child))
-            End If
-
-            _writer.WriteLine("            Else")
-            _writer.WriteLine("                Debug.Assert(false, ""child index out of range"")")
-            _writer.WriteLine("                Return Nothing")
-            _writer.WriteLine("            End If")
-        End If
-
-        _writer.WriteLine("        End Function")
-        _writer.WriteLine()
-    End Sub
-
-    ' Generate GetChild, GetChildrenCount so members can be accessed by index
     Private Sub GenerateGetNodeSlot(nodeStructure As ParseNodeStructure, allChildren As List(Of ParseNodeChild))
         If _parseTree.IsAbstract(nodeStructure) OrElse nodeStructure.IsToken Then
             Return
@@ -1066,26 +899,6 @@ Friend Class RedNodeWriter
         End If
 
         _writer.WriteLine("        End Function")
-        _writer.WriteLine()
-    End Sub
-
-    ' Generate GetChild, GetChildrenCount so members can be accessed by index
-    Private Sub GenerateGetSlotCount(nodeStructure As ParseNodeStructure, allChildren As List(Of ParseNodeChild))
-        If _parseTree.IsAbstract(nodeStructure) OrElse nodeStructure.IsToken Then
-            Return
-        End If
-
-        Dim childrenCount = allChildren.Count
-        If childrenCount = 0 Then
-            Return
-        End If
-
-        _writer.WriteLine("        Friend Overrides ReadOnly Property SlotCount() As Integer")
-        _writer.WriteLine("            Get")
-        _writer.WriteLine("                Return {0}", childrenCount)
-        _writer.WriteLine("            End Get")
-        _writer.WriteLine("        End Property")
-
         _writer.WriteLine()
     End Sub
 

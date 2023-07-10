@@ -17,6 +17,21 @@
         <target state="translated">'{0}' 형식을 포함하는 어셈블리가 지원되지 않는 .NET Framework를 참조합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="BadBuiltInOps1">
+        <source>Illegal built-in operator name '{0}'</source>
+        <target state="translated">기본 제공 연산자 이름 '{0}'이(가) 잘못되었습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="BadBuiltInOps2">
+        <source>Unsupported built-in operator: {0}</source>
+        <target state="translated">지원되지 않는 기본 제공 연산자: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="BadBuiltInOps3">
+        <source>'{0}' was not a valid built-in operator name</source>
+        <target state="translated">'{0}'은(는) 유효한 기본 제공 연산자 이름이 아닙니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">
         <source>Changes must be within bounds of SourceText</source>
         <target state="translated">변경 내용은 SourceText의 범위 내에 있어야 합니다.</target>
@@ -41,12 +56,27 @@
       </trans-unit>
       <trans-unit id="EncCannotResumeSuspendedAsyncMethod">
         <source>Edit and Continue can't resume suspended asynchronous method since the corresponding await expression has been deleted</source>
-        <target state="new">Edit and Continue can't resume suspended asynchronous method since the corresponding await expression has been deleted</target>
+        <target state="translated">해당 대기 식이 삭제되었으므로 편집하고 계속하기가 일시 중단된 비동기 메서드를 재개할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="EncCannotResumeSuspendedIteratorMethod">
         <source>Edit and Continue can't resume suspended iterator since the corresponding yield return statement has been deleted</source>
-        <target state="new">Edit and Continue can't resume suspended iterator since the corresponding yield return statement has been deleted</target>
+        <target state="translated">해당 yield return 문이 삭제되었으므로 편집하고 계속하기가 일시 중단된 반복기를 다시 시작할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EndMustNotBeLessThanStart">
+        <source>'end' must not be less than 'start'. start='{0}' end='{1}'.</source>
+        <target state="translated">'end'는 'start'보다 작을 수 없습니다. start='{0}' end='{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GeneratorNameColumnHeader">
+        <source>Generator</source>
+        <target state="translated">생성기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GeneratorTotalExecutionTime">
+        <source>Total generator execution time: {0} seconds.</source>
+        <target state="translated">총 생성기 실행 시간: {0} 초</target>
         <note />
       </trans-unit>
       <trans-unit id="HintNameInvalidChar">
@@ -54,10 +84,46 @@
         <target state="translated">hintName의 {0} 위치 {2}에 잘못된 문자 '{1}'이(가) 있습니다.</target>
         <note>{0}: the provided hintname. {1}: the invalid character, {2} the position it occurred at</note>
       </trans-unit>
+      <trans-unit id="HintNameInvalidSegment">
+        <source>The hintName '{0}' contains an invalid segment '{1}' at position {2}.</source>
+        <target state="translated">hintName '{0}'의 위치 {2}에 잘못된 세그먼트 '{1}'이(가) 있습니다.</target>
+        <note>{0}: the provided hintname. {1}: the invalid segment, {2} the position it occurred at</note>
+      </trans-unit>
+      <trans-unit id="HintNameNotWithinCurrentDirectory">
+        <source>The hintName '{0}' is not within the current directory.</source>
+        <target state="translated">hintName '{0}'이(가) 현재 디렉터리에 없습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="HintNameUniquePerGenerator">
         <source>The hintName '{0}' of the added source file must be unique within a generator.</source>
         <target state="translated">추가된 원본 파일의 hintName ‘{0}’은(는) 생성기 내에서 고유해야 합니다.</target>
         <note>{0}: the provided hintname</note>
+      </trans-unit>
+      <trans-unit id="InternalsVisibleToCurrentAssembly">
+        <source>Current assembly: '{0}'</source>
+        <target state="new">Current assembly: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalsVisibleToHeaderSummary">
+        <source>Printing 'InternalsVisibleToAttribute' information for the current compilation and all referenced assemblies.</source>
+        <target state="new">Printing 'InternalsVisibleToAttribute' information for the current compilation and all referenced assemblies.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalsVisibleToReferencedAssembly">
+        <source>Assembly reference: '{0}'
+  Grants IVT to current assembly: {1}
+  Grants IVTs to:</source>
+        <target state="new">Assembly reference: '{0}'
+  Grants IVT to current assembly: {1}
+  Grants IVTs to:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalsVisibleToReferencedAssemblyDetails">
+        <source>    Assembly name: '{0}'
+    Public Keys:</source>
+        <target state="new">    Assembly name: '{0}'
+    Public Keys:</target>
+        <note />
       </trans-unit>
       <trans-unit id="InvalidAdditionalFile">
         <source>Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
@@ -67,6 +133,11 @@
       <trans-unit id="InvalidDiagnosticSuppressionReported">
         <source>Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</source>
         <target state="translated">표시되지 않는 진단 ID '{0}'이(가) 지정된 비표시 설명자의 표시하지 않을 수 있는 ID '{1}'과(와) 일치하지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidInstrumentationKind">
+        <source>Invalid instrumentation kind: {0}</source>
+        <target state="translated">잘못된 계측 종류: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
@@ -84,6 +155,16 @@
         <target state="translated">'{0}' 매개 변수는 이 컴파일 또는 일부 참조된 어셈블리의 기호여야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="LineCannotBeGreaterThanEnd">
+        <source>The requested line number {0} must be less than the number of lines {1}.</source>
+        <target state="translated">요청한 줄 번호 {0}은(는) {1} 줄 수보다 작아야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MethodSymbolExpected">
+        <source>Method symbol expected</source>
+        <target state="translated">메서드 기호가 필요합니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ModuleHasInvalidAttributes">
         <source>Module has invalid attributes.</source>
         <target state="translated">모듈에 잘못된 특성이 있습니다.</target>
@@ -97,6 +178,11 @@
       <trans-unit id="NotARootOperation">
         <source>Given operation has a non-null parent.</source>
         <target state="translated">지정한 작업에 null이 아닌 부모가 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Nothing">
+        <source>Nothing</source>
+        <target state="new">Nothing</target>
         <note />
       </trans-unit>
       <trans-unit id="OperationHasNullSemanticModel">
@@ -459,11 +545,6 @@
         <target state="translated">'start'는 음수일 수 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="EndMustNotBeLessThanStart">
-        <source>'end' must not be less than 'start'</source>
-        <target state="translated">'end'는 'start'보다 커야 합니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="InvalidContentType">
         <source>Invalid content type</source>
         <target state="translated">잘못된 콘텐츠 형식입니다.</target>
@@ -647,17 +728,17 @@
       <trans-unit id="CompilerAnalyzerFailure">
         <source>Analyzer Failure</source>
         <target state="translated">분석기 오류</target>
-        <note>{0}: Analyzer name
-{1}: Type name
-{2}: Localized exception message
-{3}: Localized detail message</note>
+        <note />
       </trans-unit>
       <trans-unit id="CompilerAnalyzerThrows">
         <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
 {3}</source>
         <target state="translated">분석기 '{0}'에서 '{2}' 메시지와 함께 '{1}' 형식의 예외를 throw했습니다.
 {3}</target>
-        <note />
+        <note>{0}: Analyzer name
+{1}: Type name
+{2}: Localized exception message
+{3}: Localized detail message</note>
       </trans-unit>
       <trans-unit id="AnalyzerDriverFailure">
         <source>Analyzer Driver Failure</source>

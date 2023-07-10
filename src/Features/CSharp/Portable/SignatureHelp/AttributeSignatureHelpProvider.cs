@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,7 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
@@ -36,9 +37,16 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         public override bool IsRetriggerCharacter(char ch)
             => ch == ')';
 
-        private bool TryGetAttributeExpression(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, SignatureHelpTriggerReason triggerReason, CancellationToken cancellationToken, out AttributeSyntax attribute)
+        private bool TryGetAttributeExpression(
+            SyntaxNode root,
+            int position,
+            ISyntaxFactsService syntaxFacts,
+            SignatureHelpTriggerReason triggerReason,
+            CancellationToken cancellationToken,
+            [NotNullWhen(true)] out AttributeSyntax? attribute)
         {
-            if (!CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken, out attribute))
+            if (!CommonSignatureHelpUtilities.TryGetSyntax(
+                    root, position, syntaxFacts, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken, out attribute))
             {
                 return false;
             }
@@ -102,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             return CreateSignatureHelpItems(accessibleConstructors.Select(c =>
                 Convert(c, within, attribute, semanticModel, structuralTypeDisplayService, documentationCommentFormatter, cancellationToken)).ToList(),
-                textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem);
+                textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem, parameterIndexOverride: -1);
         }
 
         private SignatureHelpState? GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
@@ -131,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 .ToList();
 
             var isVariadic =
-                constructor.Parameters.Length > 0 && constructor.Parameters.Last().IsParams && namedParameters.Count == 0;
+                constructor.Parameters is [.., { IsParams: true }] && namedParameters.Count == 0;
 
             var item = CreateItem(
                 constructor, semanticModel, position,

@@ -10,6 +10,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -380,8 +381,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             Return RetargetingTranslator.GetRetargetedAttributes(_underlyingMethod, _lazyReturnTypeCustomAttributes, True)
         End Function
 
-        Friend Overrides Function GetCustomAttributesToEmit(compilationState As ModuleCompilationState) As IEnumerable(Of VisualBasicAttributeData)
-            Return RetargetingTranslator.RetargetAttributes(_underlyingMethod.GetCustomAttributesToEmit(compilationState))
+        Friend Overrides Function GetCustomAttributesToEmit(moduleBuilder As PEModuleBuilder) As IEnumerable(Of VisualBasicAttributeData)
+            Return RetargetingTranslator.RetargetAttributes(_underlyingMethod.GetCustomAttributesToEmit(moduleBuilder))
         End Function
 
         Public Overrides ReadOnly Property ContainingAssembly As AssemblySymbol
@@ -517,5 +518,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             ' retargeting symbols refer to a symbol from another compilation, they don't define locals in the current compilation
             Throw ExceptionUtilities.Unreachable
         End Function
+
+        Friend Overrides ReadOnly Property HasSetsRequiredMembers As Boolean
+            Get
+                Return _underlyingMethod.HasSetsRequiredMembers
+            End Get
+        End Property
     End Class
 End Namespace

@@ -2,53 +2,35 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static class PredefinedTypeExtensions
     {
         public static SpecialType ToSpecialType(this PredefinedType predefinedType)
-        {
-            switch (predefinedType)
+            => predefinedType switch
             {
-                case PredefinedType.Object:
-                    return SpecialType.System_Object;
-                case PredefinedType.Void:
-                    return SpecialType.System_Void;
-                case PredefinedType.Boolean:
-                    return SpecialType.System_Boolean;
-                case PredefinedType.Char:
-                    return SpecialType.System_Char;
-                case PredefinedType.SByte:
-                    return SpecialType.System_SByte;
-                case PredefinedType.Byte:
-                    return SpecialType.System_Byte;
-                case PredefinedType.Int16:
-                    return SpecialType.System_Int16;
-                case PredefinedType.UInt16:
-                    return SpecialType.System_UInt16;
-                case PredefinedType.Int32:
-                    return SpecialType.System_Int32;
-                case PredefinedType.UInt32:
-                    return SpecialType.System_UInt32;
-                case PredefinedType.Int64:
-                    return SpecialType.System_Int64;
-                case PredefinedType.UInt64:
-                    return SpecialType.System_UInt64;
-                case PredefinedType.Decimal:
-                    return SpecialType.System_Decimal;
-                case PredefinedType.Single:
-                    return SpecialType.System_Single;
-                case PredefinedType.Double:
-                    return SpecialType.System_Double;
-                case PredefinedType.String:
-                    return SpecialType.System_String;
-                case PredefinedType.DateTime:
-                    return SpecialType.System_DateTime;
-                default:
-                    return SpecialType.None;
-            }
-        }
+                PredefinedType.Object => SpecialType.System_Object,
+                PredefinedType.Void => SpecialType.System_Void,
+                PredefinedType.Boolean => SpecialType.System_Boolean,
+                PredefinedType.Char => SpecialType.System_Char,
+                PredefinedType.SByte => SpecialType.System_SByte,
+                PredefinedType.Byte => SpecialType.System_Byte,
+                PredefinedType.Int16 => SpecialType.System_Int16,
+                PredefinedType.UInt16 => SpecialType.System_UInt16,
+                PredefinedType.Int32 => SpecialType.System_Int32,
+                PredefinedType.UInt32 => SpecialType.System_UInt32,
+                PredefinedType.Int64 => SpecialType.System_Int64,
+                PredefinedType.UInt64 => SpecialType.System_UInt64,
+                PredefinedType.Decimal => SpecialType.System_Decimal,
+                PredefinedType.Single => SpecialType.System_Single,
+                PredefinedType.Double => SpecialType.System_Double,
+                PredefinedType.String => SpecialType.System_String,
+                PredefinedType.DateTime => SpecialType.System_DateTime,
+                PredefinedType.IntPtr => SpecialType.System_IntPtr,
+                PredefinedType.UIntPtr => SpecialType.System_UIntPtr,
+                _ => SpecialType.None,
+            };
     }
 }

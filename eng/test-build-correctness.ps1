@@ -13,6 +13,7 @@
 param(
   [string]$configuration = "Debug",
   [switch]$enableDumps = $false,
+  [string]$bootstrapToolset = "",
   [switch]$help)
 
 Set-StrictMode -version 2.0
@@ -43,7 +44,7 @@ try {
   }
 
   Write-Host "Building Roslyn"
-  Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -restore -build -bootstrap -bootstrapConfiguration:Debug -ci:$ci -runAnalyzers:$true -configuration:$configuration -pack -binaryLog -useGlobalNuGetCache:$false -warnAsError:$true -properties "/p:RoslynEnforceCodeStyle=true"}
+  Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -restore -build -bootstrap -bootstrapConfiguration:Debug -bootstrapToolset:$bootstrapToolset -ci:$ci -runAnalyzers:$true -configuration:$configuration -pack -binaryLog -useGlobalNuGetCache:$false -warnAsError:$true -properties "/p:RoslynEnforceCodeStyle=true"}
 
   Subst-TempDir
 
@@ -65,6 +66,7 @@ try {
 catch [exception] {
   Write-Host $_
   Write-Host $_.Exception
+  Write-Host "##vso[task.logissue type=error]How to investigate bootstrap failures: https://github.com/dotnet/roslyn/blob/main/docs/compilers/Bootstrap%20Builds.md#Investigating"
   exit 1
 }
 finally {

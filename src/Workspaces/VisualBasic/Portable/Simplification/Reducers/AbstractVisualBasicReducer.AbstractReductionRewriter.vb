@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     Return newNode
                 End If
 
-                If Not node.HasAnnotation(SimplificationHelpers.DontSimplifyAnnotation) Then
+                If Not node.HasAnnotation(SimplificationHelpers.DoNotSimplifyAnnotation) Then
                     Dim simplifiedNode = simplifyFunc(node, _semanticModel, _simplificationOptions, CancellationToken)
                     If simplifiedNode IsNot node Then
                         _processedParentNodes.Add(parentNode)
@@ -140,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     Return newToken
                 End If
 
-                If Not token.HasAnnotation(SimplificationHelpers.DontSimplifyAnnotation) Then
+                If Not token.HasAnnotation(SimplificationHelpers.DoNotSimplifyAnnotation) Then
                     Dim simplifiedToken = simplifyFunc(token, _semanticModel, _simplificationOptions, CancellationToken)
                     If simplifiedToken <> token Then
                         _processedParentNodes.Add(parentNode)

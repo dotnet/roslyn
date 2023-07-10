@@ -3,13 +3,20 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 
-namespace Microsoft.CodeAnalysis.InlineHints
+namespace Microsoft.CodeAnalysis.InlineHints;
+
+[DataContract]
+internal readonly record struct InlineHintsOptions
 {
-    [DataContract]
-    internal readonly record struct InlineHintsOptions(
-        [property: DataMember(Order = 0)] InlineParameterHintsOptions ParameterOptions,
-        [property: DataMember(Order = 1)] InlineTypeHintsOptions TypeOptions,
-        [property: DataMember(Order = 2)] SymbolDescriptionOptions DisplayOptions);
+    [DataMember] public InlineParameterHintsOptions ParameterOptions { get; init; } = InlineParameterHintsOptions.Default;
+    [DataMember] public InlineTypeHintsOptions TypeOptions { get; init; } = InlineTypeHintsOptions.Default;
+    [DataMember] public SymbolDescriptionOptions DisplayOptions { get; init; } = SymbolDescriptionOptions.Default;
+
+    public InlineHintsOptions()
+    {
+    }
+
+    public static readonly InlineHintsOptions Default = new();
 }

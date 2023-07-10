@@ -34,10 +34,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextDiffing
 
         public async Task<ImmutableArray<TextChange>> GetTextChangesAsync(Document oldDocument, Document newDocument, TextDifferenceTypes preferredDifferenceType, CancellationToken cancellationToken)
         {
-            var oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var oldText = await oldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+            var newText = await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
-            var diffService = _differenceSelectorService.GetTextDifferencingService(oldDocument.Project.LanguageServices.GetService<IContentTypeLanguageService>().GetDefaultContentType())
+            var diffService = _differenceSelectorService.GetTextDifferencingService(oldDocument.Project.Services.GetService<IContentTypeLanguageService>().GetDefaultContentType())
                 ?? _differenceSelectorService.DefaultTextDifferencingService;
 
             var differenceOptions = GetDifferenceOptions(preferredDifferenceType);

@@ -52,18 +52,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 _sharedState = new SharedVerifierState(this, DefaultFileExt);
 
                 MarkupOptions = Testing.MarkupOptions.UseFirstDescriptor;
-
-                SolutionTransforms.Add((solution, projectId) =>
-                {
-                    var parseOptions = (CSharpParseOptions)solution.GetProject(projectId)!.ParseOptions!;
-                    solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion));
-
-                    var compilationOptions = solution.GetProject(projectId)!.CompilationOptions!;
-                    compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(compilationOptions.SpecificDiagnosticOptions.SetItems(CSharpVerifierHelper.NullableWarnings));
-                    solution = solution.WithProjectCompilationOptions(projectId, compilationOptions);
-
-                    return solution;
-                });
             }
 
             /// <summary>
@@ -104,12 +92,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 await base.RunImplAsync(cancellationToken);
             }
 
+            protected override ParseOptions CreateParseOptions()
+            {
+                var parseOptions = (CSharpParseOptions)base.CreateParseOptions();
+                return parseOptions.WithLanguageVersion(LanguageVersion);
+            }
+
+            protected override CompilationOptions CreateCompilationOptions()
+            {
+                var compilationOptions = (CSharpCompilationOptions)base.CreateCompilationOptions();
+                return compilationOptions.WithSpecificDiagnosticOptions(compilationOptions.SpecificDiagnosticOptions.SetItems(CSharpVerifierHelper.NullableWarnings));
+            }
+
 #if !CODE_STYLE
             protected override AnalyzerOptions GetAnalyzerOptions(Project project)
-                => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), project.Solution, _sharedState.GetIdeAnalyzerOptions(project));
+                => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), _sharedState.GetIdeAnalyzerOptions(project));
 
             protected override CodeFixContext CreateCodeFixContext(Document document, TextSpan span, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix, CancellationToken cancellationToken)
-                => new(document, span, diagnostics, registerCodeFix, _sharedState.CodeActionOptions, isBlocking: false, cancellationToken);
+                => new(document, span, diagnostics, registerCodeFix, _sharedState.CodeActionOptions, cancellationToken);
 
             protected override FixAllContext CreateFixAllContext(
                 Document? document,
@@ -144,6 +144,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             {
                 CodeActionsVerifier?.Invoke(actions);
                 return base.FilterCodeActions(actions);
+            }
+
+            protected override ImmutableArray<(Project project, Diagnostic diagnostic)> SortDistinctDiagnostics(IEnumerable<(Project project, Diagnostic diagnostic)> diagnostics)
+            {
+                var baseResult = base.SortDistinctDiagnostics(diagnostics);
+                if (typeof(DiagnosticSuppressor).IsAssignableFrom(typeof(TAnalyzer)))
+                {
+                    // Include suppressed diagnostics when testing diagnostic suppressors
+                    return baseResult;
+                }
+
+                // Treat suppressed diagnostics as non-existent. Normally this wouldn't be necessary, but some of the
+                // tests include diagnostics reported in code wrapped in '#pragma warning disable'.
+                return baseResult.WhereAsArray(diagnostic => !diagnostic.diagnostic.IsSuppressed);
             }
         }
     }

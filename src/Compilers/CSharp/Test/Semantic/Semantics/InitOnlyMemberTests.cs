@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -1278,7 +1279,7 @@ public class C
 ";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
-                // (8,16): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (8,16): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         M2(out Property); // 1
                 Diagnostic(ErrorCode.ERR_RefProperty, "Property").WithLocation(8, 16)
                 );
@@ -2278,6 +2279,7 @@ public interface IWithInitWithExplicitImplementation : I1, I2
                 targetFramework: TargetFramework.NetCoreApp,
                 parseOptions: TestOptions.Regular9);
             Assert.True(comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            Assert.True(comp.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces));
 
             comp.VerifyEmitDiagnostics(
                 // (12,12): warning CS0108: 'IWithoutInit.Property' hides inherited member 'I1.Property'. Use the new keyword if hiding was intended.
@@ -2370,6 +2372,7 @@ public class CWithImplementationWithoutInitOnly : I1, I2 // 7
                 targetFramework: TargetFramework.NetCoreApp,
                 parseOptions: TestOptions.Regular9);
             Assert.True(comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            Assert.True(comp.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces));
 
             comp.VerifyEmitDiagnostics(
                 // (13,12): warning CS0108: 'IWithoutInit.Property' hides inherited member 'I1.Property'. Use the new keyword if hiding was intended.
@@ -4207,8 +4210,6 @@ public readonly struct S
 }
 " }, verify: Verification.FailsPEVerify, expectedOutput: "1");
 
-
-
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
   // Code size       31 (0x1f)
@@ -4620,6 +4621,14 @@ namespace System
     public class ValueType { }
     public struct Void { }
     public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }
 ";
 
@@ -4752,6 +4761,68 @@ public class C
 
                 Assert.Equal(expectedAssemblyName, comp.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsExternalInit).ContainingAssembly.Name);
                 Assert.Equal(expectedAssemblyName, comp.GetTypeByMetadataName("System.Runtime.CompilerServices.IsExternalInit").ContainingAssembly.Name);
+            }
+        }
+
+        [Theory, WorkItem(67079, "https://github.com/dotnet/roslyn/issues/67079")]
+        [CombinatorialData]
+        public void DoNotPickTypeFromSourceWithFileModifier(bool useCompilationReference)
+        {
+            var corlib_cs = """
+                namespace System
+                {
+                    public class Object { }
+                    public struct Int32 { }
+                    public struct Boolean { }
+                    public class String { }
+                    public class ValueType { }
+                    public struct Void { }
+                    public class Attribute { }
+                    public class AttributeUsageAttribute : Attribute
+                    {
+                        public AttributeUsageAttribute(AttributeTargets t) { }
+                        public bool AllowMultiple { get; set; }
+                        public bool Inherited { get; set; }
+                    }
+                    public struct Enum { }
+                    public enum AttributeTargets { }
+                }
+                """;
+
+            var source = """
+                namespace System.Runtime.CompilerServices
+                {
+                    file class IsExternalInit {}
+                }
+
+                public class C
+                {
+                    public string Property { get; init; }
+                }
+                """;
+
+            var corlibWithoutIsExternalInitRef = AsReference(CreateEmptyCompilation(corlib_cs), useCompilationReference);
+            var corlibWithIsExternalInitRef = AsReference(CreateEmptyCompilation(corlib_cs + IsExternalInitTypeDefinition), useCompilationReference);
+            var emitOptions = EmitOptions.Default.WithRuntimeMetadataVersion("0.0.0.0");
+
+            {
+                // proper type in corlib and file type in source
+                var comp = CreateEmptyCompilation(source, references: new[] { corlibWithIsExternalInitRef });
+                comp.VerifyEmitDiagnostics(emitOptions);
+                var modifier = ((SourcePropertySymbol)comp.GlobalNamespace.GetMember("C.Property")).SetMethod.ReturnTypeWithAnnotations.CustomModifiers.Single();
+                Assert.False(modifier.Modifier.IsFileLocal);
+            }
+
+            {
+                // no type in corlib and file type in source
+                var comp = CreateEmptyCompilation(source, references: new[] { corlibWithoutIsExternalInitRef });
+                comp.VerifyEmitDiagnostics(emitOptions,
+                    // (8,35): error CS018: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
+                    //     public int Property { get; init; }
+                    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "init").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(8, 35)
+                    );
+                var modifier = ((SourcePropertySymbol)comp.GlobalNamespace.GetMember("C.Property")).SetMethod.ReturnTypeWithAnnotations.CustomModifiers.Single();
+                Assert.False(modifier.Modifier.IsFileLocal);
             }
         }
     }

@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -70,6 +71,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var knownMissingTypes = new HashSet<SpecialType>()
             {
+                SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute
             };
 
             for (var specialType = SpecialType.None + 1; specialType <= SpecialType.Count; specialType++)
@@ -191,10 +193,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void ConstantValueToStringTest01()
         {
-            var value = "Null";
-#if NETCOREAPP
-            value = "Nothing";
-#endif
+            string value = (RuntimeUtilities.IsCoreClrRuntime && !RuntimeUtilities.IsCoreClr6Runtime)
+                ? "Nothing"
+                : "Null";
 
             var cv = ConstantValue.Create(null, ConstantValueTypeDiscriminator.Null);
             Assert.Equal($"ConstantValueNull(null: {value})", cv.ToString());

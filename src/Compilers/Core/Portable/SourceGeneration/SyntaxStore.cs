@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -76,6 +77,9 @@ namespace Microsoft.CodeAnalysis
 
                     if (syntaxInputBuilders.Count > 0)
                     {
+                        // Ensure that even if the node that caused the update was cached, we can still adjust it to take into account other nodes that weren't 
+                        _syntaxTimes[syntaxInputNode] = TimeSpan.Zero;
+
                         // at this point we need to grab the syntax trees from the new compilation, and optionally diff them against the old ones
                         NodeStateTable<SyntaxTree> syntaxTreeState = syntaxTreeTable;
 
@@ -89,7 +93,7 @@ namespace Microsoft.CodeAnalysis
                                 var currentNode = syntaxInputBuilders[i].node;
                                 try
                                 {
-                                    Stopwatch sw = Stopwatch.StartNew();
+                                    var sw = SharedStopwatch.StartNew();
                                     try
                                     {
                                         _cancellationToken.ThrowIfCancellationRequested();

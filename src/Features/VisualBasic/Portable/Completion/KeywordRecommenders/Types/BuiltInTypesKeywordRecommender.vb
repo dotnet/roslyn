@@ -17,17 +17,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Type
         Inherits AbstractKeywordRecommender
 
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
-            If context.IsInTaskLikeTypeContext Then
+            If context.IsTaskLikeTypeContext Then
                 Return ImmutableArray(Of RecommendedKeyword).Empty
             End If
 
             Dim targetToken = context.TargetToken
 
             ' Are we right after an As in an Enum declaration?
-            Dim enumDeclaration = targetToken.GetAncestor(Of EnumStatementSyntax)()
-            If enumDeclaration IsNot Nothing AndAlso
-               enumDeclaration.UnderlyingType IsNot Nothing AndAlso
-               targetToken = enumDeclaration.UnderlyingType.AsKeyword Then
+            If context.IsEnumBaseListContext Then
 
                 Dim keywordList = GetIntrinsicTypeKeywords(context)
 

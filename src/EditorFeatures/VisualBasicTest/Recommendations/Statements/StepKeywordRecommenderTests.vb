@@ -3,17 +3,16 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class StepKeywordRecommenderTests
         Inherits RecommenderTests
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub StepInForLoopTest()
             VerifyRecommendationsContain(<MethodBody>For i = 1 To 10 |</MethodBody>, "Step")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub StepInForLoopAfterLineContinuationTest()
             VerifyRecommendationsContain(
 <MethodBody>
@@ -23,7 +22,6 @@ _
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub StepInForLoopAfterLineContinuationTestCommentsAfterLineContinuation()
             VerifyRecommendationsContain(
 <MethodBody>
@@ -32,7 +30,6 @@ _
 |</MethodBody>, "Step")
         End Sub
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub StepInForLoopNotAfterEOLTest()
             VerifyRecommendationsMissing(
 <MethodBody>
@@ -41,7 +38,6 @@ _
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub StepInForLoopNotAfterEOLWithLineContinuationTest()
             VerifyRecommendationsMissing(
 <MethodBody>

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 if (hasNext)
                 {
                     DumpAndCleanup();
-                    Assert.False(hasNext, "Test contains unconsumed syntax left over from UsingNode()");
+                    Assert.False(hasNext, $"Test contains unconsumed syntax left over from UsingNode()\r\n{(this._output as TestOutputHelper)?.Output}");
                 }
             }
         }
@@ -141,14 +142,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(text, options: null, expectedErrors);
         }
 
-        /// <summary>
-        /// Parses given string and initializes a depth-first preorder enumerator.
-        /// </summary>
-        protected SyntaxTree UsingTree(string text, CSharpParseOptions? options = null)
+        protected SyntaxTree UsingTree(string text, params DiagnosticDescription[] expectedErrors)
+        {
+            return UsingTree(text, options: null, expectedErrors);
+        }
+
+        protected SyntaxTree UsingTree(string text, CSharpParseOptions? options, params DiagnosticDescription[] expectedErrors)
         {
             VerifyEnumeratorConsumed();
             var tree = ParseTree(text, options);
             _node = tree.GetCompilationUnitRoot();
+            var actualErrors = _node.GetDiagnostics();
+            actualErrors.Verify(expectedErrors);
             var nodes = EnumerateNodes(_node, dump: false);
             _treeEnumerator = nodes.GetEnumerator();
 
@@ -291,11 +296,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     case SyntaxKind.IdentifierToken:
                     case SyntaxKind.NumericLiteralToken:
                     case SyntaxKind.StringLiteralToken:
-                    case SyntaxKind.UTF8StringLiteralToken:
+                    case SyntaxKind.Utf8StringLiteralToken:
                     case SyntaxKind.SingleLineRawStringLiteralToken:
-                    case SyntaxKind.UTF8SingleLineRawStringLiteralToken:
+                    case SyntaxKind.Utf8SingleLineRawStringLiteralToken:
                     case SyntaxKind.MultiLineRawStringLiteralToken:
-                    case SyntaxKind.UTF8MultiLineRawStringLiteralToken:
+                    case SyntaxKind.Utf8MultiLineRawStringLiteralToken:
                         if (node.IsMissing)
                         {
                             goto default;

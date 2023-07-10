@@ -19,6 +19,7 @@ using Xunit.Abstractions;
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
+    [Trait(Traits.Feature, Traits.Features.Classification)]
     public class CSharpReferenceHighlighting : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.CSharp;
@@ -28,7 +29,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact]
         public void Highlighting()
         {
             var markup = @"
@@ -47,7 +48,7 @@ class {|definition:C|}
             VerifyNone("void");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact]
         public void WrittenReference()
         {
             var markup = @"
@@ -67,7 +68,7 @@ class C
             VerifyNone("void");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact]
         public void Navigation()
         {
             var text = @"
@@ -86,8 +87,8 @@ class C
             VisualStudio.Editor.Verify.CurrentLineText("x$$ = 3;", assertCaretPosition: true, trimWhitespace: true);
         }
 
-        [WorkItem(52041, "https://github.com/dotnet/roslyn/pull/52041")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WorkItem("https://github.com/dotnet/roslyn/pull/52041")]
+        [WpfFact]
         public void HighlightBasedOnSelection()
         {
             var text = @"
@@ -118,21 +119,21 @@ class C
             VisualStudio.Workspace.WaitForAllAsyncOperations(
                 Helper.HangMitigatingTimeout,
                 FeatureAttribute.Workspace,
-                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.SolutionCrawlerLegacy,
                 FeatureAttribute.DiagnosticService,
                 FeatureAttribute.Classification,
                 FeatureAttribute.ReferenceHighlighting);
 
             AssertEx.SetEqual(spans["definition"], VisualStudio.Editor.GetTagSpans(DefinitionHighlightTag.TagId), message: "Testing 'definition'\r\n");
 
-            if (spans.ContainsKey("reference"))
+            if (spans.TryGetValue("reference", out var referenceSpans))
             {
-                AssertEx.SetEqual(spans["reference"], VisualStudio.Editor.GetTagSpans(ReferenceHighlightTag.TagId), message: "Testing 'reference'\r\n");
+                AssertEx.SetEqual(referenceSpans, VisualStudio.Editor.GetTagSpans(ReferenceHighlightTag.TagId), message: "Testing 'reference'\r\n");
             }
 
-            if (spans.ContainsKey("writtenreference"))
+            if (spans.TryGetValue("writtenreference", out var writtenReferenceSpans))
             {
-                AssertEx.SetEqual(spans["writtenreference"], VisualStudio.Editor.GetTagSpans(WrittenReferenceHighlightTag.TagId), message: "Testing 'writtenreference'\r\n");
+                AssertEx.SetEqual(writtenReferenceSpans, VisualStudio.Editor.GetTagSpans(WrittenReferenceHighlightTag.TagId), message: "Testing 'writtenreference'\r\n");
             }
         }
 
@@ -142,7 +143,7 @@ class C
             VisualStudio.Workspace.WaitForAllAsyncOperations(
                 Helper.HangMitigatingTimeout,
                 FeatureAttribute.Workspace,
-                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.SolutionCrawlerLegacy,
                 FeatureAttribute.DiagnosticService,
                 FeatureAttribute.Classification,
                 FeatureAttribute.ReferenceHighlighting);

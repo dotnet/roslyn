@@ -27,12 +27,6 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
-
 namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.InlineDeclaration), Shared]
@@ -80,18 +74,17 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 originalNodes,
                 t =>
                 {
-                    using var additionalNodesToTrackDisposer = ArrayBuilder<SyntaxNode>.GetInstance(capacity: 2, out var additionalNodesToTrack);
+                    using var _ = ArrayBuilder<SyntaxNode>.GetInstance(capacity: 2, out var additionalNodesToTrack);
                     additionalNodesToTrack.Add(t.identifier);
                     additionalNodesToTrack.Add(t.declarator);
 
                     return (t.invocationOrCreation, additionalNodesToTrack.ToImmutable());
                 },
-                (_1, _2, _3) => true,
+                (_, _, _) => true,
                 (semanticModel, currentRoot, t, currentNode)
                     => ReplaceIdentifierWithInlineDeclaration(
-                        options, semanticModel, currentRoot, t.declarator,
-                        t.identifier, currentNode, declarationsToRemove, document.Project.Solution.Workspace.Services,
-                        cancellationToken),
+                        document, options, semanticModel, currentRoot, t.declarator,
+                        t.identifier, currentNode, declarationsToRemove, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -112,17 +105,17 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
         }
 
         private static SyntaxNode ReplaceIdentifierWithInlineDeclaration(
+            Document document,
             CSharpCodeFixOptionsProvider options, SemanticModel semanticModel,
             SyntaxNode currentRoot, VariableDeclaratorSyntax declarator,
             IdentifierNameSyntax identifier, SyntaxNode currentNode,
             HashSet<StatementSyntax> declarationsToRemove,
-            HostWorkspaceServices services,
             CancellationToken cancellationToken)
         {
             declarator = currentRoot.GetCurrentNode(declarator);
             identifier = currentRoot.GetCurrentNode(identifier);
 
-            var editor = new SyntaxEditor(currentRoot, services);
+            var editor = new SyntaxEditor(currentRoot, document.Project.Solution.Services);
             var sourceText = currentRoot.GetText();
 
             var declaration = (VariableDeclarationSyntax)declarator.Parent;
@@ -193,7 +186,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                         (s, g) => s.WithPrependedNonIndentationTriviaFrom(localDeclarationStatement));
                 }
 
-                editor.RemoveNode(localDeclarationStatement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+                // The above code handled the moving of trivia.  So remove the node, keeping around no trivia from it.
+                editor.RemoveNode(localDeclarationStatement, SyntaxRemoveOptions.KeepNoTrivia);
             }
             else
             {

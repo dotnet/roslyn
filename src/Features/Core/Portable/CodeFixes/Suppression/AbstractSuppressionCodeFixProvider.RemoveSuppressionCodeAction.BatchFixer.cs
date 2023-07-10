@@ -26,12 +26,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             /// <summary>
             /// Batch fixer for pragma suppression removal code action.
             /// </summary>
-            private sealed class RemoveSuppressionBatchFixAllProvider : AbstractSuppressionBatchFixAllProvider
+            private sealed class RemoveSuppressionBatchFixAllProvider(AbstractSuppressionCodeFixProvider suppressionFixProvider) : AbstractSuppressionBatchFixAllProvider
             {
-                private readonly AbstractSuppressionCodeFixProvider _suppressionFixProvider;
-
-                public RemoveSuppressionBatchFixAllProvider(AbstractSuppressionCodeFixProvider suppressionFixProvider)
-                    => _suppressionFixProvider = suppressionFixProvider;
+                private readonly AbstractSuppressionCodeFixProvider _suppressionFixProvider = suppressionFixProvider;
 
                 protected override async Task AddDocumentFixesAsync(
                     Document document, ImmutableArray<Diagnostic> diagnostics,
@@ -159,14 +156,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
                 private static async Task<ImmutableArray<SyntaxNode>> GetAttributeNodesToFixAsync(ImmutableArray<AttributeRemoveAction> attributeRemoveFixes, CancellationToken cancellationToken)
                 {
-                    using var builderDisposer = ArrayBuilder<SyntaxNode>.GetInstance(attributeRemoveFixes.Length, out var builder);
+                    using var _ = ArrayBuilder<SyntaxNode>.GetInstance(attributeRemoveFixes.Length, out var builder);
                     foreach (var attributeRemoveFix in attributeRemoveFixes)
                     {
                         var attributeToRemove = await attributeRemoveFix.GetAttributeToRemoveAsync(cancellationToken).ConfigureAwait(false);
                         builder.Add(attributeToRemove);
                     }
 
-                    return builder.ToImmutable();
+                    return builder.ToImmutableAndClear();
                 }
             }
         }

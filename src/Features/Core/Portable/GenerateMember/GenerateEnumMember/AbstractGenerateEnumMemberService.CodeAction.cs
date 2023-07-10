@@ -8,32 +8,25 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
 {
     internal abstract partial class AbstractGenerateEnumMemberService<TService, TSimpleNameSyntax, TExpressionSyntax>
     {
-        private partial class GenerateEnumMemberCodeAction : CodeAction
+        private partial class GenerateEnumMemberCodeAction(
+            Document document,
+            State state,
+            CodeAndImportGenerationOptionsProvider fallbackOptions) : CodeAction
         {
-            private readonly Document _document;
-            private readonly State _state;
-            private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions;
-
-            public GenerateEnumMemberCodeAction(
-                Document document,
-                State state,
-                CodeAndImportGenerationOptionsProvider fallbackOptions)
-            {
-                _document = document;
-                _state = state;
-                _fallbackOptions = fallbackOptions;
-            }
+            private readonly Document _document = document;
+            private readonly State _state = state;
+            private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions = fallbackOptions;
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
-                var languageServices = _document.Project.Solution.Workspace.Services.GetLanguageServices(_state.TypeToGenerateIn.Language);
+                var languageServices = _document.Project.Solution.Services.GetLanguageServices(_state.TypeToGenerateIn.Language);
                 var codeGenerator = languageServices.GetService<ICodeGenerationService>();
                 var semanticFacts = languageServices.GetService<ISemanticFactsService>();
 

@@ -4,15 +4,17 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -73,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return semanticModel.SyntaxTree.IsExpressionContext(
                 position,
                 semanticModel.SyntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken),
-                attributes: true, cancellationToken: cancellationToken, semanticModelOpt: semanticModel);
+                attributes: true, cancellationToken: cancellationToken, semanticModel: semanticModel);
         }
 
         public bool IsStatementContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
@@ -114,5 +116,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public CommonConversion ClassifyConversion(SemanticModel semanticModel, SyntaxNode expression, ITypeSymbol destination)
             => semanticModel.ClassifyConversion((ExpressionSyntax)expression, destination).ToCommonConversion();
+
+#nullable enable
+
+        public IMethodSymbol? TryGetDisposeMethod(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+        {
+            var isAsync = false;
+            ExpressionSyntax? expression = null;
+
+            if (node is UsingStatementSyntax usingStatement)
+            {
+                isAsync = usingStatement.AwaitKeyword != default;
+                expression = usingStatement is { Declaration.Variables: [{ Initializer.Value: { } value }] } ? value : usingStatement.Expression;
+            }
+            else if (node is LocalDeclarationStatementSyntax { Declaration.Variables: [{ Initializer.Value: { } value }] } localDeclaration)
+            {
+                isAsync = localDeclaration.AwaitKeyword != default;
+                expression = value;
+            }
+
+            if (expression is null)
+                return null;
+
+            var type = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
+            return FindDisposeMethod(semanticModel.Compilation, type, isAsync);
+        }
     }
 }

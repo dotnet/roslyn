@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -28,18 +28,18 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         protected override char OpeningBrace => DoubleQuote.OpenCharacter;
         protected override char ClosingBrace => DoubleQuote.CloseCharacter;
 
-        public override Task<bool> AllowOverTypeAsync(BraceCompletionContext context, CancellationToken cancellationToken)
-            => AllowOverTypeWithValidClosingTokenAsync(context, cancellationToken);
+        public override bool AllowOverType(BraceCompletionContext context, CancellationToken cancellationToken)
+            => AllowOverTypeWithValidClosingToken(context);
 
-        public override async Task<bool> CanProvideBraceCompletionAsync(char brace, int openingPosition, Document document, CancellationToken cancellationToken)
+        public override bool CanProvideBraceCompletion(char brace, int openingPosition, ParsedDocument document, CancellationToken cancellationToken)
         {
             // Only potentially valid for string literal completion if not in an interpolated string brace completion context.
-            if (OpeningBrace == brace && await InterpolatedStringBraceCompletionService.IsPositionInInterpolatedStringContextAsync(document, openingPosition, cancellationToken).ConfigureAwait(false))
+            if (OpeningBrace == brace && InterpolatedStringBraceCompletionService.IsPositionInInterpolatedStringContext(document, openingPosition, cancellationToken))
             {
                 return false;
             }
 
-            return await base.CanProvideBraceCompletionAsync(brace, openingPosition, document, cancellationToken).ConfigureAwait(false);
+            return base.CanProvideBraceCompletion(brace, openingPosition, document, cancellationToken);
         }
 
         protected override bool IsValidOpeningBraceToken(SyntaxToken token) => token.IsKind(SyntaxKind.StringLiteralToken);

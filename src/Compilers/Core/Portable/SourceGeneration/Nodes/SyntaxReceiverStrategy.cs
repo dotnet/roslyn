@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.SourceGeneration;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -14,18 +15,22 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly SyntaxContextReceiverCreator _receiverCreator;
         private readonly Action<IIncrementalGeneratorOutputNode> _registerOutput;
+        private readonly ISyntaxHelper _syntaxHelper;
 
-        public SyntaxReceiverStrategy(SyntaxContextReceiverCreator receiverCreator, Action<IIncrementalGeneratorOutputNode> registerOutput)
+        public SyntaxReceiverStrategy(
+            SyntaxContextReceiverCreator receiverCreator,
+            Action<IIncrementalGeneratorOutputNode> registerOutput,
+            ISyntaxHelper syntaxHelper)
         {
             _receiverCreator = receiverCreator;
             _registerOutput = registerOutput;
+            _syntaxHelper = syntaxHelper;
         }
 
         public ISyntaxInputBuilder GetBuilder(StateTableStore table, object key, bool trackIncrementalSteps, string? name, IEqualityComparer<T>? comparer) => new Builder(this, key, table, trackIncrementalSteps);
 
         private sealed class Builder : ISyntaxInputBuilder
         {
-            private readonly SyntaxReceiverStrategy<T> _owner;
             private readonly object _key;
             private readonly NodeStateTable<ISyntaxContextReceiver?>.Builder _nodeStateTable;
             private readonly ISyntaxContextReceiver? _receiver;
@@ -34,7 +39,6 @@ namespace Microsoft.CodeAnalysis
 
             public Builder(SyntaxReceiverStrategy<T> owner, object key, StateTableStore driverStateTable, bool trackIncrementalSteps)
             {
-                _owner = owner;
                 _key = key;
                 _nodeStateTable = driverStateTable.GetStateTableOrEmpty<ISyntaxContextReceiver?>(_key).ToBuilder(stepName: null, trackIncrementalSteps);
                 try
@@ -48,7 +52,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (_receiver is object)
                 {
-                    _walker = new GeneratorSyntaxWalker(_receiver);
+                    _walker = new GeneratorSyntaxWalker(_receiver, owner._syntaxHelper);
                 }
             }
 

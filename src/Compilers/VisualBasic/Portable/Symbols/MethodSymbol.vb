@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ''' <summary>
         ''' Returns the type arguments that have been substituted for the type parameters. 
-        ''' If nothing has been substituted for a give type parameters,
+        ''' If nothing has been substituted for a given type parameter,
         ''' then the type parameter itself is consider the type argument.
         ''' </summary>
         Public MustOverride ReadOnly Property TypeArguments As ImmutableArray(Of TypeSymbol)
@@ -344,7 +344,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return ImmutableArray(Of HandledEvent).Empty
             End Get
         End Property
-
 
         ''' <summary>
         ''' Returns interface methods explicitly implemented by this method.
@@ -869,6 +868,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Nothing
             End Get
         End Property
+
+        Friend MustOverride ReadOnly Property HasSetsRequiredMembers As Boolean
 
 #Region "IMethodSymbol"
 

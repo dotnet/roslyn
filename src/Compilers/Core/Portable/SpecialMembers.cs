@@ -1032,12 +1032,26 @@ namespace Microsoft.CodeAnalysis
                 0,                                                                                                          // Arity
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,                                    // Field Signature
 
+                // System_Runtime_CompilerServices_RuntimeFeature__ByRefFields
+                (byte)(MemberFlags.Field | MemberFlags.Static),                                                             // Flags
+                (byte)SpecialType.System_Runtime_CompilerServices_RuntimeFeature,                                           // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,                                    // Field Signature
+
                 // System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor
                 (byte)MemberFlags.Constructor,                                                                              // Flags
                 (byte)SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute,                           // DeclaringTypeId
                 0,                                                                                                          // Arity
                     0,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+
+                // System_Runtime_CompilerServices_InlineArrayAttribute__ctor
+                (byte)MemberFlags.Constructor,                                                                              // Flags
+                (byte)SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute,                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
             };
 
             string[] allNames = new string[(int)SpecialMember.Count]
@@ -1167,7 +1181,9 @@ namespace Microsoft.CodeAnalysis
                 "CovariantReturnsOfClasses",                // System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses
                 "VirtualStaticsInInterfaces",               // System_Runtime_CompilerServices_RuntimeFeature__VirtualStaticsInInterfaces
                 "NumericIntPtr",                            // System_Runtime_CompilerServices_RuntimeFeature__NumericIntPtr
+                "ByRefFields",                              // System_Runtime_CompilerServices_RuntimeFeature__ByRefFields
                 ".ctor",                                    // System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor
+                ".ctor",                                    // System_Runtime_CompilerServices_InlineArrayAttribute__ctor
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

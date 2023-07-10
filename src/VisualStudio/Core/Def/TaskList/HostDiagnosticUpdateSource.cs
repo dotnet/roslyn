@@ -10,6 +10,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
@@ -18,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
     // use HostDiagnosticUpdateSource when abstract one is not needed for testing purpose
     [Export(typeof(AbstractHostDiagnosticUpdateSource))]
     [Export(typeof(HostDiagnosticUpdateSource))]
-    internal sealed class HostDiagnosticUpdateSource : AbstractHostDiagnosticUpdateSource
+    internal sealed class HostDiagnosticUpdateSource : AbstractHostDiagnosticUpdateSource, IProjectSystemDiagnosticSource
     {
         private readonly Lazy<VisualStudioWorkspace> _workspace;
 
@@ -125,6 +126,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             {
                 RaiseDiagnosticsRemovedForProject(projectId, key);
             }
+        }
+
+        public DiagnosticData CreateAnalyzerLoadFailureDiagnostic(AnalyzerLoadFailureEventArgs e, string fullPath, ProjectId projectId, string language)
+        {
+            return DocumentAnalysisExecutor.CreateAnalyzerLoadFailureDiagnostic(e, fullPath, projectId, language);
         }
     }
 }

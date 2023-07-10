@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -31,12 +31,13 @@ namespace Microsoft.CodeAnalysis.InlineHints
             CancellationToken cancellationToken);
 
         public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(
-            Document document, TextSpan textSpan, InlineTypeHintsOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
+            Document document,
+            TextSpan textSpan,
+            InlineTypeHintsOptions options,
+            SymbolDescriptionOptions displayOptions,
+            bool displayAllOverride,
+            CancellationToken cancellationToken)
         {
-            // TODO: https://github.com/dotnet/roslyn/issues/57283
-            var globalOptions = document.Project.Solution.Workspace.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
-            var displayAllOverride = globalOptions.InlineHintsOptionsDisplayAllOverride;
-
             var enabledForTypes = options.EnabledForTypes;
             if (!enabledForTypes && !displayAllOverride)
                 return ImmutableArray<InlineHint>.Empty;
@@ -81,14 +82,14 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 var taggedText = finalParts.ToTaggedText();
 
                 result.Add(new InlineHint(
-                    span, taggedText, textChange,
+                    span, taggedText, textChange, ranking: InlineHintsConstants.TypeRanking,
                     InlineHintHelpers.GetDescriptionFunction(span.Start, type.GetSymbolKey(cancellationToken: cancellationToken), displayOptions)));
             }
 
             return result.ToImmutable();
         }
 
-        private void AddParts(
+        private static void AddParts(
             IStructuralTypeDisplayService anonymousTypeService,
             ArrayBuilder<SymbolDisplayPart> finalParts,
             ImmutableArray<SymbolDisplayPart> parts,

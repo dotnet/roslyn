@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
         protected abstract string GetTextWithoutQuotes(string text, bool isVerbatimStringLiteral, bool isCharacterLiteral);
 
-        private void CollectPiecesDown(
+        private static void CollectPiecesDown(
             ISyntaxFactsService syntaxFacts,
             ArrayBuilder<SyntaxNode> pieces,
             SyntaxNode node,

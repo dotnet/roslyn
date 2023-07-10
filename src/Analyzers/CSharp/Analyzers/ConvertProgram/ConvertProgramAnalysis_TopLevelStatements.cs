@@ -70,11 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.ConvertProgram
                 return false;
 
             // If the user renamed the 'args' parameter, we can't convert to top level statements.
-            if (methodDeclaration.ParameterList.Parameters.Count == 1 &&
-                methodDeclaration.ParameterList.Parameters[0].Identifier.ValueText != "args")
-            {
+            if (methodDeclaration.ParameterList.Parameters is [{ Identifier.ValueText: not "args" }])
                 return false;
-            }
 
             // Found a suitable candidate.  See if this matches the entrypoint the compiler has actually chosen.
             var entryPointMethod = semanticModel.Compilation.GetEntryPoint(cancellationToken);

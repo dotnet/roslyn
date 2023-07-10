@@ -5,6 +5,7 @@ trigger:
     - main-vs-deps
     - release/dev16.*-vs-deps
     - release/dev17.*
+    - features/lsp_tools_host
     exclude:
     - release/dev17.0
 pr: none
@@ -40,6 +41,8 @@ variables:
   - name: _DotNetValidationArtifactsCategory
     value: .NETCoreValidation
   - group: DotNet-Roslyn-SDLValidation-Params
+  - name: Codeql.Enabled
+    value: true​
 
   # To retrieve OptProf data we need to authenticate to the VS drop storage.
   # Get access token with $dn-bot-devdiv-drop-rw-code-rw and dn-bot-dnceng-build-rw-code-rw from DotNet-VSTS-Infra-Access
@@ -71,7 +74,7 @@ variables:
   - name: Insertion.TitlePrefix
     value: '[Auto Insertion]'
   - name: Insertion.TitleSuffix
-    value: '[Skip-SymbolCheck]'
+    value: ''
 
 stages:
 
@@ -79,14 +82,14 @@ stages:
   displayName: Build and Test
   pool:
     name: NetCore1ESPool-Svc-Internal
-    demands: ImageOverride -equals Build.Windows.Amd64.VS2022
+    demands: ImageOverride -equals windows.vs2022preview.amd64
 
   jobs:
-  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.3') }}:
+  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.7') }}:
     - template: /eng/common/templates/job/onelocbuild.yml
       parameters:
         MirrorRepo: roslyn
-        MirrorBranch: release/dev17.3
+        MirrorBranch: release/dev17.7
         LclSource: lclFilesfromPackage
         LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
 
@@ -116,15 +119,23 @@ stages:
           MainValidationBuild
       condition: and(succeeded(), eq(variables['SourceBranchName'], 'main'))
 
-    - task: PowerShell@2
-      displayName: Merge main-vs-deps into source branch
-      inputs:
-        filePath: 'scripts\merge-vs-deps.ps1'
-        arguments: '-accessToken $(dn-bot-dnceng-build-rw-code-rw)'
-      condition: and(succeeded(), eq(variables['SourceBranchName'], 'main'))
+    # Don't run this while we don't have a main-vs-deps to merge. Should be uncommented when the branch comes back.
+    #
+    # - task: PowerShell@2
+    #  displayName: Merge main-vs-deps into source branch
+    #  inputs:
+    #    filePath: 'scripts\merge-vs-deps.ps1'
+    #    arguments: '-accessToken $(dn-bot-dnceng-build-rw-code-rw)'
+    #  condition: and(succeeded(), eq(variables['SourceBranchName'], 'main'))
 
     - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"
       displayName: Setting VisualStudio.DropName variable
+
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '16.x'
+      displayName: 'Install Node.js'
+
 
     - task: NuGetToolInstaller@0
       inputs:
@@ -134,6 +145,14 @@ stages:
     - task: NuGetAuthenticate@0
       inputs:
         nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/engineering, devdiv/dotnet-core-internal-tooling
+
+    # Needed for SBOM tool
+    - task: UseDotNet@2
+      displayName: 'Use .NET Core 3.1 runtime'
+      inputs:
+        packageType: runtime
+        version: 3.1.28
+        installationPath: '$(Build.SourcesDirectory)\.dotnet'
 
     # Needed because the build fails the NuGet Tools restore without it
     - task: UseDotNet@2
@@ -190,6 +209,7 @@ stages:
                    /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
                    /p:DotnetPublishUsingPipelines=true
                    /p:IgnoreIbcMergeErrors=true
+                   /p:GenerateSbom=true
       condition: succeeded()
       
     - template: eng\common\templates\steps\generate-sbom.yml
@@ -290,6 +310,21 @@ stages:
         ArtifactName: 'PackageArtifacts'
       condition: succeeded()
 
+    # Publish language server package
+    - powershell: Write-Host "##vso[task.setvariable variable=NPMFileName]$((ls -file $(Build.SourcesDirectory)\artifacts\packages\Release\NPM\ | select -First 1).FullName)"
+      displayName: Setting NPM Package Variable
+
+    # Authenticates the .npmrc file for publishing to the internal AzDO feed.
+    # See: https://learn.microsoft.com/azure/devops/pipelines/tasks/package/npm-authenticate?view=azure-devops
+    - task: npmAuthenticate@0
+      displayName: Authenticate NPM Feed
+      inputs:
+        workingFile: $(Build.SourcesDirectory)/src/VisualStudio/DevKit/Impl/.npmrc
+        customEndpoint: devdiv-vs-green-npm-package-feed
+
+    - script: npm publish --userconfig $(Build.SourcesDirectory)\src\VisualStudio\DevKit\Impl\.npmrc $(NPMFileName)
+      displayName: Publish Language Server NPM Package
+
     # Publish Asset Manifests for Build Asset Registry job
     - task: PublishBuildArtifacts@1
       displayName: Publish Asset Manifests
@@ -310,11 +345,11 @@ stages:
         - OfficialBuild
       pool:
         name: NetCore1ESPool-Svc-Internal
-        demands: ImageOverride -equals Build.Server.Amd64.VS2019
+        demands: ImageOverride -equals windows.vs2022.amd64
 
 - stage: insert
   dependsOn:
-  - build
+  - publish_using_darc
   displayName: Insert to VS
 
   jobs:
@@ -322,7 +357,7 @@ stages:
     displayName: Insert to VS
     pool:
       name: NetCore1ESPool-Svc-Internal
-      demands: ImageOverride -equals Build.Server.Amd64.VS2019
+      demands: ImageOverride -equals windows.vs2022.amd64
     steps:
     - download: current
       artifact: VSSetup
