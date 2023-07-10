@@ -37,29 +37,11 @@ internal abstract class DeclarationBody : IEquatable<DeclarationBody>
 
     public bool Equals(DeclarationBody? other)
         => ReferenceEquals(this, other) ||
-           GetType() == other?.GetType() && SequenceEqual(RootNodes, other.RootNodes);
+           GetType() == other?.GetType() && RootNodes.SequenceEqual(other.RootNodes);
 
     public override bool Equals(object? obj)
         => Equals(obj as DeclarationBody);
 
     public override int GetHashCode()
         => RootNodes.First().GetHashCode();
-
-    private static bool SequenceEqual(OneOrMany<SyntaxNode> left, OneOrMany<SyntaxNode> right)
-    {
-        if (left.Count != right.Count)
-        {
-            return false;
-        }
-
-        for (var i = 0; i < left.Count; i++)
-        {
-            if (left[i] != right[i])
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
 }

@@ -5,7 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -17,6 +19,8 @@ namespace Roslyn.Utilities
     /// <remarks>
     /// Used when a collection usually contains a single item but sometimes might contain multiple.
     /// </remarks>
+    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
+    [DebuggerTypeProxy(typeof(OneOrMany<>.DebuggerProxy))]
     internal readonly struct OneOrMany<T>
     {
         public static readonly OneOrMany<T> Empty = new OneOrMany<T>(ImmutableArray<T>.Empty);
@@ -228,6 +232,49 @@ namespace Roslyn.Utilities
         public ImmutableArray<T> ToImmutable()
             => this.HasOne ? ImmutableArray.Create(_one) : _many;
 
+        public T[] ToArray()
+            => this.HasOne ? new[] { _one } : _many.ToArray();
+
+        public bool SequenceEqual(OneOrMany<T> other, IEqualityComparer<T>? comparer = null)
+        {
+            comparer ??= EqualityComparer<T>.Default;
+
+            if (Count != other.Count)
+            {
+                return false;
+            }
+
+            return HasOne ? comparer.Equals(_one, other[0]) :
+                   other.HasOne ? comparer.Equals(_many[0], other._one) :
+                   System.Linq.ImmutableArrayExtensions.SequenceEqual(_many, other._many, comparer);
+        }
+
+        public bool SequenceEqual(ImmutableArray<T> other, IEqualityComparer<T>? comparer = null)
+            => SequenceEqual(OneOrMany.Create(other), comparer);
+
+        public bool SequenceEqual(IEnumerable<T> other, IEqualityComparer<T>? comparer = null)
+        {
+            comparer ??= EqualityComparer<T>.Default;
+
+            if (!HasOne)
+            {
+                return _many.SequenceEqual(other, comparer);
+            }
+
+            var first = true;
+            foreach (var otherItem in other)
+            {
+                if (!first || !comparer.Equals(_one, otherItem))
+                {
+                    return false;
+                }
+
+                first = false;
+            }
+
+            return true;
+        }
+
         public Enumerator GetEnumerator()
             => new(this);
 
@@ -250,6 +297,15 @@ namespace Roslyn.Utilities
 
             public T Current => _collection[_index];
         }
+
+        private sealed class DebuggerProxy(OneOrMany<T> instance)
+        {
+            [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
+            public T[] Items => instance.ToArray();
+        }
+
+        private string GetDebuggerDisplay()
+            => "Count = " + Count;
     }
 
     internal static class OneOrMany
@@ -257,7 +313,19 @@ namespace Roslyn.Utilities
         public static OneOrMany<T> Create<T>(T one)
             => new OneOrMany<T>(one);
 
+        public static OneOrMany<T> Create<T>(T one, T two)
+            => new OneOrMany<T>(ImmutableArray.Create(one, two));
+
+        public static OneOrMany<T> OneOrNone<T>(T? one)
+            => one is null ? OneOrMany<T>.Empty : new OneOrMany<T>(one);
+
         public static OneOrMany<T> Create<T>(ImmutableArray<T> many)
             => new OneOrMany<T>(many);
+
+        public static bool SequenceEqual<T>(this ImmutableArray<T> array, OneOrMany<T> other, IEqualityComparer<T>? comparer = null)
+            => Create(array).SequenceEqual(other, comparer);
+
+        public static bool SequenceEqual<T>(this IEnumerable<T> array, OneOrMany<T> other, IEqualityComparer<T>? comparer = null)
+            => other.SequenceEqual(array, comparer);
     }
 }

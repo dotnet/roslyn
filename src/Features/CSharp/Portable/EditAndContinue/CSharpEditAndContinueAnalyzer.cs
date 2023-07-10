@@ -1082,7 +1082,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         var oldGetterSymbol = ((IPropertySymbol)oldSymbol).GetMethod;
                         var newGetterSymbol = ((IPropertySymbol)newSymbol).GetMethod;
 
-                        return OneOrMany.Create(ImmutableArray.Create((oldSymbol, newSymbol, editKind), (oldGetterSymbol, newGetterSymbol, editKind)));
+                        return OneOrMany.Create((oldSymbol, newSymbol, editKind), (oldGetterSymbol, newGetterSymbol, editKind));
                     }
 
                     // 2) Property/indexer declarations differ in readonly keyword.
@@ -1167,26 +1167,26 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     {
                         var oldGetterSymbol = ((IPropertySymbol?)oldSymbol)?.GetMethod;
                         var newGetterSymbol = ((IPropertySymbol?)newSymbol)?.GetMethod;
-                        return OneOrMany.Create(ImmutableArray.Create((oldSymbol, newSymbol, editKind), (oldGetterSymbol, newGetterSymbol, editKind)));
+                        return OneOrMany.Create((oldSymbol, newSymbol, editKind), (oldGetterSymbol, newGetterSymbol, editKind));
                     }
 
                     // Inserting/deleting a type parameter constraint should result in an update of the corresponding type parameter symbol:
                     if (node.IsKind(SyntaxKind.TypeParameterConstraintClause))
                     {
-                        return OneOrMany.Create(ImmutableArray.Create((oldSymbol, newSymbol, EditKind.Update)));
+                        return OneOrMany.Create((oldSymbol, newSymbol, EditKind.Update));
                     }
 
                     // Inserting/deleting a global statement should result in an update of the implicit main method:
                     if (node.IsKind(SyntaxKind.GlobalStatement))
                     {
-                        return OneOrMany.Create(ImmutableArray.Create((oldSymbol, newSymbol, EditKind.Update)));
+                        return OneOrMany.Create((oldSymbol, newSymbol, EditKind.Update));
                     }
 
                     // Inserting/deleting a primary constructor base initializer/base list is an update of the constructor/type,
                     // not a delete/insert of the constructor/type itself:
                     if (node is (kind: SyntaxKind.PrimaryConstructorBaseType or SyntaxKind.BaseList))
                     {
-                        return OneOrMany.Create(ImmutableArray.Create((oldSymbol, newSymbol, EditKind.Update)));
+                        return OneOrMany.Create((oldSymbol, newSymbol, EditKind.Update));
                     }
 
                     break;
