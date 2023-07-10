@@ -4322,7 +4322,7 @@ Když se tento specifikátor standardního formátu použije, operace formátov�
       </trans-unit>
       <trans-unit id="symbol_kind_and_name_of_member_kind_and_name">
         <source>{0} '{1}' of {2} '{3}'</source>
-        <target state="new">{0} '{1}' of {2} '{3}'</target>
+        <target state="translated">{0} {1} z celkového počtu {2} {3}</target>
         <note>e.g. "parameter 'T param' of method 'M'"</note>
       </trans-unit>
       <trans-unit id="time_separator">
