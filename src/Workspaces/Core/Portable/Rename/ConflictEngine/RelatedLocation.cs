@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Text;
@@ -12,37 +11,24 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
     /// <summary>
     /// Gives information about an identifier span that was affected by Rename (Reference or Non reference)
     /// </summary>
+    /// <param name="ConflictCheckSpan">
+    /// The Span of the original identifier if it was in source, otherwise the span to check for implicit
+    /// references.
+    /// </param>
+    /// <param name="ComplexifiedTargetSpan">
+    /// If there was a conflict at ConflictCheckSpan during rename, then the next phase in rename uses
+    /// ComplexifiedTargetSpan span to be expanded to resolve the conflict.
+    /// </param>
     [DataContract]
-    internal readonly struct RelatedLocation(TextSpan conflictCheckSpan, DocumentId documentId, RelatedLocationType type, bool isReference = false, TextSpan complexifiedTargetSpan = default) : IEquatable<RelatedLocation>
+    internal readonly record struct RelatedLocation(
+        [field: DataMember(Order = 0)] TextSpan ConflictCheckSpan,
+        [field: DataMember(Order = 1)] DocumentId DocumentId,
+        [field: DataMember(Order = 2)] RelatedLocationType Type,
+        [field: DataMember(Order = 3)] bool IsReference = false,
+        [field: DataMember(Order = 4)] TextSpan ComplexifiedTargetSpan = default)
     {
-        /// <summary>
-        /// The Span of the original identifier if it was in source, otherwise the span to check for implicit
-        /// references.
-        /// </summary>
-        [DataMember(Order = 0)]
-        public readonly TextSpan ConflictCheckSpan = conflictCheckSpan;
-
-        [DataMember(Order = 1)]
-        public readonly DocumentId DocumentId = documentId;
-
-        [DataMember(Order = 2)]
-        public readonly RelatedLocationType Type = type;
-
-        [DataMember(Order = 3)]
-        public readonly bool IsReference = isReference;
-
-        /// <summary>
-        /// If there was a conflict at ConflictCheckSpan during rename, then the next phase in rename uses
-        /// ComplexifiedTargetSpan span to be expanded to resolve the conflict.
-        /// </summary>
-        [DataMember(Order = 4)]
-        public readonly TextSpan ComplexifiedTargetSpan = complexifiedTargetSpan;
-
         public RelatedLocation WithType(RelatedLocationType type)
             => new(ConflictCheckSpan, DocumentId, type, IsReference, ComplexifiedTargetSpan);
-
-        public override bool Equals(object? obj)
-            => obj is RelatedLocation location && Equals(location);
 
         public bool Equals(RelatedLocation other)
         {
@@ -63,11 +49,5 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             hashCode = hashCode * -1521134295 + ComplexifiedTargetSpan.GetHashCode();
             return hashCode;
         }
-
-        public static bool operator ==(RelatedLocation left, RelatedLocation right)
-            => left.Equals(right);
-
-        public static bool operator !=(RelatedLocation left, RelatedLocation right)
-            => !(left == right);
     }
 }
