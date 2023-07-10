@@ -84,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
             var expectedEnvelope = expectedSpans.IsEmpty ? default : TextSpan.FromBounds(expectedSpans[0].Start, expectedSpans[^1].End);
             Assert.NotNull(declarationNode);
 
-            var actualEnvelope = BreakpointSpans.GetEnvelope(declarationNode);
+            var actualEnvelope = SyntaxUtilities.TryGetDeclarationBody(declarationNode)?.Envelope ?? default;
             Assert.Equal(expectedEnvelope, actualEnvelope);
         }
 
@@ -252,16 +252,6 @@ class C
             [|}|]    
         [|}|]
     [|}|]
-}");
-        }
-
-        [Fact]
-        public void GetBreakpointSequence_InstanceContructor_NoBody()
-        {
-            VerifyAllSpansInDeclaration<ConstructorDeclarationSyntax>(@"
-class Class
-{
-    [|Clas$$s()|]
 }");
         }
 

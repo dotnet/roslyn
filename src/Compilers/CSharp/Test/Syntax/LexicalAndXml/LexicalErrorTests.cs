@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -420,7 +421,7 @@ class A
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "龦").WithLocation(6, 15));
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [Fact]
         public void CS1056ERR_UnexpectedCharacter_UnpairedSurrogate_Long()
         {
             // Create a file with 200 slashes in a row.  This will cause 200 'expected character' errors, after which
@@ -452,14 +453,24 @@ class A
                     Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("\\").WithLocation(6, 13 + i));
             }
 
-            descriptions.AddRange(new[]
-            { 
+            descriptions.Add(
                 // (6,213): error CS1056: Unexpected character '\ud86d'
                 //         int \..200 more slashes..\𫓧龦 = 1;
-                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\ud86d").WithLocation(6, 213),
-                // (6,214): error CS1056: Unexpected character '\udce7龦 = 1;\r\n    }\r\n}'
-                //         int \..200 more slashes..\𫓧龦 = 1;
-                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\udce7龦 = 1;\r\n    }\r\n}").WithLocation(6, 214),
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\ud86d").WithLocation(6, 213));
+
+            // (6,214): error CS1056: Unexpected character '\udce7龦 = 1;\r\n    }\r\n}'
+            //         int \..200 more slashes..\𫓧龦 = 1;
+            if (PathUtilities.IsUnixLikePlatform)
+            {
+                descriptions.Add(Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\udce7龦 = 1;\n    }\n}").WithLocation(6, 214));
+            }
+            else
+            {
+                descriptions.Add(Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\udce7龦 = 1;\r\n    }\r\n}").WithLocation(6, 214));
+            }
+
+            descriptions.AddRange(new[]
+            { 
                 // (8,2): error CS1002: ; expected
                 // }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(8, 2),

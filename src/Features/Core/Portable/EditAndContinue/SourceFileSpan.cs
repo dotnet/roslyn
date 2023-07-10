@@ -13,6 +13,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     /// Represents a span of text in a source code file in terms of file name, line number, and offset within line.
     /// An alternative for <see cref="FileLinePositionSpan"/> without <see cref="FileLinePositionSpan.HasMappedPath"/> bit.
     /// </summary>
+    /// <remarks>
+    /// Initializes the <see cref="SourceFileSpan"/> instance.
+    /// </remarks>
+    /// <param name="path">The file identifier - typically a relative or absolute path.</param>
+    /// <param name="span">The span.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="path"/> is null.</exception>
     [DataContract]
     internal readonly struct SourceFileSpan(string path, LinePositionSpan span) : IEquatable<SourceFileSpan>
     {
