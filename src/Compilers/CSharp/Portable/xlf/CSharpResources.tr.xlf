@@ -182,6 +182,11 @@
         <target state="translated">Birli işlecin parametresi, içeren tür veya tür parametresi ile kısıtlanmış olmalıdır.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadArgExtraRefLangVersion">
+        <source>Argument {0} may not be passed with the 'ref' keyword in language version {1}. To pass 'ref' arguments to 'in' parameters, upgrade to language version {2} or greater.</source>
+        <target state="new">Argument {0} may not be passed with the 'ref' keyword in language version {1}. To pass 'ref' arguments to 'in' parameters, upgrade to language version {2} or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
         <source>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</source>
         <target state="translated">'{0}' işleci UTF-8 bayt gösterimleri olmayan '{1}' ve '{2}' işlenenlerine uygulanamaz</target>
@@ -2077,6 +2082,26 @@
         <target state="translated">Çözümleyici bütünleştirilmiş kodu, derleyicinin şu anda çalışandan daha yeni bir sürümüne başvurur.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ArgExpectedIn">
+        <source>Argument {0} should be passed with the 'in' keyword</source>
+        <target state="new">Argument {0} should be passed with the 'in' keyword</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ArgExpectedIn_Title">
+        <source>Argument should be passed with the 'in' keyword</source>
+        <target state="new">Argument should be passed with the 'in' keyword</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ArgExpectedRefOrIn">
+        <source>Argument {0} should be passed with 'ref' or 'in' keyword</source>
+        <target state="new">Argument {0} should be passed with 'ref' or 'in' keyword</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ArgExpectedRefOrIn_Title">
+        <source>Argument should be passed with 'ref' or 'in' keyword</source>
+        <target state="new">Argument should be passed with 'ref' or 'in' keyword</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AttrDependentTypeNotAllowed">
         <source>Type '{0}' cannot be used in this context because it cannot be represented in metadata.</source>
         <target state="translated">Tür '{0}', meta verilerde temsili olmadığından bu bağlamda kullanılamaz.</target>
@@ -2085,6 +2110,16 @@
       <trans-unit id="WRN_AttrDependentTypeNotAllowed_Title">
         <source>Type cannot be used in this context because it cannot be represented in metadata.</source>
         <target state="translated">Tür meta verilerde temsili olmadığından bu bağlamda kullanılamaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_BadArgRef">
+        <source>The 'ref' modifier for argument {0} corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</source>
+        <target state="new">The 'ref' modifier for argument {0} corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_BadArgRef_Title">
+        <source>The 'ref' modifier for an argument corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</source>
+        <target state="new">The 'ref' modifier for an argument corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallArgMixing">
@@ -2400,6 +2435,16 @@
       <trans-unit id="WRN_RefAssignValEscapeWider_Title">
         <source>This ref-assigns a value that has a wider value escape scope than the target allowing assignment through the target of values with narrower escapes scopes.</source>
         <target state="translated">Bu başvuru, hedeften daha geniş bir değer kaçış kapsamına sahip bir değer atadığından daha dar kaçış kapsamlarına sahip değerlerin hedefi üzerinden atamaya izin verir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReadonlyNotVariable">
+        <source>Argument {0} should be a variable because it is passed to a 'ref readonly' parameter</source>
+        <target state="new">Argument {0} should be a variable because it is passed to a 'ref readonly' parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReadonlyNotVariable_Title">
+        <source>Argument should be a variable because it is passed to a 'ref readonly' parameter</source>
+        <target state="new">Argument should be a variable because it is passed to a 'ref readonly' parameter</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnLocal">

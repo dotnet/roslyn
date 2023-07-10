@@ -2860,6 +2860,9 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_BadArgExtraRef" xml:space="preserve">
     <value>Argument {0} may not be passed with the '{1}' keyword</value>
   </data>
+  <data name="ERR_BadArgExtraRefLangVersion" xml:space="preserve">
+    <value>Argument {0} may not be passed with the 'ref' keyword in language version {1}. To pass 'ref' arguments to 'in' parameters, upgrade to language version {2} or greater.</value>
+  </data>
   <data name="WRN_CmdOptionConflictsSource" xml:space="preserve">
     <value>Option '{0}' overrides attribute '{1}' given in a source file or added module</value>
   </data>
@@ -2880,6 +2883,30 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   </data>
   <data name="ERR_BadArgRef" xml:space="preserve">
     <value>Argument {0} must be passed with the '{1}' keyword</value>
+  </data>
+  <data name="WRN_BadArgRef" xml:space="preserve">
+    <value>The 'ref' modifier for argument {0} corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</value>
+  </data>
+  <data name="WRN_BadArgRef_Title" xml:space="preserve">
+    <value>The 'ref' modifier for an argument corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</value>
+  </data>
+  <data name="WRN_ArgExpectedRefOrIn" xml:space="preserve">
+    <value>Argument {0} should be passed with 'ref' or 'in' keyword</value>
+  </data>
+  <data name="WRN_ArgExpectedRefOrIn_Title" xml:space="preserve">
+    <value>Argument should be passed with 'ref' or 'in' keyword</value>
+  </data>
+  <data name="WRN_ArgExpectedIn" xml:space="preserve">
+    <value>Argument {0} should be passed with the 'in' keyword</value>
+  </data>
+  <data name="WRN_ArgExpectedIn_Title" xml:space="preserve">
+    <value>Argument should be passed with the 'in' keyword</value>
+  </data>
+  <data name="WRN_RefReadonlyNotVariable" xml:space="preserve">
+    <value>Argument {0} should be a variable because it is passed to a 'ref readonly' parameter</value>
+  </data>
+  <data name="WRN_RefReadonlyNotVariable_Title" xml:space="preserve">
+    <value>Argument should be a variable because it is passed to a 'ref readonly' parameter</value>
   </data>
   <data name="ERR_YieldInAnonMeth" xml:space="preserve">
     <value>The yield statement cannot be used inside an anonymous method or lambda expression</value>

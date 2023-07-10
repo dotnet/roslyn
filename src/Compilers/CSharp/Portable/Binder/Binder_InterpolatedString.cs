@@ -601,7 +601,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // We successfully bound the out version, so set all the final data based on that binding
                     constructorCall = nonOutConstructorCall;
-                    diagnostics.AddRangeAndFree(nonOutConstructorDiagnostics);
+                    addAndFreeConstructorDiagnostics(target: diagnostics, source: nonOutConstructorDiagnostics);
                     outConstructorDiagnostics.Free();
                 }
                 else
@@ -622,27 +622,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case (true, false):
                             constructorCall = outConstructorCall;
                             additionalConstructorArguments = outConstructorAdditionalArguments;
-                            diagnostics.AddRangeAndFree(outConstructorDiagnostics);
+                            addAndFreeConstructorDiagnostics(target: diagnostics, source: outConstructorDiagnostics);
                             nonOutConstructorDiagnostics.Free();
                             break;
                         case (false, true):
                             constructorCall = nonOutConstructorCall;
-                            diagnostics.AddRangeAndFree(nonOutConstructorDiagnostics);
+                            addAndFreeConstructorDiagnostics(target: diagnostics, source: nonOutConstructorDiagnostics);
                             outConstructorDiagnostics.Free();
                             break;
                         default:
                             // For the final output binding info, we'll go with the shorter constructor in the absence of any tiebreaker,
                             // but we'll report all diagnostics
                             constructorCall = nonOutConstructorCall;
-                            diagnostics.AddRangeAndFree(nonOutConstructorDiagnostics);
-                            diagnostics.AddRangeAndFree(outConstructorDiagnostics);
+                            addAndFreeConstructorDiagnostics(target: diagnostics, source: nonOutConstructorDiagnostics);
+                            addAndFreeConstructorDiagnostics(target: diagnostics, source: outConstructorDiagnostics);
                             break;
                     }
                 }
             }
             else
             {
-                diagnostics.AddRangeAndFree(outConstructorDiagnostics);
+                addAndFreeConstructorDiagnostics(target: diagnostics, source: outConstructorDiagnostics);
                 constructorCall = outConstructorCall;
                 additionalConstructorArguments = outConstructorAdditionalArguments;
             }
@@ -676,6 +676,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentsBuilder.Add(new BoundLiteral(syntax, ConstantValue.Create(numFormatHoles), intType) { WasCompilerGenerated = true });
                 // Any other arguments from the call site
                 argumentsBuilder.AddRange(additionalConstructorArguments);
+            }
+
+            static void addAndFreeConstructorDiagnostics(BindingDiagnosticBag target, BindingDiagnosticBag source)
+            {
+                target.AddDependencies(source);
+
+                if (source.DiagnosticBag is { IsEmptyWithoutResolution: false } bag)
+                {
+                    foreach (var diagnostic in bag.AsEnumerableWithoutResolution())
+                    {
+                        // Filter diagnostics that cannot be fixed since they are on the hidden interpolated string constructor.
+                        if (!((ErrorCode)diagnostic.Code is ErrorCode.WRN_BadArgRef
+                            or ErrorCode.WRN_RefReadonlyNotVariable
+                            or ErrorCode.WRN_ArgExpectedRefOrIn
+                            or ErrorCode.WRN_ArgExpectedIn))
+                        {
+                            target.Add(diagnostic);
+                        }
+                    }
+                }
+
+                source.Free();
             }
         }
 

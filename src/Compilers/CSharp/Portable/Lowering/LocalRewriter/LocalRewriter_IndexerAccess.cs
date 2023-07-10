@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ref argumentRefKindsOpt,
                     ref temps);
 
-                BoundExpression call = MakePropertyGetAccess(syntax, rewrittenReceiver, indexer, rewrittenArguments, getMethod);
+                BoundExpression call = MakePropertyGetAccess(syntax, rewrittenReceiver, indexer, rewrittenArguments, argumentRefKindsOpt, getMethod);
 
                 if (temps.Count == 0)
                 {

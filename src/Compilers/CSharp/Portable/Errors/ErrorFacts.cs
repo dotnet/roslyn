@@ -530,6 +530,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_ParamsArrayInLambdaOnly:
                 case ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase:
                 case ErrorCode.WRN_UnreadPrimaryConstructorParameter:
+                case ErrorCode.WRN_BadArgRef:
+                case ErrorCode.WRN_ArgExpectedRefOrIn:
+                case ErrorCode.WRN_RefReadonlyNotVariable:
+                case ErrorCode.WRN_ArgExpectedIn:
                     return 1;
                 default:
                     return 0;
@@ -2311,6 +2315,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_ConstantValueOfTypeExpected:
                 case ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny:
                 case ErrorCode.ERR_RefReadOnlyWrongOrdering:
+                case ErrorCode.WRN_BadArgRef:
+                case ErrorCode.WRN_ArgExpectedRefOrIn:
+                case ErrorCode.WRN_RefReadonlyNotVariable:
+                case ErrorCode.ERR_BadArgExtraRefLangVersion:
+                case ErrorCode.WRN_ArgExpectedIn:
                 case ErrorCode.ERR_OutAttrOnRefReadonlyParam:
                     return false;
                 default:

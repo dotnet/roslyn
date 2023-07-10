@@ -918,12 +918,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Patch refKinds for arguments that match 'In' or 'Ref' parameters to have effective RefKind.
+        /// Patch refKinds for arguments that match 'in', 'ref', or 'ref readonly' parameters to have effective RefKind.
         /// For the purpose of further analysis we will mark the arguments as -
-        /// - In        if was originally passed as None
-        /// - StrictIn  if was originally passed as In
-        /// - Ref       if the argument is an interpolated string literal subject to an interpolated string handler conversion. No other types
-        ///             are patched here.
+        /// - In                    if was originally passed as None and matches an 'in' or 'ref readonly' parameter
+        /// - StrictIn              if was originally passed as In or Ref and matches an 'in' or 'ref readonly' parameter
+        /// - Ref                   if the argument is an interpolated string literal subject to an interpolated string handler conversion. No other types
+        ///                         are patched here.
         /// Here and in the layers after the lowering we only care about None/notNone differences for the arguments
         /// Except for async stack spilling which needs to know whether arguments were originally passed as "In" and must obey "no copying" rule.
         /// </summary>
@@ -933,11 +933,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < parameters.Length; i++)
             {
                 var paramRefKind = parameters[i].RefKind;
-                if (paramRefKind == RefKind.In)
+                if (paramRefKind is RefKind.In or RefKind.RefReadOnlyParameter)
                 {
                     var argRefKind = argumentRefKindsOpt.IsDefault ? RefKind.None : argumentRefKindsOpt[i];
                     fillRefKindsBuilder(argumentRefKindsOpt, parameters, ref refKindsBuilder);
-                    refKindsBuilder[i] = argRefKind == RefKind.None ? paramRefKind : RefKindExtensions.StrictIn;
+                    refKindsBuilder[i] = argRefKind == RefKind.None ? RefKind.In : RefKindExtensions.StrictIn;
                 }
                 else if (paramRefKind == RefKind.Ref)
                 {
@@ -1148,20 +1148,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var temp = _factory.StoreToTemp(
                         argument,
                         out BoundAssignmentOperator assignment,
-                        refKind: paramRefKind == RefKind.In ? RefKind.In : argRefKind);
+                        refKind: paramRefKind is RefKind.In or RefKind.RefReadOnlyParameter
+                            ? (argRefKind == RefKind.None ? RefKind.In : RefKindExtensions.StrictIn)
+                            : argRefKind);
                     storesToTemps.Add(assignment);
                     arguments[p] = temp;
                 }
 
-                // Patch refKinds for arguments that match 'In' parameters to have effective RefKind
+                // Patch refKinds for arguments that match 'in' or 'ref readonly' parameters to have effective RefKind
                 // For the purpose of further analysis we will mark the arguments as -
-                // - In        if was originally passed as None
-                // - StrictIn  if was originally passed as In
+                // - In                    if was originally passed as None and matches an 'in' or 'ref readonly' parameter
+                // - StrictIn              if was originally passed as In or Ref and matches an 'in' or 'ref readonly' parameter
                 // Here and in the layers after the lowering we only care about None/notNone differences for the arguments
                 // Except for async stack spilling which needs to know whether arguments were originally passed as "In" and must obey "no copying" rule.
-                if (paramRefKind == RefKind.In)
+                if (paramRefKind is RefKind.In or RefKind.RefReadOnlyParameter)
                 {
-                    Debug.Assert(argRefKind == RefKind.None || argRefKind == RefKind.In);
+                    Debug.Assert(argRefKind is RefKind.None or RefKind.In or RefKind.Ref);
                     argRefKind = argRefKind == RefKind.None ? RefKind.In : RefKindExtensions.StrictIn;
                 }
 

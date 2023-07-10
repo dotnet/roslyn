@@ -2192,7 +2192,7 @@ outerDefault:
             static bool isAcceptableRefMismatch(RefKind refKind, bool isInterpolatedStringHandlerConversion)
                 => refKind switch
                 {
-                    RefKind.In => true,
+                    RefKind.In or RefKind.RefReadOnlyParameter => true,
                     RefKind.Ref when isInterpolatedStringHandlerConversion => true,
                     _ => false
                 };
@@ -3190,9 +3190,27 @@ outerDefault:
 
             // 'None' argument is allowed to match 'In' parameter and should behave like 'None' for the purpose of overload resolution
             // unless this is a method group conversion where 'In' must match 'In'
-            if (!isMethodGroupConversion && argRefKind == RefKind.None && paramRefKind == RefKind.In)
+            // There are even more relaxations with 'ref readonly' parameters feature:
+            // - 'ref' argument is allowed to match 'in' parameter,
+            // - 'ref', 'in', none argument is allowed to match 'ref readonly' parameter.
+            if (!isMethodGroupConversion)
             {
-                return RefKind.None;
+                if (paramRefKind == RefKind.In)
+                {
+                    if (argRefKind == RefKind.None)
+                    {
+                        return RefKind.None;
+                    }
+
+                    if (argRefKind == RefKind.Ref && binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefReadonlyParameters))
+                    {
+                        return RefKind.Ref;
+                    }
+                }
+                else if (paramRefKind == RefKind.RefReadOnlyParameter && argRefKind is RefKind.None or RefKind.Ref or RefKind.In)
+                {
+                    return argRefKind;
+                }
             }
 
             // Omit ref feature for COM interop: We can pass arguments by value for ref parameters if we are calling a method/property on an instance of a COM imported type.
