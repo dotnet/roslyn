@@ -102,33 +102,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
             // We're showing our own UI, ensure the editor doesn't show anything itself.
             context.OperationContext.TakeOwnership();
 
+            var token = _listener.BeginAsyncOperation(nameof(ExecuteCommand));
+            _ = ExecuteAsync(commandArgs, getCurrentDocumentAsync, getChangedDocumentAsync)
+                .ReportNonFatalErrorAsync()
+                .CompletesAsyncOperation(token);
+
+            return true;
+        }
+
+        private async Task ExecuteAsync(
+            EditorCommandArgs commandArgs,
+            Func<ITextSnapshot, IUIThreadOperationContext, Task<Document?>> getCurrentDocumentAsync,
+            Func<Document, CancellationToken, Task<Document>> getChangedDocumentAsync)
+        {
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+
             var subjectBuffer = commandArgs.SubjectBuffer;
             var textView = commandArgs.TextView;
 
             var caretPoint = textView.GetCaretPoint(subjectBuffer);
             if (caretPoint is null)
-                return false;
+                return;
 
             if (!subjectBuffer.TryGetWorkspace(out var workspace))
-                return false;
-
-            var token = _listener.BeginAsyncOperation(nameof(ExecuteCommand));
+                return;
 
             var snapshotSpan = textView.GetTextElementSpan(caretPoint.Value);
-            _ = ExecuteAsync(workspace, commandArgs, snapshotSpan, getCurrentDocumentAsync, getChangedDocumentAsync)
-                .ReportNonFatalErrorAsync()
-                .CompletesAsyncOperation(token);
-            return true;
-        }
-
-        private async Task ExecuteAsync(
-            Workspace workspace,
-            EditorCommandArgs commandArgs,
-            SnapshotSpan snapshotSpan,
-            Func<ITextSnapshot, IUIThreadOperationContext, Task<Document?>> getCurrentDocumentAsync,
-            Func<Document, CancellationToken, Task<Document>> getChangedDocumentAsync)
-        {
-            _threadingContext.ThrowIfNotOnUIThread();
 
             var indicatorFactory = workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
             using var backgroundWorkContext = indicatorFactory.Create(
