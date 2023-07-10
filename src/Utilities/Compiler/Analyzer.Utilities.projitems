@@ -75,7 +75,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\NullableContextExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\OperationKindEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\OperationWrapperHelper.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)OneOrMany.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\MSBuildItemOptionNames.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\OptionKey.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\OptionKind.cs" />
