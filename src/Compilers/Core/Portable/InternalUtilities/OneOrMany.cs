@@ -41,19 +41,30 @@ namespace Roslyn.Utilities
                 throw new ArgumentNullException(nameof(many));
             }
 
-            _one = default;
-            _many = many;
+            if (many is [var item])
+            {
+                _one = item;
+                _many = default;
+            }
+            else
+            {
+                _one = default;
+                _many = many;
+            }
         }
 
+        /// <summary>
+        /// True if the collection has a single item. This item is stored in <see cref="_one"/>.
+        /// </summary>
         [MemberNotNullWhen(true, nameof(_one))]
-        private bool HasOne
+        private bool HasOneItem
             => _many.IsDefault;
 
         public T this[int index]
         {
             get
             {
-                if (HasOne)
+                if (HasOneItem)
                 {
                     if (index != 0)
                     {
@@ -70,7 +81,7 @@ namespace Roslyn.Utilities
         }
 
         public int Count
-            => HasOne ? 1 : _many.Length;
+            => HasOneItem ? 1 : _many.Length;
 
         public bool IsEmpty
             => Count == 0;
@@ -78,7 +89,7 @@ namespace Roslyn.Utilities
         public OneOrMany<T> Add(T one)
         {
             var builder = ArrayBuilder<T>.GetInstance(this.Count + 1);
-            if (HasOne)
+            if (HasOneItem)
             {
                 builder.Add(_one);
             }
@@ -93,7 +104,7 @@ namespace Roslyn.Utilities
 
         public bool Contains(T item)
         {
-            if (HasOne)
+            if (HasOneItem)
                 return EqualityComparer<T>.Default.Equals(item, _one);
 
             foreach (var value in _many)
@@ -107,7 +118,7 @@ namespace Roslyn.Utilities
 
         public OneOrMany<T> RemoveAll(T item)
         {
-            if (HasOne)
+            if (HasOneItem)
             {
                 return EqualityComparer<T>.Default.Equals(item, _one) ? default : this;
             }
@@ -131,14 +142,14 @@ namespace Roslyn.Utilities
 
         public OneOrMany<TResult> Select<TResult>(Func<T, TResult> selector)
         {
-            return HasOne ?
+            return HasOneItem ?
                 OneOrMany.Create(selector(_one)) :
                 OneOrMany.Create(_many.SelectAsArray(selector));
         }
 
         public OneOrMany<TResult> Select<TResult, TArg>(Func<T, TArg, TResult> selector, TArg arg)
         {
-            return HasOne ?
+            return HasOneItem ?
                 OneOrMany.Create(selector(_one, arg)) :
                 OneOrMany.Create(_many.SelectAsArray(selector, arg));
         }
@@ -163,7 +174,7 @@ namespace Roslyn.Utilities
 
         public T? FirstOrDefault(Func<T, bool> predicate)
         {
-            if (HasOne)
+            if (HasOneItem)
             {
                 return predicate(_one) ? _one : default;
             }
@@ -181,7 +192,7 @@ namespace Roslyn.Utilities
 
         public T? FirstOrDefault<TArg>(Func<T, TArg, bool> predicate, TArg arg)
         {
-            if (HasOne)
+            if (HasOneItem)
             {
                 return predicate(_one, arg) ? _one : default;
             }
@@ -199,7 +210,7 @@ namespace Roslyn.Utilities
 
         public static OneOrMany<T> CastUp<TDerived>(OneOrMany<TDerived> from) where TDerived : class, T
         {
-            return from.HasOne
+            return from.HasOneItem
                 ? new OneOrMany<T>(from._one)
                 : new OneOrMany<T>(ImmutableArray<T>.CastUp(from._many));
         }
@@ -230,10 +241,10 @@ namespace Roslyn.Utilities
         }
 
         public ImmutableArray<T> ToImmutable()
-            => this.HasOne ? ImmutableArray.Create(_one) : _many;
+            => this.HasOneItem ? ImmutableArray.Create(_one) : _many;
 
         public T[] ToArray()
-            => this.HasOne ? new[] { _one } : _many.ToArray();
+            => this.HasOneItem ? new[] { _one } : _many.ToArray();
 
         public bool SequenceEqual(OneOrMany<T> other, IEqualityComparer<T>? comparer = null)
         {
@@ -244,8 +255,9 @@ namespace Roslyn.Utilities
                 return false;
             }
 
-            return HasOne ? comparer.Equals(_one, other[0]) :
-                   other.HasOne ? comparer.Equals(_many[0], other._one) :
+            Debug.Assert(HasOneItem == other.HasOneItem);
+
+            return HasOneItem ? comparer.Equals(_one, other._one!) :
                    System.Linq.ImmutableArrayExtensions.SequenceEqual(_many, other._many, comparer);
         }
 
@@ -256,7 +268,7 @@ namespace Roslyn.Utilities
         {
             comparer ??= EqualityComparer<T>.Default;
 
-            if (!HasOne)
+            if (!HasOneItem)
             {
                 return _many.SequenceEqual(other, comparer);
             }

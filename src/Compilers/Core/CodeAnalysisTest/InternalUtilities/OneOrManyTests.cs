@@ -145,11 +145,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
             Assert.False(OneOrMany.Create(1).SequenceEqual(OneOrMany.Create(2)));
             Assert.True(OneOrMany.Create(1, 2).SequenceEqual(OneOrMany.Create(1, 2)));
             Assert.False(OneOrMany.Create(1, 2).SequenceEqual(OneOrMany.Create(1, 0)));
+
             Assert.False(OneOrMany.Create(1, 2).SequenceEqual(OneOrMany.Create(ImmutableArray.Create(1, 2, 3))));
+            Assert.True(OneOrMany.Create(1).SequenceEqual(OneOrMany.Create(ImmutableArray.Create(1))));
 
             Assert.True(OneOrMany<int>.Empty.SequenceEqual(new int[0]));
             Assert.False(OneOrMany<int>.Empty.SequenceEqual(new[] { 1 }));
-            Assert.False(OneOrMany<int>.Empty.SequenceEqual(new[] { 1, 2}));
+            Assert.False(OneOrMany<int>.Empty.SequenceEqual(new[] { 1, 2 }));
             Assert.True(OneOrMany.Create(1).SequenceEqual(new[] { 1 }));
             Assert.False(OneOrMany.Create(1).SequenceEqual(new[] { 2 }));
             Assert.True(OneOrMany.Create(1, 2).SequenceEqual(new[] { 1, 2 }));
