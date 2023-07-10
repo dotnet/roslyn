@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         private bool HasUnderlyingString(DkmClrValue value, DkmInspectionContext inspectionContext)
         {
-            return GetUnderlyingString(value, inspectionContext) != null;
+            return value.EvalFlags.HasFlag(DkmEvaluationResultFlags.TruncatedString) || GetUnderlyingString(value, inspectionContext) != null;
         }
 
         private string GetUnderlyingString(DkmClrValue value, DkmInspectionContext inspectionContext)
@@ -236,6 +236,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             if (lmrType.IsString())
             {
+                if (value.EvalFlags.HasFlag(DkmEvaluationResultFlags.TruncatedString))
+                {
+                    var extendedInspectionContext = inspectionContext.With(DkmEvaluationFlags.IncreaseMaxStringSize);
+                    return value.EvaluateToString(extendedInspectionContext);
+                }
+
                 return (string)value.HostObjectValue;
             }
             else if (!IsPredefinedType(lmrType))
