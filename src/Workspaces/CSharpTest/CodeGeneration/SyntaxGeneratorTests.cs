@@ -4558,13 +4558,13 @@ public class C : IDisposable
                 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67335")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68957")]
         public void TestGenerateUnmanagedConstraint1()
         {
             var comp = Compile(
                 """public class C<T> where T : unmanaged { }""");
 
-            var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
+            var symbolC = comp.GlobalNamespace.GetMembers("C").First();
 
             VerifySyntax<ClassDeclarationSyntax>(
                 Generator.Declaration(symbolC),
@@ -4574,6 +4574,24 @@ public class C : IDisposable
                     public C()
                     {
                     }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68957")]
+        public void TestGenerateUnmanagedConstraint2()
+        {
+            var comp = Compile(
+                """public class C { void M<T>() where T : unmanaged { } }""");
+
+            var symbolM = comp.GlobalNamespace.GetMembers("C").First().GetMembers("M").First();
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                Generator.Declaration(symbolM),
+                """
+                private void M<T>()
+                    where T : unmanaged
+                {
                 }
                 """);
         }
