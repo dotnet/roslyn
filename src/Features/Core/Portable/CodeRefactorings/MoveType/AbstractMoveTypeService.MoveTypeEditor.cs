@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -144,10 +143,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 modifiedRoot = await AddFinalNewLineIfDesiredAsync(document, modifiedRoot).ConfigureAwait(false);
 
                 // add an empty document to solution, so that we'll have options from the right context.
-                var solutionWithNewDocument = projectToBeUpdated.Solution.AddDocument(newDocumentId,
-                    FileName,
-                    text: string.Empty,
-                    folders: document.Folders);
+                var solutionWithNewDocument = projectToBeUpdated.Solution.AddDocument(
+                    newDocumentId, FileName, text: string.Empty, folders: document.Folders);
 
                 // update the text for the new document
                 solutionWithNewDocument = solutionWithNewDocument.WithDocumentSyntaxRoot(newDocumentId, modifiedRoot, PreservationMode.PreserveIdentity);
