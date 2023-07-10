@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                 RefKind.None,
                                                 @event.Modifiers,
                                                 returnsVoid: false, // until we learn otherwise (in LazyMethodChecks).
+                                                returnsVoidIsSet: false,
                                                 isExpressionBodied: isExpressionBodied,
                                                 isExtensionMethod: false,
                                                 isNullableAnalysisEnabled: isNullableAnalysisEnabled,
@@ -118,8 +119,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         // EventRegistrationToken add_E(EventDelegate d);
 
-                        // Leave the returns void bit in this.flags false.
                         _lazyReturnType = TypeWithAnnotations.Create(eventTokenType);
+                        this.SetReturnsVoid(returnsVoid: false);
 
                         var parameter = new SynthesizedAccessorValueParameterSymbol(this, _event.TypeWithAnnotations, 0);
                         _lazyParameters = ImmutableArray.Create<ParameterSymbol>(parameter);

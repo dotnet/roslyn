@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Net;
 using System.Threading;
@@ -100,6 +101,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             {
                 return DiagnosticSelector?.Invoke(fixableDiagnostics)
                     ?? base.TrySelectDiagnosticToFix(fixableDiagnostics);
+            }
+
+            protected override ImmutableArray<(Project project, Diagnostic diagnostic)> SortDistinctDiagnostics(IEnumerable<(Project project, Diagnostic diagnostic)> diagnostics)
+            {
+                var baseResult = base.SortDistinctDiagnostics(diagnostics);
+                if (typeof(DiagnosticSuppressor).IsAssignableFrom(typeof(TAnalyzer)))
+                {
+                    // Include suppressed diagnostics when testing diagnostic suppressors
+                    return baseResult;
+                }
+
+                // Treat suppressed diagnostics as non-existent. Normally this wouldn't be necessary, but some of the
+                // tests include diagnostics reported in code wrapped in '#Disable Warning'.
+                return baseResult.WhereAsArray(diagnostic => !diagnostic.diagnostic.IsSuppressed);
             }
         }
     }

@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue
     /// ManagedMethodId is a module/method pair which is used to uniquely identify the
     /// symbol store's understanding of a particular CLR method.
     /// </summary>
+    /// <remarks>
+    /// Creates a ManagedMethodId.
+    /// </remarks>
+    /// <param name="module">Module version ID in which the method exists.</param>
+    /// <param name="method">Method ID.</param>
     [DataContract]
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     internal readonly struct ManagedMethodId(
