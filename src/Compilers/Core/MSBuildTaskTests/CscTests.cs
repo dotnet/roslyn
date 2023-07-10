@@ -11,11 +11,19 @@ using Moq;
 using System.IO;
 using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.BuildTasks.UnitTests.TestUtilities;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
     public sealed class CscTests
     {
+        public ITestOutputHelper TestOutputHelper { get; }
+
+        public CscTests(ITestOutputHelper testOutputHelper)
+        {
+            TestOutputHelper = testOutputHelper;
+        }
+
         [Fact]
         public void SingleSource()
         {
@@ -528,7 +536,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         [Fact]
         public void CommandLineArgs1()
         {
-            var engine = new MockEngine();
+            var engine = new MockEngine(TestOutputHelper);
             var csc = new Csc()
             {
                 BuildEngine = engine,
@@ -541,7 +549,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         [Fact]
         public void CommandLineArgs2()
         {
-            var engine = new MockEngine();
+            var engine = new MockEngine(TestOutputHelper);
             var csc = new Csc()
             {
                 BuildEngine = engine,
