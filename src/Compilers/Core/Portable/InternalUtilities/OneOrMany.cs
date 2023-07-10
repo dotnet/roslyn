@@ -86,58 +86,22 @@ namespace Roslyn.Utilities
         public bool IsEmpty
             => Count == 0;
 
-        public OneOrMany<T> Add(T one)
-        {
-            var builder = ArrayBuilder<T>.GetInstance(this.Count + 1);
-            if (HasOneItem)
-            {
-                builder.Add(_one);
-            }
-            else
-            {
-                builder.AddRange(_many);
-            }
-
-            builder.Add(one);
-            return new OneOrMany<T>(builder.ToImmutableAndFree());
-        }
+        public OneOrMany<T> Add(T item)
+            => HasOneItem ? OneOrMany.Create(_one, item) :
+               IsEmpty ? OneOrMany.Create(item) :
+               OneOrMany.Create(_many.Add(item));
 
         public bool Contains(T item)
-        {
-            if (HasOneItem)
-                return EqualityComparer<T>.Default.Equals(item, _one);
-
-            foreach (var value in _many)
-            {
-                if (EqualityComparer<T>.Default.Equals(item, value))
-                    return true;
-            }
-
-            return false;
-        }
+            => HasOneItem ? EqualityComparer<T>.Default.Equals(item, _one) : _many.Contains(item);
 
         public OneOrMany<T> RemoveAll(T item)
         {
             if (HasOneItem)
             {
-                return EqualityComparer<T>.Default.Equals(item, _one) ? default : this;
+                return EqualityComparer<T>.Default.Equals(item, _one) ? Empty : this;
             }
 
-            var builder = ArrayBuilder<T>.GetInstance();
-
-            foreach (var value in _many)
-            {
-                if (!EqualityComparer<T>.Default.Equals(item, value))
-                    builder.Add(value);
-            }
-
-            if (builder.Count == 0)
-            {
-                builder.Free();
-                return default;
-            }
-
-            return builder.Count == Count ? this : new OneOrMany<T>(builder.ToImmutableAndFree());
+            return OneOrMany.Create(_many.WhereAsArray(static (value, item) => !EqualityComparer<T>.Default.Equals(value, item), item));
         }
 
         public OneOrMany<TResult> Select<TResult>(Func<T, TResult> selector)
@@ -154,22 +118,6 @@ namespace Roslyn.Utilities
                 OneOrMany.Create(_many.SelectAsArray(selector, arg));
         }
 
-        public IEnumerable<TResult> OfType<TResult>()
-        {
-            return this.Count == 0
-                ? Array.Empty<TResult>()
-                : iterateElements(this);
-
-            static IEnumerable<TResult> iterateElements(OneOrMany<T> @this)
-            {
-                foreach (var item in @this)
-                {
-                    if (item is TResult result)
-                        yield return result;
-                }
-            }
-        }
-
         public T First() => this[0];
 
         public T? FirstOrDefault(Func<T, bool> predicate)
@@ -179,15 +127,7 @@ namespace Roslyn.Utilities
                 return predicate(_one) ? _one : default;
             }
 
-            foreach (var item in _many)
-            {
-                if (predicate(item))
-                {
-                    return item;
-                }
-            }
-
-            return default;
+            return _many.FirstOrDefault(predicate);
         }
 
         public T? FirstOrDefault<TArg>(Func<T, TArg, bool> predicate, TArg arg)
@@ -197,15 +137,7 @@ namespace Roslyn.Utilities
                 return predicate(_one, arg) ? _one : default;
             }
 
-            foreach (var item in _many)
-            {
-                if (predicate(item, arg))
-                {
-                    return item;
-                }
-            }
-
-            return default;
+            return _many.FirstOrDefault(predicate, arg);
         }
 
         public static OneOrMany<T> CastUp<TDerived>(OneOrMany<TDerived> from) where TDerived : class, T
@@ -216,35 +148,25 @@ namespace Roslyn.Utilities
         }
 
         public bool All(Func<T, bool> predicate)
-        {
-            foreach (var value in this)
-            {
-                if (!predicate(value))
-                    return false;
-            }
+            => HasOneItem ? predicate(_one) : _many.All(predicate);
 
-            return true;
-        }
+        public bool All<TArg>(Func<T, TArg, bool> predicate, TArg arg)
+            => HasOneItem ? predicate(_one, arg) : _many.All(predicate, arg);
 
         public bool Any()
-            => this.Count > 0;
+            => !IsEmpty;
 
-        public bool Any<TData>(Func<T, TData, bool> predicate, TData data)
-        {
-            foreach (var value in this)
-            {
-                if (predicate(value, data))
-                    return true;
-            }
+        public bool Any(Func<T, bool> predicate)
+            => HasOneItem ? predicate(_one) : _many.Any(predicate);
 
-            return false;
-        }
+        public bool Any<TArg>(Func<T, TArg, bool> predicate, TArg arg)
+            => HasOneItem ? predicate(_one, arg) : _many.Any(predicate, arg);
 
         public ImmutableArray<T> ToImmutable()
-            => this.HasOneItem ? ImmutableArray.Create(_one) : _many;
+            => HasOneItem ? ImmutableArray.Create(_one) : _many;
 
         public T[] ToArray()
-            => this.HasOneItem ? new[] { _one } : _many.ToArray();
+            => HasOneItem ? new[] { _one } : _many.ToArray();
 
         public bool SequenceEqual(OneOrMany<T> other, IEqualityComparer<T>? comparer = null)
         {

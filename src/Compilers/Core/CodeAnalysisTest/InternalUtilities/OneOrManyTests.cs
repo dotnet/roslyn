@@ -91,6 +91,18 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
         }
 
         [Fact]
+        public void RemoveAll()
+        {
+            Verify(OneOrMany<int>.Empty.RemoveAll(1));
+            Verify(OneOrMany.Create(1).RemoveAll(1));
+            Verify(OneOrMany.Create(2).RemoveAll(1), 2);
+            Verify(OneOrMany.Create(1, 2).RemoveAll(1), 2);
+            Verify(OneOrMany.Create(1, 2).RemoveAll(2), 1);
+            Verify(OneOrMany.Create(1, 1).RemoveAll(1));
+            Verify(OneOrMany.Create(ImmutableArray.Create(1, 1, 1, 2)).RemoveAll(1), 2);
+        }
+
+        [Fact]
         public void Select()
         {
             Verify(OneOrMany.Create(1).Select(i => i + 1), 2);
@@ -100,7 +112,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
         }
 
         [Fact]
-        public void SelectWithArg()
+        public void Select_WithArg()
         {
             Verify(OneOrMany.Create(1).Select((i, a) => i + a, 1), 2);
             Verify(OneOrMany.Create(ImmutableArray<int>.Empty).Select((i, a) => i + a, 1));
@@ -118,6 +130,78 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
             Assert.Equal(0, OneOrMany.Create(ImmutableArray.Create(1)).FirstOrDefault(i => i > 2));
             Assert.Equal(1, OneOrMany.Create(ImmutableArray.Create(1, 3)).FirstOrDefault(i => i < 2));
             Assert.Equal(3, OneOrMany.Create(ImmutableArray.Create(1, 3)).FirstOrDefault(i => i > 2));
+        }
+
+        [Fact]
+        public void FirstOrDefault_WithArg()
+        {
+            Assert.Equal(1, OneOrMany.Create(1).FirstOrDefault((i, a) => i < a, 2));
+            Assert.Equal(0, OneOrMany.Create(1).FirstOrDefault((i, a) => i > a, 2));
+            Assert.Equal(0, OneOrMany.Create(ImmutableArray<int>.Empty).FirstOrDefault((i, a) => i > a, 2));
+            Assert.Equal(1, OneOrMany.Create(ImmutableArray.Create(1)).FirstOrDefault((i, a) => i < a, 2));
+            Assert.Equal(0, OneOrMany.Create(ImmutableArray.Create(1)).FirstOrDefault((i, a) => i > a, 2));
+            Assert.Equal(1, OneOrMany.Create(ImmutableArray.Create(1, 3)).FirstOrDefault((i, a) => i < a, 2));
+            Assert.Equal(3, OneOrMany.Create(ImmutableArray.Create(1, 3)).FirstOrDefault((i, a) => i > a, 2));
+        }
+
+        [Fact]
+        public void All()
+        {
+            Assert.True(OneOrMany<int>.Empty.All(_ => false));
+            Assert.True(OneOrMany<int>.Empty.All(_ => true));
+
+            Assert.False(OneOrMany.Create(1).All(i => i > 1));
+            Assert.True(OneOrMany.Create(1).All(i => i > 0));
+
+            Assert.False(OneOrMany.Create(1, 2).All(i => i > 1));
+            Assert.True(OneOrMany.Create(1, 2).All(i => i > 0));
+        }
+
+        [Fact]
+        public void All_WithArg()
+        {
+            Assert.True(OneOrMany<int>.Empty.All((_, _) => false, 0));
+            Assert.True(OneOrMany<int>.Empty.All((_, _) => true, 0));
+
+            Assert.False(OneOrMany.Create(1).All((i, a) => i > a, 1));
+            Assert.True(OneOrMany.Create(1).All((i, a) => i > a, 0));
+
+            Assert.False(OneOrMany.Create(1, 2).All((i, a) => i > a, 1));
+            Assert.True(OneOrMany.Create(1, 2).All((i, a) => i > a, 0));
+        }
+
+        [Fact]
+        public void Any()
+        {
+            Assert.False(OneOrMany<int>.Empty.Any());
+            Assert.True(OneOrMany.Create(1).Any());
+            Assert.True(OneOrMany.Create(1, 2).Any());
+        }
+
+        [Fact]
+        public void Any_Predicate()
+        {
+            Assert.False(OneOrMany<int>.Empty.Any(_ => false));
+            Assert.False(OneOrMany<int>.Empty.Any(_ => true));
+
+            Assert.False(OneOrMany.Create(1).Any(i => i > 1));
+            Assert.True(OneOrMany.Create(1).Any(i => i > 0));
+
+            Assert.False(OneOrMany.Create(1, 2).Any(i => i < 0));
+            Assert.True(OneOrMany.Create(1, 2).Any(i => i > 1));
+        }
+
+        [Fact]
+        public void Any_Predicate_WithArg()
+        {
+            Assert.False(OneOrMany<int>.Empty.Any((_, _) => false, 0));
+            Assert.False(OneOrMany<int>.Empty.Any((_, _) => true, 0));
+
+            Assert.False(OneOrMany.Create(1).Any((i, a) => i > a, 1));
+            Assert.True(OneOrMany.Create(1).Any((i, a) => i > a, 0));
+
+            Assert.False(OneOrMany.Create(1, 2).Any((i, a) => i < a, 0));
+            Assert.True(OneOrMany.Create(1, 2).Any((i, a) => i > a, 1));
         }
 
         [Fact]
