@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // Add a sequence point at the end of the copy-constructor, so that a breakpoint placed on the record constructor
-            // can be hit whenever a new instance of the record is created (either via a primary constructor or vie a copy constructor).
+            // can be hit whenever a new instance of the record is created (either via a primary constructor or via a copy constructor).
             // 
             // If the record doesn't have base initializer the span overlaps the span of the sequence point generated for primary
             // constructor implicit base initializer:
