@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
             var token = _listener.BeginAsyncOperation(nameof(ExecuteCommand));
 
             var snapshotSpan = textView.GetTextElementSpan(caretPoint.Value);
-            ExecuteAsync(workspace, commandArgs, snapshotSpan, getCurrentDocumentAsync, getChangedDocumentAsync)
+            _ = ExecuteAsync(workspace, commandArgs, snapshotSpan, getCurrentDocumentAsync, getChangedDocumentAsync)
                 .ReportNonFatalErrorAsync()
                 .CompletesAsyncOperation(token);
             return true;
