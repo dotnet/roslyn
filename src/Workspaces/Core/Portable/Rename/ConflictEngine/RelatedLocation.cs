@@ -29,25 +29,5 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
     {
         public RelatedLocation WithType(RelatedLocationType type)
             => new(ConflictCheckSpan, DocumentId, type, IsReference, ComplexifiedTargetSpan);
-
-        public bool Equals(RelatedLocation other)
-        {
-            return ConflictCheckSpan.Equals(other.ConflictCheckSpan) &&
-                   Type == other.Type &&
-                   IsReference == other.IsReference &&
-                   EqualityComparer<DocumentId>.Default.Equals(DocumentId, other.DocumentId) &&
-                   ComplexifiedTargetSpan.Equals(other.ComplexifiedTargetSpan);
-        }
-
-        public override int GetHashCode()
-        {
-            var hashCode = 928418920;
-            hashCode = hashCode * -1521134295 + ConflictCheckSpan.GetHashCode();
-            hashCode = hashCode * -1521134295 + ((int)Type).GetHashCode();
-            hashCode = hashCode * -1521134295 + IsReference.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<DocumentId>.Default.GetHashCode(DocumentId);
-            hashCode = hashCode * -1521134295 + ComplexifiedTargetSpan.GetHashCode();
-            return hashCode;
-        }
     }
 }
