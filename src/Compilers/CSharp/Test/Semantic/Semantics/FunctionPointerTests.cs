@@ -16,14 +16,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class FunctionPointerTests : CompilingTestBase
     {
-        private CSharpCompilation CreateCompilationWithFunctionPointers(string source, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null, TargetFramework? targetFramework = null)
+        private static CSharpCompilation CreateCompilationWithFunctionPointers(string source, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null, TargetFramework? targetFramework = null)
         {
-            return CreateCompilation(source, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: parseOptions ?? TestOptions.Regular9, targetFramework: targetFramework ?? TargetFramework.Standard);
+            return CreateCompilation(source, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: parseOptions, targetFramework: targetFramework ?? TargetFramework.Standard);
         }
 
         private CompilationVerifier CompileAndVerifyFunctionPointers(CSharpCompilation compilation, string? expectedOutput = null)
         {
             return CompileAndVerify(compilation, verify: Verification.Skipped, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void LangVersion()
+        {
+            var src = """
+                #pragma warning disable 169 // Unused field
+                unsafe class C
+                {
+                    delegate*<void> f;
+                }
+                """;
+
+            var comp = CreateCompilationWithFunctionPointers(src, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (4,5): error CS8400: Feature 'function pointers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //     delegate*<void> f;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "delegate").WithArguments("function pointers", "9.0").WithLocation(4, 5)
+            );
+
+            comp = CreateCompilationWithFunctionPointers(src, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -116,7 +138,7 @@ using S = System.Collections.Generic.List<delegate*<void>[]>;";
             var src = @"
 using unsafe S = System.Collections.Generic.List<delegate*<void>[]>;";
 
-            var comp = CreateCompilationWithFunctionPointers(src, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilationWithFunctionPointers(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (2,7): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // using unsafe S = System.Collections.Generic.List<delegate*<void>[]>;

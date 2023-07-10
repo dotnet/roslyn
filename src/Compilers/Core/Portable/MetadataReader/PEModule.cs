@@ -1113,6 +1113,23 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
+        internal bool HasInlineArrayAttribute(TypeDefinitionHandle token, out int length)
+        {
+            AttributeInfo info = FindTargetAttribute(token, AttributeDescription.InlineArrayAttribute);
+            if (info.HasValue)
+            {
+                Debug.Assert(info.SignatureIndex == 0);
+                if (TryExtractValueFromAttribute(info.Handle, out int value, s_attributeIntValueExtractor))
+                {
+                    length = value;
+                    return true;
+                }
+            }
+
+            length = 0;
+            return false;
+        }
+
         internal bool HasTupleElementNamesAttribute(EntityHandle token, out ImmutableArray<string> tupleElementNames)
         {
             var info = FindTargetAttribute(token, AttributeDescription.TupleElementNamesAttribute);
@@ -1168,18 +1185,86 @@ namespace Microsoft.CodeAnalysis
                 return obsoleteData;
             }
 
-            // [Experimental] is always a warning, not an
-            // error, so search for [Experimental] last.
+            // [Windows.Foundation.Metadata.Experimental] is always a warning, not an error.
+            info = FindTargetAttribute(token, AttributeDescription.WindowsExperimentalAttribute);
+            if (info.HasValue)
+            {
+                return TryExtractWindowsExperimentalDataFromAttribute(info);
+            }
+
+            // [Experimental] is always a warning, not an error, so search for it last.
             info = FindTargetAttribute(token, AttributeDescription.ExperimentalAttribute);
             if (info.HasValue)
             {
-                return TryExtractExperimentalDataFromAttribute(info);
+                return TryExtractExperimentalDataFromAttribute(info, decoder);
             }
 
             return null;
         }
 
 #nullable enable
+        private ObsoleteAttributeData? TryExtractExperimentalDataFromAttribute(AttributeInfo attributeInfo, IAttributeNamedArgumentDecoder decoder)
+        {
+            Debug.Assert(attributeInfo.HasValue);
+            if (!TryGetAttributeReader(attributeInfo.Handle, out var sig))
+            {
+                return null;
+            }
+
+            if (attributeInfo.SignatureIndex != 0)
+            {
+                throw ExceptionUtilities.UnexpectedValue(attributeInfo.SignatureIndex);
+            }
+
+            // ExperimentalAttribute(string)
+            if (sig.RemainingBytes <= 0 || !CrackStringInAttributeValue(out string? diagnosticId, ref sig))
+            {
+                return null;
+            }
+
+            if (string.IsNullOrWhiteSpace(diagnosticId))
+            {
+                diagnosticId = null;
+            }
+
+            string? urlFormat = crackUrlFormat(decoder, ref sig);
+            return new ObsoleteAttributeData(ObsoleteAttributeKind.Experimental, message: null, isError: false, diagnosticId, urlFormat);
+
+            static string? crackUrlFormat(IAttributeNamedArgumentDecoder decoder, ref BlobReader sig)
+            {
+                if (sig.RemainingBytes <= 0)
+                {
+                    return null;
+                }
+
+                string? urlFormat = null;
+
+                try
+                {
+                    // See CIL spec section II.23.3 Custom attributes
+                    //
+                    // Next is a description of the optional “named” fields and properties.
+                    // This starts with NumNamed– an unsigned int16 giving the number of “named” properties or fields that follow.
+                    var numNamed = sig.ReadUInt16();
+                    for (int i = 0; i < numNamed && urlFormat is null; i++)
+                    {
+                        var ((name, value), isProperty, typeCode, /* elementTypeCode */ _) = decoder.DecodeCustomAttributeNamedArgumentOrThrow(ref sig);
+                        if (typeCode == SerializationTypeCode.String && isProperty && value.ValueInternal is string stringValue)
+                        {
+                            if (urlFormat is null && name == ObsoleteAttributeData.UrlFormatPropertyName)
+                            {
+                                urlFormat = stringValue;
+                            }
+                        }
+                    }
+                }
+                catch (BadImageFormatException) { }
+                catch (UnsupportedSignatureContent) { }
+
+                return urlFormat;
+            }
+        }
+
         internal string? GetFirstUnsupportedCompilerFeatureFromToken(EntityHandle token, IAttributeNamedArgumentDecoder attributeNamedArgumentDecoder, CompilerFeatureRequiredFeatures allowedFeatures)
         {
             List<AttributeInfo>? infos = FindTargetAttributes(token, AttributeDescription.CompilerFeatureRequiredAttribute);
@@ -1633,14 +1718,14 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private ObsoleteAttributeData TryExtractExperimentalDataFromAttribute(AttributeInfo attributeInfo)
+        private ObsoleteAttributeData TryExtractWindowsExperimentalDataFromAttribute(AttributeInfo attributeInfo)
         {
             Debug.Assert(attributeInfo.HasValue);
 
             switch (attributeInfo.SignatureIndex)
             {
                 case 0: // ExperimentalAttribute() 
-                    return ObsoleteAttributeData.Experimental;
+                    return ObsoleteAttributeData.WindowsExperimental;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(attributeInfo.SignatureIndex);

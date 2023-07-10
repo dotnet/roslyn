@@ -34,20 +34,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isIterator,
             bool isNullableAnalysisEnabled,
             BindingDiagnosticBag diagnostics) :
-            base(containingType, syntax.GetReference(), location, isIterator: isIterator)
+            base(containingType, syntax.GetReference(), location, isIterator: isIterator,
+                 (declarationModifiers, MakeFlags(
+                                                  methodKind, RefKind.None, declarationModifiers,
+                                                  // We will bind the formal parameters and the return type lazily. For now,
+                                                  // assume that the return type is non-void; when we do the lazy initialization
+                                                  // of the parameters and return type we will update the flag if necessary.
+                                                  returnsVoid: false,
+                                                  returnsVoidIsSet: false,
+                                                  isExpressionBodied: isExpressionBodied,
+                                                  isExtensionMethod: false, isVarArg: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled,
+                                                  isExplicitInterfaceImplementation: methodKind == MethodKind.ExplicitInterfaceImplementation)))
         {
             _explicitInterfaceType = explicitInterfaceType;
             _name = name;
 
             this.CheckUnsafeModifier(declarationModifiers, diagnostics);
-
-            // We will bind the formal parameters and the return type lazily. For now,
-            // assume that the return type is non-void; when we do the lazy initialization
-            // of the parameters and return type we will update the flag if necessary.
-
-            this.MakeFlags(
-                methodKind, RefKind.None, declarationModifiers, returnsVoid: false, hasAnyBody: hasAnyBody, isExpressionBodied: isExpressionBodied,
-                isExtensionMethod: false, isVarArg: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled);
 
             if (this.ContainingType.IsInterface &&
                 !(IsAbstract || IsVirtual) && !IsExplicitInterfaceImplementation &&
@@ -232,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 out arglistToken,
                 allowRefOrOut: true,
                 allowThis: false,
-                addRefReadOnlyModifier: false,
+                addRefReadOnlyModifier: IsVirtual || IsAbstract,
                 diagnostics: diagnostics).Cast<SourceParameterSymbol, ParameterSymbol>();
 
             if (arglistToken.Kind() == SyntaxKind.ArgListKeyword)

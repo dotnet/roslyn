@@ -87,7 +87,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             Return FormatSymbol(symbol, isContainingType:=False)
         End Function
 
-        Private Overloads Function FormatSymbol(symbol As ISymbol, isContainingType As Boolean) As String
+        Private Overloads Shared Function FormatSymbol(symbol As ISymbol, isContainingType As Boolean) As String
             Dim symbolType = symbol.GetSymbolType()
 
             If TypeOf symbolType Is IArrayTypeSymbol Then

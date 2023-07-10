@@ -126,12 +126,14 @@ namespace Microsoft.CodeAnalysis
     {
         internal readonly AdditionalSourcesCollection Sources;
         internal readonly DiagnosticBag Diagnostics;
+        internal readonly Compilation Compilation;
 
-        internal SourceProductionContext(AdditionalSourcesCollection sources, DiagnosticBag diagnostics, CancellationToken cancellationToken)
+        internal SourceProductionContext(AdditionalSourcesCollection sources, DiagnosticBag diagnostics, Compilation compilation, CancellationToken cancellationToken)
         {
             CancellationToken = cancellationToken;
             Sources = sources;
             Diagnostics = diagnostics;
+            Compilation = compilation;
         }
 
         public CancellationToken CancellationToken { get; }
@@ -160,7 +162,15 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// The severity of the diagnostic may cause the compilation to fail, depending on the <see cref="Compilation"/> settings.
         /// </remarks>
-        public void ReportDiagnostic(Diagnostic diagnostic) => Diagnostics.Add(diagnostic);
+        /// <exception cref="ArgumentException">
+        /// <paramref name="diagnostic"/> is located in a syntax tree which is not part of the compilation,
+        /// its location span is outside of the given file, or its identifier is not valid.
+        /// </exception>
+        public void ReportDiagnostic(Diagnostic diagnostic)
+        {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, Compilation, isSupportedDiagnostic: static (_, _) => true, CancellationToken);
+            Diagnostics.Add(diagnostic);
+        }
     }
 
     // https://github.com/dotnet/roslyn/issues/53608 right now we only support generating source + diagnostics, but actively want to support generation of other things

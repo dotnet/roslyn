@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -206,7 +205,7 @@ class A {
             var markup =
 @"class A {";
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace,
-                GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, useVSDiagnostics, DiagnosticMode.Default));
+                GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, CompilerDiagnosticsScope.OpenFiles, useVSDiagnostics, DiagnosticMode.Default));
 
             // Calling GetTextBuffer will effectively open the file.
             testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -225,7 +224,7 @@ class A {
             var markup =
 @"class A {";
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace,
-                GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, useVSDiagnostics, DiagnosticMode.Default));
+                GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, CompilerDiagnosticsScope.OpenFiles, useVSDiagnostics, DiagnosticMode.Default));
 
             // Calling GetTextBuffer will effectively open the file.
             testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -298,7 +297,7 @@ class A {
 
         [Theory, CombinatorialData]
         [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1481208")]
-        public async Task TestDocumentDiagnosticsWhenEnCVersionChanges(bool useVSDiagnostics, bool mutatingLspWorkspace)
+        public async Task TestDocumentDiagnosticsWhenGlobalStateChanges(bool useVSDiagnostics, bool mutatingLspWorkspace)
         {
             var markup =
 @"class A {";
@@ -317,10 +316,9 @@ class A {
 
             var resultId = results.Single().ResultId;
 
-            // Create a fake diagnostic to trigger a change in edit and continue, without a document change
-            var encDiagnosticsSource = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<EditAndContinueDiagnosticUpdateSource>();
-            var rudeEdits = ImmutableArray.Create((document.Id, ImmutableArray.Create(new RudeEditDiagnostic(RudeEditKind.Update, default))));
-            encDiagnosticsSource.ReportDiagnostics(testLspServer.TestWorkspace, testLspServer.TestWorkspace.CurrentSolution, ImmutableArray<DiagnosticData>.Empty, rudeEdits);
+            // Trigger refresh due to a change to global state that affects diagnostics.
+            var refresher = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<IDiagnosticsRefresher>();
+            refresher.RequestWorkspaceRefresh();
 
             results = await RunGetDocumentPullDiagnosticsAsync(
                 testLspServer, document.GetURI(), useVSDiagnostics, previousResultId: resultId);
@@ -620,7 +618,7 @@ class B {";
 
             // Turn off pull diagnostics by default, but send a request to the razor LSP server which is always pull.
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace,
-                GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, useVSDiagnostics, DiagnosticMode.SolutionCrawlerPush, WellKnownLspServerKinds.RazorLspServer));
+                GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, CompilerDiagnosticsScope.OpenFiles, useVSDiagnostics, DiagnosticMode.SolutionCrawlerPush, WellKnownLspServerKinds.RazorLspServer));
 
             // Calling GetTextBuffer will effectively open the file.
             testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -645,7 +643,7 @@ class B {";
 
             // Turn off pull diagnostics by default, but send a request to the razor LSP server which is always pull.
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace,
-                GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, useVSDiagnostics, DiagnosticMode.SolutionCrawlerPush, WellKnownLspServerKinds.LiveShareLspServer));
+                GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, CompilerDiagnosticsScope.OpenFiles, useVSDiagnostics, DiagnosticMode.SolutionCrawlerPush, WellKnownLspServerKinds.LiveShareLspServer));
 
             // Calling GetTextBuffer will effectively open the file.
             testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -775,17 +773,32 @@ class A
             var results = await RunGetDocumentPullDiagnosticsAsync(
                 testLspServer, document.GetURI(), useVSDiagnostics);
 
-            // The first line should have a diagnostic on it that is not marked as unnecessary.
-            Assert.False(results.Single().Diagnostics![0].Tags!.Contains(DiagnosticTag.Unnecessary));
-            Assert.Equal(lineLocation, results.Single().Diagnostics![0].Range);
+            if (useVSDiagnostics)
+            {
+                // The first line should have a diagnostic on it that is not marked as unnecessary.
+                Assert.False(results.Single().Diagnostics![0].Tags!.Contains(DiagnosticTag.Unnecessary));
+                Assert.Equal(lineLocation, results.Single().Diagnostics![0].Range);
 
-            // The open paren should have an unnecessary diagnostic.
-            Assert.True(results.Single().Diagnostics![1].Tags!.Contains(DiagnosticTag.Unnecessary));
-            Assert.Equal(openLocation, results.Single().Diagnostics![1].Range);
+                // The open paren should have an unnecessary diagnostic.
+                Assert.True(results.Single().Diagnostics![1].Tags!.Contains(DiagnosticTag.Unnecessary));
+                Assert.Equal(openLocation, results.Single().Diagnostics![1].Range);
 
-            // The close paren should have an unnecessary diagnostic.
-            Assert.True(results.Single().Diagnostics![2].Tags!.Contains(DiagnosticTag.Unnecessary));
-            Assert.Equal(closeLocation, results.Single().Diagnostics![2].Range);
+                // The close paren should have an unnecessary diagnostic.
+                Assert.True(results.Single().Diagnostics![2].Tags!.Contains(DiagnosticTag.Unnecessary));
+                Assert.Equal(closeLocation, results.Single().Diagnostics![2].Range);
+            }
+            else
+            {
+                // There should be one unnecessary diagnostic.
+                Assert.True(results.Single().Diagnostics.Single().Tags!.Contains(DiagnosticTag.Unnecessary));
+                Assert.Equal(lineLocation, results.Single().Diagnostics.Single().Range);
+
+                // There should be an additional location for the open paren.
+                Assert.Equal(openLocation, results.Single().Diagnostics.Single().RelatedInformation![0].Location.Range);
+
+                // There should be an additional location for the close paren.
+                Assert.Equal(closeLocation, results.Single().Diagnostics.Single().RelatedInformation![1].Location.Range);
+            }
         }
 
         [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1806590")]
@@ -1119,7 +1132,7 @@ class A {
             var markup2 = "";
             await using var testLspServer = await CreateTestLspServerAsync(
                 markups: Array.Empty<string>(), mutatingLspWorkspace,
-                GetInitializationOptions(BackgroundAnalysisScope.FullSolution, useVSDiagnostics, DiagnosticMode.LspPull, sourceGeneratedMarkups: new[] { markup1, markup2 }));
+                GetInitializationOptions(BackgroundAnalysisScope.FullSolution, CompilerDiagnosticsScope.FullSolution, useVSDiagnostics, DiagnosticMode.LspPull, sourceGeneratedMarkups: new[] { markup1, markup2 }));
 
             var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 

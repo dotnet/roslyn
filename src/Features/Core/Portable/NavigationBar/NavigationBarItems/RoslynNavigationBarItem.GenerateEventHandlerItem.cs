@@ -8,17 +8,10 @@ namespace Microsoft.CodeAnalysis.NavigationBar
 {
     internal abstract partial class RoslynNavigationBarItem
     {
-        public class GenerateEventHandler : AbstractGenerateCodeItem, IEquatable<GenerateEventHandler>
+        public class GenerateEventHandler(string text, Glyph glyph, string containerName, SymbolKey eventSymbolKey, SymbolKey destinationTypeSymbolKey) : AbstractGenerateCodeItem(RoslynNavigationBarItemKind.GenerateEventHandler, text, glyph, destinationTypeSymbolKey), IEquatable<GenerateEventHandler>
         {
-            public readonly string ContainerName;
-            public readonly SymbolKey EventSymbolKey;
-
-            public GenerateEventHandler(string text, Glyph glyph, string containerName, SymbolKey eventSymbolKey, SymbolKey destinationTypeSymbolKey)
-                : base(RoslynNavigationBarItemKind.GenerateEventHandler, text, glyph, destinationTypeSymbolKey)
-            {
-                ContainerName = containerName;
-                EventSymbolKey = eventSymbolKey;
-            }
+            public readonly string ContainerName = containerName;
+            public readonly SymbolKey EventSymbolKey = eventSymbolKey;
 
             protected internal override SerializableNavigationBarItem Dehydrate()
                 => SerializableNavigationBarItem.GenerateEventHandler(Text, Glyph, ContainerName, EventSymbolKey, DestinationTypeSymbolKey);

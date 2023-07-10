@@ -7,6 +7,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Roslyn.Test.Utilities;
 using Xunit;
 using SyntaxUtilities = Microsoft.CodeAnalysis.CSharp.EditAndContinue.SyntaxUtilities;
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditAndContinue
 
             foreach (var oldNode in oldRoot.DescendantNodes().Where(n => n.FullSpan.Length > 0))
             {
-                var newNode = SyntaxUtilities.FindPartner(oldRoot, newRoot, oldNode);
+                var newNode = AbstractEditAndContinueAnalyzer.FindPartner(newRoot, oldRoot, oldNode);
                 Assert.True(SyntaxFactory.AreEquivalent(oldNode, newNode), $"Node '{oldNode}' not equivalent to '{newNode}'.");
             }
         }
@@ -102,7 +103,7 @@ class C
 }
 ").GetRoot();
 
-            SyntaxUtilities.FindLeafNodeAndPartner(leftRoot, leftPosition, rightRoot, out var leftNode, out var rightNodeOpt);
+            AbstractEditAndContinueAnalyzer.FindLeafNodeAndPartner(leftRoot, leftPosition, rightRoot, out var leftNode, out var rightNodeOpt);
             Assert.Equal("0", leftNode.ToString());
             Assert.Null(rightNodeOpt);
         }
@@ -152,7 +153,7 @@ class C
 }
 ").GetRoot();
 
-            SyntaxUtilities.FindLeafNodeAndPartner(leftRoot, leftPosition, rightRoot, out var leftNode, out var rightNodeOpt);
+            AbstractEditAndContinueAnalyzer.FindLeafNodeAndPartner(leftRoot, leftPosition, rightRoot, out var leftNode, out var rightNodeOpt);
             Assert.Equal("3", leftNode.ToString());
             Assert.Null(rightNodeOpt);
         }

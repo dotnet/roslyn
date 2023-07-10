@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -90,18 +91,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private async Task<HostSymbolStartAnalysisScope> GetSymbolAnalysisScopeAsync(
             ISymbol symbol,
             bool isGeneratedCodeSymbol,
+            SyntaxTree? filterTree,
+            TextSpan? filterSpan,
             DiagnosticAnalyzer analyzer,
             ImmutableArray<SymbolStartAnalyzerAction> symbolStartActions,
             AnalyzerExecutor analyzerExecutor,
             CancellationToken cancellationToken)
         {
             var analyzerExecutionContext = GetAnalyzerExecutionContext(analyzer);
-            return await GetSymbolAnalysisScopeCoreAsync(symbol, isGeneratedCodeSymbol, symbolStartActions, analyzerExecutor, analyzerExecutionContext, cancellationToken).ConfigureAwait(false);
+            return await GetSymbolAnalysisScopeCoreAsync(symbol, isGeneratedCodeSymbol, filterTree, filterSpan, symbolStartActions, analyzerExecutor, analyzerExecutionContext, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<HostSymbolStartAnalysisScope> GetSymbolAnalysisScopeCoreAsync(
             ISymbol symbol,
             bool isGeneratedCodeSymbol,
+            SyntaxTree? filterTree,
+            TextSpan? filterSpan,
             ImmutableArray<SymbolStartAnalyzerAction> symbolStartActions,
             AnalyzerExecutor analyzerExecutor,
             AnalyzerExecutionContext analyzerExecutionContext,
@@ -109,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             try
             {
-                return await analyzerExecutionContext.GetSymbolAnalysisScopeAsync(symbol, isGeneratedCodeSymbol, symbolStartActions, analyzerExecutor, cancellationToken).ConfigureAwait(false);
+                return await analyzerExecutionContext.GetSymbolAnalysisScopeAsync(symbol, isGeneratedCodeSymbol, filterTree, filterSpan, symbolStartActions, analyzerExecutor, cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -118,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 analyzerExecutionContext.ClearSymbolScopeTask(symbol);
 
                 cancellationToken.ThrowIfCancellationRequested();
-                return await GetSymbolAnalysisScopeCoreAsync(symbol, isGeneratedCodeSymbol, symbolStartActions, analyzerExecutor, analyzerExecutionContext, cancellationToken).ConfigureAwait(false);
+                return await GetSymbolAnalysisScopeCoreAsync(symbol, isGeneratedCodeSymbol, filterTree, filterSpan, symbolStartActions, analyzerExecutor, analyzerExecutionContext, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -180,6 +185,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public async ValueTask<AnalyzerActions> GetPerSymbolAnalyzerActionsAsync(
             ISymbol symbol,
             bool isGeneratedCodeSymbol,
+            SyntaxTree? filterTree,
+            TextSpan? filterSpan,
             DiagnosticAnalyzer analyzer,
             AnalyzerExecutor analyzerExecutor,
             CancellationToken cancellationToken)
@@ -190,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var filteredSymbolStartActions = getFilteredActionsByKind(analyzerActions.SymbolStartActions);
                 if (filteredSymbolStartActions.Length > 0)
                 {
-                    var symbolScope = await GetSymbolAnalysisScopeAsync(symbol, isGeneratedCodeSymbol, analyzer, filteredSymbolStartActions, analyzerExecutor, cancellationToken).ConfigureAwait(false);
+                    var symbolScope = await GetSymbolAnalysisScopeAsync(symbol, isGeneratedCodeSymbol, filterTree, filterSpan, analyzer, filteredSymbolStartActions, analyzerExecutor, cancellationToken).ConfigureAwait(false);
                     return symbolScope.GetAnalyzerActions(analyzer);
                 }
             }

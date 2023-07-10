@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     {
         public DocumentPullDiagnosticHandler(
             IDiagnosticAnalyzerService analyzerService,
-            EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource,
+            IDiagnosticsRefresher diagnosticRefresher,
             IGlobalOptionService globalOptions)
-            : base(analyzerService, editAndContinueDiagnosticUpdateSource, globalOptions)
+            : base(analyzerService, diagnosticRefresher, globalOptions)
         {
         }
 

@@ -6,7 +6,6 @@ Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Reflection
 Imports System.Runtime.InteropServices
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -4894,5 +4893,223 @@ BC30045: Attribute constructor has a parameter of type 'Integer?', which is not 
  ~~
 ]]></expected>)
         End Sub
+
+        Private Shared ReadOnly experimentalAttributeCSharpSrc As String = "
+#nullable enable
+
+namespace System.Diagnostics.CodeAnalysis
+{
+    [AttributeUsage(AttributeTargets.All, Inherited = false)]
+    public sealed class ExperimentalAttribute : Attribute
+    {
+        public ExperimentalAttribute(string diagnosticId) { }
+
+        public string? UrlFormat { get; set; }
+    }
+}
+"
+
+        <Fact>
+        Public Sub ExperimentalWithDiagnosticsId()
+            Dim attrComp = CreateCSharpCompilation(experimentalAttributeCSharpSrc)
+
+            Dim src = <compilation>
+                          <file name="a.vb">
+                              <![CDATA[
+<System.Diagnostics.CodeAnalysis.Experimental("DiagID1")>
+Class C
+End Class
+
+Class D
+    Sub M(c As C)
+    End Sub
+End Class
+]]>
+                          </file>
+                      </compilation>
+
+            Dim comp = CreateCompilation(src, references:={attrComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+    Sub M(c As C)
+               ~
+]]></expected>)
+
+            Dim diag = comp.GetDiagnostics().Single()
+            Assert.Equal("DiagID1", diag.Id)
+            Assert.Equal(ERRID.WRN_Experimental, diag.Code)
+            Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(BC42380)", diag.Descriptor.HelpLinkUri)
+        End Sub
+
+        <Fact>
+        Public Sub ExperimentalWithDiagnosticsId_FullyQualified()
+            Dim attrComp = CreateCSharpCompilation(experimentalAttributeCSharpSrc)
+
+            Dim src = <compilation>
+                          <file name="a.vb">
+                              <![CDATA[
+Namespace N
+    <System.Diagnostics.CodeAnalysis.Experimental("DiagID1")>
+    Class C
+    End Class
+End Namespace
+
+Class D
+    Sub M(c As N.C)
+    End Sub
+End Class
+]]>
+                          </file>
+                      </compilation>
+
+            Dim comp = CreateCompilation(src, references:={attrComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+DiagID1: 'N.C' is for evaluation purposes only and is subject to change or removal in future updates.
+    Sub M(c As N.C)
+               ~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub ExperimentalWithDiagnosticsId_WithObsolete()
+            Dim attrComp = CreateCSharpCompilation(experimentalAttributeCSharpSrc)
+
+            Dim src = <compilation>
+                          <file name="a.vb">
+                              <![CDATA[
+<System.Obsolete("error", True)>
+<System.Diagnostics.CodeAnalysis.Experimental("DiagID1")>
+Class C
+End Class
+
+Class D
+    Sub M(c As C)
+    End Sub
+End Class
+]]>
+                          </file>
+                      </compilation>
+
+            Dim comp = CreateCompilation(src, references:={attrComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+    Sub M(c As C)
+               ~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub ExperimentalWithDiagnosticsId_WithObsolete_Metadata()
+            Dim attrReference = CreateCSharpCompilation(experimentalAttributeCSharpSrc).EmitToImageReference()
+
+            Dim libSrc = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+<System.Obsolete("error", True)>
+<System.Diagnostics.CodeAnalysis.Experimental("DiagID1")>
+Public Class C
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim libComp = CreateCompilation(libSrc, references:={attrReference})
+
+            Dim src = "
+Class D
+    Sub M(c As C)
+    End Sub
+End Class
+"
+
+            Dim comp = CreateCompilation(src, references:={attrReference, libComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30668: 'C' is obsolete: 'error'.
+    Sub M(c As C)
+               ~
+]]></expected>)
+
+        End Sub
+
+        <Fact>
+        Public Sub ExperimentalWithDiagnosticsIdAndUrlFormat()
+            Dim attrComp = CreateCSharpCompilation(experimentalAttributeCSharpSrc)
+
+            Dim src = <compilation>
+                          <file name="a.vb">
+                              <![CDATA[
+<System.Diagnostics.CodeAnalysis.Experimental("DiagID1", UrlFormat:="https://example.org/{0}")>
+Class C
+End Class
+
+Class D
+    Sub M(c As C)
+    End Sub
+End Class
+]]>
+                          </file>
+                      </compilation>
+
+            Dim comp = CreateCompilation(src, references:={attrComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+    Sub M(c As C)
+               ~
+]]></expected>)
+
+            Dim diag = Comp.GetDiagnostics().Single()
+            Assert.Equal("DiagID1", diag.Id)
+            Assert.Equal(ERRID.WRN_Experimental, diag.Code)
+            Assert.Equal("https://example.org/DiagID1", diag.Descriptor.HelpLinkUri)
+        End Sub
+
+        <Fact>
+        Public Sub ExperimentalWithDiagnosticsIdAndUrlFormat_InMetadata()
+            Dim attrReference = CreateCSharpCompilation(experimentalAttributeCSharpSrc).EmitToImageReference()
+
+            Dim libSrc = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+<System.Diagnostics.CodeAnalysis.Experimental("DiagID1", UrlFormat:="https://example.org/{0}")>
+Public Class C
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim libComp = CreateCompilation(libSrc, references:={attrReference})
+
+            Dim src = "
+Class D
+    Sub M(c As C)
+    End Sub
+End Class
+"
+
+            Dim comp = CreateCompilation(src, references:={attrReference, libComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+    Sub M(c As C)
+               ~
+]]></expected>)
+
+            Dim diag = comp.GetDiagnostics().Single()
+            Assert.Equal("DiagID1", diag.Id)
+            Assert.Equal(ERRID.WRN_Experimental, diag.Code)
+            Assert.Equal("https://example.org/DiagID1", diag.Descriptor.HelpLinkUri)
+        End Sub
+
     End Class
 End Namespace

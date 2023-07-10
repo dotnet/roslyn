@@ -51,6 +51,11 @@
     <PublishWindowsPdb>false</PublishWindowsPdb>
     <EnforceExtendedAnalyzerRules>false</EnforceExtendedAnalyzerRules>
     <EnforceExtendedAnalyzerRules Condition="'$(IsAnalyzer)' == 'true'">true</EnforceExtendedAnalyzerRules>
+
+    <!-- NPM packaging settings -->
+    <NpmPackageOutputPath>$(ArtifactsDir)\packages\$(Configuration)\NPM\</NpmPackageOutputPath>
+    <!-- By default don't attempt to do npm packaging during pack since it requires NPM to be installed -->
+    <IsNpmPackable Condition="'$(IsNpmPackable)'==''">false</IsNpmPackable>
   </PropertyGroup>
 
   <!-- 
@@ -147,6 +152,7 @@
     <OmniSharpKey>0024000004800000940000000602000000240000525341310004000001000100917302efc152e6464679d4625bd9989e12d4662a9eaadf284d04992881c0e7b16e756e63ef200a02c4054d4d31e21b9aa0b0b873bcefca8cd42ec583a3db509665c9b22318ceceec581663fc07e2422bb2135539ba8a517c209ac175fff07c5af10cef636e04cae91d28f51fcde5d14c1a9bfed06e096cf977fd0d60002a3ea6</OmniSharpKey>
     <UnitTestGeneratorKey>0024000004800000940000000602000000240000525341310004000001000100e1e4cc8a3ceffcaef02f890a17745185d807f26eae1d31b1b69b84f97a1f57812a999f0f8a624147378c09db1ca669e7f3717ef3710f8ded8067c3b83f24506fae54f18f4e18e1d0df0f21862b58d35aec0917873e92ce8d61ec6b72ba2ebfc418b9ae7da8aa41e0602d5ccc1cf63af0b6cebf3f14f7ca3553233dab3a5eaeab</UnitTestGeneratorKey>
     <MicrosoftCodeAnalysisLanguageServerKey>002400000480000094000000060200000024000052534131000400000100010009f3c8fcb7cb2592cc6e6d3646d4d9a2bda9e7a243d357bc17a5a06f50ed0dae74a343cd9538fe45bbc90a3f7cbecb23558205e3b246b69f7f7730e520460d560da1c68cda9e2256e3b801629e2dc1fd588b1681aaf4f2c98abcfc50086ecbcd55f76f7dbaf018e708527d8ae3a2714b3ec9b62bd9aaf56cf55b3ffc9eee31aa</MicrosoftCodeAnalysisLanguageServerKey>
+    <MicrosoftCodeAnalysisCompilerDeveloperSDKKey>00240000048000009400000006020000002400005253413100040000010001005984d9e99e5722bb74ddbb59972bff1a2fd9e0ccb2d50e09ef85e39ec4a4e4bf2de896997de1af164be0558cdd5a50a283b9353fc4e5ccc1c87363e6e7d87af7bec8ca40281596fc8f5b5aad9904230f6f3892f8dde382cee7ba9854004d86ce93834a86b42ebdd0faf86d9fa6d935e05aed68cb4d828cea77df028739aaa9dc</MicrosoftCodeAnalysisCompilerDeveloperSDKKey>
   </PropertyGroup>
 
   <!--
