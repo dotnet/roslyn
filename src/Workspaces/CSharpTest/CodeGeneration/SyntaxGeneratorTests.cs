@@ -4514,7 +4514,7 @@ public class C : IDisposable
                     {
                     }
 
-                    public global::System.Int32 i { get; set; }
+                    public global::System.Int32 i { get; init; }
                     public global::System.Int32 I { get; }
                 }
                 """);
@@ -4552,7 +4552,7 @@ public class C : IDisposable
                     {
                     }
 
-                    public global::System.Int32 i { get; set; }
+                    public global::System.Int32 i { get; init; }
                     public global::System.Int32 I { get; }
                 }
                 """);
@@ -4564,10 +4564,10 @@ public class C : IDisposable
             var comp = Compile(
                 """public class C<T> where T : unmanaged { }""");
 
-            var symbolC = comp.GlobalNamespace.GetMembers("C").First();
+            var symbol = comp.GlobalNamespace.GetMembers("C").First();
 
             VerifySyntax<ClassDeclarationSyntax>(
-                Generator.Declaration(symbolC),
+                Generator.Declaration(symbol),
                 """
                 public class C<T> : global::System.Object where T : unmanaged
                 {
@@ -4584,15 +4584,30 @@ public class C : IDisposable
             var comp = Compile(
                 """public class C { void M<T>() where T : unmanaged { } }""");
 
-            var symbolM = comp.GlobalNamespace.GetMembers("C").First().GetMembers("M").First();
+            var symbol = comp.GlobalNamespace.GetMembers("C").First().GetMembers("M").First();
 
             VerifySyntax<MethodDeclarationSyntax>(
-                Generator.Declaration(symbolM),
+                Generator.Declaration(symbol),
                 """
                 private void M<T>()
                     where T : unmanaged
                 {
                 }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68957")]
+        public void TestGenerateInitProperty1()
+        {
+            var comp = Compile(
+                """public class C { public int X { get; init; } }""");
+
+            var symbol = comp.GlobalNamespace.GetMembers("C").First().GetMembers("X").First();
+
+            VerifySyntax<PropertyDeclarationSyntax>(
+                Generator.Declaration(symbol),
+                """
+                public global::System.Int32 X { get; init; }
                 """);
         }
 

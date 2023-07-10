@@ -397,8 +397,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override SyntaxNode GetAccessorDeclaration(Accessibility accessibility, IEnumerable<SyntaxNode>? statements)
             => AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, accessibility, statements);
 
-        public override SyntaxNode SetAccessorDeclaration(Accessibility accessibility, IEnumerable<SyntaxNode>? statements)
-            => AccessorDeclaration(SyntaxKind.SetAccessorDeclaration, accessibility, statements);
+        private protected override SyntaxNode SetAccessorDeclaration(Accessibility accessibility, bool isInitOnly, IEnumerable<SyntaxNode>? statements)
+            => AccessorDeclaration(isInitOnly ? SyntaxKind.InitAccessorDeclaration : SyntaxKind.SetAccessorDeclaration, accessibility, statements);
 
         private static SyntaxNode AccessorDeclaration(
             SyntaxKind kind, Accessibility accessibility, IEnumerable<SyntaxNode>? statements)
