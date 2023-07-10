@@ -3693,6 +3693,15 @@ public class FileModifierTests : CSharpTestBase
             // (1,5): error CS1061: 'string' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
             // "a".M(); // 1
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("string", "M").WithLocation(1, 5));
+
+        var tree = comp.SyntaxTrees[0];
+        var methodNameSyntax = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var symbolInfo = model.GetSymbolInfo(methodNameSyntax);
+        Assert.Null(symbolInfo.Symbol);
+        var aliasInfo = model.GetAliasInfo(methodNameSyntax);
+        Assert.Null(aliasInfo);
     }
 
     [Fact]
