@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
         Public Sub New()
         End Sub
 
-        Public Function GetLanguageSpecificEditorConfigOptions() As IEnumerable(Of (String, ImmutableArray(Of IOption2))) Implements IEditorConfigOptionsCollection.GetLanguageSpecificEditorConfigOptions
+        Public Function GetOptions() As IEnumerable(Of (String, ImmutableArray(Of IOption2))) Implements IEditorConfigOptionsCollection.GetOptions
             Dim builder = ArrayBuilder(Of (String, ImmutableArray(Of IOption2))).GetInstance()
             builder.Add((VBWorkspaceResources.VB_Coding_Conventions, VisualBasicCodeStyleOptions.AllOptions.As(Of IOption2)))
             Return builder.ToArrayAndFree()

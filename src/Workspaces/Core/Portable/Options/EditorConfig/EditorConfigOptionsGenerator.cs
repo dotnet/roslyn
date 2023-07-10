@@ -33,10 +33,12 @@ namespace Microsoft.CodeAnalysis.Options.EditorConfig
             var builder = ArrayBuilder<(string, ImmutableArray<IOption2>)>.GetInstance();
             builder.AddRange(GetLanguageAgnosticEditorConfigOptions());
 
-            var generators = _editorConfigGenerators.Where(b => b.Metadata.Language == language);
-            foreach (var generator in generators)
+            foreach (var generator in _editorConfigGenerators)
             {
-                builder.AddRange(generator.Value.GetLanguageSpecificEditorConfigOptions());
+                if (generator.Metadata.Language == language)
+                {
+                    builder.AddRange(generator.Value.GetOptions());
+                }
             }
 
             return builder.ToImmutableAndFree();

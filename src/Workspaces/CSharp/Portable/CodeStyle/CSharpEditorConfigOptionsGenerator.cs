@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
         {
         }
 
-        public IEnumerable<(string feature, ImmutableArray<IOption2> options)> GetLanguageSpecificEditorConfigOptions()
+        public IEnumerable<(string feature, ImmutableArray<IOption2> options)> GetOptions()
         {
             var builder = ArrayBuilder<(string, ImmutableArray<IOption2>)>.GetInstance();
             builder.Add((CSharpWorkspaceResources.CSharp_Coding_Conventions, CSharpCodeStyleOptions.AllOptions));
