@@ -100,7 +100,7 @@
       <_CompilerVersionTargetsFileContent>
 <![CDATA[<Project>
   <PropertyGroup>
-    <CompilerApiVersion>roslyn$(CompilerApiVersion)</CompilerApiVersion>
+    <CompilerApiVersion>roslyn$(_CompilerApiVersion)</CompilerApiVersion>
   </PropertyGroup>
 </Project>]]>
       </_CompilerVersionTargetsFileContent>
