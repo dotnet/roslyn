@@ -55,14 +55,14 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal static string GetDotNetPathOrDefault()
         {
-            if (Environment.GetEnvironmentVariable("DOTNET_ROOT") is { } rootStr)
-            {
-                return rootStr;
-            }
-
             var (fileName, sep) = PlatformInformation.IsWindows
                 ? ("dotnet.exe", ';')
                 : ("dotnet", ':');
+            if (Environment.GetEnvironmentVariable("DOTNET_ROOT") is { } rootStr)
+            {
+                return Path.Combine(rootStr, fileName);
+            }
+
             var path = Environment.GetEnvironmentVariable("PATH") ?? "";
             foreach (var item in path.Split(sep, StringSplitOptions.RemoveEmptyEntries))
             {
