@@ -847,18 +847,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal bool IsUnsafe => HasFlag(DeclarationModifiers.Unsafe);
 
-        internal SyntaxTree AssociatedSyntaxTree => declaration.Declarations[0].Location.SourceTree;
+        private SyntaxTree? AssociatedSyntaxTree => IsFileLocal ? declaration.Declarations[0].Location.SourceTree : null;
 
         internal sealed override FileIdentifier? AssociatedFileIdentifier
         {
             get
             {
-                if (!IsFileLocal)
+                if (AssociatedSyntaxTree is not SyntaxTree syntaxTree)
                 {
                     return null;
                 }
 
-                return FileIdentifier.Create(AssociatedSyntaxTree);
+                return FileIdentifier.Create(syntaxTree);
             }
         }
 
@@ -1309,6 +1309,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var conflictDict = new Dictionary<(string name, int arity, SyntaxTree? syntaxTree), SourceNamedTypeSymbol>();
             try
             {
+                // Declarations which can be merged into a single type symbol have already been merged at this phase.
+                // Merging behaves the same in either presence or absence of 'partial' modifiers.
+                // However, type declarations which can never be partial won't merge, e.g. 'enum',
+                // and type declarations with different kinds, e.g. 'class' and 'struct' will never merge.
+                // Now we want to figure out if declarations which didn't merge have name conflicts.
                 foreach (var childDeclaration in declaration.Children)
                 {
                     var t = new SourceNamedTypeSymbol(this, childDeclaration, diagnostics);

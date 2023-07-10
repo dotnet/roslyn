@@ -448,6 +448,69 @@ public class FileModifierTests : CSharpTestBase
         }
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67258")]
+    public void NonFileLocalClass_Duplicate()
+    {
+        var source = @"
+public class D { }
+
+public partial class C
+{
+    public class D { }
+}
+";
+        var comp = CreateCompilation(new[] { source, source });
+        comp.VerifyEmitDiagnostics(
+            // 1.cs(2,14): error CS0101: The namespace '<global namespace>' already contains a definition for 'D'
+            // public class D { }
+            Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "D").WithArguments("D", "<global namespace>").WithLocation(2, 14),
+            // 1.cs(6,18): error CS0102: The type 'C' already contains a definition for 'D'
+            //     public class D { }
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "D").WithArguments("C", "D").WithLocation(6, 18));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67258")]
+    public void NonFileLocalEnum_Duplicate()
+    {
+        var source = @"
+public enum E { }
+
+public partial class C
+{
+    public enum E { }
+}
+";
+        var comp = CreateCompilation(new[] { source, source });
+        comp.VerifyEmitDiagnostics(
+            // 1.cs(2,13): error CS0101: The namespace '<global namespace>' already contains a definition for 'E'
+            // public enum E { }
+            Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "E").WithArguments("E", "<global namespace>").WithLocation(2, 13),
+            // 1.cs(6,17): error CS0102: The type 'C' already contains a definition for 'E'
+            //     public enum E { }
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "E").WithArguments("C", "E").WithLocation(6, 17));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67258")]
+    public void NonFileLocalDelegate_Duplicate()
+    {
+        var source = @"
+public delegate void D();
+
+public partial class C
+{
+    public delegate void D();
+}
+";
+        var comp = CreateCompilation(new[] { source, source });
+        comp.VerifyEmitDiagnostics(
+            // 1.cs(2,22): error CS0101: The namespace '<global namespace>' already contains a definition for 'D'
+            // public delegate void D();
+            Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "D").WithArguments("D", "<global namespace>").WithLocation(2, 22),
+            // 1.cs(6,26): error CS0102: The type 'C' already contains a definition for 'D'
+            //     public delegate void D();
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "D").WithArguments("C", "D").WithLocation(6, 26));
+    }
+
     [Fact]
     public void OtherFileUse()
     {
