@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
                 snapshotSpan,
                 EditorFeaturesResources.Organizing_document,
                 cancelOnEdit: true,
-                cancelOnFocusLost: true);
+                cancelOnFocusLost: false);
 
             var cancellationToken = backgroundWorkContext.UserCancellationToken;
 
