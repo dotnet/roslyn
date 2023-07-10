@@ -4558,6 +4558,26 @@ public class C : IDisposable
                 """);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67335")]
+        public void TestGenerateUnmanagedConstraint1()
+        {
+            var comp = Compile(
+                """public class C<T> where T : unmanaged { }""");
+
+            var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
+
+            VerifySyntax<ClassDeclarationSyntax>(
+                Generator.Declaration(symbolC),
+                """
+                public class C<T> : global::System.Object where T : unmanaged
+                {
+                    public C()
+                    {
+                    }
+                }
+                """);
+        }
+
         #endregion
 
         #region DeclarationModifiers

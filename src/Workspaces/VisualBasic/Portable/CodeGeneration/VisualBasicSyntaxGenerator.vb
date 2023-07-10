@@ -2869,7 +2869,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 SyntaxFactory.IdentifierName(method.Name))
         End Function
 
-        Public Overrides Function WithTypeConstraint(declaration As SyntaxNode, typeParameterName As String, kinds As SpecialTypeConstraintKind, Optional types As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+        Private Protected Overrides Function WithTypeConstraint(
+                declaration As SyntaxNode,
+                typeParameterName As String,
+                kinds As SpecialTypeConstraintKind,
+                isUnmanagedType As Boolean,
+                types As IEnumerable(Of SyntaxNode)) As SyntaxNode
             Dim constraints = SyntaxFactory.SeparatedList(Of ConstraintSyntax)
 
             If types IsNot Nothing Then

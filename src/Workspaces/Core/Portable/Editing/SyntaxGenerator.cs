@@ -883,6 +883,7 @@ namespace Microsoft.CodeAnalysis.Editing
                             kinds: (tp.HasConstructorConstraint ? SpecialTypeConstraintKind.Constructor : SpecialTypeConstraintKind.None)
                                    | (tp.HasReferenceTypeConstraint ? SpecialTypeConstraintKind.ReferenceType : SpecialTypeConstraintKind.None)
                                    | (tp.HasValueTypeConstraint ? SpecialTypeConstraintKind.ValueType : SpecialTypeConstraintKind.None),
+                            isUnamangedType: tp.HasUnmanagedTypeConstraint,
                             types: tp.ConstraintTypes.Select(TypeExpression));
                     }
                 }
@@ -914,7 +915,13 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Adds a type constraint to a type parameter of a declaration.
         /// </summary>
-        public abstract SyntaxNode WithTypeConstraint(SyntaxNode declaration, string typeParameterName, SpecialTypeConstraintKind kinds, IEnumerable<SyntaxNode>? types = null);
+#pragma warning disable RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
+        public SyntaxNode WithTypeConstraint(SyntaxNode declaration, string typeParameterName, SpecialTypeConstraintKind kinds, IEnumerable<SyntaxNode>? types = null)
+            => WithTypeConstraint(declaration, typeParameterName, kinds, isUnamangedType: false, types);
+#pragma warning restore RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
+
+        private protected abstract SyntaxNode WithTypeConstraint(
+            SyntaxNode declaration, string typeParameterName, SpecialTypeConstraintKind kinds, bool isUnamangedType, IEnumerable<SyntaxNode>? types);
 
         private protected abstract SyntaxNode WithDefaultConstraint(SyntaxNode declaration, string typeParameterName);
 
