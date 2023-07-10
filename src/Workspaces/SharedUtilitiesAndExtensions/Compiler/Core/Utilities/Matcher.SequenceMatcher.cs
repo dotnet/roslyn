@@ -8,17 +8,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
     internal partial class Matcher<T>
     {
-        private class SequenceMatcher : Matcher<T>
+        private class SequenceMatcher(params Matcher<T>[] matchers) : Matcher<T>
         {
-            private readonly Matcher<T>[] _matchers;
-
-            public SequenceMatcher(params Matcher<T>[] matchers)
-                => _matchers = matchers;
-
             public override bool TryMatch(IList<T> sequence, ref int index)
             {
                 var currentIndex = index;
-                foreach (var matcher in _matchers)
+                foreach (var matcher in matchers)
                 {
                     if (!matcher.TryMatch(sequence, ref currentIndex))
                     {
@@ -31,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             public override string ToString()
-                => string.Format("({0})", string.Join(",", (object[])_matchers));
+                => string.Format("({0})", string.Join(",", (object[])matchers));
         }
     }
 }

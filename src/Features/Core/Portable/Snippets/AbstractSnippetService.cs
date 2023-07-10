@@ -18,17 +18,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Snippets
 {
-    internal abstract class AbstractSnippetService : ISnippetService
+    internal abstract class AbstractSnippetService(IEnumerable<Lazy<ISnippetProvider, LanguageMetadata>> lazySnippetProviders) : ISnippetService
     {
-        private readonly ImmutableArray<Lazy<ISnippetProvider, LanguageMetadata>> _lazySnippetProviders;
+        private readonly ImmutableArray<Lazy<ISnippetProvider, LanguageMetadata>> _lazySnippetProviders = lazySnippetProviders.ToImmutableArray();
         private readonly Dictionary<string, ISnippetProvider> _identifierToProviderMap = new();
         private readonly object _snippetProvidersLock = new();
         private ImmutableArray<ISnippetProvider> _snippetProviders;
-
-        public AbstractSnippetService(IEnumerable<Lazy<ISnippetProvider, LanguageMetadata>> lazySnippetProviders)
-        {
-            _lazySnippetProviders = lazySnippetProviders.ToImmutableArray();
-        }
 
         /// <summary>
         /// This should never be called prior to GetSnippetsAsync because it gets populated

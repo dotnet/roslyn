@@ -1336,7 +1336,7 @@ symIsHidden:;
 
         private bool IsInScopeOfAssociatedSyntaxTree(Symbol symbol)
         {
-            while (symbol is not null and not NamedTypeSymbol { AssociatedFileIdentifier: not null })
+            while (symbol is not null and not NamedTypeSymbol { IsFileLocal: true })
             {
                 symbol = symbol.ContainingType;
             }

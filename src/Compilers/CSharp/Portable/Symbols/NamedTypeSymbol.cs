@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Returns the type arguments that have been substituted for the type parameters. 
-        /// If nothing has been substituted for a give type parameters,
+        /// If nothing has been substituted for a given type parameter,
         /// then the type parameter itself is consider the type argument.
         /// </summary>
         internal abstract ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics { get; }
@@ -495,6 +495,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal abstract bool IsFileLocal { get; }
+
         /// <summary>
         /// If this type is a file-local type, returns an identifier for the file this type was declared in. Otherwise, returns null.
         /// </summary>
@@ -678,20 +680,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract override ImmutableArray<NamedTypeSymbol> GetTypeMembers();
 
         /// <summary>
-        /// Get all the members of this symbol that are types that have a particular name, of any arity.
-        /// </summary>
-        /// <returns>An ImmutableArray containing all the types that are members of this symbol with the given name.
-        /// If this symbol has no type members with this name,
-        /// returns an empty ImmutableArray. Never returns null.</returns>
-        public abstract override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name);
-
-        /// <summary>
         /// Get all the members of this symbol that are types that have a particular name and arity
         /// </summary>
         /// <returns>An ImmutableArray containing all the types that are members of this symbol with the given name and arity.
         /// If this symbol has no type members with this name and arity,
         /// returns an empty ImmutableArray. Never returns null.</returns>
-        public abstract override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity);
+        public abstract override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity);
 
         /// <summary>
         /// Get all instance field and event members.

@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private SymbolCompletionState _state;
         private ImmutableArray<Location> _locations;
-        private Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> _nameToMembersMap;
-        private Dictionary<string, ImmutableArray<NamedTypeSymbol>> _nameToTypeMembersMap;
+        private Dictionary<ReadOnlyMemory<char>, ImmutableArray<NamespaceOrTypeSymbol>> _nameToMembersMap;
+        private Dictionary<ReadOnlyMemory<char>, ImmutableArray<NamedTypeSymbol>> _nameToTypeMembersMap;
         private ImmutableArray<Symbol> _lazyAllMembers;
         private ImmutableArray<NamedTypeSymbol> _lazyTypeMembersUnordered;
 
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<Symbol> GetMembers(string name)
+        public override ImmutableArray<Symbol> GetMembers(ReadOnlyMemory<char> name)
         {
             ImmutableArray<NamespaceOrTypeSymbol> members;
             return this.GetNameToMembersMap().TryGetValue(name, out members)
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.GetNameToTypeMembersMap().Flatten(LexicalOrderSymbolComparer.Instance);
         }
 
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name)
         {
             ImmutableArray<NamedTypeSymbol> members;
             return this.GetNameToTypeMembersMap().TryGetValue(name, out members)
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 : ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity)
         {
             return GetTypeMembers(name).WhereAsArray((s, arity) => s.Arity == arity, arity);
         }
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> GetNameToMembersMap()
+        private Dictionary<ReadOnlyMemory<char>, ImmutableArray<NamespaceOrTypeSymbol>> GetNameToMembersMap()
         {
             if (_nameToMembersMap == null)
             {
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _nameToMembersMap;
         }
 
-        private Dictionary<string, ImmutableArray<NamedTypeSymbol>> GetNameToTypeMembersMap()
+        private Dictionary<ReadOnlyMemory<char>, ImmutableArray<NamedTypeSymbol>> GetNameToTypeMembersMap()
         {
             if (_nameToTypeMembersMap == null)
             {
@@ -251,14 +251,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // NOTE: type of the array, see comments in MakeNameToMembersMap() for details
                 Interlocked.CompareExchange(
                     ref _nameToTypeMembersMap,
-                    ImmutableArrayExtensions.GetTypesFromMemberMap<NamespaceOrTypeSymbol, NamedTypeSymbol>(GetNameToMembersMap(), StringOrdinalComparer.Instance),
+                    ImmutableArrayExtensions.GetTypesFromMemberMap<ReadOnlyMemory<char>, NamespaceOrTypeSymbol, NamedTypeSymbol>(
+                        GetNameToMembersMap(), ReadOnlyMemoryOfCharComparer.Instance),
                     comparand: null);
             }
 
             return _nameToTypeMembersMap;
         }
 
-        private Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> MakeNameToMembersMap(BindingDiagnosticBag diagnostics)
+        private Dictionary<ReadOnlyMemory<char>, ImmutableArray<NamespaceOrTypeSymbol>> MakeNameToMembersMap(BindingDiagnosticBag diagnostics)
         {
             // NOTE: Even though the resulting map stores ImmutableArray<NamespaceOrTypeSymbol> as
             // NOTE: values if the name is mapped into an array of named types, which is frequently
@@ -269,15 +270,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // NOTE: a name maps into values collection containing types only instead of allocating another
             // NOTE: array of NamedTypeSymbol[] we downcast the array to ImmutableArray<NamedTypeSymbol>
 
-            var builder = PooledDictionary<string, object>.GetInstance();
+            var builder = s_nameToObjectPool.Allocate();
             foreach (var declaration in _mergedDeclaration.Children)
             {
                 NamespaceOrTypeSymbol symbol = BuildSymbol(declaration, diagnostics);
-                ImmutableArrayExtensions.AddToMultiValueDictionaryBuilder(builder, symbol.Name, symbol);
+                ImmutableArrayExtensions.AddToMultiValueDictionaryBuilder(builder, symbol.Name.AsMemory(), symbol);
             }
 
-            var result = new Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>>(builder.Count);
-            ImmutableArrayExtensions.CreateNameToMembersMap<NamespaceOrTypeSymbol, NamedTypeSymbol, NamespaceSymbol>(builder, result);
+            var result = new Dictionary<ReadOnlyMemory<char>, ImmutableArray<NamespaceOrTypeSymbol>>(builder.Count, ReadOnlyMemoryOfCharComparer.Instance);
+            ImmutableArrayExtensions.CreateNameToMembersMap<ReadOnlyMemory<char>, NamespaceOrTypeSymbol, NamedTypeSymbol, NamespaceSymbol>(builder, result);
             builder.Free();
 
             CheckMembers(this, result, diagnostics);
@@ -285,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        private static void CheckMembers(NamespaceSymbol @namespace, Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> result, BindingDiagnosticBag diagnostics)
+        private static void CheckMembers(NamespaceSymbol @namespace, Dictionary<ReadOnlyMemory<char>, ImmutableArray<NamespaceOrTypeSymbol>> result, BindingDiagnosticBag diagnostics)
         {
             var memberOfArity = new Symbol[10];
             MergedNamespaceSymbol mergedAssemblyNamespace = null;
@@ -300,7 +301,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Array.Clear(memberOfArity, 0, memberOfArity.Length);
                 foreach (var symbol in result[name])
                 {
-                    var nts = symbol as NamedTypeSymbol;
+                    var nts = symbol as SourceMemberContainerTypeSymbol;
+                    // It should be impossible to have a type member of a source namespace symbol which is not a SourceMemberContainerTypeSymbol
+                    Debug.Assert((object)nts != null || symbol is not TypeSymbol);
+
                     var arity = ((object)nts != null) ? nts.Arity : 0;
                     if (arity >= memberOfArity.Length)
                     {
@@ -335,19 +339,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if ((object)other != null)
                     {
+                        // To decide whether type declarations are duplicates, we need to access members which are only meaningful on source original definition symbols.
+                        Debug.Assert((object)nts?.OriginalDefinition == nts && (object)other.OriginalDefinition == other);
+
                         switch (nts, other)
                         {
-                            case (SourceNamedTypeSymbol left, SourceNamedTypeSymbol right) when isFileLocalTypeInSeparateFileFrom(left, right) || isFileLocalTypeInSeparateFileFrom(right, left):
+                            case ({ } left, SourceMemberContainerTypeSymbol right) when isFileLocalTypeInSeparateFileFrom(left, right) || isFileLocalTypeInSeparateFileFrom(right, left):
                                 // no error
                                 break;
-                            case (SourceNamedTypeSymbol { IsFileLocal: true }, _) or (_, SourceNamedTypeSymbol { IsFileLocal: true }):
-                                diagnostics.Add(ErrorCode.ERR_FileLocalDuplicateNameInNS, symbol.GetFirstLocationOrNone(), name, @namespace);
+                            case ({ IsFileLocal: true }, _) or (_, SourceMemberContainerTypeSymbol { IsFileLocal: true }):
+                                diagnostics.Add(ErrorCode.ERR_FileLocalDuplicateNameInNS, symbol.GetFirstLocationOrNone(), symbol.Name, @namespace);
                                 break;
-                            case (SourceNamedTypeSymbol { IsPartial: true }, SourceNamedTypeSymbol { IsPartial: true }):
+                            case ({ IsPartial: true }, SourceMemberContainerTypeSymbol { IsPartial: true }):
                                 diagnostics.Add(ErrorCode.ERR_PartialTypeKindConflict, symbol.GetFirstLocationOrNone(), symbol);
                                 break;
                             default:
-                                diagnostics.Add(ErrorCode.ERR_DuplicateNameInNS, symbol.GetFirstLocationOrNone(), name, @namespace);
+                                diagnostics.Add(ErrorCode.ERR_DuplicateNameInNS, symbol.GetFirstLocationOrNone(), symbol.Name, @namespace);
                                 break;
                         }
                     }
@@ -366,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            static bool isFileLocalTypeInSeparateFileFrom(SourceNamedTypeSymbol possibleFileLocalType, SourceNamedTypeSymbol otherSymbol)
+            static bool isFileLocalTypeInSeparateFileFrom(SourceMemberContainerTypeSymbol possibleFileLocalType, SourceMemberContainerTypeSymbol otherSymbol)
             {
                 if (!possibleFileLocalType.IsFileLocal)
                 {

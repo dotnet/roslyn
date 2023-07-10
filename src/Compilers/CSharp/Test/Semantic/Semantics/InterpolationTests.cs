@@ -15853,6 +15853,130 @@ catch (NullReferenceException)
     );
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/runtime/issues/78991")]
+        public void InterpolatedStringsAddedUnderObjectAddition_AdditionsWithMoreParts_01()
+        {
+            var code = """
+                using System;
+                _ = $"1{Environment.NewLine}" +
+                    $"2{Environment.NewLine}";
+                """;
+
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false) });
+            CompileAndVerify(comp).VerifyIL("<top-level-statements-entry-point>",
+                """
+                {
+                  // Code size       27 (0x1b)
+                  .maxstack  4
+                  IL_0000:  ldstr      "1"
+                  IL_0005:  call       "string System.Environment.NewLine.get"
+                  IL_000a:  ldstr      "2"
+                  IL_000f:  call       "string System.Environment.NewLine.get"
+                  IL_0014:  call       "string string.Concat(string, string, string, string)"
+                  IL_0019:  pop
+                  IL_001a:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/runtime/issues/78991")]
+        public void InterpolatedStringsAddedUnderObjectAddition_AdditionsWithMoreParts_02()
+        {
+            var code = """
+                using System;
+                _ = $"1{Environment.NewLine}" +
+                    $"2{Environment.NewLine}" +
+                    $"3";
+                """;
+
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false) });
+            CompileAndVerify(comp).VerifyIL("<top-level-statements-entry-point>",
+                """
+                {
+                  // Code size       78 (0x4e)
+                  .maxstack  3
+                  .locals init (System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_0)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  ldc.i4.3
+                  IL_0003:  ldc.i4.2
+                  IL_0004:  call       "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+                  IL_0009:  ldloca.s   V_0
+                  IL_000b:  ldstr      "1"
+                  IL_0010:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+                  IL_0015:  ldloca.s   V_0
+                  IL_0017:  call       "string System.Environment.NewLine.get"
+                  IL_001c:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(string)"
+                  IL_0021:  ldloca.s   V_0
+                  IL_0023:  ldstr      "2"
+                  IL_0028:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+                  IL_002d:  ldloca.s   V_0
+                  IL_002f:  call       "string System.Environment.NewLine.get"
+                  IL_0034:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(string)"
+                  IL_0039:  ldloca.s   V_0
+                  IL_003b:  ldstr      "3"
+                  IL_0040:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+                  IL_0045:  ldloca.s   V_0
+                  IL_0047:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+                  IL_004c:  pop
+                  IL_004d:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/runtime/issues/78991")]
+        public void InterpolatedStringsAddedUnderObjectAddition_AdditionsWithMoreParts_03()
+        {
+            var code = """
+                using System;
+                _ = $"1{Environment.NewLine}" +
+                    $"2{Environment.NewLine}" +
+                    $"3{Environment.NewLine}" +
+                    $"4{Environment.NewLine}";
+                """;
+
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false) });
+            CompileAndVerify(comp).VerifyIL("<top-level-statements-entry-point>",
+                """
+                {
+                  // Code size      114 (0x72)
+                  .maxstack  3
+                  .locals init (System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_0)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  ldc.i4.4
+                  IL_0003:  ldc.i4.4
+                  IL_0004:  call       "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+                  IL_0009:  ldloca.s   V_0
+                  IL_000b:  ldstr      "1"
+                  IL_0010:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+                  IL_0015:  ldloca.s   V_0
+                  IL_0017:  call       "string System.Environment.NewLine.get"
+                  IL_001c:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(string)"
+                  IL_0021:  ldloca.s   V_0
+                  IL_0023:  ldstr      "2"
+                  IL_0028:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+                  IL_002d:  ldloca.s   V_0
+                  IL_002f:  call       "string System.Environment.NewLine.get"
+                  IL_0034:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(string)"
+                  IL_0039:  ldloca.s   V_0
+                  IL_003b:  ldstr      "3"
+                  IL_0040:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+                  IL_0045:  ldloca.s   V_0
+                  IL_0047:  call       "string System.Environment.NewLine.get"
+                  IL_004c:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(string)"
+                  IL_0051:  ldloca.s   V_0
+                  IL_0053:  ldstr      "4"
+                  IL_0058:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+                  IL_005d:  ldloca.s   V_0
+                  IL_005f:  call       "string System.Environment.NewLine.get"
+                  IL_0064:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(string)"
+                  IL_0069:  ldloca.s   V_0
+                  IL_006b:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+                  IL_0070:  pop
+                  IL_0071:  ret
+                }
+                """);
+        }
+
         [Fact]
         public void InterpolatedStringsAddedUnderObjectAddition_DefiniteAssignment()
         {
@@ -16628,6 +16752,25 @@ IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.St
                     FormatString:
                       null
 ");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/68834")]
+        public void ParenthesizedAdditiveExpression_06()
+        {
+            var src = """
+using System.Runtime.CompilerServices;
+DefaultInterpolatedStringHandler s1 = $"a" + $"b" + ($"c" + $"-");
+System.Console.Write(s1.ToString());
+
+DefaultInterpolatedStringHandler s2 = $"a" + ($"b" + $"c") + $"-";
+System.Console.Write(s2.ToString());
+
+DefaultInterpolatedStringHandler s3 = ($"a" + $"b") + $"c" + $"-";
+System.Console.Write(s3.ToString());
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+            CompileAndVerify(comp, expectedOutput: "abc-abc-abc-").VerifyDiagnostics();
         }
 
         [Theory]

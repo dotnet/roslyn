@@ -19,7 +19,10 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime.Language
     /// Helper class to detect <see cref="System.DateTime"/> and <see cref="DateTimeOffset"/> format
     /// strings in a document efficiently.
     /// </summary>
-    internal sealed class DateAndTimeLanguageDetector : AbstractLanguageDetector<DateAndTimeOptions, DateTimeTree>
+    internal sealed class DateAndTimeLanguageDetector(
+        EmbeddedLanguageInfo info,
+        INamedTypeSymbol? dateTimeType,
+        INamedTypeSymbol? dateTimeOffsetType) : AbstractLanguageDetector<DateAndTimeOptions, DateTimeTree>(info, LanguageIdentifiers)
     {
         public static readonly ImmutableArray<string> LanguageIdentifiers = ImmutableArray.Create("Date", "Time", "DateTime", "DateTimeFormat");
 
@@ -32,18 +35,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime.Language
         /// </summary>
         private static readonly ConditionalWeakTable<Compilation, DateAndTimeLanguageDetector> s_compilationToDetector = new();
 
-        private readonly INamedTypeSymbol? _dateTimeType;
-        private readonly INamedTypeSymbol? _dateTimeOffsetType;
-
-        public DateAndTimeLanguageDetector(
-            EmbeddedLanguageInfo info,
-            INamedTypeSymbol? dateTimeType,
-            INamedTypeSymbol? dateTimeOffsetType)
-            : base(info, LanguageIdentifiers)
-        {
-            _dateTimeType = dateTimeType;
-            _dateTimeOffsetType = dateTimeOffsetType;
-        }
+        private readonly INamedTypeSymbol? _dateTimeType = dateTimeType;
+        private readonly INamedTypeSymbol? _dateTimeOffsetType = dateTimeOffsetType;
 
         protected override bool TryGetOptions(SemanticModel semanticModel, ITypeSymbol exprType, SyntaxNode expr, CancellationToken cancellationToken, out DateAndTimeOptions options)
         {

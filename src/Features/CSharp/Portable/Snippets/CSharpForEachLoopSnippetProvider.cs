@@ -10,9 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -54,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             var itemString = NameGenerator.GenerateUniqueName(
                 "item", name => semanticModel.LookupSymbols(position, name: name).IsEmpty);
 
-            return SyntaxFactory.ForEachStatement(varIdentifier, itemString, collectionIdentifier, SyntaxFactory.Block()).NormalizeWhitespace();
+            return SyntaxFactory.ForEachStatement(varIdentifier, itemString, collectionIdentifier.WithoutLeadingTrivia(), SyntaxFactory.Block()).NormalizeWhitespace();
         }
 
         /// <summary>
@@ -65,48 +63,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         {
             using var _ = ArrayBuilder<SnippetPlaceholder>.GetInstance(out var arrayBuilder);
             GetPartsOfForEachStatement(node, out var identifier, out var expression, out var _1);
-            arrayBuilder.Add(new SnippetPlaceholder(identifier.ToString(), ImmutableArray.Create(identifier.SpanStart)));
+            arrayBuilder.Add(new SnippetPlaceholder(identifier.ToString(), identifier.SpanStart));
 
             if (!ConstructedFromInlineExpression)
-                arrayBuilder.Add(new SnippetPlaceholder(expression.ToString(), ImmutableArray.Create(expression.SpanStart)));
+                arrayBuilder.Add(new SnippetPlaceholder(expression.ToString(), expression.SpanStart));
 
             return arrayBuilder.ToImmutableArray();
 
         }
 
-        private static string GetIndentation(Document document, ForEachStatementSyntax foreachStatement, SyntaxFormattingOptions syntaxFormattingOptions, CancellationToken cancellationToken)
+        protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
         {
-            var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
-            var openBraceLine = parsedDocument.Text.Lines.GetLineFromPosition(foreachStatement.Statement.SpanStart).LineNumber;
-
-            var indentationOptions = new IndentationOptions(syntaxFormattingOptions);
-            var newLine = indentationOptions.FormattingOptions.NewLine;
-
-            var indentationService = parsedDocument.LanguageServices.GetRequiredService<IIndentationService>();
-            var indentation = indentationService.GetIndentation(parsedDocument, openBraceLine + 1, indentationOptions, cancellationToken);
-
-            // Adding the offset calculated with one tab so that it is indented once past the line containing the opening brace
-            var newIndentation = new IndentationResult(indentation.BasePosition, indentation.Offset + syntaxFormattingOptions.TabSize);
-            return newIndentation.GetIndentationString(parsedDocument.Text, syntaxFormattingOptions.UseTabs, syntaxFormattingOptions.TabSize) + newLine;
-        }
-
-        protected override async Task<Document> AddIndentationToDocumentAsync(Document document, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
-        {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var snippet = root.GetAnnotatedNodes(_findSnippetAnnotation).FirstOrDefault();
-
-            if (snippet is not ForEachStatementSyntax foreachStatement)
-                return document;
-
-            var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
-            var indentationString = GetIndentation(document, foreachStatement, syntaxFormattingOptions, cancellationToken);
-
-            var blockStatement = (BlockSyntax)foreachStatement.Statement;
-            blockStatement = blockStatement.WithCloseBraceToken(blockStatement.CloseBraceToken.WithPrependedLeadingTrivia(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, indentationString)));
-            var newForEachStatement = foreachStatement.ReplaceNode(foreachStatement.Statement, blockStatement);
-
-            var newRoot = root.ReplaceNode(foreachStatement, newForEachStatement);
-            return document.WithSyntaxRoot(newRoot);
+            return СSharpSnippetIndentationHelpers.AddBlockIndentationToDocumentAsync<ForEachStatementSyntax>(
+                document,
+                FindSnippetAnnotation,
+                static s => (BlockSyntax)s.Statement,
+                cancellationToken);
         }
 
         /// <summary>

@@ -247,6 +247,11 @@
         <target state="translated">внешний псевдоним</target>
         <note />
       </trans-unit>
+      <trans-unit id="for_loop">
+        <source>for loop</source>
+        <target state="new">for loop</target>
+        <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="init_only_property">
         <source>init-only property</source>
         <target state="translated">свойство, предназначенное только для инициализации</target>
@@ -412,6 +417,11 @@
         <target state="translated">структура записей</target>
         <note />
       </trans-unit>
+      <trans-unit id="reversed_for_loop">
+        <source>reversed for loop</source>
+        <target state="new">reversed for loop</target>
+        <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="switch_statement">
         <source>switch statement</source>
         <target state="translated">оператор switch</target>
@@ -421,6 +431,16 @@
         <source>switch statement case clause</source>
         <target state="translated">предложение case оператора switch</target>
         <note>{Locked="switch"}{Locked="case"} "switch" and "case" are a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="top_level_code">
+        <source>top-level code</source>
+        <target state="new">top-level code</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="top_level_statement">
+        <source>top-level statement</source>
+        <target state="new">top-level statement</target>
+        <note />
       </trans-unit>
       <trans-unit id="try_block">
         <source>try block</source>
@@ -566,11 +586,6 @@
         <source>ref local or expression</source>
         <target state="translated">локальная переменная ref или выражение</target>
         <note>{Locked="ref"} "ref" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="global_statement">
-        <source>global statement</source>
-        <target state="translated">инструкция global</target>
-        <note>{Locked="global"} "global" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="using_directive">
         <source>using directive</source>

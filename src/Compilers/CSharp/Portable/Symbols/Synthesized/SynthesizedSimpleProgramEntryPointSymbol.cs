@@ -26,7 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private WeakReference<ExecutableCodeBinder>? _weakIgnoreAccessibilityBodyBinder;
 
         internal SynthesizedSimpleProgramEntryPointSymbol(SourceMemberContainerTypeSymbol containingType, SingleTypeDeclaration declaration, BindingDiagnosticBag diagnostics)
-            : base(containingType, syntaxReferenceOpt: declaration.SyntaxReference, declaration.SyntaxReference.GetLocation(), isIterator: declaration.IsIterator)
+            : base(containingType, syntaxReferenceOpt: declaration.SyntaxReference, declaration.SyntaxReference.GetLocation(), isIterator: declaration.IsIterator,
+                   MakeModifiersAndFlags(containingType, declaration))
         {
             Debug.Assert(declaration.SyntaxReference.GetSyntax() is CompilationUnitSyntax);
             _declaration = declaration;
@@ -52,24 +53,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
             }
 
-            bool isNullableAnalysisEnabled = IsNullableAnalysisEnabled(compilation, CompilationUnit);
-            this.MakeFlags(
-                MethodKind.Ordinary,
-                RefKind.None,
-                DeclarationModifiers.Static | DeclarationModifiers.Private | (hasAwait ? DeclarationModifiers.Async : DeclarationModifiers.None),
-                returnsVoid: !hasAwait && !hasReturnWithExpression,
-                // Consider the synthesized entrypoint to always have a body (conceptually the top level statements).
-                hasAnyBody: true,
-                isExpressionBodied: false,
-                isExtensionMethod: false,
-                isNullableAnalysisEnabled: isNullableAnalysisEnabled,
-                isVarArg: false,
-                isMetadataVirtualIgnoringModifiers: false);
-
             _parameters = ImmutableArray.Create(SynthesizedParameterSymbol.Create(this,
                               TypeWithAnnotations.Create(
                                   ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly,
                                       TypeWithAnnotations.Create(Binder.GetSpecialType(compilation, SpecialType.System_String, NoLocation.Singleton, diagnostics)))), 0, RefKind.None, "args"));
+        }
+
+        private static (DeclarationModifiers, Flags) MakeModifiersAndFlags(SourceMemberContainerTypeSymbol containingType, SingleTypeDeclaration declaration)
+        {
+            bool hasAwait = declaration.HasAwaitExpressions;
+            bool hasReturnWithExpression = declaration.HasReturnWithExpression;
+
+            DeclarationModifiers declarationModifiers = DeclarationModifiers.Static | DeclarationModifiers.Private | (hasAwait ? DeclarationModifiers.Async : DeclarationModifiers.None);
+            CSharpCompilation compilation = containingType.DeclaringCompilation;
+            var compilationUnit = (CompilationUnitSyntax)declaration.SyntaxReference.GetSyntax();
+            bool isNullableAnalysisEnabled = IsNullableAnalysisEnabled(compilation, compilationUnit);
+            Flags flags = MakeFlags(
+                                    MethodKind.Ordinary,
+                                    RefKind.None,
+                                    declarationModifiers,
+                                    returnsVoid: !hasAwait && !hasReturnWithExpression,
+                                    returnsVoidIsSet: true,
+                                    isExpressionBodied: false,
+                                    isExtensionMethod: false,
+                                    isNullableAnalysisEnabled: isNullableAnalysisEnabled,
+                                    isVarArg: false,
+                                    isExplicitInterfaceImplementation: false);
+
+            return (declarationModifiers, flags);
         }
 
         internal static SynthesizedSimpleProgramEntryPointSymbol? GetSimpleProgramEntryPoint(CSharpCompilation compilation, CompilationUnitSyntax compilationUnit, bool fallbackToMainEntryPoint)

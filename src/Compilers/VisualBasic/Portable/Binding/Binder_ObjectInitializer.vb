@@ -260,7 +260,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                                 If isInAccessible Then
                                     ' CoClass is inaccessible
-                                    diagInfo = ErrorFactory.ErrorInfo(ERRID.ERR_InAccessibleCoClass3, coClass, type0, coClass.DeclaredAccessibility.ToDiagnosticString())
+                                    diagInfo = New BadSymbolDiagnostic(coClass, ERRID.ERR_InAccessibleCoClass3, coClass, type0, coClass.DeclaredAccessibility.ToDiagnosticString())
                                     Exit Select
                                 End If
 

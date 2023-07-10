@@ -13,23 +13,17 @@ namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue
     /// ManagedMethodId is a module/method pair which is used to uniquely identify the
     /// symbol store's understanding of a particular CLR method.
     /// </summary>
+    /// <remarks>
+    /// Creates a ManagedMethodId.
+    /// </remarks>
+    /// <param name="module">Module version ID in which the method exists.</param>
+    /// <param name="method">Method ID.</param>
     [DataContract]
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    internal readonly struct ManagedMethodId : IEquatable<ManagedMethodId>
+    internal readonly struct ManagedMethodId(
+        Guid module,
+        ManagedModuleMethodId method) : IEquatable<ManagedMethodId>
     {
-        /// <summary>
-        /// Creates a ManagedMethodId.
-        /// </summary>
-        /// <param name="module">Module version ID in which the method exists.</param>
-        /// <param name="method">Method ID.</param>
-        public ManagedMethodId(
-            Guid module,
-            ManagedModuleMethodId method)
-        {
-            Module = module;
-            Method = method;
-        }
-
         public ManagedMethodId(Guid module, int token, int version)
             : this(module, new(token, version))
         {
@@ -39,13 +33,13 @@ namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue
         /// The module version ID in which the method exists.
         /// </summary>
         [DataMember(Name = "module")]
-        public Guid Module { get; }
+        public Guid Module { get; } = module;
 
         /// <summary>
         /// The unique identifier for the method within <see cref="Module"/>.
         /// </summary>
         [DataMember(Name = "method")]
-        public ManagedModuleMethodId Method { get; }
+        public ManagedModuleMethodId Method { get; } = method;
 
         public int Token => Method.Token;
 

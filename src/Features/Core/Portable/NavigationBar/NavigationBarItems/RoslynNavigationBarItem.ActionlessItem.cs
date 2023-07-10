@@ -13,19 +13,14 @@ namespace Microsoft.CodeAnalysis.NavigationBar
         /// An item that is displayed and can be chosen but which has no action.
         /// </summary>
         // We suppress this as this type *does* override ComputeAdditionalHashCodeParts
-        public class ActionlessItem : RoslynNavigationBarItem, IEquatable<ActionlessItem>
+        public class ActionlessItem(
+            string text,
+            Glyph glyph,
+            ImmutableArray<RoslynNavigationBarItem> childItems = default,
+            int indent = 0,
+            bool bolded = false,
+            bool grayed = false) : RoslynNavigationBarItem(RoslynNavigationBarItemKind.Actionless, text, glyph, bolded, grayed, indent, childItems), IEquatable<ActionlessItem>
         {
-            public ActionlessItem(
-                string text,
-                Glyph glyph,
-                ImmutableArray<RoslynNavigationBarItem> childItems = default,
-                int indent = 0,
-                bool bolded = false,
-                bool grayed = false)
-                : base(RoslynNavigationBarItemKind.Actionless, text, glyph, bolded, grayed, indent, childItems)
-            {
-            }
-
             protected internal override SerializableNavigationBarItem Dehydrate()
                 => SerializableNavigationBarItem.ActionlessItem(Text, Glyph, SerializableNavigationBarItem.Dehydrate(ChildItems), Indent, Bolded, Grayed);
 

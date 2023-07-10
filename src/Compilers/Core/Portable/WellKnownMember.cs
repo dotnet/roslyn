@@ -123,6 +123,9 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_InteropServices_LCIDConversionAttribute__ctor,
         System_Runtime_InteropServices_UnmanagedFunctionPointerAttribute__ctor,
 
+        System_Runtime_InteropServices_MemoryMarshal__CreateSpan,
+        System_Runtime_InteropServices_MemoryMarshal__CreateReadOnlySpan,
+
         System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T__AddEventHandler,
         System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T__GetOrCreateEventRegistrationTokenTable,
         System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T__InvocationList,
@@ -154,6 +157,10 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_RuntimeHelpers__get_OffsetToStringData,
         System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T,
         System_Runtime_CompilerServices_RuntimeHelpers__EnsureSufficientExecutionStack,
+
+        System_Runtime_CompilerServices_Unsafe__Add_T,
+        System_Runtime_CompilerServices_Unsafe__As_T,
+        System_Runtime_CompilerServices_Unsafe__AsRef_T,
 
         System_Runtime_ExceptionServices_ExceptionDispatchInfo__Capture,
         System_Runtime_ExceptionServices_ExceptionDispatchInfo__Throw,
@@ -483,12 +490,14 @@ namespace Microsoft.CodeAnalysis
         System_Span_T__ctor_Array,
         System_Span_T__get_Item,
         System_Span_T__get_Length,
+        System_Span_T__Slice_Int_Int,
 
         System_ReadOnlySpan_T__ctor_Pointer,
         System_ReadOnlySpan_T__ctor_Array,
         System_ReadOnlySpan_T__ctor_Array_Start_Length,
         System_ReadOnlySpan_T__get_Item,
         System_ReadOnlySpan_T__get_Length,
+        System_ReadOnlySpan_T__Slice_Int_Int,
 
         System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
 
@@ -578,6 +587,8 @@ namespace Microsoft.CodeAnalysis
 
         System_MissingMethodException__ctor,
         System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor,
+
+        System_Collections_Generic_List_T__ToArray,
 
         Count
 

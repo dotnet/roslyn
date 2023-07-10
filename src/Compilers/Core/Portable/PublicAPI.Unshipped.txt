@@ -1,18 +1,49 @@
 *REMOVED*static Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode>.implicit operator Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode!>(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.SyntaxNode!> nodes) -> Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode!>
 *REMOVED*static Microsoft.CodeAnalysis.SyntaxList<TNode>.implicit operator Microsoft.CodeAnalysis.SyntaxList<TNode!>(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.SyntaxNode!> nodes) -> Microsoft.CodeAnalysis.SyntaxList<TNode!>
+Microsoft.CodeAnalysis.CommandLineArguments.ReportInternalsVisibleToAttributes.get -> bool
 Microsoft.CodeAnalysis.Diagnostics.AdditionalTextValueProvider<TValue>
 Microsoft.CodeAnalysis.Diagnostics.AdditionalTextValueProvider<TValue>.AdditionalTextValueProvider(System.Func<Microsoft.CodeAnalysis.AdditionalText!, TValue>! computeValue, System.Collections.Generic.IEqualityComparer<Microsoft.CodeAnalysis.AdditionalText!>? additionalTextComparer = null) -> void
 Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.TryGetValue<TValue>(Microsoft.CodeAnalysis.AdditionalText! text, Microsoft.CodeAnalysis.Diagnostics.AdditionalTextValueProvider<TValue>! valueProvider, out TValue value) -> bool
+Microsoft.CodeAnalysis.Diagnostics.CodeBlockAnalysisContext.FilterTree.get -> Microsoft.CodeAnalysis.SyntaxTree!
+Microsoft.CodeAnalysis.Diagnostics.CodeBlockStartAnalysisContext<TLanguageKindEnum>.FilterTree.get -> Microsoft.CodeAnalysis.SyntaxTree!
 Microsoft.CodeAnalysis.Diagnostics.CompilationAnalysisContext.TryGetValue<TValue>(Microsoft.CodeAnalysis.AdditionalText! text, Microsoft.CodeAnalysis.Diagnostics.AdditionalTextValueProvider<TValue>! valueProvider, out TValue value) -> bool
 Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.TryGetValue<TValue>(Microsoft.CodeAnalysis.AdditionalText! text, Microsoft.CodeAnalysis.Diagnostics.AdditionalTextValueProvider<TValue>! valueProvider, out TValue value) -> bool
+Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext.FilterSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan?
+Microsoft.CodeAnalysis.Diagnostics.CodeBlockAnalysisContext.FilterSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan?
+Microsoft.CodeAnalysis.Diagnostics.CodeBlockStartAnalysisContext<TLanguageKindEnum>.FilterSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan?
+Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalysisResultAsync(Microsoft.CodeAnalysis.AdditionalText! file, Microsoft.CodeAnalysis.Text.TextSpan? filterSpan, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer!> analyzers, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Diagnostics.AnalysisResult!>!
+Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalysisResultAsync(Microsoft.CodeAnalysis.AdditionalText! file, Microsoft.CodeAnalysis.Text.TextSpan? filterSpan, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Diagnostics.AnalysisResult!>!
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalysisResultAsync(Microsoft.CodeAnalysis.SyntaxTree! tree, Microsoft.CodeAnalysis.Text.TextSpan? filterSpan, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer!> analyzers, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Diagnostics.AnalysisResult!>!
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalysisResultAsync(Microsoft.CodeAnalysis.SyntaxTree! tree, Microsoft.CodeAnalysis.Text.TextSpan? filterSpan, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Diagnostics.AnalysisResult!>!
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(Microsoft.CodeAnalysis.SyntaxTree! tree, Microsoft.CodeAnalysis.Text.TextSpan? filterSpan, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer!> analyzers, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!>>!
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(Microsoft.CodeAnalysis.SyntaxTree! tree, Microsoft.CodeAnalysis.Text.TextSpan? filterSpan, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!>>!
+Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.FilterSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan?
+Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.FilterTree.get -> Microsoft.CodeAnalysis.SyntaxTree!
+Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.FilterSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan?
+Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.FilterTree.get -> Microsoft.CodeAnalysis.SyntaxTree!
+Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.FilterSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan?
+Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.FilterTree.get -> Microsoft.CodeAnalysis.SyntaxTree!
 Microsoft.CodeAnalysis.Diagnostics.SemanticModelAnalysisContext.FilterSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan?
+Microsoft.CodeAnalysis.Diagnostics.SemanticModelAnalysisContext.FilterTree.get -> Microsoft.CodeAnalysis.SyntaxTree!
+Microsoft.CodeAnalysis.Diagnostics.SymbolAnalysisContext.FilterSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan?
+Microsoft.CodeAnalysis.Diagnostics.SymbolAnalysisContext.FilterTree.get -> Microsoft.CodeAnalysis.SyntaxTree?
+Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.FilterSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan?
+Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.FilterTree.get -> Microsoft.CodeAnalysis.SyntaxTree?
+Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext.FilterSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan?
+Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext.FilterTree.get -> Microsoft.CodeAnalysis.SyntaxTree!
 Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeAnalysisContext.FilterSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan?
 Microsoft.CodeAnalysis.RefKind.RefReadOnlyParameter = 5 -> Microsoft.CodeAnalysis.RefKind
 static Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode>.explicit operator Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode!>(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.SyntaxNode!> nodes) -> Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode!>
 static Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode>.op_Implicit(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.SyntaxNode!> nodes) -> Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode!>
 static Microsoft.CodeAnalysis.SyntaxList<TNode>.explicit operator Microsoft.CodeAnalysis.SyntaxList<TNode!>(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.SyntaxNode!> nodes) -> Microsoft.CodeAnalysis.SyntaxList<TNode!>
 static Microsoft.CodeAnalysis.SyntaxList<TNode>.op_Implicit(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.SyntaxNode!> nodes) -> Microsoft.CodeAnalysis.SyntaxList<TNode!>
+Microsoft.CodeAnalysis.OperationKind.InlineArrayAccess = 126 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.Operations.IInlineArrayAccessOperation
+Microsoft.CodeAnalysis.Operations.IInlineArrayAccessOperation.Argument.get -> Microsoft.CodeAnalysis.IOperation!
+Microsoft.CodeAnalysis.Operations.IInlineArrayAccessOperation.Instance.get -> Microsoft.CodeAnalysis.IOperation!
+Microsoft.CodeAnalysis.RuntimeCapability.InlineArrayTypes = 7 -> Microsoft.CodeAnalysis.RuntimeCapability
+*REMOVED*Microsoft.CodeAnalysis.SpecialType.Count = 45 -> Microsoft.CodeAnalysis.SpecialType
+Microsoft.CodeAnalysis.SpecialType.Count = 46 -> Microsoft.CodeAnalysis.SpecialType
+Microsoft.CodeAnalysis.SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute = 46 -> Microsoft.CodeAnalysis.SpecialType
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitInlineArrayAccess(Microsoft.CodeAnalysis.Operations.IInlineArrayAccessOperation! operation) -> void
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitInlineArrayAccess(Microsoft.CodeAnalysis.Operations.IInlineArrayAccessOperation! operation, TArgument argument) -> TResult?

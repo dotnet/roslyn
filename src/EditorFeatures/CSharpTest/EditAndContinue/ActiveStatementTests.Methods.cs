@@ -53,7 +53,7 @@ class C
                 {
                     DocumentResults(
                         active,
-                        diagnostics: new[] { Diagnostic(RudeEditKind.Delete, "class C", DeletedSymbolDisplay(FeaturesResources.method, "Goo(int a)")) })
+                        diagnostics: new[] { Diagnostic(RudeEditKind.DeleteActiveStatement, "class C", DeletedSymbolDisplay(FeaturesResources.method, "Goo(int a)")) })
                 });
         }
 

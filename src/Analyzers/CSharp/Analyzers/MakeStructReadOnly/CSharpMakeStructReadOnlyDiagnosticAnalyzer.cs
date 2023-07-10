@@ -38,7 +38,7 @@ internal sealed class CSharpMakeStructReadOnlyDiagnosticAnalyzer : AbstractBuilt
             context.RegisterSymbolStartAction(context =>
             {
                 // First, see if this at least strongly looks like a struct that could be converted.
-                if (!IsCandidate(context, out var typeDeclaration, out var option))
+                if (!IsCandidate(context, out var location, out var additionalLocation, out var option))
                     return;
 
                 // Looks good.  However, we have to make sure that the struct has no code which actually overwrites 'this'
@@ -60,9 +60,9 @@ internal sealed class CSharpMakeStructReadOnlyDiagnosticAnalyzer : AbstractBuilt
 
                     context.ReportDiagnostic(DiagnosticHelper.Create(
                         Descriptor,
-                        typeDeclaration.Identifier.GetLocation(),
+                        location,
                         option.Notification.Severity,
-                        additionalLocations: ImmutableArray.Create(typeDeclaration.GetLocation()),
+                        additionalLocations: ImmutableArray.Create(additionalLocation),
                         properties: null));
                 });
             }, SymbolKind.NamedType);
@@ -70,13 +70,15 @@ internal sealed class CSharpMakeStructReadOnlyDiagnosticAnalyzer : AbstractBuilt
 
     private static bool IsCandidate(
         SymbolStartAnalysisContext context,
-        [NotNullWhen(true)] out TypeDeclarationSyntax? typeDeclaration,
+        [NotNullWhen(true)] out Location? primaryLocation,
+        [NotNullWhen(true)] out Location? additionalLocation,
         [NotNullWhen(true)] out CodeStyleOption2<bool>? option)
     {
         var typeSymbol = (INamedTypeSymbol)context.Symbol;
         var cancellationToken = context.CancellationToken;
 
-        typeDeclaration = null;
+        primaryLocation = null;
+        additionalLocation = null;
         option = null;
         if (typeSymbol.TypeKind is not TypeKind.Struct)
             return false;
@@ -87,7 +89,7 @@ internal sealed class CSharpMakeStructReadOnlyDiagnosticAnalyzer : AbstractBuilt
         if (typeSymbol.DeclaringSyntaxReferences.Length == 0)
             return false;
 
-        typeDeclaration = typeSymbol.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken) as TypeDeclarationSyntax;
+        var typeDeclaration = typeSymbol.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken) as TypeDeclarationSyntax;
         if (typeDeclaration is null)
             return false;
 
@@ -111,6 +113,12 @@ internal sealed class CSharpMakeStructReadOnlyDiagnosticAnalyzer : AbstractBuilt
         if (!hasField)
             return false;
 
+        // Check if the primary location for the diagnostic is part of the analysis span.
+        primaryLocation = typeDeclaration.Identifier.GetLocation();
+        if (!context.ShouldAnalyzeLocation(primaryLocation))
+            return false;
+
+        additionalLocation = typeDeclaration.GetLocation();
         return true;
     }
 }

@@ -292,6 +292,11 @@
         <target state="translated">只有 'using static' 或 'using alias' 可以是 'unsafe'。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadUsingStaticType">
+        <source>'{0}' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate, or namespace can be used.</source>
+        <target state="new">'{0}' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate, or namespace can be used.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BuilderAttributeDisallowed">
         <source>The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.</source>
         <target state="translated">沒有明確傳回型別的匿名方法上不允許 AsyncMethodBuilder 屬性。</target>
@@ -397,6 +402,16 @@
         <target state="translated">'{0}' 未實作介面成員 '{1}'。'{2}' 無法實作 '{1}'。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionLiteralNoTargetType">
+        <source>There is no target type for the collection literal.</source>
+        <target state="new">There is no target type for the collection literal.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionLiteralTargetTypeNotConstructible">
+        <source>Cannot initialize type '{0}' with a collection literal because the type is not constructible.</source>
+        <target state="new">Cannot initialize type '{0}' with a collection literal because the type is not constructible.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
         <source>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</source>
         <target state="translated">類型參數 '{1}' 有 'unmanaged' 條件約束，因此 '{1}' 不可作為 '{0}' 的條件約束</target>
@@ -492,6 +507,11 @@
         <target state="translated">'{0}' 已明確實作多次。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DuplicateInterceptor">
+        <source>The indicated call is intercepted multiple times.</source>
+        <target state="new">The indicated call is intercepted multiple times.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DuplicateInterfaceWithDifferencesInBaseList">
         <source>'{0}' is already listed in the interface list on type '{2}' as '{1}'.</source>
         <target state="translated">'{0}' 已列於類型 '{2}' 的介面清單中，名稱為 '{1}'。</target>
@@ -577,9 +597,19 @@
         <target state="translated">運算式樹狀架構不可包含靜態虛擬或抽象介面成員的存取權</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsCollectionLiteral">
+        <source>An expression tree may not contain a collection literal.</source>
+        <target state="new">An expression tree may not contain a collection literal.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
         <source>An expression tree may not contain a from-end index ('^') expression.</source>
         <target state="translated">運算式樹狀架構不可包含 from-end index ('^') 運算式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsInlineArrayOperation">
+        <source>An expression tree may not contain an inline array access or conversion</source>
+        <target state="new">An expression tree may not contain an inline array access or conversion</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsInterpolatedStringHandlerConversion">
@@ -842,9 +872,144 @@
         <target state="translated">'init' 存取子不得標記為 'readonly'。改為將 '{0}' 標記為唯讀。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InlineArrayBadIndex">
+        <source>Elements of an inline array type can be accessed only with a single argument implicitly convertible to 'int', 'System.Index', or 'System.Range'.</source>
+        <target state="new">Elements of an inline array type can be accessed only with a single argument implicitly convertible to 'int', 'System.Index', or 'System.Range'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InlineArrayConversionToReadOnlySpanNotSupported">
+        <source>Cannot convert expression to '{0}' because it may not be passed or returned by reference</source>
+        <target state="new">Cannot convert expression to '{0}' because it may not be passed or returned by reference</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InlineArrayConversionToSpanNotSupported">
+        <source>Cannot convert expression to '{0}' because it is not an assignable variable</source>
+        <target state="new">Cannot convert expression to '{0}' because it is not an assignable variable</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InlineArrayIndexOutOfRange">
+        <source>Index is outside the bounds of the inline array</source>
+        <target state="new">Index is outside the bounds of the inline array</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
         <source>Instance properties in interfaces cannot have initializers.</source>
         <target state="translated">介面中的執行個體屬性不可有初始設定式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorArityNotCompatible">
+        <source>Method '{0}' must be non-generic or have arity {1} to match '{2}'.</source>
+        <target state="new">Method '{0}' must be non-generic or have arity {1} to match '{2}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorCannotBeGeneric">
+        <source>Method '{0}' must be non-generic to match '{1}'.</source>
+        <target state="new">Method '{0}' must be non-generic to match '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorCannotInterceptNameof">
+        <source>A nameof operator cannot be intercepted.</source>
+        <target state="new">A nameof operator cannot be intercepted.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorCannotUseUnmanagedCallersOnly">
+        <source>An interceptor cannot be marked with 'UnmanagedCallersOnlyAttribute'.</source>
+        <target state="new">An interceptor cannot be marked with 'UnmanagedCallersOnlyAttribute'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorCharacterOutOfRange">
+        <source>The given line is '{0}' characters long, which is fewer than the provided character number '{1}'.</source>
+        <target state="new">The given line is '{0}' characters long, which is fewer than the provided character number '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorContainingTypeCannotBeGeneric">
+        <source>Method '{0}' cannot be used as an interceptor because its containing type has type parameters.</source>
+        <target state="new">Method '{0}' cannot be used as an interceptor because its containing type has type parameters.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorFilePathCannotBeNull">
+        <source>Interceptor cannot have a 'null' file path.</source>
+        <target state="new">Interceptor cannot have a 'null' file path.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorLineCharacterMustBePositive">
+        <source>Line and character numbers provided to InterceptsLocationAttribute must be positive.</source>
+        <target state="new">Line and character numbers provided to InterceptsLocationAttribute must be positive.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorLineOutOfRange">
+        <source>The given file has '{0}' lines, which is fewer than the provided line number '{1}'.</source>
+        <target state="new">The given file has '{0}' lines, which is fewer than the provided line number '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorMethodMustBeOrdinary">
+        <source>An interceptor method must be an ordinary member method.</source>
+        <target state="new">An interceptor method must be an ordinary member method.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorMustHaveMatchingThisParameter">
+        <source>Interceptor must have a 'this' parameter matching parameter '{0}' on '{1}'.</source>
+        <target state="new">Interceptor must have a 'this' parameter matching parameter '{0}' on '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorMustNotHaveThisParameter">
+        <source>Interceptor must not have a 'this' parameter because '{0}' does not have a 'this' parameter.</source>
+        <target state="new">Interceptor must not have a 'this' parameter because '{0}' does not have a 'this' parameter.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorMustReferToStartOfTokenPosition">
+        <source>The provided line and character number does not refer to the start of token '{0}'. Did you mean to use line '{1}' and character '{2}'?</source>
+        <target state="new">The provided line and character number does not refer to the start of token '{0}'. Did you mean to use line '{1}' and character '{2}'?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorNameNotInvoked">
+        <source>Possible method name '{0}' cannot be intercepted because it is not being invoked.</source>
+        <target state="new">Possible method name '{0}' cannot be intercepted because it is not being invoked.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorNonUniquePath">
+        <source>Cannot intercept a call in file with path '{0}' because multiple files in the compilation have this path.</source>
+        <target state="new">Cannot intercept a call in file with path '{0}' because multiple files in the compilation have this path.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorNotAccessible">
+        <source>Cannot intercept call with '{0}' because it is not accessible within '{1}'.</source>
+        <target state="new">Cannot intercept call with '{0}' because it is not accessible within '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorPathNotInCompilation">
+        <source>Cannot intercept: compilation does not contain a file with path '{0}'.</source>
+        <target state="new">Cannot intercept: compilation does not contain a file with path '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorPathNotInCompilationWithCandidate">
+        <source>Cannot intercept: compilation does not contain a file with path '{0}'. Did you mean to use path '{1}'?</source>
+        <target state="new">Cannot intercept: compilation does not contain a file with path '{0}'. Did you mean to use path '{1}'?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorPathNotInCompilationWithUnmappedCandidate">
+        <source>Cannot intercept: Path '{0}' is unmapped. Expected mapped path '{1}'.</source>
+        <target state="new">Cannot intercept: Path '{0}' is unmapped. Expected mapped path '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorPositionBadToken">
+        <source>The provided line and character number does not refer to an interceptable method name, but rather to token '{0}'.</source>
+        <target state="new">The provided line and character number does not refer to an interceptable method name, but rather to token '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorScopedMismatch">
+        <source>Cannot intercept call to '{0}' with '{1}' because of a difference in 'scoped' modifiers or '[UnscopedRef]' attributes.</source>
+        <target state="new">Cannot intercept call to '{0}' with '{1}' because of a difference in 'scoped' modifiers or '[UnscopedRef]' attributes.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorSignatureMismatch">
+        <source>Cannot intercept method '{0}' with interceptor '{1}' because the signatures do not match.</source>
+        <target state="new">Cannot intercept method '{0}' with interceptor '{1}' because the signatures do not match.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
+        <source>The 'interceptors' experimental feature is not enabled. Add '&lt;Features&gt;InterceptorsPreview&lt;/Features&gt;' to your project.</source>
+        <target state="new">The 'interceptors' experimental feature is not enabled. Add '&lt;Features&gt;InterceptorsPreview&lt;/Features&gt;' to your project.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod">
@@ -910,6 +1075,21 @@
       <trans-unit id="ERR_InvalidHashAlgorithmName">
         <source>Invalid hash algorithm name: '{0}'</source>
         <target state="translated">雜湊演算法名稱無效: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidInlineArrayFields">
+        <source>Inline array struct must declare one and only one instance field.</source>
+        <target state="new">Inline array struct must declare one and only one instance field.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidInlineArrayLayout">
+        <source>Inline array struct must not have explicit layout.</source>
+        <target state="new">Inline array struct must not have explicit layout.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidInlineArrayLength">
+        <source>Inline array length must be greater than 0.</source>
+        <target state="new">Inline array length must be greater than 0.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidInterpolatedStringHandlerArgumentName">
@@ -999,12 +1179,12 @@
       </trans-unit>
       <trans-unit id="ERR_LineSpanDirectiveEndLessThanStart">
         <source>The #line directive end position must be greater than or equal to the start position</source>
-        <target state="translated">#Line 指示詞結束位置必須大於或等於開始位置</target>
+        <target state="translated">#line 指示詞結束位置必須大於或等於開始位置</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LineSpanDirectiveInvalidValue">
         <source>The #line directive value is missing or out of range</source>
-        <target state="translated">#Line 指示詞值遺漏或超出範圍</target>
+        <target state="translated">#line 指示詞值遺漏或超出範圍</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LineSpanDirectiveRequiresSpace">
@@ -1090,6 +1270,11 @@
       <trans-unit id="ERR_MultipleRecordParameterLists">
         <source>Only a single partial type declaration may have a parameter list</source>
         <target state="translated">只有單一部分類型宣告可以有參數清單</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NamedArgumentForInlineArray">
+        <source>An inline array access may not have a named argument specifier</source>
+        <target state="new">An inline array access may not have a named argument specifier</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -1507,6 +1692,11 @@
         <target state="translated">'{0}': 在覆寫中，目標執行階段不支援 Covariant 傳回型別。傳回型別必須是 '{2}'，才符合覆寫的成員 '{1}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportInlineArrayTypes">
+        <source>Target runtime doesn't support inline array types.</source>
+        <target state="new">Target runtime doesn't support inline array types.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
         <target state="translated">目標執行階段不支援介面成員的 'protected'、'protected internal' 或 'private protected' 存取權。</target>
@@ -1677,6 +1867,11 @@
         <target state="translated">switch 主導的運算式前後必須有括弧。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SymbolDefinedInAssembly">
+        <source>'{0}' is defined in assembly '{1}'.</source>
+        <target state="new">'{0}' is defined in assembly '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_TooManyCloseBracesForRawString">
         <source>The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive closing braces as content.</source>
         <target state="translated">差補原始字串常值開頭沒有足夠的 '$' 字元數，因此無法允許這麼多連續的右大括弧做為內容。</target>
@@ -1789,7 +1984,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny">
         <source>Cannot use primary constructor parameter of type '{0}' inside an instance member</source>
-        <target state="new">Cannot use primary constructor parameter of type '{0}' inside an instance member</target>
+        <target state="translated">無法使用執行個體成員內類型 '{0}' 的主要建構函式參數</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike">
@@ -1862,6 +2057,11 @@
         <target state="translated">已檢查使用者定義的運算子</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureCollectionLiterals">
+        <source>collection literals</source>
+        <target state="new">collection literals</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
         <source>covariant returns</source>
         <target state="translated">Covariant 傳回</target>
@@ -1917,9 +2117,14 @@
         <target state="translated">推斷委派類型</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureInlineArrays">
+        <source>inline arrays</source>
+        <target state="new">inline arrays</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureInstanceMemberInNameof">
         <source>instance member in 'nameof'</source>
-        <target state="new">instance member in 'nameof'</target>
+        <target state="translated">'nameof' 中的執行個體成員</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">
@@ -2050,6 +2255,26 @@
       <trans-unit id="IDS_PointerElementAccess">
         <source>pointer element access</source>
         <target state="translated">指標元素存取</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_SK_ARRAY">
+        <source>array</source>
+        <target state="new">array</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_SK_DYNAMIC">
+        <source>dynamic</source>
+        <target state="new">dynamic</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_SK_FUNCTION_POINTER">
+        <source>function pointer</source>
+        <target state="new">function pointer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_SK_POINTER">
+        <source>pointer</source>
+        <target state="new">pointer</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">
@@ -2192,6 +2417,16 @@
         <target state="translated">CallerArgumentExpressionAttribute 將沒有效果; CallerMemberNameAttribute 會覆寫它</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_CapturedPrimaryConstructorParameterInFieldInitializer">
+        <source>Parameter '{0}' is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.</source>
+        <target state="new">Parameter '{0}' is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CapturedPrimaryConstructorParameterInFieldInitializer_Title">
+        <source>Parameter is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.</source>
+        <target state="new">Parameter is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_CapturedPrimaryConstructorParameterPassedToBase">
         <source>Parameter '{0}' is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.</source>
         <target state="translated">參數 '{0}' 會擷取至包含類型的狀態，且其值也會傳遞給基礎建構函式。值也可能由基礎類別擷取。</target>
@@ -2272,6 +2507,16 @@
         <target state="translated">在此內容中使用變數，可能會將參考的變數公開在其宣告範圍外</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_InterceptorSignatureMismatch">
+        <source>Intercepting a call to '{0}' with interceptor '{1}', but the signatures do not match.</source>
+        <target state="new">Intercepting a call to '{0}' with interceptor '{1}', but the signatures do not match.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InterceptorSignatureMismatch_Title">
+        <source>Signatures of interceptable and interceptor methods do not match.</source>
+        <target state="new">Signatures of interceptable and interceptor methods do not match.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters">
         <source>InterpolatedStringHandlerArgument has no effect when applied to lambda parameters and will be ignored at the call site.</source>
         <target state="translated">InterpolatedStringHandlerArgument 在套用至 Lambda 參數時沒有效果，將於呼叫網站忽略。</target>
@@ -2320,6 +2565,26 @@
       <trans-unit id="WRN_MismatchedRefEscapeInTernary_Title">
         <source>The branches of the ref conditional operator refer to variables with incompatible declaration scopes</source>
         <target state="translated">Ref 條件運算子的分支參考具有不相容宣告範圍的變數</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnInterceptor">
+        <source>Nullability of reference types in type of parameter '{0}' doesn't match interceptable method '{1}'.</source>
+        <target state="new">Nullability of reference types in type of parameter '{0}' doesn't match interceptable method '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnInterceptor_Title">
+        <source>Nullability of reference types in type of parameter doesn't match interceptable method.</source>
+        <target state="new">Nullability of reference types in type of parameter doesn't match interceptable method.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnInterceptor">
+        <source>Nullability of reference types in return type doesn't match interceptable method '{0}'.</source>
+        <target state="new">Nullability of reference types in return type doesn't match interceptable method '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnInterceptor_Title">
+        <source>Nullability of reference types in return type doesn't match interceptable method.</source>
+        <target state="new">Nullability of reference types in return type doesn't match interceptable method.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ObsoleteMembersShouldNotBeRequired">
@@ -2843,162 +3108,168 @@
 -modulename:&lt;string&gt;          Specify the name of the source module
 -generatedfilesout:&lt;dir&gt;      Place files generated during compilation in the
                               specified directory.
+-reportivts[+|-]                    Output information on all IVTs granted to this
+                              assembly by all dependencies, and annotate foreign assembly
+                              accessibility errors with what assembly they came from.
 </source>
-        <target state="translated">
-                             Visual C# 編譯器選項
+        <target state="new">
+                             Visual C# Compiler Options
 
-                       - 輸出檔案 -
--out:&lt;file&gt;                   指定輸出檔案名稱 (預設: 具有主要類別
-                              或是第一個檔案的基底檔案名稱)
--target:exe                   建置主控台可執行檔 (預設) (簡短
-                              形式: -t:exe)
--target:winexe                建置 Windows 可執行檔 (簡短形式:
+                       - OUTPUT FILES -
+-out:&lt;file&gt;                   Specify output file name (default: base name of
+                              file with main class or first file)
+-target:exe                   Build a console executable (default) (Short
+                              form: -t:exe)
+-target:winexe                Build a Windows executable (Short form:
                               -t:winexe)
--target:library               建置程式庫 (簡短形式: -t:library)
--target:module                建置可以新增至其他組件的
-                              模組 (簡短形式: -t:module)
--target:appcontainerexe       建置 Appcontainer 可執行檔 (簡短形式:
+-target:library               Build a library (Short form: -t:library)
+-target:module                Build a module that can be added to another
+                              assembly (Short form: -t:module)
+-target:appcontainerexe       Build an Appcontainer executable (Short form:
                               -t:appcontainerexe)
--target:winmdobj              建置 WinMDExp 所使用的 Windows 執行階段
-                              中繼檔案 (簡短形式: -t:winmdobj)
--doc:&lt;file&gt;                   要產生的 XML 文件檔案
--refout:&lt;file&gt;                要產生的參考組件輸出
--platform:&lt;string&gt;            限制這個程式碼可以在哪些平台執行: x86、
-                              Itanium、x64、arm、arm64、anycpu32bitpreferred 或
-                              anycpu。預設為 anycpu。
+-target:winmdobj              Build a Windows Runtime intermediate file that
+                              is consumed by WinMDExp (Short form: -t:winmdobj)
+-doc:&lt;file&gt;                   XML Documentation file to generate
+-refout:&lt;file&gt;                Reference assembly output to generate
+-platform:&lt;string&gt;            Limit which platforms this code can run on: x86,
+                              Itanium, x64, arm, arm64, anycpu32bitpreferred, or
+                              anycpu. The default is anycpu.
 
-                       - 輸入檔 -
--recurse:&lt;wildcard&gt;           根據萬用字元規格
-                              來加入目前目錄和子目錄中的
-                              所有檔案
--reference:&lt;alias&gt;=&lt;file&gt;     使用指定的別名從指定的組件檔參考
-                              中繼資料 (簡短形式: -r)
--reference:&lt;file list&gt;        從指定的組件檔參考
-                              中繼資料 (簡短形式: -r)
--addmodule:&lt;file list&gt;        將指定的模組連結至此組件
--link:&lt;file list&gt;             從指定的 Interop
-                              組件檔內嵌中繼資料 (簡短形式: -l)
--analyzer:&lt;file list&gt;         從此組件執行分析器
-                              (簡短形式: -a)
--additionalfile:&lt;file list&gt;   不直接影響程式碼產生，
-                              但分析器可能用於產生錯誤或警告的
-                              其他檔案。
--embed                        內嵌 PDB 中的所有來源檔案。
--embed:&lt;file list&gt;            內嵌 PDB 中的特定檔案。
+                       - INPUT FILES -
+-recurse:&lt;wildcard&gt;           Include all files in the current directory and
+                              subdirectories according to the wildcard
+                              specifications
+-reference:&lt;alias&gt;=&lt;file&gt;     Reference metadata from the specified assembly
+                              file using the given alias (Short form: -r)
+-reference:&lt;file list&gt;        Reference metadata from the specified assembly
+                              files (Short form: -r)
+-addmodule:&lt;file list&gt;        Link the specified modules into this assembly
+-link:&lt;file list&gt;             Embed metadata from the specified interop
+                              assembly files (Short form: -l)
+-analyzer:&lt;file list&gt;         Run the analyzers from this assembly
+                              (Short form: -a)
+-additionalfile:&lt;file list&gt;   Additional files that don't directly affect code
+                              generation but may be used by analyzers for producing
+                              errors or warnings.
+-embed                        Embed all source files in the PDB.
+-embed:&lt;file list&gt;            Embed specific files in the PDB.
 
-                       - 資源 -
--win32res:&lt;file&gt;              指定 Win32 資源檔 (.res)
--win32icon:&lt;file&gt;             於輸出使用此圖示
--win32manifest:&lt;file&gt;         指定 Win32 資訊清單檔 (.xml)
--nowin32manifest              不要包含預設的 Win32 資訊清單
--resource:&lt;resinfo&gt;           內嵌指定的資源 (簡短形式: -res)
--linkresource:&lt;resinfo&gt;       將指定的資源連結至此組件
-                              (簡短形式: -linkres) 其中資源資訊格式
+                       - RESOURCES -
+-win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
+-win32icon:&lt;file&gt;             Use this icon for the output
+-win32manifest:&lt;file&gt;         Specify a Win32 manifest file (.xml)
+-nowin32manifest              Do not include the default Win32 manifest
+-resource:&lt;resinfo&gt;           Embed the specified resource (Short form: -res)
+-linkresource:&lt;resinfo&gt;       Link the specified resource to this assembly
+                              (Short form: -linkres) Where the resinfo format
                               is &lt;file&gt;[,&lt;string name&gt;[,public|private]]
 
-                       - 程式碼產生 -
--debug[+|-]                   發出偵錯資訊
+                       - CODE GENERATION -
+-debug[+|-]                   Emit debugging information
 -debug:{full|pdbonly|portable|embedded}
-                              指定偵錯類型 ('full' 是預設，
-                              'portable' 為跨平台格式，
-                              'embedded' 為內嵌至目標 .dll 或 .exe 的
-                              跨平台格式)
--optimize[+|-]                啟用最佳化 (簡短形式: -o)
--deterministic                產生確定性組件
-                              (含模組版本 GUID 與時間戳記)
--refonly                      產生取代主要輸出的參考組件
--instrument:TestCoverage      產生經檢測的組件，以收集
-                              涵蓋範圍資訊
--sourcelink:&lt;file&gt;            要內嵌至 PDB 的來源連結資訊。
- 
-                       - 錯誤與警告 -
--warnaserror[+|-]             將所有警告回報為錯誤
--warnaserror[+|-]:&lt;warn list&gt; 將特定警告回報為錯誤
-                              (針對所有可為 Null 的屬性警告使用「可為 Null」)
--warn:&lt;n&gt;                     設定警告層級 (0 或更高) (簡短形式: -w)
--nowarn:&lt;warn list&gt;           停用特定的警告訊息
-                              (針對所有可為 Null 的屬性警告使用「可為 Null」)
--ruleset:&lt;file&gt;               指定規則集檔案，以停用特定的
-                              診斷。
+                              Specify debugging type ('full' is default,
+                              'portable' is a cross-platform format,
+                              'embedded' is a cross-platform format embedded into
+                              the target .dll or .exe)
+-optimize[+|-]                Enable optimizations (Short form: -o)
+-deterministic                Produce a deterministic assembly
+                              (including module version GUID and timestamp)
+-refonly                      Produce a reference assembly in place of the main output
+-instrument:TestCoverage      Produce an assembly instrumented to collect
+                              coverage information
+-sourcelink:&lt;file&gt;            Source link info to embed into PDB.
+
+                       - ERRORS AND WARNINGS -
+-warnaserror[+|-]             Report all warnings as errors
+-warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
+                              (use "nullable" for all nullability warnings)
+-warn:&lt;n&gt;                     Set warning level (0 or higher) (Short form: -w)
+-nowarn:&lt;warn list&gt;           Disable specific warning messages
+                              (use "nullable" for all nullability warnings)
+-ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
+                              diagnostics.
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
-                              指定檔案以記錄所有編譯器與分析器
-                              診斷。
-                              sarif_version:{1|2|2.1} 預設為 1.2 與 2.1
-                              兩者皆表示 SARIF 2.1.0 版。
--reportanalyzer               回報其他分析器資訊，例如
-                              執行時間。
--skipanalyzers[+|-]           略過診斷分析器的執行。
+                              Specify a file to log all compiler and analyzer
+                              diagnostics.
+                              sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
+                              both mean SARIF version 2.1.0.
+-reportanalyzer               Report additional analyzer information, such as
+                              execution time.
+-skipanalyzers[+|-]           Skip execution of diagnostic analyzers.
 
-                       - 語言 -
--checked[+|-]                 產生溢位檢查
--unsafe[+|-]                  允許 'unsafe' 程式碼
--define:&lt;symbol list&gt;         定義條件式編譯的符號 (簡短
-                              形式: -d)
--langversion:?                顯示允許的語言版本值
--langversion:&lt;string&gt;         指定語言版本，例如
-                              `latest` (最新版本，包括次要版本)、
-                              `default` (與 `latest` 相同)、
-                              `latestmajor` (最新版本，不包括次要版本)、
-                              `preview` (最新版本，包括不支援的預覽功能)
-                              或是特定的版本，例如 `6` or `7.1`
--nullable[+|-]                指定可為 Null 的內容選項 enable|disable。
+                       - LANGUAGE -
+-checked[+|-]                 Generate overflow checks
+-unsafe[+|-]                  Allow 'unsafe' code
+-define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short
+                              form: -d)
+-langversion:?                Display the allowed values for language version
+-langversion:&lt;string&gt;         Specify language version such as
+                              `latest` (latest version, including minor versions),
+                              `default` (same as `latest`),
+                              `latestmajor` (latest version, excluding minor versions),
+                              `preview` (latest version, including features in unsupported preview),
+                              or specific versions like `6` or `7.1`
+-nullable[+|-]                Specify nullable context option enable|disable.
 -nullable:{enable|disable|warnings|annotations}
-                              指定可為 Null 的內容選項 enable|disable|warnings|annotations。
+                              Specify nullable context option enable|disable|warnings|annotations.
 
-                       - 安全性 -
--delaysign[+|-]               僅使用強式名稱金鑰的公開
-                              部分延遲簽署組件
--publicsign[+|-]              僅使用強式名稱金鑰的公開
-                              部分公開簽署組件
--keyfile:&lt;file&gt;               指定強式名稱金鑰檔
--keycontainer:&lt;string&gt;        指定強式名稱金鑰容器
--highentropyva[+|-]           啟用高熵 ASLR
+                       - SECURITY -
+-delaysign[+|-]               Delay-sign the assembly using only the public
+                              portion of the strong name key
+-publicsign[+|-]              Public-sign the assembly using only the public
+                              portion of the strong name key
+-keyfile:&lt;file&gt;               Specify a strong name key file
+-keycontainer:&lt;string&gt;        Specify a strong name key container
+-highentropyva[+|-]           Enable high-entropy ASLR
 
-                       - 其他 -
-@&lt;file&gt;                       如需其他選項，請閱讀回應檔
--help                         顯示此使用方式訊息 (簡短形式: -?)
--nologo                       隱藏編譯器著作權訊息
--noconfig                     不要自動納入 CSC.RSP 檔
--parallel[+|-]                並行組建。
--version                      顯示編譯器版本編號然後結束。
+                       - MISCELLANEOUS -
+@&lt;file&gt;                       Read response file for more options
+-help                         Display this usage message (Short form: -?)
+-nologo                       Suppress compiler copyright message
+-noconfig                     Do not auto include CSC.RSP file
+-parallel[+|-]                Concurrent build.
+-version                      Display the compiler version number and exit.
 
-                       - 進階 -
--baseaddress:&lt;address&gt;        要建置程式庫的基底位址
--checksumalgorithm:&lt;alg&gt;      指定演算法，以計算儲存於 PDB 的
-                              來源檔案總和檢查碼。支援的值有:
-                              SHA1 或 SHA256 (預設)。
--codepage:&lt;n&gt;                 指定開啟來源檔案時要使用的
-                              字碼頁
--utf8output                   以 UTF-8 編碼輸出編譯器訊息
--main:&lt;type&gt;                  指定包含進入點
-                              (忽略所有其他可能進入點) 的類型 (簡短
-                              形式: -m)
--fullpaths                    編譯器會產生完整路徑
--filealign:&lt;n&gt;                指定用於輸出檔案區段的
-                              對齊方式
+                       - ADVANCED -
+-baseaddress:&lt;address&gt;        Base address for the library to be built
+-checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file
+                              checksum stored in PDB. Supported values are:
+                              SHA1 or SHA256 (default).
+-codepage:&lt;n&gt;                 Specify the codepage to use when opening source
+                              files
+-utf8output                   Output compiler messages in UTF-8 encoding
+-main:&lt;type&gt;                  Specify the type that contains the entry point
+                              (ignore all other possible entry points) (Short
+                              form: -m)
+-fullpaths                    Compiler generates fully qualified paths
+-filealign:&lt;n&gt;                Specify the alignment used for output file
+                              sections
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                              指定由編譯器輸出的來源路徑名稱
-                              對應。
--pdb:&lt;file&gt;                   指定偵錯資訊檔名 (預設:
-                              具有 .pdb 副檔名的輸出檔名)
--errorendlocation             輸出每個錯誤的結束位置
-                              行與欄
--preferreduilang              指定慣用的輸出語言名稱。
--nosdkpath                    禁止搜尋標準程式庫組件的預設 SDK 路徑。
--nostdlib[+|-]                不要參考標準程式庫 (mscorlib.dll)
--subsystemversion:&lt;string&gt;    指定這個組件的子系統版本
--lib:&lt;file list&gt;              指定要在其中搜尋參考的其他
-                              目錄
--errorreport:&lt;string&gt;         指定如何處理內部編譯器錯誤:
-                              prompt、send、queue 或 none。預設為
-                              queue。
--appconfig:&lt;file&gt;             指定包含組件繫結設定的
-                              應用程式組態檔
--moduleassemblyname:&lt;string&gt;  這個模組將成為
-                              其一部分的組件名稱
--modulename:&lt;string&gt;          指定來源模組的名稱
--generatedfilesout:&lt;dir&gt;      將編譯期間產生的檔案置於
-                              指定的目錄中。
+                              Specify a mapping for source path names output by
+                              the compiler.
+-pdb:&lt;file&gt;                   Specify debug information file name (default:
+                              output file name with .pdb extension)
+-errorendlocation             Output line and column of the end location of
+                              each error
+-preferreduilang              Specify the preferred output language name.
+-nosdkpath                    Disable searching the default SDK path for standard library assemblies.
+-nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
+-subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
+-lib:&lt;file list&gt;              Specify additional directories to search in for
+                              references
+-errorreport:&lt;string&gt;         Specify how to handle internal compiler errors:
+                              prompt, send, queue, or none. The default is
+                              queue.
+-appconfig:&lt;file&gt;             Specify an application configuration file
+                              containing assembly binding settings
+-moduleassemblyname:&lt;string&gt;  Name of the assembly which this module will be
+                              a part of
+-modulename:&lt;string&gt;          Specify the name of the source module
+-generatedfilesout:&lt;dir&gt;      Place files generated during compilation in the
+                              specified directory.
+-reportivts[+|-]                    Output information on all IVTs granted to this
+                              assembly by all dependencies, and annotate foreign assembly
+                              accessibility errors with what assembly they came from.
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
@@ -8591,7 +8862,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_UnsafeIteratorArgType">
         <source>Iterators cannot have pointer type parameters</source>
-        <target state="needs-review-translation">迭代器不能有 Unsafe 參數或 yield 類型</target>
+        <target state="translated">迭代器不能具有指標型別參數</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadCoClassSig">
@@ -9934,7 +10205,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
       </trans-unit>
       <trans-unit id="ERR_UnsafeAsyncArgType">
         <source>Async methods cannot have pointer type parameters</source>
-        <target state="needs-review-translation">非同步方法不能有 Unsafe 參數或 return 類型</target>
+        <target state="translated">非同步方法不能具有指標型別參數</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncArgType">
@@ -11848,8 +12119,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">
-        <source>'await' cannot be used in an expression containing a call to '{0}' because it returns by reference</source>
-        <target state="translated">'await' 不能用於包含呼叫 '{0}' 的運算式，因為其藉傳址方式傳回</target>
+        <source>A reference returned by a call to '{0}' cannot be preserved across 'await' or 'yield' boundary.</source>
+        <target state="new">A reference returned by a call to '{0}' cannot be preserved across 'await' or 'yield' boundary.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefConditionalAndAwait">

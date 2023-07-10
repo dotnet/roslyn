@@ -9,16 +9,10 @@ namespace Microsoft.CodeAnalysis.Formatting
     /// <summary>
     /// data that will be used in an interval tree related to suppressing wrapping operations.
     /// </summary>
-    internal class SuppressWrappingData
+    internal class SuppressWrappingData(TextSpan textSpan, bool ignoreElastic)
     {
-        public SuppressWrappingData(TextSpan textSpan, bool ignoreElastic)
-        {
-            this.TextSpan = textSpan;
-            this.IgnoreElastic = ignoreElastic;
-        }
-
-        public TextSpan TextSpan { get; }
-        public bool IgnoreElastic { get; }
+        public TextSpan TextSpan { get; } = textSpan;
+        public bool IgnoreElastic { get; } = ignoreElastic;
 
 #if DEBUG
         public override string ToString()

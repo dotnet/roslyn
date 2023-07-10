@@ -119,12 +119,10 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
         var namedType = semanticModel.GetRequiredDeclaredSymbol(typeDeclaration, cancellationToken);
         var constructor = semanticModel.GetRequiredDeclaredSymbol(constructorDeclaration, cancellationToken);
 
-        using var _1 = PooledDictionary<ISymbol, SyntaxNode>.GetInstance(out var removedMembers);
-
         // If we're removing members, first go through and update all references to that member to use the parameter name.
         var typeDeclarationNodes = namedType.DeclaringSyntaxReferences.Select(r => (TypeDeclarationSyntax)r.GetSyntax(cancellationToken));
         var namedTypeDocuments = typeDeclarationNodes.Select(r => solution.GetRequiredDocument(r.SyntaxTree)).ToImmutableHashSet();
-        await RemoveMembersAsync().ConfigureAwait(false);
+        var removedMembers = await RemoveMembersAsync().ConfigureAwait(false);
 
         // If the constructor has a base-initializer, then go find the base-type in the inheritance list for the
         // typedecl and move it there.
@@ -151,9 +149,6 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
         var constructorDocumentEditor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
         constructorDocumentEditor.RemoveNode(constructorDeclaration);
 
-        var finalTrivia = CreateFinalTypeDeclarationLeadingTrivia(
-            typeDeclaration, constructorDeclaration, constructor, properties, removedMembers);
-
         // Finally move the constructors parameter list to the type declaration.
         constructorDocumentEditor.ReplaceNode(
             typeDeclaration,
@@ -173,8 +168,8 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
                         a => a.WithTarget(AttributeTargetSpecifier(Token(SyntaxKind.MethodKeyword))).WithoutTrivia().WithAdditionalAnnotations(Formatter.Annotation)));
 
                 // When moving the parameter list from the constructor to the type, we will no longer have nested types
-                // in scope.  So rewrite references to them if that's the case.
-                var parameterList = UpdateReferencesToNestedTypes(constructorDeclaration.ParameterList);
+                // or member constants in scope.  So rewrite references to them if that's the case.
+                var parameterList = UpdateReferencesToNestedMembers(constructorDeclaration.ParameterList);
 
                 parameterList = RemoveElementIndentation(
                     typeDeclaration, constructorDeclaration, parameterList,
@@ -182,9 +177,12 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
 
                 parameterList = RemoveInModifierIfMemberIsRemoved(parameterList);
 
+                var finalTrivia = CreateFinalTypeDeclarationLeadingTrivia(
+                    currentTypeDeclaration, constructorDeclaration, constructor, properties, removedMembers);
+
                 return currentTypeDeclaration
-                    .WithLeadingTrivia(finalTrivia)
                     .WithAttributeLists(finalAttributeLists)
+                    .WithLeadingTrivia(finalTrivia)
                     .WithIdentifier(typeParameterList != null ? currentTypeDeclaration.Identifier : currentTypeDeclaration.Identifier.WithoutTrailingTrivia())
                     .WithTypeParameterList(typeParameterList?.WithoutTrailingTrivia())
                     .WithParameterList(parameterList
@@ -216,22 +214,37 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
                 });
         }
 
-        ParameterListSyntax UpdateReferencesToNestedTypes(ParameterListSyntax parameterList)
+        ParameterListSyntax UpdateReferencesToNestedMembers(ParameterListSyntax parameterList)
         {
             return parameterList.ReplaceNodes(
                 parameterList.DescendantNodes().OfType<SimpleNameSyntax>(),
-                (typeSyntax, updatedTypeSyntax) =>
+                (nameSyntax, currentNameSyntax) =>
                 {
-                    // Don't have to update if the type is already qualified.
-                    if (typeSyntax.Parent is QualifiedNameSyntax qualifiedNameSyntax && qualifiedNameSyntax.Right == typeSyntax)
-                        return updatedTypeSyntax;
+                    // Don't have to update if the member is already qualified.
 
-                    var typeSymbol = semanticModel.GetTypeInfo(typeSyntax, cancellationToken).Type;
-                    if (typeSymbol is not INamedTypeSymbol { ContainingType: not null } || !namedType.Equals(typeSymbol.ContainingType.OriginalDefinition))
-                        return updatedTypeSyntax;
+                    if (nameSyntax.Parent is not QualifiedNameSyntax qualifiedNameSyntax || qualifiedNameSyntax.Right != nameSyntax)
+                    {
+                        var symbol = semanticModel.GetSymbolInfo(nameSyntax, cancellationToken).GetAnySymbol();
+                        if (symbol is INamedTypeSymbol { ContainingType: not null } &&
+                            namedType.Equals(symbol.ContainingType.OriginalDefinition))
+                        {
+                            // reference to a nested type in an unqualified fashion.  Have to qualify this.
+                            return QualifiedName(namedType.GenerateNameSyntax(), currentNameSyntax);
+                        }
+                    }
 
-                    // reference to a nested type in an unqualified fashion.  Have to qualify this.
-                    return QualifiedName(namedType.GenerateNameSyntax(), updatedTypeSyntax);
+                    if (nameSyntax.Parent is not MemberAccessExpressionSyntax memberAccessExpression || memberAccessExpression.Name != nameSyntax)
+                    {
+                        var symbol = semanticModel.GetSymbolInfo(nameSyntax, cancellationToken).GetAnySymbol();
+                        if (symbol is IFieldSymbol { ContainingType: not null } &&
+                            namedType.Equals(symbol.ContainingType.OriginalDefinition))
+                        {
+                            // reference to a member field an unqualified fashion.  Have to qualify this.
+                            return MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, namedType.GenerateNameSyntax(), currentNameSyntax);
+                        }
+                    }
+
+                    return currentNameSyntax;
                 });
         }
 
@@ -349,36 +362,39 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
             }
         }
 
-        async ValueTask RemoveMembersAsync()
+        async ValueTask<ImmutableDictionary<ISymbol, SyntaxNode>> RemoveMembersAsync()
         {
-            if (!removeMembers)
-                return;
-
-            // Go through each pair of member/parameterName.  Update all references to member to now refer to
-            // parameterName. This is safe as the analyzer ensured that all existing locations would safely be able
-            // to do this.  Then once those are all done, actually remove the members.
-            foreach (var (memberName, parameterName) in properties)
+            var removedMembers = ImmutableDictionary<ISymbol, SyntaxNode>.Empty;
+            if (removeMembers)
             {
-                Contract.ThrowIfNull(parameterName);
+                // Go through each pair of member/parameterName.  Update all references to member to now refer to
+                // parameterName. This is safe as the analyzer ensured that all existing locations would safely be able
+                // to do this.  Then once those are all done, actually remove the members.
+                foreach (var (memberName, parameterName) in properties)
+                {
+                    Contract.ThrowIfNull(parameterName);
 
-                var (member, nodeToRemove) = GetMemberToRemove(memberName);
-                if (member is null)
-                    continue;
+                    var (member, nodeToRemove) = GetMemberToRemove(memberName);
+                    if (member is null)
+                        continue;
 
-                removedMembers[member] = nodeToRemove;
-                await ReplaceReferencesToMemberWithParameterAsync(
-                    member, CSharpSyntaxFacts.Instance.EscapeIdentifier(parameterName)).ConfigureAwait(false);
+                    removedMembers = removedMembers.Add(member, nodeToRemove);
+                    await ReplaceReferencesToMemberWithParameterAsync(
+                        member, CSharpSyntaxFacts.Instance.EscapeIdentifier(parameterName)).ConfigureAwait(false);
+                }
+
+                foreach (var group in removedMembers.Values.GroupBy(n => n.SyntaxTree))
+                {
+                    var syntaxTree = group.Key;
+                    var memberDocument = solution.GetRequiredDocument(syntaxTree);
+                    var documentEditor = await solutionEditor.GetDocumentEditorAsync(memberDocument.Id, cancellationToken).ConfigureAwait(false);
+
+                    foreach (var memberToRemove in group)
+                        documentEditor.RemoveNode(memberToRemove);
+                }
             }
 
-            foreach (var group in removedMembers.Values.GroupBy(n => n.SyntaxTree))
-            {
-                var syntaxTree = group.Key;
-                var memberDocument = solution.GetRequiredDocument(syntaxTree);
-                var documentEditor = await solutionEditor.GetDocumentEditorAsync(memberDocument.Id, cancellationToken).ConfigureAwait(false);
-
-                foreach (var memberToRemove in group)
-                    documentEditor.RemoveNode(memberToRemove);
-            }
+            return removedMembers;
         }
 
         (ISymbol? member, SyntaxNode nodeToRemove) GetMemberToRemove(string memberName)
@@ -401,7 +417,8 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
             var references = await SymbolFinder.FindReferencesAsync(
                 member, solution, namedTypeDocuments, cancellationToken).ConfigureAwait(false);
 
-            using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var nodesToReplace);
+            using var _1 = PooledHashSet<SyntaxNode>.GetInstance(out var nodesToReplace);
+            using var _2 = PooledHashSet<XmlEmptyElementSyntax>.GetInstance(out var seeTagsToReplace);
             foreach (var reference in references)
             {
                 foreach (var location in reference.Locations)
@@ -409,10 +426,16 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
                     if (location.IsImplicit)
                         continue;
 
-                    if (location.Location.FindNode(getInnermostNodeForTie: true, cancellationToken) is not IdentifierNameSyntax identifier)
+                    if (location.Location.FindNode(findInsideTrivia: true, getInnermostNodeForTie: true, cancellationToken) is not IdentifierNameSyntax identifier)
                         continue;
 
-                    if (identifier.IsRightSideOfDot())
+                    var xmlElement = identifier.AncestorsAndSelf().OfType<XmlEmptyElementSyntax>().FirstOrDefault();
+                    if (xmlElement is { Name.LocalName.ValueText: "see" })
+                    {
+                        // reference to member in a `<see cref="name"/>` tag.  Switch to a paramref tag instead.
+                        seeTagsToReplace.Add(xmlElement);
+                    }
+                    else if (identifier.IsRightSideOfDot())
                     {
                         if (identifier.GetRequiredParent() is ExpressionSyntax expression)
                             nodesToReplace.Add(expression);
@@ -437,6 +460,24 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
                     documentEditor.ReplaceNode(
                         nodeToReplace,
                         parameterNameNode.WithTriviaFrom(nodeToReplace));
+                }
+            }
+
+            foreach (var group in seeTagsToReplace.GroupBy(n => n.SyntaxTree))
+            {
+                var document = solution.GetDocument(group.Key);
+                if (document is null)
+                    continue;
+
+                var documentEditor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
+
+                foreach (var seeTag in group)
+                {
+                    var paramRefTag = seeTag
+                        .ReplaceToken(seeTag.Name.LocalName, Identifier("paramref").WithTriviaFrom(seeTag.Name.LocalName))
+                        .WithAttributes(SingletonList<XmlAttributeSyntax>(XmlNameAttribute(parameterName)));
+
+                    documentEditor.ReplaceNode(seeTag, paramRefTag);
                 }
             }
         }

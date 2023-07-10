@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -271,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.BaseConstructorInitializer:
                 case SyntaxKind.ThisConstructorInitializer:
-                    return CreateSpanForConstructorInitializer((ConstructorInitializerSyntax)node);
+                    return CreateSpanForExplicitConstructorInitializer((ConstructorInitializerSyntax)node);
 
                 // Query clauses:
                 // 
@@ -330,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
-        private static TextSpan? CreateSpanForConstructorDeclaration(ConstructorDeclarationSyntax constructorSyntax, int position)
+        internal static TextSpan? CreateSpanForConstructorDeclaration(ConstructorDeclarationSyntax constructorSyntax, int position)
         {
             if (constructorSyntax.ExpressionBody != null &&
                 position > constructorSyntax.ExpressionBody.ArrowToken.Span.Start)
@@ -340,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             if (constructorSyntax.Initializer != null)
             {
-                return CreateSpanForConstructorInitializer(constructorSyntax.Initializer);
+                return CreateSpanForExplicitConstructorInitializer(constructorSyntax.Initializer);
             }
 
             // static ctor doesn't have a default initializer:
@@ -359,12 +360,20 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return null;
             }
 
-            // the declaration is the span of the implicit initializer
-            return CreateSpan(constructorSyntax.Modifiers, constructorSyntax.Identifier, constructorSyntax.ParameterList.CloseParenToken);
+            return CreateSpanForImplicitConstructorInitializer(constructorSyntax);
         }
 
-        private static TextSpan CreateSpanForConstructorInitializer(ConstructorInitializerSyntax constructorInitializer)
+        internal static TextSpan CreateSpanForImplicitConstructorInitializer(ConstructorDeclarationSyntax constructor)
+            => CreateSpan(constructor.Modifiers, constructor.Identifier, constructor.ParameterList.CloseParenToken);
+
+        internal static IEnumerable<SyntaxToken> GetActiveTokensForImplicitConstructorInitializer(ConstructorDeclarationSyntax constructor)
+            => constructor.Modifiers.Concat(SpecializedCollections.SingletonEnumerable(constructor.Identifier)).Concat(constructor.ParameterList.DescendantTokens());
+
+        internal static TextSpan CreateSpanForExplicitConstructorInitializer(ConstructorInitializerSyntax constructorInitializer)
             => CreateSpan(constructorInitializer.ThisOrBaseKeyword, constructorInitializer.ArgumentList.CloseParenToken);
+
+        internal static IEnumerable<SyntaxToken> GetActiveTokensForExplicitConstructorInitializer(ConstructorInitializerSyntax constructorInitializer)
+            => SpecializedCollections.SingletonEnumerable(constructorInitializer.ThisOrBaseKeyword).Concat(constructorInitializer.ArgumentList.DescendantTokens());
 
         private static TextSpan? TryCreateSpanForFieldDeclaration(BaseFieldDeclarationSyntax fieldDeclaration, int position)
             => TryCreateSpanForVariableDeclaration(fieldDeclaration.Declaration, fieldDeclaration.Modifiers, fieldDeclaration.SemicolonToken, position);
@@ -643,17 +652,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return CreateSpan(variableDeclarator);
         }
 
-        private static TextSpan CreateSpanForVariableDeclarator(
+        internal static TextSpan CreateSpanForVariableDeclarator(
             VariableDeclaratorSyntax variableDeclarator,
-            SyntaxTokenList modifiersOpt,
-            SyntaxToken semicolonOpt)
+            SyntaxTokenList modifiers,
+            SyntaxToken semicolon)
         {
-            if (variableDeclarator.Initializer == null)
-            {
-                return default;
-            }
-
-            if (modifiersOpt.Any(SyntaxKind.ConstKeyword))
+            if (variableDeclarator.Initializer == null || modifiers.Any(SyntaxKind.ConstKeyword))
             {
                 return default;
             }
@@ -661,15 +665,39 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             var variableDeclaration = (VariableDeclarationSyntax)variableDeclarator.Parent!;
             if (variableDeclaration.Variables.Count == 1)
             {
-                return CreateSpan(modifiersOpt, variableDeclaration, semicolonOpt);
+                return CreateSpan(modifiers, variableDeclaration, semicolon);
             }
 
             if (variableDeclarator == variableDeclaration.Variables[0])
             {
-                return CreateSpan(modifiersOpt, variableDeclaration, variableDeclarator);
+                return CreateSpan(modifiers, variableDeclaration, variableDeclarator);
             }
 
             return CreateSpan(variableDeclarator);
+        }
+
+        internal static IEnumerable<SyntaxToken> GetActiveTokensForVariableDeclarator(VariableDeclaratorSyntax variableDeclarator, SyntaxTokenList modifiers, SyntaxToken semicolon)
+        {
+            if (variableDeclarator.Initializer == null || modifiers.Any(SyntaxKind.ConstKeyword))
+            {
+                return SpecializedCollections.EmptyEnumerable<SyntaxToken>();
+            }
+
+            // [|int F = 1;|]
+            var variableDeclaration = (VariableDeclarationSyntax)variableDeclarator.Parent!;
+            if (variableDeclaration.Variables.Count == 1)
+            {
+                return modifiers.Concat(variableDeclaration.DescendantTokens()).Concat(semicolon);
+            }
+
+            // [|int F = 1|], G = 2;
+            if (variableDeclarator == variableDeclaration.Variables[0])
+            {
+                return modifiers.Concat(variableDeclaration.Type.DescendantTokens()).Concat(variableDeclarator.DescendantTokens());
+            }
+
+            // int F = 1, [|G = 2|];
+            return variableDeclarator.DescendantTokens();
         }
 
         private static VariableDeclaratorSyntax? FindClosestDeclaratorWithInitializer(SeparatedSyntaxList<VariableDeclaratorSyntax> declarators, int position)
@@ -784,50 +812,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
 
             return null;
-        }
-
-        /// <summary>
-        /// Returns a span that contains all possible breakpoint spans of top-level <paramref name="declaration"/>
-        /// and no breakpoint spans that do not belong to the <paramref name="declaration"/>.
-        /// 
-        /// Returns default if the declaration does not have any breakpoint spans.
-        /// </summary>
-        internal static TextSpan GetEnvelope(SyntaxNode declaration)
-        {
-            if (declaration is VariableDeclaratorSyntax { Parent.Parent: BaseFieldDeclarationSyntax fieldDeclaration } variableDeclarator)
-            {
-                return CreateSpanForVariableDeclarator(variableDeclarator, fieldDeclaration.Modifiers, fieldDeclaration.SemicolonToken);
-            }
-
-            if (declaration is ConstructorDeclarationSyntax constructorDeclaration)
-            {
-                var firstSpan = CreateSpanForConstructorDeclaration(constructorDeclaration, constructorDeclaration.Identifier.SpanStart);
-                if (firstSpan == null)
-                {
-                    return default;
-                }
-
-                var constructorBody = (SyntaxNode?)constructorDeclaration.ExpressionBody ?? constructorDeclaration.Body;
-                if (constructorBody == null)
-                {
-                    return firstSpan.Value;
-                }
-
-                return TextSpan.FromBounds(firstSpan.Value.Start, constructorBody.Span.End);
-            }
-
-            if (declaration is CompilationUnitSyntax unit && unit.ContainsGlobalStatements())
-            {
-                return TextSpan.FromBounds(unit.Members[0].SpanStart, unit.Members.OfType<GlobalStatementSyntax>().Last().Span.End);
-            }
-
-            var body = SyntaxUtilities.TryGetMethodDeclarationBody(declaration);
-            if (body == null)
-            {
-                return default;
-            }
-
-            return body.Span;
         }
     }
 }

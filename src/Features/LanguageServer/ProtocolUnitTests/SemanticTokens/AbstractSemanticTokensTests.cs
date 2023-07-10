@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
         }
 
         private protected static IReadOnlyDictionary<string, int> GetTokenTypeToIndex(TestLspServer server)
-            => SemanticTokensSchema.GetSchema(server.ClientCapabilities).TokenTypeToIndex;
+            => SemanticTokensSchema.GetSchema(server.ClientCapabilities.HasVisualStudioLspCapability()).TokenTypeToIndex;
 
         private protected static async Task<LSP.SemanticTokens> RunGetSemanticTokensRangeAsync(TestLspServer testLspServer, LSP.Location caret, LSP.Range range)
         {
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
             ClientCapabilities capabilities, int[] data)
         {
             var convertedStringsBuilder = ImmutableArray.CreateBuilder<string>(data.Length / 5);
-            var tokenTypeToIndex = SemanticTokensSchema.GetSchema(capabilities).TokenTypeToIndex;
+            var tokenTypeToIndex = SemanticTokensSchema.GetSchema(capabilities.HasVisualStudioLspCapability()).TokenTypeToIndex;
 
             for (var i = 0; i < data.Length; i += 5)
             {

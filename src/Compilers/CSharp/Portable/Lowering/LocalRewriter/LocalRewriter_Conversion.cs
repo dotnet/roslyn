@@ -57,6 +57,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                  BoundDelegateCreationExpression { WasTargetTyped: true });
 
                     return objectCreation;
+
+                case ConversionKind.CollectionLiteral:
+                    // Skip through target-typed collection literals
+                    Debug.Assert(node.Type.Equals(node.Operand.Type, TypeCompareKind.AllIgnoreOptions));
+                    return VisitExpression(node.Operand)!;
             }
 
             var rewrittenType = VisitType(node.Type);
@@ -299,6 +304,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(oldNodeOpt == null || oldNodeOpt.Syntax == syntax);
             Debug.Assert(rewrittenType is { });
+            Debug.Assert(_factory.ModuleBuilderOpt is { });
+            Debug.Assert(_diagnostics.DiagnosticBag is { });
 
             if (_inExpressionLambda && !conversion.IsUserDefined)
             {
@@ -579,6 +586,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             return boundDelegateCreation;
                         }
+                    }
+
+                case ConversionKind.InlineArray:
+                    {
+                        Debug.Assert(rewrittenOperand.Type is not null);
+
+                        NamedTypeSymbol spanType = (NamedTypeSymbol)rewrittenType;
+                        MethodSymbol createSpan;
+
+                        if (spanType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions))
+                        {
+                            createSpan = _factory.ModuleBuilderOpt.EnsureInlineArrayAsReadOnlySpanExists(syntax, spanType.OriginalDefinition, _factory.SpecialType(SpecialType.System_Int32), _diagnostics.DiagnosticBag);
+                        }
+                        else
+                        {
+                            Debug.Assert(spanType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.AllIgnoreOptions));
+                            createSpan = _factory.ModuleBuilderOpt.EnsureInlineArrayAsSpanExists(syntax, spanType.OriginalDefinition, _factory.SpecialType(SpecialType.System_Int32), _diagnostics.DiagnosticBag);
+                        }
+
+                        createSpan = createSpan.Construct(rewrittenOperand.Type, spanType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Single().Type);
+                        _ = rewrittenOperand.Type.HasInlineArrayAttribute(out int length);
+
+                        return _factory.Call(null, createSpan, rewrittenOperand, _factory.Literal(length), useStrictArgumentRefKinds: true);
                     }
 
                 default:

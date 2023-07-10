@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     [Method(VSInternalMethods.WorkspacePullDiagnosticName)]
     internal sealed partial class WorkspacePullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport[], VSInternalWorkspaceDiagnosticReport[]>
     {
-        public WorkspacePullDiagnosticHandler(IDiagnosticAnalyzerService analyzerService, EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource, IGlobalOptionService globalOptions)
-            : base(analyzerService, editAndContinueDiagnosticUpdateSource, globalOptions)
+        public WorkspacePullDiagnosticHandler(IDiagnosticAnalyzerService analyzerService, IDiagnosticsRefresher diagnosticsRefresher, IGlobalOptionService globalOptions)
+            : base(analyzerService, diagnosticsRefresher, globalOptions)
         {
         }
 
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             async Task AddDocumentsAndProject(Project project, CancellationToken cancellationToken)
             {
-                var fullSolutionAnalysisEnabled = globalOptions.IsFullSolutionAnalysisEnabled(project.Language);
+                var fullSolutionAnalysisEnabled = globalOptions.IsFullSolutionAnalysisEnabled(project.Language, out var compilerFullSolutionAnalysisEnabled, out var analyzersFullSolutionAnalysisEnabled);
                 if (!fullSolutionAnalysisEnabled)
                     return;
 
@@ -189,14 +189,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     documents = documents.AddRange(sourceGeneratedDocuments);
                 }
 
+                Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer = !compilerFullSolutionAnalysisEnabled || !analyzersFullSolutionAnalysisEnabled
+                    ? ShouldIncludeAnalyzer : null;
                 foreach (var document in documents)
                 {
                     if (!ShouldSkipDocument(context, document))
-                        result.Add(new WorkspaceDocumentDiagnosticSource(document));
+                        result.Add(new WorkspaceDocumentDiagnosticSource(document, shouldIncludeAnalyzer));
                 }
 
                 // Finally, add the project source to get project specific diagnostics, not associated with any document.
-                result.Add(new ProjectDiagnosticSource(project));
+                result.Add(new ProjectDiagnosticSource(project, shouldIncludeAnalyzer));
+
+                bool ShouldIncludeAnalyzer(DiagnosticAnalyzer analyzer)
+                {
+                    if (analyzer.IsCompilerAnalyzer())
+                        return compilerFullSolutionAnalysisEnabled;
+                    else
+                        return analyzersFullSolutionAnalysisEnabled;
+                }
             }
         }
     }

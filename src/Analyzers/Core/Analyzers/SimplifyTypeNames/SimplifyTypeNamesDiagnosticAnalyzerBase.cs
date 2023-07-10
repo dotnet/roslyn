@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
         /// blocks may be analyzed by <see cref="AnalyzeCodeBlock"/>, and any remaining spans can be analyzed by
         /// <see cref="AnalyzeSemanticModel"/>.</returns>
         protected abstract bool IsIgnoredCodeBlock(SyntaxNode codeBlock);
-        protected abstract ImmutableArray<Diagnostic> AnalyzeCodeBlock(CodeBlockAnalysisContext context);
+        protected abstract ImmutableArray<Diagnostic> AnalyzeCodeBlock(CodeBlockAnalysisContext context, SyntaxNode root);
         protected abstract ImmutableArray<Diagnostic> AnalyzeSemanticModel(SemanticModelAnalysisContext context, SyntaxNode root, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? codeBlockIntervalTree);
 
         public bool TrySimplify(SemanticModel model, SyntaxNode node, [NotNullWhen(true)] out Diagnostic? diagnostic, TSimplifierOptions options, CancellationToken cancellationToken)
@@ -192,9 +192,9 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        private class AnalyzerImpl
+        private class AnalyzerImpl(SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnum, TSimplifierOptions> analyzer)
         {
-            private readonly SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnum, TSimplifierOptions> _analyzer;
+            private readonly SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnum, TSimplifierOptions> _analyzer = analyzer;
 
             /// <summary>
             /// Tracks the analysis state of syntax trees in a compilation. Each syntax tree has the properties:
@@ -221,9 +221,6 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             private readonly ConcurrentDictionary<SyntaxTree, (StrongBox<bool> completed, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? intervalTree)> _codeBlockIntervals
                 = new();
 
-            public AnalyzerImpl(SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnum, TSimplifierOptions> analyzer)
-                => _analyzer = analyzer;
-
             public void AnalyzeCodeBlock(CodeBlockAnalysisContext context)
             {
                 if (_analyzer.IsIgnoredCodeBlock(context.CodeBlock))
@@ -237,10 +234,11 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                 if (!TryProceedWithInterval(addIfAvailable: false, context.CodeBlock.FullSpan, completed, intervalTree))
                     return;
 
-                var diagnostics = _analyzer.AnalyzeCodeBlock(context);
+                var root = context.GetAnalysisRoot(findInTrivia: true);
+                var diagnostics = _analyzer.AnalyzeCodeBlock(context, root);
 
                 // After this point, cancellation is not allowed due to possible state alteration
-                if (!TryProceedWithInterval(addIfAvailable: true, context.CodeBlock.FullSpan, completed, intervalTree))
+                if (!TryProceedWithInterval(addIfAvailable: root == context.CodeBlock, context.CodeBlock.FullSpan, completed, intervalTree))
                     return;
 
                 foreach (var diagnostic in diagnostics)

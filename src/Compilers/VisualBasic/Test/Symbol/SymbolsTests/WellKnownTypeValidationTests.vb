@@ -455,7 +455,8 @@ End Namespace
                 Assert.NotNull(symbol)
 
                 If special = SpecialType.System_Runtime_CompilerServices_RuntimeFeature OrElse
-                   special = SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute Then
+                   special = SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute OrElse
+                   special = SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute Then
                     Assert.Equal(SymbolKind.ErrorType, symbol.Kind) ' Not available
                 Else
                     Assert.NotEqual(SymbolKind.ErrorType, symbol.Kind)
@@ -489,7 +490,8 @@ End Namespace
                    special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__VirtualStaticsInInterfaces OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__NumericIntPtr OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefFields OrElse
-                   special = SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor Then
+                   special = SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor OrElse
+                   special = SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor Then
                     Assert.Null(symbol) ' Not available
                 Else
                     Assert.NotNull(symbol)
@@ -556,6 +558,8 @@ End Namespace
                          WellKnownType.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute,
                          WellKnownType.System_MemoryExtensions,
                          WellKnownType.System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute,
+                         WellKnownType.System_Runtime_InteropServices_MemoryMarshal,
+                         WellKnownType.System_Runtime_CompilerServices_Unsafe,
                          WellKnownType.System_Runtime_CompilerServices_RequiresLocationAttribute
                         ' Not available on all platforms.
                         Continue For
@@ -632,6 +636,8 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_RefSafetyRulesAttribute,
                          WellKnownType.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute,
                          WellKnownType.System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute,
+                         WellKnownType.System_Runtime_InteropServices_MemoryMarshal,
+                         WellKnownType.System_Runtime_CompilerServices_Unsafe,
                          WellKnownType.System_Runtime_CompilerServices_RequiresLocationAttribute
                         ' Not available on all platforms.
                         Continue For
@@ -687,11 +693,13 @@ End Namespace
                          WellKnownMember.System_Span_T__ctor_Array,
                          WellKnownMember.System_Span_T__get_Item,
                          WellKnownMember.System_Span_T__get_Length,
+                         WellKnownMember.System_Span_T__Slice_Int_Int,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Array,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Array_Start_Length,
                          WellKnownMember.System_ReadOnlySpan_T__get_Item,
                          WellKnownMember.System_ReadOnlySpan_T__get_Length,
+                         WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int,
                          WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor,
                          WellKnownMember.System_IAsyncDisposable__DisposeAsync,
                          WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator,
@@ -787,7 +795,12 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item,
                          WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length,
                          WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject
+                         WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject,
+                         WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateReadOnlySpan,
+                         WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateSpan,
+                         WellKnownMember.System_Runtime_CompilerServices_Unsafe__Add_T,
+                         WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T,
+                         WellKnownMember.System_Runtime_CompilerServices_Unsafe__AsRef_T
                         ' Not always available.
                         Continue For
                 End Select
@@ -877,11 +890,13 @@ End Namespace
                          WellKnownMember.System_Span_T__ctor_Array,
                          WellKnownMember.System_Span_T__get_Item,
                          WellKnownMember.System_Span_T__get_Length,
+                         WellKnownMember.System_Span_T__Slice_Int_Int,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Array,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Array_Start_Length,
                          WellKnownMember.System_ReadOnlySpan_T__get_Item,
                          WellKnownMember.System_ReadOnlySpan_T__get_Length,
+                         WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int,
                          WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor,
                          WellKnownMember.System_IAsyncDisposable__DisposeAsync,
                          WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator,
@@ -977,7 +992,12 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item,
                          WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length,
                          WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject
+                         WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject,
+                         WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateReadOnlySpan,
+                         WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateSpan,
+                         WellKnownMember.System_Runtime_CompilerServices_Unsafe__Add_T,
+                         WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T,
+                         WellKnownMember.System_Runtime_CompilerServices_Unsafe__AsRef_T
                         ' Not always available.
                         Continue For
                 End Select
