@@ -54,6 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 
         class HintNameProvider(int nextHintNameId)
         {
+            public void Reset(int id) => nextHintNameId = id;
             public string GetNextHintName()
             {
                 var name = nextHintNameId.ToString();
@@ -314,11 +315,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 
                 // incremental update from edited input
                 driver1 = driver1.ReplaceAdditionalTexts(editedInputs.ToImmutableArray<AdditionalText>());
+                hintNameProvider.Reset(originalInputsLength + newDocumentsCount);
                 driver1 = driver1.RunGenerators(comp);
                 var result1 = driver1.GetRunResult();
 
                 // run from scratch on edited
                 GeneratorDriver driver2 = CSharpGeneratorDriver.Create(generators, editedInputs);
+                hintNameProvider.Reset(originalInputsLength + newDocumentsCount);
                 driver2 = driver2.RunGenerators(comp);
                 var result2 = driver2.GetRunResult();
 
@@ -433,7 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
                 foreach (var text in originalInputs)
                 {
                     builder.AppendLine($"""
-                            new InMemoryAdditionalText("{text.Path}", "{text.GetText()!.ToString()}"),
+                            new InMemoryAdditionalText("{text.Path}", "{text.GetText()}"),
                 """);
                 }
 
@@ -452,7 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
                 foreach (var text in editedInputs)
                 {
                     builder.AppendLine($"""
-                            new InMemoryAdditionalText("{text.Path}", "{text.GetText()!.ToString()}"),
+                            new InMemoryAdditionalText("{text.Path}", "{text.GetText()}"),
                 """);
                 }
 
@@ -461,11 +464,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 
                         // incremental update from edited input
                         driver1 = driver1.ReplaceAdditionalTexts(editedInputs);
+                        hintNameProvider.Reset({{originalInputsLength + newDocumentsCount}});
                         driver1 = driver1.RunGenerators(comp);
                         var result1 = driver1.GetRunResult();
 
                         // from scratch on edited
                         GeneratorDriver driver2 = CSharpGeneratorDriver.Create(new[] { generator }, editedInputs);
+                        hintNameProvider.Reset({{originalInputsLength + newDocumentsCount}});
                         driver2 = driver2.RunGenerators(comp);
                         var result2 = driver2.GetRunResult();
 
@@ -497,6 +502,71 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
                 """);
 
                 _output.WriteLine(builder.ToString());
+            }
+        }
+
+        [Fact]
+        public void Fuzz_5()
+        {
+            var source = "";
+            var comp = CreateCompilation(source);
+            var hintNameProvider = new HintNameProvider(4);
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(registerPipeline));
+
+            // original input
+            var originalInputs = new[]
+            {
+                new InMemoryAdditionalText("0", "c"),
+                new InMemoryAdditionalText("1", "a"),
+                new InMemoryAdditionalText("2", "d"),
+            };
+
+            // from scratch on original
+
+            GeneratorDriver driver1 = CSharpGeneratorDriver.Create(new[] { generator }, originalInputs);
+            hintNameProvider = new HintNameProvider(4);
+            driver1.RunGenerators(comp);
+
+            // make edits to original input
+            var editedInputs = ImmutableArray.Create(new AdditionalText[]
+            {
+                new InMemoryAdditionalText("3", "c"),
+                new InMemoryAdditionalText("0", "c"),
+                new InMemoryAdditionalText("1", "b"),
+                new InMemoryAdditionalText("2", "b"),
+            });
+
+            // incremental update from edited input
+            hintNameProvider = new HintNameProvider(4);
+            driver1 = driver1.ReplaceAdditionalTexts(editedInputs);
+            driver1 = driver1.RunGenerators(comp);
+            var result1 = driver1.GetRunResult();
+
+            // from scratch on edited
+            GeneratorDriver driver2 = CSharpGeneratorDriver.Create(new[] { generator }, editedInputs);
+            hintNameProvider = new HintNameProvider(4);
+            driver2 = driver2.RunGenerators(comp);
+            var result2 = driver2.GetRunResult();
+
+            Assert.Equal(result2.GeneratedTrees, result1.GeneratedTrees, SyntaxTreeComparer.Instance);
+            Assert.Equal(result2.Diagnostics, result1.Diagnostics, CommonDiagnosticComparer.Instance);
+
+            void registerPipeline(IncrementalGeneratorInitializationContext context)
+            {
+                var provider = context.AdditionalTextsProvider
+                    .SelectMany((additionalText, _) => new (bool TransformAs, bool TransformCs)[] {
+                    (false, false),
+                    }.Select(logic => (AdditionalText)new InMemoryAdditionalText(hintNameProvider.GetNextHintName(), additionalText.GetText()!.ToString() switch
+                    {
+                        "a" when logic.TransformAs => "b",
+                        "c" when logic.TransformCs => "d",
+                        var other => other
+                    })))
+                ;
+                context.RegisterSourceOutput(provider, (context, text) =>
+                {
+                    context.AddSource(text.Path, text.GetText()!.ToString());
+                });
             }
         }
 
