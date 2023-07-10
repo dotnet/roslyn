@@ -17,3 +17,7 @@
 *REMOVED*override Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.GetHashCode() -> int
 *REMOVED*static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.operator !=(Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers left, Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers right) -> bool
 *REMOVED*static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.operator ==(Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers left, Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers right) -> bool
+*REMOVED*override Microsoft.CodeAnalysis.LoadTextOptions.Equals(object obj) -> bool
+*REMOVED*override Microsoft.CodeAnalysis.LoadTextOptions.GetHashCode() -> int
+*REMOVED*static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.operator ==(Microsoft.CodeAnalysis.Editing.DeclarationModifiers left, Microsoft.CodeAnalysis.Editing.DeclarationModifiers right) -> bool
+*REMOVED*static Microsoft.CodeAnalysis.FindSymbols.ReferenceLocation.operator ==(Microsoft.CodeAnalysis.FindSymbols.ReferenceLocation left, Microsoft.CodeAnalysis.FindSymbols.ReferenceLocation right) -> bool
