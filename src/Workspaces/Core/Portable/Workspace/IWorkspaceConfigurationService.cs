@@ -58,7 +58,6 @@ namespace Microsoft.CodeAnalysis.Host
             CacheStorage: StorageDatabase.None,
             EnableOpeningSourceGeneratedFiles: false,
             DisableSharedSyntaxTrees: false,
-            DeferCreatingRecoverableText: false,
             DisableRecoverableText: false);
     }
 }
