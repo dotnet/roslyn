@@ -12006,7 +12006,7 @@ namespace Test
 
             Assert.Equal("?[,,]", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Array, semanticInfo.Type.TypeKind);
-            Assert.Equal("?", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal("?[,,]", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);
 
@@ -12041,7 +12041,7 @@ namespace Test
 
             Assert.Equal("?[,,]", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Array, semanticInfo.Type.TypeKind);
-            Assert.Equal("?", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal("?[,,]", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);
 
@@ -12077,7 +12077,7 @@ public class C
 
             Assert.Equal("System.Int32[]", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Array, semanticInfo.Type.TypeKind);
-            Assert.Equal("?", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal("?[]", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);
 
