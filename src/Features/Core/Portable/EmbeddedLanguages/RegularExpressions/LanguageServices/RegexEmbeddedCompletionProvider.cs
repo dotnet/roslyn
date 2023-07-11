@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
     using static FeaturesResources;
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
 
-    internal sealed partial class RegexEmbeddedCompletionProvider : EmbeddedLanguageCompletionProvider
+    internal sealed partial class RegexEmbeddedCompletionProvider(RegexEmbeddedLanguage language) : EmbeddedLanguageCompletionProvider
     {
         private const string StartKey = nameof(StartKey);
         private const string LengthKey = nameof(LengthKey);
@@ -35,10 +35,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             CompletionItemRules.Default.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection)
                                        .WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, Array.Empty<char>()));
 
-        private readonly RegexEmbeddedLanguage _language;
-
-        public RegexEmbeddedCompletionProvider(RegexEmbeddedLanguage language)
-            => _language = language;
+        private readonly RegexEmbeddedLanguage _language = language;
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create(
             '\\', // any escape

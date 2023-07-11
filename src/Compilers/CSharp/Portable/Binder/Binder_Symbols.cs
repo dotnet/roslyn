@@ -2496,7 +2496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static BestSymbolLocation GetLocation(CSharpCompilation compilation, Symbol symbol)
         {
-            if (symbol is SourceMemberContainerTypeSymbol { IsFileLocal: true })
+            if (symbol is NamedTypeSymbol { IsFileLocal: true })
             {
                 return BestSymbolLocation.FromFile;
             }

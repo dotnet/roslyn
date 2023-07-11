@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 using System;
 
@@ -60,6 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.UnconvertedConditionalOperator:
                 case BoundKind.DefaultLiteral:
                 case BoundKind.UnconvertedInterpolatedString:
+                case BoundKind.UnconvertedCollectionLiteralExpression:
                     return true;
                 case BoundKind.StackAllocArrayCreation:
                     // A BoundStackAllocArrayCreation is given a null type when it is in a
@@ -236,6 +238,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return this.Method;
+            }
+        }
+
+        public Location? InterceptableLocation
+        {
+            get
+            {
+                // When this assertion fails, it means a new syntax is being used which corresponds to a BoundCall.
+                // The developer needs to determine how this new syntax should interact with interceptors (produce an error, permit intercepting the call, etc...)
+                Debug.Assert(this.WasCompilerGenerated || this.Syntax is InvocationExpressionSyntax or ConstructorInitializerSyntax or PrimaryConstructorBaseTypeSyntax { ArgumentList: { } },
+                    $"Unexpected syntax kind for BoundCall: {this.Syntax.Kind()}");
+
+                if (this.WasCompilerGenerated || this.Syntax is not InvocationExpressionSyntax syntax)
+                {
+                    return null;
+                }
+
+                // If a qualified name is used as a valid receiver of an invocation syntax at some point,
+                // we probably want to treat it similarly to a MemberAccessExpression.
+                // However, we don't expect to encounter it.
+                Debug.Assert(syntax.Expression is not QualifiedNameSyntax);
+
+                return syntax.Expression switch
+                {
+                    MemberAccessExpressionSyntax memberAccess => memberAccess.Name.Location,
+                    SimpleNameSyntax name => name.Location,
+                    _ => null
+                };
             }
         }
     }

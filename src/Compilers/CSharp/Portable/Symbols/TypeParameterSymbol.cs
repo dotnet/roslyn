@@ -721,5 +721,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => ImmutableArray<NamedTypeSymbol>.Empty;
         internal sealed override ImmutableArray<NamedTypeSymbol> AllBaseExtensionsNoUseSiteDiagnostics
             => ImmutableArray<NamedTypeSymbol>.Empty;
+
+        internal sealed override bool HasInlineArrayAttribute(out int length)
+        {
+            length = 0;
+            return false;
+        }
     }
 }

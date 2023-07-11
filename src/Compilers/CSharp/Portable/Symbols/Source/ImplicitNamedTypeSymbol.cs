@@ -191,5 +191,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override void CheckBaseExtensions(BindingDiagnosticBag diagnostics)
             => throw ExceptionUtilities.Unreachable();
+
+        internal sealed override bool HasInlineArrayAttribute(out int length)
+        {
+            length = 0;
+            return false;
+        }
     }
 }

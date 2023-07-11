@@ -205,6 +205,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls() => throw ExceptionUtilities.Unreachable();
 
+        internal override bool HasInlineArrayAttribute(out int length)
+        {
+            length = 0;
+            return false;
+        }
+
         internal override bool Equals(TypeSymbol t2, TypeCompareKind compareKind)
         {
             if (ReferenceEquals(this, t2))

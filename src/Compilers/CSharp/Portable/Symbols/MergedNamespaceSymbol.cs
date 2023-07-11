@@ -166,9 +166,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Method that is called from the CachingLookup to get all child names. Looks in all
         /// constituent namespaces.
         /// </summary>
-        private HashSet<ReadOnlyMemory<char>> SlowGetChildNames(IEqualityComparer<ReadOnlyMemory<char>> comparer)
+        private SegmentedHashSet<ReadOnlyMemory<char>> SlowGetChildNames(IEqualityComparer<ReadOnlyMemory<char>> comparer)
         {
-            var childNames = new HashSet<ReadOnlyMemory<char>>(comparer);
+            // compute an upper bound for the final capacity of the set we'll return, to reduce heap churn
+            int childCount = 0;
+
+            foreach (var ns in _namespacesToMerge)
+            {
+                childCount += ns.GetMembersUnordered().Length;
+            }
+
+            var childNames = new SegmentedHashSet<ReadOnlyMemory<char>>(childCount, comparer);
 
             foreach (var ns in _namespacesToMerge)
             {

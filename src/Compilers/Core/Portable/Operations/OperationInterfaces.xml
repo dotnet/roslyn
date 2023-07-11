@@ -3366,4 +3366,25 @@
       </Comments>
     </Property>
   </Node>
+  <Node Name="IInlineArrayAccessOperation" Base="IOperation" ChildrenOrder="Instance,Argument" HasType="true">
+    <Comments>
+      <summary>
+        Represents an element reference or a slice operation over an inline array type.
+        <para>
+          Current usage:
+          (1) C# inline array access.
+        </para>
+      </summary>
+    </Comments>
+    <Property Name="Instance" Type="IOperation">
+      <Comments>
+        <summary>Instance of the inline array type to be accessed.</summary>
+      </Comments>
+    </Property>
+    <Property Name="Argument" Type="IOperation">
+      <Comments>
+        <summary>System.Int32, System.Index or System.Range value.</summary>
+      </Comments>
+    </Property>
+  </Node>
 </Tree>

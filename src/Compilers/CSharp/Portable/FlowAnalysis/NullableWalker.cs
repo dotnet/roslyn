@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Invalid type, used only to catch Visit methods that do not set
         /// _result.Type. See VisitExpressionWithoutStackGuard.
         /// </summary>
-        private static readonly TypeWithState _invalidType = TypeWithState.Create(ErrorTypeSymbol.UnknownResultType, NullableFlowState.NotNull);
+        private static readonly TypeWithState _invalidType = TypeWithState.Create(new UnsupportedMetadataTypeSymbol(), NullableFlowState.NotNull);
 
         /// <summary>
         /// Contains the map of expressions to inferred nullabilities and types used by the optional rewriter phase of the
@@ -3471,6 +3471,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode? VisitCollectionLiteralExpression(BoundCollectionLiteralExpression node)
+        {
+            // https://github.com/dotnet/roslyn/issues/68786: Use inferInitialObjectState() to set the initial
+            // state of the instance: see the call to InheritNullableStateOfTrackableStruct() in particular.
+            int containerSlot = GetOrCreatePlaceholderSlot(node);
+            bool delayCompletionForType = false; // https://github.com/dotnet/roslyn/issues/68786: Should be true if the collection literal is target typed.
+
+            // https://github.com/dotnet/roslyn/issues/68786: Set nullability of elements from the inferred target type nullability.
+            foreach (var element in node.Elements)
+            {
+                switch (element)
+                {
+                    case BoundCollectionElementInitializer initializer:
+                        var collectionType = initializer.AddMethod.ContainingType;
+                        var completion = VisitCollectionElementInitializer(initializer, collectionType, delayCompletionForType);
+                        if (completion is { })
+                        {
+                            // https://github.com/dotnet/roslyn/issues/68786: Complete the analysis later.
+                            completion(containerSlot, collectionType);
+                        }
+                        break;
+                    default:
+                        VisitRvalue(element);
+                        break;
+                }
+            }
+
+            SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.NotNull));
+            return null;
+        }
+
+        public override BoundNode? VisitUnconvertedCollectionLiteralExpression(BoundUnconvertedCollectionLiteralExpression node)
+        {
+            foreach (var element in node.Elements)
+            {
+                VisitRvalue(element);
+            }
+
+            SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.NotNull));
+            return null;
+        }
+
         private void VisitObjectCreationExpressionBase(BoundObjectCreationExpressionBase node)
         {
             Debug.Assert(!IsConditionalState);
@@ -4424,6 +4466,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             SetLvalueResultType(node, result);
 
+            return null;
+        }
+
+        public override BoundNode? VisitInlineArrayAccess(BoundInlineArrayAccess node)
+        {
+            Debug.Assert(!IsConditionalState);
+
+            var expressionType = VisitRvalueWithState(node.Expression).Type;
+
+            Debug.Assert(!IsConditionalState);
+            Debug.Assert(expressionType is not null);
+            Debug.Assert(expressionType.IsValueType);
+
+            VisitRvalue(node.Argument);
+
+            TypeWithAnnotations type = expressionType.TryGetInlineArrayElementField()!.TypeWithAnnotations;
+
+            if (node.GetItemOrSliceHelper is WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int or WellKnownMember.System_Span_T__Slice_Int_Int)
+            {
+                type = TypeWithAnnotations.Create(((NamedTypeSymbol)node.Type).OriginalDefinition.Construct(ImmutableArray.Create(type)));
+            }
+
+            SetResult(node, type.ToTypeWithState(), type);
             return null;
         }
 
@@ -7186,6 +7251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.UnboundLambda:
                     case BoundKind.UnconvertedObjectCreationExpression:
                     case BoundKind.ConvertedTupleLiteral:
+                    case BoundKind.UnconvertedCollectionLiteralExpression:
                         return NullableAnnotation.NotAnnotated;
                     default:
                         Debug.Assert(false); // unexpected value
@@ -7340,7 +7406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return conversion;
         }
 
-        private static Conversion GenerateConversion(Conversions conversions, BoundExpression? sourceExpression, TypeSymbol? sourceType, TypeSymbol destinationType, bool fromExplicitCast, bool extensionMethodThisArgument, bool isChecked)
+        private Conversion GenerateConversion(Conversions conversions, BoundExpression? sourceExpression, TypeSymbol? sourceType, TypeSymbol destinationType, bool fromExplicitCast, bool extensionMethodThisArgument, bool isChecked)
         {
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
             bool useExpression = sourceType is null || UseExpressionForConversion(sourceExpression);
@@ -7368,7 +7434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// do not have an explicit type but there are several other cases as well.
         /// (See expressions handled in ClassifyImplicitBuiltInConversionFromExpression.)
         /// </summary>
-        private static bool UseExpressionForConversion([NotNullWhen(true)] BoundExpression? value)
+        private bool UseExpressionForConversion([NotNullWhen(true)] BoundExpression? value)
         {
             if (value is null)
             {
@@ -7383,6 +7449,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.InterpolatedString:
                     return true;
                 default:
+                    if (!_binder.InAttributeArgument && !_binder.InParameterDefaultValue && // These checks prevent cycles caused by attribute binding when HasInlineArrayAttribute check triggers that.
+                        value.Type.HasInlineArrayAttribute(out _) == true &&
+                        value.Type.TryGetInlineArrayElementField() is not null)
+                    {
+                        return true;
+                    }
+
                     return false;
             }
         }
@@ -8134,6 +8207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case ConversionKind.ObjectCreation:
+                case ConversionKind.CollectionLiteral:
                 case ConversionKind.SwitchExpression:
                 case ConversionKind.ConditionalExpression:
                     resultState = getConversionResultState(operandType);
@@ -8303,6 +8377,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case ConversionKind.ExplicitEnumeration:
                     // Can reach here, with an error type.
+                    break;
+
+                case ConversionKind.InlineArray:
+                    if (checkConversion)
+                    {
+                        conversion = GenerateConversion(_conversions, conversionOperand, operandType.Type, targetType, fromExplicitCast, extensionMethodThisArgument, isChecked: conversionOpt?.Checked ?? false);
+                        canConvertNestedNullability = conversion.Exists;
+                    }
                     break;
 
                 default:
@@ -10202,7 +10284,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Reinfer the return type of the node.Expression.GetEnumerator().Current property, so that if
                 // the collection changed nested generic types we pick up those changes.
-                reinferredGetEnumeratorMethod ??= (MethodSymbol)AsMemberOfType(convertedResult.Type, node.EnumeratorInfoOpt.GetEnumeratorInfo.Method);
+                if (reinferredGetEnumeratorMethod is null)
+                {
+                    TypeSymbol? getEnumeratorType;
+
+                    if (node.EnumeratorInfoOpt is { InlineArraySpanType: not WellKnownType.Unknown and var wellKnownSpan })
+                    {
+                        Debug.Assert(wellKnownSpan is WellKnownType.System_Span_T or WellKnownType.System_ReadOnlySpan_T);
+                        NamedTypeSymbol spanType = compilation.GetWellKnownType(wellKnownSpan);
+                        getEnumeratorType = spanType.Construct(ImmutableArray.Create(convertedResult.Type!.TryGetInlineArrayElementField()!.TypeWithAnnotations));
+                    }
+                    else
+                    {
+                        getEnumeratorType = convertedResult.Type;
+                    }
+
+                    reinferredGetEnumeratorMethod = (MethodSymbol)AsMemberOfType(getEnumeratorType, node.EnumeratorInfoOpt.GetEnumeratorInfo.Method);
+                }
+
                 var enumeratorReturnType = GetReturnTypeWithState(reinferredGetEnumeratorMethod);
 
                 if (enumeratorReturnType.State != NullableFlowState.NotNull)

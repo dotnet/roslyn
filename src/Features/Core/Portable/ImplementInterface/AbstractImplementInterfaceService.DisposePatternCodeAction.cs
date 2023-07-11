@@ -86,19 +86,15 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             return state.ClassOrStructType.FindImplementationForInterfaceMember(disposeMethod) == null;
         }
 
-        private sealed class ImplementInterfaceWithDisposePatternCodeAction : ImplementInterfaceCodeAction
+        private sealed class ImplementInterfaceWithDisposePatternCodeAction(
+            AbstractImplementInterfaceService service,
+            Document document,
+            ImplementTypeGenerationOptions options,
+            State state,
+            bool explicitly,
+            bool abstractly,
+            ISymbol? throughMember) : ImplementInterfaceCodeAction(service, document, options, state, explicitly, abstractly, onlyRemaining: !explicitly, throughMember)
         {
-            public ImplementInterfaceWithDisposePatternCodeAction(
-                AbstractImplementInterfaceService service,
-                Document document,
-                ImplementTypeGenerationOptions options,
-                State state,
-                bool explicitly,
-                bool abstractly,
-                ISymbol? throughMember) : base(service, document, options, state, explicitly, abstractly, onlyRemaining: !explicitly, throughMember)
-            {
-            }
-
             public static ImplementInterfaceWithDisposePatternCodeAction CreateImplementWithDisposePatternCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,

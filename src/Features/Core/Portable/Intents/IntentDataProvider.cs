@@ -11,7 +11,9 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.Features.Intents
 {
-    internal sealed class IntentDataProvider
+    internal sealed class IntentDataProvider(
+        string? serializedIntentData,
+        CleanCodeGenerationOptionsProvider fallbackOptions)
     {
         private static readonly Lazy<JsonSerializerOptions> s_serializerOptions = new Lazy<JsonSerializerOptions>(() =>
         {
@@ -23,17 +25,9 @@ namespace Microsoft.CodeAnalysis.Features.Intents
             return serializerOptions;
         });
 
-        public readonly CleanCodeGenerationOptionsProvider FallbackOptions;
+        public readonly CleanCodeGenerationOptionsProvider FallbackOptions = fallbackOptions;
 
-        private readonly string? _serializedIntentData;
-
-        public IntentDataProvider(
-            string? serializedIntentData,
-            CleanCodeGenerationOptionsProvider fallbackOptions)
-        {
-            _serializedIntentData = serializedIntentData;
-            FallbackOptions = fallbackOptions;
-        }
+        private readonly string? _serializedIntentData = serializedIntentData;
 
         public T? GetIntentData<T>() where T : class
         {

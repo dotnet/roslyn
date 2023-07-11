@@ -178,7 +178,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => _underlyingType;
 
         // note: there is no supported way to create a native integer type whose underlying type is file-local.
-        internal override FileIdentifier? AssociatedFileIdentifier => null;
+        internal sealed override bool IsFileLocal => false;
+        internal sealed override FileIdentifier? AssociatedFileIdentifier => null;
 
         internal sealed override bool IsRecord => false;
         internal sealed override bool IsRecordStruct => false;
@@ -289,6 +290,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
         {
             return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
+        }
+
+        internal override bool HasInlineArrayAttribute(out int length)
+        {
+            length = 0;
+            return false;
         }
 
         private sealed class NativeIntegerTypeMap : AbstractTypeMap

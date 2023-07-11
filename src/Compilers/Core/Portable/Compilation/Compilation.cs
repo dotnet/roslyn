@@ -875,6 +875,9 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract ISymbol? CommonGetAssemblyOrModuleSymbol(MetadataReference reference);
 
+        [return: NotNullIfNotNull(nameof(symbol))]
+        internal abstract TSymbol? GetSymbolInternal<TSymbol>(ISymbol? symbol) where TSymbol : class, ISymbolInternal;
+
         /// <summary>
         /// Gets the <see cref="MetadataReference"/> that corresponds to the assembly symbol.
         /// </summary>

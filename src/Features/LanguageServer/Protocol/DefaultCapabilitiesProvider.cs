@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 lz => CommonCompletionUtilities.GetTriggerCharacters(lz.Value)).Distinct().Select(c => c.ToString()).ToArray();
 
             capabilities.DefinitionProvider = true;
+            capabilities.DocumentHighlightProvider = true;
             capabilities.RenameProvider = true;
             capabilities.ImplementationProvider = true;
             capabilities.CodeActionProvider = new CodeActionOptions { CodeActionKinds = new[] { CodeActionKind.QuickFix, CodeActionKind.Refactor }, ResolveProvider = true };
@@ -94,8 +95,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 Range = true,
                 Legend = new SemanticTokensLegend
                 {
-                    TokenTypes = SemanticTokensSchema.GetSchema(clientCapabilities).AllTokenTypes.ToArray(),
-                    TokenModifiers = new string[] { SemanticTokenModifiers.Static }
+                    TokenTypes = SemanticTokensSchema.GetSchema(clientCapabilities.HasVisualStudioLspCapability()).AllTokenTypes.ToArray(),
+                    TokenModifiers = SemanticTokensSchema.TokenModifiers
                 }
             };
 
@@ -132,7 +133,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         private static VSInternalServerCapabilities GetVSServerCapabilities()
             => new()
             {
-                DocumentHighlightProvider = true,
                 ProjectContextProvider = true,
                 BreakableRangeProvider = true,
 

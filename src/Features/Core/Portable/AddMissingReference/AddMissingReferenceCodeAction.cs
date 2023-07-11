@@ -14,27 +14,19 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddMissingReference
 {
-    internal class AddMissingReferenceCodeAction : CodeAction
+    internal class AddMissingReferenceCodeAction(Project project, string title, ProjectReference? projectReferenceToAdd, AssemblyIdentity missingAssemblyIdentity) : CodeAction
     {
-        private readonly Project _project;
-        private readonly ProjectReference? _projectReferenceToAdd;
-        private readonly AssemblyIdentity _missingAssemblyIdentity;
+        private readonly Project _project = project;
+        private readonly ProjectReference? _projectReferenceToAdd = projectReferenceToAdd;
+        private readonly AssemblyIdentity _missingAssemblyIdentity = missingAssemblyIdentity;
 
-        public override string Title { get; }
+        public override string Title { get; } = title;
 
         /// <summary>
         /// This code action only works by adding references.  As such, it requires a non document change (and is
         /// thus restricted in which hosts it can run).
         /// </summary>
         public override ImmutableArray<string> Tags => RequiresNonDocumentChangeTags;
-
-        public AddMissingReferenceCodeAction(Project project, string title, ProjectReference? projectReferenceToAdd, AssemblyIdentity missingAssemblyIdentity)
-        {
-            _project = project;
-            Title = title;
-            _projectReferenceToAdd = projectReferenceToAdd;
-            _missingAssemblyIdentity = missingAssemblyIdentity;
-        }
 
         public static async Task<CodeAction> CreateAsync(Project project, AssemblyIdentity missingAssemblyIdentity, CancellationToken cancellationToken)
         {

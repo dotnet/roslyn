@@ -912,7 +912,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ScopedType = 9075,
 
-        ExtensionDeclaration = 9076,
-        ForType = 9077,
+        CollectionExpression = 9076,
+        ExpressionElement = 9077,
+        SpreadElement = 9078,
+
+        ExtensionDeclaration = 9079,
+        ForType = 9080,
     }
 }

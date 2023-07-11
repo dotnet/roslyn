@@ -2362,7 +2362,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(reportedError);
                         return;
                     }
-
+                case BoundKind.UnconvertedCollectionLiteralExpression:
+                    {
+                        Debug.Assert(operand.Type is null);
+                        Error(diagnostics, ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, syntax, targetType);
+                        return;
+                    }
                 case BoundKind.AddressOfOperator when targetType.IsFunctionPointer():
                     {
                         Error(diagnostics, ErrorCode.ERR_InvalidAddrOp, ((BoundAddressOfOperator)operand).Operand.Syntax);

@@ -14,16 +14,10 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Shared.Naming
 {
-    internal readonly struct IdentifierNameParts
+    internal readonly struct IdentifierNameParts(string baseName, ImmutableArray<string> baseNameParts)
     {
-        public readonly string BaseName;
-        public readonly ImmutableArray<string> BaseNameParts;
-
-        public IdentifierNameParts(string baseName, ImmutableArray<string> baseNameParts)
-        {
-            BaseName = baseName;
-            BaseNameParts = baseNameParts;
-        }
+        public readonly string BaseName = baseName;
+        public readonly ImmutableArray<string> BaseNameParts = baseNameParts;
 
         public static IdentifierNameParts CreateIdentifierNameParts(ISymbol symbol, ImmutableArray<NamingRule> rules)
         {

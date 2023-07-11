@@ -1612,5 +1612,63 @@ partial class C
             Assert.Equal(expectedSemanticModelTreeCallbacks.Count, analyzer.AnalyzedSemanticModels.Count);
             AssertEx.SetEqual(expectedSemanticModelTreeCallbacks, analyzer.AnalyzedSemanticModels.Select(s => s.SyntaxTree).ToHashSet());
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68654")]
+        public async Task TestAnalyzerLocalDiagnosticsWhenReportedOnEnumFieldSymbol()
+        {
+            var source = @"
+public class Outer
+{
+    public enum E1
+    {
+        A1 = 0
     }
 }
+
+public enum E2
+{
+    A2 = 0
+}";
+
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees[0];
+            var analyzer = new EnumTypeFieldSymbolAnalyzer();
+            var compilationWithAnalyzers = compilation.WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer), AnalyzerOptions.Empty);
+            var result = await compilationWithAnalyzers.GetAnalysisResultAsync(CancellationToken.None);
+
+            var localSemanticDiagnostics = result.SemanticDiagnostics[tree][analyzer];
+            localSemanticDiagnostics.Verify(
+                Diagnostic("ID0001", "A1 = 0").WithLocation(6, 9),
+                Diagnostic("ID0001", "A2 = 0").WithLocation(12, 5));
+
+            Assert.Empty(result.CompilationDiagnostics);
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        private class EnumTypeFieldSymbolAnalyzer : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor("ID0001", "Title", "Message", "Category", defaultSeverity: DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSymbolAction(symbolContext =>
+                {
+                    var namedType = (INamedTypeSymbol)symbolContext.Symbol;
+                    foreach (var field in namedType.GetMembers().OfType<IFieldSymbol>())
+                    {
+                        if (!field.IsImplicitlyDeclared)
+                        {
+                            var diag = CodeAnalysis.Diagnostic.Create(Descriptor, field.DeclaringSyntaxReferences[0].GetLocation());
+                            symbolContext.ReportDiagnostic(diag);
+                        }
+                    }
+                }, SymbolKind.NamedType);
+            }
+        }
+    }
+}
+
