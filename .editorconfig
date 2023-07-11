@@ -32,6 +32,10 @@ indent_size = 2
 indent_size = 2
 indent_style = space
 
+[*.ps1]
+indent_style = space
+indent_size = 4
+
 # Dotnet code style settings:
 [*.{cs,vb}]
 # Sort using and Import directives with System.* appearing first
