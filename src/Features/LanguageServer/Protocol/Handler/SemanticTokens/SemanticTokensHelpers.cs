@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             ClassificationOptions options,
             CancellationToken cancellationToken)
         {
-            var tokenTypesToIndex = SemanticTokensSchema.GetSchema(capabilities).TokenTypeToIndex;
+            var tokenTypesToIndex = SemanticTokensSchema.GetSchema(capabilities.HasVisualStudioLspCapability()).TokenTypeToIndex;
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             var lastLineNumber = 0;
             var lastStartCharacter = 0;
 
-            var tokenTypeMap = SemanticTokensSchema.GetSchema(capabilities).TokenTypeMap;
+            var tokenTypeMap = SemanticTokensSchema.GetSchema(capabilities.HasVisualStudioLspCapability()).TokenTypeMap;
 
             for (var currentClassifiedSpanIndex = 0; currentClassifiedSpanIndex < classifiedSpans.Length; currentClassifiedSpanIndex++)
             {

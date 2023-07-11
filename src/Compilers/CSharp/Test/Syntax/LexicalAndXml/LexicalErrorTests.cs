@@ -4,6 +4,9 @@
 
 #nullable disable
 
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;

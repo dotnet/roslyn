@@ -49,6 +49,25 @@ End Namespace
             Return String.Format(FeaturesResources.member_kind_and_name, resource, symbolDisplayName)
         End Function
 
+        Public Shared Function GetResource(keyword As String, symbolDisplayName As String, containerKeyword As String, containerDisplayName As String) As String
+            Dim keywordResource = TryGetResource(keyword)
+            If keywordResource Is Nothing Then
+                Throw ExceptionUtilities.UnexpectedValue(keyword)
+            End If
+
+            Dim containerResource = TryGetResource(containerKeyword)
+            If containerResource Is Nothing Then
+                Throw ExceptionUtilities.UnexpectedValue(containerKeyword)
+            End If
+
+            Return String.Format(
+                FeaturesResources.symbol_kind_and_name_of_member_kind_and_name,
+                keywordResource,
+                symbolDisplayName,
+                containerResource,
+                containerDisplayName)
+        End Function
+
         Public Shared Function GetResource(keyword As String) As String
             Dim result = TryGetResource(keyword)
             If result Is Nothing Then
@@ -145,7 +164,7 @@ End Namespace
 
         Private Shared Function ParseSource(markedSource As String, Optional documentIndex As Integer = 0) As SyntaxTree
             Return SyntaxFactory.ParseSyntaxTree(
-                ActiveStatementsDescription.ClearTags(markedSource),
+                SourceMarkers.Clear(markedSource),
                 VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest),
                 path:=GetDocumentFilePath(documentIndex))
         End Function
@@ -177,11 +196,10 @@ End Namespace
             Dim m1 = MakeMethodBody(src1, methodKind)
             Dim m2 = MakeMethodBody(src2, methodKind)
 
-            Dim analyzer = CreateAnalyzer()
-            Dim match = analyzer.ComputeBodyMatch(m1, m2, Array.Empty(Of AbstractEditAndContinueAnalyzer.ActiveNode)())
+            Dim match = m1.ComputeMatch(m2, knownMatches:=Nothing)
 
-            Dim stateMachineInfo1 = analyzer.GetStateMachineInfo(m1)
-            Dim stateMachineInfo2 = analyzer.GetStateMachineInfo(m2)
+            Dim stateMachineInfo1 = m1.GetStateMachineInfo()
+            Dim stateMachineInfo2 = m2.GetStateMachineInfo()
             Dim needsSyntaxMap = stateMachineInfo1.HasSuspensionPoints AndAlso stateMachineInfo2.HasSuspensionPoints
 
             Assert.Equal(methodKind <> MethodKind.Regular, needsSyntaxMap)
@@ -204,7 +222,7 @@ End Namespace
             Return EditAndContinueTestHelpers.ToMatchingPairs(matches)
         End Function
 
-        Friend Shared Function MakeMethodBody(bodySource As String, Optional stateMachine As MethodKind = MethodKind.Regular) As SyntaxNode
+        Friend Shared Function MakeMethodBody(bodySource As String, Optional stateMachine As MethodKind = MethodKind.Regular) As MemberBody
             Dim source = WrapMethodBodyWithClass(bodySource, stateMachine)
 
             Dim tree = ParseSource(source)
@@ -212,7 +230,7 @@ End Namespace
             tree.GetDiagnostics().Verify()
 
             Dim declaration = DirectCast(DirectCast(root, CompilationUnitSyntax).Members(0), ClassBlockSyntax).Members(0)
-            Return SyntaxFactory.SyntaxTree(declaration).GetRoot()
+            Return SyntaxUtilities.TryGetDeclarationBody(SyntaxFactory.SyntaxTree(declaration).GetRoot())
         End Function
 
         Private Shared Function WrapMethodBodyWithClass(bodySource As String, Optional kind As MethodKind = MethodKind.Regular) As String

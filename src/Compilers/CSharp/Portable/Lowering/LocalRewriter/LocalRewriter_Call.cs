@@ -148,7 +148,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(interceptableLocation != null);
-            Debug.Assert(interceptor.Arity == 0);
+            Debug.Assert(interceptor.IsDefinition);
+            Debug.Assert(!interceptor.ContainingType.IsGenericType);
+
+            if (interceptor.Arity != 0)
+            {
+                var typeArgumentsBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
+                method.ContainingType.GetAllTypeArgumentsNoUseSiteDiagnostics(typeArgumentsBuilder);
+                typeArgumentsBuilder.AddRange(method.TypeArgumentsWithAnnotations);
+
+                var netArity = typeArgumentsBuilder.Count;
+                if (netArity == 0)
+                {
+                    this._diagnostics.Add(ErrorCode.ERR_InterceptorCannotBeGeneric, attributeLocation, interceptor, method);
+                    typeArgumentsBuilder.Free();
+                    return;
+                }
+                else if (interceptor.Arity != netArity)
+                {
+                    this._diagnostics.Add(ErrorCode.ERR_InterceptorArityNotCompatible, attributeLocation, interceptor, netArity, method);
+                    typeArgumentsBuilder.Free();
+                    return;
+                }
+
+                interceptor = interceptor.Construct(typeArgumentsBuilder.ToImmutableAndFree());
+                if (!interceptor.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this._compilation, this._compilation.Conversions, includeNullability: true, attributeLocation, this._diagnostics)))
+                {
+                    return;
+                }
+            }
 
             var containingMethod = this._factory.CurrentFunction;
             Debug.Assert(containingMethod is not null);

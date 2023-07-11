@@ -413,5 +413,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 }
             }
         }
+
+        internal override bool HasInlineArrayAttribute(out int length)
+        {
+            return _underlyingType.HasInlineArrayAttribute(out length);
+        }
     }
 }

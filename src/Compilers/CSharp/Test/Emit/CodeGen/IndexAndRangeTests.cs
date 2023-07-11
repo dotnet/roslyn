@@ -3359,7 +3359,7 @@ static class SideEffect
     }
 }
 ", TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput:
+            var verifier = CompileAndVerify(comp, expectedOutput:
 @"
 Get GetIdx Length Slice 1, 2
 Get GetIdx1 GetIdx2 Slice 1, 2
@@ -3378,6 +3378,333 @@ Get GetIdx1 GetIdx4 Length Slice 1, 2
 Get GetIdx1 GetIdx4 Length Slice 1, 2
 Get GetIdx3 GetIdx2 Length Slice 1, 2
 Get GetIdx3 GetIdx2 Length Slice 1, 2
+");
+            verifier.VerifyMethodBody("SideEffect.Main", @"
+{
+  // Code size      731 (0x2db)
+  .maxstack  4
+  .locals init (System.Range V_0,
+                int V_1,
+                int V_2,
+                int V_3,
+                System.Index V_4,
+                CollectionX V_5,
+                int V_6,
+                System.Index V_7)
+  // sequence point: _ = Get()[GetIdx()];
+  IL_0000:  call       ""CollectionX SideEffect.Get()""
+  IL_0005:  call       ""System.Range SideEffect.GetIdx()""
+  IL_000a:  stloc.0
+  IL_000b:  dup
+  IL_000c:  callvirt   ""int CollectionX.Length.get""
+  IL_0011:  stloc.1
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  call       ""System.Index System.Range.Start.get""
+  IL_0019:  stloc.s    V_4
+  IL_001b:  ldloca.s   V_4
+  IL_001d:  ldloc.1
+  IL_001e:  call       ""int System.Index.GetOffset(int)""
+  IL_0023:  stloc.2
+  IL_0024:  ldloca.s   V_0
+  IL_0026:  call       ""System.Index System.Range.End.get""
+  IL_002b:  stloc.s    V_4
+  IL_002d:  ldloca.s   V_4
+  IL_002f:  ldloc.1
+  IL_0030:  call       ""int System.Index.GetOffset(int)""
+  IL_0035:  ldloc.2
+  IL_0036:  sub
+  IL_0037:  stloc.3
+  IL_0038:  ldloc.2
+  IL_0039:  ldloc.3
+  IL_003a:  callvirt   ""int CollectionX.Slice(int, int)""
+  IL_003f:  pop
+  // sequence point: _ = Get()[GetIdx1(1)..GetIdx2(3)];
+  IL_0040:  call       ""CollectionX SideEffect.Get()""
+  IL_0045:  ldc.i4.1
+  IL_0046:  call       ""int SideEffect.GetIdx1(int)""
+  IL_004b:  stloc.3
+  IL_004c:  ldloc.3
+  IL_004d:  ldc.i4.3
+  IL_004e:  call       ""int SideEffect.GetIdx2(int)""
+  IL_0053:  ldloc.3
+  IL_0054:  sub
+  IL_0055:  callvirt   ""int CollectionX.Slice(int, int)""
+  IL_005a:  pop
+  // sequence point: _ = Get()[^GetIdx1(3)..GetIdx2(3)];
+  IL_005b:  call       ""CollectionX SideEffect.Get()""
+  IL_0060:  ldc.i4.3
+  IL_0061:  call       ""int SideEffect.GetIdx1(int)""
+  IL_0066:  stloc.3
+  IL_0067:  ldc.i4.3
+  IL_0068:  call       ""int SideEffect.GetIdx2(int)""
+  IL_006d:  stloc.2
+  IL_006e:  dup
+  IL_006f:  callvirt   ""int CollectionX.Length.get""
+  IL_0074:  ldloc.3
+  IL_0075:  sub
+  IL_0076:  stloc.1
+  IL_0077:  ldloc.1
+  IL_0078:  ldloc.2
+  IL_0079:  ldloc.1
+  IL_007a:  sub
+  IL_007b:  callvirt   ""int CollectionX.Slice(int, int)""
+  IL_0080:  pop
+  // sequence point: _ = Get()[GetIdx1(1)..^GetIdx2(1)];
+  IL_0081:  call       ""CollectionX SideEffect.Get()""
+  IL_0086:  stloc.s    V_5
+  IL_0088:  ldc.i4.1
+  IL_0089:  call       ""int SideEffect.GetIdx1(int)""
+  IL_008e:  stloc.1
+  IL_008f:  ldc.i4.1
+  IL_0090:  call       ""int SideEffect.GetIdx2(int)""
+  IL_0095:  stloc.2
+  IL_0096:  ldloc.s    V_5
+  IL_0098:  ldloc.1
+  IL_0099:  ldloc.s    V_5
+  IL_009b:  callvirt   ""int CollectionX.Length.get""
+  IL_00a0:  ldloc.2
+  IL_00a1:  sub
+  IL_00a2:  ldloc.1
+  IL_00a3:  sub
+  IL_00a4:  callvirt   ""int CollectionX.Slice(int, int)""
+  IL_00a9:  pop
+  // sequence point: _ = Get()[^GetIdx1(3)..^GetIdx2(1)];
+  IL_00aa:  call       ""CollectionX SideEffect.Get()""
+  IL_00af:  ldc.i4.3
+  IL_00b0:  call       ""int SideEffect.GetIdx1(int)""
+  IL_00b5:  stloc.2
+  IL_00b6:  ldc.i4.1
+  IL_00b7:  call       ""int SideEffect.GetIdx2(int)""
+  IL_00bc:  stloc.1
+  IL_00bd:  dup
+  IL_00be:  callvirt   ""int CollectionX.Length.get""
+  IL_00c3:  stloc.3
+  IL_00c4:  ldloc.3
+  IL_00c5:  ldloc.2
+  IL_00c6:  sub
+  IL_00c7:  stloc.s    V_6
+  IL_00c9:  ldloc.s    V_6
+  IL_00cb:  ldloc.3
+  IL_00cc:  ldloc.1
+  IL_00cd:  sub
+  IL_00ce:  ldloc.s    V_6
+  IL_00d0:  sub
+  IL_00d1:  callvirt   ""int CollectionX.Slice(int, int)""
+  IL_00d6:  pop
+  // sequence point: _ = Get()[GetIdx3(1)..GetIdx4(3)];
+  IL_00d7:  call       ""CollectionX SideEffect.Get()""
+  IL_00dc:  ldc.i4.1
+  IL_00dd:  call       ""System.Index System.Index.op_Implicit(int)""
+  IL_00e2:  call       ""System.Index SideEffect.GetIdx3(System.Index)""
+  IL_00e7:  stloc.s    V_4
+  IL_00e9:  ldc.i4.3
+  IL_00ea:  call       ""System.Index System.Index.op_Implicit(int)""
+  IL_00ef:  call       ""System.Index SideEffect.GetIdx4(System.Index)""
+  IL_00f4:  stloc.s    V_7
+  IL_00f6:  dup
+  IL_00f7:  callvirt   ""int CollectionX.Length.get""
+  IL_00fc:  stloc.s    V_6
+  IL_00fe:  ldloca.s   V_4
+  IL_0100:  ldloc.s    V_6
+  IL_0102:  call       ""int System.Index.GetOffset(int)""
+  IL_0107:  stloc.3
+  IL_0108:  ldloc.3
+  IL_0109:  ldloca.s   V_7
+  IL_010b:  ldloc.s    V_6
+  IL_010d:  call       ""int System.Index.GetOffset(int)""
+  IL_0112:  ldloc.3
+  IL_0113:  sub
+  IL_0114:  callvirt   ""int CollectionX.Slice(int, int)""
+  IL_0119:  pop
+  // sequence point: _ = Get()[^GetIdx1(3)..];
+  IL_011a:  call       ""CollectionX SideEffect.Get()""
+  IL_011f:  ldc.i4.3
+  IL_0120:  call       ""int SideEffect.GetIdx1(int)""
+  IL_0125:  stloc.3
+  IL_0126:  dup
+  IL_0127:  callvirt   ""int CollectionX.Length.get""
+  IL_012c:  stloc.s    V_6
+  IL_012e:  ldloc.s    V_6
+  IL_0130:  ldloc.3
+  IL_0131:  sub
+  IL_0132:  stloc.1
+  IL_0133:  ldloc.1
+  IL_0134:  ldloc.s    V_6
+  IL_0136:  ldloc.1
+  IL_0137:  sub
+  IL_0138:  callvirt   ""int CollectionX.Slice(int, int)""
+  IL_013d:  pop
+  // sequence point: _ = Get()[GetIdx1(1)..];
+  IL_013e:  call       ""CollectionX SideEffect.Get()""
+  IL_0143:  stloc.s    V_5
+  IL_0145:  ldc.i4.1
+  IL_0146:  call       ""int SideEffect.GetIdx1(int)""
+  IL_014b:  stloc.1
+  IL_014c:  ldloc.s    V_5
+  IL_014e:  ldloc.1
+  IL_014f:  ldloc.s    V_5
+  IL_0151:  callvirt   ""int CollectionX.Length.get""
+  IL_0156:  ldloc.1
+  IL_0157:  sub
+  IL_0158:  callvirt   ""int CollectionX.Slice(int, int)""
+  IL_015d:  pop
+  // sequence point: _ = Get()[..GetIdx2(3)];
+  IL_015e:  call       ""CollectionX SideEffect.Get()""
+  IL_0163:  ldc.i4.0
+  IL_0164:  ldc.i4.3
+  IL_0165:  call       ""int SideEffect.GetIdx2(int)""
+  IL_016a:  callvirt   ""int CollectionX.Slice(int, int)""
+  IL_016f:  pop
+  // sequence point: _ = Get()[..^GetIdx2(1)];
+  IL_0170:  call       ""CollectionX SideEffect.Get()""
+  IL_0175:  stloc.s    V_5
+  IL_0177:  ldc.i4.1
+  IL_0178:  call       ""int SideEffect.GetIdx2(int)""
+  IL_017d:  stloc.1
+  IL_017e:  ldloc.s    V_5
+  IL_0180:  ldc.i4.0
+  IL_0181:  ldloc.s    V_5
+  IL_0183:  callvirt   ""int CollectionX.Length.get""
+  IL_0188:  ldloc.1
+  IL_0189:  sub
+  IL_018a:  callvirt   ""int CollectionX.Slice(int, int)""
+  IL_018f:  pop
+  // sequence point: _ = Get()[..];
+  IL_0190:  call       ""CollectionX SideEffect.Get()""
+  IL_0195:  stloc.s    V_5
+  IL_0197:  ldloc.s    V_5
+  IL_0199:  ldc.i4.0
+  IL_019a:  ldloc.s    V_5
+  IL_019c:  callvirt   ""int CollectionX.Length.get""
+  IL_01a1:  callvirt   ""int CollectionX.Slice(int, int)""
+  IL_01a6:  pop
+  // sequence point: _ = Get()[GetIdx3(1)..];
+  IL_01a7:  call       ""CollectionX SideEffect.Get()""
+  IL_01ac:  ldc.i4.1
+  IL_01ad:  call       ""System.Index System.Index.op_Implicit(int)""
+  IL_01b2:  call       ""System.Index SideEffect.GetIdx3(System.Index)""
+  IL_01b7:  stloc.s    V_7
+  IL_01b9:  dup
+  IL_01ba:  callvirt   ""int CollectionX.Length.get""
+  IL_01bf:  stloc.1
+  IL_01c0:  ldloca.s   V_7
+  IL_01c2:  ldloc.1
+  IL_01c3:  call       ""int System.Index.GetOffset(int)""
+  IL_01c8:  stloc.s    V_6
+  IL_01ca:  ldloc.s    V_6
+  IL_01cc:  ldloc.1
+  IL_01cd:  ldloc.s    V_6
+  IL_01cf:  sub
+  IL_01d0:  callvirt   ""int CollectionX.Slice(int, int)""
+  IL_01d5:  pop
+  // sequence point: _ = Get()[..GetIdx4(3)];
+  IL_01d6:  call       ""CollectionX SideEffect.Get()""
+  IL_01db:  stloc.s    V_5
+  IL_01dd:  ldloc.s    V_5
+  IL_01df:  ldc.i4.0
+  IL_01e0:  ldc.i4.3
+  IL_01e1:  call       ""System.Index System.Index.op_Implicit(int)""
+  IL_01e6:  call       ""System.Index SideEffect.GetIdx4(System.Index)""
+  IL_01eb:  stloc.s    V_7
+  IL_01ed:  ldloca.s   V_7
+  IL_01ef:  ldloc.s    V_5
+  IL_01f1:  callvirt   ""int CollectionX.Length.get""
+  IL_01f6:  call       ""int System.Index.GetOffset(int)""
+  IL_01fb:  callvirt   ""int CollectionX.Slice(int, int)""
+  IL_0200:  pop
+  // sequence point: _ = Get()[^GetIdx1(3)..GetIdx4(3)];
+  IL_0201:  call       ""CollectionX SideEffect.Get()""
+  IL_0206:  ldc.i4.3
+  IL_0207:  call       ""int SideEffect.GetIdx1(int)""
+  IL_020c:  stloc.s    V_6
+  IL_020e:  ldc.i4.3
+  IL_020f:  call       ""System.Index System.Index.op_Implicit(int)""
+  IL_0214:  call       ""System.Index SideEffect.GetIdx4(System.Index)""
+  IL_0219:  stloc.s    V_7
+  IL_021b:  dup
+  IL_021c:  callvirt   ""int CollectionX.Length.get""
+  IL_0221:  stloc.1
+  IL_0222:  ldloc.1
+  IL_0223:  ldloc.s    V_6
+  IL_0225:  sub
+  IL_0226:  stloc.3
+  IL_0227:  ldloc.3
+  IL_0228:  ldloca.s   V_7
+  IL_022a:  ldloc.1
+  IL_022b:  call       ""int System.Index.GetOffset(int)""
+  IL_0230:  ldloc.3
+  IL_0231:  sub
+  IL_0232:  callvirt   ""int CollectionX.Slice(int, int)""
+  IL_0237:  pop
+  // sequence point: _ = Get()[GetIdx1(1)..GetIdx4(3)];
+  IL_0238:  call       ""CollectionX SideEffect.Get()""
+  IL_023d:  stloc.s    V_5
+  IL_023f:  ldc.i4.1
+  IL_0240:  call       ""int SideEffect.GetIdx1(int)""
+  IL_0245:  stloc.3
+  IL_0246:  ldloc.s    V_5
+  IL_0248:  ldloc.3
+  IL_0249:  ldc.i4.3
+  IL_024a:  call       ""System.Index System.Index.op_Implicit(int)""
+  IL_024f:  call       ""System.Index SideEffect.GetIdx4(System.Index)""
+  IL_0254:  stloc.s    V_7
+  IL_0256:  ldloca.s   V_7
+  IL_0258:  ldloc.s    V_5
+  IL_025a:  callvirt   ""int CollectionX.Length.get""
+  IL_025f:  call       ""int System.Index.GetOffset(int)""
+  IL_0264:  ldloc.3
+  IL_0265:  sub
+  IL_0266:  callvirt   ""int CollectionX.Slice(int, int)""
+  IL_026b:  pop
+  // sequence point: _ = Get()[GetIdx3(1)..GetIdx2(3)];
+  IL_026c:  call       ""CollectionX SideEffect.Get()""
+  IL_0271:  stloc.s    V_5
+  IL_0273:  ldc.i4.1
+  IL_0274:  call       ""System.Index System.Index.op_Implicit(int)""
+  IL_0279:  call       ""System.Index SideEffect.GetIdx3(System.Index)""
+  IL_027e:  stloc.s    V_7
+  IL_0280:  ldc.i4.3
+  IL_0281:  call       ""int SideEffect.GetIdx2(int)""
+  IL_0286:  stloc.3
+  IL_0287:  ldloca.s   V_7
+  IL_0289:  ldloc.s    V_5
+  IL_028b:  callvirt   ""int CollectionX.Length.get""
+  IL_0290:  call       ""int System.Index.GetOffset(int)""
+  IL_0295:  stloc.1
+  IL_0296:  ldloc.s    V_5
+  IL_0298:  ldloc.1
+  IL_0299:  ldloc.3
+  IL_029a:  ldloc.1
+  IL_029b:  sub
+  IL_029c:  callvirt   ""int CollectionX.Slice(int, int)""
+  IL_02a1:  pop
+  // sequence point: _ = Get()[GetIdx3(1)..^GetIdx2(1)];
+  IL_02a2:  call       ""CollectionX SideEffect.Get()""
+  IL_02a7:  ldc.i4.1
+  IL_02a8:  call       ""System.Index System.Index.op_Implicit(int)""
+  IL_02ad:  call       ""System.Index SideEffect.GetIdx3(System.Index)""
+  IL_02b2:  stloc.s    V_7
+  IL_02b4:  ldc.i4.1
+  IL_02b5:  call       ""int SideEffect.GetIdx2(int)""
+  IL_02ba:  stloc.1
+  IL_02bb:  dup
+  IL_02bc:  callvirt   ""int CollectionX.Length.get""
+  IL_02c1:  stloc.3
+  IL_02c2:  ldloca.s   V_7
+  IL_02c4:  ldloc.3
+  IL_02c5:  call       ""int System.Index.GetOffset(int)""
+  IL_02ca:  stloc.s    V_6
+  IL_02cc:  ldloc.s    V_6
+  IL_02ce:  ldloc.3
+  IL_02cf:  ldloc.1
+  IL_02d0:  sub
+  IL_02d1:  ldloc.s    V_6
+  IL_02d3:  sub
+  IL_02d4:  callvirt   ""int CollectionX.Slice(int, int)""
+  IL_02d9:  pop
+  // sequence point: }
+  IL_02da:  ret
+}
 ");
         }
 

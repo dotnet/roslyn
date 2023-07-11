@@ -83,6 +83,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         int GreaterThanToken { get; }
         int IdentifierToken { get; }
         int InterpolatedStringTextToken { get; }
+        int LessThanSlashToken { get; }
         int LessThanToken { get; }
         int OpenBraceToken { get; }
         int? OpenBracketToken { get; }

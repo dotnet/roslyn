@@ -516,5 +516,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             });
             Assert.False(string.IsNullOrEmpty(engine.Log));
         }
+
+        [Fact]
+        public void ReportIVTsSwitch()
+        {
+            var csc = new Csc();
+            csc.ReportIVTs = true;
+            AssertEx.Equal("/reportivts", csc.GenerateResponseFileContents());
+        }
     }
 }

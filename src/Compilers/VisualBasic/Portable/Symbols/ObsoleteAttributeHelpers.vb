@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Select Case symbol.ObsoleteKind
                 Case ObsoleteAttributeKind.None
                     Return ObsoleteDiagnosticKind.NotObsolete
-                Case ObsoleteAttributeKind.Experimental
+                Case ObsoleteAttributeKind.WindowsExperimental, ObsoleteAttributeKind.Experimental
                     Return ObsoleteDiagnosticKind.Diagnostic
                 Case ObsoleteAttributeKind.Uninitialized
                     ' If we haven't cracked attributes on the symbol at all or we haven't
@@ -115,11 +115,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' uninitialized.
             Debug.Assert(Not data.IsUninitialized)
 
-            If data.Kind = ObsoleteAttributeKind.Experimental Then
+            If data.Kind = ObsoleteAttributeKind.WindowsExperimental Then
                 Debug.Assert(data.Message Is Nothing)
                 Debug.Assert(Not data.IsError)
                 ' Provide an explicit format for fully-qualified type names.
                 Return ErrorFactory.ErrorInfo(ERRID.WRN_Experimental, New FormattedSymbol(symbol, SymbolDisplayFormat.VisualBasicErrorMessageFormat))
+            End If
+
+            If data.Kind = ObsoleteAttributeKind.Experimental Then
+                Debug.Assert(data.Message Is Nothing)
+                Debug.Assert(Not data.IsError)
+                ' Provide an explicit format for fully-qualified type names.
+                Return New CustomObsoleteDiagnosticInfo(MessageProvider.Instance, ERRID.WRN_Experimental,
+                    data, New FormattedSymbol(symbol, SymbolDisplayFormat.VisualBasicErrorMessageFormat))
             End If
 
             ' For property accessors we report a special diagnostic which indicates whether the getter or setter is obsolete.

@@ -373,5 +373,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
         }
+
+        internal override bool HasInlineArrayAttribute(out int length)
+        {
+            length = 0;
+            return false;
+        }
     }
 }

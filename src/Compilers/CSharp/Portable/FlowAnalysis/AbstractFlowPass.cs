@@ -567,15 +567,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.PropertyAccess:
-                    var access = (BoundPropertyAccess)node;
-
-                    if (Binder.AccessingAutoPropertyFromConstructor(access, _symbol))
                     {
-                        var backingField = (access.PropertySymbol as SourcePropertySymbolBase)?.BackingField;
-                        if (backingField != null)
+                        var access = (BoundPropertyAccess)node;
+
+                        if (Binder.AccessingAutoPropertyFromConstructor(access, _symbol))
                         {
-                            VisitFieldAccessInternal(access.ReceiverOpt, backingField);
-                            break;
+                            var backingField = (access.PropertySymbol as SourcePropertySymbolBase)?.BackingField;
+                            if (backingField != null)
+                            {
+                                VisitFieldAccessInternal(access.ReceiverOpt, backingField);
+                                break;
+                            }
                         }
                     }
 
@@ -600,6 +602,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ((BoundTupleExpression)node).VisitAllElements((x, self) => self.VisitLvalue(x), this);
                     break;
 
+                case BoundKind.InlineArrayAccess:
+                    {
+                        var access = (BoundInlineArrayAccess)node;
+                        VisitLvalue(access);
+                        break;
+                    }
                 default:
                     VisitRvalue(node);
                     break;
@@ -1681,7 +1689,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Visit(node.Operand);
             }
 
+            AfterVisitConversion(node);
+
             return null;
+        }
+
+        protected virtual void AfterVisitConversion(BoundConversion node)
+        {
         }
 
         public override BoundNode VisitIfStatement(BoundIfStatement node)
@@ -1950,9 +1964,34 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitObjectCreationExpression(BoundObjectCreationExpression node)
         {
-
             VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, node.Constructor);
             VisitRvalue(node.InitializerExpressionOpt);
+            return null;
+        }
+
+        public override BoundNode VisitCollectionLiteralExpression(BoundCollectionLiteralExpression node)
+        {
+            VisitCollectionLiteralExpression(node.Elements);
+            return null;
+        }
+
+        public override BoundNode VisitUnconvertedCollectionLiteralExpression(BoundUnconvertedCollectionLiteralExpression node)
+        {
+            VisitCollectionLiteralExpression(node.Elements);
+            return null;
+        }
+
+        private void VisitCollectionLiteralExpression(ImmutableArray<BoundExpression> elements)
+        {
+            foreach (var element in elements)
+            {
+                VisitRvalue(element);
+            }
+        }
+
+        public override BoundNode VisitCollectionLiteralSpreadElement(BoundCollectionLiteralSpreadElement node)
+        {
+            VisitRvalue(node.Expression);
             return null;
         }
 
@@ -2218,6 +2257,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
+        }
+
+        public override BoundNode VisitInlineArrayAccess(BoundInlineArrayAccess node)
+        {
+            VisitRvalue(node.Expression);
+            VisitRvalue(node.Argument);
+
+            AfterVisitInlineArrayAccess(node);
+            return null;
+        }
+
+        protected virtual void AfterVisitInlineArrayAccess(BoundInlineArrayAccess node)
+        {
+        }
+
+        protected virtual void VisitLvalue(BoundInlineArrayAccess access)
+        {
+            VisitLvalue(access.Expression);
+            VisitRvalue(access.Argument);
         }
 
         public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)

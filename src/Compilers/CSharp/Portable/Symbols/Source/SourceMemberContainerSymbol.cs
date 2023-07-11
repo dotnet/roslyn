@@ -2200,7 +2200,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (Locations.Length == 1 || IsPartial)
                 {
+#pragma warning disable CA1854 //Prefer a 'TryGetValue' call over a Dictionary indexer access guarded by a 'ContainsKey' check to avoid double lookup
                     if (membersByName.ContainsKey(indexerName.AsMemory()))
+#pragma warning restore CA1854
                     {
                         // The name of the indexer is reserved - it can only be used by other indexers.
                         Debug.Assert(!membersByName[indexerName.AsMemory()].Any(SymbolExtensions.IsIndexer));

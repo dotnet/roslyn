@@ -115,6 +115,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
+            // TODO: Remove. Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1830914.
+            if (EditAndContinueMethodDebugInfoReader.IgnoreCaseWhenComparingDocumentNames)
+            {
+                byDocumentPath = byDocumentPath.WithComparers(keyComparer: StringComparer.OrdinalIgnoreCase);
+            }
+
             return new ActiveStatementsMap(byDocumentPath, byInstruction.ToImmutableDictionary());
         }
 
@@ -190,7 +196,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 // Protect against stale/invalid active statement spans read from the PDB.
                 // Also guard against active statements unmapped to multiple locations in the unmapped file
-                // (when multiple #line map to the same span that overlaps with the active statement).
+                // (when multiple #line directives map to the same span that overlaps with the active statement).
                 if (TryGetTextSpan(oldText.Lines, unmappedLineSpan, out var unmappedSpan) &&
                     oldRoot.FullSpan.Contains(unmappedSpan.Start) &&
                     mappedStatements.Add(activeStatement))

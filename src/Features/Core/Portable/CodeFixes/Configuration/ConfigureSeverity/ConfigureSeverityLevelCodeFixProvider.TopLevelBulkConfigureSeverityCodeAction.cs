@@ -9,20 +9,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
 {
     internal sealed partial class ConfigureSeverityLevelCodeFixProvider : IConfigurationFixProvider
     {
-        private sealed class TopLevelBulkConfigureSeverityCodeAction : AbstractConfigurationActionWithNestedActions
-        {
-            public TopLevelBulkConfigureSeverityCodeAction(ImmutableArray<CodeAction> nestedActions, string? category)
-                : base(nestedActions,
-                      category != null
+        private sealed class TopLevelBulkConfigureSeverityCodeAction(ImmutableArray<CodeAction> nestedActions, string? category) : AbstractConfigurationActionWithNestedActions(nestedActions,
+                  category != null
                         ? string.Format(FeaturesResources.Configure_severity_for_all_0_analyzers, category)
                         : FeaturesResources.Configure_severity_for_all_analyzers)
-            {
-                // Ensure that 'Category' based bulk configuration actions are shown above
-                // the 'All analyzer diagnostics' bulk configuration actions.
-                AdditionalPriority = category != null ? CodeActionPriority.Low : CodeActionPriority.Lowest;
-            }
-
-            internal override CodeActionPriority AdditionalPriority { get; }
+        {
+            internal override CodeActionPriority AdditionalPriority { get; } = category != null ? CodeActionPriority.Low : CodeActionPriority.Lowest;
 
             internal override bool IsBulkConfigurationAction => true;
         }

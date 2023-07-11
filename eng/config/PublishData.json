@@ -14,6 +14,7 @@
       "Microsoft.CodeAnalysis.Workspaces.Common": "vssdk",
       "Microsoft.CodeAnalysis.Workspaces.MSBuild": "arcade",
       "Microsoft.CodeAnalysis.Workspaces.Desktop": "arcade",
+      "Microsoft.CodeAnalysis.Compiler.Test.Resources": "vs-impl",
       "Microsoft.CodeAnalysis.CSharp": "vssdk",
       "Microsoft.CodeAnalysis.CSharp.CodeStyle": "arcade",
       "Microsoft.CodeAnalysis.CSharp.Features": "arcade",
@@ -52,6 +53,7 @@
       "Microsoft.CodeAnalysis.Lsif.Generator": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.Apex": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.CodeLens": "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.Debugger": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.FSharp": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.IntelliTrace": "vs-impl",
@@ -158,7 +160,7 @@
       ],
       "vsBranch": "rel/d17.7",
       "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[d17.7P2]"
+      "insertionTitlePrefix": "[d17.7P3]"
     },
     "main": {
       "nugetKind": [
@@ -167,8 +169,8 @@
       ],
       "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[d17.7P3]"
+      "insertionCreateDraftPR": false,
+      "insertionTitlePrefix": "[d17.8P1]"
     },
     "dev/jorobich/fix-pr-val": {
       "nugetKind": [

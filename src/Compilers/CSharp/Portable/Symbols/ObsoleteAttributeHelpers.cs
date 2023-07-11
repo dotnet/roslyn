@@ -99,6 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case ObsoleteAttributeKind.None:
                     return ObsoleteDiagnosticKind.NotObsolete;
+                case ObsoleteAttributeKind.WindowsExperimental:
                 case ObsoleteAttributeKind.Experimental:
                     return ObsoleteDiagnosticKind.Diagnostic;
                 case ObsoleteAttributeKind.Uninitialized:
@@ -154,12 +155,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                if (data.Kind == ObsoleteAttributeKind.Experimental)
+                if (data.Kind == ObsoleteAttributeKind.WindowsExperimental)
                 {
                     Debug.Assert(data.Message == null);
                     Debug.Assert(!data.IsError);
                     // Provide an explicit format for fully-qualified type names.
-                    return new CSDiagnosticInfo(ErrorCode.WRN_Experimental, new FormattedSymbol(symbol, SymbolDisplayFormat.CSharpErrorMessageFormat));
+                    return new CSDiagnosticInfo(ErrorCode.WRN_Experimental,
+                        new FormattedSymbol(symbol, SymbolDisplayFormat.CSharpErrorMessageFormat));
+                }
+
+                if (data.Kind == ObsoleteAttributeKind.Experimental)
+                {
+                    Debug.Assert(data.Message is null);
+                    Debug.Assert(!data.IsError);
+
+                    // Provide an explicit format for fully-qualified type names.
+                    return new CustomObsoleteDiagnosticInfo(MessageProvider.Instance, (int)ErrorCode.WRN_Experimental, data,
+                        new FormattedSymbol(symbol, SymbolDisplayFormat.CSharpErrorMessageFormat));
                 }
 
                 // Issue a specialized diagnostic for add methods of collection initializers

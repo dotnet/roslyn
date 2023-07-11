@@ -67,7 +67,7 @@ public class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
 
         var watcher = GetSingleFileWatcher(dynamicCapabilitiesRpcTarget);
 
-        Assert.Equal(tempDirectory.Path + Path.DirectorySeparatorChar, watcher.GlobPattern.BaseUri);
+        Assert.Equal(tempDirectory.Path + Path.DirectorySeparatorChar, watcher.GlobPattern.BaseUri.LocalPath);
         Assert.Equal("**/*", watcher.GlobPattern.Pattern);
 
         // Get rid of the registration and it should be gone again
@@ -99,7 +99,7 @@ public class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
 
         var watcher = GetSingleFileWatcher(dynamicCapabilitiesRpcTarget);
 
-        Assert.Equal("Z:\\", watcher.GlobPattern.BaseUri);
+        Assert.Equal("Z:\\", watcher.GlobPattern.BaseUri.LocalPath);
         Assert.Equal("SingleFile.txt", watcher.GlobPattern.Pattern);
 
         // Get rid of the registration and it should be gone again

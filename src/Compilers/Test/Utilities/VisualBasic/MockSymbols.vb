@@ -824,6 +824,10 @@ Friend Class MockAssemblySymbol
         Throw New NotImplementedException()
     End Function
 
+    Friend Overrides Function GetInternalsVisibleToAssemblyNames() As IEnumerable(Of String)
+        Throw New NotImplementedException()
+    End Function
+
     Friend Overrides Function AreInternalsVisibleToThisAssembly(potentialGiverOfAccess As AssemblySymbol) As Boolean
         Throw New NotImplementedException()
     End Function
