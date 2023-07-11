@@ -891,8 +891,25 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilationWithIL("", ilSource, options: TestOptions.UnsafeDebugDll);
-        comp.VerifyDiagnostics();
+        var source = """
+            class X
+            {
+                void M(C c)
+                {
+                    int x = 111;
+                    c.D(ref x);
+                }
+            }
+            """;
+
+        var comp = CreateCompilationWithIL(source, ilSource, options: TestOptions.UnsafeDebugDll);
+        comp.VerifyDiagnostics(
+            // (6,9): error CS0570: 'delegate*<ref int, void>' is not supported by the language
+            //         c.D(ref x);
+            Diagnostic(ErrorCode.ERR_BindToBogus, "c.D(ref x)").WithArguments("delegate*<ref int, void>").WithLocation(6, 9),
+            // (6,11): error CS0570: 'C.D' is not supported by the language
+            //         c.D(ref x);
+            Diagnostic(ErrorCode.ERR_BindToBogus, "D").WithArguments("C.D").WithLocation(6, 11));
 
         var ptr = (FunctionPointerTypeSymbol)comp.GlobalNamespace.GetMember<FieldSymbol>("C.D").Type;
         var p = ptr.Signature.Parameters.Single();
