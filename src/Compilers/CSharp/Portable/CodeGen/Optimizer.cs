@@ -401,6 +401,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private ExprContext _context;
         private BoundLocal _assignmentLocal;
 
+#if DEBUG
+        private int _expectedStackDepth = 0;
+#endif
+
         private readonly Dictionary<LocalSymbol, LocalDefUseInfo> _locals;
 
         // we need to guarantee same stack patterns at branches and labels.
@@ -565,23 +569,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         public BoundNode VisitStatement(BoundNode node)
         {
-            Debug.Assert(node == null || EvalStackIsEmpty());
+#if DEBUG
+            Debug.Assert(node == null || StackDepth() == _expectedStackDepth);
+#endif
             return VisitSideEffect(node);
         }
 
         public ImmutableArray<BoundStatement> VisitSideEffects(ImmutableArray<BoundStatement> statements)
         {
 #if DEBUG
-            var result = ArrayBuilder<BoundStatement>.GetInstance(statements.Length);
-            foreach (BoundStatement statement in statements)
-            {
-                result.Add((BoundStatement)VisitSideEffect(statement));
-            }
-
-            return result.ToImmutableAndFree();
-#else
-            return this.VisitList(statements);
+            Debug.Assert(_expectedStackDepth == 0);
+            int origStack = StackDepth();
+            _expectedStackDepth = origStack;
 #endif
+            var result = this.VisitList(statements);
+#if DEBUG
+            Debug.Assert(_expectedStackDepth == origStack);
+            _expectedStackDepth = 0;
+#endif
+            return result;
         }
 
         public BoundNode VisitSideEffect(BoundNode node)
