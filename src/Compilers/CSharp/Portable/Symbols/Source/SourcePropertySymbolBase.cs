@@ -446,6 +446,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new LexicalSortKey(Location, this.DeclaringCompilation);
         }
 
+        public sealed override Location TryGetFirstLocation() => Location;
+
         public override ImmutableArray<Location> Locations
         {
             get
@@ -653,8 +655,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _syntaxRef.SyntaxTree;
             }
         }
-
-        public sealed override Location TryGetFirstLocation() => Location;
 
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
