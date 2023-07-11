@@ -50,17 +50,17 @@ namespace Roslyn.LanguageServer.Protocol
                 return false;
             }
 
-            return this.CheckImagesAreEqual(this.Images, other.Images) && this.CheckTagsAreEqual(this.Tags, other.Tags);
+            return CheckImagesAreEqual(this.Images, other.Images) && CheckTagsAreEqual(this.Tags, other.Tags);
         }
 
         /// <inheritdoc/>
         public override int GetHashCode()
         {
-            int hashCode = 1825600323;
+            var hashCode = 1825600323;
 
             if (this.Images != null)
             {
-                for (int i = 0; i < this.Images.Length; i++)
+                for (var i = 0; i < this.Images.Length; i++)
                 {
                     hashCode = (hashCode * -1521134295) + this.Images[i].Guid.GetHashCode();
                     hashCode = (hashCode * -1521134295) + this.Images[i].Id.GetHashCode();
@@ -69,7 +69,7 @@ namespace Roslyn.LanguageServer.Protocol
 
             if (this.Tags != null)
             {
-                for (int i = 0; i < this.Tags.Length; i++)
+                for (var i = 0; i < this.Tags.Length; i++)
                 {
                     hashCode = (hashCode * -1521134295) + StringComparer.Ordinal.GetHashCode(this.Tags[i]);
                 }
@@ -78,7 +78,7 @@ namespace Roslyn.LanguageServer.Protocol
             return hashCode;
         }
 
-        private bool CheckImagesAreEqual(VSImageId[]? current, VSImageId[]? other)
+        private static bool CheckImagesAreEqual(VSImageId[]? current, VSImageId[]? other)
         {
             if (current == null ^ other == null)
             {
@@ -89,7 +89,7 @@ namespace Roslyn.LanguageServer.Protocol
                 other != null &&
                 current.Length == other.Length)
             {
-                for (int i = 0; i < current.Length; i++)
+                for (var i = 0; i < current.Length; i++)
                 {
                     if (current[i].Id != other[i].Id)
                     {
@@ -106,7 +106,7 @@ namespace Roslyn.LanguageServer.Protocol
             return true;
         }
 
-        private bool CheckTagsAreEqual(string[]? current, string[]? other)
+        private static bool CheckTagsAreEqual(string[]? current, string[]? other)
         {
             if (current == null ^ other == null)
             {
@@ -117,7 +117,7 @@ namespace Roslyn.LanguageServer.Protocol
                 other != null &&
                 current.Length == other.Length)
             {
-                for (int i = 0; i < current.Length; i++)
+                for (var i = 0; i < current.Length; i++)
                 {
                     if (!string.Equals(current[i], other[i], StringComparison.Ordinal))
                     {

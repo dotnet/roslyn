@@ -53,7 +53,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <inheritdoc/>
         public override int GetHashCode()
         {
-            int hashCode = 184147724;
+            var hashCode = 184147724;
             hashCode = (hashCode * -1521134295) + this.Guid.GetHashCode();
             hashCode = (hashCode * -1521134295) + this.Id.GetHashCode();
             return hashCode;

@@ -48,14 +48,14 @@ namespace Roslyn.LanguageServer.Protocol
 
             // objectType will be one of the various SumType variants. In order for this converter to work with all SumTypes it has to use reflection.
             // This method works by attempting to deserialize the json into each of the type parameters to a SumType and stops at the first success.
-            SumTypeInfoCache sumTypeInfoCache = SumTypeCache.GetOrAdd(objectType, (t) => new SumTypeInfoCache(t));
+            var sumTypeInfoCache = SumTypeCache.GetOrAdd(objectType, (t) => new SumTypeInfoCache(t));
 
             JToken? token = null;
             var applicableUnionTypeInfos = sumTypeInfoCache.GetApplicableInfos(reader.TokenType);
 
             for (var i = 0; i < applicableUnionTypeInfos.Count; i++)
             {
-                SumTypeInfoCache.UnionTypeInfo unionTypeInfo = applicableUnionTypeInfos[i];
+                var unionTypeInfo = applicableUnionTypeInfos[i];
 
                 if (!IsTokenCompatibleWithType(reader, unionTypeInfo))
                 {
@@ -116,7 +116,7 @@ namespace Roslyn.LanguageServer.Protocol
 
                 if (sumValue != null)
                 {
-                    JToken token = JToken.FromObject(sumValue);
+                    var token = JToken.FromObject(sumValue);
                     token.WriteTo(writer);
                 }
             }
@@ -124,7 +124,7 @@ namespace Roslyn.LanguageServer.Protocol
 
         private static bool IsTokenCompatibleWithType(JsonReader reader, SumTypeInfoCache.UnionTypeInfo unionTypeInfo)
         {
-            bool isCompatible = true;
+            var isCompatible = true;
             switch (reader.TokenType)
             {
                 case JsonToken.Float:
@@ -188,7 +188,7 @@ namespace Roslyn.LanguageServer.Protocol
                     var declaredConstructor = typeInfo.GetConstructor(new Type[] { parameterType }) ??
                         throw new ArgumentException(nameof(sumTypeType), "All constructor parameter types must be represented in the generic type arguments of the SumType");
 
-                    KindAttribute? kindAttribute = parameterType.GetCustomAttribute<KindAttribute>();
+                    var kindAttribute = parameterType.GetCustomAttribute<KindAttribute>();
                     var unionTypeInfo = new UnionTypeInfo(parameterType, declaredConstructor, kindAttribute);
                     allUnionTypeInfosSet.Add(unionTypeInfo);
 

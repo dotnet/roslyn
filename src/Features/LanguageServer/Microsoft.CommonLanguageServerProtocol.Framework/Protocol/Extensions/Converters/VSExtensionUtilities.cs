@@ -28,7 +28,7 @@ namespace Roslyn.LanguageServer.Protocol
         public static void AddVSExtensionConverters(this JsonSerializer serializer)
         {
             // Reading the number of converters before we start adding new ones
-            int existingConvertersCount = serializer.Converters.Count;
+            var existingConvertersCount = serializer.Converters.Count;
 
             TryAddConverter<Diagnostic, VSDiagnostic>();
             TryAddConverter<Location, VSLocation>();
@@ -39,7 +39,7 @@ namespace Roslyn.LanguageServer.Protocol
             void TryAddConverter<TBase, TExtension>()
                 where TExtension : TBase
             {
-                for (int i = 0; i < existingConvertersCount; i++)
+                for (var i = 0; i < existingConvertersCount; i++)
                 {
                     var existingConverterType = serializer.Converters[i].GetType();
                     if (existingConverterType.IsGenericType &&

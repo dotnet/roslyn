@@ -79,7 +79,7 @@ namespace Roslyn.LanguageServer.Protocol
         {
             var hashCode = 1633890234;
             hashCode = (hashCode * -1521134295) + EqualityComparer<string>.Default.GetHashCode(this.Name);
-            hashCode = (hashCode * -1521134295) + this.Kind.GetHashCode();
+            hashCode = (hashCode * -1521134295) + (int)this.Kind;
             hashCode = (hashCode * -1521134295) + EqualityComparer<Location>.Default.GetHashCode(this.Location);
             hashCode = (hashCode * -1521134295) + EqualityComparer<string?>.Default.GetHashCode(this.ContainerName);
             return hashCode;

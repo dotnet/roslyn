@@ -138,9 +138,9 @@ namespace Roslyn.LanguageServer.Protocol
                 && this.CodeDescription == other.CodeDescription
                 && string.Equals(this.Source, other.Source, StringComparison.Ordinal)
                 && string.Equals(this.Message, other.Message, StringComparison.Ordinal)
-                && (this.Tags == null ?
-                        other.Tags == null :
-                        this.Tags.Equals(other.Tags) || this.Tags.SequenceEqual(other.Tags));
+                && (this.Tags == null
+                        ? other.Tags == null
+                        : this.Tags.Equals(other.Tags) || this.Tags.SequenceEqual(other.Tags));
         }
 
         /// <inheritdoc/>
@@ -164,7 +164,7 @@ namespace Roslyn.LanguageServer.Protocol
                 ^ (this.Code == null ? 47 : this.Code.GetHashCode() * 19)
                 ^ (this.Source == null ? 61 : this.Source.GetHashCode() * 79)
                 ^ (this.Message == null ? 83 : this.Message.GetHashCode() * 23)
-                ^ (this.Tags == null ? 89 : this.Tags.Sum(t => t.GetHashCode()) * 73)
+                ^ (this.Tags == null ? 89 : this.Tags.Sum(t => (int)t) * 73)
                 ^ (this.CodeDescription == null ? 23 : this.CodeDescription.GetHashCode() * 29);
         }
     }

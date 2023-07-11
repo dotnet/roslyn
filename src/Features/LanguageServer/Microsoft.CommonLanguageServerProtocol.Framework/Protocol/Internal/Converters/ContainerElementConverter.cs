@@ -43,14 +43,14 @@ public class ContainerElementConverter : JsonConverter
             var elementTokens = data[nameof(ContainerElement.Elements)]?.ToArray() ??
                 throw new JsonSerializationException($"Missing {nameof(ContainerElement.Elements)} property");
             var elements = new object?[elementTokens.Length];
-            for (int i = 0; i < elementTokens.Length; i++)
+            for (var i = 0; i < elementTokens.Length; i++)
             {
                 var elementTokenReader = elementTokens[i].CreateReader();
                 elementTokenReader.Read();
                 elements[i] = ObjectContentConverter.Instance.ReadJson(elementTokenReader, typeof(object), null, serializer);
             }
 
-            ContainerElementStyle style = (ContainerElementStyle)(data[nameof(ContainerElement.Style)]?.Value<int>() ?? throw new JsonSerializationException());
+            var style = (ContainerElementStyle)(data[nameof(ContainerElement.Style)]?.Value<int>() ?? throw new JsonSerializationException());
             return new ContainerElement(style, elements);
         }
         else

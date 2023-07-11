@@ -25,19 +25,19 @@ namespace Roslyn.LanguageServer.Protocol
         /// <inheritdoc/>
         public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
         {
-            JToken token = JToken.Load(reader);
+            var token = JToken.Load(reader);
 
             var label = ((JObject)token).Property("label", StringComparison.Ordinal);
             var documentation = ((JObject)token).Property("documentation", StringComparison.Ordinal);
 
-            ParameterInformation parameter = new ParameterInformation();
+            var parameter = new ParameterInformation();
 
             if (label != null)
             {
                 var value = label.Value;
                 if (value is JArray arr)
                 {
-                    Tuple<int, int> tuple = new Tuple<int, int>(arr[0].Value<int>(), arr[1].Value<int>());
+                    var tuple = new Tuple<int, int>(arr[0].Value<int>(), arr[1].Value<int>());
                     parameter.Label = tuple;
                 }
                 else

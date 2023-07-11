@@ -20,7 +20,9 @@ public class FullDocumentDiagnosticReport
     /// Gets the kind of this report.
     /// </summary>
     [DataMember(Name = "kind")]
+#pragma warning disable CA1822 // Mark members as static
     public string Kind => DocumentDiagnosticReportKind.Full;
+#pragma warning restore CA1822 // Mark members as static
 
     /// <summary>
     /// Gets or sets the optional result id.

@@ -22,7 +22,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <returns><see cref="JsonSerializer"/> object containing a <see cref="DropProgressConverter"/>.</returns>
         public static JsonSerializer CreateSerializer()
         {
-            JsonSerializer serializer = new JsonSerializer();
+            var serializer = new JsonSerializer();
             serializer.Converters.Add(new DropProgressConverter());
             return serializer;
         }
@@ -30,8 +30,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <inheritdoc/>
         public override bool CanConvert(Type objectType)
         {
-            bool isIProgressOfT = objectType.IsConstructedGenericType && objectType.GetGenericTypeDefinition().Equals(typeof(IProgress<>));
-            bool implementsIProgressOfT = objectType.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition().Equals(typeof(IProgress<>)));
+            var isIProgressOfT = objectType.IsConstructedGenericType && objectType.GetGenericTypeDefinition().Equals(typeof(IProgress<>));
+            var implementsIProgressOfT = objectType.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition().Equals(typeof(IProgress<>)));
 
             return isIProgressOfT || implementsIProgressOfT;
         }

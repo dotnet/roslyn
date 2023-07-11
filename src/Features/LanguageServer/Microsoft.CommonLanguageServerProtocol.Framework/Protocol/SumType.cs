@@ -306,8 +306,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// Implicitly wraps an instance of <see cref="SumType{T1, T2}"/> with a <see cref="SumType{T1, T2, T3}"/>.
         /// </summary>
         /// <param name="sum">Sum instance to wrap.</param>
-        public static implicit operator SumType<T1, T2, T3>(SumType<T1, T2> sum) =>
-            sum.Match(
+        public static implicit operator SumType<T1, T2, T3>(SumType<T1, T2> sum)
+            => sum.Match(
                 (v) => new SumType<T1, T2, T3>(v),
                 (v) => new SumType<T1, T2, T3>(v));
 
@@ -618,8 +618,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// Implicitly wraps an instance of <see cref="SumType{A, B}"/> with a <see cref="SumType{T1, T2, T3, T4}"/>.
         /// </summary>
         /// <param name="sum">Sum instance to wrap.</param>
-        public static implicit operator SumType<T1, T2, T3, T4>(SumType<T1, T2> sum) =>
-            sum.Match(
+        public static implicit operator SumType<T1, T2, T3, T4>(SumType<T1, T2> sum)
+            => sum.Match(
                 (v) => new SumType<T1, T2, T3, T4>(v),
                 (v) => new SumType<T1, T2, T3, T4>(v));
 
@@ -627,8 +627,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// Implicitly wraps an instance of <see cref="SumType{T1, T2, T3}"/> with a <see cref="SumType{T1, T2, T3, T4}"/>.
         /// </summary>
         /// <param name="sum">Sum instance to wrap.</param>
-        public static implicit operator SumType<T1, T2, T3, T4>(SumType<T1, T2, T3> sum) =>
-            sum.Match(
+        public static implicit operator SumType<T1, T2, T3, T4>(SumType<T1, T2, T3> sum)
+            => sum.Match(
                 (v) => new SumType<T1, T2, T3, T4>(v),
                 (v) => new SumType<T1, T2, T3, T4>(v),
                 (v) => new SumType<T1, T2, T3, T4>(v));

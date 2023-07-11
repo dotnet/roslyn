@@ -29,7 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
                 return;
             }
 
-            VSInternalCompletionList completionList = (VSInternalCompletionList)value;
+            var completionList = (VSInternalCompletionList)value;
 
             writer.WriteStartObject();
 
@@ -82,14 +82,14 @@ namespace Roslyn.LanguageServer.Protocol
 
                 var itemRawJsonCache = new Dictionary<object, string>(capacity: 1);
 
-                foreach (CompletionItem completionItem in completionList.Items)
+                foreach (var completionItem in completionList.Items)
                 {
                     if (completionItem == null)
                     {
                         continue;
                     }
 
-                    this.WriteCompletionItem(writer, completionItem, serializer, itemRawJsonCache);
+                    WriteCompletionItem(writer, completionItem, serializer, itemRawJsonCache);
                 }
 
                 writer.WriteEndArray();
@@ -104,7 +104,7 @@ namespace Roslyn.LanguageServer.Protocol
             writer.WriteEndObject();
         }
 
-        private void WriteCompletionItem(JsonWriter writer, CompletionItem completionItem, JsonSerializer serializer, Dictionary<object, string> itemRawJsonCache)
+        private static void WriteCompletionItem(JsonWriter writer, CompletionItem completionItem, JsonSerializer serializer, Dictionary<object, string> itemRawJsonCache)
         {
             writer.WriteStartObject();
 
@@ -112,7 +112,7 @@ namespace Roslyn.LanguageServer.Protocol
             {
                 if (vsCompletionItem.Icon != null)
                 {
-                    if (!IconRawJson.TryGetValue(vsCompletionItem.Icon.ImageId, out string jsonString))
+                    if (!IconRawJson.TryGetValue(vsCompletionItem.Icon.ImageId, out var jsonString))
                     {
                         jsonString = JsonConvert.SerializeObject(vsCompletionItem.Icon, Formatting.None, ImageElementConverter.Instance);
                         IconRawJson.TryAdd(vsCompletionItem.Icon.ImageId, jsonString);
@@ -131,7 +131,7 @@ namespace Roslyn.LanguageServer.Protocol
                 if (vsCompletionItem.VsCommitCharacters?.Value is string[] basicCommitCharacters
                     && basicCommitCharacters.Length > 0)
                 {
-                    if (!itemRawJsonCache.TryGetValue(basicCommitCharacters, out string jsonString))
+                    if (!itemRawJsonCache.TryGetValue(basicCommitCharacters, out var jsonString))
                     {
                         jsonString = JsonConvert.SerializeObject(basicCommitCharacters);
                         itemRawJsonCache.Add(basicCommitCharacters, jsonString);
@@ -143,7 +143,7 @@ namespace Roslyn.LanguageServer.Protocol
                 else if (vsCompletionItem.VsCommitCharacters?.Value is VSInternalCommitCharacter[] augmentedCommitCharacters
                     && augmentedCommitCharacters.Length > 0)
                 {
-                    if (!itemRawJsonCache.TryGetValue(augmentedCommitCharacters, out string jsonString))
+                    if (!itemRawJsonCache.TryGetValue(augmentedCommitCharacters, out var jsonString))
                     {
                         jsonString = JsonConvert.SerializeObject(augmentedCommitCharacters);
                         itemRawJsonCache.Add(augmentedCommitCharacters, jsonString);
@@ -160,7 +160,7 @@ namespace Roslyn.LanguageServer.Protocol
                 }
             }
 
-            string label = completionItem.Label;
+            var label = completionItem.Label;
             if (label != null)
             {
                 writer.WritePropertyName("label");
@@ -239,7 +239,7 @@ namespace Roslyn.LanguageServer.Protocol
 
             if (completionItem.CommitCharacters != null && completionItem.CommitCharacters.Length > 0)
             {
-                if (!itemRawJsonCache.TryGetValue(completionItem.CommitCharacters, out string jsonString))
+                if (!itemRawJsonCache.TryGetValue(completionItem.CommitCharacters, out var jsonString))
                 {
                     jsonString = JsonConvert.SerializeObject(completionItem.CommitCharacters);
                     itemRawJsonCache.Add(completionItem.CommitCharacters, jsonString);

@@ -43,7 +43,7 @@ public class ClassifiedTextElementConverter : JsonConverter
             var runTokens = data[nameof(ClassifiedTextElement.Runs)]?.ToArray() ??
                 throw new JsonSerializationException($"Missing {nameof(ClassifiedTextElement.Runs)} property");
             var runs = new ClassifiedTextRun[runTokens.Length];
-            for (int i = 0; i < runTokens.Length; i++)
+            for (var i = 0; i < runTokens.Length; i++)
             {
                 var runTokenReader = runTokens[i].CreateReader();
                 runTokenReader.Read();

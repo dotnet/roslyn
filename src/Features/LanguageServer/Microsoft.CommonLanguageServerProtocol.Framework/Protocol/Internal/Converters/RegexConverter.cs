@@ -25,7 +25,7 @@ namespace Roslyn.LanguageServer.Protocol
         {
             // Create a custom deserializer for regex as the default provided by newtonsoft doesn't
             // specify the Compiled option.
-            string? regexText = reader.Value as string;
+            var regexText = reader.Value as string;
             if (string.IsNullOrEmpty(regexText))
             {
                 return null;

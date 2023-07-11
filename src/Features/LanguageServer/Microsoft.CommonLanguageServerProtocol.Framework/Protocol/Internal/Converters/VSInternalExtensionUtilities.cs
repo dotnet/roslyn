@@ -26,7 +26,7 @@ namespace Roslyn.LanguageServer.Protocol
             VSExtensionUtilities.AddVSExtensionConverters(serializer);
 
             // Reading the number of converters before we start adding new ones
-            int existingConvertersCount = serializer.Converters.Count;
+            var existingConvertersCount = serializer.Converters.Count;
 
             AddOrReplaceConverter<TextDocumentRegistrationOptions, VSInternalTextDocumentRegistrationOptions>();
             AddOrReplaceConverter<ClientCapabilities, VSInternalClientCapabilities>();
@@ -53,7 +53,7 @@ namespace Roslyn.LanguageServer.Protocol
             void AddOrReplaceConverter<TBase, TExtension>()
                 where TExtension : TBase
             {
-                for (int i = 0; i < existingConvertersCount; i++)
+                for (var i = 0; i < existingConvertersCount; i++)
                 {
                     var existingConverterType = serializer.Converters[i].GetType();
                     if (existingConverterType.IsGenericType &&

@@ -91,7 +91,7 @@ namespace Roslyn.LanguageServer.Protocol
             {
                 writer = writer ?? throw new ArgumentNullException(nameof(writer));
 
-                JToken token = JToken.FromObject(value);
+                var token = JToken.FromObject(value);
                 token.WriteTo(writer);
             }
         }

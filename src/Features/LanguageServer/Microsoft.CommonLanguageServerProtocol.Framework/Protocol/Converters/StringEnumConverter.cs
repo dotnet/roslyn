@@ -30,8 +30,8 @@ public class StringEnumConverter<TStringEnumType>
             throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture, LSPFrameworkResources.StringEnumMissingConstructor, typeof(TStringEnumType).FullName));
         }
 
-        ParameterExpression param = Expression.Parameter(typeof(string), "value");
-        NewExpression body = Expression.New(constructor, param);
+        var param = Expression.Parameter(typeof(string), "value");
+        var body = Expression.New(constructor, param);
         CreateEnum = Expression.Lambda<Func<string, TStringEnumType>>(body, param).Compile();
     }
 

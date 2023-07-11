@@ -1523,13 +1523,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (lookupResult.IsMultiViable)
                     {
-                        var conversions = Conversions;
-
                         foreach (var symbol in lookupResult.Symbols)
                         {
                             var method = (MethodSymbol)symbol;
-                            var conversion = conversions.ConvertExtensionMethodThisArg(method.Parameters[0].Type, receiverType, ref useSiteInfo);
-                            if (conversion.Exists)
+                            if (method.ReduceExtensionMethod(receiverType, Compilation) is not null)
                             {
                                 haveInstanceCandidates = true;
                                 break;

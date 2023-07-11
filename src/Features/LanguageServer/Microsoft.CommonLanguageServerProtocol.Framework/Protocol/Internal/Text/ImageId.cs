@@ -54,18 +54,18 @@ namespace Roslyn.Core.Imaging
 
         public string ToString(IFormatProvider provider)
         {
-            Guid guid = Guid;
-            string arg = guid.ToString("D", provider);
-            int id = Id;
+            var guid = Guid;
+            var arg = guid.ToString("D", provider);
+            var id = Id;
             return string.Format(provider, "{0} : {1}", arg, id.ToString(provider));
         }
 
         bool IEquatable<ImageId>.Equals(ImageId other)
         {
-            int id = Id;
+            var id = Id;
             if (id.Equals(other.Id))
             {
-                Guid guid = Guid;
+                var guid = Guid;
                 return guid.Equals(other.Guid);
             }
 
@@ -76,7 +76,7 @@ namespace Roslyn.Core.Imaging
         {
             if (other is ImageId)
             {
-                ImageId other2 = (ImageId)other;
+                var other2 = (ImageId)other;
                 return ((IEquatable<ImageId>)this).Equals(other2);
             }
 
@@ -95,9 +95,9 @@ namespace Roslyn.Core.Imaging
 
         public override int GetHashCode()
         {
-            Guid guid = Guid;
-            int hashCode = guid.GetHashCode();
-            int id = Id;
+            var guid = Guid;
+            var hashCode = guid.GetHashCode();
+            var id = Id;
             return hashCode ^ id.GetHashCode();
         }
     }

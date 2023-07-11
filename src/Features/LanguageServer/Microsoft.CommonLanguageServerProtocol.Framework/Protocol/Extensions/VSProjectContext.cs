@@ -90,7 +90,7 @@ namespace Roslyn.LanguageServer.Protocol
         {
             return (this.Label == null ? 53 : this.Label.GetHashCode() * 13)
                 ^ (this.Id == null ? 61 : this.Id.GetHashCode() * 17)
-                ^ (this.Kind.GetHashCode() * 19);
+                ^ ((int)this.Kind * 19);
         }
     }
 }

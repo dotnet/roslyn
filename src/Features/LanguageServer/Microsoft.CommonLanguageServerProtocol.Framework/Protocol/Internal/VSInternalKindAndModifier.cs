@@ -73,11 +73,11 @@ namespace Roslyn.LanguageServer.Protocol
         /// <inheritdoc/>
         public override int GetHashCode()
         {
-            int hashCode = 1850642763;
+            var hashCode = 1850642763;
             hashCode = (hashCode * -1521134295) + (this.Kind == null ? 0 : StringComparer.Ordinal.GetHashCode(this.Kind));
             if (this.Modifier != null)
             {
-                for (int i = 0; i < this.Modifier.Length; i++)
+                for (var i = 0; i < this.Modifier.Length; i++)
                 {
                     if (this.Modifier[i] != null)
                     {
@@ -100,7 +100,7 @@ namespace Roslyn.LanguageServer.Protocol
                 this.Modifier != null &&
                 modifiers.Length == this.Modifier.Length)
             {
-                for (int i = 0; i < modifiers.Length; i++)
+                for (var i = 0; i < modifiers.Length; i++)
                 {
                     if (!string.Equals(modifiers[i], this.Modifier[i], StringComparison.Ordinal))
                     {

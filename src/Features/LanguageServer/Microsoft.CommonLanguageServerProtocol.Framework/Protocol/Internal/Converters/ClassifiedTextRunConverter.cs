@@ -42,7 +42,7 @@ public class ClassifiedTextRunConverter : JsonConverter
             var classificationTypeName = data[nameof(ClassifiedTextRun.ClassificationTypeName)]?.Value<string>();
             var text = data[nameof(ClassifiedTextRun.Text)]?.Value<string>();
             var markerTagType = data[nameof(ClassifiedTextRun.MarkerTagType)]?.Value<string>();
-            ClassifiedTextRunStyle style = (ClassifiedTextRunStyle)(data[nameof(ClassifiedTextRun.Style)]?.Value<int>() ?? 0);
+            var style = (ClassifiedTextRunStyle)(data[nameof(ClassifiedTextRun.Style)]?.Value<int>() ?? 0);
             return new ClassifiedTextRun(classificationTypeName, text, style, markerTagType);
         }
         else

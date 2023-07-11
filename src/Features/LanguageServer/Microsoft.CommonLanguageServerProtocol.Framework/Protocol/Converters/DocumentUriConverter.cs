@@ -47,7 +47,7 @@ namespace Roslyn.LanguageServer.Protocol
 
             if (value is Uri uri)
             {
-                JToken token = JToken.FromObject(uri.AbsoluteUri);
+                var token = JToken.FromObject(uri.AbsoluteUri);
                 token.WriteTo(writer);
             }
             else
