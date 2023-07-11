@@ -27,37 +27,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
     /// characters being pasted meant in the original context and we can attempt to preserve that as closely as
     /// possible.
     /// </summary>
-    internal class KnownSourcePasteProcessor : AbstractPasteProcessor
+    internal class KnownSourcePasteProcessor(
+        string newLine,
+        string indentationWhitespace,
+        ITextSnapshot snapshotBeforePaste,
+        ITextSnapshot snapshotAfterPaste,
+        Document documentBeforePaste,
+        Document documentAfterPaste,
+        ExpressionSyntax stringExpressionBeforePaste,
+        TextSpan selectionSpanBeforePaste,
+        StringCopyPasteData copyPasteData,
+        ITextBufferFactoryService2 textBufferFactoryService) : AbstractPasteProcessor(newLine, indentationWhitespace, snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste, stringExpressionBeforePaste)
     {
         /// <summary>
         /// The selection in the document prior to the paste happening.
         /// </summary>
-        private readonly TextSpan _selectionSpanBeforePaste;
+        private readonly TextSpan _selectionSpanBeforePaste = selectionSpanBeforePaste;
 
         /// <summary>
         /// Information stored to the clipboard about the original cut/copy.
         /// </summary>
-        private readonly StringCopyPasteData _copyPasteData;
+        private readonly StringCopyPasteData _copyPasteData = copyPasteData;
 
-        private readonly ITextBufferFactoryService2 _textBufferFactoryService;
-
-        public KnownSourcePasteProcessor(
-            string newLine,
-            string indentationWhitespace,
-            ITextSnapshot snapshotBeforePaste,
-            ITextSnapshot snapshotAfterPaste,
-            Document documentBeforePaste,
-            Document documentAfterPaste,
-            ExpressionSyntax stringExpressionBeforePaste,
-            TextSpan selectionSpanBeforePaste,
-            StringCopyPasteData copyPasteData,
-            ITextBufferFactoryService2 textBufferFactoryService)
-            : base(newLine, indentationWhitespace, snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste, stringExpressionBeforePaste)
-        {
-            _selectionSpanBeforePaste = selectionSpanBeforePaste;
-            _copyPasteData = copyPasteData;
-            _textBufferFactoryService = textBufferFactoryService;
-        }
+        private readonly ITextBufferFactoryService2 _textBufferFactoryService = textBufferFactoryService;
 
         public override ImmutableArray<TextChange> GetEdits()
         {
