@@ -6,12 +6,13 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.Text.Adornments;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
+using Roslyn.Text.Adornments;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
         }
 
-        public SumType<VSInternalReferenceItem, VisualStudio.LanguageServer.Protocol.Location>? CreateReference(
+        public SumType<VSInternalReferenceItem, Roslyn.LanguageServer.Protocol.Location>? CreateReference(
             int definitionId,
             int id,
             ClassifiedTextElement text,
@@ -33,15 +34,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             ClassifiedTextElement? definitionText,
             Glyph definitionGlyph,
             SymbolUsageInfo? symbolUsageInfo,
-            VisualStudio.LanguageServer.Protocol.Location? location)
+            Roslyn.LanguageServer.Protocol.Location? location)
         {
             // TO-DO: The Origin property should be added once Rich-Nav is completed.
             // https://github.com/dotnet/roslyn/issues/42847
+            var imageId = definitionGlyph.GetImageId();
             var result = new VSInternalReferenceItem
             {
                 DefinitionId = definitionId,
                 DefinitionText = definitionText,    // Only definitions should have a non-null DefinitionText
-                DefinitionIcon = new ImageElement(definitionGlyph.GetImageId()),
+                DefinitionIcon = new ImageElement(imageId.ToLSPImageId()),
                 DisplayPath = location?.Uri.LocalPath,
                 Id = id,
                 Kind = symbolUsageInfo.HasValue ? ProtocolConversions.SymbolUsageInfoToReferenceKinds(symbolUsageInfo.Value) : Array.Empty<VSInternalReferenceKind>(),

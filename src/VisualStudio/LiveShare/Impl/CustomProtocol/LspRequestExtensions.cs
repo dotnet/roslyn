@@ -4,9 +4,8 @@
 
 #nullable disable
 
-using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 using LS = Microsoft.VisualStudio.LiveShare.LanguageServices;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Protocol
 {
@@ -17,6 +16,5 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Protocol
 
         public static LSP.ClientCapabilities GetClientCapabilities(this LS.RequestContext requestContext)
             => requestContext.ClientCapabilities?.ToObject<LSP.ClientCapabilities>() ?? new LSP.VSInternalClientCapabilities();
-
     }
 }

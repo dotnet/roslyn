@@ -19,16 +19,14 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Client;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
 using Moq;
 using Newtonsoft.Json.Linq;
-using Roslyn.Test.Utilities;
 using Xunit.Abstractions;
 using static Roslyn.Test.Utilities.AbstractLanguageServerProtocolTests;
 using IAsyncDisposable = System.IAsyncDisposable;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
 {

@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -37,7 +38,7 @@ using Roslyn.Utilities;
 using StreamJsonRpc;
 using Xunit;
 using Xunit.Abstractions;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Roslyn.Test.Utilities
 {
@@ -120,10 +121,9 @@ namespace Roslyn.Test.Utilities
         /// <summary>
         /// Asserts two objects are equivalent by converting to JSON and ignoring whitespace.
         /// </summary>
-        /// <typeparam name="T">the JSON object type.</typeparam>
         /// <param name="expected">the expected object to be converted to JSON.</param>
         /// <param name="actual">the actual object to be converted to JSON.</param>
-        public static void AssertJsonEquals<T>(T expected, T actual)
+        public static void AssertJsonEquals<T1, T2>(T1 expected, T2 actual)
         {
             var expectedStr = JsonConvert.SerializeObject(expected);
             var actualStr = JsonConvert.SerializeObject(actual);
@@ -280,7 +280,7 @@ namespace Roslyn.Test.Utilities
             };
 
             if (tags != null)
-                item.Icon = tags.ToImmutableArray().GetFirstGlyph().GetImageElement();
+                item.Icon = tags.ToImmutableArray().GetFirstGlyph().GetImageElement().ToLSPImageElement();
 
             if (commitCharacters != null)
                 item.CommitCharacters = commitCharacters.Value.Select(c => c.ToString()).ToArray();

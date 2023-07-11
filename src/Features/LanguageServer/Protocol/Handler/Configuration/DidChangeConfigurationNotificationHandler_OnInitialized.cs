@@ -4,7 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration

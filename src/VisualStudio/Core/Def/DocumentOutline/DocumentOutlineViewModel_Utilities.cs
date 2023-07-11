@@ -13,15 +13,15 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Client;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text;
 using Newtonsoft.Json.Linq;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
     using LspDocumentSymbol = DocumentSymbol;
-    using Range = LanguageServer.Protocol.Range;
+    using Range = Roslyn.LanguageServer.Protocol.Range;
 
     internal sealed partial class DocumentOutlineViewModel
     {

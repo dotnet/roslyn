@@ -13,8 +13,8 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.Text.Adornments;
+using Roslyn.LanguageServer.Protocol;
+using Roslyn.Text.Adornments;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer

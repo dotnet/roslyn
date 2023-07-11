@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler

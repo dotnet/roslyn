@@ -5,9 +5,9 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Xunit;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
+using Range = Roslyn.LanguageServer.Protocol.Range;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
 {

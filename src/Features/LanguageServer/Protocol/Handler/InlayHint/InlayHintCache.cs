@@ -4,7 +4,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.InlineHints;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using static Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint.InlayHintCache;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint;

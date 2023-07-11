@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
@@ -46,7 +46,7 @@ internal sealed class PublicDocumentPullDiagnosticsHandler : AbstractDocumentPul
         return ConvertTags(diagnosticData, potentialDuplicate: false);
     }
 
-    protected override DocumentDiagnosticPartialReport CreateReport(TextDocumentIdentifier identifier, VisualStudio.LanguageServer.Protocol.Diagnostic[] diagnostics, string resultId)
+    protected override DocumentDiagnosticPartialReport CreateReport(TextDocumentIdentifier identifier, Roslyn.LanguageServer.Protocol.Diagnostic[] diagnostics, string resultId)
         => new DocumentDiagnosticPartialReport(new RelatedFullDocumentDiagnosticReport
         {
             ResultId = resultId,
@@ -57,7 +57,7 @@ internal sealed class PublicDocumentPullDiagnosticsHandler : AbstractDocumentPul
         => new DocumentDiagnosticPartialReport(new RelatedFullDocumentDiagnosticReport
         {
             ResultId = null,
-            Items = Array.Empty<VisualStudio.LanguageServer.Protocol.Diagnostic>(),
+            Items = Array.Empty<Roslyn.LanguageServer.Protocol.Diagnostic>(),
         });
 
     protected override DocumentDiagnosticPartialReport CreateUnchangedReport(TextDocumentIdentifier identifier, string resultId)

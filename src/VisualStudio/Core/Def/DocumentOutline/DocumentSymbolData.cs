@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
-    using SymbolKind = LanguageServer.Protocol.SymbolKind;
+    using SymbolKind = Roslyn.LanguageServer.Protocol.SymbolKind;
 
     /// <summary>
     /// Represents the immutable symbol returned from the LSP request to get document symbols, but mapped into

@@ -17,7 +17,7 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.References
 {
@@ -314,7 +314,8 @@ class C
             var definitionId = definition.DefinitionId;
             Assert.NotNull(definition.DefinitionText);
 
-            Assert.Equal(definitionGlyph.GetImageId(), definition.DefinitionIcon.ImageId);
+            Assert.Equal(definitionGlyph.GetImageId().Guid, definition.DefinitionIcon.ImageId.Guid);
+            Assert.Equal(definitionGlyph.GetImageId().Id, definition.DefinitionIcon.ImageId.Id);
 
             for (var i = 0; i < referenceItems.Length; i++)
             {

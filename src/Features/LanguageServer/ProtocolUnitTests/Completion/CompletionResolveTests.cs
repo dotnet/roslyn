@@ -15,13 +15,14 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
 using Newtonsoft.Json;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Extensions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
 {
@@ -395,7 +396,7 @@ link text";
                 };
             }
 
-            expectedCompletionItem.Description = description;
+            expectedCompletionItem.Description = description.ToLSPElement();
             return expectedCompletionItem;
         }
 

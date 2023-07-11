@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
@@ -67,7 +67,7 @@ internal sealed class PublicWorkspacePullDiagnosticsHandler : AbstractPullDiagno
         return ConvertTags(diagnosticData, potentialDuplicate: false);
     }
 
-    protected override WorkspaceDiagnosticPartialReport CreateReport(TextDocumentIdentifier identifier, VisualStudio.LanguageServer.Protocol.Diagnostic[] diagnostics, string resultId)
+    protected override WorkspaceDiagnosticPartialReport CreateReport(TextDocumentIdentifier identifier, Roslyn.LanguageServer.Protocol.Diagnostic[] diagnostics, string resultId)
         => new WorkspaceDiagnosticPartialReport(new WorkspaceDiagnosticReport
         {
             Items = new SumType<WorkspaceFullDocumentDiagnosticReport, WorkspaceUnchangedDocumentDiagnosticReport>[]
@@ -91,7 +91,7 @@ internal sealed class PublicWorkspacePullDiagnosticsHandler : AbstractPullDiagno
                 new WorkspaceFullDocumentDiagnosticReport
                 {
                     Uri = identifier.Uri,
-                    Items = Array.Empty<VisualStudio.LanguageServer.Protocol.Diagnostic>(),
+                    Items = Array.Empty<Roslyn.LanguageServer.Protocol.Diagnostic>(),
                     // The documents provided by workspace reports are never open, so we return null.
                     Version = null,
                     ResultId = null,

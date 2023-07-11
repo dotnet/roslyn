@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// </summary>
         Location,
         /// <summary>
-        /// Sort by document symbol <see cref="Microsoft.VisualStudio.LanguageServer.Protocol.SymbolKind"/>.
+        /// Sort by document symbol <see cref="Roslyn.LanguageServer.Protocol.SymbolKind"/>.
         /// </summary>
         /// <remarks>
         /// At the moment, we order the symbols by the SymbolKind enum values. If this ordering turns out to be
