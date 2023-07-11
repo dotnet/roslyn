@@ -57,6 +57,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                  BoundDelegateCreationExpression { WasTargetTyped: true });
 
                     return objectCreation;
+
+                case ConversionKind.CollectionLiteral:
+                    // Skip through target-typed collection literals
+                    Debug.Assert(node.Type.Equals(node.Operand.Type, TypeCompareKind.AllIgnoreOptions));
+                    return VisitExpression(node.Operand)!;
             }
 
             var rewrittenType = VisitType(node.Type);
