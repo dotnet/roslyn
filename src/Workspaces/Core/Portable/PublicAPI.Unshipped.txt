@@ -16,4 +16,6 @@
 *REMOVED*static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.operator !=(Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers left, Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers right) -> bool
 *REMOVED*static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.operator ==(Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers left, Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers right) -> bool
 *REMOVED*static Microsoft.CodeAnalysis.LoadTextOptions.operator ==(Microsoft.CodeAnalysis.LoadTextOptions left, Microsoft.CodeAnalysis.LoadTextOptions right) -> bool
+*REMOVED*static Microsoft.CodeAnalysis.LoadTextOptions.operator !=(Microsoft.CodeAnalysis.LoadTextOptions left, Microsoft.CodeAnalysis.LoadTextOptions right) -> bool
+*REMOVED*static Microsoft.CodeAnalysis.Options.OptionKey.operator ==(Microsoft.CodeAnalysis.Options.OptionKey left, Microsoft.CodeAnalysis.Options.OptionKey right) -> bool
 *REMOVED*static Microsoft.CodeAnalysis.Options.OptionKey.operator !=(Microsoft.CodeAnalysis.Options.OptionKey left, Microsoft.CodeAnalysis.Options.OptionKey right) -> bool
