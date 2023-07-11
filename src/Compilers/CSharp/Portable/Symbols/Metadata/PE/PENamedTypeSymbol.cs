@@ -2623,7 +2623,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     int firstIndex = _genericParameterHandles.Count - _arity;
 
                     using var ownedParams = TemporaryArray<TypeParameterSymbol>.GetInstance(_arity);
-                    ownedParams.ToImmutableAndClear();
                     for (int i = 0; i < _arity; i++)
                     {
                         ownedParams.Add(new PETypeParameterSymbol(moduleSymbol, this, (ushort)i, _genericParameterHandles[firstIndex + i]));
