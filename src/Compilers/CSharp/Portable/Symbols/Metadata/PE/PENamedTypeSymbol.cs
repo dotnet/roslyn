@@ -18,6 +18,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
@@ -2621,14 +2622,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     // If this is a nested type generic parameters in metadata include generic parameters of the outer types.
                     int firstIndex = _genericParameterHandles.Count - _arity;
 
-                    TypeParameterSymbol[] ownedParams = new TypeParameterSymbol[_arity];
-                    for (int i = 0; i < ownedParams.Length; i++)
+                    using var ownedParams = TemporaryArray<TypeParameterSymbol>.GetInstance(_arity);
+                    ownedParams.ToImmutableAndClear();
+                    for (int i = 0; i < _arity; i++)
                     {
-                        ownedParams[i] = new PETypeParameterSymbol(moduleSymbol, this, (ushort)i, _genericParameterHandles[firstIndex + i]);
+                        ownedParams.Add(new PETypeParameterSymbol(moduleSymbol, this, (ushort)i, _genericParameterHandles[firstIndex + i]));
                     }
 
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameters,
-                        ImmutableArray.Create<TypeParameterSymbol>(ownedParams));
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameters, ownedParams.ToImmutableAndClear());
                 }
             }
 

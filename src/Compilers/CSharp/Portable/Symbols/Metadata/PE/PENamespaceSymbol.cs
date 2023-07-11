@@ -42,6 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// </summary>
         private Dictionary<string, TypeDefinitionHandle> _lazyNoPiaLocalTypes;
 
+        private (ReadOnlyMemory<char> Name, ImmutableArray<Symbol> Symbols) _lastGetMembersResult;
+
         /// <summary>
         /// All type members in a flat array
         /// </summary>
@@ -89,29 +91,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public sealed override ImmutableArray<Symbol> GetMembers(ReadOnlyMemory<char> name)
         {
+            var (lastName, lastResult) = _lastGetMembersResult;
+            if (lastName.Span.SequenceEqual(name.Span))
+            {
+                return lastResult;
+            }
+
             EnsureAllMembersLoaded();
 
-            PENestedNamespaceSymbol ns = null;
             ImmutableArray<PENamedTypeSymbol> t;
 
-            if (lazyNamespaces.TryGetValue(name, out ns))
+            if (lazyNamespaces.TryGetValue(name, out PENestedNamespaceSymbol ns))
             {
                 if (lazyTypes.TryGetValue(name, out t))
                 {
                     // TODO - Eliminate the copy by storing all members and type members instead of non-type and type members?
-                    return StaticCast<Symbol>.From(t).Add(ns);
+                    var result = StaticCast<Symbol>.From(t).Add(ns);
+                    _lastGetMembersResult = (name, result);
+                    return result;
                 }
                 else
                 {
-                    return ImmutableArray.Create<Symbol>(ns);
+                    var result = ImmutableArray.Create<Symbol>(ns);
+                    _lastGetMembersResult = (name, result);
+                    return result;
                 }
             }
             else if (lazyTypes.TryGetValue(name, out t))
             {
-                return StaticCast<Symbol>.From(t);
+                var result = StaticCast<Symbol>.From(t);
+                _lastGetMembersResult = (name, result);
+                return result;
             }
 
-            return ImmutableArray<Symbol>.Empty;
+            var emptyResult = ImmutableArray<Symbol>.Empty;
+            _lastGetMembersResult = (name, emptyResult);
+            return emptyResult;
         }
 
         public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers()
