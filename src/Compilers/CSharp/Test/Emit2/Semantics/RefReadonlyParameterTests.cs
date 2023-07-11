@@ -874,6 +874,58 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
     }
 
     [Fact]
+    public void FunctionPointer_ModoptRequiresLocation_ModreqCustom()
+    {
+        // public class C
+        // {
+        //     public unsafe delegate*<ref readonly int modreq(MyAttribute), void> D;
+        // }
+        var ilSource = """
+            .class public auto ansi beforefieldinit C extends System.Object
+            {
+                .field public method void *(int32& modopt(System.Runtime.CompilerServices.RequiresLocationAttribute) modreq(MyAttribute)) D
+            }
+
+            .class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.RequiresLocationAttribute extends System.Object
+            {
+            }
+
+            .class public auto ansi sealed beforefieldinit MyAttribute extends System.Object
+            {
+            }
+            """;
+
+        var source = """
+            class X
+            {
+                void M(C c)
+                {
+                    int x = 111;
+                    c.D(ref x);
+                }
+            }
+            """;
+
+        var comp = CreateCompilationWithIL(source, ilSource, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+            // (6,9): error CS0570: 'delegate*<ref readonly int, void>' is not supported by the language
+            //         c.D(ref x);
+            Diagnostic(ErrorCode.ERR_BindToBogus, "c.D(ref x)").WithArguments("delegate*<ref readonly int, void>").WithLocation(6, 9),
+            // (6,11): error CS0570: 'C.D' is not supported by the language
+            //         c.D(ref x);
+            Diagnostic(ErrorCode.ERR_BindToBogus, "D").WithArguments("C.D").WithLocation(6, 11));
+
+        var ptr = (FunctionPointerTypeSymbol)comp.GlobalNamespace.GetMember<FieldSymbol>("C.D").Type;
+        var p = ptr.Signature.Parameters.Single();
+        VerifyRefReadonlyParameter(p, attributes: false, customModifiers: VerifyModifiers.Unknown, useSiteError: true);
+        Assert.Empty(p.GetAttributes());
+        AssertEx.SetEqual(new[]
+        {
+            (false, "MyAttribute"),
+            (true, RequiresLocationAttributeQualifiedName)
+        }, p.RefCustomModifiers.Select(m => (m.IsOptional, m.Modifier.ToTestDisplayString())));
+    }
+
+    [Fact]
     public void FunctionPointer_ModreqRequiresLocation()
     {
         // public class C
