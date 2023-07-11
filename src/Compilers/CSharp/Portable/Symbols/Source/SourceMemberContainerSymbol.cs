@@ -847,6 +847,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal bool IsUnsafe => HasFlag(DeclarationModifiers.Unsafe);
 
+        /// <summary>
+        /// If this type is file-local, the syntax tree in which the type is declared. Otherwise, null.
+        /// </summary>
         private SyntaxTree? AssociatedSyntaxTree => IsFileLocal ? declaration.Declarations[0].Location.SourceTree : null;
 
         internal sealed override FileIdentifier? AssociatedFileIdentifier
