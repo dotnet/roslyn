@@ -829,48 +829,33 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         var source = """
             class D
             {
-                unsafe void M(C c)
+                void M(C c)
                 {
                     int x = 6;
-                    c.D(x);
                     c.D(ref x);
-                    c.D(in x);
                 }
             }
             """;
 
-        // Note that older compiler versions would report an error for `c.D(ref x)` instead because they would interpret the parameter as `in`.
-        // But this is a custom IL hence we don't try to be consistent here.
-        var comp1 = CreateCompilationWithIL(source, ilSource, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (6,13): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //         c.D(x);
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("ref readonly parameters").WithLocation(6, 13),
-            // (8,16): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //         c.D(in x);
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("ref readonly parameters").WithLocation(8, 16));
+        var comp = CreateCompilationWithIL(source, ilSource, options: TestOptions.UnsafeDebugDll);
+        comp.VerifyDiagnostics(
+            // (6,9): error CS0570: 'delegate*<in int, void>' is not supported by the language
+            //         c.D(ref x);
+            Diagnostic(ErrorCode.ERR_BindToBogus, "c.D(ref x)").WithArguments("delegate*<in int, void>").WithLocation(6, 9),
+            // (6,11): error CS0570: 'C.D' is not supported by the language
+            //         c.D(ref x);
+            Diagnostic(ErrorCode.ERR_BindToBogus, "D").WithArguments("C.D").WithLocation(6, 11));
 
-        verify(comp1);
-
-        var comp2 = CreateCompilationWithIL(source, ilSource, options: TestOptions.UnsafeDebugDll);
-        comp2.VerifyDiagnostics(
-            // (6,13): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
-            //         c.D(x);
-            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(6, 13));
-
-        verify(comp2);
-
-        static void verify(CSharpCompilation comp)
+        var ptr = (FunctionPointerTypeSymbol)comp.GlobalNamespace.GetMember<FieldSymbol>("C.D").Type;
+        var p = ptr.Signature.Parameters.Single();
+        VerifyRefReadonlyParameter(p, refKind: false, attributes: false, customModifiers: VerifyModifiers.DoNotVerify, useSiteError: true);
+        Assert.Equal(RefKind.In, p.RefKind);
+        Assert.Empty(p.GetAttributes());
+        AssertEx.SetEqual(new[]
         {
-            var ptr = (FunctionPointerTypeSymbol)comp.GlobalNamespace.GetMember<FieldSymbol>("C.D").Type;
-            var p = ptr.Signature.Parameters.Single();
-            VerifyRefReadonlyParameter(p, attributes: false, customModifiers: VerifyModifiers.DoNotVerify);
-            Assert.Empty(p.GetAttributes());
-            AssertEx.SetEqual(new[]
-            {
-                (false, InAttributeQualifiedName),
-                (true, RequiresLocationAttributeQualifiedName)
-            }, p.RefCustomModifiers.Select(m => (m.IsOptional, m.Modifier.ToTestDisplayString())));
-        }
+            (false, InAttributeQualifiedName),
+            (true, RequiresLocationAttributeQualifiedName)
+        }, p.RefCustomModifiers.Select(m => (m.IsOptional, m.Modifier.ToTestDisplayString())));
     }
 
     [Fact]

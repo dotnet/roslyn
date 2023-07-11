@@ -583,9 +583,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return param.IsByRef switch
                 {
                     false => RefKind.None,
-                    true when requiresLocationAllowed && CustomModifierUtils.HasRequiresLocationAttributeModifier(paramRefCustomMods) => RefKind.RefReadOnlyParameter,
                     true when CustomModifierUtils.HasInAttributeModifier(paramRefCustomMods) => hasInRefKind,
                     true when CustomModifierUtils.HasOutAttributeModifier(paramRefCustomMods) => hasOutRefKind,
+                    true when requiresLocationAllowed && CustomModifierUtils.HasRequiresLocationAttributeModifier(paramRefCustomMods) => RefKind.RefReadOnlyParameter,
                     true => RefKind.Ref,
                 };
             }
@@ -779,6 +779,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (CallingConvention.IsCallingConvention(CallingConvention.ExtraArguments))
             {
                 MergeUseSiteInfo(ref info, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_UnsupportedCallingConvention, this)));
+            }
+
+            // Check for `modopt(RequiresLocation)` combined with any required modifier.
+            if (info.DiagnosticInfo?.Severity != DiagnosticSeverity.Error)
+            {
+                foreach (var parameter in this.Parameters)
+                {
+                    if (CustomModifierUtils.HasRequiresLocationAttributeModifier(parameter.RefCustomModifiers) &&
+                        parameter.RefCustomModifiers.Any(static m => !m.IsOptional))
+                    {
+                        MergeUseSiteInfo(ref info, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this)));
+                    }
+                }
             }
 
             return info;
