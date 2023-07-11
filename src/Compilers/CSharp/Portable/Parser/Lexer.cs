@@ -72,6 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         private const int TriviaListInitialCapacity = 8;
 
+        private static readonly Encoding s_utf8EncodingThatThrows = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+
         private readonly CSharpParseOptions _options;
 
         private LexerMode _mode;
@@ -910,51 +912,66 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     else
                     {
                         TextWindow.AdvanceChar();
+
+                        // If we ran into the start of a surrogate pair, then see if we have the whole pair.  If so,
+                        // skip the pair in its entirety so we can produce a good error message that treats the two as a
+                        // single entity to tell the user about.
+                        if (char.IsHighSurrogate(character))
+                        {
+                            if (char.IsLowSurrogate(TextWindow.PeekChar()))
+                                TextWindow.AdvanceChar();
+                        }
                     }
 
+                    // if the original text wasn't already escaped, then escape it in the error message so that it's
+                    // clear what the issue is.  i.e. if the users source had the literal six characters in order like
+                    // so:  `\` `u` `D` `C` `E` `7`, then there's no need to escape that again when reporting the error.
+                    // However, if the user's code has the actual System.Char \uDCE7 char in it, then we want to print
+                    // that out in escaped form so they have an actual clue about what the character value is that we
+                    // have a problem with.
+                    var escapeText = !isEscaped;
                     if (_badTokenCount++ > 200)
                     {
                         // If we get too many characters that we cannot make sense of, absorb the rest of the input.
                         int end = TextWindow.Text.Length;
-                        int width = end - startingPosition;
-                        info.Text = TextWindow.Text.ToString(new TextSpan(startingPosition, width));
+                        info.Text = TextWindow.Text.ToString(TextSpan.FromBounds(startingPosition, end));
                         TextWindow.Reset(end);
                     }
                     else
                     {
                         info.Text = TextWindow.GetText(intern: true);
+                        escapeText = escapeIfInvalidUnicode(info.Text);
                     }
 
-                    this.AddError(ErrorCode.ERR_UnexpectedCharacter, EscapeIfInvalidUnicode(info.Text));
+                    var messageText = escapeText ? ObjectDisplay.FormatLiteral(info.Text, ObjectDisplayOptions.EscapeNonPrintableCharacters) : info.Text;
+                    this.AddError(ErrorCode.ERR_UnexpectedCharacter, messageText);
                     break;
             }
-        }
 
-        private static readonly Encoding s_utf8EncodingThatThrows = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
-
-        private static string EscapeIfInvalidUnicode(string text)
-        {
-            // This is an unfortunate hack, but is reasonably simple and unblocks an unfortunate situation.
-            // Specifically, there are consumers of Roslyn data that end up needing to encode the strings we produce
-            // (for example in diagnostic messages) from legal .Net strings to things like utf8.  For example, the
-            // rpc-serialization libraries in play have an additional restriction that .Net string be valid utf8, or
-            // else they will lose data (non unicode characters get replaced with \uFFFD).
-            //
-            // To mitigate this issue, if we're about to report an issue about a surrogate that we ourselves is invalid
-            // for C#, then we don't report the error about that char directly (despite it being legal .Net), and instead
-            // encode the character into a form that later encoders/decoders won't have an issue with.
-            try
+            static bool escapeIfInvalidUnicode(string text)
             {
-                s_utf8EncodingThatThrows.GetByteCount(text);
+                // This is an unfortunate hack, but is reasonably simple and unblocks an unfortunate situation.
+                // Specifically, there are consumers of Roslyn data that end up needing to encode the strings we produce
+                // (for example in diagnostic messages) from legal .Net strings to things like utf8.  For example, the
+                // rpc-serialization libraries in play have an additional restriction that .Net string be valid utf8, or
+                // else they will lose data (non unicode characters get replaced with \uFFFD).
+                //
+                // To mitigate this issue, if we're about to report an issue about a surrogate that we ourselves is invalid
+                // for C#, then we don't report the error about that char directly (despite it being legal .Net), and instead
+                // encode the character into a form that later encoders/decoders won't have an issue with.
+                try
+                {
+                    s_utf8EncodingThatThrows.GetByteCount(text);
 
-                // no problem encoding, so this text is good to use as is.
-                return text;
-            }
-            catch (EncoderFallbackException)
-            {
-                // text couldn't be converted to/from unicode. Replace with a form that still conveys the information,
-                // but will be non-lossy on conversion.
-                return ObjectDisplay.FormatLiteral(text, ObjectDisplayOptions.EscapeNonPrintableCharacters);
+                    // no problem encoding, so this text is good to use as is.
+                    return false;
+                }
+                catch (EncoderFallbackException)
+                {
+                    // text couldn't be converted to/from unicode. Replace with a form that still conveys the information,
+                    // but will be non-lossy on conversion.
+                    return true;
+                }
             }
         }
 
