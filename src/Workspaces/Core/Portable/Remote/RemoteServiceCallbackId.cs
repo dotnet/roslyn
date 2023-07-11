@@ -7,8 +7,5 @@ using System.Runtime.Serialization;
 namespace Microsoft.CodeAnalysis.Remote;
 
 [DataContract]
-internal readonly record struct RemoteServiceCallbackId(int id)
-{
-    [DataMember(Order = 0)]
-    public readonly int Id = id;
-}
+internal readonly record struct RemoteServiceCallbackId(
+    [property: DataMember(Order = 0)] int Id);
