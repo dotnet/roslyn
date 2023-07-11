@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
 
             UnmanagedType? elementType = null;
-            int? elementCount = isFixed ? 1 : (int?)null;
+            int? elementCount = null;
             short? parameterIndex = null;
             bool hasErrors = false;
 
@@ -266,6 +266,16 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 position++;
+            }
+
+            if (isFixed)
+            {
+                if (elementCount is null)
+                {
+                    // SizeConst must be specified:
+                    messageProvider.ReportAttributeParameterRequired(arguments.Diagnostics, arguments.AttributeSyntaxOpt, "SizeConst");
+                    hasErrors = true;
+                }
             }
 
             if (!hasErrors)
