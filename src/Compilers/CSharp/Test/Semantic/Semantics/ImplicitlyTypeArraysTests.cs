@@ -101,7 +101,6 @@ class C
             Assert.NotNull(typeInfo.ConvertedType);
         }
 
-
         [Fact]
         public void BestType_NestedError()
         {
