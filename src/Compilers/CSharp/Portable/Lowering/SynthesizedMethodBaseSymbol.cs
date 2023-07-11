@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                     refKind: baseMethod.RefKind,
                                                     declarationModifiers,
                                                     returnsVoid: baseMethod.ReturnsVoid,
+                                                    returnsVoidIsSet: true,
                                                     isExtensionMethod: false,
                                                     isNullableAnalysisEnabled: false,
                                                     isVarArg: baseMethod.IsVararg,

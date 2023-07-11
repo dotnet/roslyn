@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue
     /// Active instruction identifier.
     /// It has the information necessary to track an active instruction within the debug session.
     /// </summary>
+    /// <remarks>
+    /// Creates an ActiveInstructionId.
+    /// </remarks>
+    /// <param name="method">Method which the instruction is scoped to.</param>
+    /// <param name="ilOffset">IL offset for the instruction.</param>
     [DataContract]
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     internal readonly struct ManagedInstructionId(

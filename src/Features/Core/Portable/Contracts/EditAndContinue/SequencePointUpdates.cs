@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue
     /// <summary>
     /// Sequence points affected by an update on a specified file.
     /// </summary>
+    /// <remarks>
+    /// Creates a SequencePointsUpdate.
+    /// </remarks>
+    /// <param name="fileName">Name of the file which was modified.</param>
+    /// <param name="lineUpdates">Collection of the file lines affected by the update.</param>
     [DataContract]
     internal readonly struct SequencePointUpdates(
         string fileName,

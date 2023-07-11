@@ -140,45 +140,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return false;
         }
 
-        /// <returns>
-        /// Given a node representing a declaration or a top-level match node returns:
-        /// - <see cref="BlockSyntax"/> for method-like member declarations with block bodies (methods, operators, constructors, destructors, accessors).
-        /// - <see cref="ExpressionSyntax"/> for variable declarators of fields, properties with an initializer expression, or 
-        ///   for method-like member declarations with expression bodies (methods, properties, indexers, operators)
-        /// - <see cref="CompilationUnitSyntax"/> for top level statements
-        /// 
-        /// A null reference otherwise.
-        /// </returns>
-        internal override SyntaxNode? TryGetDeclarationBody(SyntaxNode node)
-        {
-            if (node is VariableDeclaratorSyntax variableDeclarator)
-            {
-                return variableDeclarator.Initializer?.Value;
-            }
-
-            if (IsCompilationUnitWithGlobalStatements(node))
-            {
-                // For top level statements, where there is no syntax node to represent the entire body of the synthesized
-                // main method we just use the compilation unit itself
-                return node;
-            }
-
-            return SyntaxUtilities.TryGetMethodDeclarationBody(node);
-        }
+        internal override MemberBody? TryGetDeclarationBody(SyntaxNode node)
+            => SyntaxUtilities.TryGetDeclarationBody(node);
 
         internal override bool IsDeclarationWithSharedBody(SyntaxNode declaration)
             => false;
-
-        protected override ImmutableArray<ISymbol> GetCapturedVariables(SemanticModel model, SyntaxNode memberBody)
-        {
-            if (memberBody is CompilationUnitSyntax unit && unit.ContainsGlobalStatements())
-            {
-                return model.AnalyzeDataFlow(((GlobalStatementSyntax)unit.Members[0]).Statement, unit.Members.OfType<GlobalStatementSyntax>().Last().Statement)!.Captured;
-            }
-
-            Debug.Assert(memberBody.IsKind(SyntaxKind.Block) || memberBody is ExpressionSyntax);
-            return model.AnalyzeDataFlow(memberBody).Captured;
-        }
 
         protected override bool AreHandledEventsEqual(IMethodSymbol oldMethod, IMethodSymbol newMethod)
             => true;
@@ -204,87 +170,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                          (model.GetSymbolInfo(nameSyntax, cancellationToken).Symbol?.Equals(localOrParameter) ?? false)
                    select node;
         }
-
-        /// <returns>
-        /// If <paramref name="node"/> is a method, accessor, operator, destructor, or constructor without an initializer,
-        /// tokens of its block body, or tokens of the expression body.
-        /// 
-        /// If <paramref name="node"/> is an indexer declaration the tokens of its expression body.
-        /// 
-        /// If <paramref name="node"/> is a property declaration the tokens of its expression body or initializer.
-        ///   
-        /// If <paramref name="node"/> is a constructor with an initializer, 
-        /// tokens of the initializer concatenated with tokens of the constructor body.
-        /// 
-        /// If <paramref name="node"/> is a variable declarator of a field with an initializer,
-        /// subset of the tokens of the field declaration depending on which variable declarator it is.
-        /// 
-        /// If <paramref name="node"/> is a <see cref="CompilationUnitSyntax"/> the tokens of all its global statements.
-        /// Null reference otherwise.
-        /// </returns>
-        internal override IEnumerable<SyntaxToken>? TryGetActiveTokens(SyntaxNode node)
-        {
-            if (node.IsKind(SyntaxKind.VariableDeclarator))
-            {
-                // TODO: The logic is similar to BreakpointSpans.TryCreateSpanForVariableDeclaration. Can we abstract it?
-
-                var declarator = node;
-                var fieldDeclaration = (BaseFieldDeclarationSyntax)declarator.Parent!.Parent!;
-                var variableDeclaration = fieldDeclaration.Declaration;
-
-                if (fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword))
-                {
-                    return null;
-                }
-
-                if (variableDeclaration.Variables.Count == 1)
-                {
-                    if (variableDeclaration.Variables[0].Initializer == null)
-                    {
-                        return null;
-                    }
-
-                    return fieldDeclaration.Modifiers.Concat(variableDeclaration.DescendantTokens()).Concat(fieldDeclaration.SemicolonToken);
-                }
-
-                if (declarator == variableDeclaration.Variables[0])
-                {
-                    return fieldDeclaration.Modifiers.Concat(variableDeclaration.Type.DescendantTokens()).Concat(node.DescendantTokens());
-                }
-
-                return declarator.DescendantTokens();
-            }
-
-            if (node is PropertyDeclarationSyntax { ExpressionBody: var propertyExpressionBody and not null })
-            {
-                return propertyExpressionBody.Expression.DescendantTokens();
-            }
-
-            if (node is IndexerDeclarationSyntax { ExpressionBody: var indexerExpressionBody and not null })
-            {
-                return indexerExpressionBody.Expression.DescendantTokens();
-            }
-
-            if (node is CompilationUnitSyntax unit && unit.ContainsGlobalStatements())
-            {
-                return unit.Members.OfType<GlobalStatementSyntax>().SelectMany(globalStatement => globalStatement.DescendantTokens());
-            }
-
-            var bodyTokens = SyntaxUtilities.TryGetMethodDeclarationBody(node)?.DescendantTokens();
-
-            if (node is ConstructorDeclarationSyntax ctor)
-            {
-                if (ctor.Initializer != null)
-                {
-                    bodyTokens = ctor.Initializer.DescendantTokens().Concat(bodyTokens ?? Enumerable.Empty<SyntaxToken>());
-                }
-            }
-
-            return bodyTokens;
-        }
-
-        internal override (TextSpan envelope, TextSpan hole) GetActiveSpanEnvelope(SyntaxNode declaration)
-            => (BreakpointSpans.GetEnvelope(declaration), default);
 
         protected override SyntaxNode GetEncompassingAncestorImpl(SyntaxNode bodyOrMatchRoot)
         {
@@ -317,59 +202,35 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return bodyOrMatchRoot;
         }
 
-        protected override SyntaxNode FindStatementAndPartner(SyntaxNode declarationBody, TextSpan span, SyntaxNode? partnerDeclarationBody, out SyntaxNode? partner, out int statementPart)
+        internal static SyntaxNode FindStatementAndPartner(
+            TextSpan span,
+            SyntaxNode body,
+            SyntaxNode? partnerBody,
+            out SyntaxNode? partnerStatement,
+            out int statementPart)
         {
             var position = span.Start;
 
-            SyntaxUtilities.AssertIsBody(declarationBody, allowLambda: false);
-
-            if (position < declarationBody.SpanStart)
-            {
-                // Only constructors and the field initializers may have an [|active statement|] starting outside of the <<body>>.
-                // Constructor:                          [|public C()|] <<{ }>>
-                // Constructor initializer:              public C() : [|base(expr)|] <<{ }>>
-                // Constructor initializer with lambda:  public C() : base(() => { [|...|] }) <<{ }>>
-                // Field initializers:                   [|public int a = <<expr>>|], [|b = <<expr>>|];
-
-                // No need to special case property initializers here, the active statement always spans the initializer expression.
-
-                if (declarationBody.Parent.IsKind(SyntaxKind.ConstructorDeclaration))
-                {
-                    var constructor = (ConstructorDeclarationSyntax)declarationBody.Parent;
-                    var partnerConstructor = (ConstructorDeclarationSyntax?)partnerDeclarationBody?.Parent;
-
-                    if (constructor.Initializer == null || position < constructor.Initializer.ColonToken.SpanStart)
-                    {
-                        statementPart = DefaultStatementPart;
-                        partner = partnerConstructor;
-                        return constructor;
-                    }
-
-                    declarationBody = constructor.Initializer;
-                    partnerDeclarationBody = partnerConstructor?.Initializer;
-                }
-            }
-
-            if (!declarationBody.FullSpan.Contains(position))
+            if (!body.FullSpan.Contains(position))
             {
                 // invalid position, let's find a labeled node that encompasses the body:
-                position = declarationBody.SpanStart;
+                position = body.SpanStart;
             }
 
             SyntaxNode node;
-            if (partnerDeclarationBody != null)
+            if (partnerBody != null)
             {
-                SyntaxUtilities.FindLeafNodeAndPartner(declarationBody, position, partnerDeclarationBody, out node, out partner);
+                FindLeafNodeAndPartner(body, position, partnerBody, out node, out partnerStatement);
             }
             else
             {
-                node = declarationBody.FindToken(position).Parent!;
-                partner = null;
+                node = body.FindToken(position).Parent!;
+                partnerStatement = null;
             }
 
             while (true)
             {
-                var isBody = node == declarationBody || LambdaUtilities.IsLambdaBodyStatementOrExpression(node);
+                var isBody = node == body || LambdaUtilities.IsLambdaBodyStatementOrExpression(node);
 
                 if (isBody || SyntaxComparer.Statement.HasLabel(node))
                 {
@@ -409,9 +270,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                             node = ((VariableDeclarationSyntax)node).Variables.First();
 
-                            if (partner != null)
+                            if (partnerStatement != null)
                             {
-                                partner = ((VariableDeclarationSyntax)partner).Variables.First();
+                                partnerStatement = ((VariableDeclarationSyntax)partnerStatement).Variables.First();
                             }
 
                             statementPart = DefaultStatementPart;
@@ -459,9 +320,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 }
 
                 node = node.Parent!;
-                if (partner != null)
+                if (partnerStatement != null)
                 {
-                    partner = partner.Parent;
+                    partnerStatement = partnerStatement.Parent;
                 }
             }
         }
@@ -511,9 +372,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 _ => throw ExceptionUtilities.UnexpectedValue(part),
             };
 
-        protected override bool AreEquivalentLambdaBodies(SyntaxNode oldLambda, SyntaxNode oldLambdaBody, SyntaxNode newLambda, SyntaxNode newLambdaBody)
-            => SyntaxFactory.AreEquivalent(oldLambdaBody, newLambdaBody);
-
         private static bool AreEquivalentIgnoringLambdaBodies(SyntaxNode left, SyntaxNode right)
         {
             // usual case:
@@ -525,22 +383,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return LambdaUtilities.AreEquivalentIgnoringLambdaBodies(left, right);
         }
 
-        internal override SyntaxNode FindDeclarationBodyPartner(SyntaxNode leftRoot, SyntaxNode rightRoot, SyntaxNode leftNode)
-            => SyntaxUtilities.FindPartner(leftRoot, rightRoot, leftNode);
-
         internal override bool IsClosureScope(SyntaxNode node)
             => LambdaUtilities.IsClosureScope(node);
 
-        protected override SyntaxNode? FindEnclosingLambdaBody(SyntaxNode? container, SyntaxNode node)
+        protected override LambdaBody? FindEnclosingLambdaBody(SyntaxNode root, SyntaxNode node)
         {
-            var root = GetEncompassingAncestor(container);
-
             var current = node;
             while (current != root && current != null)
             {
                 if (LambdaUtilities.IsLambdaBodyStatementOrExpression(current, out var body))
                 {
-                    return body;
+                    return SyntaxUtilities.CreateLambdaBody(body);
                 }
 
                 current = current.Parent;
@@ -548,12 +401,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             return null;
         }
-
-        protected override IEnumerable<SyntaxNode> GetLambdaBodyExpressionsAndStatements(SyntaxNode lambdaBody)
-            => SpecializedCollections.SingletonEnumerable(lambdaBody);
-
-        protected override SyntaxNode? TryGetPartnerLambdaBody(SyntaxNode oldBody, SyntaxNode newLambda)
-            => LambdaUtilities.TryGetCorrespondingLambdaBody(oldBody, newLambda);
 
         protected override Match<SyntaxNode> ComputeTopLevelMatch(SyntaxNode oldCompilationUnit, SyntaxNode newCompilationUnit)
             => SyntaxComparer.TopLevel.ComputeMatch(oldCompilationUnit, newCompilationUnit);
@@ -571,20 +418,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 _ => declaration.GetParameterList()
             };
 
-        protected override Match<SyntaxNode> ComputeTopLevelDeclarationMatch(SyntaxNode oldDeclaration, SyntaxNode newDeclaration)
-        {
-            Contract.ThrowIfNull(oldDeclaration.Parent);
-            Contract.ThrowIfNull(newDeclaration.Parent);
-            var comparer = new SyntaxComparer(oldDeclaration.Parent, newDeclaration.Parent, new[] { oldDeclaration }, new[] { newDeclaration }, compareStatementSyntax: false);
-            return comparer.ComputeMatch(oldDeclaration.Parent, newDeclaration.Parent);
-        }
-
-        protected override Match<SyntaxNode> ComputeBodyMatchImpl(SyntaxNode oldBody, SyntaxNode newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>>? knownMatches)
+        internal static Match<SyntaxNode> ComputeBodyMatch(SyntaxNode oldBody, SyntaxNode newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>>? knownMatches)
         {
             SyntaxUtilities.AssertIsBody(oldBody, allowLambda: true);
             SyntaxUtilities.AssertIsBody(newBody, allowLambda: true);
 
-            if (oldBody is ExpressionSyntax || newBody is ExpressionSyntax || (oldBody.Parent.IsKind(SyntaxKind.LocalFunctionStatement) && newBody.Parent.IsKind(SyntaxKind.LocalFunctionStatement)))
+            if (oldBody is ExpressionSyntax ||
+                newBody is ExpressionSyntax ||
+                (oldBody.Parent.IsKind(SyntaxKind.LocalFunctionStatement) && newBody.Parent.IsKind(SyntaxKind.LocalFunctionStatement)))
             {
                 Debug.Assert(oldBody is ExpressionSyntax or BlockSyntax);
                 Debug.Assert(newBody is ExpressionSyntax or BlockSyntax);
@@ -614,18 +455,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 var oldRoot = GetMatchingRoot(oldBody);
                 var newRoot = GetMatchingRoot(newBody);
                 return new SyntaxComparer(oldRoot, newRoot, GetChildNodes(oldRoot, oldBody), GetChildNodes(newRoot, newBody), compareStatementSyntax: true).ComputeMatch(oldRoot, newRoot, knownMatches);
-            }
-
-            if (oldBody.Parent.IsKind(SyntaxKind.ConstructorDeclaration))
-            {
-                // We need to include constructor initializer in the match, since it may contain lambdas.
-                // Use the constructor declaration as a root.
-                RoslynDebug.Assert(oldBody.IsKind(SyntaxKind.Block));
-                RoslynDebug.Assert(newBody.IsKind(SyntaxKind.Block));
-                RoslynDebug.Assert(newBody.Parent.IsKind(SyntaxKind.ConstructorDeclaration));
-                RoslynDebug.Assert(newBody.Parent is object);
-
-                return SyntaxComparer.Statement.ComputeMatch(oldBody.Parent, newBody.Parent, knownMatches);
             }
 
             return SyntaxComparer.Statement.ComputeMatch(oldBody, newBody, knownMatches);
@@ -668,40 +497,25 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
-        protected override bool TryMatchActiveStatement(
-            SyntaxNode oldStatement,
-            int statementPart,
+        internal static bool TryMatchActiveStatement(
             SyntaxNode oldBody,
             SyntaxNode newBody,
+            SyntaxNode oldStatement,
             [NotNullWhen(true)] out SyntaxNode? newStatement)
         {
-            SyntaxUtilities.AssertIsBody(oldBody, allowLambda: true);
-            SyntaxUtilities.AssertIsBody(newBody, allowLambda: true);
+            // TODO: Consider mapping an expression body to an equivalent statement expression or return statement and vice versa.
+            // It would benefit transformations of expression bodies to block bodies of lambdas, methods, operators and properties.
+            // See https://github.com/dotnet/roslyn/issues/22696
 
-            switch (oldStatement.Kind())
+            // field initializer, lambda and query expressions:
+            if (oldStatement == oldBody && !newBody.IsKind(SyntaxKind.Block))
             {
-                case SyntaxKind.ThisConstructorInitializer:
-                case SyntaxKind.BaseConstructorInitializer:
-                case SyntaxKind.ConstructorDeclaration:
-                    var newConstructor = (ConstructorDeclarationSyntax)(newBody.Parent.IsKind(SyntaxKind.ArrowExpressionClause) ? newBody.Parent.Parent : newBody.Parent)!;
-                    newStatement = (SyntaxNode?)newConstructor.Initializer ?? newConstructor;
-                    return true;
-
-                default:
-                    // TODO: Consider mapping an expression body to an equivalent statement expression or return statement and vice versa.
-                    // It would benefit transformations of expression bodies to block bodies of lambdas, methods, operators and properties.
-                    // See https://github.com/dotnet/roslyn/issues/22696
-
-                    // field initializer, lambda and query expressions:
-                    if (oldStatement == oldBody && !newBody.IsKind(SyntaxKind.Block))
-                    {
-                        newStatement = newBody;
-                        return true;
-                    }
-
-                    newStatement = null;
-                    return false;
+                newStatement = newBody;
+                return true;
             }
+
+            newStatement = null;
+            return false;
         }
 
         #endregion
@@ -719,22 +533,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         protected override bool IsGlobalStatement(SyntaxNode node)
             => node.IsKind(SyntaxKind.GlobalStatement);
-
-        protected override TextSpan GetGlobalStatementDiagnosticSpan(SyntaxNode node, EditKind editKind)
-        {
-            if (node is CompilationUnitSyntax unit)
-            {
-                // When deleting something from a compilation unit we just report diagnostics for the last global statement
-                if (editKind == EditKind.Delete)
-                {
-                    return unit.Members.OfType<GlobalStatementSyntax>().LastOrDefault()?.Span ?? default;
-                }
-
-                return unit.Members.OfType<GlobalStatementSyntax>().FirstOrDefault()?.Span ?? default;
-            }
-
-            return GetDiagnosticSpan(node, editKind);
-        }
 
         protected override IEnumerable<SyntaxNode> GetTopLevelTypeDeclarations(SyntaxNode compilationUnit)
         {
@@ -1458,11 +1256,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                IsTypeDeclaration(node) ||
                node is BaseNamespaceDeclarationSyntax;
 
-        internal override bool ContainsLambda(SyntaxNode declaration)
-            => declaration.DescendantNodes().Any(LambdaUtilities.IsLambda);
-
-        internal override bool IsLambda(SyntaxNode node)
-            => LambdaUtilities.IsLambda(node);
+        internal override Func<SyntaxNode, bool> IsLambda
+            => LambdaUtilities.IsLambda;
 
         internal override bool IsLocalFunction(SyntaxNode node)
             => node.IsKind(SyntaxKind.LocalFunctionStatement);
@@ -1473,11 +1268,19 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         internal override bool IsNestedFunction(SyntaxNode node)
             => node is AnonymousFunctionExpressionSyntax or LocalFunctionStatementSyntax;
 
-        internal override bool TryGetLambdaBodies(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? body1, out SyntaxNode? body2)
-            => LambdaUtilities.TryGetLambdaBodies(node, out body1, out body2);
+        internal override bool TryGetLambdaBodies(SyntaxNode node, [NotNullWhen(true)] out LambdaBody? body1, out LambdaBody? body2)
+        {
+            if (LambdaUtilities.TryGetLambdaBodies(node, out var bodyNode1, out var bodyNode2))
+            {
+                body1 = SyntaxUtilities.CreateLambdaBody(bodyNode1);
+                body2 = (bodyNode2 != null) ? SyntaxUtilities.CreateLambdaBody(bodyNode2) : null;
+                return true;
+            }
 
-        internal override SyntaxNode GetLambda(SyntaxNode lambdaBody)
-            => LambdaUtilities.GetLambda(lambdaBody);
+            body1 = null;
+            body2 = null;
+            return false;
+        }
 
         internal override IMethodSymbol GetLambdaExpressionSymbol(SemanticModel model, SyntaxNode lambdaExpression, CancellationToken cancellationToken)
         {
@@ -1591,7 +1394,20 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             switch (kind)
             {
                 case SyntaxKind.CompilationUnit:
-                    return default(TextSpan);
+                    var unit = (CompilationUnitSyntax)node;
+
+                    // When deleting something from a compilation unit we just report diagnostics for the last global statement
+                    var globalStatements = unit.Members.OfType<GlobalStatementSyntax>();
+                    var globalNode =
+                        (editKind == EditKind.Delete ? globalStatements.LastOrDefault() : globalStatements.FirstOrDefault()) ??
+                        unit.ChildNodes().FirstOrDefault();
+
+                    if (globalNode == null)
+                    {
+                        return null;
+                    }
+
+                    return GetDiagnosticSpan(globalNode, editKind);
 
                 case SyntaxKind.GlobalStatement:
                     return node.Span;
@@ -1961,8 +1777,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 // top-level
 
                 case SyntaxKind.CompilationUnit:
+                    return CSharpFeaturesResources.top_level_code;
+
                 case SyntaxKind.GlobalStatement:
-                    return CSharpFeaturesResources.global_statement;
+                    return CSharpFeaturesResources.top_level_statement;
 
                 case SyntaxKind.ExternAliasDirective:
                     return CSharpFeaturesResources.extern_alias;
@@ -2435,14 +2253,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 }
             }
 
-            public void ClassifyDeclarationBodyRudeUpdates(SyntaxNode newBody)
+            public void ClassifyDeclarationBodyRudeUpdates(DeclarationBody newBody)
             {
-                foreach (var node in newBody.DescendantNodesAndSelf(LambdaUtilities.IsNotLambda))
+                foreach (var root in newBody.RootNodes)
                 {
-                    if (node.Kind() is SyntaxKind.StackAllocArrayCreationExpression or SyntaxKind.ImplicitStackAllocArrayCreationExpression)
+                    foreach (var node in root.DescendantNodesAndSelf(LambdaUtilities.IsNotLambda))
                     {
-                        ReportError(RudeEditKind.StackAllocUpdate, node, _newNode);
-                        return;
+                        if (node.Kind() is SyntaxKind.StackAllocArrayCreationExpression or SyntaxKind.ImplicitStackAllocArrayCreationExpression)
+                        {
+                            ReportError(RudeEditKind.StackAllocUpdate, node, _newNode);
+                            return;
+                        }
                     }
                 }
             }
@@ -2463,7 +2284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             classifier.ClassifyEdit();
         }
 
-        internal override void ReportMemberOrLambdaBodyUpdateRudeEditsImpl(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode newDeclaration, SyntaxNode newBody, TextSpan? span)
+        internal override void ReportMemberOrLambdaBodyUpdateRudeEditsImpl(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode newDeclaration, DeclarationBody newBody, TextSpan? span)
         {
             var classifier = new EditClassifier(this, diagnostics, oldNode: null, newDeclaration, EditKind.Update, span: span);
             classifier.ClassifyDeclarationBodyRudeUpdates(newBody);
@@ -2675,12 +2496,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         internal override bool IsStateMachineMethod(SyntaxNode declaration)
             => SyntaxUtilities.IsAsyncDeclaration(declaration) || SyntaxUtilities.IsIterator(declaration);
-
-        internal override StateMachineInfo GetStateMachineInfo(SyntaxNode body)
-            => new(
-                IsAsync: SyntaxUtilities.IsAsyncDeclaration(body.Parent),
-                IsIterator: SyntaxUtilities.IsIterator(body),
-                HasSuspensionPoints: SyntaxUtilities.GetSuspensionPoints(body).Any());
 
         internal override void ReportStateMachineSuspensionPointRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode)
         {
