@@ -8,10 +8,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
@@ -929,7 +929,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     // However, if the user's code has the actual System.Char \uDCE7 char in it, then we want to print
                     // that out in escaped form so they have an actual clue about what the character value is that we
                     // have a problem with.
-                    var escapeText = !isEscaped;
                     if (_badTokenCount++ > 200)
                     {
                         // If we get too many characters that we cannot make sense of, absorb the rest of the input.
@@ -940,38 +939,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     else
                     {
                         info.Text = TextWindow.GetText(intern: true);
-                        escapeText = escapeIfInvalidUnicode(info.Text);
                     }
 
-                    var messageText = escapeText ? ObjectDisplay.FormatLiteral(info.Text, ObjectDisplayOptions.EscapeNonPrintableCharacters) : info.Text;
+                    // if the original user code already contained an explicit escape-sequence in text, then we can just
+                    // point to that code exactly as being something we didn't expect.  Otherwise, if it's just normal
+                    // characters, then escape anything non-printable so that the error message clearly indicates what
+                    // the char-values were that we ran into.
+                    var messageText = isEscaped ? info.Text : escapeNonPrintableCharacters(info.Text);
                     this.AddError(ErrorCode.ERR_UnexpectedCharacter, messageText);
                     break;
             }
 
-            static bool escapeIfInvalidUnicode(string text)
+            static string escapeNonPrintableCharacters(string str)
             {
-                // This is an unfortunate hack, but is reasonably simple and unblocks an unfortunate situation.
-                // Specifically, there are consumers of Roslyn data that end up needing to encode the strings we produce
-                // (for example in diagnostic messages) from legal .Net strings to things like utf8.  For example, the
-                // rpc-serialization libraries in play have an additional restriction that .Net string be valid utf8, or
-                // else they will lose data (non unicode characters get replaced with \uFFFD).
-                //
-                // To mitigate this issue, if we're about to report an issue about a surrogate that we ourselves is invalid
-                // for C#, then we don't report the error about that char directly (despite it being legal .Net), and instead
-                // encode the character into a form that later encoders/decoders won't have an issue with.
-                try
+                var sb = PooledStringBuilder.GetInstance();
+                for (int i = 0, n = str.Length; i < n; i++)
                 {
-                    s_utf8EncodingThatThrows.GetByteCount(text);
+                    var c = str[i];
 
-                    // no problem encoding, so this text is good to use as is.
-                    return false;
+                    if (i < n - 1 &&
+                        char.IsHighSurrogate(c) &&
+                        char.IsLowSurrogate(str[i + 1]))
+                    {
+                        // We have a valid surrogate pair.  Grab it out as a substring so that FormatLiteral will see it and
+                        // properly encode it in a reasonable way to show the user (depending on if it is printable or not).
+                        // Skip forward another character since we're processing two at a time here.
+                        sb.Builder.Append(ObjectDisplay.FormatLiteral(str.Substring(i, 2), ObjectDisplayOptions.EscapeNonPrintableCharacters));
+                        i++;
+                    }
+                    else
+                    {
+                        sb.Builder.Append(ObjectDisplay.FormatLiteral(c, ObjectDisplayOptions.EscapeNonPrintableCharacters));
+                    }
                 }
-                catch (EncoderFallbackException)
-                {
-                    // text couldn't be converted to/from unicode. Replace with a form that still conveys the information,
-                    // but will be non-lossy on conversion.
-                    return true;
-                }
+
+                return sb.ToStringAndFree();
             }
         }
 
