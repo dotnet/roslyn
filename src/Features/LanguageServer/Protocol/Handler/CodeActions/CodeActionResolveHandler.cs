@@ -298,6 +298,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                             uri = newTextDoc.GetUriFromProjectPath();
                         }
                     }
+
+                    // We failed to figure out the uri of the new document.
+                    // It either means the code action provider doesn't give enough information. Or there is missing case here. Throw
                     Contract.ThrowIfNull(uri);
 
                     textDocumentEdits.Add(new CreateFile { Uri = uri });
