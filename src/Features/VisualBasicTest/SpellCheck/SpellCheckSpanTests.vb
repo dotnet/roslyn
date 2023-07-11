@@ -53,49 +53,49 @@ end class")
         <Fact>
         Public Async Function TestString1() As Task
             Await TestAsync("
-dim {|Identifier:x|} = {|String:"" goo ""|}")
+dim {|Identifier:x|} = "" {|String:goo|} """)
         End Function
 
         <Fact>
         Public Async Function TestString2() As Task
             Await TestAsync("
-dim {|Identifier:x|} = {|String:"" goo |}")
+dim {|Identifier:x|} = "" goo ")
         End Function
 
         <Fact>
         Public Async Function TestString3() As Task
             Await TestAsync("
-dim {|Identifier:x|} = {|String:""
-    goo
-""|}")
+dim {|Identifier:x|} = ""
+    {|String:goo|}
+""")
         End Function
 
         <Fact>
         Public Async Function TestString4() As Task
             Await TestAsync("
-dim {|Identifier:x|} = {|String:""
+dim {|Identifier:x|} = ""
     goo
-|}")
+")
         End Function
 
         <Fact>
         Public Async Function TestString5() As Task
             Await TestAsync("
-dim {|Identifier:x|} = $""{|String: goo |}""")
+dim {|Identifier:x|} = $"" {|String:goo|} """)
         End Function
 
         <Fact>
         Public Async Function TestString6() As Task
             Await TestAsync("
-dim {|Identifier:x|} = $""{|String:
-    goo
-|}""")
+dim {|Identifier:x|} = $""
+    {|String:goo|}
+""")
         End Function
 
         <Fact>
         Public Async Function TestString7() As Task
             Await TestAsync("
-dim {|Identifier:x|} = $""{|String: goo |}{0}{|String: bar |}""")
+dim {|Identifier:x|} = $"" {|String:goo|} {0} {|String:bar|} """)
         End Function
 
         <Fact>
