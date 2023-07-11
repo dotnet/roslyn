@@ -8,6 +8,13 @@ namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue
     /// <summary>
     /// Active statement debug information retrieved from the runtime and the PDB.
     /// </summary>
+    /// <remarks>
+    /// Creates a ManagedActiveStatementDebugInfo.
+    /// </remarks>
+    /// <param name="activeInstruction">Instruction of the active statement that is being executed.</param>
+    /// <param name="documentName">Document name as found in the PDB, if the active statement location was determined.</param>
+    /// <param name="sourceSpan">Location of the closest non-hidden sequence point from the active statement.</param>
+    /// <param name="flags">Active statement flags shared across all threads that own the active statement.</param>
     [DataContract]
     internal readonly struct ManagedActiveStatementDebugInfo(
         ManagedInstructionId activeInstruction,

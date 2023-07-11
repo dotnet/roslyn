@@ -16476,6 +16476,68 @@ public partial struct S
             }
         }
 
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67099")]
+        public void NullableWarningsForAssignment_01_NotCaptured()
+        {
+            var source = @"
+#nullable enable
+class C1(string p1, string p2)
+{
+    string? F1 = (p1 = null);
+    string F2 = p1;
+
+    string M1() => p2;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (5,24): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //     string? F1 = (p1 = null);
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(5, 24),
+                // (6,17): warning CS8601: Possible null reference assignment.
+                //     string F2 = p1;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "p1").WithLocation(6, 17)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67099")]
+        public void NullableWarningsForAssignment_02_Captured()
+        {
+            var source = @"
+#pragma warning disable CS9124 // Parameter 'string p1' is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.
+#nullable enable
+class C1(string p1)
+{
+    string? F1 = (p1 = null);
+    string F2 = p1;
+
+    void M1()
+    {
+        p1 = null;
+    }
+
+    void M2()
+    {
+        p1.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (6,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //     string? F1 = (p1 = null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 24),
+                // (7,17): warning CS8601: Possible null reference assignment.
+                //     string F2 = p1;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "p1").WithLocation(7, 17),
+                // (11,14): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         p1 = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(11, 14)
+                );
+        }
+
         [Theory]
         [CombinatorialData]
         public void RestrictedType_01([CombinatorialValues("class", "struct")] string declaration)
