@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             var openBraceLine = text.Lines.GetLineFromPosition(blockScopedNamespace.OpenBraceToken.SpanStart).LineNumber;
             var closeBraceLine = text.Lines.GetLineFromPosition(blockScopedNamespace.CloseBraceToken.SpanStart).LineNumber;
 
-            using var _ = ArrayBuilder<TextChange>.GetInstance(out var changes);
+            using var _ = ArrayBuilder<TextChange>.GetInstance(Math.Max(0, closeBraceLine - openBraceLine - 1), out var changes);
             for (var line = openBraceLine + 1; line < closeBraceLine; line++)
                 changes.AddIfNotNull(TryIndentLine(syntaxTree, root, indentation, text.Lines[line], cancellationToken));
 
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
                 .WithAppendedTrailingTrivia(newLinePlacement.HasFlag(NewLinePlacement.BeforeOpenBraceInTypes) ? SyntaxFactory.EndOfLine(lineEnding) : SyntaxFactory.Space);
             var openBraceToken = SyntaxFactory.Token(SyntaxKind.OpenBraceToken).WithoutLeadingTrivia().WithTrailingTrivia(fileScopedNamespace.SemicolonToken.TrailingTrivia);
 
-            if (openBraceToken.TrailingTrivia is not [.., { RawKind: (int)SyntaxKind.EndOfLineTrivia }])
+            if (openBraceToken.TrailingTrivia is not [.., SyntaxTrivia(SyntaxKind.EndOfLineTrivia)])
             {
                 openBraceToken = openBraceToken.WithAppendedTrailingTrivia(SyntaxFactory.EndOfLine(lineEnding));
             }
