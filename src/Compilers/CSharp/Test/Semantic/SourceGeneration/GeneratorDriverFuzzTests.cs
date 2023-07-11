@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 
         private void Fuzz_Iteration(int iteration, Random random)
         {
-            var depth = 4; // adjust as needed for a simpler reproducer
+            var depth = 5; // adjust as needed for a simpler reproducer
             var hintNameProvider = new HintNameProvider(nextHintNameId: 0);
             var rootOperator = makeOperatorTree(new LeafOperator() { HintNameProvider = hintNameProvider }, depth);
 
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             var generators = new[] { new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(registerPipeline)) };
 
             // original input
-            var originalInputsLength = 1 + random.Next(4);
+            var originalInputsLength = 1 + random.Next(4); // adjust as needed for simpler repro
             var originalInputs = new List<InMemoryAdditionalText>(originalInputsLength);
             for (var i = 0; i < originalInputsLength; i++)
             {
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             }
 
             // add some new documents in random positions
-            var newDocumentsCount = random.Next(3);
+            var newDocumentsCount = random.Next(3); // adjust as needed for simpler repro
             for (int i = 0; i < newDocumentsCount; i++)
             {
                 editedInputs.Insert(random.Next(editedInputs.Count), new InMemoryAdditionalText(hintNameProvider.GetNextHintName(), getRandomLetter()));
@@ -555,71 +555,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             {
                 var provider = context.AdditionalTextsProvider
                     .SelectMany((additionalText, _) => new (bool TransformAs, bool TransformCs)[] {
-                    (false, false),
-                    }.Select(logic => (AdditionalText)new InMemoryAdditionalText(hintNameProvider.GetNextHintName(), additionalText.GetText()!.ToString() switch
-                    {
-                        "a" when logic.TransformAs => "b",
-                        "c" when logic.TransformCs => "d",
-                        var other => other
-                    })))
-                ;
-                context.RegisterSourceOutput(provider, (context, text) =>
-                {
-                    context.AddSource(text.Path, text.GetText()!.ToString());
-                });
-            }
-        }
-
-        [Fact]
-        public void Fuzz_4()
-        {
-            var source = "";
-            var comp = CreateCompilation(source);
-            var hintNameProvider = new HintNameProvider(6);
-            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(registerPipeline));
-
-            // original input
-            var originalInputs = new[]
-            {
-            new InMemoryAdditionalText("0", "b"),
-            new InMemoryAdditionalText("1", "c"),
-            new InMemoryAdditionalText("2", "b"),
-            new InMemoryAdditionalText("3", "d"),
-        };
-
-            // from scratch on original
-            GeneratorDriver driver1 = CSharpGeneratorDriver.Create(new[] { generator }, originalInputs);
-            driver1.RunGenerators(comp);
-
-            // make edits to original input
-            var editedInputs = ImmutableArray.Create(new AdditionalText[]
-            {
-            new InMemoryAdditionalText("5", "c"),
-            new InMemoryAdditionalText("0", "b"),
-            new InMemoryAdditionalText("4", "a"),
-            new InMemoryAdditionalText("1", "c"),
-            new InMemoryAdditionalText("3", "d"),
-            });
-
-            // incremental update from edited input
-            driver1 = driver1.ReplaceAdditionalTexts(editedInputs);
-            driver1 = driver1.RunGenerators(comp);
-            var result1 = driver1.GetRunResult();
-
-            // from scratch on edited
-            GeneratorDriver driver2 = CSharpGeneratorDriver.Create(new[] { generator }, editedInputs);
-            driver2 = driver2.RunGenerators(comp);
-            var result2 = driver2.GetRunResult();
-
-            Assert.Equal(result2.GeneratedTrees, result1.GeneratedTrees, SyntaxTreeComparer.Instance);
-            Assert.Equal(result2.Diagnostics, result1.Diagnostics, CommonDiagnosticComparer.Instance);
-
-            void registerPipeline(IncrementalGeneratorInitializationContext context)
-            {
-                var provider = context.AdditionalTextsProvider
-                    .SelectMany((additionalText, _) => new (bool TransformAs, bool TransformCs)[] {
-                    (false, false),
-                    (false, false),
                     (false, false),
                     }.Select(logic => (AdditionalText)new InMemoryAdditionalText(hintNameProvider.GetNextHintName(), additionalText.GetText()!.ToString() switch
                     {
