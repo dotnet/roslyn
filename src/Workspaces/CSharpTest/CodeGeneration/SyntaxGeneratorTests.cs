@@ -1026,6 +1026,10 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 "abstract x p { set; }");
 
             VerifySyntax<PropertyDeclarationSyntax>(
+                Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.Abstract | DeclarationModifiers.WriteOnly, isInitOnly: true),
+                "abstract x p { init; }");
+
+            VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.ReadOnly),
                 "x p { get; }");
 
@@ -1038,16 +1042,32 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 "x p { set; }");
 
             VerifySyntax<PropertyDeclarationSyntax>(
+                Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.WriteOnly, isInitOnly: true),
+                "x p { init; }");
+
+            VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.WriteOnly, setAccessorStatements: Array.Empty<SyntaxNode>()),
                 "x p\r\n{\r\n    set\r\n    {\r\n    }\r\n}");
+
+            VerifySyntax<PropertyDeclarationSyntax>(
+                Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.WriteOnly, setAccessorStatements: Array.Empty<SyntaxNode>(), isInitOnly: true),
+                "x p\r\n{\r\n    init\r\n    {\r\n    }\r\n}");
 
             VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.Abstract),
                 "abstract x p { get; set; }");
 
             VerifySyntax<PropertyDeclarationSyntax>(
+                Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.Abstract, isInitOnly: true),
+                "abstract x p { get; init; }");
+
+            VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.Required),
                 "required x p { get; set; }");
+
+            VerifySyntax<PropertyDeclarationSyntax>(
+                Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.Required, isInitOnly: true),
+                "required x p { get; init; }");
 
             VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.ReadOnly, getAccessorStatements: new[] { Generator.IdentifierName("y") }),
@@ -1058,12 +1078,24 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 "x p\r\n{\r\n    set\r\n    {\r\n        y;\r\n    }\r\n}");
 
             VerifySyntax<PropertyDeclarationSyntax>(
+                Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.WriteOnly, setAccessorStatements: new[] { Generator.IdentifierName("y") }, isInitOnly: true),
+                "x p\r\n{\r\n    init\r\n    {\r\n        y;\r\n    }\r\n}");
+
+            VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), setAccessorStatements: new[] { Generator.IdentifierName("y") }),
                 "x p\r\n{\r\n    get;\r\n    set\r\n    {\r\n        y;\r\n    }\r\n}");
 
             VerifySyntax<PropertyDeclarationSyntax>(
+                Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), setAccessorStatements: new[] { Generator.IdentifierName("y") }, isInitOnly: true),
+                "x p\r\n{\r\n    get;\r\n    init\r\n    {\r\n        y;\r\n    }\r\n}");
+
+            VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), getAccessorStatements: Array.Empty<SyntaxNode>(), setAccessorStatements: new[] { Generator.IdentifierName("y") }),
                 "x p\r\n{\r\n    get\r\n    {\r\n    }\r\n\r\n    set\r\n    {\r\n        y;\r\n    }\r\n}");
+
+            VerifySyntax<PropertyDeclarationSyntax>(
+                Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), getAccessorStatements: Array.Empty<SyntaxNode>(), setAccessorStatements: new[] { Generator.IdentifierName("y") }, isInitOnly: true),
+                "x p\r\n{\r\n    get\r\n    {\r\n    }\r\n\r\n    init\r\n    {\r\n        y;\r\n    }\r\n}");
         }
 
         [Fact]
@@ -1078,8 +1110,16 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 "abstract x this[y z] { set; }");
 
             VerifySyntax<IndexerDeclarationSyntax>(
+                Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("z", Generator.IdentifierName("y")) }, Generator.IdentifierName("x"), modifiers: DeclarationModifiers.Abstract | DeclarationModifiers.WriteOnly, isInitOnly: true),
+                "abstract x this[y z] { init; }");
+
+            VerifySyntax<IndexerDeclarationSyntax>(
                 Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("z", Generator.IdentifierName("y")) }, Generator.IdentifierName("x"), modifiers: DeclarationModifiers.Abstract),
                 "abstract x this[y z] { get; set; }");
+
+            VerifySyntax<IndexerDeclarationSyntax>(
+                Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("z", Generator.IdentifierName("y")) }, Generator.IdentifierName("x"), modifiers: DeclarationModifiers.Abstract, isInitOnly: true),
+                "abstract x this[y z] { get; init; }");
 
             VerifySyntax<IndexerDeclarationSyntax>(
                 Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("z", Generator.IdentifierName("y")) }, Generator.IdentifierName("x"), modifiers: DeclarationModifiers.ReadOnly),
@@ -1088,6 +1128,10 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
             VerifySyntax<IndexerDeclarationSyntax>(
                 Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("z", Generator.IdentifierName("y")) }, Generator.IdentifierName("x"), modifiers: DeclarationModifiers.WriteOnly),
                 "x this[y z]\r\n{\r\n    set\r\n    {\r\n    }\r\n}");
+
+            VerifySyntax<IndexerDeclarationSyntax>(
+                Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("z", Generator.IdentifierName("y")) }, Generator.IdentifierName("x"), modifiers: DeclarationModifiers.WriteOnly, isInitOnly: true),
+                "x this[y z]\r\n{\r\n    init\r\n    {\r\n    }\r\n}");
 
             VerifySyntax<IndexerDeclarationSyntax>(
                 Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("z", Generator.IdentifierName("y")) }, Generator.IdentifierName("x"), modifiers: DeclarationModifiers.ReadOnly,
@@ -1100,8 +1144,17 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 "x this[y z]\r\n{\r\n    set\r\n    {\r\n        a;\r\n    }\r\n}");
 
             VerifySyntax<IndexerDeclarationSyntax>(
+                Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("z", Generator.IdentifierName("y")) }, Generator.IdentifierName("x"), modifiers: DeclarationModifiers.WriteOnly,
+                    setAccessorStatements: new[] { Generator.IdentifierName("a") }, isInitOnly: true),
+                "x this[y z]\r\n{\r\n    init\r\n    {\r\n        a;\r\n    }\r\n}");
+
+            VerifySyntax<IndexerDeclarationSyntax>(
                 Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("z", Generator.IdentifierName("y")) }, Generator.IdentifierName("x")),
                 "x this[y z]\r\n{\r\n    get\r\n    {\r\n    }\r\n\r\n    set\r\n    {\r\n    }\r\n}");
+
+            VerifySyntax<IndexerDeclarationSyntax>(
+                Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("z", Generator.IdentifierName("y")) }, Generator.IdentifierName("x"), isInitOnly: true),
+                "x this[y z]\r\n{\r\n    get\r\n    {\r\n    }\r\n\r\n    init\r\n    {\r\n    }\r\n}");
 
             VerifySyntax<IndexerDeclarationSyntax>(
                 Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("z", Generator.IdentifierName("y")) }, Generator.IdentifierName("x"),
@@ -1110,8 +1163,18 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
 
             VerifySyntax<IndexerDeclarationSyntax>(
                 Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("z", Generator.IdentifierName("y")) }, Generator.IdentifierName("x"),
+                    setAccessorStatements: new[] { Generator.IdentifierName("a") }, isInitOnly: true),
+                "x this[y z]\r\n{\r\n    get\r\n    {\r\n    }\r\n\r\n    init\r\n    {\r\n        a;\r\n    }\r\n}");
+
+            VerifySyntax<IndexerDeclarationSyntax>(
+                Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("z", Generator.IdentifierName("y")) }, Generator.IdentifierName("x"),
                     getAccessorStatements: new[] { Generator.IdentifierName("a") }, setAccessorStatements: new[] { Generator.IdentifierName("b") }),
                 "x this[y z]\r\n{\r\n    get\r\n    {\r\n        a;\r\n    }\r\n\r\n    set\r\n    {\r\n        b;\r\n    }\r\n}");
+
+            VerifySyntax<IndexerDeclarationSyntax>(
+                Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("z", Generator.IdentifierName("y")) }, Generator.IdentifierName("x"),
+                    getAccessorStatements: new[] { Generator.IdentifierName("a") }, setAccessorStatements: new[] { Generator.IdentifierName("b") }, isInitOnly: true),
+                "x this[y z]\r\n{\r\n    get\r\n    {\r\n        a;\r\n    }\r\n\r\n    init\r\n    {\r\n        b;\r\n    }\r\n}");
         }
 
         [Fact]
@@ -1170,6 +1233,12 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                     Generator.IndexerDeclaration(parameters: new[] { Generator.ParameterDeclaration("p", Generator.IdentifierName("a")) }, type: Generator.IdentifierName("t"), accessibility: Accessibility.Internal, modifiers: DeclarationModifiers.Abstract),
                     Generator.IdentifierName("i")),
                 "public t this[a p]\r\n{\r\n    get\r\n    {\r\n    }\r\n\r\n    set\r\n    {\r\n    }\r\n}");
+
+            VerifySyntax<IndexerDeclarationSyntax>(
+                Generator.AsPublicInterfaceImplementation(
+                    Generator.IndexerDeclaration(parameters: new[] { Generator.ParameterDeclaration("p", Generator.IdentifierName("a")) }, type: Generator.IdentifierName("t"), accessibility: Accessibility.Internal, modifiers: DeclarationModifiers.Abstract, isInitOnly: true),
+                    Generator.IdentifierName("i")),
+                "public t this[a p]\r\n{\r\n    get\r\n    {\r\n    }\r\n\r\n    init\r\n    {\r\n    }\r\n}");
 
             // convert private to public
             var pim = Generator.AsPrivateInterfaceImplementation(
@@ -1635,12 +1704,20 @@ public interface IFace
                 "interface i\r\n{\r\n    t p { get; set; }\r\n}");
 
             VerifySyntax<InterfaceDeclarationSyntax>(
+                Generator.InterfaceDeclaration("i", members: new[] { Generator.PropertyDeclaration("p", Generator.IdentifierName("t"), accessibility: Accessibility.Public, modifiers: DeclarationModifiers.Sealed, isInitOnly: true) }),
+                "interface i\r\n{\r\n    t p { get; init; }\r\n}");
+
+            VerifySyntax<InterfaceDeclarationSyntax>(
                 Generator.InterfaceDeclaration("i", members: new[] { Generator.PropertyDeclaration("p", Generator.IdentifierName("t"), accessibility: Accessibility.Public, modifiers: DeclarationModifiers.ReadOnly) }),
                 "interface i\r\n{\r\n    t p { get; }\r\n}");
 
             VerifySyntax<InterfaceDeclarationSyntax>(
                 Generator.InterfaceDeclaration("i", members: new[] { Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("y", Generator.IdentifierName("x")) }, Generator.IdentifierName("t"), Accessibility.Public, DeclarationModifiers.Sealed) }),
                 "interface i\r\n{\r\n    t this[x y] { get; set; }\r\n}");
+
+            VerifySyntax<InterfaceDeclarationSyntax>(
+                Generator.InterfaceDeclaration("i", members: new[] { Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("y", Generator.IdentifierName("x")) }, Generator.IdentifierName("t"), Accessibility.Public, DeclarationModifiers.Sealed, isInitOnly: true) }),
+                "interface i\r\n{\r\n    t this[x y] { get; init; }\r\n}");
 
             VerifySyntax<InterfaceDeclarationSyntax>(
                 Generator.InterfaceDeclaration("i", members: new[] { Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("y", Generator.IdentifierName("x")) }, Generator.IdentifierName("t"), Accessibility.Public, DeclarationModifiers.ReadOnly) }),
@@ -2353,6 +2430,24 @@ public class C { } // end").Members[0];
             VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.Declaration(property),
                 "public global::System.Int32 Prop { protected get; set; }");
+        }
+
+        [Fact]
+        public void TestPropertyDeclarationFromSymbol3()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                class C
+                {
+                    public int Prop { get; init; }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("C");
+            var property = type.GetMembers("Prop").Single();
+
+            VerifySyntax<PropertyDeclarationSyntax>(
+                Generator.Declaration(property),
+                "public global::System.Int32 Prop { get; init; }");
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66382")]
@@ -3317,6 +3412,12 @@ public class C
                     Generator.SetAccessorDeclaration(Accessibility.Protected, new[] { Generator.ReturnStatement() })),
                 "x p\r\n{\r\n    protected set\r\n    {\r\n        return;\r\n    }\r\n}");
 
+            VerifySyntax<PropertyDeclarationSyntax>(
+                Generator.WithAccessorDeclarations(
+                    Generator.PropertyDeclaration("p", Generator.IdentifierName("x")),
+                    Generator.InitAccessorDeclaration(Accessibility.Protected, new[] { Generator.ReturnStatement() })),
+                "x p\r\n{\r\n    protected init\r\n    {\r\n        return;\r\n    }\r\n}");
+
             VerifySyntax<IndexerDeclarationSyntax>(
                 Generator.WithAccessorDeclarations(Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("p", Generator.IdentifierName("t")) }, Generator.IdentifierName("x"))),
                 "x this[t p] { }");
@@ -3331,6 +3432,12 @@ public class C
                     Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("p", Generator.IdentifierName("t")) }, Generator.IdentifierName("x")),
                     Generator.SetAccessorDeclaration(Accessibility.Protected, new[] { Generator.ReturnStatement() })),
                 "x this[t p]\r\n{\r\n    protected set\r\n    {\r\n        return;\r\n    }\r\n}");
+
+            VerifySyntax<IndexerDeclarationSyntax>(
+                Generator.WithAccessorDeclarations(
+                    Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("p", Generator.IdentifierName("t")) }, Generator.IdentifierName("x")),
+                    Generator.InitAccessorDeclaration(Accessibility.Protected, new[] { Generator.ReturnStatement() })),
+                "x this[t p]\r\n{\r\n    protected init\r\n    {\r\n        return;\r\n    }\r\n}");
         }
 
         [Fact]
@@ -4514,7 +4621,7 @@ public class C : IDisposable
                     {
                     }
 
-                    public global::System.Int32 i { get; set; }
+                    public global::System.Int32 i { get; init; }
                     public global::System.Int32 I { get; }
                 }
                 """);
@@ -4552,7 +4659,7 @@ public class C : IDisposable
                     {
                     }
 
-                    public global::System.Int32 i { get; set; }
+                    public global::System.Int32 i { get; init; }
                     public global::System.Int32 I { get; }
                 }
                 """);

@@ -367,7 +367,9 @@ namespace Microsoft.CodeAnalysis.Editing
             Accessibility accessibility = Accessibility.NotApplicable,
             DeclarationModifiers modifiers = default,
             IEnumerable<SyntaxNode>? getAccessorStatements = null,
-            IEnumerable<SyntaxNode>? setAccessorStatements = null);
+            IEnumerable<SyntaxNode>? setAccessorStatements = null,
+            bool isInitOnly = false
+        );
 
         /// <summary>
         /// Creates a property declaration using an existing property symbol as a signature.
@@ -393,7 +395,10 @@ namespace Microsoft.CodeAnalysis.Editing
             if (setMethodSymbol is not null)
             {
                 var setMethodAccessibility = setMethodSymbol.DeclaredAccessibility;
-                setAccessor = SetAccessorDeclaration(setMethodAccessibility < propertyAccessibility ? setMethodAccessibility : Accessibility.NotApplicable, setAccessorStatements);
+                
+                setAccessor = setMethodSymbol.IsInitOnly ? 
+                    InitAccessorDeclaration(setMethodAccessibility < propertyAccessibility ? setMethodAccessibility : Accessibility.NotApplicable, setAccessorStatements) :
+                    SetAccessorDeclaration(setMethodAccessibility < propertyAccessibility ? setMethodAccessibility : Accessibility.NotApplicable, setAccessorStatements);
             }
 
             var propDecl = PropertyDeclaration(
@@ -434,6 +439,10 @@ namespace Microsoft.CodeAnalysis.Editing
             Accessibility accessibility = Accessibility.NotApplicable,
             IEnumerable<SyntaxNode>? statements = null);
 
+        public abstract SyntaxNode InitAccessorDeclaration(
+            Accessibility accessibility = Accessibility.NotApplicable,
+            IEnumerable<SyntaxNode>? statements = null);
+
         /// <summary>
         /// Creates an indexer declaration.
         /// </summary>
@@ -443,7 +452,8 @@ namespace Microsoft.CodeAnalysis.Editing
             Accessibility accessibility = Accessibility.NotApplicable,
             DeclarationModifiers modifiers = default,
             IEnumerable<SyntaxNode>? getAccessorStatements = null,
-            IEnumerable<SyntaxNode>? setAccessorStatements = null);
+            IEnumerable<SyntaxNode>? setAccessorStatements = null,
+            bool isInitOnly = false);
 
         /// <summary>
         /// Creates an indexer declaration matching an existing indexer symbol.
@@ -459,7 +469,8 @@ namespace Microsoft.CodeAnalysis.Editing
                 indexer.DeclaredAccessibility,
                 DeclarationModifiers.From(indexer),
                 getAccessorStatements,
-                setAccessorStatements);
+                setAccessorStatements,
+                indexer.SetMethod?.IsInitOnly ?? false);
 
             if (indexer.ExplicitInterfaceImplementations.Length > 0)
             {

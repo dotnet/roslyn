@@ -940,6 +940,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 GetStatementList(statements))
         End Function
 
+        Public Overrides Function InitAccessorDeclaration(Optional accessibility As Accessibility = Accessibility.NotApplicable, Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+            Return SetAccessorDeclaration(accessibility, statements)
+        End Function
+
         Public Overrides Function WithAccessorDeclarations(declaration As SyntaxNode, accessorDeclarations As IEnumerable(Of SyntaxNode)) As SyntaxNode
             Dim propertyBlock = GetPropertyBlock(declaration)
             If propertyBlock Is Nothing Then
@@ -985,7 +989,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Optional accessibility As Accessibility = Nothing,
             Optional modifiers As DeclarationModifiers = Nothing,
             Optional getAccessorStatements As IEnumerable(Of SyntaxNode) = Nothing,
-            Optional setAccessorStatements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+            Optional setAccessorStatements As IEnumerable(Of SyntaxNode) = Nothing,
+            Optional isInitOnly As Boolean = False) As SyntaxNode
 
             Return PropertyDeclaration(
                 identifier,
@@ -1035,7 +1040,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Optional accessibility As Accessibility = Nothing,
             Optional modifiers As DeclarationModifiers = Nothing,
             Optional getAccessorStatements As IEnumerable(Of SyntaxNode) = Nothing,
-            Optional setAccessorStatements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+            Optional setAccessorStatements As IEnumerable(Of SyntaxNode) = Nothing,
+            Optional isInitOnly As Boolean = False) As SyntaxNode
 
             Dim asClause = SyntaxFactory.SimpleAsClause(DirectCast(type, TypeSyntax))
             Dim statement = SyntaxFactory.PropertyStatement(
