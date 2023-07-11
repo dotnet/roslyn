@@ -47,7 +47,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         None,
         In,
         RequiresLocation,
-        Unknown
+        DoNotVerify
     }
 
     private static void VerifyRefReadonlyParameter(ParameterSymbol parameter,
@@ -77,7 +77,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             case VerifyModifiers.RequiresLocation:
                 verifyModifier(parameter, RequiresLocationAttributeQualifiedName, optional: true);
                 break;
-            case VerifyModifiers.Unknown:
+            case VerifyModifiers.DoNotVerify:
                 break;
             default:
                 throw ExceptionUtilities.UnexpectedValue(customModifiers);
@@ -794,7 +794,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
 
         var ptr = (FunctionPointerTypeSymbol)comp.GlobalNamespace.GetMember<FieldSymbol>("C.D").Type;
         var p = ptr.Signature.Parameters.Single();
-        VerifyRefReadonlyParameter(p, refKind: false, attributes: false, customModifiers: VerifyModifiers.Unknown);
+        VerifyRefReadonlyParameter(p, refKind: false, attributes: false, customModifiers: VerifyModifiers.DoNotVerify);
         Assert.Equal(RefKind.In, p.RefKind);
         Assert.Empty(p.GetAttributes());
         AssertEx.SetEqual(new[]
@@ -863,7 +863,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         {
             var ptr = (FunctionPointerTypeSymbol)comp.GlobalNamespace.GetMember<FieldSymbol>("C.D").Type;
             var p = ptr.Signature.Parameters.Single();
-            VerifyRefReadonlyParameter(p, attributes: false, customModifiers: VerifyModifiers.Unknown);
+            VerifyRefReadonlyParameter(p, attributes: false, customModifiers: VerifyModifiers.DoNotVerify);
             Assert.Empty(p.GetAttributes());
             AssertEx.SetEqual(new[]
             {
@@ -916,7 +916,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
 
         var ptr = (FunctionPointerTypeSymbol)comp.GlobalNamespace.GetMember<FieldSymbol>("C.D").Type;
         var p = ptr.Signature.Parameters.Single();
-        VerifyRefReadonlyParameter(p, attributes: false, customModifiers: VerifyModifiers.Unknown, useSiteError: true);
+        VerifyRefReadonlyParameter(p, attributes: false, customModifiers: VerifyModifiers.DoNotVerify, useSiteError: true);
         Assert.Empty(p.GetAttributes());
         AssertEx.SetEqual(new[]
         {
@@ -965,7 +965,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
 
         var ptr = (FunctionPointerTypeSymbol)comp.GlobalNamespace.GetMember<FieldSymbol>("C.D").Type;
         var p = ptr.Signature.Parameters.Single();
-        VerifyRefReadonlyParameter(p, refKind: false, metadataIn: false, attributes: false, customModifiers: VerifyModifiers.Unknown, useSiteError: true);
+        VerifyRefReadonlyParameter(p, refKind: false, metadataIn: false, attributes: false, customModifiers: VerifyModifiers.DoNotVerify, useSiteError: true);
         Assert.Equal(RefKind.Ref, p.RefKind);
         Assert.Empty(p.GetAttributes());
         var mod = Assert.Single(p.RefCustomModifiers);
