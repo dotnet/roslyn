@@ -570,10 +570,10 @@ using System.Runtime.InteropServices;
 
 public class X
 {
-    [MarshalAs(UnmanagedType.ByValArray)]
+    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 1)]
     public int ByValArray0;
 
-    [MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.ByValTStr, IidParameterIndex = -1, MarshalCookie = null, MarshalType = null, MarshalTypeRef = null,
+    [MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.ByValTStr, IidParameterIndex = -1, SizeConst = 1, MarshalCookie = null, MarshalType = null, MarshalTypeRef = null,
          SafeArrayUserDefinedSubType = null)]
     public int ByValArray1;
 
@@ -585,10 +585,10 @@ public class X
         MarshalCookie = null, MarshalType = null, MarshalTypeRef = null, SafeArrayUserDefinedSubType = null)]
     public int ByValArray3;
 
-    [MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.AsAny)]
+    [MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.AsAny, SizeConst = 1)]
     public int ByValArray4;
 
-    [MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.CustomMarshaler)]
+    [MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.CustomMarshaler, SizeConst = 1)]
     public int ByValArray5;
 }
 ";
@@ -656,9 +656,15 @@ public class X
                 // (8,170): error CS7045: Parameter not valid for the specified unmanaged type.
                 //     [MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.ByValTStr, SafeArraySubType = VarEnum.VT_BSTR, SafeArrayUserDefinedSubType = null, SizeConst = -1, SizeParamIndex = -1)]int ByValArray_e1;
                 Diagnostic(ErrorCode.ERR_ParameterNotValidForType, "SizeParamIndex = -1"),
+                // (9,6): error CS7046: Attribute parameter 'SizeConst' must be specified.
+                //     [MarshalAs(UnmanagedType.ByValArray, SizeParamIndex = short.MaxValue)]                                                                                                                    int ByValArray_e2;
+                Diagnostic(ErrorCode.ERR_AttributeParameterRequired1, "MarshalAs").WithArguments("SizeConst"),
                 // (9,42): error CS7045: Parameter not valid for the specified unmanaged type.
                 //     [MarshalAs(UnmanagedType.ByValArray, SizeParamIndex = short.MaxValue)]                                                                                                                    int ByValArray_e2;
                 Diagnostic(ErrorCode.ERR_ParameterNotValidForType, "SizeParamIndex = short.MaxValue"),
+                // (10,6): error CS7046: Attribute parameter 'SizeConst' must be specified.
+                //     [MarshalAs(UnmanagedType.ByValArray, SafeArraySubType = VarEnum.VT_I2)]                                                                                                                   int ByValArray_e3;
+                Diagnostic(ErrorCode.ERR_AttributeParameterRequired1, "MarshalAs").WithArguments("SizeConst"),
                 // (10,42): error CS7045: Parameter not valid for the specified unmanaged type.
                 //     [MarshalAs(UnmanagedType.ByValArray, SafeArraySubType = VarEnum.VT_I2)]                                                                                                                   int ByValArray_e3;
                 Diagnostic(ErrorCode.ERR_ParameterNotValidForType, "SafeArraySubType = VarEnum.VT_I2"),
