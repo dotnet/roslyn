@@ -381,14 +381,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitSideEffects(ImmutableArray<BoundStatement> statements)
         {
 #if DEBUG
-            Debug.Assert(_expectedStackDepth == 0);
+            int prevStack = _expectedStackDepth;
             int origStack = _builder.GetStackDepth();
             _expectedStackDepth = origStack;
 #endif
             EmitStatements(statements);
 #if DEBUG
             Debug.Assert(_expectedStackDepth == origStack);
-            _expectedStackDepth = 0;
+            _expectedStackDepth = prevStack;
 #endif
         }
 

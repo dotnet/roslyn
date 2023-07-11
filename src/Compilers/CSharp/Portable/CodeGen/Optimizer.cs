@@ -578,14 +578,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         public ImmutableArray<BoundStatement> VisitSideEffects(ImmutableArray<BoundStatement> statements)
         {
 #if DEBUG
-            Debug.Assert(_expectedStackDepth == 0);
+            int prevStack = _expectedStackDepth;
             int origStack = StackDepth();
             _expectedStackDepth = origStack;
 #endif
             var result = this.VisitList(statements);
 #if DEBUG
             Debug.Assert(_expectedStackDepth == origStack);
-            _expectedStackDepth = 0;
+            _expectedStackDepth = prevStack;
 #endif
             return result;
         }
