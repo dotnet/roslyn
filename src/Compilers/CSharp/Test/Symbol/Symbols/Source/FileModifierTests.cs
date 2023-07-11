@@ -3700,6 +3700,9 @@ public class FileModifierTests : CSharpTestBase
 
         var symbolInfo = model.GetSymbolInfo(methodNameSyntax);
         Assert.Null(symbolInfo.Symbol);
+        Assert.Empty(symbolInfo.CandidateSymbols);
+        Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+
         var aliasInfo = model.GetAliasInfo(methodNameSyntax);
         Assert.Null(aliasInfo);
     }
