@@ -2240,6 +2240,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InterceptorArityNotCompatible = 9177,
         ERR_InterceptorCannotBeGeneric = 9178,
 
+        ERR_InlineArrayRequiredElementField = 9179,
+
         #endregion
 
         // Note: you will need to do the following after adding warnings:

@@ -2360,6 +2360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible:
                 case ErrorCode.ERR_ExpressionTreeContainsCollectionLiteral:
                 case ErrorCode.ERR_CollectionLiteralNoTargetType:
+                case ErrorCode.ERR_InlineArrayRequiredElementField:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

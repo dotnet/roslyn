@@ -887,6 +887,11 @@
         <target state="new">Index is outside the bounds of the inline array</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InlineArrayRequiredElementField">
+        <source>Inline array element field cannot be declared required.</source>
+        <target state="new">Inline array element field cannot be declared required.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
         <source>Instance properties in interfaces cannot have initializers.</source>
         <target state="translated">Vlastnosti instance v rozhraních nemůžou mít inicializátory.</target>

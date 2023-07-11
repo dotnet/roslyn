@@ -7673,4 +7673,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_NamedArgumentForInlineArray" xml:space="preserve">
     <value>An inline array access may not have a named argument specifier</value>
   </data>
+  <data name="ERR_InlineArrayRequiredElementField" xml:space="preserve">
+    <value>Inline array element field cannot be declared required.</value>
+  </data>
 </root>
