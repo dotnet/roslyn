@@ -3167,12 +3167,8 @@ C.C() -> void";
                 {{EnabledModifierCSharp}} record R(int {|{{AddNewApiId}}:P|});
                 """;
 
-            var shippedText = @"";
-            var unshippedText = """
+            var shippedText = """
                 #nullable enable
-                R
-                R.R(int P) -> void
-                R.P.get -> int
                 R.Deconstruct(out int P) -> void
                 override R.Equals(object? obj) -> bool
                 override R.GetHashCode() -> int
@@ -3183,21 +3179,18 @@ C.C() -> void";
                 virtual R.Equals(R? other) -> bool
                 virtual R.PrintMembers(System.Text.StringBuilder! builder) -> bool
                 """;
+            var unshippedText = """
+                #nullable enable
+                R
+                R.R(int P) -> void
+                R.P.get -> int
+                """;
             var fixedUnshippedText = """
                 #nullable enable
                 R
-                R.Deconstruct(out int P) -> void
                 R.P.init -> void
                 R.R(int P) -> void
                 R.P.get -> int
-                override R.Equals(object? obj) -> bool
-                override R.GetHashCode() -> int
-                override R.ToString() -> string!
-                static R.operator !=(R? left, R? right) -> bool
-                static R.operator ==(R? left, R? right) -> bool
-                virtual R.EqualityContract.get -> System.Type!
-                virtual R.Equals(R? other) -> bool
-                virtual R.PrintMembers(System.Text.StringBuilder! builder) -> bool
                 """;
 
             await VerifyNet50CSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
