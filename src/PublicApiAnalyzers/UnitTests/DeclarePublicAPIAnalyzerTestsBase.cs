@@ -2002,6 +2002,53 @@ C<T>.field2 -> C<T>.Nested";
             await VerifyCSharpAsync(addSources, shippedText, unshippedText, $"[path1/**.cs]\r\ndotnet_public_api_analyzer.skip_namespaces = My.Namespace");
         }
 
+        [Fact]
+        public async Task ShippedTextWithMissingImplicitRecordMembers()
+        {
+            var source = $$"""
+                #nullable enable
+                {{EnabledModifierCSharp}} record C(int X, string Y)
+                {
+                }
+
+                namespace System.Runtime.CompilerServices
+                {
+                    internal static class IsExternalInit
+                    {
+                    }
+                }
+                """;
+
+            var shippedText = """
+                #nullable enable
+                C
+                C.C(C! original) -> void
+                C.C(int X, string! Y) -> void
+                C.Deconstruct(out int X, out string! Y) -> void
+                override C.Equals(object? obj) -> bool
+                override C.GetHashCode() -> int
+                override C.ToString() -> string!
+                static C.operator !=(C? left, C? right) -> bool
+                static C.operator ==(C? left, C? right) -> bool
+                virtual C.EqualityContract.get -> System.Type!
+                virtual C.Equals(C? other) -> bool
+                virtual C.PrintMembers(System.Text.StringBuilder! builder) -> bool
+                C.X.get -> int
+                C.X.init -> void
+                C.Y.get -> string!
+                C.Y.init -> void
+                """;
+
+            if (EnabledModifierCSharp == "internal")
+            {
+                shippedText += $"\r\nSystem.Runtime.CompilerServices.IsExternalInit";
+            }
+
+            var unshippedText = string.Empty;
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
+
         #endregion
 
         #region Fix tests

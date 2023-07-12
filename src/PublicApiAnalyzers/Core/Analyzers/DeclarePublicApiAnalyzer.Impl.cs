@@ -174,17 +174,21 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 OnSymbolActionCore(symbol, reportDiagnostic, isImplicitlyDeclaredConstructor: false, obsoleteAttribute, cancellationToken, explicitLocation: explicitLocation);
 
                 // Handle implicitly declared public constructors.
-                if (symbol.Kind == SymbolKind.NamedType)
+                if (symbol is INamedTypeSymbol namedType)
                 {
-                    var namedType = (INamedTypeSymbol)symbol;
-                    if ((namedType.TypeKind == TypeKind.Class && namedType.InstanceConstructors.Length == 1)
-                        || namedType.TypeKind == TypeKind.Struct)
+                    if (namedType is { TypeKind: TypeKind.Class, InstanceConstructors.Length: 1 } or { TypeKind: TypeKind.Struct })
                     {
                         var implicitConstructor = namedType.InstanceConstructors.FirstOrDefault(x => x.IsImplicitlyDeclared);
                         if (implicitConstructor != null)
                         {
                             OnSymbolActionCore(implicitConstructor, reportDiagnostic, isImplicitlyDeclaredConstructor: true, obsoleteAttribute, cancellationToken, explicitLocation: explicitLocation);
                         }
+                    }
+
+                    foreach (var member in namedType.GetMembers())
+                    {
+                        if (member.IsImplicitlyDeclared && IsTrackedAPI(member, cancellationToken))
+                            OnSymbolActionCore(member, reportDiagnostic, isImplicitlyDeclaredConstructor: false, obsoleteAttribute, cancellationToken, explicitLocation: explicitLocation);
                     }
                 }
             }
@@ -732,9 +736,13 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
             private bool IsTrackedAPI(ISymbol symbol, CancellationToken cancellationToken)
             {
-                if (symbol is IMethodSymbol methodSymbol && s_ignorableMethodKinds.Contains(methodSymbol.MethodKind))
+                if (symbol is IMethodSymbol methodSymbol)
                 {
-                    return false;
+                    if (s_ignorableMethodKinds.Contains(methodSymbol.MethodKind))
+                        return false;
+
+                    if (methodSymbol is { MethodKind: MethodKind.Ordinary, CanBeReferencedByName: false })
+                        return false;
                 }
 
                 // We don't consider properties to be public APIs. Instead, property getters and setters
