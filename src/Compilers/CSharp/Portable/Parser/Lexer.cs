@@ -770,7 +770,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private bool ScanInteger()
         {
             int start = TextWindow.Position;
-            while (TextWindow.PeekChar() >= '0' && ch <= '9')
+            while (TextWindow.PeekChar() is >= '0' and <= '9')
                 TextWindow.AdvanceChar();
 
             return start < TextWindow.Position;
@@ -860,21 +860,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // and give a proper error then.
                 ScanNumericLiteralSingleInteger(ref underscoreInWrongPlace, ref usedUnderscore, ref firstCharWasUnderscore, isHex, isBinary);
 
-                if ((ch = TextWindow.PeekChar()) == 'L' || ch == 'l')
+                if (TextWindow.PeekChar() is 'L' or 'l')
                 {
                     TextWindow.AdvanceChar();
                     hasLSuffix = true;
-                    if ((ch = TextWindow.PeekChar()) == 'u' || ch == 'U')
+                    if (TextWindow.PeekChar() is 'u' or 'U')
                     {
                         TextWindow.AdvanceChar();
                         hasUSuffix = true;
                     }
                 }
-                else if ((ch = TextWindow.PeekChar()) == 'u' || ch == 'U')
+                else if (TextWindow.PeekChar() is 'u' or 'U')
                 {
                     TextWindow.AdvanceChar();
                     hasUSuffix = true;
-                    if ((ch = TextWindow.PeekChar()) == 'L' || ch == 'l')
+                    if (TextWindow.PeekChar() is 'L' or 'l')
                     {
                         TextWindow.AdvanceChar();
                         hasLSuffix = true;
@@ -914,12 +914,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                 }
 
-                if ((ch = TextWindow.PeekChar()) == 'E' || ch == 'e')
+                if ((ch = TextWindow.PeekChar()) is 'E' or 'e')
                 {
                     _builder.Append(ch);
                     TextWindow.AdvanceChar();
                     hasExponent = true;
-                    if ((ch = TextWindow.PeekChar()) == '-' || ch == '+')
+                    if ((ch = TextWindow.PeekChar()) is '-' or '+')
                     {
                         _builder.Append(ch);
                         TextWindow.AdvanceChar();
@@ -938,19 +938,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                 }
 
+                ch = TextWindow.PeekChar();
                 if (hasExponent || hasDecimal)
                 {
-                    if ((ch = TextWindow.PeekChar()) == 'f' || ch == 'F')
+                    if (ch is 'f' or 'F')
                     {
                         TextWindow.AdvanceChar();
                         info.ValueKind = SpecialType.System_Single;
                     }
-                    else if (ch == 'D' || ch == 'd')
+                    else if (ch is 'D' or 'd')
                     {
                         TextWindow.AdvanceChar();
                         info.ValueKind = SpecialType.System_Double;
                     }
-                    else if (ch == 'm' || ch == 'M')
+                    else if (ch is 'm' or 'M')
                     {
                         TextWindow.AdvanceChar();
                         info.ValueKind = SpecialType.System_Decimal;
@@ -960,26 +961,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         info.ValueKind = SpecialType.System_Double;
                     }
                 }
-                else if ((ch = TextWindow.PeekChar()) == 'f' || ch == 'F')
+                else if (ch is 'f' or 'F')
                 {
                     TextWindow.AdvanceChar();
                     info.ValueKind = SpecialType.System_Single;
                 }
-                else if (ch == 'D' || ch == 'd')
+                else if (ch is 'D' or 'd')
                 {
                     TextWindow.AdvanceChar();
                     info.ValueKind = SpecialType.System_Double;
                 }
-                else if (ch == 'm' || ch == 'M')
+                else if (ch is 'm' or 'M')
                 {
                     TextWindow.AdvanceChar();
                     info.ValueKind = SpecialType.System_Decimal;
                 }
-                else if (ch == 'L' || ch == 'l')
+                else if (ch is 'L' or 'l')
                 {
                     TextWindow.AdvanceChar();
                     hasLSuffix = true;
-                    if ((ch = TextWindow.PeekChar()) == 'u' || ch == 'U')
+                    if (TextWindow.PeekChar() is 'u' or 'U')
                     {
                         TextWindow.AdvanceChar();
                         hasUSuffix = true;
@@ -989,7 +990,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     hasUSuffix = true;
                     TextWindow.AdvanceChar();
-                    if ((ch = TextWindow.PeekChar()) == 'L' || ch == 'l')
+                    if (TextWindow.PeekChar() is 'L' or 'l')
                     {
                         TextWindow.AdvanceChar();
                         hasLSuffix = true;
@@ -1373,77 +1374,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         info.Text = info.StringValue = TextWindow.Intern(characterWindow, startOffset, length);
                         info.IsVerbatim = false;
                         return true;
-                    case '0':
-                    case '1':
-                    case '2':
-                    case '3':
-                    case '4':
-                    case '5':
-                    case '6':
-                    case '7':
-                    case '8':
-                    case '9':
+                    case >= '0' and <= '9':
                         if (currentOffset == startOffset)
                         {
                             return false;
                         }
                         else
                         {
-                            goto case 'A';
+                            goto case '_';
                         }
-                    case 'A':
-                    case 'B':
-                    case 'C':
-                    case 'D':
-                    case 'E':
-                    case 'F':
-                    case 'G':
-                    case 'H':
-                    case 'I':
-                    case 'J':
-                    case 'K':
-                    case 'L':
-                    case 'M':
-                    case 'N':
-                    case 'O':
-                    case 'P':
-                    case 'Q':
-                    case 'R':
-                    case 'S':
-                    case 'T':
-                    case 'U':
-                    case 'V':
-                    case 'W':
-                    case 'X':
-                    case 'Y':
-                    case 'Z':
+                    case >= 'A' and <= 'Z':
+                    case >= 'a' and <= 'z':
                     case '_':
-                    case 'a':
-                    case 'b':
-                    case 'c':
-                    case 'd':
-                    case 'e':
-                    case 'f':
-                    case 'g':
-                    case 'h':
-                    case 'i':
-                    case 'j':
-                    case 'k':
-                    case 'l':
-                    case 'm':
-                    case 'n':
-                    case 'o':
-                    case 'p':
-                    case 'q':
-                    case 'r':
-                    case 's':
-                    case 't':
-                    case 'u':
-                    case 'v':
-                    case 'w':
-                    case 'x':
-                    case 'y':
-                    case 'z':
                         // All of these characters are valid inside an identifier.
                         // consume it and keep processing.
                         currentOffset++;
@@ -1508,58 +1450,8 @@ top:
 
                         goto LoopExit;
                     case '_':
-                    case 'A':
-                    case 'B':
-                    case 'C':
-                    case 'D':
-                    case 'E':
-                    case 'F':
-                    case 'G':
-                    case 'H':
-                    case 'I':
-                    case 'J':
-                    case 'K':
-                    case 'L':
-                    case 'M':
-                    case 'N':
-                    case 'O':
-                    case 'P':
-                    case 'Q':
-                    case 'R':
-                    case 'S':
-                    case 'T':
-                    case 'U':
-                    case 'V':
-                    case 'W':
-                    case 'X':
-                    case 'Y':
-                    case 'Z':
-                    case 'a':
-                    case 'b':
-                    case 'c':
-                    case 'd':
-                    case 'e':
-                    case 'f':
-                    case 'g':
-                    case 'h':
-                    case 'i':
-                    case 'j':
-                    case 'k':
-                    case 'l':
-                    case 'm':
-                    case 'n':
-                    case 'o':
-                    case 'p':
-                    case 'q':
-                    case 'r':
-                    case 's':
-                    case 't':
-                    case 'u':
-                    case 'v':
-                    case 'w':
-                    case 'x':
-                    case 'y':
-                    case 'z':
+                    case >= 'A' and <= 'Z':
+                    case >= 'a' and <= 'z':
                         {
                             // Again, these are the 'common' identifier characters...
                             break;
@@ -1585,15 +1477,7 @@ top:
                             // Again, these are the 'common' identifier characters...
                             break;
                         }
-                    case '1':
-                    case '2':
-                    case '3':
-                    case '4':
-                    case '5':
-                    case '6':
-                    case '7':
-                    case '8':
-                    case '9':
+                    case >= '1' and <= '9':
                         {
                             if (_identLen == 0)
                             {
@@ -1791,7 +1675,7 @@ top:
                         // When we're ready to implement this behavior, we can drop the position
                         // check and use AdvanceIfMatches instead of PeekChar.
                         if (!isEscaped && (TextWindow.Position == beforeConsumed + 1) &&
-                            (TextWindow.PeekChar() == 'u' || TextWindow.PeekChar() == 'U'))
+                            TextWindow.PeekChar() is 'u' or 'U')
                         {
                             Debug.Assert(consumedSurrogate == SlidingTextWindow.InvalidCharacter, "Since consumedChar == '\\'");
 
@@ -1809,73 +1693,14 @@ top:
                         goto default;
 
                     case '_':
-                    case 'A':
-                    case 'B':
-                    case 'C':
-                    case 'D':
-                    case 'E':
-                    case 'F':
-                    case 'G':
-                    case 'H':
-                    case 'I':
-                    case 'J':
-                    case 'K':
-                    case 'L':
-                    case 'M':
-                    case 'N':
-                    case 'O':
-                    case 'P':
-                    case 'Q':
-                    case 'R':
-                    case 'S':
-                    case 'T':
-                    case 'U':
-                    case 'V':
-                    case 'W':
-                    case 'X':
-                    case 'Y':
-                    case 'Z':
-                    case 'a':
-                    case 'b':
-                    case 'c':
-                    case 'd':
-                    case 'e':
-                    case 'f':
-                    case 'g':
-                    case 'h':
-                    case 'i':
-                    case 'j':
-                    case 'k':
-                    case 'l':
-                    case 'm':
-                    case 'n':
-                    case 'o':
-                    case 'p':
-                    case 'q':
-                    case 'r':
-                    case 's':
-                    case 't':
-                    case 'u':
-                    case 'v':
-                    case 'w':
-                    case 'x':
-                    case 'y':
-                    case 'z':
+                    case >= 'A' and <= 'Z':
+                    case >= 'a' and <= 'z':
                         {
                             // Again, these are the 'common' identifier characters...
                             break;
                         }
 
-                    case '0':
-                    case '1':
-                    case '2':
-                    case '3':
-                    case '4':
-                    case '5':
-                    case '6':
-                    case '7':
-                    case '8':
-                    case '9':
+                    case >= '0' and <= '9':
                         {
                             if (_identLen == 0)
                             {
@@ -2373,13 +2198,7 @@ LoopExit:
             {
                 case '\r':
                     TextWindow.AdvanceChar();
-                    if (TextWindow.PeekChar() == '\n')
-                    {
-                        TextWindow.AdvanceChar();
-                        return SyntaxFactory.CarriageReturnLineFeed;
-                    }
-
-                    return SyntaxFactory.CarriageReturn;
+                    return TextWindow.TryAdvance('\n') ? SyntaxFactory.CarriageReturnLineFeed : SyntaxFactory.CarriageReturn;
                 case '\n':
                     TextWindow.AdvanceChar();
                     return SyntaxFactory.LineFeed;
