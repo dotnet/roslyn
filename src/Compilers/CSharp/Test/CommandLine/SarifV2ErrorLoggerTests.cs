@@ -337,6 +337,41 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
                 AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(cmd.DescriptorsWithInfo, CultureInfo.InvariantCulture, suppressionKinds1: suppressionKinds));
         }
 
+        internal override string GetExpectedOutputForAnalyzerDiagnosticsWithWarnAsError(MockCSharpCompiler cmd)
+        {
+            string expectedOutput =
+@"{{
+  ""$schema"": ""http://json.schemastore.org/sarif-2.1.0"",
+  ""version"": ""2.1.0"",
+  ""runs"": [
+    {{
+{5},
+      ""properties"": {{
+        ""analyzerExecutionTime"": ""{7}""
+      }},
+      ""tool"": {{
+        ""driver"": {{
+          ""name"": ""{0}"",
+          ""version"": ""{1}"",
+          ""dottedQuadFileVersion"": ""{2}"",
+          ""semanticVersion"": ""{3}"",
+          ""language"": ""{4}"",
+{6}
+        }}
+      }},
+      ""columnKind"": ""utf16CodeUnits""
+    }}
+  ]
+}}";
+            return FormatOutputText(
+                expectedOutput,
+                cmd,
+                hasAnalyzers: true,
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogResultsText(cmd.Compilation, warnAsError: true),
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(cmd.DescriptorsWithInfo, CultureInfo.InvariantCulture,
+                    effectiveSeverities1: ImmutableHashSet.Create(ReportDiagnostic.Error)));
+        }
+
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void AnalyzerDiagnosticsWithAndWithoutLocation()
         {
@@ -365,6 +400,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
         public void AnalyzerDiagnosticsSuppressedWithNullJustification()
         {
             AnalyzerDiagnosticsSuppressedWithNullJustificationImpl();
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void AnalyzerDiagnosticsWithWarnAsError()
+        {
+            AnalyzerDiagnosticsWithWarnAsErrorImpl();
         }
 
         private string FormatOutputText(
