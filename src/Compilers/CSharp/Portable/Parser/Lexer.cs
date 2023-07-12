@@ -450,25 +450,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 case '/':
                     TextWindow.AdvanceChar();
-                    if (TextWindow.PeekChar() == '=')
-                    {
-                        TextWindow.AdvanceChar();
-                        info.Kind = SyntaxKind.SlashEqualsToken;
-                    }
-                    else
-                    {
-                        info.Kind = SyntaxKind.SlashToken;
-                    }
-
+                    info.Kind = TextWindow.TryAdvance('=') ? SyntaxKind.SlashEqualsToken : SyntaxKind.SlashToken;
                     break;
 
                 case '.':
                     if (!this.ScanNumericLiteral(ref info))
                     {
                         TextWindow.AdvanceChar();
-                        if (TextWindow.PeekChar() == '.')
+                        if (TextWindow.TryAdvance('.'))
                         {
-                            TextWindow.AdvanceChar();
                             if (TextWindow.PeekChar() == '.')
                             {
                                 // Triple-dot: explicitly reject this, to allow triple-dot
@@ -484,7 +474,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             info.Kind = SyntaxKind.DotToken;
                         }
                     }
-
                     break;
 
                 case ',':
@@ -494,16 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 case ':':
                     TextWindow.AdvanceChar();
-                    if (TextWindow.PeekChar() == ':')
-                    {
-                        TextWindow.AdvanceChar();
-                        info.Kind = SyntaxKind.ColonColonToken;
-                    }
-                    else
-                    {
-                        info.Kind = SyntaxKind.ColonToken;
-                    }
-
+                    info.Kind = TextWindow.TryAdvance(':') ? SyntaxKind.ColonColonToken : SyntaxKind.ColonToken;
                     break;
 
                 case ';':
@@ -518,49 +498,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 case '!':
                     TextWindow.AdvanceChar();
-                    if (TextWindow.PeekChar() == '=')
-                    {
-                        TextWindow.AdvanceChar();
-                        info.Kind = SyntaxKind.ExclamationEqualsToken;
-                    }
-                    else
-                    {
-                        info.Kind = SyntaxKind.ExclamationToken;
-                    }
-
+                    info.Kind = TextWindow.TryAdvance('=') ? SyntaxKind.ExclamationEqualsToken : SyntaxKind.ExclamationToken;
                     break;
 
                 case '=':
                     TextWindow.AdvanceChar();
-                    if ((character = TextWindow.PeekChar()) == '=')
-                    {
-                        TextWindow.AdvanceChar();
-                        info.Kind = SyntaxKind.EqualsEqualsToken;
-                    }
-                    else if (character == '>')
-                    {
-                        TextWindow.AdvanceChar();
-                        info.Kind = SyntaxKind.EqualsGreaterThanToken;
-                    }
-                    else
-                    {
-                        info.Kind = SyntaxKind.EqualsToken;
-                    }
-
+                    info.Kind =
+                        TextWindow.TryAdvance('=') ? SyntaxKind.EqualsEqualsToken :
+                        TextWindow.TryAdvance('>') ? SyntaxKind.EqualsGreaterThanToken : SyntaxKind.EqualsToken;
                     break;
 
                 case '*':
                     TextWindow.AdvanceChar();
-                    if (TextWindow.PeekChar() == '=')
-                    {
-                        TextWindow.AdvanceChar();
-                        info.Kind = SyntaxKind.AsteriskEqualsToken;
-                    }
-                    else
-                    {
-                        info.Kind = SyntaxKind.AsteriskToken;
-                    }
-
+                    info.Kind = TextWindow.TryAdvance('=') ? SyntaxKind.AsteriskEqualsToken : SyntaxKind.AsteriskToken;
                     break;
 
                 case '(':
@@ -595,175 +545,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 case '?':
                     TextWindow.AdvanceChar();
-                    if (TextWindow.PeekChar() == '?')
-                    {
-                        TextWindow.AdvanceChar();
-
-                        if (TextWindow.PeekChar() == '=')
-                        {
-                            TextWindow.AdvanceChar();
-                            info.Kind = SyntaxKind.QuestionQuestionEqualsToken;
-                        }
-                        else
-                        {
-                            info.Kind = SyntaxKind.QuestionQuestionToken;
-                        }
-                    }
-                    else
-                    {
-                        info.Kind = SyntaxKind.QuestionToken;
-                    }
-
+                    info.Kind = TextWindow.TryAdvance('?')
+                        ? TextWindow.TryAdvance('=') ? SyntaxKind.QuestionQuestionEqualsToken : SyntaxKind.QuestionQuestionToken
+                        : SyntaxKind.QuestionToken;
                     break;
 
                 case '+':
                     TextWindow.AdvanceChar();
-                    if ((character = TextWindow.PeekChar()) == '=')
-                    {
-                        TextWindow.AdvanceChar();
-                        info.Kind = SyntaxKind.PlusEqualsToken;
-                    }
-                    else if (character == '+')
-                    {
-                        TextWindow.AdvanceChar();
-                        info.Kind = SyntaxKind.PlusPlusToken;
-                    }
-                    else
-                    {
-                        info.Kind = SyntaxKind.PlusToken;
-                    }
-
+                    info.Kind =
+                        TextWindow.TryAdvance('=') ? SyntaxKind.PlusEqualsToken :
+                        TextWindow.TryAdvance('+') ? SyntaxKind.PlusPlusToken : SyntaxKind.PlusToken;
                     break;
 
                 case '-':
                     TextWindow.AdvanceChar();
-                    if ((character = TextWindow.PeekChar()) == '=')
-                    {
-                        TextWindow.AdvanceChar();
-                        info.Kind = SyntaxKind.MinusEqualsToken;
-                    }
-                    else if (character == '-')
-                    {
-                        TextWindow.AdvanceChar();
-                        info.Kind = SyntaxKind.MinusMinusToken;
-                    }
-                    else if (character == '>')
-                    {
-                        TextWindow.AdvanceChar();
-                        info.Kind = SyntaxKind.MinusGreaterThanToken;
-                    }
-                    else
-                    {
-                        info.Kind = SyntaxKind.MinusToken;
-                    }
-
+                    info.Kind =
+                        TextWindow.TryAdvance('=') ? SyntaxKind.MinusEqualsToken :
+                        TextWindow.TryAdvance('-') ? SyntaxKind.MinusMinusToken :
+                        TextWindow.TryAdvance('>') ? SyntaxKind.MinusGreaterThanToken : SyntaxKind.MinusToken;
                     break;
 
                 case '%':
                     TextWindow.AdvanceChar();
-                    if (TextWindow.PeekChar() == '=')
-                    {
-                        TextWindow.AdvanceChar();
-                        info.Kind = SyntaxKind.PercentEqualsToken;
-                    }
-                    else
-                    {
-                        info.Kind = SyntaxKind.PercentToken;
-                    }
-
+                    info.Kind = TextWindow.TryAdvance('=') ? SyntaxKind.PercentEqualsToken : SyntaxKind.PercentToken;
                     break;
 
                 case '&':
                     TextWindow.AdvanceChar();
-                    if ((character = TextWindow.PeekChar()) == '=')
-                    {
-                        TextWindow.AdvanceChar();
-                        info.Kind = SyntaxKind.AmpersandEqualsToken;
-                    }
-                    else if (TextWindow.PeekChar() == '&')
-                    {
-                        TextWindow.AdvanceChar();
-                        info.Kind = SyntaxKind.AmpersandAmpersandToken;
-                    }
-                    else
-                    {
-                        info.Kind = SyntaxKind.AmpersandToken;
-                    }
-
+                    info.Kind =
+                        TextWindow.TryAdvance('=') ? SyntaxKind.AmpersandEqualsToken :
+                        TextWindow.TryAdvance('&') ? SyntaxKind.AmpersandAmpersandToken : SyntaxKind.AmpersandToken;
                     break;
 
                 case '^':
                     TextWindow.AdvanceChar();
-                    if (TextWindow.PeekChar() == '=')
-                    {
-                        TextWindow.AdvanceChar();
-                        info.Kind = SyntaxKind.CaretEqualsToken;
-                    }
-                    else
-                    {
-                        info.Kind = SyntaxKind.CaretToken;
-                    }
-
+                    info.Kind = TextWindow.TryAdvance('=') ? SyntaxKind.CaretEqualsToken : SyntaxKind.CaretToken;
                     break;
 
                 case '|':
                     TextWindow.AdvanceChar();
-                    if (TextWindow.PeekChar() == '=')
-                    {
-                        TextWindow.AdvanceChar();
-                        info.Kind = SyntaxKind.BarEqualsToken;
-                    }
-                    else if (TextWindow.PeekChar() == '|')
-                    {
-                        TextWindow.AdvanceChar();
-                        info.Kind = SyntaxKind.BarBarToken;
-                    }
-                    else
-                    {
-                        info.Kind = SyntaxKind.BarToken;
-                    }
-
+                    info.Kind =
+                        TextWindow.TryAdvance('=') ? SyntaxKind.BarEqualsToken :
+                        TextWindow.TryAdvance('|') ? SyntaxKind.BarBarToken : SyntaxKind.BarToken;
                     break;
 
                 case '<':
                     TextWindow.AdvanceChar();
-                    if (TextWindow.PeekChar() == '=')
-                    {
-                        TextWindow.AdvanceChar();
-                        info.Kind = SyntaxKind.LessThanEqualsToken;
-                    }
-                    else if (TextWindow.PeekChar() == '<')
-                    {
-                        TextWindow.AdvanceChar();
-                        if (TextWindow.PeekChar() == '=')
-                        {
-                            TextWindow.AdvanceChar();
-                            info.Kind = SyntaxKind.LessThanLessThanEqualsToken;
-                        }
-                        else
-                        {
-                            info.Kind = SyntaxKind.LessThanLessThanToken;
-                        }
-                    }
-                    else
-                    {
-                        info.Kind = SyntaxKind.LessThanToken;
-                    }
-
+                    info.Kind =
+                        TextWindow.TryAdvance('=') ? SyntaxKind.LessThanEqualsToken :
+                        TextWindow.TryAdvance('<')
+                            ? TextWindow.TryAdvance('=') ? SyntaxKind.LessThanLessThanEqualsToken : SyntaxKind.LessThanLessThanToken
+                            : SyntaxKind.LessThanToken;
                     break;
 
                 case '>':
                     TextWindow.AdvanceChar();
-                    if (TextWindow.PeekChar() == '=')
-                    {
-                        TextWindow.AdvanceChar();
-                        info.Kind = SyntaxKind.GreaterThanEqualsToken;
-                    }
-                    else
-                    {
-                        info.Kind = SyntaxKind.GreaterThanToken;
-                    }
-
+                    info.Kind = TextWindow.TryAdvance('=') ? SyntaxKind.GreaterThanEqualsToken : SyntaxKind.GreaterThanToken;
                     break;
 
                 case '@':
@@ -779,14 +616,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 case '$':
                     if (TryScanInterpolatedString(ref info))
-                    {
                         break;
-                    }
 
                     if (this.ModeIs(LexerMode.DebuggerSyntax))
-                    {
                         goto case '_';
-                    }
 
                     goto default;
 
@@ -806,36 +639,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     isEscaped = true;
                     character = PeekCharOrUnicodeEscape(out _);
                     if (SyntaxFacts.IsIdentifierStartCharacter(character))
-                    {
                         goto case '_';
-                    }
 
                     goto default;
 
                 case SlidingTextWindow.InvalidCharacter:
                     if (!TextWindow.IsReallyAtEnd())
-                    {
                         goto default;
-                    }
 
                     if (_directives.HasUnfinishedIf())
-                    {
                         this.AddError(ErrorCode.ERR_EndifDirectiveExpected);
-                    }
 
                     if (_directives.HasUnfinishedRegion())
-                    {
                         this.AddError(ErrorCode.ERR_EndRegionDirectiveExpected);
-                    }
 
                     info.Kind = SyntaxKind.EndOfFileToken;
                     break;
 
                 default:
                     if (SyntaxFacts.IsIdentifierStartCharacter(character))
-                    {
                         goto case '_';
-                    }
 
                     if (isEscaped)
                     {
