@@ -954,15 +954,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     if (severity != ReportDiagnostic.Default)
                     {
-                        // Handle /warnaserror
-                        if (severity == ReportDiagnostic.Warn &&
-                            compilation.Options.GeneralDiagnosticOption == ReportDiagnostic.Error)
-                        {
-                            severity = ReportDiagnostic.Error;
-                        }
-
                         defaultSeverity = severity;
                     }
+                }
+
+                // Handle /warnaserror
+                if (defaultSeverity == ReportDiagnostic.Warn &&
+                    compilation.Options.GeneralDiagnosticOption == ReportDiagnostic.Error)
+                {
+                    defaultSeverity = ReportDiagnostic.Error;
                 }
 
                 if (compilation.Options.SyntaxTreeOptionsProvider is not { } syntaxTreeProvider ||
