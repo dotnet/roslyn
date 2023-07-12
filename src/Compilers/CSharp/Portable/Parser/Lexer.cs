@@ -643,26 +643,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     isEscaped = true;
                     character = PeekCharOrUnicodeEscape(out _);
                     if (SyntaxFacts.IsIdentifierStartCharacter(character))
+                    {
                         goto case '_';
+                    }
 
                     goto default;
 
                 case SlidingTextWindow.InvalidCharacter:
                     if (!TextWindow.IsReallyAtEnd())
+                    {
                         goto default;
+                    }
 
                     if (_directives.HasUnfinishedIf())
+                    {
                         this.AddError(ErrorCode.ERR_EndifDirectiveExpected);
+                    }
 
                     if (_directives.HasUnfinishedRegion())
+                    {
                         this.AddError(ErrorCode.ERR_EndRegionDirectiveExpected);
+                    }
 
                     info.Kind = SyntaxKind.EndOfFileToken;
                     break;
 
                 default:
                     if (SyntaxFacts.IsIdentifierStartCharacter(character))
+                    {
                         goto case '_';
+                    }
 
                     if (isEscaped)
                     {
