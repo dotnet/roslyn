@@ -90,6 +90,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         public bool IsDigit
             => SurrogateChar != 0 ? char.IsDigit(SurrogateChar) : Rune.IsDigit(Rune);
 
+        public bool IsLetter
+            => SurrogateChar != 0 ? char.IsLetter(SurrogateChar) : Rune.IsLetter(Rune);
+
         public bool IsLetterOrDigit
             => SurrogateChar != 0 ? char.IsLetterOrDigit(SurrogateChar) : Rune.IsLetterOrDigit(Rune);
 

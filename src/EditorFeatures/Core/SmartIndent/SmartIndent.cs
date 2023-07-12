@@ -15,16 +15,10 @@ using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 {
-    internal partial class SmartIndent : ISmartIndent
+    internal partial class SmartIndent(ITextView textView, EditorOptionsService editorOptionsService) : ISmartIndent
     {
-        private readonly ITextView _textView;
-        private readonly EditorOptionsService _editorOptionsService;
-
-        public SmartIndent(ITextView textView, EditorOptionsService editorOptionsService)
-        {
-            _textView = textView;
-            _editorOptionsService = editorOptionsService;
-        }
+        private readonly ITextView _textView = textView;
+        private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
 
         public int? GetDesiredIndentation(ITextSnapshotLine line)
             => GetDesiredIndentation(line, CancellationToken.None);

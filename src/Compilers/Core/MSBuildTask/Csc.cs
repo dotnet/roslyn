@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Fills the provided CommandLineBuilderExtension with those switches and other information that can go into a response file.
         /// </summary>
-        protected internal override void AddResponseFileCommands(CommandLineBuilderExtension commandLine)
+        protected override void AddResponseFileCommands(CommandLineBuilderExtension commandLine)
         {
             commandLine.AppendSwitchIfNotNull("/lib:", AdditionalLibPaths, ",");
             commandLine.AppendPlusOrMinusSwitch("/unsafe", _store, nameof(AllowUnsafeBlocks));

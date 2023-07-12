@@ -4,7 +4,6 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis.CSharp.Classification;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SpellCheck;
 

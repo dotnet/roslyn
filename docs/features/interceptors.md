@@ -64,8 +64,7 @@ Any "ordinary method" (i.e. with `MethodKind.Ordinary`) can have its calls inter
 
 `[InterceptsLocation]` attributes included in source are emitted to the resulting assembly, just like other custom attributes.
 
-PROTOTYPE(ic): We may want to recognize `file class InterceptsLocationAttribute` as a valid declaration of the attribute, to allow generators to bring the attribute in without conflicting with other generators which may also be bringing the attribute in. See open question in [User opt-in](#user-opt-in).
-https://github.com/dotnet/roslyn/issues/67079 is a bug which causes file-local source declarations of well-known attributes to be generally treated as known. When that bug is fixed, we may want to single out `InterceptsLocationAttribute` as "recognized, even though they are file-local".
+File-local declarations of this type (`file class InterceptsLocationAttribute`) are valid and usages are recognized by the compiler when they are within the same file and compilation. A generator which needs to declare this attribute should use a file-local declaration to ensure it doesn't conflict with other generators that need to do the same thing.
 
 #### File paths
 
