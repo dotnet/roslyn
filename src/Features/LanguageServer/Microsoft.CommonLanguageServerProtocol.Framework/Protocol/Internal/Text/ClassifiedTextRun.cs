@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 
 namespace Roslyn.Text.Adornments
@@ -14,13 +12,13 @@ namespace Roslyn.Text.Adornments
 
         public string Text { get; }
 
-        public string MarkerTagType { get; }
+        public string? MarkerTagType { get; }
 
         public ClassifiedTextRunStyle Style { get; }
 
-        public string Tooltip { get; }
+        public string? Tooltip { get; }
 
-        public Action NavigationAction { get; }
+        public Action? NavigationAction { get; }
 
         public ClassifiedTextRun(string classificationTypeName, string text)
             : this(classificationTypeName, text, ClassifiedTextRunStyle.Plain)
@@ -28,26 +26,22 @@ namespace Roslyn.Text.Adornments
         }
 
         public ClassifiedTextRun(string classificationTypeName, string text, ClassifiedTextRunStyle style)
+            : this(classificationTypeName, text, style, markerTagType: null)
         {
-            ClassificationTypeName = classificationTypeName ?? throw new ArgumentNullException("classificationTypeName");
-            Text = text ?? throw new ArgumentNullException("text");
-            Style = style;
         }
 
-        public ClassifiedTextRun(string classificationTypeName, string text, ClassifiedTextRunStyle style, string markerTagType)
+        public ClassifiedTextRun(string classificationTypeName, string text, ClassifiedTextRunStyle style, string? markerTagType)
+            : this(classificationTypeName, text, style, markerTagType, navigationAction: null, tooltip: null)
         {
-            ClassificationTypeName = classificationTypeName ?? throw new ArgumentNullException("classificationTypeName");
-            Text = text ?? throw new ArgumentNullException("text");
+        }
+
+        public ClassifiedTextRun(string classificationTypeName, string text, ClassifiedTextRunStyle style, string? markerTagType, Action? navigationAction, string? tooltip = null)
+        {
+            ClassificationTypeName = classificationTypeName ?? throw new ArgumentNullException(nameof(classificationTypeName));
+            Text = text ?? throw new ArgumentNullException(nameof(text));
+            Style = style;
             MarkerTagType = markerTagType;
-            Style = style;
-        }
-
-        public ClassifiedTextRun(string classificationTypeName, string text, Action navigationAction, string tooltip = null, ClassifiedTextRunStyle style = ClassifiedTextRunStyle.Plain)
-        {
-            ClassificationTypeName = classificationTypeName ?? throw new ArgumentNullException("classificationTypeName");
-            Text = text ?? throw new ArgumentNullException("text");
-            Style = style;
-            NavigationAction = navigationAction ?? throw new ArgumentNullException("navigationAction");
+            NavigationAction = navigationAction;
             Tooltip = tooltip;
         }
     }

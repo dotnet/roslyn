@@ -19,9 +19,23 @@ namespace Microsoft.CodeAnalysis.Extensions
             => new Roslyn.Text.Adornments.ImageElement(imageElement.ImageId.ToLSPImageId(), imageElement.AutomationName);
 
         public static Roslyn.Text.Adornments.ClassifiedTextRun ToLSPRun(this VisualStudio.Text.Adornments.ClassifiedTextRun run)
-            => new Roslyn.Text.Adornments.ClassifiedTextRun(run.ClassificationTypeName, run.Text, run.NavigationAction, run.Tooltip, (Roslyn.Text.Adornments.ClassifiedTextRunStyle)run.Style);
+            => new Roslyn.Text.Adornments.ClassifiedTextRun(run.ClassificationTypeName, run.Text, (Roslyn.Text.Adornments.ClassifiedTextRunStyle)run.Style, run.MarkerTagType, run.NavigationAction, run.Tooltip);
 
         public static Roslyn.Text.Adornments.ClassifiedTextElement ToLSPElement(this VisualStudio.Text.Adornments.ClassifiedTextElement element)
             => new Roslyn.Text.Adornments.ClassifiedTextElement(element.Runs.Select(r => r.ToLSPRun()));
+
+        public static Roslyn.Text.Adornments.ContainerElement ToLSPElement(this VisualStudio.Text.Adornments.ContainerElement element)
+            => new Roslyn.Text.Adornments.ContainerElement((Roslyn.Text.Adornments.ContainerElementStyle)element.Style, element.Elements.Select(e => ToLSPElement(e)));
+
+        private static object? ToLSPElement(object? value)
+            => value switch
+            {
+                VisualStudio.Core.Imaging.ImageId imageId => ToLSPImageId(imageId),
+                VisualStudio.Text.Adornments.ImageElement element => ToLSPImageElement(element),
+                VisualStudio.Text.Adornments.ContainerElement element => ToLSPElement(element),
+                VisualStudio.Text.Adornments.ClassifiedTextElement element => ToLSPElement(element),
+                VisualStudio.Text.Adornments.ClassifiedTextRun run => ToLSPRun(run),
+                _ => value,
+            };
     }
 }

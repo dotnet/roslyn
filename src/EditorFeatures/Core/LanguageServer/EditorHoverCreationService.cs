@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
+using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -50,6 +51,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                     asynchronousOperationListener: null,
                     streamingPresenter: null);
 
+            var element = await IntellisenseQuickInfoBuilder.BuildContentWithoutNavigationActionsAsync(info, context, cancellationToken).ConfigureAwait(false);
             return new VSInternalHover
             {
                 Range = ProtocolConversions.TextSpanToRange(info.Span, text),
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 // Build the classified text without navigation actions - they are not serializable.
                 // TODO - Switch to markup content once it supports classifications.
                 // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/918138
-                RawContent = await IntellisenseQuickInfoBuilder.BuildContentWithoutNavigationActionsAsync(info, context, cancellationToken).ConfigureAwait(false)
+                RawContent = element.ToLSPElement(),
             };
         }
     }
