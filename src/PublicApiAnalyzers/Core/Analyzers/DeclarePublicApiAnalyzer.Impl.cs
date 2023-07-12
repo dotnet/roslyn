@@ -757,9 +757,6 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     if (s_ignorableMethodKinds.Contains(methodSymbol.MethodKind))
                         return false;
 
-                    if (methodSymbol is { MethodKind: MethodKind.Ordinary, CanBeReferencedByName: false })
-                        return false;
-
                     if (methodSymbol is { MethodKind: MethodKind.Constructor, ContainingType.TypeKind: TypeKind.Enum })
                         return false;
                 }

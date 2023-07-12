@@ -2024,6 +2024,7 @@ C<T>.field2 -> C<T>.Nested";
                 C
                 C.C(C! original) -> void
                 C.C(int X, string! Y) -> void
+                virtual C.<Clone>$() -> C!
                 C.Deconstruct(out int X, out string! Y) -> void
                 override C.Equals(object? obj) -> bool
                 override C.GetHashCode() -> int
@@ -3171,6 +3172,7 @@ C.C() -> void";
             var shippedText = """
                 #nullable enable
                 R.R(R! original) -> void
+                virtual R.<Clone>$() -> R!
                 R.Deconstruct(out int P) -> void
                 override R.Equals(object? obj) -> bool
                 override R.GetHashCode() -> int
