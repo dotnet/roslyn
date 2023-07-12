@@ -943,35 +943,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     // point to that code exactly as being something we didn't expect.  Otherwise, if it's just normal
                     // characters, then escape anything non-printable so that the error message clearly indicates what
                     // the char-values were that we ran into.
-                    var messageText = isEscaped ? info.Text : escapeNonPrintableCharacters(info.Text);
+                    var messageText = isEscaped ? info.Text : ObjectDisplay.FormatLiteral(info.Text, ObjectDisplayOptions.EscapeNonPrintableCharacters);
                     this.AddError(ErrorCode.ERR_UnexpectedCharacter, messageText);
                     break;
-            }
-
-            static string escapeNonPrintableCharacters(string str)
-            {
-                var sb = PooledStringBuilder.GetInstance();
-                for (int i = 0, n = str.Length; i < n; i++)
-                {
-                    var c = str[i];
-
-                    if (i < n - 1 &&
-                        char.IsHighSurrogate(c) &&
-                        char.IsLowSurrogate(str[i + 1]))
-                    {
-                        // We have a valid surrogate pair.  Grab it out as a substring so that FormatLiteral will see it and
-                        // properly encode it in a reasonable way to show the user (depending on if it is printable or not).
-                        // Skip forward another character since we're processing two at a time here.
-                        sb.Builder.Append(ObjectDisplay.FormatLiteral(str.Substring(i, 2), ObjectDisplayOptions.EscapeNonPrintableCharacters));
-                        i++;
-                    }
-                    else
-                    {
-                        sb.Builder.Append(ObjectDisplay.FormatLiteral(c, ObjectDisplayOptions.EscapeNonPrintableCharacters));
-                    }
-                }
-
-                return sb.ToStringAndFree();
             }
         }
 
