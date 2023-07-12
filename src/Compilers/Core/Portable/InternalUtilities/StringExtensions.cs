@@ -7,10 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
-using System.Text;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Roslyn.Utilities
 {
