@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             var serviceType = typeof(TService);
             if (serviceType == typeof(ISpanMappingService))
             {
-                var spanMappingService = LazyInitialization.EnsureInitialized(
+                var spanMappingService = InterlockedOperations.EnsureInitialized(
                     ref _lazySpanMappingService,
                     static documentServiceProvider =>
                     {
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 
             if (serviceType == typeof(IDocumentExcerptService))
             {
-                var excerptService = LazyInitialization.EnsureInitialized(
+                var excerptService = InterlockedOperations.EnsureInitialized(
                     ref _lazyExcerptService,
                     static documentServiceProvider =>
                     {
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 
             if (serviceType == typeof(DocumentPropertiesService))
             {
-                var documentPropertiesService = LazyInitialization.EnsureInitialized(
+                var documentPropertiesService = InterlockedOperations.EnsureInitialized(
                     ref _lazyDocumentPropertiesService,
                     static documentServiceProvider =>
                     {

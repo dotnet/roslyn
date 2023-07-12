@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             private int GetOrComputeIndentationDelta()
             {
-                return LazyInitialization.EnsureInitialized(
+                return InterlockedOperations.EnsureInitialized(
                     ref _lazyIndentationDelta,
                     UninitializedIndentationDelta,
                     static self => self._indentationDeltaGetter(
