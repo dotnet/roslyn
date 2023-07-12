@@ -5,7 +5,6 @@
 namespace Roslyn.LanguageServer.Protocol
 {
     using System.Runtime.Serialization;
-
     using Newtonsoft.Json;
 
     /// <summary>
@@ -46,7 +45,7 @@ namespace Roslyn.LanguageServer.Protocol
             get;
             set;
         }
-        
+
         /// <summary>
         /// Gets or sets the default <see cref="InsertTextMode"/>.
         /// </summary>
