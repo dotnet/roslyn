@@ -11,9 +11,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.VisualStudio.Text.Adornments;
 using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
+using Roslyn.Text.Adornments;
 using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -21,12 +21,8 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.References
 {
-    public class FindAllReferencesHandlerTests : AbstractLanguageServerProtocolTests
+    public class FindAllReferencesHandlerTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
     {
-        public FindAllReferencesHandlerTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
-        {
-        }
-
         [Theory, CombinatorialData]
         public async Task TestFindAllReferencesAsync(bool mutatingLspWorkspace)
         {
