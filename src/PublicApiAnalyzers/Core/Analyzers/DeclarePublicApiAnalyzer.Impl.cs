@@ -190,6 +190,12 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     {
                         if (IsTrackedAPI(member, cancellationToken) && member is IMethodSymbol { IsImplicitlyDeclared: true } method)
                         {
+                            // Record property accessors (for `record X(int P)` are considered implicitly declared.
+                            // However, we still the normal property through our normal symbol callbacks.  So we don't
+                            // need to process those here.
+                            //
+                            // We do, however, need to process any implicit accessors for *implicit* properties. For
+                            // example, for the implicit `virtual Type EqualityContract { get; }` member
                             if (method.MethodKind is not (MethodKind.Constructor or MethodKind.PropertyGet or MethodKind.PropertySet) ||
                                 method is { MethodKind: MethodKind.PropertyGet or MethodKind.PropertySet, AssociatedSymbol.IsImplicitlyDeclared: true })
                             {
