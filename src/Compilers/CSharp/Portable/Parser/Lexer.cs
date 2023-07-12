@@ -785,7 +785,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             int start = TextWindow.Position;
             while (TextWindow.PeekChar() is >= '0' and <= '9')
+            {
                 TextWindow.AdvanceChar();
+            }
 
             return start < TextWindow.Position;
         }
