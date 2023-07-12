@@ -921,12 +921,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         }
                     }
 
-                    // if the original text wasn't already escaped, then escape it in the error message so that it's
-                    // clear what the issue is.  i.e. if the users source had the literal six characters in order like
-                    // so:  `\` `u` `D` `C` `E` `7`, then there's no need to escape that again when reporting the error.
-                    // However, if the user's code has the actual System.Char \uDCE7 char in it, then we want to print
-                    // that out in escaped form so they have an actual clue about what the character value is that we
-                    // have a problem with.
                     if (_badTokenCount++ > 200)
                     {
                         // If we get too many characters that we cannot make sense of, absorb the rest of the input.
@@ -939,10 +933,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         info.Text = TextWindow.GetText(intern: true);
                     }
 
-                    // if the original user code already contained an explicit escape-sequence in text, then we can just
-                    // point to that code exactly as being something we didn't expect.  Otherwise, if it's just normal
-                    // characters, then escape anything non-printable so that the error message clearly indicates what
-                    // the char-values were that we ran into.
+                    // if the original text wasn't already escaped, then escape it in the error message so that it's
+                    // clear what the issue is.  i.e. if the users source had the literal six characters in order like
+                    // so:  `\` `u` `D` `C` `E` `7`, then there's no need to escape that again when reporting the error.
+                    // However, if the user's code has the actual System.Char \uDCE7 char in it, then we want to print
+                    // that out in escaped form so they have an actual clue about what the character value is that we
+                    // have a problem with.
                     var messageText = isEscaped ? info.Text : ObjectDisplay.FormatLiteral(info.Text, ObjectDisplayOptions.EscapeNonPrintableCharacters);
                     this.AddError(ErrorCode.ERR_UnexpectedCharacter, messageText);
                     break;
