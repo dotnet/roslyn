@@ -15,18 +15,12 @@ using Microsoft.CodeAnalysis.Options;
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
     [Export(typeof(IVSTypeScriptDiagnosticService)), Shared]
-    internal sealed class VSTypeScriptDiagnosticService : IVSTypeScriptDiagnosticService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class VSTypeScriptDiagnosticService(IDiagnosticService service, IGlobalOptionService globalOptions) : IVSTypeScriptDiagnosticService
     {
-        private readonly IDiagnosticService _service;
-        private readonly IGlobalOptionService _globalOptions;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VSTypeScriptDiagnosticService(IDiagnosticService service, IGlobalOptionService globalOptions)
-        {
-            _service = service;
-            _globalOptions = globalOptions;
-        }
+        private readonly IDiagnosticService _service = service;
+        private readonly IGlobalOptionService _globalOptions = globalOptions;
 
         public async Task<ImmutableArray<VSTypeScriptDiagnosticData>> GetPushDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
         {

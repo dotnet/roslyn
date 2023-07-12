@@ -15,28 +15,23 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
-    internal sealed class SyntaxComparer : AbstractSyntaxComparer
+    /// <summary>
+    /// Creates a syntax comparer
+    /// </summary>
+    /// <param name="oldRoot">The root node to start comparisons from</param>
+    /// <param name="newRoot">The new root node to compare against</param>
+    /// <param name="oldRootChildren">Child nodes that should always be compared</param>
+    /// <param name="newRootChildren">New child nodes to compare against</param>
+    /// <param name="compareStatementSyntax">Whether this comparer is in "statement mode"</param>
+    internal sealed class SyntaxComparer(
+        SyntaxNode? oldRoot,
+        SyntaxNode? newRoot,
+        IEnumerable<SyntaxNode>? oldRootChildren,
+        IEnumerable<SyntaxNode>? newRootChildren,
+        bool compareStatementSyntax) : AbstractSyntaxComparer(oldRoot, newRoot, oldRootChildren, newRootChildren, compareStatementSyntax)
     {
         internal static readonly SyntaxComparer TopLevel = new(null, null, null, null, compareStatementSyntax: false);
         internal static readonly SyntaxComparer Statement = new(null, null, null, null, compareStatementSyntax: true);
-
-        /// <summary>
-        /// Creates a syntax comparer
-        /// </summary>
-        /// <param name="oldRoot">The root node to start comparisons from</param>
-        /// <param name="newRoot">The new root node to compare against</param>
-        /// <param name="oldRootChildren">Child nodes that should always be compared</param>
-        /// <param name="newRootChildren">New child nodes to compare against</param>
-        /// <param name="compareStatementSyntax">Whether this comparer is in "statement mode"</param>
-        public SyntaxComparer(
-            SyntaxNode? oldRoot,
-            SyntaxNode? newRoot,
-            IEnumerable<SyntaxNode>? oldRootChildren,
-            IEnumerable<SyntaxNode>? newRootChildren,
-            bool compareStatementSyntax)
-            : base(oldRoot, newRoot, oldRootChildren, newRootChildren, compareStatementSyntax)
-        {
-        }
 
         protected override bool IsLambdaBodyStatementOrExpression(SyntaxNode node)
             => LambdaUtilities.IsLambdaBodyStatementOrExpression(node);

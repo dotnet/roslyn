@@ -36,28 +36,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
     [ClientName(ClientName)]
     [RunOnContext(RunningContext.RunOnHost)]
     [Export(typeof(ILanguageClient))]
-    internal class RazorInProcLanguageClient : AbstractInProcLanguageClient
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class RazorInProcLanguageClient(
+        CSharpVisualBasicLspServiceProvider lspServiceProvider,
+        IGlobalOptionService globalOptions,
+        ExperimentalCapabilitiesProvider experimentalCapabilitiesProvider,
+        IThreadingContext threadingContext,
+        ILspServiceLoggerFactory lspLoggerFactory,
+        ExportProvider exportProvider,
+        [Import(AllowDefault = true)] AbstractLanguageClientMiddleLayer middleLayer) : AbstractInProcLanguageClient(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider, middleLayer)
     {
         public const string ClientName = ProtocolConstants.RazorCSharp;
 
-        private readonly ExperimentalCapabilitiesProvider _experimentalCapabilitiesProvider;
+        private readonly ExperimentalCapabilitiesProvider _experimentalCapabilitiesProvider = experimentalCapabilitiesProvider;
 
         protected override ImmutableArray<string> SupportedLanguages => ProtocolConstants.RoslynLspLanguages;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RazorInProcLanguageClient(
-            CSharpVisualBasicLspServiceProvider lspServiceProvider,
-            IGlobalOptionService globalOptions,
-            ExperimentalCapabilitiesProvider experimentalCapabilitiesProvider,
-            IThreadingContext threadingContext,
-            ILspServiceLoggerFactory lspLoggerFactory,
-            ExportProvider exportProvider,
-            [Import(AllowDefault = true)] AbstractLanguageClientMiddleLayer middleLayer)
-            : base(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider, middleLayer)
-        {
-            _experimentalCapabilitiesProvider = experimentalCapabilitiesProvider;
-        }
 
         protected override void Activate_OffUIThread()
         {
