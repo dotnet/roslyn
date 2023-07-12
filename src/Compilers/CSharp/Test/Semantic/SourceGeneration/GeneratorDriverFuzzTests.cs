@@ -432,7 +432,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
                         {
                 """);
 
-
                 foreach (var text in originalInputs)
                 {
                     builder.AppendLine($"""
