@@ -127,8 +127,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 SourceParameterSymbolBase destinationParameter = (SourceParameterSymbolBase)destinationParameters[i];
                 ParameterSymbol sourceParameter = sourceParameters[i];
+                TypeWithAnnotations sourceTypeWithAnnotations = sourceParameter.TypeWithAnnotations;
 
-                if (sourceParameter.TypeWithAnnotations.CustomModifiers.Any() || sourceParameter.RefCustomModifiers.Any() ||
+                if (sourceTypeWithAnnotations.CustomModifiers.Any() || sourceParameter.RefCustomModifiers.Any() ||
                     sourceParameter.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: true) ||
                     destinationParameter.TypeWithAnnotations.CustomModifiers.Any() || destinationParameter.RefCustomModifiers.Any() ||
                     destinationParameter.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: true) || // Could happen if the associated property has custom modifiers.
@@ -142,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     bool newParams = alsoCopyParamsModifier ? sourceParameter.IsParams : destinationParameter.IsParams;
                     builder.Add(destinationParameter.WithCustomModifiersAndParams(sourceParameter.Type,
-                                                                                  sourceParameter.TypeWithAnnotations.CustomModifiers,
+                                                                                  sourceTypeWithAnnotations.CustomModifiers,
                                                                                   destinationParameter.RefKind != RefKind.None ? sourceParameter.RefCustomModifiers : ImmutableArray<CustomModifier>.Empty,
                                                                                   newParams));
                 }
