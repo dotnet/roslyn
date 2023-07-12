@@ -910,23 +910,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // If we ran into the start of a surrogate pair, then see if we have the whole pair.  If so,
                         // skip the pair in its entirety so we can produce a good error message that treats the two as a
                         // single entity to tell the user about.
-                        if (char.IsHighSurrogate(character))
-                        {
-                            if (char.IsLowSurrogate(TextWindow.PeekChar()))
-                                TextWindow.AdvanceChar();
-                        }
+                        if (char.IsHighSurrogate(character) && char.IsLowSurrogate(TextWindow.PeekChar()))
+                            TextWindow.AdvanceChar();
                     }
 
-                    if (_badTokenCount++ > 200)
+                    // If we get too many characters that we cannot make sense of, treat the entire rest of the file as
+                    // a single invalid character, so we can bail out of parsing early without producing an unbounded
+                    // number of errors.
+                    if (_badTokenCount++ <= 200)
                     {
-                        // If we get too many characters that we cannot make sense of, absorb the rest of the input.
-                        int end = TextWindow.Text.Length;
-                        info.Text = TextWindow.Text.ToString(TextSpan.FromBounds(startingPosition, end));
-                        TextWindow.Reset(end);
+                        info.Text = TextWindow.GetText(intern: true);
                     }
                     else
                     {
-                        info.Text = TextWindow.GetText(intern: true);
+                        int end = TextWindow.Text.Length;
+                        info.Text = TextWindow.Text.ToString(TextSpan.FromBounds(startingPosition, end));
+                        TextWindow.Reset(end);
                     }
 
                     // if the original text wasn't already escaped, then escape it in the error message so that it's
