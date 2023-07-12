@@ -2507,6 +2507,16 @@
         <target state="translated">このコンテキストでの変数の使用は、参照される変数が宣言のスコープ外に公開される可能性があります</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_HidingDifferentRefness">
+        <source>Modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in hidden member.</source>
+        <target state="new">Modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in hidden member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_HidingDifferentRefness_Title">
+        <source>Modifier of parameter doesn't match the corresponding parameter in hidden member.</source>
+        <target state="new">Modifier of parameter doesn't match the corresponding parameter in hidden member.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_InterceptorSignatureMismatch">
         <source>Intercepting a call to '{0}' with interceptor '{1}', but the signatures do not match.</source>
         <target state="new">Intercepting a call to '{0}' with interceptor '{1}', but the signatures do not match.</target>
@@ -2607,6 +2617,16 @@
         <target state="translated">既定のパラメーター値がターゲット デリゲート型と一致しません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_OverridingDifferentRefness">
+        <source>Modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in overridden or implemented member.</source>
+        <target state="new">Modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in overridden or implemented member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_OverridingDifferentRefness_Title">
+        <source>Modifier of parameter doesn't match the corresponding parameter in overridden or implemented member.</source>
+        <target state="new">Modifier of parameter doesn't match the corresponding parameter in overridden or implemented member.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
         <source>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</source>
         <target state="translated">パラメーター '{1}' が null 以外であるため、パラメーター '{0}' には、終了時に null 以外の値が含まれている必要があります。</target>
@@ -2635,6 +2655,16 @@
       <trans-unit id="WRN_ParamsArrayInLambdaOnly_Title">
         <source>Parameter has params modifier in lambda but not in target delegate type.</source>
         <target state="translated">パラメーターにラムダの params 修飾子がありますが、ターゲット デリゲート型にはありません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PartialDifferentRefness">
+        <source>Modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in partial declaration.</source>
+        <target state="new">Modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in partial declaration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PartialDifferentRefness_Title">
+        <source>Modifier of parameter doesn't match the corresponding parameter in partial declaration.</source>
+        <target state="new">Modifier of parameter doesn't match the corresponding parameter in partial declaration.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">

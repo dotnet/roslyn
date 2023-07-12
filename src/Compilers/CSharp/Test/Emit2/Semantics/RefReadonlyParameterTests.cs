@@ -2758,4 +2758,463 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """);
     }
+
+    [Fact]
+    public void Overridden_In_RefReadonly()
+    {
+        var source = """
+            class B
+            {
+                protected virtual void M(in int x) { }
+            }
+            class C : B
+            {
+                protected override void M(ref readonly int x) { }
+            }
+            """;
+        var verifier = CompileAndVerify(source, sourceSymbolValidator: verify, symbolValidator: verify);
+        verifier.VerifyDiagnostics(
+            // (7,29): warning CS9507: Modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in overridden or implemented member.
+            //     protected override void M(ref readonly int x) { }
+            Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "M").WithArguments("ref readonly int x", "in int x").WithLocation(7, 29));
+
+        static void verify(ModuleSymbol m)
+        {
+            VerifyRequiresLocationAttributeSynthesized(m);
+
+            var p = m.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
+            VerifyRefReadonlyParameter(p, modreq: true);
+        }
+    }
+
+    [Fact]
+    public void Overridden_RefReadonly_In()
+    {
+        var source = """
+            class B
+            {
+                protected virtual void M(ref readonly int x) { }
+            }
+            class C : B
+            {
+                protected override void M(in int x) { }
+            }
+            """;
+        var verifier = CompileAndVerify(source, sourceSymbolValidator: verify, symbolValidator: verify);
+        verifier.VerifyDiagnostics(
+            // (7,29): warning CS9507: Modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in overridden or implemented member.
+            //     protected override void M(in int x) { }
+            Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "M").WithArguments("in int x", "ref readonly int x").WithLocation(7, 29));
+
+        static void verify(ModuleSymbol m)
+        {
+            VerifyRequiresLocationAttributeSynthesized(m);
+
+            var p = m.GlobalNamespace.GetMember<MethodSymbol>("B.M").Parameters.Single();
+            VerifyRefReadonlyParameter(p, modreq: true);
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public void Overridden_NotIn_RefReadonly([CombinatorialValues("ref", "out")] string modifier)
+    {
+        var source = $$"""
+            class B
+            {
+                protected virtual void M({{modifier}} int x) => throw null!;
+            }
+            class C : B
+            {
+                protected override void M(ref readonly int x) { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (7,29): error CS0115: 'C.M(ref readonly int)': no suitable method found to override
+            //     protected override void M(ref readonly int x) { }
+            Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M").WithArguments("C.M(ref readonly int)").WithLocation(7, 29));
+    }
+
+    [Theory, CombinatorialData]
+    public void Overridden_RefReadonly_NotIn([CombinatorialValues("ref", "out")] string modifier)
+    {
+        var source = $$"""
+            class B
+            {
+                protected virtual void M(ref readonly int x) { }
+            }
+            class C : B
+            {
+                protected override void M({{modifier}} int x) => throw null!;
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (7,29): error CS0115: 'C.M(ref int)': no suitable method found to override
+            //     protected override void M(ref int x) { }
+            Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M").WithArguments($"C.M({modifier} int)").WithLocation(7, 29));
+    }
+
+    [Theory, CombinatorialData]
+    public void Overridden_GenericBase([CombinatorialValues("ref readonly", "in")] string modifier)
+    {
+        var source = $$"""
+            class B<T>
+            {
+                protected virtual void M(in T x) => throw null;
+                protected virtual void M(ref readonly int x) => throw null;
+            }
+            class C : B<int>
+            {
+                protected override void M({{modifier}} int x) => throw null;
+            }
+            """;
+
+        CreateCompilation(source, targetFramework: TargetFramework.Net50).VerifyDiagnostics(
+            // (8,29): error CS0462: The inherited members 'B<T>.M(in T)' and 'B<T>.M(ref readonly int)' have the same signature in type 'C', so they cannot be overridden
+            //     protected override void M(ref readonly int x)
+            Diagnostic(ErrorCode.ERR_AmbigOverride, "M").WithArguments("B<T>.M(in T)", "B<T>.M(ref readonly int)", "C").WithLocation(8, 29));
+    }
+
+    [Fact]
+    public void Hiding_In_RefReadonly()
+    {
+        var source = """
+            class B
+            {
+                public void M(in int x) => System.Console.Write("B" + x);
+            }
+            class C : B
+            {
+                public void M(ref readonly int x) => System.Console.Write("C" + x);
+                static void Main()
+                {
+                    var x = 111;
+                    new C().M(in x);
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "C111").VerifyDiagnostics(
+            // (7,17): warning CS0108: 'C.M(ref readonly int)' hides inherited member 'B.M(in int)'. Use the new keyword if hiding was intended.
+            //     public void M(ref readonly int x) { }
+            Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("C.M(ref readonly int)", "B.M(in int)").WithLocation(7, 17));
+    }
+
+    [Fact]
+    public void Hiding_In_RefReadonly_New()
+    {
+        var source = """
+            class B
+            {
+                public void M(in int x) => System.Console.Write("B" + x);
+            }
+            class C : B
+            {
+                public new void M(ref readonly int x) => System.Console.Write("C" + x);
+                static void Main()
+                {
+                    var x = 111;
+                    new C().M(in x);
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "C111").VerifyDiagnostics(
+            // (7,21): warning CS9508: Modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in hidden member.
+            //     public new void M(ref readonly int x) => System.Console.Write("C" + x);
+            Diagnostic(ErrorCode.WRN_HidingDifferentRefness, "M").WithArguments("ref readonly int x", "in int x").WithLocation(7, 21));
+    }
+
+    [Fact]
+    public void Hiding_RefReadonly_In()
+    {
+        var source = """
+            class B
+            {
+                public void M(ref readonly int x) => System.Console.Write("B" + x);
+            }
+            class C : B
+            {
+                public void M(in int x) => System.Console.Write("C" + x);
+                static void Main()
+                {
+                    var x = 111;
+                    new C().M(in x);
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "C111").VerifyDiagnostics(
+            // (7,17): warning CS0108: 'C.M(in int)' hides inherited member 'B.M(ref readonly int)'. Use the new keyword if hiding was intended.
+            //     public void M(in int x) { }
+            Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("C.M(in int)", "B.M(ref readonly int)").WithLocation(7, 17));
+    }
+
+    [Fact]
+    public void Hiding_RefReadonly_In_New()
+    {
+        var source = """
+            class B
+            {
+                public void M(ref readonly int x) => System.Console.Write("B" + x);
+            }
+            class C : B
+            {
+                public new void M(in int x) => System.Console.Write("C" + x);
+                static void Main()
+                {
+                    var x = 111;
+                    new C().M(in x);
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "C111").VerifyDiagnostics(
+            // (7,21): warning CS9508: Modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in hidden member.
+            //     public new void M(in int x) => System.Console.Write("C" + x);
+            Diagnostic(ErrorCode.WRN_HidingDifferentRefness, "M").WithArguments("in int x", "ref readonly int x").WithLocation(7, 21));
+    }
+
+    [Theory, CombinatorialData]
+    public void Hiding_RefReadonly_NotIn([CombinatorialValues("ref", "out")] string modifier)
+    {
+        var source = $$"""
+            class B
+            {
+                public void M1({{modifier}} int x) => throw null!;
+                public void M2(ref readonly int x) { }
+            }
+            class C : B
+            {
+                public void M1(ref readonly int x) { }
+                public void M2({{modifier}} int x) => throw null!;
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics();
+    }
+
+    [Theory, CombinatorialData]
+    public void Hiding_RefReadonly_NotIn_New([CombinatorialValues("ref", "out")] string modifier)
+    {
+        var source = $$"""
+            class B
+            {
+                public void M1({{modifier}} int x) => throw null!;
+                public void M2(ref readonly int x) { }
+            }
+            class C : B
+            {
+                public new void M1(ref readonly int x) { }
+                public new void M2({{modifier}} int x) => throw null!;
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (8,21): warning CS0109: The member 'C.M1(ref readonly int)' does not hide an accessible member. The new keyword is not required.
+            //     public new void M1(ref readonly int x) { }
+            Diagnostic(ErrorCode.WRN_NewNotRequired, "M1").WithArguments("C.M1(ref readonly int)").WithLocation(8, 21),
+            // (9,21): warning CS0109: The member 'C.M2(ref int)' does not hide an accessible member. The new keyword is not required.
+            //     public new void M2(ref int x) => throw null!;
+            Diagnostic(ErrorCode.WRN_NewNotRequired, "M2").WithArguments($"C.M2({modifier} int)").WithLocation(9, 21));
+    }
+
+    [Fact]
+    public void Implementation_RefReadonly_In()
+    {
+        var source = """
+            interface I
+            {
+                void M1(in int x);
+                void M2(ref readonly int x);
+            }
+            class C : I
+            {
+                public void M1(ref readonly int x) { }
+                public void M2(in int x) { }
+            }
+            """;
+        CreateCompilation(source).VerifyEmitDiagnostics(
+            // (8,17): warning CS9507: Modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in overridden or implemented member.
+            //     public void M1(ref readonly int x) { }
+            Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "M1").WithArguments("ref readonly int x", "in int x").WithLocation(8, 17),
+            // (9,17): warning CS9507: Modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in overridden or implemented member.
+            //     public void M2(in int x) { }
+            Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "M2").WithArguments("in int x", "ref readonly int x").WithLocation(9, 17));
+    }
+
+    [Fact]
+    public void Implementation_RefReadonly_In_Explicit()
+    {
+        var source = """
+            interface I
+            {
+                void M1(in int x);
+                void M2(ref readonly int x);
+            }
+            class C : I
+            {
+                void I.M1(ref readonly int x) { }
+                void I.M2(in int x) { }
+            }
+            """;
+        CreateCompilation(source).VerifyEmitDiagnostics(
+            // (8,12): warning CS9507: Modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in overridden or implemented member.
+            //     void I.M1(ref readonly int x) { }
+            Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "M1").WithArguments("ref readonly int x", "in int x").WithLocation(8, 12),
+            // (9,12): warning CS9507: Modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in overridden or implemented member.
+            //     void I.M2(in int x) { }
+            Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "M2").WithArguments("in int x", "ref readonly int x").WithLocation(9, 12));
+    }
+
+    [Theory, CombinatorialData]
+    public void Implementation_RefReadonly_NotIn([CombinatorialValues("ref", "out")] string modifier)
+    {
+        var source = $$"""
+            interface I
+            {
+                void M1({{modifier}} int x);
+                void M2(ref readonly int x);
+            }
+            class C : I
+            {
+                public void M1(ref readonly int x) { }
+                public void M2({{modifier}} int x) => throw null;
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (6,11): error CS0535: 'C' does not implement interface member 'I.M1(ref int)'
+            // class C : I
+            Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C", $"I.M1({modifier} int)").WithLocation(6, 11),
+            // (6,11): error CS0535: 'C' does not implement interface member 'I.M2(ref readonly int)'
+            // class C : I
+            Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C", "I.M2(ref readonly int)").WithLocation(6, 11));
+    }
+
+    [Theory, CombinatorialData]
+    public void Implementation_RefReadonly_NotIn_Explicit([CombinatorialValues("ref", "out")] string modifier)
+    {
+        var source = $$"""
+            interface I
+            {
+                void M1({{modifier}} int x);
+                void M2(ref readonly int x);
+            }
+            class C : I
+            {
+                void I.M1(ref readonly int x) { }
+                void I.M2({{modifier}} int x) => throw null;
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (6,11): error CS0535: 'C' does not implement interface member 'I.M1(ref int)'
+            // class C : I
+            Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C", $"I.M1({modifier} int)").WithLocation(6, 11),
+            // (6,11): error CS0535: 'C' does not implement interface member 'I.M2(ref readonly int)'
+            // class C : I
+            Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C", "I.M2(ref readonly int)").WithLocation(6, 11),
+            // (8,12): error CS0539: 'C.M1(ref readonly int)' in explicit interface declaration is not found among members of the interface that can be implemented
+            //     void I.M1(ref readonly int x) { }
+            Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M1").WithArguments("C.M1(ref readonly int)").WithLocation(8, 12),
+            // (9,12): error CS0539: 'C.M2(ref int)' in explicit interface declaration is not found among members of the interface that can be implemented
+            //     void I.M2(ref int x) => throw null;
+            Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M2").WithArguments($"C.M2({modifier} int)").WithLocation(9, 12));
+    }
+
+    [Theory, CombinatorialData]
+    public void DuplicateMembers([CombinatorialValues("in", "ref", "out")] string modifier)
+    {
+        var source = $$"""
+            class C
+            {
+                void M(ref readonly int x) { }
+                void M({{modifier}} int x) => throw null;
+                void M(int x) { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (4,10): error CS0663: 'C' cannot define an overloaded method that differs only on parameter modifiers 'in' and 'ref readonly'
+            //     void M(in int x) => throw null;
+            Diagnostic(ErrorCode.ERR_OverloadRefKind, "M").WithArguments("C", "method", modifier, "ref readonly").WithLocation(4, 10));
+    }
+
+    [Fact]
+    public void PartialMembers_In()
+    {
+        var source = """
+            partial class C
+            {
+                public partial void M(ref readonly int x);
+            }
+            partial class C
+            {
+                public partial void M(in int x) => throw null;
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (7,25): warning CS9509: Modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in partial declaration.
+            //     public partial void M(in int x) => throw null;
+            Diagnostic(ErrorCode.WRN_PartialDifferentRefness, "M").WithArguments("ref readonly int x", "in int x").WithLocation(7, 25));
+    }
+
+    [Fact]
+    public void PartialMembers_In_DifferentReturnType()
+    {
+        var source = """
+            #nullable enable
+            partial class C
+            {
+                public partial string M(ref readonly int x);
+            }
+            partial class C
+            {
+                public partial string? M(in int x) => throw null!;
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (8,28): warning CS8819: Nullability of reference types in return type doesn't match partial method declaration.
+            //     public partial string? M(in int x) => throw null;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, "M").WithLocation(8, 28),
+            // (8,28): warning CS9509: Modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in partial declaration.
+            //     public partial string? M(in int x) => throw null;
+            Diagnostic(ErrorCode.WRN_PartialDifferentRefness, "M").WithArguments("ref readonly int x", "in int x").WithLocation(8, 28));
+    }
+
+    [Theory, CombinatorialData]
+    public void PartialMembers_NotIn([CombinatorialValues("ref", "out")] string modifier)
+    {
+        var source = $$"""
+            partial class C
+            {
+                public partial void M(ref readonly int x);
+            }
+            partial class C
+            {
+                public partial void M({{modifier}} int x) => throw null;
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (3,25): error CS8795: Partial method 'C.M(ref readonly int)' must have an implementation part because it has accessibility modifiers.
+            //     public partial void M(ref readonly int x);
+            Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "M").WithArguments("C.M(ref readonly int)").WithLocation(3, 25),
+            // (7,25): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(ref int)'
+            //     public partial void M(ref int x) => throw null;
+            Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments($"C.M({modifier} int)").WithLocation(7, 25));
+    }
+
+    [Theory, CombinatorialData]
+    public void PartialMembers_NotIn_DifferentReturnType([CombinatorialValues("ref", "out")] string modifier)
+    {
+        var source = $$"""
+            #nullable enable
+            partial class C
+            {
+                public partial string M(ref readonly int x);
+            }
+            partial class C
+            {
+                public partial string? M({{modifier}} int x) => throw null!;
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (4,27): error CS8795: Partial method 'C.M(ref readonly int)' must have an implementation part because it has accessibility modifiers.
+            //     public partial string M(ref readonly int x);
+            Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "M").WithArguments("C.M(ref readonly int)").WithLocation(4, 27),
+            // (8,28): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(out int)'
+            //     public partial string? M(out int x) => throw null;
+            Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments($"C.M({modifier} int)").WithLocation(8, 28));
+    }
 }

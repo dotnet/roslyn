@@ -312,6 +312,9 @@ class X
                         case ErrorCode.WRN_ArgExpectedRefOrIn:
                         case ErrorCode.WRN_RefReadonlyNotVariable:
                         case ErrorCode.WRN_ArgExpectedIn:
+                        case ErrorCode.WRN_OverridingDifferentRefness:
+                        case ErrorCode.WRN_HidingDifferentRefness:
+                        case ErrorCode.WRN_PartialDifferentRefness:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:

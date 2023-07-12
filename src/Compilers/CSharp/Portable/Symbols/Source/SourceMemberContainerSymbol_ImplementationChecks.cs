@@ -1185,6 +1185,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                  checkReturnType ? ReportBadReturn : null,
                                                  checkParameters ? ReportBadParameter : null,
                                                  overridingMemberLocation);
+
+                if (checkParameters)
+                {
+                    CheckRefReadonlyInMismatch(
+                        overriddenMethod, overridingMethod, diagnostics,
+                        static (diagnostics, _, _, overridingParameter, _, arg) =>
+                        {
+                            var (overriddenParameter, location) = arg;
+                            // Modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in overridden or implemented member.
+                            diagnostics.Add(ErrorCode.WRN_OverridingDifferentRefness, location, overridingParameter, overriddenParameter);
+                        },
+                        overridingMemberLocation,
+                        invokedAsExtensionMethod: false);
+                }
             }
         }
 
@@ -1482,6 +1496,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return allowVariance && baseScope == ScopedKind.None;
             }
         }
+
+        /// <returns>
+        /// <see langword="true"/> if a diagnostic was added.
+        /// </returns>
+        internal static bool CheckRefReadonlyInMismatch<TArg>(
+            MethodSymbol? baseMethod,
+            MethodSymbol? overrideMethod,
+            BindingDiagnosticBag diagnostics,
+            ReportMismatchInParameterType<(ParameterSymbol BaseParameter, TArg Arg)> reportMismatchInParameterType,
+            TArg extraArgument,
+            // PROTOTYPE: This argument is expected to be used for method conversion warnings.
+            bool invokedAsExtensionMethod)
+        {
+            Debug.Assert(reportMismatchInParameterType is { });
+
+            if (baseMethod is null || overrideMethod is null)
+            {
+                return false;
+            }
+
+            bool hasErrors = false;
+            var baseParameters = baseMethod.Parameters;
+            var overrideParameters = overrideMethod.Parameters;
+            var overrideParameterOffset = invokedAsExtensionMethod ? 1 : 0;
+            Debug.Assert(baseMethod.ParameterCount == overrideMethod.ParameterCount - overrideParameterOffset);
+
+            for (int i = 0; i < baseParameters.Length; i++)
+            {
+                var baseParameter = baseParameters[i];
+                var overrideParameter = overrideParameters[i + overrideParameterOffset];
+                if ((baseParameter.RefKind, overrideParameter.RefKind) is (RefKind.RefReadOnlyParameter, RefKind.In) or (RefKind.In, RefKind.RefReadOnlyParameter))
+                {
+                    reportMismatchInParameterType(diagnostics, baseMethod, overrideMethod, overrideParameter, topLevel: true, (baseParameter, extraArgument));
+                    hasErrors = true;
+                }
+            }
+
+            return hasErrors;
+        }
 #nullable disable
 
         private static bool PerformValidNullableOverrideCheck(
@@ -1579,6 +1632,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!hidingMemberIsNew && !IsShadowingSynthesizedRecordMember(hidingMember) && !diagnosticAdded && !hidingMember.IsAccessor() && !hidingMember.IsOperator())
                 {
                     diagnostics.Add(ErrorCode.WRN_NewRequired, hidingMemberLocation, hidingMember, hiddenMembers[0]);
+                }
+                else if (hidingMember is MethodSymbol hidingMethod && hiddenMembers[0] is MethodSymbol hiddenMethod)
+                {
+                    CheckRefReadonlyInMismatch(
+                        hiddenMethod, hidingMethod, diagnostics,
+                        static (diagnostics, _, _, hidingParameter, _, arg) =>
+                        {
+                            var (hiddenParameter, location) = arg;
+                            // Modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in hidden member.
+                            diagnostics.Add(ErrorCode.WRN_HidingDifferentRefness, location, hidingParameter, hiddenParameter);
+                        },
+                        hidingMemberLocation,
+                        invokedAsExtensionMethod: false);
                 }
             }
         }

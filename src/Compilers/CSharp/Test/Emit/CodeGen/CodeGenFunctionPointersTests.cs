@@ -6080,11 +6080,10 @@ Ref");
 ");
         }
 
-        [Theory]
-        [InlineData("ref", "out")]
-        [InlineData("ref", "in")]
-        [InlineData("out", "in")]
-        public void Overloading_InvalidParameterRefness(string refKind1, string refKind2)
+        [Theory, CombinatorialData]
+        public void Overloading_InvalidParameterRefness(
+            [CombinatorialValues("ref", "in", "out", "ref readonly")] string refKind1,
+            [CombinatorialValues("ref", "in", "out", "ref readonly")] string refKind2)
         {
             var comp = CreateCompilationWithFunctionPointers($@"
 unsafe class C<T>
