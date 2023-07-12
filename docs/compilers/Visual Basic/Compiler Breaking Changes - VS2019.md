@@ -1,4 +1,4 @@
-**This document lists known breaking changes in Roslyn 3.0 (Visual Studio 2019) from Roslyn 2.* (Visual Studio 2017)**
+**This document lists known breaking changes in Roslyn 3.0 *(Visual Studio 2019)* from Roslyn 2\*. *(Visual Studio 2017)***
 
 <!--
 *Breaking changes are formatted with a numerically delineated list so as to allow shorthand numerical references (e.g., "known break #1").

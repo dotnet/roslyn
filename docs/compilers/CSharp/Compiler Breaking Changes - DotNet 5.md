@@ -1,4 +1,4 @@
-﻿## This document lists known breaking changes in Roslyn in C# 9.0 which will be introduced with .NET 5 (Visual Studio 2019 version 16.8).
+﻿**This document lists known breaking changes in Roslyn in C# 9.0 which will be introduced with .NET 5 (Visual Studio 2019 version 16.8).**
 
 1. Beginning with C# 9.0, when you switch on a value of type `byte` or `sbyte`, the compiler tracks which values have been handled and which have not.  Technically, we do so for all numeric types, but in practice it is only a breaking change for the types `byte` and `sbyte`.  For example, the following program contains a switch statement that explicitly handles *all* of the possible values of the switch's controlling expression
     ```csharp

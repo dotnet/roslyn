@@ -1,4 +1,4 @@
-**This document lists known breaking changes in Roslyn 2.0 (VS2017) from Roslyn 1.\* (VS2015) and native C# compiler (VS2013 and previous).**
+**This document lists known breaking changes in Roslyn 2.0 *(VS2017*) from Roslyn 1\*. *(VS2015)* and native C# compiler *(VS2013 and previous)*.**
 
 <!--
 *Breaking changes are formatted with a numerically delineated list so as to allow shorthand numerical references (e.g., "known break #1").

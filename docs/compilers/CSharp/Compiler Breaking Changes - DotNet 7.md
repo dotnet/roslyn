@@ -1,4 +1,10 @@
-# This document lists known breaking changes in Roslyn after .NET 6 all the way to .NET 7.
+**This document lists known breaking changes in Roslyn after .NET 6 all the way to .NET 7.**
+
+<!--
+*Breaking changes are formatted with a numerically delineated list so as to allow shorthand numerical references (e.g., "known break #1").
+
+Each entry should include a short description of the breaking change, followed by either a link to the issue describing the full details of the change or the full details inline.*
+-->
 
 ## All locals of restricted types are disallowed in async methods 
 

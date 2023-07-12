@@ -1,5 +1,10 @@
-Changes since VS2017 (C# 7)
-===========================
+**This document lists known breaking changes since VS2017 (C# 7)**
+
+<!--
+*Breaking changes are formatted with a numerically delineated list so as to allow shorthand numerical references (e.g., "known break #1").
+
+Each entry should include a short description of the breaking change, followed by either a link to the issue describing the full details of the change or the full details inline.*
+-->
 
 - https://github.com/dotnet/roslyn/issues/17089
 In C# 7, the compiler accepted a pattern of the form `dynamic identifier`, e.g. `if (e is dynamic x)`. This was accepted only if the expression `e` was statically of type `dynamic`. The compiler now rejects the use of the type `dynamic` for a pattern variable declaration, as no object's runtime type is `dynamic`.
