@@ -19110,7 +19110,7 @@ string s = C<int>.f;
 System.Console.Write(s);
 
 class C<T> : I<T> { }
-class I<T> { }
+interface I<T> { }
 
 implicit extension E<T> for I<T>
 {
@@ -19126,6 +19126,59 @@ implicit extension E<T> for I<T>
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<int>.f");
         Assert.Equal("System.String E<System.Int32>.f", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void GenericExtension_ForBaseInterface()
+    {
+        var src = """
+string s = C<int>.f;
+System.Console.Write(s);
+
+class C<T> : I<T> { }
+interface I<T> : I2<T> { }
+interface I2<T> { }
+
+implicit extension E<T> for I2<T>
+{
+    public static string f = "hi";
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+
+        CompileAndVerify(comp, expectedOutput: "hi", verify: Verification.FailsPEVerify)
+           .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<int>.f");
+        Assert.Equal("System.String E<System.Int32>.f", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void GenericExtension_ForBase()
+    {
+        var src = """
+string s = C<int, string>.f;
+System.Console.Write(s);
+
+class Base<T, U> { }
+class C<T, U> : Base<U, T> { }
+
+implicit extension E<T, U> for Base<T, U>
+{
+    public static string f = "hi";
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+
+        CompileAndVerify(comp, expectedOutput: "hi", verify: Verification.FailsPEVerify)
+           .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<int, string>.f");
+        Assert.Equal("System.String E<System.String, System.Int32>.f", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
