@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var relativePath = PathUtilities.GetDirectoryName(
                 PathUtilities.GetRelativePath(_projectDirectory, filePath));
 
-            var folders = relativePath.Split(PathUtilities.DirectorySeparatorChar).ToImmutableArray();
+            var folders = relativePath == null ? ImmutableArray<string>.Empty : relativePath.Split(PathUtilities.DirectorySeparatorChar).ToImmutableArray();
             return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated, SourceCodeKind.Regular, folders);
         }
 
