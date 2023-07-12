@@ -14,16 +14,11 @@ namespace Microsoft.CodeAnalysis.Interactive
     internal sealed class InteractiveCommandCompletionService : CompletionService
     {
         [ExportLanguageServiceFactory(typeof(CompletionService), InteractiveLanguageNames.InteractiveCommand), Shared]
-        internal sealed class Factory : ILanguageServiceFactory
+        [method: ImportingConstructor]
+        [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        internal sealed class Factory(IAsynchronousOperationListenerProvider listenerProvider) : ILanguageServiceFactory
         {
-            private readonly IAsynchronousOperationListenerProvider _listenerProvider;
-
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Factory(IAsynchronousOperationListenerProvider listenerProvider)
-            {
-                _listenerProvider = listenerProvider;
-            }
+            private readonly IAsynchronousOperationListenerProvider _listenerProvider = listenerProvider;
 
             public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
                 => new InteractiveCommandCompletionService(languageServices.LanguageServices.SolutionServices, _listenerProvider);

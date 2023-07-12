@@ -17,7 +17,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
 {
     internal partial class CSharpSymbolDisplayService
     {
-        protected class SymbolDescriptionBuilder : AbstractSymbolDescriptionBuilder
+        protected class SymbolDescriptionBuilder(
+            SemanticModel semanticModel,
+            int position,
+            Host.LanguageServices languageServices,
+            SymbolDescriptionOptions options,
+            CancellationToken cancellationToken) : AbstractSymbolDescriptionBuilder(semanticModel, position, languageServices, options, cancellationToken)
         {
             private static readonly SymbolDisplayFormat s_minimallyQualifiedFormat = SymbolDisplayFormat.MinimallyQualifiedFormat
                 .AddLocalOptions(SymbolDisplayLocalOptions.IncludeRef)
@@ -32,16 +37,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
 
             private static readonly SymbolDisplayFormat s_minimallyQualifiedFormatWithConstantsAndModifiers = s_minimallyQualifiedFormatWithConstants
                 .AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers);
-
-            public SymbolDescriptionBuilder(
-                SemanticModel semanticModel,
-                int position,
-                Host.LanguageServices languageServices,
-                SymbolDescriptionOptions options,
-                CancellationToken cancellationToken)
-                : base(semanticModel, position, languageServices, options, cancellationToken)
-            {
-            }
 
             protected override void AddDeprecatedPrefix()
             {
