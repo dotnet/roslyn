@@ -785,80 +785,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                     if (this.ModeIs(LexerMode.DebuggerSyntax))
                     {
-                        goto case 'a';
+                        goto case '_';
                     }
 
                     goto default;
 
-                // All the 'common' identifier characters are represented directly in
-                // these switch cases for optimal perf.  Calling IsIdentifierChar() functions is relatively
-                // expensive.
-                case 'a':
-                case 'b':
-                case 'c':
-                case 'd':
-                case 'e':
-                case 'f':
-                case 'g':
-                case 'h':
-                case 'i':
-                case 'j':
-                case 'k':
-                case 'l':
-                case 'm':
-                case 'n':
-                case 'o':
-                case 'p':
-                case 'q':
-                case 'r':
-                case 's':
-                case 't':
-                case 'u':
-                case 'v':
-                case 'w':
-                case 'x':
-                case 'y':
-                case 'z':
-                case 'A':
-                case 'B':
-                case 'C':
-                case 'D':
-                case 'E':
-                case 'F':
-                case 'G':
-                case 'H':
-                case 'I':
-                case 'J':
-                case 'K':
-                case 'L':
-                case 'M':
-                case 'N':
-                case 'O':
-                case 'P':
-                case 'Q':
-                case 'R':
-                case 'S':
-                case 'T':
-                case 'U':
-                case 'V':
-                case 'W':
-                case 'X':
-                case 'Y':
-                case 'Z':
+                // All the 'common' identifier characters are represented directly in these switch cases for optimal
+                // perf.  Calling IsIdentifierChar() functions is relatively expensive.
+                case (>= 'a' and <= 'z') or (>= 'A' and <= 'Z'):
                 case '_':
                     this.ScanIdentifierOrKeyword(ref info);
                     break;
 
-                case '0':
-                case '1':
-                case '2':
-                case '3':
-                case '4':
-                case '5':
-                case '6':
-                case '7':
-                case '8':
-                case '9':
+                case >= '0' and <= '9':
                     this.ScanNumericLiteral(ref info);
                     break;
 
@@ -868,7 +807,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     character = PeekCharOrUnicodeEscape(out _);
                     if (SyntaxFacts.IsIdentifierStartCharacter(character))
                     {
-                        goto case 'a';
+                        goto case '_';
                     }
 
                     goto default;
@@ -895,7 +834,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 default:
                     if (SyntaxFacts.IsIdentifierStartCharacter(character))
                     {
-                        goto case 'a';
+                        goto case '_';
                     }
 
                     if (isEscaped)
