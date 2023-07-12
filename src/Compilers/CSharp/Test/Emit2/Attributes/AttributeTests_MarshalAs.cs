@@ -656,15 +656,15 @@ public class X
                 // (8,170): error CS7045: Parameter not valid for the specified unmanaged type.
                 //     [MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.ByValTStr, SafeArraySubType = VarEnum.VT_BSTR, SafeArrayUserDefinedSubType = null, SizeConst = -1, SizeParamIndex = -1)]int ByValArray_e1;
                 Diagnostic(ErrorCode.ERR_ParameterNotValidForType, "SizeParamIndex = -1"),
-                // (9,6): error CS7046: Attribute parameter 'SizeConst' must be specified.
+                // (9,6): warning CS9124: Attribute parameter 'SizeConst' must be specified.
                 //     [MarshalAs(UnmanagedType.ByValArray, SizeParamIndex = short.MaxValue)]                                                                                                                    int ByValArray_e2;
-                Diagnostic(ErrorCode.ERR_AttributeParameterRequired1, "MarshalAs").WithArguments("SizeConst"),
+                Diagnostic(ErrorCode.WRN_ByValArraySizeConstRequired, "MarshalAs(UnmanagedType.ByValArray, SizeParamIndex = short.MaxValue)"),
                 // (9,42): error CS7045: Parameter not valid for the specified unmanaged type.
                 //     [MarshalAs(UnmanagedType.ByValArray, SizeParamIndex = short.MaxValue)]                                                                                                                    int ByValArray_e2;
                 Diagnostic(ErrorCode.ERR_ParameterNotValidForType, "SizeParamIndex = short.MaxValue"),
-                // (10,6): error CS7046: Attribute parameter 'SizeConst' must be specified.
+                // (10,6): warning CS9124: Attribute parameter 'SizeConst' must be specified.
                 //     [MarshalAs(UnmanagedType.ByValArray, SafeArraySubType = VarEnum.VT_I2)]                                                                                                                   int ByValArray_e3;
-                Diagnostic(ErrorCode.ERR_AttributeParameterRequired1, "MarshalAs").WithArguments("SizeConst"),
+                Diagnostic(ErrorCode.WRN_ByValArraySizeConstRequired, "MarshalAs(UnmanagedType.ByValArray, SafeArraySubType = VarEnum.VT_I2)"),
                 // (10,42): error CS7045: Parameter not valid for the specified unmanaged type.
                 //     [MarshalAs(UnmanagedType.ByValArray, SafeArraySubType = VarEnum.VT_I2)]                                                                                                                   int ByValArray_e3;
                 Diagnostic(ErrorCode.ERR_ParameterNotValidForType, "SafeArraySubType = VarEnum.VT_I2"),

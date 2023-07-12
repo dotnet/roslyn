@@ -309,5 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override int ERR_BadAssemblyName => (int)ErrorCode.ERR_BadAssemblyName;
+
+        public override int WRN_ByValArraySizeConstRequired => (int)ErrorCode.WRN_ByValArraySizeConstRequired;
     }
 }

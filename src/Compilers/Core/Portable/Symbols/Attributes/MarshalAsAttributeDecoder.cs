@@ -272,9 +272,13 @@ namespace Microsoft.CodeAnalysis
             {
                 if (elementCount is null)
                 {
-                    // SizeConst must be specified:
-                    messageProvider.ReportAttributeParameterRequired(arguments.Diagnostics, arguments.AttributeSyntaxOpt, "SizeConst");
-                    hasErrors = true;
+                    // SizeConst must be specified for fixed arrays, but due to back-compatibility with the native compiler and older versions of Roslyn
+                    // we can't issue the same error as we do for other cases. Instead, issue a warning and fall back to emitting the attribute with element count 1.
+                    if (messageProvider.GetWarningLevel(messageProvider.WRN_ByValArraySizeConstRequired) > 0)
+                    {
+                        arguments.Diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.WRN_ByValArraySizeConstRequired, arguments.AttributeSyntaxOpt.GetLocation()));
+                    }
+                    elementCount = 1;
                 }
             }
 
