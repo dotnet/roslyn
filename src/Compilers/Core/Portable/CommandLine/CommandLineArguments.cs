@@ -602,7 +602,9 @@ namespace Microsoft.CodeAnalysis
 
         private static Version? GetMetalamaRoslynVersion()
         {
-            var versionString = typeof(CommandLineArguments).Assembly.GetCustomAttribute<RoslynVersionAttribute>()?.RoslynVersion;
+            var versionString = typeof(CommandLineArguments).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>()
+                .SingleOrDefault(a => a.Key == "RoslynVersion")
+                ?.Value;
 
             if (!Version.TryParse(versionString, out var version))
             {

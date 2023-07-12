@@ -29,8 +29,9 @@
       <_Parameter1>PackageBuildDate</_Parameter1>
       <_Parameter2>$([System.DateTime]::UtcNow.ToString(o))</_Parameter2>
     </AssemblyAttribute>
-    <AssemblyAttribute Include="Metalama.Compiler.RoslynVersionAttribute">
-      <_Parameter1>$(RoslynVersion)</_Parameter1>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>RoslynVersion</_Parameter1>
+      <_Parameter2>$(RoslynVersion)</_Parameter2>
     </AssemblyAttribute>
   </ItemGroup>
   <!-- </Metalama> -->
