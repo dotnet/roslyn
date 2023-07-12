@@ -21,11 +21,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
     /// </param>
     [DataContract]
     internal readonly record struct RelatedLocation(
-        [field: DataMember(Order = 0)] TextSpan ConflictCheckSpan,
-        [field: DataMember(Order = 1)] DocumentId DocumentId,
-        [field: DataMember(Order = 2)] RelatedLocationType Type,
-        [field: DataMember(Order = 3)] bool IsReference = false,
-        [field: DataMember(Order = 4)] TextSpan ComplexifiedTargetSpan = default)
+        [property: DataMember(Order = 0)] TextSpan ConflictCheckSpan,
+        [property: DataMember(Order = 1)] DocumentId DocumentId,
+        [property: DataMember(Order = 2)] RelatedLocationType Type,
+        [property: DataMember(Order = 3)] bool IsReference = false,
+        [property: DataMember(Order = 4)] TextSpan ComplexifiedTargetSpan = default)
     {
         public RelatedLocation WithType(RelatedLocationType type)
             => new(ConflictCheckSpan, DocumentId, type, IsReference, ComplexifiedTargetSpan);
