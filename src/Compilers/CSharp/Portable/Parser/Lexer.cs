@@ -746,25 +746,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             Debug.Assert(TextWindow.PeekChar() == '$');
 
-            if (TextWindow.PeekChar(1) == '$')
+            if (TextWindow.PeekChar(1) is '$' or '@' or '"')
             {
                 // $$ - definitely starts a raw interpolated string.
-                this.ScanInterpolatedStringLiteral(ref info);
-                return true;
-            }
-            else if (TextWindow.PeekChar(1) == '@' && TextWindow.PeekChar(2) == '@')
-            {
-                // $@@ - Error case.  Detect if user is trying to user verbatim and raw interpolations together.
-                this.ScanInterpolatedStringLiteral(ref info);
-                return true;
-            }
-            else if (TextWindow.PeekChar(1) == '"')
-            {
-                this.ScanInterpolatedStringLiteral(ref info);
-                return true;
-            }
-            else if (TextWindow.PeekChar(1) == '@')
-            {
                 this.ScanInterpolatedStringLiteral(ref info);
                 return true;
             }
