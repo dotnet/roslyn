@@ -66,7 +66,7 @@
       </trans-unit>
       <trans-unit id="EndMustNotBeLessThanStart">
         <source>'end' must not be less than 'start'. start='{0}' end='{1}'.</source>
-        <target state="new">'end' must not be less than 'start'. start='{0}' end='{1}'.</target>
+        <target state="translated">il valore di 'end' non deve essere minore di quello di 'start'. start='{0}' end='{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="GeneratorNameColumnHeader">
@@ -98,6 +98,32 @@
         <source>The hintName '{0}' of the added source file must be unique within a generator.</source>
         <target state="translated">L'elemento hintName '{0}' del file di origine aggiunto deve essere univoco all'interno di un generatore.</target>
         <note>{0}: the provided hintname</note>
+      </trans-unit>
+      <trans-unit id="InternalsVisibleToCurrentAssembly">
+        <source>Current assembly: '{0}'</source>
+        <target state="new">Current assembly: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalsVisibleToHeaderSummary">
+        <source>Printing 'InternalsVisibleToAttribute' information for the current compilation and all referenced assemblies.</source>
+        <target state="new">Printing 'InternalsVisibleToAttribute' information for the current compilation and all referenced assemblies.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalsVisibleToReferencedAssembly">
+        <source>Assembly reference: '{0}'
+  Grants IVT to current assembly: {1}
+  Grants IVTs to:</source>
+        <target state="new">Assembly reference: '{0}'
+  Grants IVT to current assembly: {1}
+  Grants IVTs to:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalsVisibleToReferencedAssemblyDetails">
+        <source>    Assembly name: '{0}'
+    Public Keys:</source>
+        <target state="new">    Assembly name: '{0}'
+    Public Keys:</target>
+        <note />
       </trans-unit>
       <trans-unit id="InvalidAdditionalFile">
         <source>Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
@@ -131,7 +157,7 @@
       </trans-unit>
       <trans-unit id="LineCannotBeGreaterThanEnd">
         <source>The requested line number {0} must be less than the number of lines {1}.</source>
-        <target state="new">The requested line number {0} must be less than the number of lines {1}.</target>
+        <target state="translated">Il numero di riga richiesto {0} deve essere minore del numero di righe {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="MethodSymbolExpected">
@@ -152,6 +178,11 @@
       <trans-unit id="NotARootOperation">
         <source>Given operation has a non-null parent.</source>
         <target state="translated">L'operazione specificata contiene un elemento padre non Null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Nothing">
+        <source>Nothing</source>
+        <target state="new">Nothing</target>
         <note />
       </trans-unit>
       <trans-unit id="OperationHasNullSemanticModel">
@@ -696,13 +727,13 @@
       </trans-unit>
       <trans-unit id="CompilerAnalyzerFailure">
         <source>Analyzer Failure</source>
-        <target state="needs-review-translation">Errore dell'analizzatore</target>
+        <target state="translated">Errore dell'analizzatore</target>
         <note />
       </trans-unit>
       <trans-unit id="CompilerAnalyzerThrows">
         <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
 {3}</source>
-        <target state="needs-review-translation">L'analizzatore '{0}' ha generato un'eccezione di tipo '{1}'. Messaggio: '{2}'.
+        <target state="translated">L'analizzatore '{0}' ha generato un'eccezione di tipo '{1}'. Messaggio: '{2}'.
 {3}</target>
         <note>{0}: Analyzer name
 {1}: Type name

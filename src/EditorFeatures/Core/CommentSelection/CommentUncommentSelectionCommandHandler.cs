@@ -29,21 +29,16 @@ namespace Microsoft.CodeAnalysis.CommentSelection
     [Export(typeof(ICommandHandler))]
     [VisualStudio.Utilities.ContentType(ContentTypeNames.RoslynContentType)]
     [VisualStudio.Utilities.Name(PredefinedCommandHandlerNames.CommentSelection)]
-    internal class CommentUncommentSelectionCommandHandler :
-        AbstractCommentSelectionBase<Operation>,
+    [method: ImportingConstructor]
+    [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+    internal class CommentUncommentSelectionCommandHandler(
+        ITextUndoHistoryRegistry undoHistoryRegistry,
+        IEditorOperationsFactoryService editorOperationsFactoryService,
+        EditorOptionsService editorOptionsService) :
+        AbstractCommentSelectionBase<Operation>(undoHistoryRegistry, editorOperationsFactoryService, editorOptionsService),
         ICommandHandler<CommentSelectionCommandArgs>,
         ICommandHandler<UncommentSelectionCommandArgs>
     {
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public CommentUncommentSelectionCommandHandler(
-            ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService,
-            EditorOptionsService editorOptionsService)
-            : base(undoHistoryRegistry, editorOperationsFactoryService, editorOptionsService)
-        {
-        }
-
         public CommandState GetCommandState(CommentSelectionCommandArgs args)
             => GetCommandState(args.SubjectBuffer);
 

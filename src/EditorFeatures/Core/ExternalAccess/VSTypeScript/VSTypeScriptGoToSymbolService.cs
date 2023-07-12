@@ -15,14 +15,11 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
     [ExportLanguageService(typeof(IAsyncGoToDefinitionService), InternalLanguageNames.TypeScript), Shared]
-    internal sealed class VSTypeScriptGoToSymbolService : IAsyncGoToDefinitionService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class VSTypeScriptGoToSymbolService(IVSTypeScriptGoToSymbolServiceImplementation impl) : IAsyncGoToDefinitionService
     {
-        private readonly IVSTypeScriptGoToSymbolServiceImplementation _impl;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VSTypeScriptGoToSymbolService(IVSTypeScriptGoToSymbolServiceImplementation impl)
-            => _impl = impl;
+        private readonly IVSTypeScriptGoToSymbolServiceImplementation _impl = impl;
 
         public async Task<(INavigableLocation? location, TextSpan symbolSpan)> FindDefinitionLocationAsync(
             Document document,

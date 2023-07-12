@@ -15,13 +15,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging;
 /// Simple tagger that aggregates the underlying syntax/semantic compiler/analyzer taggers and presents them as
 /// a single event source and source of tags.
 /// </summary>
-internal sealed class AggregateTagger<TTag> : ITagger<TTag>, IDisposable
+internal sealed class AggregateTagger<TTag>(ImmutableArray<ITagger<TTag>> taggers) : ITagger<TTag>, IDisposable
     where TTag : ITag
 {
-    private readonly ImmutableArray<ITagger<TTag>> _taggers;
-
-    public AggregateTagger(ImmutableArray<ITagger<TTag>> taggers)
-        => _taggers = taggers;
+    private readonly ImmutableArray<ITagger<TTag>> _taggers = taggers;
 
     public void Dispose()
     {

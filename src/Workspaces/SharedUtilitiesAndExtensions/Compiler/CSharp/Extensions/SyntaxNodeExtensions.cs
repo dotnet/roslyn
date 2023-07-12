@@ -775,46 +775,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
         }
 
-        /// <summary>
-        /// Returns child node or token that contains given position.
-        /// </summary>
-        /// <remarks>
-        /// This is a copy of <see cref="SyntaxNode.ChildThatContainsPosition"/> that also returns the index of the child node.
-        /// </remarks>
-        internal static SyntaxNodeOrToken ChildThatContainsPosition(this SyntaxNode self, int position, out int childIndex)
-        {
-            var childList = self.ChildNodesAndTokens();
-
-            var left = 0;
-            var right = childList.Count - 1;
-
-            while (left <= right)
-            {
-                var middle = left + ((right - left) / 2);
-                var node = childList[middle];
-
-                var span = node.FullSpan;
-                if (position < span.Start)
-                {
-                    right = middle - 1;
-                }
-                else if (position >= span.End)
-                {
-                    left = middle + 1;
-                }
-                else
-                {
-                    childIndex = middle;
-                    return node;
-                }
-            }
-
-            // we could check up front that index is within FullSpan,
-            // but we wan to optimize for the common case where position is valid.
-            Debug.Assert(!self.FullSpan.Contains(position), "Position is valid. How could we not find a child?");
-            throw new ArgumentOutOfRangeException(nameof(position));
-        }
-
         public static (SyntaxToken openParen, SyntaxToken closeParen) GetParentheses(this SyntaxNode node)
         {
             switch (node)

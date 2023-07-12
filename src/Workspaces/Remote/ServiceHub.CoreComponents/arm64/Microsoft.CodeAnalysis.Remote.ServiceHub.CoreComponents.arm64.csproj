@@ -6,8 +6,8 @@
     <TargetFramework>net6.0</TargetFramework>
     <TargetArch>arm64</TargetArch>
 
-    <MicrosoftNETCoreAppRuntimewinarm64Version>$(MicrosoftNetCoreAppPackagesVersion)</MicrosoftNETCoreAppRuntimewinarm64Version>
-    <MicrosoftWindowsDesktopAppRuntimewinarm64Version>$(MicrosoftNetCoreAppPackagesVersion)</MicrosoftWindowsDesktopAppRuntimewinarm64Version>
+    <MicrosoftNETCoreAppRuntimewinarm64Version>$(MicrosoftNetCoreAppRuntimePackagesVersion)</MicrosoftNETCoreAppRuntimewinarm64Version>
+    <MicrosoftWindowsDesktopAppRuntimewinarm64Version>$(MicrosoftWindowsDesktopAppRuntimePackagesVersion)</MicrosoftWindowsDesktopAppRuntimewinarm64Version>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NETCore.App.Runtime.win-arm64" Version="$(MicrosoftNETCoreAppRuntimewinarm64Version)" ExcludeAssets="all" PrivateAssets="all" GeneratePathProperty="true" />

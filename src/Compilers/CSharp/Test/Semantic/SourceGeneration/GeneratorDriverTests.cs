@@ -485,7 +485,7 @@ class C { }
             Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly), Reason = "Desktop CLR displays argument exceptions differently")]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void Generator_HintName_MustBe_Unique_Across_Outputs()
         {
             var source = @"
@@ -521,7 +521,7 @@ class C { }
             driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var generatorDiagnostics);
             outputCompilation.VerifyDiagnostics();
             generatorDiagnostics.Verify(
-                Diagnostic("CS8785").WithArguments("PipelineCallbackGenerator", "ArgumentException", "The hintName 'test.cs' of the added source file must be unique within a generator. (Parameter 'hintName')").WithLocation(1, 1)
+                ArgumentExceptionDiagnostic(nameof(PipelineCallbackGenerator), "The hintName 'test.cs' of the added source file must be unique within a generator.", "hintName").WithLocation(1, 1)
                 );
             Assert.Equal(1, outputCompilation.SyntaxTrees.Count());
         }
@@ -758,7 +758,7 @@ class C
             Assert.Same(oldDriver, driver);
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly), Reason = "Desktop CLR displays argument exceptions differently")]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void Adding_A_Source_Text_Without_Encoding_Fails_Generation()
         {
             var source = @"
@@ -776,7 +776,7 @@ class C { }
 
             Assert.Single(outputDiagnostics);
             outputDiagnostics.Verify(
-                Diagnostic("CS" + (int)ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator", "ArgumentException", "The SourceText with hintName 'a.cs' must have an explicit encoding set. (Parameter 'source')").WithLocation(1, 1)
+                ArgumentExceptionDiagnostic(nameof(CallbackGenerator), "The SourceText with hintName 'a.cs' must have an explicit encoding set.", "source").WithLocation(1, 1)
                 );
         }
 
@@ -1283,7 +1283,7 @@ class C { }
         [Fact, WorkItem(66337, "https://github.com/dotnet/roslyn/issues/66337")]
         public void Diagnostics_Respect_SuppressMessageAttribute()
         {
-            var gen001 = CSDiagnostic.Create("GEN001", "generators", "message", DiagnosticSeverity.Warning, DiagnosticSeverity.Warning, true, 2);
+            var gen001 = CSDiagnostic.Create("GEN001", "generators", "message", DiagnosticSeverity.Warning, DiagnosticSeverity.Warning, isEnabledByDefault: true, warningLevel: 2);
 
             // reported diagnostics can have a location in source
             verify("""
@@ -1330,9 +1330,20 @@ class C { }
                 Diagnostic("GEN001", "com").WithLocation(4, 7),
                 Diagnostic("GEN001", "ano").WithLocation(5, 7));
 
+            // diagnostics are suppressed via SuppressMessageAttribute on a primary constructor
+            verify("""
+                [method: System.Diagnostics.CodeAnalysis.SuppressMessage("", "GEN001")]
+                class C(int i)
+                {
+                    public int I { get; } = i;
+                }
+                """,
+                new[] { (gen001, "int") },
+                Diagnostic("GEN001", "int", isSuppressed: true).WithLocation(2, 9));
+
             static void verify(string source, IReadOnlyList<(Diagnostic Diagnostic, string Location)> reportDiagnostics, params DiagnosticDescription[] expected)
             {
-                var parseOptions = TestOptions.Regular;
+                var parseOptions = TestOptions.RegularPreview;
                 source = source.Replace(Environment.NewLine, "\r\n");
                 var compilation = CreateCompilation(source, parseOptions: parseOptions);
                 compilation.VerifyDiagnostics();
@@ -3554,6 +3565,327 @@ class D {  (int, bool) _field; }";
             compilation.VerifyDiagnostics();
         }
 
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
+        public void Diagnostic_DetachedSyntaxTree_Incremental()
+        {
+            var source = "class C {}";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (ctx, _) =>
+                {
+                    var syntaxTree = CSharpSyntaxTree.ParseText(source, parseOptions, path: "/detached");
+                    ctx.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(
+                        "TEST0001",
+                        "Test",
+                        "Test diagnostic",
+                        DiagnosticSeverity.Warning,
+                        DiagnosticSeverity.Warning,
+                        isEnabledByDefault: true,
+                        warningLevel: 1,
+                        location: Location.Create(syntaxTree, TextSpan.FromBounds(0, 2))));
+                });
+            }).AsSourceGenerator();
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
+            diagnostics.Verify(
+                ArgumentExceptionDiagnostic(nameof(PipelineCallbackGenerator), "Reported diagnostic 'TEST0001' has a source location in file '/detached', which is not part of the compilation being analyzed.", "diagnostic").WithLocation(1, 1));
+            compilation.VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
+        public void Diagnostic_DetachedSyntaxTree_Incremental_AdditionalLocations()
+        {
+            var source = "class C {}";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (ctx, comp) =>
+                {
+                    var validSyntaxTree = comp.SyntaxTrees.Single();
+                    var invalidSyntaxTree = CSharpSyntaxTree.ParseText(source, parseOptions, path: "/detached");
+                    ctx.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(
+                        "TEST0001",
+                        "Test",
+                        "Test diagnostic",
+                        DiagnosticSeverity.Warning,
+                        DiagnosticSeverity.Warning,
+                        isEnabledByDefault: true,
+                        warningLevel: 1,
+                        location: Location.Create(validSyntaxTree, TextSpan.FromBounds(0, 2)),
+                        additionalLocations: new[] { Location.Create(invalidSyntaxTree, TextSpan.FromBounds(0, 2)) }));
+                });
+            }).AsSourceGenerator();
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
+            diagnostics.Verify(
+                ArgumentExceptionDiagnostic(nameof(PipelineCallbackGenerator), "Reported diagnostic 'TEST0001' has a source location in file '/detached', which is not part of the compilation being analyzed.", "diagnostic").WithLocation(1, 1));
+            compilation.VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
+        public void Diagnostic_DetachedSyntaxTree_Execute()
+        {
+            var source = "class C {}";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new CallbackGenerator(ctx => { }, ctx =>
+            {
+                var syntaxTree = CSharpSyntaxTree.ParseText(source, parseOptions, path: "/detached");
+                ctx.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(
+                    "TEST0001",
+                    "Test",
+                    "Test diagnostic",
+                    DiagnosticSeverity.Warning,
+                    DiagnosticSeverity.Warning,
+                    isEnabledByDefault: true,
+                    warningLevel: 1,
+                    location: Location.Create(syntaxTree, TextSpan.FromBounds(0, 2))));
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
+            diagnostics.Verify(
+                ArgumentExceptionDiagnostic(nameof(CallbackGenerator), "Reported diagnostic 'TEST0001' has a source location in file '/detached', which is not part of the compilation being analyzed.", "diagnostic").WithLocation(1, 1));
+            compilation.VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
+        public void Diagnostic_DetachedSyntaxTree_Execute_AdditionalLocations()
+        {
+            var source = "class C {}";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new CallbackGenerator(ctx => { }, ctx =>
+            {
+                var validSyntaxTree = ctx.Compilation.SyntaxTrees.Single();
+                var invalidSyntaxTree = CSharpSyntaxTree.ParseText(source, parseOptions, path: "/detached");
+                ctx.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(
+                    "TEST0001",
+                    "Test",
+                    "Test diagnostic",
+                    DiagnosticSeverity.Warning,
+                    DiagnosticSeverity.Warning,
+                    isEnabledByDefault: true,
+                    warningLevel: 1,
+                    location: Location.Create(validSyntaxTree, TextSpan.FromBounds(0, 2)),
+                    additionalLocations: new[] { Location.Create(invalidSyntaxTree, TextSpan.FromBounds(0, 2)) }));
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
+            diagnostics.Verify(
+                ArgumentExceptionDiagnostic(nameof(CallbackGenerator), "Reported diagnostic 'TEST0001' has a source location in file '/detached', which is not part of the compilation being analyzed.", "diagnostic").WithLocation(1, 1));
+            compilation.VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
+        public void Diagnostic_SpanOutsideRange_Incremental()
+        {
+            var source = "class C {}";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions, sourceFileName: "/original");
+            compilation.VerifyDiagnostics();
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (ctx, comp) =>
+                {
+                    var syntaxTree = comp.SyntaxTrees.Single();
+                    ctx.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(
+                        "TEST0001",
+                        "Test",
+                        "Test diagnostic",
+                        DiagnosticSeverity.Warning,
+                        DiagnosticSeverity.Warning,
+                        isEnabledByDefault: true,
+                        warningLevel: 1,
+                        location: Location.Create(syntaxTree, TextSpan.FromBounds(0, 100))));
+                });
+            }).AsSourceGenerator();
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
+            diagnostics.Verify(
+                ArgumentExceptionDiagnostic(nameof(PipelineCallbackGenerator), "Reported diagnostic 'TEST0001' has a source location '[0..100)' in file '/original', which is outside of the given file.", "diagnostic").WithLocation(1, 1));
+            compilation.VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
+        public void Diagnostic_SpanOutsideRange_Incremental_AdditionalLocations()
+        {
+            var source = "class C {}";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions, sourceFileName: "/original");
+            compilation.VerifyDiagnostics();
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (ctx, comp) =>
+                {
+                    var syntaxTree = comp.SyntaxTrees.Single();
+                    ctx.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(
+                        "TEST0001",
+                        "Test",
+                        "Test diagnostic",
+                        DiagnosticSeverity.Warning,
+                        DiagnosticSeverity.Warning,
+                        isEnabledByDefault: true,
+                        warningLevel: 1,
+                        location: Location.Create(syntaxTree, TextSpan.FromBounds(0, 2)),
+                        additionalLocations: new[] { Location.Create(syntaxTree, TextSpan.FromBounds(0, 100)) }));
+                });
+            }).AsSourceGenerator();
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
+            diagnostics.Verify(
+                ArgumentExceptionDiagnostic(nameof(PipelineCallbackGenerator), "Reported diagnostic 'TEST0001' has a source location '[0..100)' in file '/original', which is outside of the given file.", "diagnostic").WithLocation(1, 1));
+            compilation.VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
+        public void Diagnostic_SpanOutsideRange_Execute()
+        {
+            var source = "class C {}";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions, sourceFileName: "/original");
+            compilation.VerifyDiagnostics();
+
+            var generator = new CallbackGenerator(ctx => { }, ctx =>
+            {
+                var syntaxTree = ctx.Compilation.SyntaxTrees.Single();
+                ctx.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(
+                    "TEST0001",
+                    "Test",
+                    "Test diagnostic",
+                    DiagnosticSeverity.Warning,
+                    DiagnosticSeverity.Warning,
+                    isEnabledByDefault: true,
+                    warningLevel: 1,
+                    location: Location.Create(syntaxTree, TextSpan.FromBounds(0, 100))));
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
+            diagnostics.Verify(
+                ArgumentExceptionDiagnostic(nameof(CallbackGenerator), "Reported diagnostic 'TEST0001' has a source location '[0..100)' in file '/original', which is outside of the given file.", "diagnostic").WithLocation(1, 1));
+            compilation.VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
+        public void Diagnostic_SpanOutsideRange_Execute_AdditionalLocations()
+        {
+            var source = "class C {}";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions, sourceFileName: "/original");
+            compilation.VerifyDiagnostics();
+
+            var generator = new CallbackGenerator(ctx => { }, ctx =>
+            {
+                var syntaxTree = ctx.Compilation.SyntaxTrees.Single();
+                ctx.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(
+                    "TEST0001",
+                    "Test",
+                    "Test diagnostic",
+                    DiagnosticSeverity.Warning,
+                    DiagnosticSeverity.Warning,
+                    isEnabledByDefault: true,
+                    warningLevel: 1,
+                    location: Location.Create(syntaxTree, TextSpan.FromBounds(0, 2)),
+                    additionalLocations: new[] { Location.Create(syntaxTree, TextSpan.FromBounds(0, 100)) }));
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
+            diagnostics.Verify(
+                ArgumentExceptionDiagnostic(nameof(CallbackGenerator), "Reported diagnostic 'TEST0001' has a source location '[0..100)' in file '/original', which is outside of the given file.", "diagnostic").WithLocation(1, 1));
+            compilation.VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
+        public void Diagnostic_SpaceInIdentifier_Incremental()
+        {
+            var source = "class C {}";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (ctx, comp) =>
+                {
+                    var syntaxTree = comp.SyntaxTrees.Single();
+                    ctx.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(
+                        "TEST 0001",
+                        "Test",
+                        "Test diagnostic",
+                        DiagnosticSeverity.Warning,
+                        DiagnosticSeverity.Warning,
+                        isEnabledByDefault: true,
+                        warningLevel: 1,
+                        location: Location.Create(syntaxTree, TextSpan.FromBounds(0, 2))));
+                });
+            }).AsSourceGenerator();
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
+            diagnostics.Verify(
+                ArgumentExceptionDiagnostic(nameof(PipelineCallbackGenerator), "Reported diagnostic has an ID 'TEST 0001', which is not a valid identifier.", "diagnostic").WithLocation(1, 1));
+            compilation.VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
+        public void Diagnostic_SpaceInIdentifier_Execute()
+        {
+            var source = "class C {}";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new CallbackGenerator(ctx => { }, ctx =>
+            {
+                var syntaxTree = ctx.Compilation.SyntaxTrees.Single();
+                ctx.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(
+                    "TEST 0001",
+                    "Test",
+                    "Test diagnostic",
+                    DiagnosticSeverity.Warning,
+                    DiagnosticSeverity.Warning,
+                    isEnabledByDefault: true,
+                    warningLevel: 1,
+                    location: Location.Create(syntaxTree, TextSpan.FromBounds(0, 2))));
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
+            diagnostics.Verify(
+                ArgumentExceptionDiagnostic(nameof(CallbackGenerator), "Reported diagnostic has an ID 'TEST 0001', which is not a valid identifier.", "diagnostic").WithLocation(1, 1));
+            compilation.VerifyDiagnostics();
+        }
+
         [Fact]
         public void IncrementalGenerator_Add_New_Generator_After_Generation()
         {
@@ -3745,6 +4077,17 @@ class C { }
                 var tree = compilation.GetMember(className).DeclaringSyntaxReferences.Single().SyntaxTree;
                 compilation = compilation.ReplaceSyntaxTree(tree, CSharpSyntaxTree.ParseText(source, parseOptions));
             }
+        }
+
+        private static DiagnosticDescription ArgumentExceptionDiagnostic(string generatorName, string message, string parameterName)
+        {
+            return Diagnostic("CS8785").WithArguments(generatorName, nameof(ArgumentException),
+#if NETCOREAPP
+                $"{message} (Parameter '{parameterName}')"
+#else
+                $"{message}{Environment.NewLine}Parameter name: {parameterName}"
+#endif
+                );
         }
     }
 }

@@ -14,7 +14,9 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
 {
     [ExportLanguageService(typeof(ICodeCleanupService), LanguageNames.CSharp), Shared]
-    internal class CSharpCodeCleanupService : AbstractCodeCleanupService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class CSharpCodeCleanupService(ICodeFixService codeFixService, IDiagnosticAnalyzerService diagnosticAnalyzerService) : AbstractCodeCleanupService(codeFixService, diagnosticAnalyzerService)
     {
         /// <summary>
         /// Maps format document code cleanup options to DiagnosticId[]
@@ -270,13 +272,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                     IDEDiagnosticIds.RemoveRedundantNullableDirectiveDiagnosticId,
                     IDEDiagnosticIds.RemoveUnnecessaryNullableDirectiveDiagnosticId)
                 );
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpCodeCleanupService(ICodeFixService codeFixService, IDiagnosticAnalyzerService diagnosticAnalyzerService)
-            : base(codeFixService, diagnosticAnalyzerService)
-        {
-        }
 
         protected override string OrganizeImportsDescription
             => CSharpFeaturesResources.Organize_Usings;

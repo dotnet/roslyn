@@ -11,16 +11,11 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
-    internal abstract class AbstractSpecialTypePreselectingKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+    internal abstract class AbstractSpecialTypePreselectingKeywordRecommender(
+        SyntaxKind keywordKind,
+        bool isValidInPreprocessorContext = false,
+        bool shouldFormatOnCommit = false) : AbstractSyntacticSingleKeywordRecommender(keywordKind, isValidInPreprocessorContext, shouldFormatOnCommit)
     {
-        public AbstractSpecialTypePreselectingKeywordRecommender(
-            SyntaxKind keywordKind,
-            bool isValidInPreprocessorContext = false,
-            bool shouldFormatOnCommit = false)
-            : base(keywordKind, isValidInPreprocessorContext, shouldFormatOnCommit)
-        {
-        }
-
         protected abstract SpecialType SpecialType { get; }
         protected abstract bool IsValidContextWorker(int position, CSharpSyntaxContext context, CancellationToken cancellationToken);
 

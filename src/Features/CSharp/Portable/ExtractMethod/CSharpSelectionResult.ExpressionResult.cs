@@ -18,21 +18,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
     internal partial class CSharpSelectionResult
     {
-        private class ExpressionResult : CSharpSelectionResult
+        private class ExpressionResult(
+            OperationStatus status,
+            TextSpan originalSpan,
+            TextSpan finalSpan,
+            ExtractMethodOptions options,
+            bool selectionInExpression,
+            SemanticDocument document,
+            SyntaxAnnotation firstTokenAnnotation,
+            SyntaxAnnotation lastTokenAnnotation) : CSharpSelectionResult(status, originalSpan, finalSpan, options, selectionInExpression, document, firstTokenAnnotation, lastTokenAnnotation)
         {
-            public ExpressionResult(
-                OperationStatus status,
-                TextSpan originalSpan,
-                TextSpan finalSpan,
-                ExtractMethodOptions options,
-                bool selectionInExpression,
-                SemanticDocument document,
-                SyntaxAnnotation firstTokenAnnotation,
-                SyntaxAnnotation lastTokenAnnotation)
-                : base(status, originalSpan, finalSpan, options, selectionInExpression, document, firstTokenAnnotation, lastTokenAnnotation)
-            {
-            }
-
             public override bool ContainingScopeHasAsyncKeyword()
                 => false;
 

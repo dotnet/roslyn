@@ -31,33 +31,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 {
     internal partial class QuickInfoSourceProvider
     {
-        private sealed class QuickInfoSource : IAsyncQuickInfoSource
+        private sealed class QuickInfoSource(
+            ITextBuffer subjectBuffer,
+            IThreadingContext threadingContext,
+            IUIThreadOperationExecutor operationExecutor,
+            IAsynchronousOperationListener asyncListener,
+            Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
+            EditorOptionsService editorOptionsService,
+            IInlineRenameService inlineRenameService) : IAsyncQuickInfoSource
         {
-            private readonly ITextBuffer _subjectBuffer;
-            private readonly IThreadingContext _threadingContext;
-            private readonly IUIThreadOperationExecutor _operationExecutor;
-            private readonly IAsynchronousOperationListener _asyncListener;
-            private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
-            private readonly EditorOptionsService _editorOptionsService;
-            private readonly IInlineRenameService _inlineRenameService;
-
-            public QuickInfoSource(
-                ITextBuffer subjectBuffer,
-                IThreadingContext threadingContext,
-                IUIThreadOperationExecutor operationExecutor,
-                IAsynchronousOperationListener asyncListener,
-                Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
-                EditorOptionsService editorOptionsService,
-                IInlineRenameService inlineRenameService)
-            {
-                _subjectBuffer = subjectBuffer;
-                _threadingContext = threadingContext;
-                _operationExecutor = operationExecutor;
-                _asyncListener = asyncListener;
-                _streamingPresenter = streamingPresenter;
-                _editorOptionsService = editorOptionsService;
-                _inlineRenameService = inlineRenameService;
-            }
+            private readonly ITextBuffer _subjectBuffer = subjectBuffer;
+            private readonly IThreadingContext _threadingContext = threadingContext;
+            private readonly IUIThreadOperationExecutor _operationExecutor = operationExecutor;
+            private readonly IAsynchronousOperationListener _asyncListener = asyncListener;
+            private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter = streamingPresenter;
+            private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
+            private readonly IInlineRenameService _inlineRenameService = inlineRenameService;
 
             public async Task<IntellisenseQuickInfoItem> GetQuickInfoItemAsync(IAsyncQuickInfoSession session, CancellationToken cancellationToken)
             {

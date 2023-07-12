@@ -2606,4 +2606,495 @@ public partial class UsePrimaryConstructorTests
             LanguageVersion = LanguageVersion.Preview,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestNotWithPreprocessorRegion1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    public C(int i)
+                    {
+                #if NET6
+                        Console.WriteLine();
+                #endif
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithPreprocessorRegion2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    public C(int i)
+                    {
+                #if false
+                        Console.WriteLine();
+                #endif
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithPreprocessorRegion3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    private int _i;
+
+                    public C(int i)
+                #if NET6
+                        => _i = i;
+                #else
+                        => this._i = i;
+                #endif
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithPreprocessorRegion4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    private int _i;
+
+                    public C(int i)
+                #if true
+                        => _i = i;
+                #else
+                        => this._i = i;
+                #endif
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithPreprocessorRegion5()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    private int _i;
+
+                    public C(int i)
+                #if false
+                        => _i = i;
+                #else
+                        => this._i = i;
+                #endif
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithPreprocessorRegion6()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    private int _i;
+
+                    public C(int i)
+                    {
+                #if true
+                        _i = i;
+                #endif
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithPreprocessorRegion7()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    private int _i;
+
+                    public C(int i)
+                    {
+                #if true
+                        _i = i;
+                #else
+                        this._i = i;
+                #endif
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithPreprocessorRegion8()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    private int _i;
+
+                    public C(int i)
+                    {
+                #if false
+                        _i = i;
+                #else
+                        this._i = i;
+                #endif
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithRegionDirective1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+
+                    #region constructors
+
+                    public [|C|](int i)
+                    {
+                    }
+
+                    #endregion
+
+                }
+                """,
+            FixedCode = """
+                class C(int i)
+                {
+                
+                    #region constructors
+
+                    #endregion
+
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithRegionDirective2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+
+                    #region constructors
+
+                    public [|C|](int i)
+                    {
+                    }
+
+                    public C(string s) : this(s.Length)
+                    {
+                    }
+
+                    #endregion
+
+                }
+                """,
+            FixedCode = """
+                class C(int i)
+                {
+
+                    #region constructors
+
+                    public C(string s) : this(s.Length)
+                    {
+                    }
+
+                    #endregion
+
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSeeTag1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                /// <summary>
+                /// Provides strongly typed wrapper around <see cref="_i"/>.
+                /// </summary>
+                class C
+                {
+                    private int _i;
+
+                    public [|C|](int i)
+                    {
+                        _i = i;
+                    }
+                }
+                """,
+            FixedCode = """
+                /// <summary>
+                /// Provides strongly typed wrapper around <see cref="_i"/>.
+                /// </summary>
+                class C(int i)
+                {
+                    private int _i = i;
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSeeTag2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                /// <summary>
+                /// Provides strongly typed wrapper around <see cref="_i"/>.
+                /// </summary>
+                class C
+                {
+                    private int _i;
+
+                    public [|C|](int i)
+                    {
+                        _i = i;
+                    }
+                }
+                """,
+            FixedCode = """
+                /// <summary>
+                /// Provides strongly typed wrapper around <paramref name="i"/>.
+                /// </summary>
+                class C(int i)
+                {
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestReferenceToConstantInParameterInitializer1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private const int Default = 0;
+                    private int _i;
+
+                    public [|C|](int i = Default)
+                    {
+                        _i = i;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int i = C.Default)
+                {
+                    private const int Default = 0;
+                    private int _i = i;
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestReferenceToConstantInParameterInitializer2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private const int Default = 0;
+                    private int _i;
+
+                    public [|C|](int i = C.Default)
+                    {
+                        _i = i;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int i = C.Default)
+                {
+                    private const int Default = 0;
+                    private int _i = i;
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestReferenceToConstantInParameterInitializer3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C<T>
+                {
+                    private const int Default = 0;
+                    private int _i;
+
+                    public [|C|](int i = Default)
+                    {
+                        _i = i;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C<T>(int i = C<T>.Default)
+                {
+                    private const int Default = 0;
+                    private int _i = i;
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMergeConstructorSummaryIntoTypeDocComment()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue
+                {
+                    /// <summary>
+                    /// Active instruction identifier.
+                    /// It has the information necessary to track an active instruction within the debug session.
+                    /// </summary>
+                    [CLSCompliant(false)]
+                    internal readonly struct ManagedInstructionId
+                    {
+                        /// <summary>
+                        /// Method which the instruction is scoped to.
+                        /// </summary>
+                        public string Method { get; }
+                
+                        /// <summary>
+                        /// The IL offset for the instruction.
+                        /// </summary>
+                        public int ILOffset { get; }
+
+                        /// <summary>
+                        /// Creates an ActiveInstructionId.
+                        /// </summary>
+                        /// <param name="method">Method which the instruction is scoped to.</param>
+                        /// <param name="ilOffset">IL offset for the instruction.</param>
+                        public [|ManagedInstructionId|](
+                            string method,
+                            int ilOffset)
+                        {
+                            Method = method;
+                            ILOffset = ilOffset;
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue
+                {
+                    /// <summary>
+                    /// Active instruction identifier.
+                    /// It has the information necessary to track an active instruction within the debug session.
+                    /// </summary>
+                    /// <remarks>
+                    /// Creates an ActiveInstructionId.
+                    /// </remarks>
+                    /// <param name="method">Method which the instruction is scoped to.</param>
+                    /// <param name="ilOffset">IL offset for the instruction.</param>
+                    [CLSCompliant(false)]
+                    internal readonly struct ManagedInstructionId(
+                        string method,
+                        int ilOffset)
+                    {
+                        /// <summary>
+                        /// Method which the instruction is scoped to.
+                        /// </summary>
+                        public string Method { get; } = method;
+
+                        /// <summary>
+                        /// The IL offset for the instruction.
+                        /// </summary>
+                        public int ILOffset { get; } = ilOffset;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
 }

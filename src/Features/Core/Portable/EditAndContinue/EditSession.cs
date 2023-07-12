@@ -990,6 +990,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // project must support compilations since it supports EnC
                     Contract.ThrowIfNull(newCompilation);
 
+                    // The compiler only uses this predicate to determine if CS7101: "Member 'X' added during the current debug session
+                    // can only be accessed from within its declaring assembly 'Lib'" should be reported. 
+                    // Prior to .NET 8 Preview 4 the runtime failed to apply such edits.
+                    // This was fixed in Preview 4 along with support for generics. If we see a generic capability we can disable reporting
+                    // this compiler error. Otherwise, we leave the check as is in order to detect at least some runtime failures on .NET Framework.
+                    // Note that the analysis in the compiler detecting the circumstances under which the runtime fails
+                    // to apply the change has both false positives (flagged generic updates that shouldn't be flagged) and negatives
+                    // (didn't flag cases like https://github.com/dotnet/roslyn/issues/68293).
+                    var capabilities = await Capabilities.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                    var isAddedSymbolPredicate = capabilities.HasFlag(EditAndContinueCapabilities.GenericAddMethodToExistingType) ?
+                        static _ => false : (Func<ISymbol, bool>)projectChanges.AddedSymbols.Contains;
+
                     EmitDifferenceResult emitResult;
 
                     // The lock protects underlying baseline readers from being disposed while emitting delta.
@@ -1001,7 +1013,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         emitResult = newCompilation.EmitDifference(
                             projectBaseline.EmitBaseline,
                             projectChanges.SemanticEdits,
-                            projectChanges.AddedSymbols.Contains,
+                            isAddedSymbolPredicate,
                             metadataStream,
                             ilStream,
                             pdbStream,
@@ -1176,8 +1188,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // Adds a region with specified PDB spans.
                     void AddNonRemappableRegion(SourceFileSpan oldSpan, SourceFileSpan newSpan, bool isExceptionRegion)
                     {
-                        // it is a rude edit to change the path of the region span:
-                        Debug.Assert(oldSpan.Path == newSpan.Path);
+                        // TODO: Remove comparer, the path should match exactly. Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1830914.
+                        Debug.Assert(string.Equals(oldSpan.Path, newSpan.Path,
+                            EditAndContinueMethodDebugInfoReader.IgnoreCaseWhenComparingDocumentNames ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal));
 
                         // The up-to-date flag is copied when new active statement is created from the corresponding old one.
                         Debug.Assert(oldActiveStatement.IsMethodUpToDate == newActiveStatement.IsMethodUpToDate);

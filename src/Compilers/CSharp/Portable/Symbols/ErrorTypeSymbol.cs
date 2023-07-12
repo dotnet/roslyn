@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Returns the type arguments that have been substituted for the type parameters. 
-        /// If nothing has been substituted for a give type parameters,
+        /// If nothing has been substituted for a given type parameter,
         /// then the type parameter itself is consider the type argument.
         /// </summary>
         internal override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics
@@ -556,6 +556,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
         }
+
+        internal sealed override bool HasInlineArrayAttribute(out int length)
+        {
+            length = 0;
+            return false;
+        }
     }
 
     internal abstract class SubstitutedErrorTypeSymbol : ErrorTypeSymbol
@@ -579,7 +585,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalDefinition.MangleName; }
         }
 
-        internal override FileIdentifier? AssociatedFileIdentifier => _originalDefinition.AssociatedFileIdentifier;
+        internal sealed override bool IsFileLocal => _originalDefinition.IsFileLocal;
+        internal sealed override FileIdentifier? AssociatedFileIdentifier => _originalDefinition.AssociatedFileIdentifier;
 
         internal override DiagnosticInfo? ErrorInfo
         {

@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
         {
             using var _ = ArrayBuilder<SnippetPlaceholder>.GetInstance(out var arrayBuilder);
             GetTypeDeclarationIdentifier(node, out var identifier);
-            arrayBuilder.Add(new SnippetPlaceholder(identifier: identifier.ValueText, placeholderPositions: ImmutableArray.Create(identifier.SpanStart)));
+            arrayBuilder.Add(new SnippetPlaceholder(identifier.ValueText, identifier.SpanStart));
 
             return arrayBuilder.ToImmutableArray();
         }

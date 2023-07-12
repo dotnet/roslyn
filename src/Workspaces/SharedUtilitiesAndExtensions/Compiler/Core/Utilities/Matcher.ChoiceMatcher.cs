@@ -8,12 +8,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
     internal partial class Matcher<T>
     {
-        private class ChoiceMatcher : Matcher<T>
+        private class ChoiceMatcher(params Matcher<T>[] matchers) : Matcher<T>
         {
-            private readonly IEnumerable<Matcher<T>> _matchers;
-
-            public ChoiceMatcher(params Matcher<T>[] matchers)
-                => _matchers = matchers;
+            private readonly IEnumerable<Matcher<T>> _matchers = matchers;
 
             public override bool TryMatch(IList<T> sequence, ref int index)
             {

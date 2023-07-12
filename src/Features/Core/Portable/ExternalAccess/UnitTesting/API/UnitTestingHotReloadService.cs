@@ -14,16 +14,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
-    internal sealed class UnitTestingHotReloadService
+    internal sealed class UnitTestingHotReloadService(HostWorkspaceServices services)
     {
-        private sealed class DebuggerService : IManagedHotReloadService
+        private sealed class DebuggerService(ImmutableArray<string> capabilities) : IManagedHotReloadService
         {
-            private readonly ImmutableArray<string> _capabilities;
-
-            public DebuggerService(ImmutableArray<string> capabilities)
-            {
-                _capabilities = capabilities;
-            }
+            private readonly ImmutableArray<string> _capabilities = capabilities;
 
             public ValueTask<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
                 => ValueTaskFactory.FromResult(ImmutableArray<ManagedActiveStatementDebugInfo>.Empty);
@@ -38,30 +33,20 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
                 => ValueTaskFactory.CompletedTask;
         }
 
-        public readonly struct Update
+        public readonly struct Update(
+            Guid moduleId,
+            ImmutableArray<byte> ilDelta,
+            ImmutableArray<byte> metadataDelta,
+            ImmutableArray<byte> pdbDelta,
+            ImmutableArray<int> updatedMethods,
+            ImmutableArray<int> updatedTypes)
         {
-            public readonly Guid ModuleId;
-            public readonly ImmutableArray<byte> ILDelta;
-            public readonly ImmutableArray<byte> MetadataDelta;
-            public readonly ImmutableArray<byte> PdbDelta;
-            public readonly ImmutableArray<int> UpdatedMethods;
-            public readonly ImmutableArray<int> UpdatedTypes;
-
-            public Update(
-                Guid moduleId,
-                ImmutableArray<byte> ilDelta,
-                ImmutableArray<byte> metadataDelta,
-                ImmutableArray<byte> pdbDelta,
-                ImmutableArray<int> updatedMethods,
-                ImmutableArray<int> updatedTypes)
-            {
-                ModuleId = moduleId;
-                ILDelta = ilDelta;
-                MetadataDelta = metadataDelta;
-                PdbDelta = pdbDelta;
-                UpdatedMethods = updatedMethods;
-                UpdatedTypes = updatedTypes;
-            }
+            public readonly Guid ModuleId = moduleId;
+            public readonly ImmutableArray<byte> ILDelta = ilDelta;
+            public readonly ImmutableArray<byte> MetadataDelta = metadataDelta;
+            public readonly ImmutableArray<byte> PdbDelta = pdbDelta;
+            public readonly ImmutableArray<int> UpdatedMethods = updatedMethods;
+            public readonly ImmutableArray<int> UpdatedTypes = updatedTypes;
         }
 
         private static readonly ActiveStatementSpanProvider s_solutionActiveStatementSpanProvider =
@@ -70,11 +55,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         private static readonly ImmutableArray<Update> EmptyUpdate = ImmutableArray.Create<Update>();
         private static readonly ImmutableArray<Diagnostic> EmptyDiagnostic = ImmutableArray.Create<Diagnostic>();
 
-        private readonly IEditAndContinueService _encService;
+        private readonly IEditAndContinueService _encService = services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
         private DebuggingSessionId _sessionId;
-
-        public UnitTestingHotReloadService(HostWorkspaceServices services)
-            => _encService = services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
 
         /// <summary>
         /// Starts the watcher.

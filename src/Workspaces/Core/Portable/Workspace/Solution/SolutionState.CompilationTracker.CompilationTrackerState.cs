@@ -171,12 +171,8 @@ namespace Microsoft.CodeAnalysis
             /// State used when we potentially have some information (like prior generated documents)
             /// but no compilation.
             /// </summary>
-            private sealed class NoCompilationState : CompilationTrackerState
+            private sealed class NoCompilationState(CompilationTrackerGeneratorInfo generatorInfo) : CompilationTrackerState(compilationWithoutGeneratedDocuments: null, generatorInfo)
             {
-                public NoCompilationState(CompilationTrackerGeneratorInfo generatorInfo)
-                    : base(compilationWithoutGeneratedDocuments: null, generatorInfo)
-                {
-                }
             }
 
             /// <summary>
@@ -219,12 +215,8 @@ namespace Microsoft.CodeAnalysis
             /// A built compilation for the tracker that contains the fully built DeclarationTable,
             /// but may not have references initialized
             /// </summary>
-            private sealed class AllSyntaxTreesParsedState : CompilationTrackerState
+            private sealed class AllSyntaxTreesParsedState(Compilation declarationCompilation, CompilationTrackerGeneratorInfo generatorInfo) : CompilationTrackerState(declarationCompilation, generatorInfo)
             {
-                public AllSyntaxTreesParsedState(Compilation declarationCompilation, CompilationTrackerGeneratorInfo generatorInfo)
-                    : base(declarationCompilation, generatorInfo)
-                {
-                }
             }
 
             /// <summary>

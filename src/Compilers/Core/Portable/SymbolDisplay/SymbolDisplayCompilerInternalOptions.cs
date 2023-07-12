@@ -73,5 +73,12 @@ namespace Microsoft.CodeAnalysis
         /// (i.e., not as part of a method, delegate, or indexer).
         /// </summary>
         ExcludeParameterNameIfStandalone = 1 << 9,
+
+        /// <summary>
+        /// Display `&lt;File&gt;F&lt;sha256-hex-string&gt;_MyType` instead of `MyType`.
+        /// Differs from <see cref="IncludeContainingFileForFileTypes"/> because it guarantees that
+        /// the prefix will be unique for all files which are permitted to declare file-local types.
+        /// </summary>
+        IncludeFileLocalTypesPrefix = 1 << 10,
     }
 }

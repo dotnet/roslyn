@@ -13,15 +13,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal partial class AbstractDiagnosticsAdornmentTaggerProvider<TTag>
     {
-        protected sealed class RoslynErrorTag : ErrorTag, IEquatable<RoslynErrorTag>
+        protected sealed class RoslynErrorTag(string errorType, Workspace workspace, DiagnosticData data) : ErrorTag(errorType, CreateToolTipContent(workspace, data)), IEquatable<RoslynErrorTag>
         {
-            private readonly DiagnosticData _data;
-
-            public RoslynErrorTag(string errorType, Workspace workspace, DiagnosticData data)
-                : base(errorType, CreateToolTipContent(workspace, data))
-            {
-                _data = data;
-            }
+            private readonly DiagnosticData _data = data;
 
             private static object CreateToolTipContent(Workspace workspace, DiagnosticData diagnostic)
             {
@@ -57,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 return other != null &&
                     this.ErrorType == other.ErrorType &&
-                    this._data.GetValidHelpLinkUri() == other._data.GetValidHelpLinkUri() &&
+                    this._data.HelpLink == other._data.HelpLink &&
                     this._data.Id == other._data.Id &&
                     this._data.Message == other._data.Message;
             }

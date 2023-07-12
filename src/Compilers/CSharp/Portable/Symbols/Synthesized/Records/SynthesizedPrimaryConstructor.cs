@@ -19,26 +19,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SynthesizedPrimaryConstructor(
              SourceMemberContainerTypeSymbol containingType,
              TypeDeclarationSyntax syntax) :
-             base(containingType, syntax.Identifier.GetLocation(), syntax, isIterator: false)
+             base(containingType, syntax.Identifier.GetLocation(), syntax, isIterator: false, MakeModifiersAndFlags(containingType, syntax))
         {
             Debug.Assert(syntax.Kind() is SyntaxKind.RecordDeclaration or SyntaxKind.RecordStructDeclaration or SyntaxKind.ClassDeclaration or SyntaxKind.StructDeclaration);
             Debug.Assert(containingType.HasPrimaryConstructor);
             Debug.Assert(containingType is SourceNamedTypeSymbol);
             Debug.Assert(containingType is IAttributeTargetSymbol);
+        }
+
+        private static (DeclarationModifiers, Flags) MakeModifiersAndFlags(SourceMemberContainerTypeSymbol containingType, TypeDeclarationSyntax syntax)
+        {
             Debug.Assert(syntax.ParameterList != null);
 
-            this.MakeFlags(
-                MethodKind.Constructor,
-                RefKind.None,
-                containingType.IsAbstract ? DeclarationModifiers.Protected : DeclarationModifiers.Public,
-                returnsVoid: true,
-                // We consider synthesized constructors to have a body, since they effectively span the entire type, and
-                // can do things like create constructor assignments that write into the fields/props of the type.
-                hasAnyBody: true,
-                isExpressionBodied: false,
-                isExtensionMethod: false,
-                isVarArg: syntax.ParameterList.Parameters.Any(static p => p.IsArgList),
-                isNullableAnalysisEnabled: false); // IsNullableAnalysisEnabled uses containing type instead.
+            DeclarationModifiers declarationModifiers = containingType.IsAbstract ? DeclarationModifiers.Protected : DeclarationModifiers.Public;
+            Flags flags = MakeFlags(
+                                    MethodKind.Constructor,
+                                    RefKind.None,
+                                    declarationModifiers,
+                                    returnsVoid: true,
+                                    returnsVoidIsSet: true,
+                                    isExpressionBodied: false,
+                                    isExtensionMethod: false,
+                                    isVarArg: syntax.ParameterList.IsVarArg(),
+                                    isNullableAnalysisEnabled: false, // IsNullableAnalysisEnabled uses containing type instead.
+                                    isExplicitInterfaceImplementation: false);
+
+            return (declarationModifiers, flags);
         }
 
         internal TypeDeclarationSyntax GetSyntax()

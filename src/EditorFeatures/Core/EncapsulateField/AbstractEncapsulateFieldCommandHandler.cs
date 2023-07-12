@@ -23,26 +23,18 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EncapsulateField
 {
-    internal abstract class AbstractEncapsulateFieldCommandHandler : ICommandHandler<EncapsulateFieldCommandArgs>
+    internal abstract class AbstractEncapsulateFieldCommandHandler(
+        IThreadingContext threadingContext,
+        ITextBufferUndoManagerProvider undoManager,
+        IGlobalOptionService globalOptions,
+        IAsynchronousOperationListenerProvider listenerProvider) : ICommandHandler<EncapsulateFieldCommandArgs>
     {
-        private readonly IThreadingContext _threadingContext;
-        private readonly ITextBufferUndoManagerProvider _undoManager;
-        private readonly IGlobalOptionService _globalOptions;
-        private readonly IAsynchronousOperationListener _listener;
+        private readonly IThreadingContext _threadingContext = threadingContext;
+        private readonly ITextBufferUndoManagerProvider _undoManager = undoManager;
+        private readonly IGlobalOptionService _globalOptions = globalOptions;
+        private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.EncapsulateField);
 
         public string DisplayName => EditorFeaturesResources.Encapsulate_Field;
-
-        public AbstractEncapsulateFieldCommandHandler(
-            IThreadingContext threadingContext,
-            ITextBufferUndoManagerProvider undoManager,
-            IGlobalOptionService globalOptions,
-            IAsynchronousOperationListenerProvider listenerProvider)
-        {
-            _threadingContext = threadingContext;
-            _undoManager = undoManager;
-            _globalOptions = globalOptions;
-            _listener = listenerProvider.GetListener(FeatureAttribute.EncapsulateField);
-        }
 
         public CommandState GetCommandState(EncapsulateFieldCommandArgs args)
             => args.SubjectBuffer.SupportsRefactorings() ? CommandState.Available : CommandState.Unspecified;

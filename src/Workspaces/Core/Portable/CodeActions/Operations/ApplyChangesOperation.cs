@@ -34,12 +34,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
     /// </list>
     /// </summary>
 #pragma warning restore RS0030 // Do not used banned APIs
-    public sealed class ApplyChangesOperation : CodeActionOperation
+    public sealed class ApplyChangesOperation(Solution changedSolution) : CodeActionOperation
     {
-        public Solution ChangedSolution { get; }
-
-        public ApplyChangesOperation(Solution changedSolution)
-            => ChangedSolution = changedSolution ?? throw new ArgumentNullException(nameof(changedSolution));
+        public Solution ChangedSolution { get; } = changedSolution ?? throw new ArgumentNullException(nameof(changedSolution));
 
         internal override bool ApplyDuringTests => true;
 

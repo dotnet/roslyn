@@ -12,16 +12,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 {
     [Export(typeof(IWorkspaceThreadingService))]
     [Shared]
-    internal sealed class WorkspaceThreadingService : IWorkspaceThreadingService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class WorkspaceThreadingService(IThreadingContext threadingContext) : IWorkspaceThreadingService
     {
-        private readonly IThreadingContext _threadingContext;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public WorkspaceThreadingService(IThreadingContext threadingContext)
-        {
-            _threadingContext = threadingContext;
-        }
+        private readonly IThreadingContext _threadingContext = threadingContext;
 
         public bool IsOnMainThread => _threadingContext.JoinableTaskContext.IsOnMainThread;
 

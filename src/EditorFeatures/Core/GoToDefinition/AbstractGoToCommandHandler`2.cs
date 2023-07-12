@@ -27,15 +27,20 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GoToDefinition;
 
-internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArgs> : ICommandHandler<TCommandArgs>
+internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArgs>(
+    IThreadingContext threadingContext,
+    IStreamingFindUsagesPresenter streamingPresenter,
+    IUIThreadOperationExecutor uiThreadOperationExecutor,
+    IAsynchronousOperationListener listener,
+    IGlobalOptionService globalOptions) : ICommandHandler<TCommandArgs>
     where TLanguageService : class, ILanguageService
     where TCommandArgs : EditorCommandArgs
 {
-    private readonly IThreadingContext _threadingContext;
-    private readonly IStreamingFindUsagesPresenter _streamingPresenter;
-    private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
-    private readonly IAsynchronousOperationListener _listener;
-    private readonly IGlobalOptionService _globalOptions;
+    private readonly IThreadingContext _threadingContext = threadingContext;
+    private readonly IStreamingFindUsagesPresenter _streamingPresenter = streamingPresenter;
+    private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor = uiThreadOperationExecutor;
+    private readonly IAsynchronousOperationListener _listener = listener;
+    private readonly IGlobalOptionService _globalOptions = globalOptions;
 
     /// <summary>
     /// The current go-to command that is in progress.  Tracked so that if we issue multiple find-impl commands that
@@ -62,20 +67,6 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
     /// This hook allows for stabilizing the asynchronous nature of this command handler for integration testing.
     /// </summary>
     private Func<CancellationToken, Task>? _delayHook;
-
-    public AbstractGoToCommandHandler(
-        IThreadingContext threadingContext,
-        IStreamingFindUsagesPresenter streamingPresenter,
-        IUIThreadOperationExecutor uiThreadOperationExecutor,
-        IAsynchronousOperationListener listener,
-        IGlobalOptionService globalOptions)
-    {
-        _threadingContext = threadingContext;
-        _streamingPresenter = streamingPresenter;
-        _uiThreadOperationExecutor = uiThreadOperationExecutor;
-        _listener = listener;
-        _globalOptions = globalOptions;
-    }
 
     public abstract string DisplayName { get; }
     protected abstract string ScopeDescription { get; }

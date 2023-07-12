@@ -238,12 +238,9 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             return (projectChanges, textChanges);
         }
 
-        protected sealed class CleanUpNewLinesFormatter : AbstractFormattingRule
+        protected sealed class CleanUpNewLinesFormatter(SourceText text) : AbstractFormattingRule
         {
-            private readonly SourceText _text;
-
-            public CleanUpNewLinesFormatter(SourceText text)
-                => _text = text;
+            private readonly SourceText _text = text;
 
             public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
             {
