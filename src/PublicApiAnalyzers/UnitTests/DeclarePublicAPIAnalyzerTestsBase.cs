@@ -2002,6 +2002,54 @@ C<T>.field2 -> C<T>.Nested";
             await VerifyCSharpAsync(addSources, shippedText, unshippedText, $"[path1/**.cs]\r\ndotnet_public_api_analyzer.skip_namespaces = My.Namespace");
         }
 
+        [Fact]
+        public async Task ShippedTextWithMissingImplicitRecordMembers()
+        {
+            var source = $$"""
+                #nullable enable
+                {{EnabledModifierCSharp}} record C(int X, string Y)
+                {
+                }
+
+                namespace System.Runtime.CompilerServices
+                {
+                    internal static class IsExternalInit
+                    {
+                    }
+                }
+                """;
+
+            var shippedText = """
+                #nullable enable
+                C
+                C.C(C! original) -> void
+                C.C(int X, string! Y) -> void
+                virtual C.<Clone>$() -> C!
+                C.Deconstruct(out int X, out string! Y) -> void
+                override C.Equals(object? obj) -> bool
+                override C.GetHashCode() -> int
+                override C.ToString() -> string!
+                static C.operator !=(C? left, C? right) -> bool
+                static C.operator ==(C? left, C? right) -> bool
+                virtual C.EqualityContract.get -> System.Type!
+                virtual C.Equals(C? other) -> bool
+                virtual C.PrintMembers(System.Text.StringBuilder! builder) -> bool
+                C.X.get -> int
+                C.X.init -> void
+                C.Y.get -> string!
+                C.Y.init -> void
+                """;
+
+            if (EnabledModifierCSharp == "internal")
+            {
+                shippedText += $"\r\nSystem.Runtime.CompilerServices.IsExternalInit";
+            }
+
+            var unshippedText = string.Empty;
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
+
         #endregion
 
         #region Fix tests
@@ -3121,16 +3169,33 @@ C.C() -> void";
                 {{EnabledModifierCSharp}} record R(int {|{{AddNewApiId}}:P|});
                 """;
 
-            var shippedText = @"";
-            var unshippedText = @"R
-R.R(int P) -> void
-R.P.get -> int
-";
-            var fixedUnshippedText = @"R
-R.P.init -> void
-R.R(int P) -> void
-R.P.get -> int
-";
+            var shippedText = """
+                #nullable enable
+                R.R(R! original) -> void
+                virtual R.<Clone>$() -> R!
+                R.Deconstruct(out int P) -> void
+                override R.Equals(object? obj) -> bool
+                override R.GetHashCode() -> int
+                override R.ToString() -> string!
+                static R.operator !=(R? left, R? right) -> bool
+                static R.operator ==(R? left, R? right) -> bool
+                virtual R.EqualityContract.get -> System.Type!
+                virtual R.Equals(R? other) -> bool
+                virtual R.PrintMembers(System.Text.StringBuilder! builder) -> bool
+                """;
+            var unshippedText = """
+                #nullable enable
+                R
+                R.R(int P) -> void
+                R.P.get -> int
+                """;
+            var fixedUnshippedText = """
+                #nullable enable
+                R
+                R.P.init -> void
+                R.R(int P) -> void
+                R.P.get -> int
+                """;
 
             await VerifyNet50CSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
         }

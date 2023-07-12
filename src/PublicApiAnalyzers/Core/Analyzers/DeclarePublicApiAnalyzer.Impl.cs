@@ -174,16 +174,36 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 OnSymbolActionCore(symbol, reportDiagnostic, isImplicitlyDeclaredConstructor: false, obsoleteAttribute, cancellationToken, explicitLocation: explicitLocation);
 
                 // Handle implicitly declared public constructors.
-                if (symbol.Kind == SymbolKind.NamedType)
+                if (symbol is INamedTypeSymbol namedType)
                 {
-                    var namedType = (INamedTypeSymbol)symbol;
-                    if ((namedType.TypeKind == TypeKind.Class && namedType.InstanceConstructors.Length == 1)
-                        || namedType.TypeKind == TypeKind.Struct)
+                    IMethodSymbol? implicitConstructor = null;
+                    if (namedType is { TypeKind: TypeKind.Class, InstanceConstructors.Length: 1 } or { TypeKind: TypeKind.Struct })
                     {
-                        var implicitConstructor = namedType.InstanceConstructors.FirstOrDefault(x => x.IsImplicitlyDeclared);
+                        implicitConstructor = namedType.InstanceConstructors.FirstOrDefault(x => x.IsImplicitlyDeclared);
                         if (implicitConstructor != null)
-                        {
                             OnSymbolActionCore(implicitConstructor, reportDiagnostic, isImplicitlyDeclaredConstructor: true, obsoleteAttribute, cancellationToken, explicitLocation: explicitLocation);
+                    }
+
+                    // Ensure that any implicitly declared members of a record are emitted as well.
+                    foreach (var member in namedType.GetMembers())
+                    {
+                        // Handled above.
+                        if (member.Equals(implicitConstructor))
+                            continue;
+
+                        if (IsTrackedAPI(member, cancellationToken) && member is IMethodSymbol { IsImplicitlyDeclared: true } method)
+                        {
+                            // Record property accessors (for `record X(int P)`) are considered implicitly declared.
+                            // However, we still handle the normal property symbol for that through our standard symbol
+                            // callbacks.  So we don't need to process those here.
+                            //
+                            // We do, however, need to process any implicit accessors for *implicit* properties. For
+                            // example, for the implicit `virtual Type EqualityContract { get; }` member
+                            if (method.MethodKind is not (MethodKind.PropertyGet or MethodKind.PropertySet) ||
+                                method is { MethodKind: MethodKind.PropertyGet or MethodKind.PropertySet, AssociatedSymbol.IsImplicitlyDeclared: true })
+                            {
+                                OnSymbolActionCore(member, reportDiagnostic, isImplicitlyDeclaredConstructor: false, obsoleteAttribute, cancellationToken, explicitLocation: explicitLocation);
+                            }
                         }
                     }
                 }
@@ -732,9 +752,13 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
             private bool IsTrackedAPI(ISymbol symbol, CancellationToken cancellationToken)
             {
-                if (symbol is IMethodSymbol methodSymbol && s_ignorableMethodKinds.Contains(methodSymbol.MethodKind))
+                if (symbol is IMethodSymbol methodSymbol)
                 {
-                    return false;
+                    if (s_ignorableMethodKinds.Contains(methodSymbol.MethodKind))
+                        return false;
+
+                    if (methodSymbol is { MethodKind: MethodKind.Constructor, ContainingType.TypeKind: TypeKind.Enum })
+                        return false;
                 }
 
                 // We don't consider properties to be public APIs. Instead, property getters and setters
