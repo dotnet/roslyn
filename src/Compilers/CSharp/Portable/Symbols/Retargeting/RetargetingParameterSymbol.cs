@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         /// </summary>
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
 
+        private TypeWithAnnotations? _lazyTypeWithAnnotations;
+
         protected RetargetingParameterSymbol(ParameterSymbol underlyingParameter)
             : base(underlyingParameter)
         {
@@ -38,7 +40,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return this.RetargetingModule.RetargetingTranslator.Retarget(_underlyingParameter.TypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
+                if (!_lazyTypeWithAnnotations.HasValue)
+                {
+                    _lazyTypeWithAnnotations = this.RetargetingModule.RetargetingTranslator.Retarget(_underlyingParameter.TypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
+                }
+
+                return _lazyTypeWithAnnotations.Value;
             }
         }
 
