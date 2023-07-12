@@ -770,11 +770,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private bool ScanInteger()
         {
             int start = TextWindow.Position;
-            char ch;
-            while ((ch = TextWindow.PeekChar()) >= '0' && ch <= '9')
-            {
+            while (TextWindow.PeekChar() >= '0' && ch <= '9')
                 TextWindow.AdvanceChar();
-            }
 
             return start < TextWindow.Position;
         }
