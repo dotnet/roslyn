@@ -50,7 +50,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the TextEdits associated with this inlay hint.
         /// </summary>
         [DataMember(Name = "textEdits")]
-        [JsonProperty (NullValueHandling = NullValueHandling.Ignore)]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public TextEdit[]? TextEdits
         {
             get;
