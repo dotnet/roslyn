@@ -185,10 +185,17 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                         }
                     }
 
+                    // Ensure that any implicitly declared members of a record are emitted as well.
                     foreach (var member in namedType.GetMembers())
                     {
-                        if (member.IsImplicitlyDeclared && IsTrackedAPI(member, cancellationToken))
-                            OnSymbolActionCore(member, reportDiagnostic, isImplicitlyDeclaredConstructor: false, obsoleteAttribute, cancellationToken, explicitLocation: explicitLocation);
+                        if (IsTrackedAPI(member, cancellationToken) && member is IMethodSymbol { IsImplicitlyDeclared: true } method)
+                        {
+                            if (method.MethodKind is not (MethodKind.Constructor or MethodKind.PropertyGet or MethodKind.PropertySet) ||
+                                method is { MethodKind: MethodKind.PropertyGet or MethodKind.PropertySet, AssociatedSymbol.IsImplicitlyDeclared: true })
+                            {
+                                OnSymbolActionCore(member, reportDiagnostic, isImplicitlyDeclaredConstructor: false, obsoleteAttribute, cancellationToken, explicitLocation: explicitLocation);
+                            }
+                        }
                     }
                 }
             }
