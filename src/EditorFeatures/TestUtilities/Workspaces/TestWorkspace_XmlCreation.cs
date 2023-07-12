@@ -37,10 +37,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 if (fileContainingFolders != null && !fileContainingFolders.IsEmpty())
                 {
                     Contract.ThrowIfTrue(fileContainingFolders.Length != files.Length);
-                    foreach (var (file, folder) in files.Zip(fileContainingFolders, (file, containingFolder) => (file, containingFolder)))
+                    foreach (var (file, folders) in files.Zip(fileContainingFolders, (file, containingFolders) => (file, containingFolders)))
                     {
                         documentElements.Add(CreateDocumentElement(
-                            file, Path.Combine(folder, GetDefaultTestSourceDocumentName(index++, extension)), parseOptions, isMarkup));
+                            file, Path.Combine(folders, GetDefaultTestSourceDocumentName(index++, extension)), folders: folders, parseOptions: parseOptions, isMarkup: isMarkup));
                     }
                 }
                 else
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     foreach (var file in files)
                     {
                         documentElements.Add(CreateDocumentElement(
-                            file, GetDefaultTestSourceDocumentName(index++, extension), parseOptions, isMarkup));
+                            file, GetDefaultTestSourceDocumentName(index++, extension), parseOptions: parseOptions, isMarkup: isMarkup));
                     }
                 }
             }
@@ -186,12 +186,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             => new XElement(MetadataReferenceElementName, path);
 
         protected static XElement CreateDocumentElement(
-            string code, string filePath, ParseOptions parseOptions = null, bool isMarkup = true)
+            string code, string filePath, string folders = null, ParseOptions parseOptions = null, bool isMarkup = true)
         {
             var element = new XElement(DocumentElementName,
                 new XAttribute(FilePathAttributeName, filePath),
                 CreateParseOptionsElement(parseOptions),
                 code.Replace("\r\n", "\n"));
+
+            if (folders != null)
+                element.Add(new XAttribute(FoldersAttributeName, folders));
 
             if (!isMarkup)
                 element.Add(new XAttribute(MarkupAttributeName, isMarkup));
