@@ -2361,6 +2361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible:
                 case ErrorCode.ERR_ExpressionTreeContainsCollectionLiteral:
                 case ErrorCode.ERR_CollectionLiteralNoTargetType:
+                case ErrorCode.WRN_ByValArraySizeConstRequired:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement
