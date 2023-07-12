@@ -2620,7 +2620,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         // If this is a nested type generic parameters in metadata include generic parameters of the outer types.
                         int firstIndex = self._genericParameterHandles.Count - self._arity;
 
-                        var ownedParams = ArrayBuilder<TypeParameterSymbol>.GetInstance();
+                        var ownedParams = ArrayBuilder<TypeParameterSymbol>.GetInstance(self._arity);
                         ownedParams.Count = self._arity;
                         for (int i = 0; i < ownedParams.Count; i++)
                         {
