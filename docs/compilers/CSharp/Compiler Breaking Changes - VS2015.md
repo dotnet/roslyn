@@ -1,9 +1,9 @@
 **This document lists known breaking changes in Roslyn (VS2015 and later) from the native C# compiler (VS2013 and previous).**
 
-<!-- 
-*Breaks are formatted with a monotonically increasing numbered list to allow them to referenced via shorthand (i.e., "known break #1").*
+<!--
+*Breaking changes are formatted with a numerically delineated list so as to allow shorthand numerical references (e.g., "known break #1").
 
-Each entry should include a short description of the break, followed by either a link to the issue describing the full details of the break or the full details of the break inline.*
+Each entry should include a short description of the breaking change, followed by either a link to the issue describing the full details of the change or the full details inline.*
 -->
 
 ### (C#) Deviations from the Language Specification or Native Compiler

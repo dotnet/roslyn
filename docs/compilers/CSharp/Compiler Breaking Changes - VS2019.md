@@ -1,7 +1,10 @@
 **This document lists known breaking changes in Roslyn 3.0 (Visual Studio 2019) from Roslyn 2.\* (Visual Studio 2017)**
 
-*Breaks are formatted with a monotonically increasing numbered list to allow them to referenced via shorthand (i.e., "known break #1").
-Each entry should include a short description of the break, followed by either a link to the issue describing the full details of the break or the full details of the break inline.*
+<!--
+*Breaking changes are formatted with a numerically delineated list so as to allow shorthand numerical references (e.g., "known break #1").
+
+Each entry should include a short description of the breaking change, followed by either a link to the issue describing the full details of the change or the full details inline.*
+-->
 
 1. https://github.com/dotnet/roslyn/issues/27800 C# will now preserve left-to-right evaluation for compound assignment addition/subtraction expressions where the left-hand side is dynamic. In this example code:
 
