@@ -2022,6 +2022,7 @@ C<T>.field2 -> C<T>.Nested";
             var shippedText = """
                 #nullable enable
                 C
+                C.C(C! original) -> void
                 C.C(int X, string! Y) -> void
                 C.Deconstruct(out int X, out string! Y) -> void
                 override C.Equals(object? obj) -> bool
@@ -3169,6 +3170,7 @@ C.C() -> void";
 
             var shippedText = """
                 #nullable enable
+                R.R(R! original) -> void
                 R.Deconstruct(out int P) -> void
                 override R.Equals(object? obj) -> bool
                 override R.GetHashCode() -> int
