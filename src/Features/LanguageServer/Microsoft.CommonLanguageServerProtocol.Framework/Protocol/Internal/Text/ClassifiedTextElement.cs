@@ -29,13 +29,13 @@ namespace Roslyn.Text.Adornments
         {
             //Requires.NotNull(text, "text");
             //Requires.NotNull(navigationAction, "navigationAction");
-            return new ClassifiedTextElement(new ClassifiedTextRun("text", text, navigationAction, tooltip));
+            return new ClassifiedTextElement(new ClassifiedTextRun("text", text, navigationAction: navigationAction, tooltip: tooltip));
         }
 
         public static ClassifiedTextElement CreatePlainText(string text)
         {
             //Requires.NotNull(text, "text");
-            return new ClassifiedTextElement(new ClassifiedTextRun("text", text, ClassifiedTextRunStyle.Plain));
+            return new ClassifiedTextElement(new ClassifiedTextRun("text", text));
         }
     }
 }

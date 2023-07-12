@@ -20,7 +20,8 @@ public class ClassifiedTextRunConverter : JsonConverter
     public static readonly ClassifiedTextRunConverter Instance = new();
 
     /// <inheritdoc/>
-    public override bool CanConvert(Type objectType) => objectType == typeof(ClassifiedTextRun);
+    public override bool CanConvert(Type objectType)
+        => objectType == typeof(ClassifiedTextRun);
 
     /// <inheritdoc/>
     public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
@@ -43,7 +44,7 @@ public class ClassifiedTextRunConverter : JsonConverter
             var text = data[nameof(ClassifiedTextRun.Text)]?.Value<string>();
             var markerTagType = data[nameof(ClassifiedTextRun.MarkerTagType)]?.Value<string>();
             var style = (ClassifiedTextRunStyle)(data[nameof(ClassifiedTextRun.Style)]?.Value<int>() ?? 0);
-            return new ClassifiedTextRun(classificationTypeName, text, style, markerTagType);
+            return new ClassifiedTextRun(classificationTypeName!, text!, style, markerTagType);
         }
         else
         {

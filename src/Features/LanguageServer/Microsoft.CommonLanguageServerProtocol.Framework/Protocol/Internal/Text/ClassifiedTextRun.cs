@@ -4,45 +4,20 @@
 
 using System;
 
-namespace Roslyn.Text.Adornments
+namespace Roslyn.Text.Adornments;
+
+public sealed class ClassifiedTextRun(
+    string classificationTypeName,
+    string text,
+    ClassifiedTextRunStyle style = ClassifiedTextRunStyle.Plain,
+    string? markerTagType = null,
+    Action? navigationAction = null,
+    string? tooltip = null)
 {
-    public sealed class ClassifiedTextRun
-    {
-        public string ClassificationTypeName { get; }
-
-        public string Text { get; }
-
-        public string? MarkerTagType { get; }
-
-        public ClassifiedTextRunStyle Style { get; }
-
-        public string? Tooltip { get; }
-
-        public Action? NavigationAction { get; }
-
-        public ClassifiedTextRun(string classificationTypeName, string text)
-            : this(classificationTypeName, text, ClassifiedTextRunStyle.Plain)
-        {
-        }
-
-        public ClassifiedTextRun(string classificationTypeName, string text, ClassifiedTextRunStyle style)
-            : this(classificationTypeName, text, style, markerTagType: null)
-        {
-        }
-
-        public ClassifiedTextRun(string classificationTypeName, string text, ClassifiedTextRunStyle style, string? markerTagType)
-            : this(classificationTypeName, text, style, markerTagType, navigationAction: null, tooltip: null)
-        {
-        }
-
-        public ClassifiedTextRun(string classificationTypeName, string text, ClassifiedTextRunStyle style, string? markerTagType, Action? navigationAction, string? tooltip = null)
-        {
-            ClassificationTypeName = classificationTypeName ?? throw new ArgumentNullException(nameof(classificationTypeName));
-            Text = text ?? throw new ArgumentNullException(nameof(text));
-            Style = style;
-            MarkerTagType = markerTagType;
-            NavigationAction = navigationAction;
-            Tooltip = tooltip;
-        }
-    }
+    public string ClassificationTypeName { get; } = classificationTypeName ?? throw new ArgumentNullException(nameof(classificationTypeName));
+    public string Text { get; } = text ?? throw new ArgumentNullException(nameof(text));
+    public string? MarkerTagType { get; } = markerTagType;
+    public ClassifiedTextRunStyle Style { get; } = style;
+    public string? Tooltip { get; } = tooltip;
+    public Action? NavigationAction { get; } = navigationAction;
 }
