@@ -18977,8 +18977,25 @@ implicit extension E<T1, T2> for C<T1>.Nested<T2>
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
     }
 
-    [ConditionalFact(typeof(CoreClrOnly))]
+    [Fact]
     public void GenericExtension_Tuples()
+    {
+        var src = """
+string s = (string, string).Nested.f;
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,13): error CS1525: Invalid expression term 'string'
+            // string s = (string, string).Nested.f;
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "string").WithArguments("string").WithLocation(1, 13),
+            // (1,21): error CS1525: Invalid expression term 'string'
+            // string s = (string, string).Nested.f;
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "string").WithArguments("string").WithLocation(1, 21)
+            );
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void GenericExtension_NestedTuples()
     {
         var src = """
 string s = C<(string, string)>.Nested<(int, int)>.f;
