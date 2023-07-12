@@ -106,20 +106,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (lazyTypes.TryGetValue(name, out t))
                 {
                     // TODO - Eliminate the copy by storing all members and type members instead of non-type and type members?
-                    return _lastGetMembersResult = StaticCast<Symbol>.From(t).Add(ns);
+                    return StaticCast<Symbol>.From(t).Add(ns);
                 }
                 else
                 {
+                    // This is intentionally the only path being cached.
+                    // Measurements show this path as the problematic non-performant path.
+                    // Caching other paths will make the cache less beneficial.
                     return _lastGetMembersResult = ImmutableArray.Create<Symbol>(ns);
                 }
             }
             else if (lazyTypes.TryGetValue(name, out t))
             {
-                return _lastGetMembersResult = StaticCast<Symbol>.From(t);
+                return StaticCast<Symbol>.From(t);
             }
 
-            // There is no need to set _lastGetMembersResult here.
-            // Because the caching only works when the result has one or more elements.
             return ImmutableArray<Symbol>.Empty;
         }
 
