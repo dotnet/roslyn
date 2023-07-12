@@ -2600,36 +2600,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
-            public override ImmutableArray<TypeParameterSymbol> TypeParameters
-            {
-                get
-                {
-                    EnsureTypeParametersAreLoaded();
-                    return _lazyTypeParameters;
-                }
-            }
+            public override ImmutableArray<TypeParameterSymbol> TypeParameters => EnsureTypeParametersAreLoaded();
 
             internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable();
 
             internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
 
-            private void EnsureTypeParametersAreLoaded()
+            private ImmutableArray<TypeParameterSymbol> EnsureTypeParametersAreLoaded()
             {
-                if (_lazyTypeParameters.IsDefault)
-                {
-                    var moduleSymbol = ContainingPEModule;
-
-                    // If this is a nested type generic parameters in metadata include generic parameters of the outer types.
-                    int firstIndex = _genericParameterHandles.Count - _arity;
-
-                    using var ownedParams = TemporaryArray<TypeParameterSymbol>.GetInstance(_arity);
-                    for (int i = 0; i < _arity; i++)
+                return InterlockedOperations.InterlockedInitialize(
+                    ref _lazyTypeParameters,
+                    static self =>
                     {
-                        ownedParams.Add(new PETypeParameterSymbol(moduleSymbol, this, (ushort)i, _genericParameterHandles[firstIndex + i]));
-                    }
+                        if (self._arity == 0)
+                            return ImmutableArray<TypeParameterSymbol>.Empty;
 
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameters, ownedParams.ToImmutableAndClear());
-                }
+                        var moduleSymbol = self.ContainingPEModule;
+
+                        // If this is a nested type generic parameters in metadata include generic parameters of the outer types.
+                        int firstIndex = self._genericParameterHandles.Count - self._arity;
+
+                        var ownedParams = ArrayBuilder<TypeParameterSymbol>.GetInstance();
+                        ownedParams.Count = self._arity;
+                        for (int i = 0; i < ownedParams.Count; i++)
+                        {
+                            ownedParams[i] = new PETypeParameterSymbol(moduleSymbol, self, (ushort)i, self._genericParameterHandles[firstIndex + i]);
+                        }
+
+                        return ownedParams.ToImmutableAndFree();
+                    },
+                    this);
             }
 
             protected override DiagnosticInfo GetUseSiteDiagnosticImpl()
