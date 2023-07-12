@@ -113,7 +113,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     // This is intentionally the only path being cached.
                     // Measurements show this path as the problematic non-performant path.
                     // Caching other paths will make the cache less beneficial.
-                    return _lastGetMembersResult = ImmutableArray.Create<Symbol>(ns);
+                    var result = ImmutableArray.Create<Symbol>(ns);
+                    _lastGetMembersResult = result;
+                    return result;
                 }
             }
             else if (lazyTypes.TryGetValue(name, out t))
