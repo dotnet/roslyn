@@ -4323,12 +4323,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     bool isInherited = false;
                     var syntax = param.GetNonNullSyntaxNode();
-
+                    var paramTypeWithAnnotations = param.TypeWithAnnotations;
                     var targetProperty = new SignatureOnlyPropertySymbol(param.Name,
                                                                          this,
                                                                          ImmutableArray<ParameterSymbol>.Empty,
                                                                          RefKind.None,
-                                                                         param.TypeWithAnnotations,
+                                                                         paramTypeWithAnnotations,
                                                                          ImmutableArray<CustomModifier>.Empty,
                                                                          isStatic: false,
                                                                          ImmutableArray<PropertySymbol>.Empty);
@@ -4347,7 +4347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         addProperty(new SynthesizedRecordPropertySymbol(this, syntax, param, isOverride: false, diagnostics));
                     }
                     else if (existingMember is FieldSymbol { IsStatic: false } field
-                        && field.TypeWithAnnotations.Equals(param.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
+                        && field.TypeWithAnnotations.Equals(paramTypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
                     {
                         Binder.CheckFeatureAvailability(syntax, MessageID.IDS_FeaturePositionalFieldsInRecords, diagnostics);
                         if (!isInherited || checkMemberNotHidden(field, param))
@@ -4356,7 +4356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                     }
                     else if (existingMember is PropertySymbol { IsStatic: false, GetMethod: { } } prop
-                        && prop.TypeWithAnnotations.Equals(param.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
+                        && prop.TypeWithAnnotations.Equals(paramTypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
                     {
                         // There already exists a member corresponding to the candidate synthesized property.
                         if (isInherited && prop.IsAbstract)
@@ -4374,7 +4374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_BadRecordMemberForPositionalParameter,
                             param.GetFirstLocation(),
                             new FormattedSymbol(existingMember, SymbolDisplayFormat.CSharpErrorMessageFormat.WithMemberOptions(SymbolDisplayMemberOptions.IncludeContainingType)),
-                            param.TypeWithAnnotations,
+                            paramTypeWithAnnotations,
                             param.Name);
                     }
 
