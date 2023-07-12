@@ -72,8 +72,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         private const int TriviaListInitialCapacity = 8;
 
-        private static readonly Encoding s_utf8EncodingThatThrows = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
-
         private readonly CSharpParseOptions _options;
 
         private LexerMode _mode;
