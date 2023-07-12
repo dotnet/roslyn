@@ -616,10 +616,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 case '$':
                     if (TryScanInterpolatedString(ref info))
+                    {
                         break;
+                    }
 
                     if (this.ModeIs(LexerMode.DebuggerSyntax))
+                    {
                         goto case '_';
+                    }
 
                     goto default;
 
