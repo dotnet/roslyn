@@ -629,8 +629,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 // All the 'common' identifier characters are represented directly in these switch cases for optimal
                 // perf.  Calling IsIdentifierChar() functions is relatively expensive.
-                case (>= 'a' and <= 'z') or (>= 'A' and <= 'Z'):
                 case '_':
+                case (>= 'a' and <= 'z') or (>= 'A' and <= 'Z'):
                     this.ScanIdentifierOrKeyword(ref info);
                     break;
 
@@ -1383,8 +1383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         {
                             goto case '_';
                         }
-                    case >= 'A' and <= 'Z':
-                    case >= 'a' and <= 'z':
+                    case (>= 'a' and <= 'z') or (>= 'A' and <= 'Z'):
                     case '_':
                         // All of these characters are valid inside an identifier.
                         // consume it and keep processing.
@@ -1450,8 +1449,7 @@ top:
 
                         goto LoopExit;
                     case '_':
-                    case >= 'A' and <= 'Z':
-                    case >= 'a' and <= 'z':
+                    case (>= 'a' and <= 'z') or (>= 'A' and <= 'Z'):
                         {
                             // Again, these are the 'common' identifier characters...
                             break;
@@ -1693,8 +1691,7 @@ top:
                         goto default;
 
                     case '_':
-                    case >= 'A' and <= 'Z':
-                    case >= 'a' and <= 'z':
+                    case (>= 'a' and <= 'z') or (>= 'A' and <= 'Z'):
                         {
                             // Again, these are the 'common' identifier characters...
                             break;
