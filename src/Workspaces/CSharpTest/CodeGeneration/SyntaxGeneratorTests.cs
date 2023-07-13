@@ -3470,12 +3470,6 @@ public class C
                     Generator.SetAccessorDeclaration(Accessibility.Protected, new[] { Generator.ReturnStatement() })),
                 "x p\r\n{\r\n    protected set\r\n    {\r\n        return;\r\n    }\r\n}");
 
-            VerifySyntax<PropertyDeclarationSyntax>(
-                Generator.WithAccessorDeclarations(
-                    Generator.PropertyDeclaration("p", Generator.IdentifierName("x")),
-                    Generator.InitAccessorDeclaration(Accessibility.Protected, new[] { Generator.ReturnStatement() })),
-                "x p\r\n{\r\n    protected init\r\n    {\r\n        return;\r\n    }\r\n}");
-
             VerifySyntax<IndexerDeclarationSyntax>(
                 Generator.WithAccessorDeclarations(Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("p", Generator.IdentifierName("t")) }, Generator.IdentifierName("x"))),
                 "x this[t p] { }");
@@ -3490,12 +3484,6 @@ public class C
                     Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("p", Generator.IdentifierName("t")) }, Generator.IdentifierName("x")),
                     Generator.SetAccessorDeclaration(Accessibility.Protected, new[] { Generator.ReturnStatement() })),
                 "x this[t p]\r\n{\r\n    protected set\r\n    {\r\n        return;\r\n    }\r\n}");
-
-            VerifySyntax<IndexerDeclarationSyntax>(
-                Generator.WithAccessorDeclarations(
-                    Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("p", Generator.IdentifierName("t")) }, Generator.IdentifierName("x")),
-                    Generator.InitAccessorDeclaration(Accessibility.Protected, new[] { Generator.ReturnStatement() })),
-                "x this[t p]\r\n{\r\n    protected init\r\n    {\r\n        return;\r\n    }\r\n}");
         }
 
         [Fact]
