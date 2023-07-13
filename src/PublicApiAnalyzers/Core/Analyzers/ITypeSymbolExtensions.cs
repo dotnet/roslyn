@@ -12,6 +12,5 @@ namespace Analyzer.Utilities.Lightup
 
         public static NullableAnnotation NullableAnnotation(this ITypeSymbol typeSymbol)
             => s_nullableAnnotation(typeSymbol);
-
     }
 }
