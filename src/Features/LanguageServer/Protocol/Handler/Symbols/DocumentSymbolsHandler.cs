@@ -137,10 +137,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         /// <summary>
         /// DocumentSymbol name cannot be null or empty. Check if the name is invalid,
-        /// and return substitute string.
+        /// and if so return a substitute string.
         /// </summary>
-        /// <param name="proposedName"></param>
-        /// <returns></returns>
+        /// <param name="proposedName">Name proposed for DocumentSymbol</param>
+        /// <returns>Valid name for DocumentSymbol</returns>
         private static string GetDocumentSymbolName(string proposedName)
         {
             return String.IsNullOrEmpty(proposedName) ? "." : proposedName;
