@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         /// </summary>
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
 
-        private TypeWithAnnotations? _lazyTypeWithAnnotations;
+        private TypeWithAnnotations.Boxed? _lazyTypeWithAnnotations;
 
         protected RetargetingParameterSymbol(ParameterSymbol underlyingParameter)
             : base(underlyingParameter)
@@ -40,9 +41,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                if (!_lazyTypeWithAnnotations.HasValue)
+                if (_lazyTypeWithAnnotations is null)
                 {
-                    _lazyTypeWithAnnotations = this.RetargetingModule.RetargetingTranslator.Retarget(_underlyingParameter.TypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
+                    Interlocked.CompareExchange(ref _lazyTypeWithAnnotations,
+                        new TypeWithAnnotations.Boxed(this.RetargetingModule.RetargetingTranslator.Retarget(_underlyingParameter.TypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode)),
+                        null);
                 }
 
                 return _lazyTypeWithAnnotations.Value;
