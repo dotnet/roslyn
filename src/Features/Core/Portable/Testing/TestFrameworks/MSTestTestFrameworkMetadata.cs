@@ -19,6 +19,6 @@ internal class MSTestTestFrameworkMetadata : ITestFrameworkMetadata
 
     public bool MatchesAttributeSyntacticName(string attributeSyntacticName)
     {
-        return attributeSyntacticName is "TestMethodAttribute";
+        return attributeSyntacticName is "TestMethodAttribute" or "TestMethod";
     }
 }

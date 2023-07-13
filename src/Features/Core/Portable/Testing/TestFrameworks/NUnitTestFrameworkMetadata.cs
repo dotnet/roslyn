@@ -19,6 +19,7 @@ internal class NUnitTestFrameworkMetadata : ITestFrameworkMetadata
 
     public bool MatchesAttributeSyntacticName(string attributeSyntacticName)
     {
-        return attributeSyntacticName is "TestAttribute" or "TheoryAttribute" or "TestCaseAttribute" or "TestCaseSourceAttribute";
+        return attributeSyntacticName is "TestAttribute" or "TheoryAttribute" or "TestCaseAttribute" or "TestCaseSourceAttribute"
+            or "Test" or "Theory" or "TestCase" or "TestCaseSource";
     }
 }

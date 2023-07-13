@@ -17,7 +17,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Testing;
 [Method(RunTestsMethodName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer testDiscoverer, TestRunner testRunner, ServerConfiguration serverConfiguration) : ILspServiceDocumentRequestHandler<RunTestsParams, RunTestsPartialResult[]>
+internal class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer testDiscoverer, TestRunner testRunner, ServerConfiguration serverConfiguration)
+    : ILspServiceDocumentRequestHandler<RunTestsParams, RunTestsPartialResult[]>
 {
     private const string RunTestsMethodName = "textDocument/runTests";
 

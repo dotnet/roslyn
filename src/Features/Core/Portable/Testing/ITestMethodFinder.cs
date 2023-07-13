@@ -19,7 +19,7 @@ internal interface ITestMethodFinder : ILanguageService
     Task<ImmutableArray<SyntaxNode>> GetPotentialTestMethodsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Determines if the node is a potential test method.
+    /// Determines if the given method node is a potential test method.
     /// This is used in code lens computation, so it generally does syntax-only checks.
     /// </summary>
     bool IsTestMethod(SyntaxNode node);

@@ -19,6 +19,6 @@ internal class XUnitTestFrameworkMetadata : ITestFrameworkMetadata
 
     public bool MatchesAttributeSyntacticName(string attributeSyntacticName)
     {
-        return attributeSyntacticName is "FactAttribute" or "TheoryAttribute";
+        return attributeSyntacticName is "FactAttribute" or "TheoryAttribute" or "Fact" or "Theory";
     }
 }

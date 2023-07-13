@@ -36,6 +36,20 @@ public class CSharpTestMethodFinderTests
     }
 
     [Fact]
+    public async Task TestFindsXUnitFactAttributeMethod()
+    {
+        var code = """
+            using Xunit;
+            public class TestClass
+            {
+                [FactAttribute]
+                public void Test$$Method1() { }
+            }
+            """;
+        await TestXunitAsync(code, "TestMethod1");
+    }
+
+    [Fact]
     public async Task TestFindsXUnitTheoryMethod()
     {
         var code = """
@@ -43,6 +57,20 @@ public class CSharpTestMethodFinderTests
             public class TestClass
             {
                 [Theory]
+                public void Test$$Method1() { }
+            }
+            """;
+        await TestXunitAsync(code, "TestMethod1");
+    }
+
+    [Fact]
+    public async Task TestFindsXUnitTheoryAttributeMethod()
+    {
+        var code = """
+            using Xunit;
+            public class TestClass
+            {
+                [TheoryAttribute]
                 public void Test$$Method1() { }
             }
             """;
@@ -161,6 +189,20 @@ public class CSharpTestMethodFinderTests
     }
 
     [Fact]
+    public async Task TestFindsNUnitTestAttributeMethod()
+    {
+        var code = """
+            using NUnit.Framework;
+            public class TestClass
+            {
+                [TestAttribute]
+                public void Test$$Method1() { }
+            }
+            """;
+        await TestNUnitAsync(code, "TestMethod1");
+    }
+
+    [Fact]
     public async Task TestFindsNUnitTheoryMethod()
     {
         var code = """
@@ -168,6 +210,20 @@ public class CSharpTestMethodFinderTests
             public class TestClass
             {
                 [Theory]
+                public void Test$$Method1() { }
+            }
+            """;
+        await TestNUnitAsync(code, "TestMethod1");
+    }
+
+    [Fact]
+    public async Task TestFindsNUnitTheoryAttributeMethod()
+    {
+        var code = """
+            using NUnit.Framework;
+            public class TestClass
+            {
+                [TheoryAttribute]
                 public void Test$$Method1() { }
             }
             """;
@@ -189,6 +245,20 @@ public class CSharpTestMethodFinderTests
     }
 
     [Fact]
+    public async Task TestFindsNUnitTestCaseAttributeMethod()
+    {
+        var code = """
+            using NUnit.Framework;
+            public class TestClass
+            {
+                [TestCaseAttribute]
+                public void Test$$Method1() { }
+            }
+            """;
+        await TestNUnitAsync(code, "TestMethod1");
+    }
+
+    [Fact]
     public async Task TestFindsNUnitTestCaseSourceMethod()
     {
         var code = """
@@ -197,6 +267,21 @@ public class CSharpTestMethodFinderTests
             {
                 public static string s_s = "";
                 [TestCaseSource(nameof(s_s))]
+                public void Test$$Method1() { }
+            }
+            """;
+        await TestNUnitAsync(code, "TestMethod1");
+    }
+
+    [Fact]
+    public async Task TestFindsNUnitTestCaseSourceAttributeMethod()
+    {
+        var code = """
+            using NUnit.Framework;
+            public class TestClass
+            {
+                public static string s_s = "";
+                [TestCaseSourceAttribute(nameof(s_s))]
                 public void Test$$Method1() { }
             }
             """;
@@ -241,6 +326,21 @@ public class CSharpTestMethodFinderTests
             public class TestClass
             {
                 [TestMethod]
+                public void Test$$Method1() { }
+            }
+
+            """;
+        await TestMSTestAsync(code, "TestMethod1");
+    }
+
+    [Fact]
+    public async Task TestFindsMSTestTestMethodAttribute()
+    {
+        var code = """
+            using Microsoft.VisualStudio.TestTools.UnitTesting;
+            public class TestClass
+            {
+                [TestMethodAttribute]
                 public void Test$$Method1() { }
             }
 

@@ -15,6 +15,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Testing;
 
 internal partial class TestDiscoverer
 {
+    /// <summary>
+    /// Implementation of <see cref="ITestDiscoveryEventsHandler"/>
+    /// Calls to implementation methods will be synchronous.
+    /// </summary>
     private class DiscoveryHandler(BufferedProgress<RunTestsPartialResult> progress) : ITestDiscoveryEventsHandler
     {
         private readonly BufferedProgress<RunTestsPartialResult> _progress = progress;

@@ -5,6 +5,7 @@
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.Extensions.Logging;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
@@ -22,7 +23,11 @@ internal class ServerConfigurationFactory
     [Export(typeof(ServerConfiguration))]
     public ServerConfiguration ServerConfiguration => _serverConfiguration ?? throw new InvalidOperationException($"{nameof(ServerConfiguration)} has not been initialized");
 
-    public void InitializeConfiguration(ServerConfiguration serverConfiguration) => _serverConfiguration = serverConfiguration;
+    public void InitializeConfiguration(ServerConfiguration serverConfiguration)
+    {
+        Contract.ThrowIfFalse(_serverConfiguration == null);
+        _serverConfiguration = serverConfiguration;
+    }
 }
 
 internal record class ServerConfiguration(

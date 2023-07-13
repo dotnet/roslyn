@@ -101,7 +101,7 @@ internal partial class TestDiscoverer(ILoggerFactory loggerFactory)
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken);
         foreach (var discoveredTest in discoveredTests)
         {
-            var isMatch = testMethods.Any((m) => testMethodFinder.IsMatch(semanticModel, m, discoveredTest.FullyQualifiedName, cancellationToken));
+            var isMatch = testMethods.Any(m => testMethodFinder.IsMatch(semanticModel, m, discoveredTest.FullyQualifiedName, cancellationToken));
             if (isMatch)
             {
                 matchedTests.Add(discoveredTest);

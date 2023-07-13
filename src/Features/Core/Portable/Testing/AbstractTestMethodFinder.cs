@@ -37,24 +37,28 @@ internal abstract class AbstractTestMethodFinder<TMethodDeclaration>(IEnumerable
         var testNodes = await GetPotentialTestNodesAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
 
         // Find any test methods that intersect with the requested span.
-        var intersectingNodes = testNodes.Where(node => node.Span.IntersectsWith(textSpan)).ToImmutableArray();
+        var intersectingNodes = testNodes.WhereAsArray(node => node.Span.IntersectsWith(textSpan));
         if (!intersectingNodes.IsEmpty)
         {
             return intersectingNodes;
         }
 
         // We might have been invoked on a test class.  Check if any of the test method parent nodes intersect with the requested text span.
-        return testNodes.Where(node => node.Parent?.Span.IntersectsWith(textSpan) == true).ToImmutableArray();
+        return testNodes.WhereAsArray(node => node.Parent?.Span.IntersectsWith(textSpan) == true);
     }
 
     public bool IsMatch(SemanticModel semanticModel, SyntaxNode node, string fullyQualifiedTestName, CancellationToken cancellationToken)
     {
-        var method = node as TMethodDeclaration;
-        Contract.ThrowIfNull(method, $"Node with kind {node.RawKind} is not a method");
+        var method = (TMethodDeclaration)node;
 
         // Since discovered tests are not guarantied to run on a particular snapshot, we match optimistically based on test name.
-        var methodSymbol = semanticModel.GetDeclaredSymbol(method, cancellationToken);
-        Contract.ThrowIfNull(methodSymbol, "Test method has no symbol");
+        var methodSymbol = semanticModel.GetRequiredDeclaredSymbol(method, cancellationToken);
+
+        // Do a quicker check to see if the given FQN even contains the method name before doing a full match.
+        if (!fullyQualifiedTestName.Contains(methodSymbol.Name))
+        {
+            return false;
+        }
 
         var fullyQualifiedMethodName = methodSymbol.ToDisplayString(s_methodSymbolNoParametersDisplayFormat);
 
@@ -84,8 +88,7 @@ internal abstract class AbstractTestMethodFinder<TMethodDeclaration>(IEnumerable
         using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var testMethods);
         foreach (var method in methodsInRange)
         {
-            var isTestMethod = IsTestMethod(method);
-            if (isTestMethod)
+            if (IsTestMethod(method))
             {
                 testMethods.Add(method);
             }

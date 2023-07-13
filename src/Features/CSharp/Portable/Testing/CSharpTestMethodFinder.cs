@@ -26,13 +26,15 @@ internal class CSharpTestMethodFinder([ImportMany] IEnumerable<ITestFrameworkMet
 
     protected override bool IsTestMethod(MethodDeclarationSyntax method)
     {
-        var attributes = method.AttributeLists.SelectMany(a => a.Attributes);
-        foreach (var attribute in attributes)
+        foreach (var attributeList in method.AttributeLists)
         {
-            var isTestAttribute = IsTestAttribute(attribute);
-            if (isTestAttribute)
+            foreach (var attribute in attributeList.Attributes)
             {
-                return true;
+                var isTestAttribute = IsTestAttribute(attribute);
+                if (isTestAttribute)
+                {
+                    return true;
+                }
             }
         }
 
@@ -41,21 +43,7 @@ internal class CSharpTestMethodFinder([ImportMany] IEnumerable<ITestFrameworkMet
 
     private bool IsTestAttribute(AttributeSyntax attribute)
     {
-        var nameExpression = (ExpressionSyntax)attribute.Name;
-        var rightmostName = nameExpression.GetRightmostName();
-        if (rightmostName == null)
-        {
-            return false;
-        }
-
-        var attributeName = rightmostName.Identifier.Text;
-
-        // Normalize the attribute name to always end with "Attribute".
-        // For example [Fact] we normalize the name to 'FactAttribute' as it is actually defined.
-        if (!attributeName.EndsWith("Attribute"))
-        {
-            attributeName += "Attribute";
-        }
+        var attributeName = attribute.Name.GetNameToken().Text;
 
         var matches = TestFrameworkMetadata.Any(metadata => metadata.MatchesAttributeSyntacticName(attributeName));
         return matches;
