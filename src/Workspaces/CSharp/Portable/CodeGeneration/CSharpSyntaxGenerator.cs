@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var modifiers = CSharpSyntaxGeneratorInternal.GetParameterModifiers(refKind);            
             if (isScoped)
-              modifiers = modifiers.Insert(0, SyntaxFactory.Token(SyntaxKind.ScopedKeyword));
+                modifiers = modifiers.Insert(0, SyntaxFactory.Token(SyntaxKind.ScopedKeyword));
 
             if (isExtension)
                 modifiers = modifiers.Insert(0, SyntaxFactory.Token(SyntaxKind.ThisKeyword));
