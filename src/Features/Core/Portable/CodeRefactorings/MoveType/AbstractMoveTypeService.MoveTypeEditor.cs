@@ -22,15 +22,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 {
     internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarationSyntax, TNamespaceDeclarationSyntax, TMemberDeclarationSyntax, TCompilationUnitSyntax>
     {
-        private sealed class MoveTypeEditor : Editor
+        private sealed class MoveTypeEditor(
+            TService service,
+            State state,
+            string fileName,
+            CancellationToken cancellationToken) : Editor(service, state, fileName, cancellationToken)
         {
-            public MoveTypeEditor(
-                TService service,
-                State state,
-                string fileName,
-                CancellationToken cancellationToken) : base(service, state, fileName, cancellationToken)
-            {
-            }
 
             /// <summary>
             /// Given a document and a type contained in it, moves the type

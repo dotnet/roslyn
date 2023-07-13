@@ -236,27 +236,19 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         TExpressionSyntax,
         TStatementSyntax,
         TMemberAccessExpressionSyntax,
-        TAssignmentStatementSyntax>
+        TAssignmentStatementSyntax>(
+        TAssignmentStatementSyntax statement,
+        TMemberAccessExpressionSyntax memberAccessExpression,
+        TExpressionSyntax initializer,
+        string memberName)
         where TExpressionSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
         where TMemberAccessExpressionSyntax : TExpressionSyntax
         where TAssignmentStatementSyntax : TStatementSyntax
     {
-        public readonly TAssignmentStatementSyntax Statement;
-        public readonly TMemberAccessExpressionSyntax MemberAccessExpression;
-        public readonly TExpressionSyntax Initializer;
-        public readonly string MemberName;
-
-        public Match(
-            TAssignmentStatementSyntax statement,
-            TMemberAccessExpressionSyntax memberAccessExpression,
-            TExpressionSyntax initializer,
-            string memberName)
-        {
-            Statement = statement;
-            MemberAccessExpression = memberAccessExpression;
-            Initializer = initializer;
-            MemberName = memberName;
-        }
+        public readonly TAssignmentStatementSyntax Statement = statement;
+        public readonly TMemberAccessExpressionSyntax MemberAccessExpression = memberAccessExpression;
+        public readonly TExpressionSyntax Initializer = initializer;
+        public readonly string MemberName = memberName;
     }
 }

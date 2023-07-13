@@ -52,6 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property GreaterThanToken As Integer = SyntaxKind.GreaterThanToken Implements ISyntaxKinds.GreaterThanToken
         Public ReadOnly Property InterpolatedStringTextToken As Integer = SyntaxKind.InterpolatedStringTextToken Implements ISyntaxKinds.InterpolatedStringTextToken
         Public ReadOnly Property LessThanToken As Integer = SyntaxKind.LessThanToken Implements ISyntaxKinds.LessThanToken
+        Public ReadOnly Property LessThanSlashToken As Integer = SyntaxKind.LessThanSlashToken Implements ISyntaxKinds.LessThanSlashToken
         Public ReadOnly Property OpenBraceToken As Integer = SyntaxKind.OpenBraceToken Implements ISyntaxKinds.OpenBraceToken
         Public ReadOnly Property OpenBracketToken As Integer? = Nothing Implements ISyntaxKinds.OpenBracketToken
         Public ReadOnly Property OpenParenToken As Integer = SyntaxKind.OpenParenToken Implements ISyntaxKinds.OpenParenToken

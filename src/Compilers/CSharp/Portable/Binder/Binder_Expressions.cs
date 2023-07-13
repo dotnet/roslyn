@@ -388,6 +388,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         result = RebindSimpleBinaryOperatorAsConverted(unconvertedBinaryOperator, diagnostics);
                     }
                     break;
+                case BoundUnconvertedCollectionLiteralExpression expr:
+                    {
+                        if (reportNoTargetType && !expr.HasAnyErrors)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_CollectionLiteralNoTargetType, expr.Syntax.GetLocation());
+                        }
+                        result = BindCollectionLiteralForErrorRecovery(expr, CreateErrorType(), diagnostics);
+                    }
+                    break;
                 default:
                     result = expression;
                     break;
@@ -762,6 +771,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // may be used by SemanticModel for error cases.
                     return BadExpression(node);
 
+                case SyntaxKind.CollectionExpression:
+                    return BindCollectionLiteralExpression((CollectionExpressionSyntax)node, diagnostics);
+
                 case SyntaxKind.NullableType:
                     // Not reachable during method body binding, but
                     // may be used by SemanticModel for error cases.
@@ -790,7 +802,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindScopedType(node, diagnostics);
 
                 case SyntaxKind.RefExpression:
-                    return BindRefExpression(node, diagnostics);
+                    return BindRefExpression((RefExpressionSyntax)node, diagnostics);
 
                 case SyntaxKind.DeclarationExpression:
                     return BindDeclarationExpressionAsError((DeclarationExpressionSyntax)node, diagnostics);
@@ -818,12 +830,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #nullable disable
 
-        private BoundExpression BindRefExpression(ExpressionSyntax node, BindingDiagnosticBag diagnostics)
+        private BoundExpression BindRefExpression(RefExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
             var firstToken = node.GetFirstToken();
             diagnostics.Add(ErrorCode.ERR_UnexpectedToken, firstToken.GetLocation(), firstToken.ValueText);
             return new BoundBadExpression(
-                node, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray<BoundExpression>.Empty,
+                node, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundExpression>(BindToTypeForErrorRecovery(BindValue(node.Expression, BindingDiagnosticBag.Discarded, BindValueKind.RefersToLocation))),
                 CreateErrorType("ref"));
         }
 
@@ -2670,6 +2682,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         GenerateImplicitConversionError(diagnostics, operand.Syntax, conversion, operand, targetType);
                         return;
+                    }
+                case BoundKind.UnconvertedCollectionLiteralExpression:
+                    {
+                        if (operand.Type is null)
+                        {
+                            Error(diagnostics, ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, syntax, targetType);
+                            return;
+                        }
+                        break;
                     }
                 case BoundKind.UnconvertedAddressOfOperator:
                     {
@@ -4554,6 +4575,69 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable
+        private BoundExpression BindCollectionLiteralExpression(CollectionExpressionSyntax syntax, BindingDiagnosticBag diagnostics)
+        {
+            MessageID.IDS_FeatureCollectionLiterals.CheckFeatureAvailability(diagnostics, syntax, syntax.OpenBracketToken.GetLocation());
+
+            var builder = ArrayBuilder<BoundExpression>.GetInstance(syntax.Elements.Count);
+            foreach (var element in syntax.Elements)
+            {
+                builder.Add(bindElement(element, diagnostics));
+            }
+            return new BoundUnconvertedCollectionLiteralExpression(syntax, builder.ToImmutableAndFree(), this);
+
+            BoundExpression bindElement(CollectionElementSyntax syntax, BindingDiagnosticBag diagnostics)
+            {
+                return syntax switch
+                {
+                    ExpressionElementSyntax expressionElementSyntax => BindValue(expressionElementSyntax.Expression, diagnostics, BindValueKind.RValue),
+                    SpreadElementSyntax spreadElementSyntax => bindSpreadElement(spreadElementSyntax, diagnostics),
+                    _ => throw ExceptionUtilities.UnexpectedValue(syntax.Kind())
+                };
+            }
+
+            BoundExpression bindSpreadElement(SpreadElementSyntax syntax, BindingDiagnosticBag diagnostics)
+            {
+                var expression = BindRValueWithoutTargetType(syntax.Expression, diagnostics);
+                ForEachEnumeratorInfo.Builder builder;
+                bool hasErrors = !GetEnumeratorInfoAndInferCollectionElementType(syntax, syntax.Expression, ref expression, isAsync: false, diagnostics, inferredType: out _, out builder) ||
+                    builder.IsIncomplete;
+                if (hasErrors)
+                {
+                    return new BoundCollectionLiteralSpreadElement(
+                        syntax,
+                        expression,
+                        enumeratorInfoOpt: null,
+                        elementPlaceholder: null,
+                        addElementPlaceholder: null,
+                        addMethodInvocation: null,
+                        type: CreateErrorType(),
+                        hasErrors);
+                }
+
+                var enumeratorInfo = builder.Build(location: default);
+                var collectionType = enumeratorInfo.CollectionType;
+                var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                var conversion = Conversions.ClassifyConversionFromExpression(expression, collectionType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
+                Debug.Assert(conversion.IsValid);
+                diagnostics.Add(syntax.Expression, useSiteInfo);
+                expression = ConvertForEachCollection(expression, conversion, collectionType, diagnostics);
+                var elementPlaceholder = new BoundValuePlaceholder(syntax.Expression, enumeratorInfo.ElementType);
+                return new BoundCollectionLiteralSpreadElement(
+                    syntax,
+                    expression,
+                    enumeratorInfo,
+                    elementPlaceholder: elementPlaceholder,
+                    addElementPlaceholder: null,
+                    addMethodInvocation: null,
+                    type: enumeratorInfo.CollectionType,
+                    hasErrors: false)
+                { WasCompilerGenerated = true };
+            }
+        }
+#nullable disable
+
         private BoundExpression BindDelegateCreationExpression(ObjectCreationExpressionSyntax node, NamedTypeSymbol type, BindingDiagnosticBag diagnostics)
         {
             AnalyzedArguments analyzedArguments = AnalyzedArguments.GetInstance();
@@ -4828,7 +4912,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundBadExpression(node, LookupResultKind.NotCreatable, ImmutableArray.Create<Symbol?>(type), children.ToImmutableAndFree(), type) { WasCompilerGenerated = wasCompilerGenerated };
         }
-#nullable disable
 
         private BoundObjectInitializerExpressionBase BindInitializerExpression(
             InitializerExpressionSyntax syntax,
@@ -4860,6 +4943,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.Unreachable();
             }
         }
+#nullable disable
 
         private BoundExpression BindInitializerExpressionOrValue(
             ExpressionSyntax syntax,
@@ -5644,6 +5728,44 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable
+        private BoundCollectionLiteralSpreadElement BindCollectionInitializerSpreadElementAddMethod(
+            SpreadElementSyntax syntax,
+            BoundCollectionLiteralSpreadElement element,
+            Binder collectionInitializerAddMethodBinder,
+            BoundObjectOrCollectionValuePlaceholder implicitReceiver,
+            BindingDiagnosticBag diagnostics)
+        {
+            var enumeratorInfo = element.EnumeratorInfoOpt;
+            if (enumeratorInfo is null)
+            {
+                return element.Update(
+                    BindToNaturalType(element.Expression, BindingDiagnosticBag.Discarded, reportNoTargetType: false),
+                    element.EnumeratorInfoOpt,
+                    element.ElementPlaceholder,
+                    element.AddElementPlaceholder,
+                    element.AddMethodInvocation,
+                    element.Type);
+            }
+
+            Debug.Assert(enumeratorInfo.ElementType is { }); // ElementType is set always, even for IEnumerable.
+            var addElementPlaceholder = new BoundValuePlaceholder(syntax, enumeratorInfo.ElementType);
+            var addMethodInvocation = collectionInitializerAddMethodBinder.MakeInvocationExpression(
+                syntax,
+                implicitReceiver,
+                methodName: WellKnownMemberNames.CollectionInitializerAddMethodName,
+                args: ImmutableArray.Create<BoundExpression>(addElementPlaceholder),
+                diagnostics);
+            return element.Update(
+                element.Expression,
+                enumeratorInfo,
+                element.ElementPlaceholder,
+                addElementPlaceholder,
+                new BoundExpressionStatement(syntax, addMethodInvocation) { WasCompilerGenerated = true },
+                element.Type);
+        }
+#nullable disable
+
         internal ImmutableArray<MethodSymbol> FilterInaccessibleConstructors(ImmutableArray<MethodSymbol> constructors, bool allowProtectedConstructorsOfBaseType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             ArrayBuilder<MethodSymbol> builder = null;
@@ -6043,8 +6165,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+#nullable enable
         private BoundExpression BindTypeParameterCreationExpression(
-            SyntaxNode node, TypeParameterSymbol typeParameter, AnalyzedArguments analyzedArguments, InitializerExpressionSyntax initializerOpt,
+            SyntaxNode node, TypeParameterSymbol typeParameter, AnalyzedArguments analyzedArguments, InitializerExpressionSyntax? initializerOpt,
             SyntaxNode typeSyntax, bool wasTargetTyped, BindingDiagnosticBag diagnostics)
         {
             if (!typeParameter.HasConstructorConstraint && !typeParameter.IsValueType)
@@ -6070,6 +6193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return MakeBadExpressionForObjectCreation(node, typeParameter, analyzedArguments, initializerOpt, typeSyntax, diagnostics);
         }
+#nullable disable
 
         /// <summary>
         /// Given the type containing constructors, gets the list of candidate instance constructors and uses overload resolution to determine which one should be called.

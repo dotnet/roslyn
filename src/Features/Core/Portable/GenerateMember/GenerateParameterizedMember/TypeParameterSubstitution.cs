@@ -32,23 +32,15 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             return type.SubstituteTypes(visitor.Substitutions, compilation);
         }
 
-        private sealed class DetermineSubstitutionsVisitor : AsyncSymbolVisitor
+        private sealed class DetermineSubstitutionsVisitor(
+            Compilation compilation, ISet<string> availableTypeParameterNames, Project project, CancellationToken cancellationToken) : AsyncSymbolVisitor
         {
             public readonly Dictionary<ITypeSymbol, ITypeSymbol> Substitutions =
                 new();
-            private readonly CancellationToken _cancellationToken;
-            private readonly Compilation _compilation;
-            private readonly ISet<string> _availableTypeParameterNames;
-            private readonly Project _project;
-
-            public DetermineSubstitutionsVisitor(
-                Compilation compilation, ISet<string> availableTypeParameterNames, Project project, CancellationToken cancellationToken)
-            {
-                _compilation = compilation;
-                _availableTypeParameterNames = availableTypeParameterNames;
-                _project = project;
-                _cancellationToken = cancellationToken;
-            }
+            private readonly CancellationToken _cancellationToken = cancellationToken;
+            private readonly Compilation _compilation = compilation;
+            private readonly ISet<string> _availableTypeParameterNames = availableTypeParameterNames;
+            private readonly Project _project = project;
 
             public override ValueTask VisitDynamicType(IDynamicTypeSymbol symbol)
                 => default;

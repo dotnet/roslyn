@@ -94,16 +94,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             private const int IsNullableAnalysisEnabledBit = 1 << IsNullableAnalysisEnabledOffset;
 
-            public bool TryGetReturnsVoid(out bool value)
+            public bool ReturnsVoid
             {
-                int bits = _flags;
-                value = (bits & ReturnsVoidBit) != 0;
-                return (bits & ReturnsVoidIsSetBit) != 0;
+                get
+                {
+                    int bits = _flags;
+                    var value = (bits & ReturnsVoidBit) != 0;
+                    Debug.Assert((bits & ReturnsVoidIsSetBit) != 0);
+                    return value;
+                }
             }
 
             public void SetReturnsVoid(bool value)
             {
-                ThreadSafeFlagOperations.Set(ref _flags, (int)(ReturnsVoidIsSetBit | (value ? ReturnsVoidBit : 0)));
+                int bits = _flags;
+                Debug.Assert((bits & ReturnsVoidIsSetBit) == 0);
+                Debug.Assert(value || (bits & ReturnsVoidBit) == 0);
+                ThreadSafeFlagOperations.Set(ref _flags, ReturnsVoidIsSetBit | (value ? ReturnsVoidBit : 0));
             }
 
             public MethodKind MethodKind
@@ -166,6 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 RefKind refKind,
                 DeclarationModifiers declarationModifiers,
                 bool returnsVoid,
+                bool returnsVoidIsSet,
                 bool hasAnyBody,
                 bool isExpressionBodied,
                 bool isExtensionMethod,
@@ -173,6 +181,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 bool isVararg,
                 bool isExplicitInterfaceImplementation)
             {
+                Debug.Assert(!returnsVoid || returnsVoidIsSet);
+
                 bool isMetadataVirtual = (isExplicitInterfaceImplementation && (declarationModifiers & DeclarationModifiers.Static) == 0) || ModifiersRequireMetadataVirtual(declarationModifiers);
 
                 int methodKindInt = ((int)methodKind & MethodKindMask) << MethodKindOffset;
@@ -195,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     | isMetadataVirtualIgnoringInterfaceImplementationChangesInt
                     | isMetadataVirtualInt
                     | (returnsVoid ? ReturnsVoidBit : 0)
-                    | ReturnsVoidIsSetBit;
+                    | (returnsVoidIsSet ? ReturnsVoidIsSetBit : 0);
             }
 
             public Flags(
@@ -203,6 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 RefKind refKind,
                 DeclarationModifiers declarationModifiers,
                 bool returnsVoid,
+                bool returnsVoidIsSet,
                 bool isExpressionBodied,
                 bool isExtensionMethod,
                 bool isNullableAnalysisEnabled,
@@ -212,6 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                        refKind,
                        declarationModifiers,
                        returnsVoid: returnsVoid,
+                       returnsVoidIsSet: returnsVoidIsSet,
                        hasAnyBody: false,
                        isExpressionBodied: isExpressionBodied,
                        isExtensionMethod: isExtensionMethod,
@@ -370,13 +382,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKind refKind,
             DeclarationModifiers declarationModifiers,
             bool returnsVoid,
+            bool returnsVoidIsSet,
             bool isExpressionBodied,
             bool isExtensionMethod,
             bool isNullableAnalysisEnabled,
             bool isVarArg,
             bool isExplicitInterfaceImplementation)
         {
-            return new Flags(methodKind, refKind, declarationModifiers, returnsVoid, isExpressionBodied, isExtensionMethod, isNullableAnalysisEnabled, isVarArg, isExplicitInterfaceImplementation);
+            return new Flags(methodKind, refKind, declarationModifiers, returnsVoid, returnsVoidIsSet, isExpressionBodied, isExtensionMethod, isNullableAnalysisEnabled, isVarArg, isExplicitInterfaceImplementation);
         }
 
         protected void SetReturnsVoid(bool returnsVoid)
@@ -492,8 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                flags.TryGetReturnsVoid(out bool value);
-                return value;
+                return flags.ReturnsVoid;
             }
         }
 

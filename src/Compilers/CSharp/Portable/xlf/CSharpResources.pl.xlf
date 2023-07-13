@@ -397,6 +397,16 @@
         <target state="translated">Element „{0}” nie implementuje składowej interfejsu „{1}”. Element „{2}” nie może implementować elementu „{1}”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionLiteralNoTargetType">
+        <source>There is no target type for the collection literal.</source>
+        <target state="new">There is no target type for the collection literal.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionLiteralTargetTypeNotConstructible">
+        <source>Cannot initialize type '{0}' with a collection literal because the type is not constructible.</source>
+        <target state="new">Cannot initialize type '{0}' with a collection literal because the type is not constructible.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
         <source>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</source>
         <target state="translated">Parametr typu „{1}” ma ograniczenie „unmanaged”, dlatego elementu „{1}” nie można użyć jako ograniczenia dla elementu „{0}”</target>
@@ -580,6 +590,11 @@
       <trans-unit id="ERR_ExpressionTreeContainsAbstractStaticMemberAccess">
         <source>An expression tree may not contain an access of static virtual or abstract interface member</source>
         <target state="translated">Drzewo wyrażenia nie może zawierać dostępu do statycznej składowej abstrakcyjnej lub wirtualnej w interfejsie</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsCollectionLiteral">
+        <source>An expression tree may not contain a collection literal.</source>
+        <target state="new">An expression tree may not contain a collection literal.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -877,9 +892,14 @@
         <target state="translated">Właściwości wystąpienia w interfejsach nie mogą mieć inicjatorów.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterceptorArityNotCompatible">
+        <source>Method '{0}' must be non-generic or have arity {1} to match '{2}'.</source>
+        <target state="new">Method '{0}' must be non-generic or have arity {1} to match '{2}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InterceptorCannotBeGeneric">
-        <source>Method '{0}' cannot be used as an interceptor because it or its containing type has type parameters.</source>
-        <target state="translated">Metoda „{0}” nie może być używana jako metoda interceptora, ponieważ jej typ zawierający ma parametry typu.</target>
+        <source>Method '{0}' must be non-generic to match '{1}'.</source>
+        <target state="new">Method '{0}' must be non-generic to match '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorCannotInterceptNameof">
@@ -895,6 +915,11 @@
       <trans-unit id="ERR_InterceptorCharacterOutOfRange">
         <source>The given line is '{0}' characters long, which is fewer than the provided character number '{1}'.</source>
         <target state="translated">Podany wiersz ma długość składającą się z „{0}” znaków, czyli mniej niż podana liczba znaków „{1}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorContainingTypeCannotBeGeneric">
+        <source>Method '{0}' cannot be used as an interceptor because its containing type has type parameters.</source>
+        <target state="new">Method '{0}' cannot be used as an interceptor because its containing type has type parameters.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorFilePathCannotBeNull">
@@ -2020,6 +2045,11 @@
       <trans-unit id="IDS_FeatureCheckedUserDefinedOperators">
         <source>checked user-defined operators</source>
         <target state="translated">zaznaczone operatory zdefiniowane przez użytkownika</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureCollectionLiterals">
+        <source>collection literals</source>
+        <target state="new">collection literals</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
