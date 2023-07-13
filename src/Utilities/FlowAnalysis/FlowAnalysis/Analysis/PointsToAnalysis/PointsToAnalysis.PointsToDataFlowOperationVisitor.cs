@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
-using Analyzer.Utilities.Lightup;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
@@ -14,8 +13,6 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 {
-    using NullableAnnotation = Analyzer.Utilities.Lightup.NullableAnnotation;
-
     public partial class PointsToAnalysis : ForwardDataFlowAnalysis<PointsToAnalysisData, PointsToAnalysisContext, PointsToAnalysisResult, PointsToBlockAnalysisResult, PointsToAbstractValue>
     {
         /// <summary>
@@ -979,7 +976,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             {
                 if (!method.IsStatic ||
                     !method.Name.StartsWith("Create", StringComparison.Ordinal) ||
-                    method.ReturnType.NullableAnnotation() == NullableAnnotation.Annotated)
+                    method.ReturnType.NullableAnnotation == NullableAnnotation.Annotated)
                 {
                     return false;
                 }
