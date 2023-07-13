@@ -179,14 +179,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        protected void LookupImplicitExtensionMembersInSingleBinder(LookupResult result, Binder binder, TypeSymbol type,
+        protected void LookupImplicitExtensionMembersInSingleBinder(LookupResult result, TypeSymbol type,
             string name, int arity, ConsList<TypeSymbol>? basesBeingResolved, LookupOptions options,
             Binder originalBinder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(!type.IsTypeParameter());
 
             var compatibleExtensions = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-            getCompatibleExtensions(binder, type, compatibleExtensions, basesBeingResolved);
+            getCompatibleExtensions(this, type, compatibleExtensions, originalBinder, basesBeingResolved);
             // PROTOTYPE test use-site diagnostics
             var tempResult = LookupResult.GetInstance();
             foreach (NamedTypeSymbol extension in compatibleExtensions)
@@ -204,10 +204,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             compatibleExtensions.Free();
             return;
 
-            void getCompatibleExtensions(Binder binder, TypeSymbol type, ArrayBuilder<NamedTypeSymbol> compatibleExtensions, ConsList<TypeSymbol>? basesBeingResolved)
+            static void getCompatibleExtensions(Binder binder, TypeSymbol type, ArrayBuilder<NamedTypeSymbol> compatibleExtensions, Binder originalBinder, ConsList<TypeSymbol>? basesBeingResolved)
             {
                 var extensions = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-                binder.GetImplicitExtensionTypes(extensions, originalBinder: this);
+                binder.GetImplicitExtensionTypes(extensions, originalBinder);
 
                 foreach (var extension in extensions)
                 {
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 extensions.Free();
             }
 
-            bool isCompatible(NamedTypeSymbol extension, TypeSymbol type, [NotNullWhen(true)] out NamedTypeSymbol? substitutedExtension)
+            static bool isCompatible(NamedTypeSymbol extension, TypeSymbol type, [NotNullWhen(true)] out NamedTypeSymbol? substitutedExtension)
             {
                 Debug.Assert(!type.IsExtension);
                 if (extension.ExtendedTypeNoUseSiteDiagnostics is null)
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         result.Clear();
                     }
 
-                    LookupImplicitExtensionMembersInSingleBinder(result, scope.Binder, type, name, arity,
+                    scope.Binder.LookupImplicitExtensionMembersInSingleBinder(result, type, name, arity,
                         basesBeingResolved, options, originalBinder: this, ref useSiteInfo);
 
                     if (result.IsMultiViable)
