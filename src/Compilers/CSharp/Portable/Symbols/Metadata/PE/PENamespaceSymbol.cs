@@ -92,7 +92,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         public sealed override ImmutableArray<Symbol> GetMembers(ReadOnlyMemory<char> name)
         {
             var lastResult = _lastGetMembersResult;
-            if (!lastResult.IsDefault && lastResult.Length > 0 && name.Span.SequenceEqual(lastResult[0].Name))
+
+            // The only code path where we cache is creating a single-element array.
+            Debug.Assert(lastResult.IsDefault || lastResult.Length == 1);
+
+            if (!lastResult.IsDefault && name.Span.SequenceEqual(lastResult[0].Name.AsSpan()))
             {
                 return lastResult;
             }
