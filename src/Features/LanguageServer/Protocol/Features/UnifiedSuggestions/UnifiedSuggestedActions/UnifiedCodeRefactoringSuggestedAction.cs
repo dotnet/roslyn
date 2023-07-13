@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         public UnifiedCodeRefactoringSuggestedAction(
             Workspace workspace,
             CodeAction codeAction,
-            CodeActionPriorityInternal codeActionPriority,
+            CodeActionPriority codeActionPriority,
             CodeRefactoringProvider codeRefactoringProvider,
             UnifiedSuggestedActionSet? fixAllFlavors)
             : base(workspace, codeAction, codeActionPriority)

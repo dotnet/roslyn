@@ -33,11 +33,18 @@ public enum CodeActionPriority
     Medium = 2,
 
     /// <summary>
+    /// High priority code action. Note: High priority is simply a request on the part of a <see cref="CodeAction"/>.
+    /// The core engine may automatically downgrade these items to <see cref="Default"/> priority.
+    /// </summary>
+    High = 3,
+
+    /// <summary>
     /// Default priority for code actions.  Equivalent to <see cref="Medium"/>.
     /// </summary>
     Default = Medium,
 }
 
+#if false
 internal static class CodeActionPriorityExtensions
 {
     /// <summary>
@@ -55,16 +62,17 @@ internal static class CodeActionPriorityExtensions
         return priority;
     }
 
-    public static CodeActionPriorityInternal ConvertToInternalPriority(this CodeActionPriority priority)
+    public static CodeActionPriority ConvertToInternalPriority(this CodeActionPriority priority)
     {
         priority = priority.Clamp();
 
         return priority switch
         {
-            CodeActionPriority.Lowest => CodeActionPriorityInternal.Lowest,
-            CodeActionPriority.Low => CodeActionPriorityInternal.Low,
-            CodeActionPriority.Medium => CodeActionPriorityInternal.Medium,
+            CodeActionPriority.Lowest => CodeActionPriority.Lowest,
+            CodeActionPriority.Low => CodeActionPriority.Low,
+            CodeActionPriority.Medium => CodeActionPriority.Medium,
             _ => throw ExceptionUtilities.UnexpectedValue(priority),
         };
     }
 }
+#endif

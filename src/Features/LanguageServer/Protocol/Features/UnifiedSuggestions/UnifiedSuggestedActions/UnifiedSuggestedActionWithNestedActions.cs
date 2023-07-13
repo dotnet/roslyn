@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         public UnifiedSuggestedActionWithNestedActions(
             Workspace workspace,
             CodeAction codeAction,
-            CodeActionPriorityInternal codeActionPriority,
+            CodeActionPriority codeActionPriority,
             object? provider,
             ImmutableArray<UnifiedSuggestedActionSet> nestedActionSets)
             : base(workspace, codeAction, codeActionPriority)

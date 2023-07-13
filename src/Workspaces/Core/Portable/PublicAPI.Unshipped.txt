@@ -1,5 +1,6 @@
 Microsoft.CodeAnalysis.CodeActions.CodeActionPriority
 Microsoft.CodeAnalysis.CodeActions.CodeActionPriority.Default = 2 -> Microsoft.CodeAnalysis.CodeActions.CodeActionPriority
+Microsoft.CodeAnalysis.CodeActions.CodeActionPriority.High = 3 -> Microsoft.CodeAnalysis.CodeActions.CodeActionPriority
 Microsoft.CodeAnalysis.CodeActions.CodeActionPriority.Low = 1 -> Microsoft.CodeAnalysis.CodeActions.CodeActionPriority
 Microsoft.CodeAnalysis.CodeActions.CodeActionPriority.Lowest = 0 -> Microsoft.CodeAnalysis.CodeActions.CodeActionPriority
 Microsoft.CodeAnalysis.CodeActions.CodeActionPriority.Medium = 2 -> Microsoft.CodeAnalysis.CodeActions.CodeActionPriority

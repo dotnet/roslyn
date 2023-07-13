@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             protected override AddImportFixData GetFixData(
                 Document document, ImmutableArray<TextChange> textChanges, string description,
-                ImmutableArray<string> tags, CodeActionPriorityInternal priority)
+                ImmutableArray<string> tags, CodeActionPriority priority)
             {
                 return AddImportFixData.CreateForMetadataSymbol(
                     textChanges, description, tags, priority,
@@ -65,8 +65,8 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             // Adding metadata references should be considered lower pri than anything else.
-            protected override CodeActionPriorityInternal GetPriority(Document document)
-                => CodeActionPriorityInternal.Low;
+            protected override CodeActionPriority GetPriority(Document document)
+                => CodeActionPriority.Low;
 
             protected override ImmutableArray<string> GetTags(Document document)
                 => WellKnownTagArrays.AddReference;

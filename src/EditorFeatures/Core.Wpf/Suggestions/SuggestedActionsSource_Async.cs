@@ -299,13 +299,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         };
                 }
 
-                static SuggestedActionSetPriority ConvertToSuggestedActionSetPriority(CodeActionPriorityInternal priority)
+                static SuggestedActionSetPriority ConvertToSuggestedActionSetPriority(CodeActionPriority priority)
                     => priority switch
                     {
-                        CodeActionPriorityInternal.Lowest => SuggestedActionSetPriority.None,
-                        CodeActionPriorityInternal.Low => SuggestedActionSetPriority.Low,
-                        CodeActionPriorityInternal.Medium => SuggestedActionSetPriority.Medium,
-                        CodeActionPriorityInternal.High => SuggestedActionSetPriority.High,
+                        CodeActionPriority.Lowest => SuggestedActionSetPriority.None,
+                        CodeActionPriority.Low => SuggestedActionSetPriority.Low,
+                        CodeActionPriority.Medium => SuggestedActionSetPriority.Medium,
+                        CodeActionPriority.High => SuggestedActionSetPriority.High,
                         _ => throw ExceptionUtilities.Unreachable(),
                     };
             }

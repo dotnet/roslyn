@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             SourceText documentText,
             IUnifiedSuggestedAction suggestedAction,
             LSP.CodeActionKind codeActionKind,
-            CodeActionPriorityInternal setPriority,
+            CodeActionPriority setPriority,
             LSP.Range? applicableRange,
             int currentSetNumber,
             ref int currentHighestSetNumber,
@@ -340,13 +340,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 _ => throw ExceptionUtilities.UnexpectedValue(categoryName)
             };
 
-        private static LSP.VSInternalPriorityLevel? UnifiedSuggestedActionSetPriorityToPriorityLevel(CodeActionPriorityInternal priority)
+        private static LSP.VSInternalPriorityLevel? UnifiedSuggestedActionSetPriorityToPriorityLevel(CodeActionPriority priority)
             => priority switch
             {
-                CodeActionPriorityInternal.Lowest => LSP.VSInternalPriorityLevel.Lowest,
-                CodeActionPriorityInternal.Low => LSP.VSInternalPriorityLevel.Low,
-                CodeActionPriorityInternal.Medium => LSP.VSInternalPriorityLevel.Normal,
-                CodeActionPriorityInternal.High => LSP.VSInternalPriorityLevel.High,
+                CodeActionPriority.Lowest => LSP.VSInternalPriorityLevel.Lowest,
+                CodeActionPriority.Low => LSP.VSInternalPriorityLevel.Low,
+                CodeActionPriority.Medium => LSP.VSInternalPriorityLevel.Normal,
+                CodeActionPriority.High => LSP.VSInternalPriorityLevel.High,
                 _ => throw ExceptionUtilities.UnexpectedValue(priority)
             };
 

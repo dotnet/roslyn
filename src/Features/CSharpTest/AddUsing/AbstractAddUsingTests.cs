@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
             string expectedMarkup,
             TestHost testHost,
             int index = 0,
-            CodeActionPriorityInternal? priority = null,
+            CodeActionPriority? priority = null,
             OptionsCollection options = null)
         {
             await TestInRegularAndScript1Async(

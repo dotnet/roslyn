@@ -15,6 +15,6 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 
         CodeAction OriginalCodeAction { get; }
 
-        CodeActionPriorityInternal CodeActionPriority { get; }
+        CodeActionPriority CodeActionPriority { get; }
     }
 }

@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                         AnalyzersResources.Fix_formatting,
                         c => FixOneAsync(context, diagnostic, c),
                         nameof(AbstractFormattingCodeFixProvider),
-                        CodeActionPriorityInternal.High),
+                        CodeActionPriority.High),
                     diagnostic);
 #endif
             }

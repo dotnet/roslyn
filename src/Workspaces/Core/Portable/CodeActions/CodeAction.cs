@@ -76,14 +76,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
         internal virtual bool IsInlinable => false;
 
         /// <summary>
-        /// <see langword="virtual"/> so that our own internal code actions get privileged access to the <see
-        /// cref="CodeActionPriorityInternal.High"/> bucket.  We do not currently expose that publicly as caution
-        /// against poorly behaving external analyzers impacting experiences like 'add using'
-        /// </summary>
-        internal virtual CodeActionPriorityInternal PriorityInternal
-            => this.Priority.ConvertToInternalPriority();
-
-        /// <summary>
         /// Priority of this particular action within a group of other actions.  Less relevant actions should override
         /// this and specify a lower priority so that more important actions are easily accessible to the user.  Returns
         /// <see cref="CodeActionPriority.Default"/> if not overridden.
@@ -489,27 +481,17 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 string? equivalenceKey,
                 CodeActionPriority priority,
                 bool createdFromFactoryMethod)
-                : this(title, equivalenceKey, priority.ConvertToInternalPriority(), createdFromFactoryMethod)
-            {
-            }
-
-            protected SimpleCodeAction(
-                string title,
-                string? equivalenceKey,
-                CodeActionPriorityInternal priority,
-                bool createdFromFactoryMethod)
             {
                 Title = title;
                 EquivalenceKey = equivalenceKey;
-                PriorityInternal = priority;
+                Priority = priority;
                 CreatedFromFactoryMethod = createdFromFactoryMethod;
             }
 
             public sealed override string Title { get; }
             public sealed override string? EquivalenceKey { get; }
 
-            internal sealed override CodeActionPriorityInternal PriorityInternal { get; }
-            public sealed override CodeActionPriority Priority => throw ExceptionUtilities.Unreachable();
+            public sealed override CodeActionPriority Priority { get; }
 
             /// <summary>
             /// Indicates if this CodeAction was created using one of the 'CodeAction.Create' factory methods.
@@ -588,17 +570,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 _createChangedDocument = createChangedDocument;
             }
 
-            private DocumentChangeAction(
-                string title,
-                Func<CancellationToken, Task<Document>> createChangedDocument,
-                string? equivalenceKey,
-                CodeActionPriorityInternal priority,
-                bool createdFromFactoryMethod)
-                : base(title, equivalenceKey, priority, createdFromFactoryMethod)
-            {
-                _createChangedDocument = createChangedDocument;
-            }
-
             protected DocumentChangeAction(
                 string title,
                 Func<CancellationToken, Task<Document>> createChangedDocument,
@@ -613,13 +584,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 Func<CancellationToken, Task<Document>> createChangedDocument,
                 string? equivalenceKey,
                 CodeActionPriority priority = CodeActionPriority.Default)
-                => new(title, createChangedDocument, equivalenceKey, priority, createdFromFactoryMethod: true);
-
-            public static DocumentChangeAction Create(
-                string title,
-                Func<CancellationToken, Task<Document>> createChangedDocument,
-                string? equivalenceKey,
-                CodeActionPriorityInternal priority)
                 => new(title, createChangedDocument, equivalenceKey, priority, createdFromFactoryMethod: true);
 
             protected sealed override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)

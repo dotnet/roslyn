@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             public override string Title { get; }
             public sealed override ImmutableArray<string> Tags { get; }
-            internal sealed override CodeActionPriorityInternal PriorityInternal { get; }
+            public sealed override CodeActionPriority Priority { get; }
 
             public sealed override string EquivalenceKey => Title;
 
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                 Title = fixData.Title;
                 Tags = fixData.Tags.ToImmutableArrayOrEmpty().AddRange(additionalTags);
-                PriorityInternal = fixData.Priority;
+                Priority = fixData.Priority;
                 _textChanges = fixData.TextChanges.ToImmutableArrayOrEmpty();
             }
 

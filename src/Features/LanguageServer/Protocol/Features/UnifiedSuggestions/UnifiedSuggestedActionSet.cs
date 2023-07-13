@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 
         public object? Title { get; }
 
-        public CodeActionPriorityInternal Priority { get; }
+        public CodeActionPriority Priority { get; }
 
         public TextSpan? ApplicableToSpan { get; }
 
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             string? categoryName,
             ImmutableArray<IUnifiedSuggestedAction> actions,
             object? title,
-            CodeActionPriorityInternal priority,
+            CodeActionPriority priority,
             TextSpan? applicableToSpan)
         {
             OriginalSolution = originalSolution;

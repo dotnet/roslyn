@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 #if CODE_STYLE
                 return CodeAction.Create(title, action, equivalenceKey);
 #else
-                return CodeAction.DocumentChangeAction.Create(title, action, equivalenceKey, CodeActionPriorityInternal.High);
+                return CodeAction.DocumentChangeAction.Create(title, action, equivalenceKey, CodeActionPriority.High);
 #endif
             }
         }

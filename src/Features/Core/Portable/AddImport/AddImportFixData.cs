@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// The priority this item should have in the lightbulb list.
         /// </summary>
         [DataMember(Order = 4)]
-        public readonly CodeActionPriorityInternal Priority;
+        public readonly CodeActionPriority Priority;
 
         #region When adding P2P references.
 
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             ImmutableArray<TextChange> textChanges,
             string title = null,
             ImmutableArray<string> tags = default,
-            CodeActionPriorityInternal priority = default,
+            CodeActionPriority priority = default,
             ProjectId projectReferenceToAdd = null,
             ProjectId portableExecutableReferenceProjectId = null,
             string portableExecutableReferenceFilePathToAdd = null,
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             PackageVersionOpt = packageVersionOpt;
         }
 
-        public static AddImportFixData CreateForProjectSymbol(ImmutableArray<TextChange> textChanges, string title, ImmutableArray<string> tags, CodeActionPriorityInternal priority, ProjectId projectReferenceToAdd)
+        public static AddImportFixData CreateForProjectSymbol(ImmutableArray<TextChange> textChanges, string title, ImmutableArray<string> tags, CodeActionPriority priority, ProjectId projectReferenceToAdd)
             => new(AddImportFixKind.ProjectSymbol,
                    textChanges,
                    title: title,
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                    priority: priority,
                    projectReferenceToAdd: projectReferenceToAdd);
 
-        public static AddImportFixData CreateForMetadataSymbol(ImmutableArray<TextChange> textChanges, string title, ImmutableArray<string> tags, CodeActionPriorityInternal priority, ProjectId portableExecutableReferenceProjectId, string portableExecutableReferenceFilePathToAdd)
+        public static AddImportFixData CreateForMetadataSymbol(ImmutableArray<TextChange> textChanges, string title, ImmutableArray<string> tags, CodeActionPriority priority, ProjectId portableExecutableReferenceProjectId, string portableExecutableReferenceFilePathToAdd)
             => new(AddImportFixKind.MetadataSymbol,
                    textChanges,
                    title: title,
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                    textChanges,
                    title: title,
                    tags: WellKnownTagArrays.AddReference,
-                   priority: CodeActionPriorityInternal.Low,
+                   priority: CodeActionPriority.Low,
                    assemblyReferenceAssemblyName: assemblyReferenceAssemblyName,
                    assemblyReferenceFullyQualifiedTypeName: assemblyReferenceFullyQualifiedTypeName);
 
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             => new(AddImportFixKind.PackageSymbol,
                    textChanges,
                    packageSource: packageSource,
-                   priority: CodeActionPriorityInternal.Low,
+                   priority: CodeActionPriority.Low,
                    packageName: packageName,
                    packageVersionOpt: packageVersionOpt);
     }

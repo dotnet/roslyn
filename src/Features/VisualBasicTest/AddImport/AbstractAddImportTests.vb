@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
                 expectedMarkup As String,
                 testHost As TestHost,
                 Optional index As Integer = 0,
-                Optional priority As CodeActionPriorityInternal? = Nothing,
+                Optional priority As CodeActionPriority? = Nothing,
                 Optional placeSystemFirst As Boolean = True) As Task
 
             Await TestInRegularAndScript1Async(

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#if false
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CodeActions;
@@ -13,14 +14,14 @@ namespace Microsoft.CodeAnalysis.CodeActions;
 /// and low priority items do not.
 /// </summary>
 /// <remarks>
-/// If <see cref="CodeActionPriorityInternal.High"/> is used, the feature that specifies that value should 
+/// If <see cref="CodeActionPriority.High"/> is used, the feature that specifies that value should 
 /// implement and return <see cref="CodeActionRequestPriorityInternal.High"/> for <see cref="IBuiltInAnalyzer.RequestPriority"/>,
 /// <see cref="T:Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider.RequestPriority"/> and
 /// <see cref="T:Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringProvider.RequestPriority"/>. This
 /// will ensure that the analysis engine runs the providers that will produce those actions first,
 /// thus allowing those actions to be computed and displayed prior to running all other providers.
 /// </remarks>
-internal enum CodeActionPriorityInternal
+internal enum CodeActionPriority
 {
     Lowest = 0,
     Low = 1,
@@ -29,3 +30,4 @@ internal enum CodeActionPriorityInternal
 
     Default = Medium
 }
+#endif

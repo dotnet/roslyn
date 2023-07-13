@@ -123,9 +123,9 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             protected abstract AddImportFixData GetFixData(
                 Document document, ImmutableArray<TextChange> textChanges,
-                string description, ImmutableArray<string> tags, CodeActionPriorityInternal priority);
+                string description, ImmutableArray<string> tags, CodeActionPriority priority);
 
-            protected abstract CodeActionPriorityInternal GetPriority(Document document);
+            protected abstract CodeActionPriority GetPriority(Document document);
 
             protected virtual (string description, bool hasExistingImport) GetDescription(
                 Document document, CodeCleanupOptions options, SyntaxNode node,
