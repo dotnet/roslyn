@@ -2050,6 +2050,25 @@ C<T>.field2 -> C<T>.Nested";
             await VerifyCSharpAsync(source, shippedText, unshippedText);
         }
 
+        [Fact]
+        public async Task ShippedTextWithMissingDelegate()
+        {
+            var source = $$"""
+                #nullable enable
+                {{EnabledModifierCSharp}} delegate void D(int X, string Y);
+                """;
+
+            var shippedText = """
+                #nullable enable
+                D
+                virtual D.Invoke(int X, string! Y) -> void
+                """;
+
+            var unshippedText = string.Empty;
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
+
         #endregion
 
         #region Fix tests

@@ -759,6 +759,11 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
                     if (methodSymbol is { MethodKind: MethodKind.Constructor, ContainingType.TypeKind: TypeKind.Enum })
                         return false;
+
+                    // include a delegate's 'Invoke' method so we encode its signature (it would be a breaking change to
+                    // change that). All other delegate methods can be ignored though.
+                    if (methodSymbol is { ContainingType.TypeKind: TypeKind.Delegate, MethodKind: not MethodKind.DelegateInvoke })
+                        return false;
                 }
 
                 // We don't consider properties to be public APIs. Instead, property getters and setters
