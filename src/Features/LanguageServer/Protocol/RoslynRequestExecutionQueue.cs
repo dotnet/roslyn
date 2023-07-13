@@ -14,6 +14,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     {
         private readonly IInitializeManager _initializeManager;
 
+        /// <summary>
+        /// Serial access is guaranteed by the queue.
+        /// </summary>
+        private CultureInfo? _cultureInfo;
+
         public RoslynRequestExecutionQueue(AbstractLanguageServer<RequestContext> languageServer, ILspLogger logger, IHandlerProvider handlerProvider)
             : base(languageServer, logger, handlerProvider)
         {
@@ -22,7 +27,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public override Task WrapStartRequestTaskAsync(Task nonMutatingRequestTask, bool rethrowExceptions)
         {
-            TrySetLocale();
+            // Update the locale for this request to the desired LSP locale.
+            CultureInfo.CurrentUICulture = GetCultureForRequest();
             if (rethrowExceptions)
             {
                 return nonMutatingRequestTask;
@@ -33,21 +39,46 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
         }
 
-        private void TrySetLocale()
+        /// <summary>
+        /// Serial access is guaranteed by the queue.
+        /// </summary>
+        private CultureInfo GetCultureForRequest()
         {
-            var locale = _initializeManager.TryGetInitializeParams()?.Locale;
-            // The client may not have given us a UI or this is the initialize request and we haven't saved it yet.
-            if (!string.IsNullOrWhiteSpace(locale))
+            if (_cultureInfo != null)
             {
-                try
-                {
-                    var desiredUICulture = CultureInfo.CreateSpecificCulture(locale);
-                    CultureInfo.CurrentUICulture = desiredUICulture;
-                }
-                catch (CultureNotFoundException)
-                {
-                    _logger.LogWarning($"Culture {locale} was not found, falling back to OS culture");
-                }
+                return _cultureInfo;
+            }
+
+            var initializeParams = _initializeManager.TryGetInitializeParams();
+            if (initializeParams == null)
+            {
+                // Initialize has not been called yet, no culture to set.
+                // Don't update the _cultureInfo since we don't know what it should be.
+                return CultureInfo.CurrentCulture;
+            }
+
+            var locale = initializeParams.Locale;
+            if (string.IsNullOrWhiteSpace(locale))
+            {
+                // The client did not provide a culture, use the OS configured value
+                // and remember that so we can short-circuit from now on.
+                _cultureInfo = CultureInfo.CurrentCulture;
+                return _cultureInfo;
+            }
+
+            try
+            {
+                // Parse the LSP locale into a culture and remember it for future requests.
+                _cultureInfo = CultureInfo.CreateSpecificCulture(locale);
+                return _cultureInfo;
+            }
+            catch (CultureNotFoundException)
+            {
+                // We couldn't parse the culture, log a warning and fallback to the OS configured value.
+                // Also remember the fallback so we don't warn on every request.
+                _logger.LogWarning($"Culture {locale} was not found, falling back to OS culture");
+                _cultureInfo = CultureInfo.CurrentCulture;
+                return _cultureInfo;
             }
         }
     }

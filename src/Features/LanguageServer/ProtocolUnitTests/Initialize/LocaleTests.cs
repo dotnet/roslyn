@@ -65,6 +65,19 @@ public class LocaleTests(ITestOutputHelper? testOutputHelper) : AbstractLanguage
         Assert.Equal(currentCulture, result!.HandlerCulture);
     }
 
+    [Theory, CombinatorialData]
+    public async Task TestUsesDefaultLocaleIfInvalidLocaleProvided(bool mutatingLspWorkspace)
+    {
+        var currentCulture = CultureInfo.CurrentUICulture.Name;
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
+        {
+            Locale = "this is invalid"
+        });
+
+        var result = await testLspServer.ExecuteRequestAsync<Request, Response>(LocaleTestHandler.MethodName, new Request(), CancellationToken.None);
+        Assert.Equal(currentCulture, result!.HandlerCulture);
+    }
+
     [ExportCSharpVisualBasicStatelessLspService(typeof(LocaleTestHandler)), PartNotDiscoverable, Shared]
     [Method(MethodName)]
     internal class LocaleTestHandler : ILspServiceRequestHandler<Request, Response>

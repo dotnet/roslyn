@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Roslyn.Utilities;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -27,6 +28,7 @@ internal class InitializeManager : IInitializeManager
 
     public void SetInitializeParams(InitializeParams initializeParams)
     {
+        Contract.ThrowIfFalse(_initializeParams == null);
         _initializeParams = initializeParams;
     }
 
