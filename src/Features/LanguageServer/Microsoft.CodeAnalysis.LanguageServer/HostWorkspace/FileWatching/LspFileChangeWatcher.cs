@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
 using FileSystemWatcher = Microsoft.VisualStudio.LanguageServer.Protocol.FileSystemWatcher;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
 
@@ -33,7 +34,7 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
     public static bool SupportsLanguageServerHost(LanguageServerHost languageServerHost)
     {
         // We can only use the LSP client for doing file watching if we support dynamic registration for it
-        var clientCapabilitiesProvider = languageServerHost.GetRequiredLspService<IClientCapabilitiesProvider>();
+        var clientCapabilitiesProvider = languageServerHost.GetRequiredLspService<IInitializeManager>();
         return clientCapabilitiesProvider.GetClientCapabilities().Workspace?.DidChangeWatchedFiles?.DynamicRegistration ?? false;
     }
 
