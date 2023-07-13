@@ -935,14 +935,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 GetStatementList(statements))
         End Function
 
-        Public Overrides Function SetAccessorDeclaration(Optional accessibility As Accessibility = Accessibility.NotApplicable, Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+        Private Protected Overrides Function SetAccessorDeclaration(accessibility As Accessibility, isInitOnly As Boolean, statements As IEnumerable(Of SyntaxNode)) As SyntaxNode
             Return SyntaxFactory.SetAccessorBlock(
                 SyntaxFactory.SetAccessorStatement().WithModifiers(GetModifierList(accessibility, DeclarationModifiers.None, declaration:=Nothing, DeclarationKind.Property)),
                 GetStatementList(statements))
-        End Function
-
-        Public Overrides Function InitAccessorDeclaration(Optional accessibility As Accessibility = Accessibility.NotApplicable, Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
-            Return SetAccessorDeclaration(accessibility, statements)
         End Function
 
         Public Overrides Function WithAccessorDeclarations(declaration As SyntaxNode, accessorDeclarations As IEnumerable(Of SyntaxNode)) As SyntaxNode

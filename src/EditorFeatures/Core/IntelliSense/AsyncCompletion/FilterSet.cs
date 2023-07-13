@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
     /// available but unselected, whereas it means available and selected for an expander. Note that even though VS supports 
     /// having multiple expanders, we only support one.
     /// </summary>
-    internal sealed class FilterSet
+    internal sealed class FilterSet(bool supportExpander)
     {
         // Cache all the VS completion filters which essentially make them singletons.
         // Need to map item tags such as Class, Interface, Local, Enum to filter buttons.
@@ -37,9 +37,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         // to create a filter list covering a completion session.
         private static readonly ImmutableArray<FilterWithMask> s_filters;
 
-        private BitVector32 _vector;
+        private BitVector32 _vector = new BitVector32();
         private static readonly int s_expanderMask;
-        private readonly bool _supportExpander;
+        private readonly bool _supportExpander = supportExpander;
 
         public static readonly CompletionFilter NamespaceFilter;
         public static readonly CompletionFilter ClassFilter;
@@ -127,12 +127,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 displayText,
                 accessKey.ToString(),
                 new ImageElement(new ImageId(imageId.Guid, imageId.Id), EditorFeaturesResources.Filter_image_element));
-        }
-
-        public FilterSet(bool supportExpander)
-        {
-            _supportExpander = supportExpander;
-            _vector = new BitVector32();
         }
 
         public (ImmutableArray<CompletionFilter> filters, int data) GetFiltersAndAddToSet(RoslynCompletionItem item)

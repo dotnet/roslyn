@@ -4723,6 +4723,59 @@ public class C : IDisposable
                 """);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68957")]
+        public void TestGenerateUnmanagedConstraint1()
+        {
+            var comp = Compile(
+                """public class C<T> where T : unmanaged { }""");
+
+            var symbol = comp.GlobalNamespace.GetMembers("C").First();
+
+            VerifySyntax<ClassDeclarationSyntax>(
+                Generator.Declaration(symbol),
+                """
+                public class C<T> : global::System.Object where T : unmanaged
+                {
+                    public C()
+                    {
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68957")]
+        public void TestGenerateUnmanagedConstraint2()
+        {
+            var comp = Compile(
+                """public class C { void M<T>() where T : unmanaged { } }""");
+
+            var symbol = comp.GlobalNamespace.GetMembers("C").First().GetMembers("M").First();
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                Generator.Declaration(symbol),
+                """
+                private void M<T>()
+                    where T : unmanaged
+                {
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68957")]
+        public void TestGenerateInitProperty1()
+        {
+            var comp = Compile(
+                """public class C { public int X { get; init; } }""");
+
+            var symbol = comp.GlobalNamespace.GetMembers("C").First().GetMembers("X").First();
+
+            VerifySyntax<PropertyDeclarationSyntax>(
+                Generator.Declaration(symbol),
+                """
+                public global::System.Int32 X { get; init; }
+                """);
+        }
+
         #endregion
 
         #region DeclarationModifiers

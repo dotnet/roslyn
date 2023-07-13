@@ -397,10 +397,10 @@ namespace Microsoft.CodeAnalysis.Editing
             if (setMethodSymbol is not null)
             {
                 var setMethodAccessibility = setMethodSymbol.DeclaredAccessibility;
-                
-                setAccessor = setMethodSymbol.IsInitOnly ? 
-                    InitAccessorDeclaration(setMethodAccessibility < propertyAccessibility ? setMethodAccessibility : Accessibility.NotApplicable, setAccessorStatements) :
-                    SetAccessorDeclaration(setMethodAccessibility < propertyAccessibility ? setMethodAccessibility : Accessibility.NotApplicable, setAccessorStatements);
+                setAccessor = SetAccessorDeclaration(
+                    setMethodAccessibility < propertyAccessibility ? setMethodAccessibility : Accessibility.NotApplicable,
+                    isInitOnly: setMethodSymbol.IsInitOnly,
+                    setAccessorStatements);
             }
 
             var propDecl = PropertyDeclaration(
@@ -437,13 +437,13 @@ namespace Microsoft.CodeAnalysis.Editing
             Accessibility accessibility = Accessibility.NotApplicable,
             IEnumerable<SyntaxNode>? statements = null);
 
-        public abstract SyntaxNode SetAccessorDeclaration(
+        public SyntaxNode SetAccessorDeclaration(
             Accessibility accessibility = Accessibility.NotApplicable,
-            IEnumerable<SyntaxNode>? statements = null);
+            IEnumerable<SyntaxNode>? statements = null)
+            => SetAccessorDeclaration(accessibility, isInitOnly: false, statements);
 
-        public abstract SyntaxNode InitAccessorDeclaration(
-            Accessibility accessibility = Accessibility.NotApplicable,
-            IEnumerable<SyntaxNode>? statements = null);
+        private protected abstract SyntaxNode SetAccessorDeclaration(
+            Accessibility accessibility, bool isInitOnly, IEnumerable<SyntaxNode>? statements);
 
         /// <summary>
         /// Creates an indexer declaration.
@@ -741,14 +741,7 @@ namespace Microsoft.CodeAnalysis.Editing
 
                 case SymbolKind.Property:
                     var property = (IPropertySymbol)symbol;
-                    if (property.IsIndexer)
-                    {
-                        return IndexerDeclaration(property);
-                    }
-                    else
-                    {
-                        return PropertyDeclaration(property);
-                    }
+                    return property.IsIndexer ? IndexerDeclaration(property) : PropertyDeclaration(property);
 
                 case SymbolKind.Event:
                     var ev = (IEventSymbol)symbol;

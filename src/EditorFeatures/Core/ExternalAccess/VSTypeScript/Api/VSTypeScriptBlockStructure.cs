@@ -6,11 +6,8 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {
-    internal readonly struct VSTypeScriptBlockStructure
+    internal readonly struct VSTypeScriptBlockStructure(ImmutableArray<VSTypeScriptBlockSpan> spans)
     {
-        public ImmutableArray<VSTypeScriptBlockSpan> Spans { get; }
-
-        public VSTypeScriptBlockStructure(ImmutableArray<VSTypeScriptBlockSpan> spans)
-            => Spans = spans;
+        public ImmutableArray<VSTypeScriptBlockSpan> Spans { get; } = spans;
     }
 }

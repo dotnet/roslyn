@@ -13,24 +13,18 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
     [ExportWorkspaceServiceFactory(typeof(ICodeRefactoringHelpersService), ServiceLayer.Editor), Shared]
-    internal class EditorLayerCodeActionHelpersService : IWorkspaceServiceFactory
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class EditorLayerCodeActionHelpersService(IInlineRenameService renameService) : IWorkspaceServiceFactory
     {
-        private readonly IInlineRenameService _renameService;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public EditorLayerCodeActionHelpersService(IInlineRenameService renameService)
-            => _renameService = renameService;
+        private readonly IInlineRenameService _renameService = renameService;
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
             => new CodeActionHelpersService(this);
 
-        private class CodeActionHelpersService : ICodeRefactoringHelpersService
+        private class CodeActionHelpersService(EditorLayerCodeActionHelpersService service) : ICodeRefactoringHelpersService
         {
-            private readonly EditorLayerCodeActionHelpersService _service;
-
-            public CodeActionHelpersService(EditorLayerCodeActionHelpersService service)
-                => _service = service;
+            private readonly EditorLayerCodeActionHelpersService _service = service;
 
             public bool ActiveInlineRenameSession
             {
