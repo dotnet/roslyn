@@ -101,28 +101,28 @@
       </trans-unit>
       <trans-unit id="InternalsVisibleToCurrentAssembly">
         <source>Current assembly: '{0}'</source>
-        <target state="new">Current assembly: '{0}'</target>
+        <target state="translated">当前程序集:“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="InternalsVisibleToHeaderSummary">
         <source>Printing 'InternalsVisibleToAttribute' information for the current compilation and all referenced assemblies.</source>
-        <target state="new">Printing 'InternalsVisibleToAttribute' information for the current compilation and all referenced assemblies.</target>
+        <target state="translated">正在打印当前编译和所有引用程序集的 "InternalsVisibleToAttribute" 信息。</target>
         <note />
       </trans-unit>
       <trans-unit id="InternalsVisibleToReferencedAssembly">
         <source>Assembly reference: '{0}'
   Grants IVT to current assembly: {1}
   Grants IVTs to:</source>
-        <target state="new">Assembly reference: '{0}'
-  Grants IVT to current assembly: {1}
-  Grants IVTs to:</target>
+        <target state="translated">程序集引用:“{0}”
+ 将 IVT 授予当前程序集:{1}
+ 将 IVT 授予:</target>
         <note />
       </trans-unit>
       <trans-unit id="InternalsVisibleToReferencedAssemblyDetails">
         <source>    Assembly name: '{0}'
     Public Keys:</source>
-        <target state="new">    Assembly name: '{0}'
-    Public Keys:</target>
+        <target state="translated">    程序集名称:“{0}”
+   公钥:</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidAdditionalFile">
@@ -182,7 +182,7 @@
       </trans-unit>
       <trans-unit id="Nothing">
         <source>Nothing</source>
-        <target state="new">Nothing</target>
+        <target state="translated">无</target>
         <note />
       </trans-unit>
       <trans-unit id="OperationHasNullSemanticModel">
