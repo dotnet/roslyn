@@ -898,7 +898,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 initializer As SyntaxNode,
                 refKind As RefKind,
                 isExtension As Boolean,
-                isParams As Boolean) As SyntaxNode
+                isParams As Boolean,
+                isScoped As Boolean) As SyntaxNode
 
             Dim modifiers = GetParameterModifiers(refKind, initializer)
             If isParams Then
