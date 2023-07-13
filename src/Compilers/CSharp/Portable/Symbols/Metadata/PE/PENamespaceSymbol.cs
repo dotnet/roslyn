@@ -42,6 +42,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// </summary>
         private Dictionary<string, TypeDefinitionHandle> _lazyNoPiaLocalTypes;
 
+        /// <summary>
+        /// Caches the last call to GetMembers(string) when that member is a namespace. Multiple types
+        /// within the same namespace are often requested in sequence, so this allows the second and
+        /// subsequent request for members with the same name to share a result without looking up the
+        /// values or allocating.
+        /// </summary>
         private ImmutableArray<Symbol> _lastGetMembersResult;
 
         /// <summary>
