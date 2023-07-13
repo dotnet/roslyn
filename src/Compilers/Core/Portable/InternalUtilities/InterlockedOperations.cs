@@ -13,10 +13,10 @@ namespace Roslyn.Utilities
 {
     internal static class InterlockedOperations
     {
-        internal static T InterlockedStore<T>([NotNull] ref T? target, T value) where T : class
+        private static T GetOrStore<T>([NotNull] ref T? target, T value) where T : class
             => Interlocked.CompareExchange(ref target, value, null) ?? value;
 
-        internal static int InterlockedStore(ref int target, int uninitializedValue, int value)
+        private static int GetOrStore(ref int target, int value, int uninitializedValue)
         {
             var existingValue = Interlocked.CompareExchange(ref target, value, uninitializedValue);
             return existingValue == uninitializedValue ? value : existingValue;
@@ -30,23 +30,23 @@ namespace Roslyn.Utilities
         /// <param name="valueFactory">A factory delegate to create a new instance of the target value. Note that this delegate may be called
         /// more than once by multiple threads, but only one of those values will successfully be written to the target.</param>
         /// <returns>The target value.</returns>
-        public static T EnsureInitialized<T>([NotNull] ref T? target, Func<T> valueFactory) where T : class
-            => Volatile.Read(ref target!) ?? InterlockedStore(ref target, valueFactory());
+        public static T Initialize<T>([NotNull] ref T? target, Func<T> valueFactory) where T : class
+            => Volatile.Read(ref target!) ?? GetOrStore(ref target, valueFactory());
 
         /// <summary>
         /// Ensure that the given target value is initialized (not null) in a thread-safe manner.
         /// </summary>
         /// <typeparam name="T">The type of the target value. Must be a reference type.</typeparam>
         /// <param name="target">The target to initialize.</param>
-        /// <typeparam name="U">The type of the <paramref name="state"/> argument passed to the value factory.</typeparam>
+        /// <typeparam name="TArg">The type of the <paramref name="arg"/> argument passed to the value factory.</typeparam>
         /// <param name="valueFactory">A factory delegate to create a new instance of the target value. Note that this delegate may be called
         /// more than once by multiple threads, but only one of those values will successfully be written to the target.</param>
-        /// <param name="state">An argument passed to the value factory.</param>
+        /// <param name="arg">An argument passed to the value factory.</param>
         /// <returns>The target value.</returns>
-        public static T EnsureInitialized<T, U>([NotNull] ref T? target, Func<U, T> valueFactory, U state)
+        public static T Initialize<T, TArg>([NotNull] ref T? target, Func<TArg, T> valueFactory, TArg arg)
             where T : class
         {
-            return Volatile.Read(ref target!) ?? InterlockedStore(ref target, valueFactory(state));
+            return Volatile.Read(ref target!) ?? GetOrStore(ref target, valueFactory(arg));
         }
 
         /// <summary>
@@ -56,20 +56,20 @@ namespace Roslyn.Utilities
         /// <param name="uninitializedValue">The value indicating <paramref name="target"/> is not yet initialized.</param>
         /// <param name="valueFactory">A factory delegate to create a new instance of the target value. Note that this delegate may be called
         /// more than once by multiple threads, but only one of those values will successfully be written to the target.</param>
-        /// <param name="state">An argument passed to the value factory.</param>
-        /// <typeparam name="U">The type of the <paramref name="state"/> argument passed to the value factory.</typeparam>
+        /// <param name="arg">An argument passed to the value factory.</param>
+        /// <typeparam name="TArg">The type of the <paramref name="arg"/> argument passed to the value factory.</typeparam>
         /// <remarks>
         /// If <paramref name="valueFactory"/> returns a value equal to <paramref name="uninitializedValue"/>, future
         /// calls to the same method may recalculate the target value.
         /// </remarks>
         /// <returns>The target value.</returns>
-        public static int EnsureInitialized<U>(ref int target, int uninitializedValue, Func<U, int> valueFactory, U state)
+        public static int Initialize<TArg>(ref int target, int uninitializedValue, Func<TArg, int> valueFactory, TArg arg)
         {
             var existingValue = Volatile.Read(ref target);
             if (existingValue != uninitializedValue)
                 return existingValue;
 
-            return InterlockedStore(ref target, uninitializedValue, valueFactory(state));
+            return GetOrStore(ref target, valueFactory(arg), uninitializedValue);
         }
 
         /// <summary>
@@ -82,9 +82,9 @@ namespace Roslyn.Utilities
         /// <param name="valueFactory">A factory delegate to create a new instance of the target value. Note that this delegate may be called
         /// more than once by multiple threads, but only one of those values will successfully be written to the target.</param>
         /// <returns>The target value.</returns>
-        public static T? EnsureInitialized<T>([NotNull] ref StrongBox<T?>? target, Func<T?> valueFactory)
+        public static T? Initialize<T>([NotNull] ref StrongBox<T?>? target, Func<T?> valueFactory)
         {
-            var box = Volatile.Read(ref target!) ?? InterlockedStore(ref target, new StrongBox<T?>(valueFactory()));
+            var box = Volatile.Read(ref target!) ?? GetOrStore(ref target, new StrongBox<T?>(valueFactory()));
             return box.Value;
         }
 
@@ -95,14 +95,14 @@ namespace Roslyn.Utilities
         /// </summary>
         /// <typeparam name="T">The type of the target value.</typeparam>
         /// <param name="target">A target value box to initialize.</param>
-        /// <typeparam name="U">The type of the <paramref name="state"/> argument passed to the value factory.</typeparam>
+        /// <typeparam name="TArg">The type of the <paramref name="arg"/> argument passed to the value factory.</typeparam>
         /// <param name="valueFactory">A factory delegate to create a new instance of the target value. Note that this delegate may be called
         /// more than once by multiple threads, but only one of those values will successfully be written to the target.</param>
-        /// <param name="state">An argument passed to the value factory.</param>
+        /// <param name="arg">An argument passed to the value factory.</param>
         /// <returns>The target value.</returns>
-        public static T? EnsureInitialized<T, U>([NotNull] ref StrongBox<T?>? target, Func<U, T?> valueFactory, U state)
+        public static T? Initialize<T, TArg>([NotNull] ref StrongBox<T?>? target, Func<TArg, T?> valueFactory, TArg arg)
         {
-            var box = Volatile.Read(ref target!) ?? InterlockedStore(ref target, new StrongBox<T?>(valueFactory(state)));
+            var box = Volatile.Read(ref target!) ?? GetOrStore(ref target, new StrongBox<T?>(valueFactory(arg)));
             return box.Value;
         }
 
@@ -119,7 +119,7 @@ namespace Roslyn.Utilities
         public static T Initialize<T>([NotNull] ref T? target, T value) where T : class
         {
             RoslynDebug.Assert((object?)value != null);
-            return Interlocked.CompareExchange(ref target, value, null) ?? value;
+            return GetOrStore(ref target, value);
         }
 
         /// <summary>
@@ -167,20 +167,30 @@ namespace Roslyn.Utilities
         /// called if 'target' is already not 'default' at the time this is called.</param>
         /// <returns>The value of <paramref name="target"/> after initialization.  If <paramref name="target"/> is
         /// already initialized, that value value will be returned.</returns>
-        public static ImmutableArray<T> InterlockedInitialize<T>(ref ImmutableArray<T> target, Func<ImmutableArray<T>> createArray)
-            => InterlockedInitialize(ref target, static createArray => createArray(), createArray);
+        public static ImmutableArray<T> Initialize<T>(ref ImmutableArray<T> target, Func<ImmutableArray<T>> createArray)
+            => Initialize(ref target, static createArray => createArray(), createArray);
 
-        public static ImmutableArray<T> InterlockedInitialize<T, TArg>(ref ImmutableArray<T> target, Func<TArg, ImmutableArray<T>> createArray, TArg arg)
+        /// <summary>
+        /// Initialize the immutable array referenced by <paramref name="target"/> in a thread-safe manner.
+        /// </summary>
+        /// <typeparam name="T">Elemental type of the array.</typeparam>
+        /// <typeparam name="TArg">The type of the <paramref name="arg"/> argument passed to the value factory.</typeparam>
+        /// <param name="createArray">Callback to produce the array if <paramref name="target"/> is 'default'.  May be
+        /// called multiple times in the event of concurrent initialization of <paramref name="target"/>.  Will not be
+        /// called if 'target' is already not 'default' at the time this is called.</param>
+        /// <returns>The value of <paramref name="target"/> after initialization.  If <paramref name="target"/> is
+        /// already initialized, that value value will be returned.</returns>
+        public static ImmutableArray<T> Initialize<T, TArg>(ref ImmutableArray<T> target, Func<TArg, ImmutableArray<T>> createArray, TArg arg)
         {
             if (!target.IsDefault)
             {
                 return target;
             }
 
-            return InterlockedInitialize_Slow(ref target, createArray, arg);
+            return Initialize_Slow(ref target, createArray, arg);
         }
 
-        private static ImmutableArray<T> InterlockedInitialize_Slow<T, TArg>(ref ImmutableArray<T> target, Func<TArg, ImmutableArray<T>> createArray, TArg arg)
+        private static ImmutableArray<T> Initialize_Slow<T, TArg>(ref ImmutableArray<T> target, Func<TArg, ImmutableArray<T>> createArray, TArg arg)
         {
             ImmutableInterlocked.Update(
                 ref target,
