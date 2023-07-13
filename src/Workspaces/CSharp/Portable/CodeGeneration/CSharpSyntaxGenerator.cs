@@ -1853,12 +1853,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 constraints = constraints.Add(SyntaxFactory.ConstructorConstraint());
             }
 
+            if ((kinds & SpecialTypeConstraintKind.NotNull) != 0)
+            {
+                constraints = constraints.Add(SyntaxFactory.TypeConstraint(SyntaxFactory.IdentifierName("notnull")));
+            }
+
             var isReferenceType = (kinds & SpecialTypeConstraintKind.ReferenceType) != 0;
             var isValueType = (kinds & SpecialTypeConstraintKind.ValueType) != 0;
+            var isUnmanaged = (kinds & SpecialTypeConstraintKind.Unmanaged) != 0;
 
-            if (isReferenceType || isValueType)
+            if (isReferenceType)
             {
-                constraints = constraints.Insert(0, SyntaxFactory.ClassOrStructConstraint(isReferenceType ? SyntaxKind.ClassConstraint : SyntaxKind.StructConstraint));
+                constraints = constraints.Insert(0, SyntaxFactory.ClassOrStructConstraint(SyntaxKind.ClassConstraint));
+            }
+            else if (isValueType)
+            {
+                constraints = constraints.Insert(0, isUnmanaged ? SyntaxFactory.TypeConstraint(SyntaxFactory.IdentifierName("unmanaged")) :  SyntaxFactory.ClassOrStructConstraint(SyntaxKind.StructConstraint));
             }
 
             var clause = clauses.FirstOrDefault(c => c.Name.Identifier.ToString() == typeParameterName);

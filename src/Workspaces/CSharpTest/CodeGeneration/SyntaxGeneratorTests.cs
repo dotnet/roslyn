@@ -2177,6 +2177,18 @@ public class C { } // end").Members[0];
             VerifySyntax<MethodDeclarationSyntax>(
                 Generator.WithTypeConstraint(
                     Generator.WithTypeParameters(Generator.MethodDeclaration("m", modifiers: DeclarationModifiers.Abstract), "a"),
+                    "a", SpecialTypeConstraintKind.Unmanaged | SpecialTypeConstraintKind.ValueType), // both must be present
+                "abstract void m<a>()\r\n    where a : unmanaged;");
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                Generator.WithTypeConstraint(
+                    Generator.WithTypeParameters(Generator.MethodDeclaration("m", modifiers: DeclarationModifiers.Abstract), "a"),
+                    "a", SpecialTypeConstraintKind.NotNull),
+                "abstract void m<a>()\r\n    where a : notnull;");
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                Generator.WithTypeConstraint(
+                    Generator.WithTypeParameters(Generator.MethodDeclaration("m", modifiers: DeclarationModifiers.Abstract), "a"),
                     "a", SpecialTypeConstraintKind.ReferenceType | SpecialTypeConstraintKind.Constructor),
                 "abstract void m<a>()\r\n    where a : class, new();");
 
@@ -2560,6 +2572,52 @@ public class C { } // end").Members[0];
                 """
                 public override TResult? Accept<TResult>(global::System.Int32 a)
                     where TResult : class
+                {
+                }
+                """);
+        }
+
+        [Fact]
+        public void TestUnmanagedConstraintFromCompilation()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                public partial class A
+                {
+                    public TResult Accept<TResult>(int a) where TResult : unmanaged { throw null; }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("A");
+            var method = type.GetMembers("Accept").Single();
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                Generator.Declaration(method),
+                """
+                public TResult Accept<TResult>(global::System.Int32 a)
+                    where TResult : unmanaged
+                {
+                }
+                """);
+        }
+
+        [Fact]
+        public void TestNotNullConstraintFromCompilation()
+        {
+            var compilation = _emptyCompilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                public partial class A
+                {
+                    public TResult Accept<TResult>(int a) where TResult : notnull { throw null; }
+                }
+                """));
+
+            var type = compilation.GetTypeByMetadataName("A");
+            var method = type.GetMembers("Accept").Single();
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                Generator.Declaration(method),
+                """
+                public TResult Accept<TResult>(global::System.Int32 a)
+                    where TResult : notnull
                 {
                 }
                 """);

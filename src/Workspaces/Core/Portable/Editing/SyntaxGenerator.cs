@@ -893,7 +893,9 @@ namespace Microsoft.CodeAnalysis.Editing
                         declaration = this.WithTypeConstraint(declaration, tp.Name,
                             kinds: (tp.HasConstructorConstraint ? SpecialTypeConstraintKind.Constructor : SpecialTypeConstraintKind.None)
                                    | (tp.HasReferenceTypeConstraint ? SpecialTypeConstraintKind.ReferenceType : SpecialTypeConstraintKind.None)
-                                   | (tp.HasValueTypeConstraint ? SpecialTypeConstraintKind.ValueType : SpecialTypeConstraintKind.None),
+                                   | (tp.HasValueTypeConstraint ? SpecialTypeConstraintKind.ValueType : SpecialTypeConstraintKind.None)
+                                   | (tp.HasUnmanagedTypeConstraint ? SpecialTypeConstraintKind.Unmanaged : SpecialTypeConstraintKind.None)
+                                   | (tp.HasNotNullConstraint ? SpecialTypeConstraintKind.NotNull : SpecialTypeConstraintKind.None),
                             types: tp.ConstraintTypes.Select(TypeExpression));
                     }
                 }
@@ -903,7 +905,7 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         private static bool HasSomeConstraint(ITypeParameterSymbol typeParameter)
-            => typeParameter.HasConstructorConstraint || typeParameter.HasReferenceTypeConstraint || typeParameter.HasValueTypeConstraint || typeParameter.ConstraintTypes.Length > 0;
+            => typeParameter.HasConstructorConstraint || typeParameter.HasReferenceTypeConstraint || typeParameter.HasValueTypeConstraint || typeParameter.HasUnmanagedTypeConstraint || typeParameter.HasNotNullConstraint || typeParameter.ConstraintTypes.Length > 0;
 
         internal abstract SyntaxNode WithExplicitInterfaceImplementations(
             SyntaxNode declaration, ImmutableArray<ISymbol> explicitInterfaceImplementations, bool removeDefaults = true);

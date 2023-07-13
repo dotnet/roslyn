@@ -27,5 +27,15 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Has the constructor constraint (i.e. 'new' constraint in C#)
         /// </summary>
         Constructor = 0x0004,
+
+        /// <summary>
+        /// Has the unmanaged constraint
+        /// </summary>
+        Unmanaged = 0x0008,
+
+        /// <summary>
+        /// Has the notnull constraint
+        /// </summary>
+        NotNull = 0x0010,
     }
 }
