@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var service = document.Project.Solution.Services.GetRequiredService<ILspSymbolInformationCreationService>();
             return service.Create(
-                item.Text,
+                GetDocumentSymbolName(item.Text),
                 containerName,
                 ProtocolConversions.GlyphToSymbolKind(item.Glyph),
                 new LSP.Location
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             return new RoslynDocumentSymbol
             {
-                Name = symbolItem.Name,
+                Name = GetDocumentSymbolName(symbolItem.Name),
                 Detail = item.Text,
                 Kind = ProtocolConversions.GlyphToSymbolKind(item.Glyph),
                 Glyph = (int)item.Glyph,
@@ -133,6 +133,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                 return list.ToArray();
             }
+        }
+
+        /// <summary>
+        /// DocumentSymbol name cannot be null or empty. Check if the name is invalid,
+        /// and return substitute string.
+        /// </summary>
+        /// <param name="proposedName"></param>
+        /// <returns></returns>
+        private static string GetDocumentSymbolName(string proposedName)
+        {
+            return String.IsNullOrEmpty(proposedName) ? "." : proposedName;
         }
     }
 }
