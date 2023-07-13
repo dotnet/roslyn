@@ -986,8 +986,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Optional accessibility As Accessibility = Nothing,
             Optional modifiers As DeclarationModifiers = Nothing,
             Optional getAccessorStatements As IEnumerable(Of SyntaxNode) = Nothing,
-            Optional setAccessorStatements As IEnumerable(Of SyntaxNode) = Nothing,
-            Optional isInitOnly As Boolean = False) As SyntaxNode
+            Optional setAccessorStatements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
 
             Return PropertyDeclaration(
                 identifier,
@@ -1037,8 +1036,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Optional accessibility As Accessibility = Nothing,
             Optional modifiers As DeclarationModifiers = Nothing,
             Optional getAccessorStatements As IEnumerable(Of SyntaxNode) = Nothing,
-            Optional setAccessorStatements As IEnumerable(Of SyntaxNode) = Nothing,
-            Optional isInitOnly As Boolean = False) As SyntaxNode
+            Optional setAccessorStatements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
 
             Dim asClause = SyntaxFactory.SimpleAsClause(DirectCast(type, TypeSyntax))
             Dim statement = SyntaxFactory.PropertyStatement(

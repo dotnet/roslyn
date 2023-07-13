@@ -357,8 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             Accessibility accessibility,
             DeclarationModifiers modifiers,
             IEnumerable<SyntaxNode>? getAccessorStatements,
-            IEnumerable<SyntaxNode>? setAccessorStatements,
-            bool isInitOnly)
+            IEnumerable<SyntaxNode>? setAccessorStatements)
         {
             SyntaxNode? getAccessor = null;
             SyntaxNode? setAccessor = null;
@@ -367,7 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 getAccessor = AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, modifiers.IsAbstract ? null : getAccessorStatements);
 
             if (!modifiers.IsReadOnly)
-                setAccessor = AccessorDeclaration(isInitOnly ? SyntaxKind.InitAccessorDeclaration : SyntaxKind.SetAccessorDeclaration, modifiers.IsAbstract ? null : setAccessorStatements);
+                setAccessor = AccessorDeclaration(SyntaxKind.SetAccessorDeclaration, modifiers.IsAbstract ? null : setAccessorStatements);
 
             return PropertyDeclaration(name, type, getAccessor, setAccessor, accessibility, modifiers);
         }
@@ -446,8 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             Accessibility accessibility,
             DeclarationModifiers modifiers,
             IEnumerable<SyntaxNode>? getAccessorStatements,
-            IEnumerable<SyntaxNode>? setAccessorStatements,
-            bool isInitOnly)
+            IEnumerable<SyntaxNode>? setAccessorStatements)
         {
             var accessors = new List<AccessorDeclarationSyntax>();
             var hasGetter = !modifiers.IsWriteOnly;
@@ -478,7 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             if (hasSetter)
             {
-                accessors.Add(AccessorDeclaration(isInitOnly ? SyntaxKind.InitAccessorDeclaration : SyntaxKind.SetAccessorDeclaration, setAccessorStatements));
+                accessors.Add(AccessorDeclaration(SyntaxKind.SetAccessorDeclaration, setAccessorStatements));
             }
 
             var actualModifiers = modifiers - (DeclarationModifiers.ReadOnly | DeclarationModifiers.WriteOnly);
@@ -836,7 +834,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         Contract.ThrowIfNull(type);
 
                         return AsInterfaceMember(
-                            PropertyDeclaration(GetName(f), ClearTrivia(type), acc, modifiers, getAccessorStatements: null, setAccessorStatements: null, isInitOnly: false));
+                            PropertyDeclaration(GetName(f), ClearTrivia(type), acc, modifiers, getAccessorStatements: null, setAccessorStatements: null));
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(member.Kind());
