@@ -494,6 +494,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
             }
 
+            if (condition.Kind == BoundKind.Sequence)
+            {
+                EmitSequenceExpression((BoundSequence)condition, used: true, sense);
+                return;
+            }
+
+            if (condition.Kind == BoundKind.LoweredIsPatternExpression)
+            {
+                EmitLoweredIsPatternExpression((BoundLoweredIsPatternExpression)condition, used: true, sense);
+                return;
+            }
+
             EmitExpression(condition, true);
             EmitIsSense(sense);
 

@@ -356,8 +356,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitLoweredIsPatternExpression(BoundLoweredIsPatternExpression node, bool used)
+        private void EmitLoweredIsPatternExpression(BoundLoweredIsPatternExpression node, bool used, bool sense = true)
         {
+            Debug.Assert(sense || used);
+
             EmitSideEffects(node.Statements);
 
             if (!used)
@@ -369,11 +371,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 var doneLabel = new object();
                 _builder.MarkLabel(node.WhenTrueLabel);
-                _builder.EmitBoolConstant(true);
+                _builder.EmitBoolConstant(sense);
                 _builder.EmitBranch(ILOpCode.Br, doneLabel);
                 _builder.AdjustStack(-1);
                 _builder.MarkLabel(node.WhenFalseLabel);
-                _builder.EmitBoolConstant(false);
+                _builder.EmitBoolConstant(!sense);
                 _builder.MarkLabel(doneLabel);
             }
         }
@@ -869,8 +871,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitSequenceExpression(BoundSequence sequence, bool used)
+        private void EmitSequenceExpression(BoundSequence sequence, bool used, bool sense = true)
         {
+            Debug.Assert(sense || used);
+
             DefineLocals(sequence);
             EmitSideEffects(sequence);
 
@@ -883,7 +887,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(sequence.Value.Kind != BoundKind.TypeExpression || !used);
             if (sequence.Value.Kind != BoundKind.TypeExpression)
             {
-                EmitExpression(sequence.Value, used);
+                if (!used || sequence.Type.SpecialType != SpecialType.System_Boolean)
+                {
+                    EmitExpression(sequence.Value, used);
+                }
+                else
+                {
+                    EmitCondExpr(sequence.Value, sense: sense);
+                }
             }
 
             // sequence is used as a value, can release all locals

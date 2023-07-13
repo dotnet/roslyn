@@ -3003,7 +3003,7 @@ True";
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("ConsoleApp1.TestHelper.IsValueTypeT<T>(ConsoleApp1.Result<T>)",
 @"{
-  // Code size       31 (0x1f)
+  // Code size       28 (0x1c)
   .maxstack  2
   .locals init (T V_0, //v
                 bool V_1)
@@ -3014,15 +3014,13 @@ True";
   IL_0008:  ldloc.0
   IL_0009:  box        ""T""
   IL_000e:  ldnull
-  IL_000f:  cgt.un
-  IL_0011:  ldc.i4.0
-  IL_0012:  ceq
-  IL_0014:  stloc.1
-  IL_0015:  ldloc.1
-  IL_0016:  brfalse.s  IL_001e
-  IL_0018:  newobj     ""ConsoleApp1.NotPossibleException..ctor()""
-  IL_001d:  throw
-  IL_001e:  ret
+  IL_000f:  ceq
+  IL_0011:  stloc.1
+  IL_0012:  ldloc.1
+  IL_0013:  brfalse.s  IL_001b
+  IL_0015:  newobj     ""ConsoleApp1.NotPossibleException..ctor()""
+  IL_001a:  throw
+  IL_001b:  ret
 }");
         }
 
