@@ -622,7 +622,6 @@ oneMoreTime:
                     }
                     else
                     {
-                        _builder.EmitBranch(ILOpCode.Br, loweredIs.WhenTrueLabel);
                         _builder.MarkLabel(loweredIs.WhenFalseLabel);
                         _builder.EmitBranch(ILOpCode.Br, dest);
                         _builder.MarkLabel(loweredIs.WhenTrueLabel);
