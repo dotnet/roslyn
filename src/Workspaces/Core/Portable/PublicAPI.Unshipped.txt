@@ -1,3 +1,4 @@
+Microsoft.CodeAnalysis.CodeActions.CodeAction.Priority.get -> Microsoft.CodeAnalysis.CodeActions.CodeActionPriority
 Microsoft.CodeAnalysis.CodeActions.CodeActionPriority
 Microsoft.CodeAnalysis.CodeActions.CodeActionPriority.Default = 2 -> Microsoft.CodeAnalysis.CodeActions.CodeActionPriority
 Microsoft.CodeAnalysis.CodeActions.CodeActionPriority.High = 3 -> Microsoft.CodeAnalysis.CodeActions.CodeActionPriority
@@ -8,6 +9,11 @@ Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
 Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority.Default = 1 -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
 Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority.Low = 0 -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
 Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority.Medium = 1 -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
-virtual Microsoft.CodeAnalysis.CodeActions.CodeAction.Priority.get -> Microsoft.CodeAnalysis.CodeActions.CodeActionPriority
+static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CodeActions.CodeAction> nestedActions, bool isInlinable, Microsoft.CodeAnalysis.CodeActions.CodeActionPriority priority = Microsoft.CodeAnalysis.CodeActions.CodeActionPriority.Default) -> Microsoft.CodeAnalysis.CodeActions.CodeAction
+static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>> createChangedDocument, string equivalenceKey = null, Microsoft.CodeAnalysis.CodeActions.CodeActionPriority priority = Microsoft.CodeAnalysis.CodeActions.CodeActionPriority.Default) -> Microsoft.CodeAnalysis.CodeActions.CodeAction
+static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>> createChangedDocument, string equivalenceKey) -> Microsoft.CodeAnalysis.CodeActions.CodeAction
+static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Solution>> createChangedSolution, string equivalenceKey = null, Microsoft.CodeAnalysis.CodeActions.CodeActionPriority priority = Microsoft.CodeAnalysis.CodeActions.CodeActionPriority.Default) -> Microsoft.CodeAnalysis.CodeActions.CodeAction
+static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Solution>> createChangedSolution, string equivalenceKey) -> Microsoft.CodeAnalysis.CodeActions.CodeAction
+virtual Microsoft.CodeAnalysis.CodeActions.CodeAction.ComputePriority() -> Microsoft.CodeAnalysis.CodeActions.CodeActionPriority
 virtual Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider.RequestPriority.get -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
 virtual Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringProvider.RequestPriority.get -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority

@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         {
             private readonly Func<CancellationToken, Task<Document>> _createChangedDocument;
 
-            public override CodeActionPriority Priority { get; }
+            private readonly CodeActionPriority _priority;
 
             public DocumentChangeAction(
                 string title,
@@ -39,11 +39,14 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 : base(title, equivalenceKey)
             {
                 _createChangedDocument = createChangedDocument;
-                Priority = priority;
+                _priority = priority;
             }
 
             protected sealed override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
                 => _createChangedDocument(cancellationToken);
+
+            protected sealed override CodeActionPriority ComputePriority()
+                => _priority;
         }
 
         internal class SolutionChangeAction : SimpleCodeAction

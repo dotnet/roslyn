@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
             if (debuggerAttributeTypeSymbol is null)
                 return;
 
-            var typeSymbol = (INamedTypeSymbol)semanticModel.GetRequiredDeclaredSymbol(type, context.CancellationToken);
+            var typeSymbol = (INamedTypeSymbol)semanticModel.GetRequiredDeclaredSymbol(type, cancellationToken);
 
             if (typeSymbol.IsStatic || !IsClassOrStruct(typeSymbol))
                 return;
@@ -56,11 +56,11 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
             if (HasDebuggerDisplayAttribute(typeSymbol, compilation))
                 return;
 
-            context.RegisterRefactoring(CodeAction.CreateWithPriority(
-                priority,
+            context.RegisterRefactoring(CodeAction.Create(
                 FeaturesResources.Add_DebuggerDisplay_attribute,
-                c => ApplyAsync(document, type, debuggerAttributeTypeSymbol, c),
-                nameof(FeaturesResources.Add_DebuggerDisplay_attribute)));
+                cancellationToken => ApplyAsync(document, type, debuggerAttributeTypeSymbol, cancellationToken),
+                nameof(FeaturesResources.Add_DebuggerDisplay_attribute),
+                priority));
         }
 
         private static async Task<(TTypeDeclarationSyntax type, CodeActionPriority priority)?> GetRelevantTypeFromHeaderAsync(CodeRefactoringContext context)

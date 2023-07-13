@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -33,6 +34,12 @@ namespace Microsoft.CodeAnalysis.CodeActions
     /// </summary>
     public abstract class CodeAction
     {
+        /// <summary>
+        /// Special tag that indicates that it's this is a privileged code action that is allowed to use the <see
+        /// cref="CodeActionPriority.High"/> priority class.
+        /// </summary>
+        internal static readonly string CanBeHighPriorityTag = Guid.NewGuid().ToString();
+
         /// <summary>
         /// Tag we use to convey that this code action should only be shown if it's in a host that allows for
         /// non-document changes.  For example if it needs to make project changes, or if will show host-specific UI.
@@ -80,7 +87,25 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// this and specify a lower priority so that more important actions are easily accessible to the user.  Returns
         /// <see cref="CodeActionPriority.Default"/> if not overridden.
         /// </summary>
-        public virtual CodeActionPriority Priority
+        public CodeActionPriority Priority
+        {
+            get
+            {
+                var priority = ComputePriority();
+                if (priority < CodeActionPriority.Lowest)
+                    priority = CodeActionPriority.Lowest;
+
+                if (priority > CodeActionPriority.High)
+                    priority = CodeActionPriority.High;
+
+                if (priority == CodeActionPriority.High && !this.CustomTags.Contains(CanBeHighPriorityTag))
+                    priority = CodeActionPriority.Default;
+
+                return priority;
+            }
+        }
+
+        protected virtual CodeActionPriority ComputePriority()
             => CodeActionPriority.Default;
 
         /// <summary>
@@ -396,8 +421,14 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <param name="title">Title of the <see cref="CodeAction"/>.</param>
         /// <param name="createChangedDocument">Function to create the <see cref="Document"/>.</param>
         /// <param name="equivalenceKey">Optional value used to determine the equivalence of the <see cref="CodeAction"/> with other <see cref="CodeAction"/>s. See <see cref="CodeAction.EquivalenceKey"/>.</param>
-        [SuppressMessage("ApiDesign", "RS0027:Public API with optional parameter(s) should have the most parameters amongst its public overloads.", Justification = "Preserving existing public API")]
-        public static CodeAction Create(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string? equivalenceKey = null)
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static CodeAction Create(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string? equivalenceKey)
+            => Create(title, createChangedDocument, equivalenceKey, CodeActionPriority.Default);
+
+        /// <inheritdoc cref="Create(string, Func{CancellationToken, Task{Document}}, string?)"/>
+        /// <param name="priority">Code action priority</param>
+        [SuppressMessage("ApiDesign", "RS0026:Do not add multiple public overloads with optional parameters", Justification = "This is source compatible")]
+        public static CodeAction Create(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string? equivalenceKey = null, CodeActionPriority priority = CodeActionPriority.Default)
         {
             if (title == null)
             {
@@ -409,7 +440,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 throw new ArgumentNullException(nameof(createChangedDocument));
             }
 
-            return DocumentChangeAction.Create(title, createChangedDocument, equivalenceKey, priority: CodeActionPriority.Default);
+            return DocumentChangeAction.Create(title, createChangedDocument, equivalenceKey, priority);
         }
 
         /// <summary>
@@ -419,8 +450,19 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <param name="title">Title of the <see cref="CodeAction"/>.</param>
         /// <param name="createChangedSolution">Function to create the <see cref="Solution"/>.</param>
         /// <param name="equivalenceKey">Optional value used to determine the equivalence of the <see cref="CodeAction"/> with other <see cref="CodeAction"/>s. See <see cref="CodeAction.EquivalenceKey"/>.</param>
-        [SuppressMessage("ApiDesign", "RS0027:Public API with optional parameter(s) should have the most parameters amongst its public overloads.", Justification = "Preserving existing public API")]
-        public static CodeAction Create(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string? equivalenceKey = null)
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static CodeAction Create(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string? equivalenceKey)
+            => Create(title, createChangedSolution, equivalenceKey, CodeActionPriority.Default);
+
+        /// <summary>
+        /// Creates a <see cref="CodeAction"/> for a change to more than one <see cref="Document"/> within a <see cref="Solution"/>.
+        /// Use this factory when the change is expensive to compute and should be deferred until requested.
+        /// </summary>
+        /// <param name="title">Title of the <see cref="CodeAction"/>.</param>
+        /// <param name="createChangedSolution">Function to create the <see cref="Solution"/>.</param>
+        /// <param name="equivalenceKey">Optional value used to determine the equivalence of the <see cref="CodeAction"/> with other <see cref="CodeAction"/>s. See <see cref="CodeAction.EquivalenceKey"/>.</param>
+        [SuppressMessage("ApiDesign", "RS0026:Do not add multiple public overloads with optional parameters", Justification = "This is source compatible")]
+        public static CodeAction Create(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string? equivalenceKey = null, CodeActionPriority priority = CodeActionPriority.Default)
         {
             if (title == null)
             {
@@ -432,7 +474,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 throw new ArgumentNullException(nameof(createChangedSolution));
             }
 
-            return SolutionChangeAction.Create(title, createChangedSolution, equivalenceKey);
+            return SolutionChangeAction.Create(title, createChangedSolution, equivalenceKey, priority);
         }
 
         /// <summary>
@@ -442,10 +484,14 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <param name="nestedActions">The code actions within the group.</param>
         /// <param name="isInlinable"><see langword="true"/> to allow inlining the members of the group into the parent;
         /// otherwise, <see langword="false"/> to require that this group appear as a group with nested actions.</param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static CodeAction Create(string title, ImmutableArray<CodeAction> nestedActions, bool isInlinable)
             => Create(title, nestedActions, isInlinable, priority: CodeActionPriority.Medium);
 
-        internal static CodeAction Create(string title, ImmutableArray<CodeAction> nestedActions, bool isInlinable, CodeActionPriority priority)
+        /// <inheritdoc cref="Create(string, ImmutableArray{CodeAction}, bool)"/>
+        /// <param name="priority">Priority of the code action</param>
+        [SuppressMessage("ApiDesign", "RS0026:Do not add multiple public overloads with optional parameters", Justification = "This is source compatible")]
+        public static CodeAction Create(string title, ImmutableArray<CodeAction> nestedActions, bool isInlinable, CodeActionPriority priority = CodeActionPriority.Default)
         {
             if (title is null)
                 throw new ArgumentNullException(nameof(title));
@@ -456,26 +502,10 @@ namespace Microsoft.CodeAnalysis.CodeActions
             return CodeActionWithNestedActions.Create(title, nestedActions, isInlinable, priority);
         }
 
-        internal static CodeAction CreateWithPriority(CodeActionPriority priority, string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
-            => DocumentChangeAction.Create(
-                title ?? throw new ArgumentNullException(nameof(title)),
-                createChangedDocument ?? throw new ArgumentNullException(nameof(createChangedDocument)),
-                equivalenceKey ?? throw new ArgumentNullException(nameof(equivalenceKey)),
-                priority);
-
-        internal static CodeAction CreateWithPriority(CodeActionPriority priority, string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string equivalenceKey)
-            => SolutionChangeAction.Create(
-                title ?? throw new ArgumentNullException(nameof(title)),
-                createChangedSolution ?? throw new ArgumentNullException(nameof(createChangedSolution)),
-                equivalenceKey ?? throw new ArgumentNullException(nameof(equivalenceKey)),
-                priority);
-
-        internal static CodeAction CreateWithPriority(CodeActionPriority priority, string title, ImmutableArray<CodeAction> nestedActions, bool isInlinable)
-            => CodeActionWithNestedActions.Create(
-                title ?? throw new ArgumentNullException(nameof(title)), nestedActions, isInlinable, priority);
-
         internal abstract class SimpleCodeAction : CodeAction
         {
+            private readonly CodeActionPriority _priority;
+
             protected SimpleCodeAction(
                 string title,
                 string? equivalenceKey,
@@ -484,14 +514,15 @@ namespace Microsoft.CodeAnalysis.CodeActions
             {
                 Title = title;
                 EquivalenceKey = equivalenceKey;
-                Priority = priority;
+                _priority = priority;
                 CreatedFromFactoryMethod = createdFromFactoryMethod;
             }
 
             public sealed override string Title { get; }
             public sealed override string? EquivalenceKey { get; }
 
-            public sealed override CodeActionPriority Priority { get; }
+            protected sealed override CodeActionPriority ComputePriority()
+                => _priority;
 
             /// <summary>
             /// Indicates if this CodeAction was created using one of the 'CodeAction.Create' factory methods.
@@ -579,7 +610,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             {
             }
 
-            public static DocumentChangeAction Create(
+            public static new DocumentChangeAction Create(
                 string title,
                 Func<CancellationToken, Task<Document>> createChangedDocument,
                 string? equivalenceKey,
@@ -614,7 +645,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             {
             }
 
-            public static SolutionChangeAction Create(
+            public static new SolutionChangeAction Create(
                 string title,
                 Func<CancellationToken, Task<Solution>> createChangedSolution,
                 string? equivalenceKey,

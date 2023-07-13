@@ -298,11 +298,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 
             static CodeAction CreateCodeAction(string title, Func<CancellationToken, Task<Document>> action, string equivalenceKey)
             {
-#if CODE_STYLE
-                return CodeAction.Create(title, action, equivalenceKey);
-#else
-                return CodeAction.DocumentChangeAction.Create(title, action, equivalenceKey, CodeActionPriority.High);
-#endif
+                return CodeAction.Create(title, action, equivalenceKey, CodeActionPriority.High);
             }
         }
 
