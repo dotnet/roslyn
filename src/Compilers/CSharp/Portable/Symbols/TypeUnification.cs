@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
@@ -16,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Determine whether there is any substitution of type parameters that will
         /// make two types identical.
         /// </summary>
-        public static bool CanUnify(TypeSymbol t1, TypeSymbol t2)
+        public static bool CanUnify(TypeSymbol? t1, TypeSymbol? t2)
         {
             if (TypeSymbol.Equals(t1, t2, TypeCompareKind.CLRSignatureCompareOptions))
             {
@@ -42,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Determines a substitution of type parameters on <paramref name="extensionUnderlyingType"/>
         /// that yields <paramref name="type"/>.
         /// </summary>
-        public static bool CanImplicitlyExtend(TypeSymbol extensionUnderlyingType, TypeSymbol type, out AbstractTypeParameterMap? map)
+        public static bool CanImplicitlyExtend(TypeSymbol? extensionUnderlyingType, TypeSymbol? type, out AbstractTypeParameterMap? map)
         {
             // PROTOTYPE we'll want to adjust the handling for differences that aren't relevant to the CLR, such as object/dynamic
             if (TypeSymbol.Equals(extensionUnderlyingType, type, TypeCompareKind.CLRSignatureCompareOptions))
