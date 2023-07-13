@@ -39,13 +39,18 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         {
             foreach (var diagnostic in context.Diagnostics)
             {
-                context.RegisterCodeFix(
-                    CodeAction.Create(
-                        AnalyzersResources.Fix_formatting,
-                        c => FixOneAsync(context, diagnostic, c),
-                        nameof(AbstractFormattingCodeFixProvider),
-                        CodeActionPriority.High),
-                    diagnostic);
+                var codeAction = CodeAction.Create(
+                    AnalyzersResources.Fix_formatting,
+                    cancellationToken => FixOneAsync(context, diagnostic, cancellationToken),
+                    nameof(AbstractFormattingCodeFixProvider),
+                    CodeActionPriority.High);
+
+#if !CODE_STYLE
+                // Backdoor that allows this provider to use the high-priority bucket.
+                codeAction.CustomTags = codeAction.CustomTags.Add(CodeAction.CanBeHighPriorityTag);
+#endif
+
+                context.RegisterCodeFix(codeAction, diagnostic);
             }
 
             return Task.CompletedTask;

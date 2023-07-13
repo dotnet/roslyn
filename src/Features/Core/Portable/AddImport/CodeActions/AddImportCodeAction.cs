@@ -53,6 +53,9 @@ namespace Microsoft.CodeAnalysis.AddImport
                 Tags = fixData.Tags.ToImmutableArrayOrEmpty().AddRange(additionalTags);
                 _priority = fixData.Priority;
                 _textChanges = fixData.TextChanges.ToImmutableArrayOrEmpty();
+
+                // Backdoor that allows this provider to use the high-priority bucket.
+                this.CustomTags = this.CustomTags.Add(CodeAction.CanBeHighPriorityTag);
             }
 
             protected sealed override CodeActionPriority ComputePriority()

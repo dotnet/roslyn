@@ -298,7 +298,14 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 
             static CodeAction CreateCodeAction(string title, Func<CancellationToken, Task<Document>> action, string equivalenceKey)
             {
-                return CodeAction.Create(title, action, equivalenceKey, CodeActionPriority.High);
+                var codeAction = CodeAction.Create(title, action, equivalenceKey, CodeActionPriority.High);
+
+#if !CODE_STYLE
+                // Backdoor that allows this provider to use the high-priority bucket.
+                codeAction.CustomTags = codeAction.CustomTags.Add(CodeAction.CanBeHighPriorityTag);
+#endif
+
+                return codeAction;
             }
         }
 

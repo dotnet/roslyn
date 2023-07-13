@@ -44,6 +44,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 _refactorNotifyServices = refactorNotifyServices;
                 _undoHistoryRegistry = undoHistoryRegistry;
                 _globalOptions = globalOptions;
+
+                // Backdoor that allows this provider to use the high-priority bucket.
+                this.CustomTags = this.CustomTags.Add(CodeAction.CanBeHighPriorityTag);
             }
 
             public override string Title => _title;

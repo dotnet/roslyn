@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <summary>
         /// Gets custom tags for the CodeAction.
         /// </summary>
-        internal ImmutableArray<string> CustomTags { get; private set; } = ImmutableArray<string>.Empty;
+        internal ImmutableArray<string> CustomTags { get; set; } = ImmutableArray<string>.Empty;
 
         /// <summary>
         /// Lazily set provider type that registered this code action.
