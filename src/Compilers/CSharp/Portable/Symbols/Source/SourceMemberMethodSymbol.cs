@@ -94,16 +94,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             private const int IsNullableAnalysisEnabledBit = 1 << IsNullableAnalysisEnabledOffset;
 
-            public bool TryGetReturnsVoid(out bool value)
+            public bool ReturnsVoid
             {
-                int bits = _flags;
-                value = (bits & ReturnsVoidBit) != 0;
-                return (bits & ReturnsVoidIsSetBit) != 0;
+                get
+                {
+                    int bits = _flags;
+                    var value = (bits & ReturnsVoidBit) != 0;
+                    Debug.Assert((bits & ReturnsVoidIsSetBit) != 0);
+                    return value;
+                }
             }
 
             public void SetReturnsVoid(bool value)
             {
-                ThreadSafeFlagOperations.Set(ref _flags, (int)(ReturnsVoidIsSetBit | (value ? ReturnsVoidBit : 0)));
+                int bits = _flags;
+                Debug.Assert((bits & ReturnsVoidIsSetBit) == 0);
+                Debug.Assert(value || (bits & ReturnsVoidBit) == 0);
+                ThreadSafeFlagOperations.Set(ref _flags, ReturnsVoidIsSetBit | (value ? ReturnsVoidBit : 0));
             }
 
             public MethodKind MethodKind
@@ -166,14 +173,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 RefKind refKind,
                 DeclarationModifiers declarationModifiers,
                 bool returnsVoid,
+                bool returnsVoidIsSet,
                 bool hasAnyBody,
                 bool isExpressionBodied,
                 bool isExtensionMethod,
                 bool isNullableAnalysisEnabled,
                 bool isVararg,
-                bool isMetadataVirtualIgnoringModifiers = false)
+                bool isExplicitInterfaceImplementation)
             {
-                bool isMetadataVirtual = isMetadataVirtualIgnoringModifiers || ModifiersRequireMetadataVirtual(declarationModifiers);
+                Debug.Assert(!returnsVoid || returnsVoidIsSet);
+
+                bool isMetadataVirtual = (isExplicitInterfaceImplementation && (declarationModifiers & DeclarationModifiers.Static) == 0) || ModifiersRequireMetadataVirtual(declarationModifiers);
 
                 int methodKindInt = ((int)methodKind & MethodKindMask) << MethodKindOffset;
                 int refKindInt = ((int)refKind & RefKindMask) << RefKindOffset;
@@ -195,7 +205,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     | isMetadataVirtualIgnoringInterfaceImplementationChangesInt
                     | isMetadataVirtualInt
                     | (returnsVoid ? ReturnsVoidBit : 0)
-                    | ReturnsVoidIsSetBit;
+                    | (returnsVoidIsSet ? ReturnsVoidIsSetBit : 0);
+            }
+
+            public Flags(
+                MethodKind methodKind,
+                RefKind refKind,
+                DeclarationModifiers declarationModifiers,
+                bool returnsVoid,
+                bool returnsVoidIsSet,
+                bool isExpressionBodied,
+                bool isExtensionMethod,
+                bool isNullableAnalysisEnabled,
+                bool isVararg,
+                bool isExplicitInterfaceImplementation)
+                : this(methodKind,
+                       refKind,
+                       declarationModifiers,
+                       returnsVoid: returnsVoid,
+                       returnsVoidIsSet: returnsVoidIsSet,
+                       hasAnyBody: false,
+                       isExpressionBodied: isExpressionBodied,
+                       isExtensionMethod: isExtensionMethod,
+                       isNullableAnalysisEnabled: isNullableAnalysisEnabled,
+                       isVararg: isVararg,
+                       isExplicitInterfaceImplementation: isExplicitInterfaceImplementation)
+            {
             }
 
             public bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
@@ -241,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected SymbolCompletionState state;
 
-        protected DeclarationModifiers DeclarationModifiers;
+        protected readonly DeclarationModifiers DeclarationModifiers;
         protected Flags flags;
 
         private readonly NamedTypeSymbol _containingType;
@@ -273,7 +308,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamedTypeSymbol containingType,
             SyntaxReference syntaxReferenceOpt,
             Location location,
-            bool isIterator)
+            bool isIterator,
+            (DeclarationModifiers declarationModifiers, Flags flags) modifiersAndFlags)
             : base(syntaxReferenceOpt, isIterator)
         {
             Debug.Assert(containingType is not null);
@@ -282,6 +318,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _containingType = containingType;
             _location = location;
+            DeclarationModifiers = modifiersAndFlags.declarationModifiers;
+            flags = modifiersAndFlags.flags;
         }
 
         protected void CheckEffectiveAccessibility(TypeWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics)
@@ -339,20 +377,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected void MakeFlags(
+        protected static Flags MakeFlags(
             MethodKind methodKind,
             RefKind refKind,
             DeclarationModifiers declarationModifiers,
             bool returnsVoid,
-            bool hasAnyBody,
+            bool returnsVoidIsSet,
             bool isExpressionBodied,
             bool isExtensionMethod,
             bool isNullableAnalysisEnabled,
             bool isVarArg,
-            bool isMetadataVirtualIgnoringModifiers = false)
+            bool isExplicitInterfaceImplementation)
         {
-            DeclarationModifiers = declarationModifiers;
-            this.flags = new Flags(methodKind, refKind, declarationModifiers, returnsVoid, hasAnyBody, isExpressionBodied, isExtensionMethod, isNullableAnalysisEnabled, isVarArg, isMetadataVirtualIgnoringModifiers);
+            return new Flags(methodKind, refKind, declarationModifiers, returnsVoid, returnsVoidIsSet, isExpressionBodied, isExtensionMethod, isNullableAnalysisEnabled, isVarArg, isExplicitInterfaceImplementation);
         }
 
         protected void SetReturnsVoid(bool returnsVoid)
@@ -468,8 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                flags.TryGetReturnsVoid(out bool value);
-                return value;
+                return flags.ReturnsVoid;
             }
         }
 
@@ -1059,7 +1095,6 @@ done:
         /// present, this is not treated as expression-bodied.
         /// </remarks>
         internal bool IsExpressionBodied => flags.IsExpressionBodied;
-        protected bool HasAnyBody => flags.HasAnyBody;
 
         public sealed override RefKind RefKind => this.flags.RefKind;
         public sealed override bool IsVararg => this.flags.IsVararg;

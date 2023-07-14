@@ -11,36 +11,22 @@ namespace Microsoft.CodeAnalysis.CodeActions
 {
     internal static class CustomCodeActions
     {
-        internal abstract class SimpleCodeAction : CodeAction
+        internal abstract class SimpleCodeAction(
+            string title,
+            string? equivalenceKey) : CodeAction
         {
-            public SimpleCodeAction(
-                string title,
-                string? equivalenceKey)
-            {
-                Title = title;
-                EquivalenceKey = equivalenceKey;
-            }
-
-            public sealed override string Title { get; }
-            public sealed override string? EquivalenceKey { get; }
+            public sealed override string Title { get; } = title;
+            public sealed override string? EquivalenceKey { get; } = equivalenceKey;
         }
 
-        internal class DocumentChangeAction : SimpleCodeAction
+        internal class DocumentChangeAction(
+            string title,
+            Func<CancellationToken, Task<Document>> createChangedDocument,
+            string? equivalenceKey,
+            CodeActionPriority priority) : SimpleCodeAction(title, equivalenceKey)
         {
-            private readonly Func<CancellationToken, Task<Document>> _createChangedDocument;
-
-            private readonly CodeActionPriority _priority;
-
-            public DocumentChangeAction(
-                string title,
-                Func<CancellationToken, Task<Document>> createChangedDocument,
-                string? equivalenceKey,
-                CodeActionPriority priority)
-                : base(title, equivalenceKey)
-            {
-                _createChangedDocument = createChangedDocument;
-                _priority = priority;
-            }
+            private readonly Func<CancellationToken, Task<Document>> _createChangedDocument = createChangedDocument;
+            private readonly CodeActionPriority _priority = priority;
 
             protected sealed override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
                 => _createChangedDocument(cancellationToken);
@@ -49,21 +35,13 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 => _priority;
         }
 
-        internal class SolutionChangeAction : SimpleCodeAction
+        internal class SolutionChangeAction(
+            string title,
+            Func<CancellationToken, Task<Solution>> createChangedSolution,
+            string? equivalenceKey) : SimpleCodeAction(title, equivalenceKey)
         {
-            private readonly Func<CancellationToken, Task<Solution>> _createChangedSolution;
-
-            public SolutionChangeAction(
-                string title,
-                Func<CancellationToken, Task<Solution>> createChangedSolution,
-                string? equivalenceKey)
-                : base(title, equivalenceKey)
-            {
-                _createChangedSolution = createChangedSolution;
-            }
-
             protected sealed override Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
-                => _createChangedSolution(cancellationToken).AsNullable();
+                => createChangedSolution(cancellationToken).AsNullable();
         }
     }
 }

@@ -194,19 +194,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public string OriginalSymbolName => _renameInfo.DisplayName;
 
         // Used to aid the investigation of https://github.com/dotnet/roslyn/issues/7364
-        private class NullTextBufferException : Exception
+        private class NullTextBufferException(Document document, SourceText text) : Exception("Cannot retrieve textbuffer from document.")
         {
 #pragma warning disable IDE0052 // Remove unread private members
-            private readonly Document _document;
-            private readonly SourceText _text;
-#pragma warning restore IDE0052 // Remove unread private members
-
-            public NullTextBufferException(Document document, SourceText text)
-                : base("Cannot retrieve textbuffer from document.")
-            {
-                _document = document;
-                _text = text;
-            }
+            private readonly Document _document = document;
+            private readonly SourceText _text = text;
         }
 
         private void InitializeOpenBuffers(SnapshotSpan triggerSpan)
@@ -974,12 +966,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         internal TestAccessor GetTestAccessor()
             => new TestAccessor(this);
 
-        public readonly struct TestAccessor
+        public readonly struct TestAccessor(InlineRenameSession inlineRenameSession)
         {
-            private readonly InlineRenameSession _inlineRenameSession;
-
-            public TestAccessor(InlineRenameSession inlineRenameSession)
-                => _inlineRenameSession = inlineRenameSession;
+            private readonly InlineRenameSession _inlineRenameSession = inlineRenameSession;
 
             public bool CommitWorker(bool previewChanges)
                 => _inlineRenameSession.CommitWorker(previewChanges);

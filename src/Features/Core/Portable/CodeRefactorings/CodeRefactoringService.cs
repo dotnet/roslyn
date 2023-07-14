@@ -17,26 +17,19 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
     [Export(typeof(ICodeRefactoringService)), Shared]
-    internal sealed class CodeRefactoringService : ICodeRefactoringService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class CodeRefactoringService(
+        [ImportMany] IEnumerable<Lazy<CodeRefactoringProvider, CodeChangeProviderMetadata>> providers) : ICodeRefactoringService
     {
-        private readonly Lazy<ImmutableDictionary<string, Lazy<ImmutableArray<CodeRefactoringProvider>>>> _lazyLanguageToProvidersMap;
-        private readonly Lazy<ImmutableDictionary<CodeRefactoringProvider, CodeChangeProviderMetadata>> _lazyRefactoringToMetadataMap;
-
-        private ImmutableDictionary<CodeRefactoringProvider, FixAllProviderInfo?> _fixAllProviderMap = ImmutableDictionary<CodeRefactoringProvider, FixAllProviderInfo?>.Empty;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CodeRefactoringService(
-            [ImportMany] IEnumerable<Lazy<CodeRefactoringProvider, CodeChangeProviderMetadata>> providers)
-        {
-            // convert set of all code refactoring providers into a map from language to a lazy initialized list of ordered providers.
-            _lazyLanguageToProvidersMap = new Lazy<ImmutableDictionary<string, Lazy<ImmutableArray<CodeRefactoringProvider>>>>(
+        private readonly Lazy<ImmutableDictionary<string, Lazy<ImmutableArray<CodeRefactoringProvider>>>> _lazyLanguageToProvidersMap = new Lazy<ImmutableDictionary<string, Lazy<ImmutableArray<CodeRefactoringProvider>>>>(
                 () =>
                     ImmutableDictionary.CreateRange(
                         DistributeLanguages(providers)
@@ -44,8 +37,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                             .Select(grp => new KeyValuePair<string, Lazy<ImmutableArray<CodeRefactoringProvider>>>(
                                 grp.Key,
                                 new Lazy<ImmutableArray<CodeRefactoringProvider>>(() => ExtensionOrderer.Order(grp).Select(lz => lz.Value).ToImmutableArray())))));
-            _lazyRefactoringToMetadataMap = new(() => providers.Where(provider => provider.IsValueCreated).ToImmutableDictionary(provider => provider.Value, provider => provider.Metadata));
-        }
+        private readonly Lazy<ImmutableDictionary<CodeRefactoringProvider, CodeChangeProviderMetadata>> _lazyRefactoringToMetadataMap = new(() => providers.Where(provider => provider.IsValueCreated).ToImmutableDictionary(provider => provider.Value, provider => provider.Metadata));
+
+        private ImmutableDictionary<CodeRefactoringProvider, FixAllProviderInfo?> _fixAllProviderMap = ImmutableDictionary<CodeRefactoringProvider, FixAllProviderInfo?>.Empty;
 
         private static IEnumerable<Lazy<CodeRefactoringProvider, OrderableLanguageMetadata>> DistributeLanguages(IEnumerable<Lazy<CodeRefactoringProvider, CodeChangeProviderMetadata>> providers)
         {
@@ -122,6 +116,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             Func<string, IDisposable?> addOperationScope,
             CancellationToken cancellationToken)
         {
+            using (TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeRefactoring_Summary, $"Pri{GetPriorityInt(priority)}"))
             using (Logger.LogBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, cancellationToken))
             {
                 var extensionManager = document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
@@ -132,18 +127,25 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     if (priority != null && priority != provider.RequestPriority)
                         continue;
 
-                    tasks.Add(Task.Run(() =>
-                        {
-                            var providerName = provider.GetType().Name;
-                            RefactoringToMetadataMap.TryGetValue(provider, out var providerMetadata);
+                    tasks.Add(Task.Run(async () =>
+                    {
+                        // Log an individual telemetry event for slow code refactoring computations to
+                        // allow targeted trace notifications for further investigation. 500 ms seemed like
+                        // a good value so as to not be too noisy, but if fired, indicates a potential
+                        // area requiring investigation.
+                        const int CodeRefactoringTelemetryDelay = 500;
 
-                            using (addOperationScope(providerName))
-                            using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, providerName, cancellationToken))
-                            {
-                                return GetRefactoringFromProviderAsync(document, state, provider, providerMetadata,
-                                    extensionManager, options, cancellationToken);
-                            }
-                        },
+                        var providerName = provider.GetType().Name;
+                        RefactoringToMetadataMap.TryGetValue(provider, out var providerMetadata);
+
+                        using (addOperationScope(providerName))
+                        using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, providerName, cancellationToken))
+                        using (TelemetryLogging.LogBlockTime(FunctionId.CodeRefactoring_Delay, $"{providerName}", CodeRefactoringTelemetryDelay))
+                        {
+                            return await GetRefactoringFromProviderAsync(document, state, provider, providerMetadata,
+                                extensionManager, options, cancellationToken).ConfigureAwait(false);
+                        }
+                    },
                         cancellationToken));
                 }
 
@@ -151,6 +153,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 return results.WhereNotNull().ToImmutableArray();
             }
         }
+
+        private static int GetPriorityInt(CodeActionRequestPriority? priority)
+            => priority switch
+            {
+                null => 0,
+                { } nonNull => (int)nonNull
+            };
 
         private async Task<CodeRefactoring?> GetRefactoringFromProviderAsync(
             TextDocument textDocument,

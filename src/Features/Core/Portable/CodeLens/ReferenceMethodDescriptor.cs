@@ -11,41 +11,34 @@ namespace Microsoft.CodeAnalysis.CodeLens
     /// <summary>
     /// A caller method of a callee
     /// </summary>
+    /// <remarks>
+    /// Describe a caller method of a callee
+    /// </remarks>
+    /// <param name="fullName">Method's fully qualified name</param>
+    /// <param name="filePath">Method full path</param>
+    /// <remarks>
+    ///  Method full name is expected to be in the .NET full name type convention. That is,
+    ///  namespace/type is delimited by '.' and nested type is delimited by '+'
+    /// </remarks>
     [DataContract]
-    internal sealed class ReferenceMethodDescriptor
+    internal sealed class ReferenceMethodDescriptor(string fullName, string filePath, string outputFilePath)
     {
         /// <summary>
         ///  Returns method's fully quilified name without parameters
         /// </summary>
         [DataMember(Order = 0)]
-        public string FullName { get; private set; }
+        public string FullName { get; private set; } = fullName;
 
         /// <summary>
         /// Returns method's file path.
         /// </summary>
         [DataMember(Order = 1)]
-        public string FilePath { get; private set; }
+        public string FilePath { get; private set; } = filePath;
 
         /// <summary>
         /// Returns output file path for the project containing the method.
         /// </summary>
         [DataMember(Order = 2)]
-        public string OutputFilePath { get; private set; }
-
-        /// <summary>
-        /// Describe a caller method of a callee
-        /// </summary>
-        /// <param name="fullName">Method's fully qualified name</param>
-        /// <param name="filePath">Method full path</param>
-        /// <remarks>
-        ///  Method full name is expected to be in the .NET full name type convention. That is,
-        ///  namespace/type is delimited by '.' and nested type is delimited by '+'
-        /// </remarks>
-        public ReferenceMethodDescriptor(string fullName, string filePath, string outputFilePath)
-        {
-            FullName = fullName;
-            FilePath = filePath;
-            OutputFilePath = outputFilePath;
-        }
+        public string OutputFilePath { get; private set; } = outputFilePath;
     }
 }

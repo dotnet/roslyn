@@ -83,6 +83,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         int GreaterThanToken { get; }
         int IdentifierToken { get; }
         int InterpolatedStringTextToken { get; }
+        int LessThanSlashToken { get; }
         int LessThanToken { get; }
         int OpenBraceToken { get; }
         int? OpenBracketToken { get; }
@@ -178,6 +179,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
         int ExpressionStatement { get; }
         int ForEachStatement { get; }
+        int ForStatement { get; }
         int IfStatement { get; }
         int LocalDeclarationStatement { get; }
         int? LocalFunctionStatement { get; }

@@ -13,36 +13,27 @@ namespace Microsoft.CodeAnalysis.NavigationBar
 {
     internal abstract partial class RoslynNavigationBarItem
     {
-        public sealed class SymbolItem : RoslynNavigationBarItem, IEquatable<SymbolItem>
+        public sealed class SymbolItem(
+            string name,
+            string text,
+            Glyph glyph,
+            bool isObsolete,
+            SymbolItemLocation location,
+            ImmutableArray<RoslynNavigationBarItem> childItems = default,
+            int indent = 0,
+            bool bolded = false) : RoslynNavigationBarItem(
+                  RoslynNavigationBarItemKind.Symbol,
+                  text,
+                  glyph,
+                  bolded,
+                  grayed: location.OtherDocumentInfo != null,
+                  indent,
+                  childItems), IEquatable<SymbolItem>
         {
-            public readonly string Name;
-            public readonly bool IsObsolete;
+            public readonly string Name = name;
+            public readonly bool IsObsolete = isObsolete;
 
-            public readonly SymbolItemLocation Location;
-
-            public SymbolItem(
-                string name,
-                string text,
-                Glyph glyph,
-                bool isObsolete,
-                SymbolItemLocation location,
-                ImmutableArray<RoslynNavigationBarItem> childItems = default,
-                int indent = 0,
-                bool bolded = false)
-                : base(
-                      RoslynNavigationBarItemKind.Symbol,
-                      text,
-                      glyph,
-                      bolded,
-                      grayed: location.OtherDocumentInfo != null,
-                      indent,
-                      childItems)
-            {
-
-                Name = name;
-                IsObsolete = isObsolete;
-                Location = location;
-            }
+            public readonly SymbolItemLocation Location = location;
 
             protected internal override SerializableNavigationBarItem Dehydrate()
                 => SerializableNavigationBarItem.SymbolItem(Text, Glyph, Name, IsObsolete, Location, SerializableNavigationBarItem.Dehydrate(ChildItems), Indent, Bolded, Grayed);

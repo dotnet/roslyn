@@ -164,6 +164,10 @@ your csproj. As shown below, you'll want to (1) add a nuget source pointing to y
 
 ![image](https://user-images.githubusercontent.com/12466233/81206129-7fbe8680-8f80-11ea-9438-acc0481a3585.png)
 
+## Trying Your Changes in Visual Studio Code
+
+See [VSCode docs](https://github.com/dotnet/vscode-csharp/blob/main/CONTRIBUTING.md#using-a-locally-developed-roslyn-server).
+
 ## Various other tips
 
 ### Referencing bootstrap compiler

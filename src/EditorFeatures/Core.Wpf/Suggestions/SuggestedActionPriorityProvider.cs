@@ -8,7 +8,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 
-internal sealed class SuggestedActionPriorityProvider : ICodeActionRequestPriorityProvider
+internal sealed class SuggestedActionPriorityProvider(
+    CodeActionRequestPriority priority,
+    ConcurrentSet<DiagnosticAnalyzer> lowPriorityAnalyzers)
+    : ICodeActionRequestPriorityProvider
 {
     /// <summary>
     /// Set of de-prioritized analyzers that were moved down from 'Normal' to 'Low'
@@ -16,15 +19,9 @@ internal sealed class SuggestedActionPriorityProvider : ICodeActionRequestPriori
     /// Note that this set is owned by the <see cref="SuggestedActionsSourceProvider.SuggestedActionsSource"/>
     /// and shared across priority buckets.
     /// </summary>
-    private readonly ConcurrentSet<DiagnosticAnalyzer> _lowPriorityAnalyzers;
+    private readonly ConcurrentSet<DiagnosticAnalyzer> _lowPriorityAnalyzers = lowPriorityAnalyzers;
 
-    public SuggestedActionPriorityProvider(CodeActionRequestPriority priority, ConcurrentSet<DiagnosticAnalyzer> lowPriorityAnalyzers)
-    {
-        Priority = priority;
-        _lowPriorityAnalyzers = lowPriorityAnalyzers;
-    }
-
-    public CodeActionRequestPriority? Priority { get; }
+    public CodeActionRequestPriority? Priority { get; } = priority;
 
     public void AddDeprioritizedAnalyzerWithLowPriority(DiagnosticAnalyzer analyzer)
         => _lowPriorityAnalyzers.Add(analyzer);

@@ -1003,6 +1003,24 @@ next:;
                 return (null, null);
             }
 
+            if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.InlineArrayAttribute))
+            {
+                (attributeData, boundAttribute) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, beforeAttributePartBound: null, afterAttributePartBound: null, out hasAnyDiagnostics);
+                if (!attributeData.HasErrors)
+                {
+                    int length = attributeData.GetConstructorArgument<int>(0, SpecialType.System_Int32);
+
+                    arguments.GetOrCreateData<TypeEarlyWellKnownAttributeData>().InlineArrayLength = length > 0 ? length : -1;
+
+                    if (!hasAnyDiagnostics)
+                    {
+                        return (attributeData, boundAttribute);
+                    }
+                }
+
+                return (null, null);
+            }
+
             return base.EarlyDecodeWellKnownAttribute(ref arguments);
         }
 #nullable disable
@@ -1139,6 +1157,20 @@ next:;
             else if (_lazyIsExplicitDefinitionOfNoPiaLocalType == ThreeState.Unknown && attribute.IsTargetAttribute(this, AttributeDescription.TypeIdentifierAttribute))
             {
                 _lazyIsExplicitDefinitionOfNoPiaLocalType = ThreeState.True;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.InlineArrayAttribute))
+            {
+                int length = attribute.CommonConstructorArguments[0].DecodeValue<int>(SpecialType.System_Int32);
+
+                if (length <= 0)
+                {
+                    diagnostics.Add(ErrorCode.ERR_InvalidInlineArrayLength, attribute.GetAttributeArgumentSyntaxLocation(0, arguments.AttributeSyntaxOpt));
+                }
+
+                if (TypeKind != TypeKind.Struct)
+                {
+                    diagnostics.Add(ErrorCode.ERR_AttributeOnBadSymbolType, arguments.AttributeSyntaxOpt.Name.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName(), "struct");
+                }
             }
             else
             {
@@ -1538,6 +1570,19 @@ next:;
             base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
         }
 
+        internal override bool HasInlineArrayAttribute(out int length)
+        {
+            TypeEarlyWellKnownAttributeData data = this.GetEarlyDecodedWellKnownAttributeData();
+            if (data?.InlineArrayLength is > 0 and var lengthFromAttribute)
+            {
+                length = lengthFromAttribute;
+                return true;
+            }
+
+            length = 0;
+            return false;
+        }
+
         /// <remarks>
         /// These won't be returned by GetAttributes on source methods, but they
         /// will be returned by GetAttributes on metadata symbols.
@@ -1697,6 +1742,24 @@ next:;
                 {
                     // Required member '{0}' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.
                     diagnostics.Add(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, member.GetFirstLocation(), member);
+                }
+            }
+
+            if (TypeKind == TypeKind.Struct && HasInlineArrayAttribute(out _))
+            {
+                if (Layout.Kind == LayoutKind.Explicit)
+                {
+                    diagnostics.Add(ErrorCode.ERR_InvalidInlineArrayLayout, GetFirstLocation());
+                }
+
+                if (TryGetPossiblyUnsupportedByLanguageInlineArrayElementField() is null)
+                {
+                    diagnostics.Add(ErrorCode.ERR_InvalidInlineArrayFields, GetFirstLocation());
+                }
+
+                if (!ContainingAssembly.RuntimeSupportsInlineArrayTypes)
+                {
+                    diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportInlineArrayTypes, GetFirstLocation());
                 }
             }
         }

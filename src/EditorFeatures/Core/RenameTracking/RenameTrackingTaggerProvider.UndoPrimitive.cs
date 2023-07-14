@@ -19,11 +19,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         /// <see cref="ITextBuffer"/> on which they were created, so we must avoid strong
         /// references to anything that may hold that <see cref="ITextBuffer"/> alive.
         /// </summary>
-        private class UndoPrimitive : ITextUndoPrimitive
+        private class UndoPrimitive(ITextBuffer textBuffer, int trackingSessionId, bool shouldRestoreStateOnUndo) : ITextUndoPrimitive
         {
-            private readonly WeakReference<ITextBuffer> _weakTextBuffer;
-            private readonly int _trackingSessionId;
-            private readonly bool _shouldRestoreStateOnUndo;
+            private readonly WeakReference<ITextBuffer> _weakTextBuffer = new WeakReference<ITextBuffer>(textBuffer);
+            private readonly int _trackingSessionId = trackingSessionId;
+            private readonly bool _shouldRestoreStateOnUndo = shouldRestoreStateOnUndo;
 
             private ITextUndoTransaction _parent;
             public ITextUndoTransaction Parent
@@ -35,13 +35,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             public bool CanRedo => true;
 
             public bool CanUndo => true;
-
-            public UndoPrimitive(ITextBuffer textBuffer, int trackingSessionId, bool shouldRestoreStateOnUndo)
-            {
-                _weakTextBuffer = new WeakReference<ITextBuffer>(textBuffer);
-                _trackingSessionId = trackingSessionId;
-                _shouldRestoreStateOnUndo = shouldRestoreStateOnUndo;
-            }
 
             public void Do()
             {

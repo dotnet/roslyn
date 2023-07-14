@@ -111,16 +111,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 return false;
             }
 
-            private sealed class RenameTrackingCommitterOperation : CodeActionOperation
+            private sealed class RenameTrackingCommitterOperation(RenameTrackingCommitter committer, IThreadingContext threadingContext) : CodeActionOperation
             {
-                private readonly RenameTrackingCommitter _committer;
-                private readonly IThreadingContext _threadingContext;
-
-                public RenameTrackingCommitterOperation(RenameTrackingCommitter committer, IThreadingContext threadingContext)
-                {
-                    _committer = committer;
-                    _threadingContext = threadingContext;
-                }
+                private readonly RenameTrackingCommitter _committer = committer;
+                private readonly IThreadingContext _threadingContext = threadingContext;
 
                 internal override async Task<bool> TryApplyAsync(
                     Workspace workspace, Solution originalSolution, IProgressTracker progressTracker, CancellationToken cancellationToken)

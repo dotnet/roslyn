@@ -18,14 +18,11 @@ using Microsoft.CodeAnalysis.Navigation;
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
     [ExportLanguageServiceFactory(typeof(IGoToDefinitionService), InternalLanguageNames.TypeScript), Shared]
-    internal sealed class VSTypeScriptGoToDefinitionServiceFactory : ILanguageServiceFactory
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class VSTypeScriptGoToDefinitionServiceFactory(IVSTypeScriptGoToDefinitionServiceFactoryImplementation impl) : ILanguageServiceFactory
     {
-        private readonly IVSTypeScriptGoToDefinitionServiceFactoryImplementation _impl;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VSTypeScriptGoToDefinitionServiceFactory(IVSTypeScriptGoToDefinitionServiceFactoryImplementation impl)
-            => _impl = impl;
+        private readonly IVSTypeScriptGoToDefinitionServiceFactoryImplementation _impl = impl;
 
         public ILanguageService? CreateLanguageService(HostLanguageServices languageServices)
         {
@@ -33,12 +30,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             return (service != null) ? new ServiceWrapper(service) : null;
         }
 
-        private sealed class ServiceWrapper : IGoToDefinitionService
+        private sealed class ServiceWrapper(IVSTypeScriptGoToDefinitionService service) : IGoToDefinitionService
         {
-            private readonly IVSTypeScriptGoToDefinitionService _service;
-
-            public ServiceWrapper(IVSTypeScriptGoToDefinitionService service)
-                => _service = service;
+            private readonly IVSTypeScriptGoToDefinitionService _service = service;
 
             public async Task<IEnumerable<INavigableItem>?> FindDefinitionsAsync(Document document, int position, CancellationToken cancellationToken)
             {
