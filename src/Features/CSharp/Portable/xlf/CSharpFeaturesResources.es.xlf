@@ -249,7 +249,7 @@
       </trans-unit>
       <trans-unit id="for_loop">
         <source>for loop</source>
-        <target state="new">for loop</target>
+        <target state="translated">bucle for</target>
         <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="init_only_property">
@@ -419,7 +419,7 @@
       </trans-unit>
       <trans-unit id="reversed_for_loop">
         <source>reversed for loop</source>
-        <target state="new">reversed for loop</target>
+        <target state="translated">bucle for invertido</target>
         <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="switch_statement">

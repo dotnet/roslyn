@@ -537,6 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor:
                 case ErrorCode.WRN_CapturedPrimaryConstructorParameterInFieldInitializer:
+                case ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase:
                     return 1;
                 default:
                     return 0;
@@ -2361,6 +2362,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible:
                 case ErrorCode.ERR_ExpressionTreeContainsCollectionLiteral:
                 case ErrorCode.ERR_CollectionLiteralNoTargetType:
+                case ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase:
+                case ErrorCode.ERR_InlineArrayRequiredElementField:
                 case ErrorCode.WRN_ByValArraySizeConstRequired:
                     return false;
                 default:

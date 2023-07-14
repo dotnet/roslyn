@@ -320,6 +320,7 @@
                 case ErrorCode.WRN_InterceptorSignatureMismatch:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor:
+                case ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase:
                     return true;
                 default:
                     return false;

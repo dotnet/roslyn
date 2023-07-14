@@ -101,28 +101,28 @@
       </trans-unit>
       <trans-unit id="InternalsVisibleToCurrentAssembly">
         <source>Current assembly: '{0}'</source>
-        <target state="new">Current assembly: '{0}'</target>
+        <target state="translated">現在のアセンブリ: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="InternalsVisibleToHeaderSummary">
         <source>Printing 'InternalsVisibleToAttribute' information for the current compilation and all referenced assemblies.</source>
-        <target state="new">Printing 'InternalsVisibleToAttribute' information for the current compilation and all referenced assemblies.</target>
+        <target state="translated">現在のコンパイルおよび参照されているすべてのアセンブリの 'InternalsVisibleToAttribute' 情報を印刷しています。</target>
         <note />
       </trans-unit>
       <trans-unit id="InternalsVisibleToReferencedAssembly">
         <source>Assembly reference: '{0}'
   Grants IVT to current assembly: {1}
   Grants IVTs to:</source>
-        <target state="new">Assembly reference: '{0}'
-  Grants IVT to current assembly: {1}
-  Grants IVTs to:</target>
+        <target state="translated">アセンブリ参照: '{0}'
+ 現在のアセンブリに IVT を付与します。{1}
+ 次のものに IVT を付与します。</target>
         <note />
       </trans-unit>
       <trans-unit id="InternalsVisibleToReferencedAssemblyDetails">
         <source>    Assembly name: '{0}'
     Public Keys:</source>
-        <target state="new">    Assembly name: '{0}'
-    Public Keys:</target>
+        <target state="translated">    アセンブリ名: '{0}'
+   公開鍵:</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidAdditionalFile">
@@ -182,7 +182,7 @@
       </trans-unit>
       <trans-unit id="Nothing">
         <source>Nothing</source>
-        <target state="new">Nothing</target>
+        <target state="translated">なし</target>
         <note />
       </trans-unit>
       <trans-unit id="OperationHasNullSemanticModel">
