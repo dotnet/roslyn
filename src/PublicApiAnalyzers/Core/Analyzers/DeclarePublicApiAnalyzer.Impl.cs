@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 if (_useNullability)
                 {
                     symbolUsesOblivious = UsesOblivious(symbol);
-                    if (symbolUsesOblivious)
+                    if (symbolUsesOblivious && !symbol.IsImplicitlyDeclared)
                     {
                         reportObliviousApi(symbol);
                     }
