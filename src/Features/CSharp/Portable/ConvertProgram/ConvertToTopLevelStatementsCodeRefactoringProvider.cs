@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
 
             context.RegisterRefactoring(CodeAction.Create(
                 CSharpAnalyzersResources.Convert_to_top_level_statements,
-                cancellationToken => ConvertToTopLevelStatementsAsync(document, methodDeclaration, context.Options, cancellationToken),
+                c => ConvertToTopLevelStatementsAsync(document, methodDeclaration, context.Options, c),
                 nameof(CSharpAnalyzersResources.Convert_to_top_level_statements),
                 CodeActionPriority.Low));
         }
