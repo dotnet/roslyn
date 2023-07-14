@@ -5951,10 +5951,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             comp = CreateCompilation(sourceC, references: new[] { refB }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (6,31): error CS9180: Could not find an accessible 'Create' method with the expected signature.
+                // (6,31): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection<int> x = [];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(6, 31),
-                // (7,34): error CS9180: Could not find an accessible 'Create' method with the expected signature.
+                // (7,34): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection<string> y = [null];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[null]").WithArguments("Create").WithLocation(7, 34));
         }
@@ -5990,10 +5990,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (6,31): error CS9180: Could not find an accessible 'Create' method with the expected signature.
+                // (6,31): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection<int> x = [];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(6, 31),
-                // (7,34): error CS9180: Could not find an accessible 'Create' method with the expected signature.
+                // (7,34): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection<string> y = [null];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[null]").WithArguments("Create").WithLocation(7, 34));
         }
@@ -6026,10 +6026,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (6,31): error CS9180: Could not find an accessible 'Create' method with the expected signature.
+                // (6,31): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection<int> x = [];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(6, 31),
-                // (7,34): error CS9180: Could not find an accessible 'Create' method with the expected signature.
+                // (7,34): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection<string> y = [null];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[null]").WithArguments("Create").WithLocation(7, 34));
         }
@@ -6064,10 +6064,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (6,31): error CS9180: Could not find an accessible 'ToString' method with the expected signature.
+                // (6,31): error CS9181: Could not find an accessible 'ToString' method with the expected signature.
                 //         MyCollection<int> x = [];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("ToString").WithLocation(6, 31),
-                // (7,34): error CS9180: Could not find an accessible 'ToString' method with the expected signature.
+                // (7,34): error CS9181: Could not find an accessible 'ToString' method with the expected signature.
                 //         MyCollection<string> y = [null];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[null]").WithArguments("ToString").WithLocation(7, 34));
         }
@@ -6139,10 +6139,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (6,31): error CS9180: Could not find an accessible '' method with the expected signature.
+                // (6,31): error CS9181: Could not find an accessible '' method with the expected signature.
                 //         MyCollection<int> x = [];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("").WithLocation(6, 31),
-                // (7,34): error CS9180: Could not find an accessible '' method with the expected signature.
+                // (7,34): error CS9181: Could not find an accessible '' method with the expected signature.
                 //         MyCollection<string> y = [null];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[null]").WithArguments("").WithLocation(7, 34));
         }
@@ -6178,10 +6178,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (6,31): error CS9180: Could not find an accessible '' method with the expected signature.
+                // (6,31): error CS9181: Could not find an accessible '' method with the expected signature.
                 //         MyCollection<int> x = [];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("").WithLocation(6, 31),
-                // (7,34): error CS9180: Could not find an accessible '' method with the expected signature.
+                // (7,34): error CS9181: Could not find an accessible '' method with the expected signature.
                 //         MyCollection<string> y = [null];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[null]").WithArguments("").WithLocation(7, 34));
         }
@@ -6219,10 +6219,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (6,31): error CS9180: Could not find an accessible 'Create' method with the expected signature.
+                // (6,31): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection<int> x = [];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(6, 31),
-                // (7,34): error CS9180: Could not find an accessible 'Create' method with the expected signature.
+                // (7,34): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection<string> y = [null];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[null]").WithArguments("Create").WithLocation(7, 34));
         }
@@ -6309,10 +6309,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (6,31): error CS9180: Could not find an accessible 'Create' method with the expected signature.
+                // (6,31): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection<int> x = [];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(6, 31),
-                // (7,34): error CS9180: Could not find an accessible 'Create' method with the expected signature.
+                // (7,34): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection<string> y = [null];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[null]").WithArguments("Create").WithLocation(7, 34));
         }
@@ -6350,10 +6350,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (6,31): error CS9180: Could not find an accessible 'Create' method with the expected signature.
+                // (6,31): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection<int> x = [];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(6, 31),
-                // (7,34): error CS9180: Could not find an accessible 'Create' method with the expected signature.
+                // (7,34): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection<string> y = [null];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[null]").WithArguments("Create").WithLocation(7, 34));
         }
@@ -6650,10 +6650,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (6,31): error CS9180: Could not find an accessible 'Create' method with the expected signature.
+                // (6,31): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection<int> x = [];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(6, 31),
-                // (7,34): error CS9180: Could not find an accessible 'Create' method with the expected signature.
+                // (7,34): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection<string> y = [null];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[null]").WithArguments("Create").WithLocation(7, 34));
         }
@@ -6696,10 +6696,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (6,26): error CS9180: Could not find an accessible 'Create' method with the expected signature.
+                // (6,26): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection x = [];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(6, 26),
-                // (7,26): error CS9180: Could not find an accessible 'Create' method with the expected signature.
+                // (7,26): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection y = [1, 2, 3];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1, 2, 3]").WithArguments("Create").WithLocation(7, 26));
         }
@@ -6738,10 +6738,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (6,31): error CS9180: Could not find an accessible 'Create' method with the expected signature.
+                // (6,31): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection<int> x = [];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(6, 31),
-                // (7,34): error CS9180: Could not find an accessible 'Create' method with the expected signature.
+                // (7,34): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection<string> y = [null];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[null]").WithArguments("Create").WithLocation(7, 34));
         }
@@ -6877,10 +6877,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (5,34): error CS9180: Could not find an accessible 'Create' method with the expected signature.
+                // (5,34): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection<string> x = [];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(5, 34),
-                // (6,31): error CS9180: Could not find an accessible 'Create' method with the expected signature.
+                // (6,31): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection<int> y = [1, 2, 3];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1, 2, 3]").WithArguments("Create").WithLocation(6, 31));
         }
@@ -6955,7 +6955,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
             // PROTOTYPE: y = [1, 2, 3] should not bind successfully.
             comp.VerifyEmitDiagnostics(
-                // (5,34): error CS9180: Could not find an accessible 'Create' method with the expected signature.
+                // (5,34): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection<string> x = [];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(5, 34));
         }
@@ -6991,10 +6991,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (5,34): error CS9180: Could not find an accessible 'Create' method with the expected signature.
+                // (5,34): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection<string> x = [];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(5, 34),
-                // (6,31): error CS9180: Could not find an accessible 'Create' method with the expected signature.
+                // (6,31): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection<int> y = [1, 2, 3];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1, 2, 3]").WithArguments("Create").WithLocation(6, 31));
         }
@@ -7030,10 +7030,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (5,34): error CS9180: Could not find an accessible 'Create' method with the expected signature.
+                // (5,34): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection<string> x = [];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(5, 34),
-                // (6,31): error CS9180: Could not find an accessible 'Create' method with the expected signature.
+                // (6,31): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection<int> y = [1, 2, 3];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1, 2, 3]").WithArguments("Create").WithLocation(6, 31));
         }
@@ -7069,10 +7069,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (5,26): error CS9180: Could not find an accessible 'Create' method with the expected signature.
+                // (5,26): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection x = [];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(5, 26),
-                // (6,26): error CS9180: Could not find an accessible 'Create' method with the expected signature.
+                // (6,26): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection y = [1, 2, 3];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1, 2, 3]").WithArguments("Create").WithLocation(6, 26));
         }
@@ -7108,10 +7108,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (5,26): error CS9180: Could not find an accessible 'Create' method with the expected signature.
+                // (5,26): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection x = [];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(5, 26),
-                // (6,26): error CS9180: Could not find an accessible 'Create' method with the expected signature.
+                // (6,26): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection y = [1, 2, 3];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1, 2, 3]").WithArguments("Create").WithLocation(6, 26));
         }

@@ -2362,6 +2362,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_ExpressionTreeContainsCollectionLiteral:
                 case ErrorCode.ERR_CollectionLiteralNoTargetType:
                 case ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase:
+                case ErrorCode.ERR_InlineArrayRequiredElementField:
                 case ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound:
                     return false;
                 default:

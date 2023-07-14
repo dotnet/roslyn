@@ -892,6 +892,11 @@
         <target state="translated">O índice está fora dos limites do texto.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InlineArrayRequiredElementField">
+        <source>Inline array element field cannot be declared required.</source>
+        <target state="new">Inline array element field cannot be declared required.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
         <source>Instance properties in interfaces cannot have initializers.</source>
         <target state="translated">As propriedades da instância nas interfaces não podem ter inicializadores.</target>

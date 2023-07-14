@@ -1775,7 +1775,14 @@ next:;
                     diagnostics.Add(ErrorCode.ERR_InvalidInlineArrayLayout, GetFirstLocation());
                 }
 
-                if (TryGetPossiblyUnsupportedByLanguageInlineArrayElementField() is null)
+                if (TryGetPossiblyUnsupportedByLanguageInlineArrayElementField() is FieldSymbol elementField)
+                {
+                    if (elementField.IsRequired)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_InlineArrayRequiredElementField, elementField.TryGetFirstLocation() ?? GetFirstLocation());
+                    }
+                }
+                else
                 {
                     diagnostics.Add(ErrorCode.ERR_InvalidInlineArrayFields, GetFirstLocation());
                 }

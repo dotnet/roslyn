@@ -7682,4 +7682,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase_Title" xml:space="preserve">
     <value>Primary constructor parameter is shadowed by a member from base</value>
   </data>
+  <data name="ERR_InlineArrayRequiredElementField" xml:space="preserve">
+    <value>Inline array element field cannot be declared required.</value>
+  </data>
 </root>
