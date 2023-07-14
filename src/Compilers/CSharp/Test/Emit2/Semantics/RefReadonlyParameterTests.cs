@@ -2413,7 +2413,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_AssgReadonly, "rorro").WithLocation(23, 9));
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/68714")]
+    [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
     public void RefReadonlyParameter_Arglist()
     {
         var source = """
@@ -2429,7 +2429,11 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                 }
             }
             """;
-        var verifier = CompileAndVerify(source, expectedOutput: "111");
+        var verifier = CompileAndVerify(source, verify: Verification.FailsILVerify, expectedOutput: """
+            111
+            111
+            111
+            """);
         verifier.VerifyDiagnostics(
             // (7,11): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
             //         M(x, __arglist(x));
