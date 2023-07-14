@@ -39,15 +39,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// </summary>
         /// <remarks>
         /// Values outside of this range will be clamped to be within that range.  Requests for <see
-        /// cref="CodeActionRequestPriority.High"/> may be downgraded to <see cref="CodeActionRequestPriority.Normal"/> as they
+        /// cref="CodeActionRequestPriority.High"/> may be downgraded to <see cref="CodeActionRequestPriority.Default"/> as they
         /// poorly behaving high-priority providers can cause a negative user experience.
         /// </remarks>
         protected virtual CodeActionRequestPriority ComputeRequestPriority()
-            => CodeActionRequestPriority.Normal;
+            => CodeActionRequestPriority.Default;
 
         /// <summary>
         /// Priority class this refactoring provider should run at. Returns <see
-        /// cref="CodeActionRequestPriority.Normal"/> if not overridden.  Slower, or less relevant, providers should
+        /// cref="CodeActionRequestPriority.Default"/> if not overridden.  Slower, or less relevant, providers should
         /// override this and return a lower value to not interfere with computation of normal priority providers.
         /// </summary>
         public CodeActionRequestPriority RequestPriority
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             get
             {
                 var priority = ComputeRequestPriority();
-                Debug.Assert(priority is CodeActionRequestPriority.Low or CodeActionRequestPriority.Normal or CodeActionRequestPriority.High, "Provider returned invalid priority");
+                Debug.Assert(priority is CodeActionRequestPriority.Low or CodeActionRequestPriority.Default or CodeActionRequestPriority.High, "Provider returned invalid priority");
                 return priority.Clamp(this.CustomTags);
             }
         }

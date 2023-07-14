@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             Func<string, IDisposable?> addOperationScope,
             CancellationToken cancellationToken)
         {
-            using (TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeRefactoring_Summary, $"Pri{GetPriorityInt(priority)}"))
+            using (TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeRefactoring_Summary, $"Pri{priority.GetPriorityInt()}"))
             using (Logger.LogBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, cancellationToken))
             {
                 var extensionManager = document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
@@ -153,13 +153,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 return results.WhereNotNull().ToImmutableArray();
             }
         }
-
-        private static int GetPriorityInt(CodeActionRequestPriority? priority)
-            => priority switch
-            {
-                null => 0,
-                { } nonNull => (int)nonNull
-            };
 
         private async Task<CodeRefactoring?> GetRefactoringFromProviderAsync(
             TextDocument textDocument,

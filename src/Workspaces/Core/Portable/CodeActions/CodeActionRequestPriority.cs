@@ -36,7 +36,7 @@ public enum CodeActionRequestPriority
     Lowest = 1,
 
     /// <summary>
-    /// Run the priority below <see cref="Normal"/> priority.  The provider may run slow, or its results may be
+    /// Run the priority below <see cref="Default"/> priority.  The provider may run slow, or its results may be
     /// commonly less relevant for the user.
     /// </summary>
     Low = 2,
@@ -45,11 +45,11 @@ public enum CodeActionRequestPriority
     /// Run this provider at default priority.  The provider will run in reasonable speeds and provide results that are
     /// commonly relevant to the user.
     /// </summary>
-    Normal = 3,
+    Default = 3,
 
     /// <summary>
     /// Run this provider at high priority. Note: High priority is simply a request on the part of a provider. The core
-    /// engine may automatically downgrade these items to <see cref="Normal"/> priority.
+    /// engine may automatically downgrade these items to <see cref="Default"/> priority.
     /// </summary>
     High = 4,
 }
@@ -78,8 +78,15 @@ internal static class CodeActionRequestPriorityExtensions
             priority = CodeActionRequestPriority.High;
 
         if (priority == CodeActionRequestPriority.High && !customTags.Contains(CanBeHighPriorityTag))
-            priority = CodeActionRequestPriority.Normal;
+            priority = CodeActionRequestPriority.Default;
 
         return priority;
     }
+
+    public static int GetPriorityInt(this CodeActionRequestPriority? priority)
+        => priority switch
+        {
+            null => 0,
+            { } nonNull => (int)nonNull
+        };
 }

@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             // the third-party analyzers are assigned 'Medium' priority.
             var analyzerPriority = analyzer is IBuiltInAnalyzer { IsHighPriority: true }
                 ? CodeActionRequestPriority.High
-                : CodeActionRequestPriority.Normal;
+                : CodeActionRequestPriority.Default;
 
             return priority == analyzerPriority;
         }

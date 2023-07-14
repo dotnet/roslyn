@@ -23,18 +23,18 @@ public enum CodeActionPriority
     Lowest = 0,
 
     /// <summary>
-    /// Low priority code action.  Will show up after <see cref="Normal"/> priority items.
+    /// Low priority code action.  Will show up after <see cref="Default"/> priority items.
     /// </summary>
     Low = 1,
 
     /// <summary>
     /// Medium priority code action.
     /// </summary>
-    Normal = 2,
+    Default = 2,
 
     /// <summary>
     /// High priority code action. Note: High priority is simply a request on the part of a <see cref="CodeAction"/>.
-    /// The core engine may automatically downgrade these items to <see cref="Normal"/> priority.
+    /// The core engine may automatically downgrade these items to <see cref="Default"/> priority.
     /// </summary>
     // <remarks>
     // If <see cref="CodeActionPriority.High"/> is used, the analyzer that specifies that value should implement and

@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                                     {
                                         SuggestedActionSetPriority.None => CodeActionRequestPriority.Lowest,
                                         SuggestedActionSetPriority.Low => CodeActionRequestPriority.Low,
-                                        SuggestedActionSetPriority.Medium => CodeActionRequestPriority.Normal,
+                                        SuggestedActionSetPriority.Medium => CodeActionRequestPriority.Default,
                                         SuggestedActionSetPriority.High => CodeActionRequestPriority.High,
                                         _ => throw ExceptionUtilities.UnexpectedValue(set.Priority),
                                     };

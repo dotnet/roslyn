@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
         public override ImmutableArray<string> Tags => RequiresNonDocumentChangeTags;
 
         private ProjectOptionsChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
-            : base(title, createChangedSolution, equivalenceKey: null, priority: CodeActionPriority.Normal, createdFromFactoryMethod: true)
+            : base(title, createChangedSolution, equivalenceKey: null, priority: CodeActionPriority.Default, createdFromFactoryMethod: true)
         {
         }
 
@@ -134,6 +134,7 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
 
         protected override Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
             => SpecializedTasks.EmptyEnumerable<CodeActionOperation>();
+
     }
 
 #endif
