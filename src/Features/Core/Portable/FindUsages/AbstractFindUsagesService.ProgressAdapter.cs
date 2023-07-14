@@ -24,20 +24,14 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// Forwards <see cref="IStreamingFindLiteralReferencesProgress"/> calls to an
         /// <see cref="IFindUsagesContext"/> instance.
         /// </summary>
-        private sealed class FindLiteralsProgressAdapter : IStreamingFindLiteralReferencesProgress
+        private sealed class FindLiteralsProgressAdapter(
+            IFindUsagesContext context, DefinitionItem definition) : IStreamingFindLiteralReferencesProgress
         {
-            private readonly IFindUsagesContext _context;
-            private readonly DefinitionItem _definition;
+            private readonly IFindUsagesContext _context = context;
+            private readonly DefinitionItem _definition = definition;
 
             public IStreamingProgressTracker ProgressTracker
                 => _context.ProgressTracker;
-
-            public FindLiteralsProgressAdapter(
-                IFindUsagesContext context, DefinitionItem definition)
-            {
-                _context = context;
-                _definition = definition;
-            }
 
             public async ValueTask OnReferenceFoundAsync(Document document, TextSpan span, CancellationToken cancellationToken)
             {
@@ -54,11 +48,12 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// <summary>
         /// Forwards IFindReferencesProgress calls to an IFindUsagesContext instance.
         /// </summary>
-        private sealed class FindReferencesProgressAdapter : IStreamingFindReferencesProgress
+        private sealed class FindReferencesProgressAdapter(
+            Solution solution, IFindUsagesContext context, FindReferencesSearchOptions options) : IStreamingFindReferencesProgress
         {
-            private readonly Solution _solution;
-            private readonly IFindUsagesContext _context;
-            private readonly FindReferencesSearchOptions _options;
+            private readonly Solution _solution = solution;
+            private readonly IFindUsagesContext _context = context;
+            private readonly FindReferencesSearchOptions _options = options;
 
             /// <summary>
             /// We will hear about definition symbols many times while performing FAR.  We'll
@@ -76,14 +71,6 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
             public IStreamingProgressTracker ProgressTracker
                 => _context.ProgressTracker;
-
-            public FindReferencesProgressAdapter(
-                Solution solution, IFindUsagesContext context, FindReferencesSearchOptions options)
-            {
-                _solution = solution;
-                _context = context;
-                _options = options;
-            }
 
             // Do nothing functions.  The streaming far service doesn't care about
             // any of these.

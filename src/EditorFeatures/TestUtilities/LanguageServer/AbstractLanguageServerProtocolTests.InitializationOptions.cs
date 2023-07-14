@@ -18,6 +18,8 @@ namespace Roslyn.Test.Utilities
             internal WellKnownLspServerKinds ServerKind { get; init; } = WellKnownLspServerKinds.AlwaysActiveVSLspServer;
             internal Action<IGlobalOptionService>? OptionUpdater { get; init; } = null;
             internal bool CallInitialized { get; init; } = true;
+            internal object? ClientTarget { get; init; } = null;
+            internal string? Locale { get; init; } = null;
         }
     }
 }

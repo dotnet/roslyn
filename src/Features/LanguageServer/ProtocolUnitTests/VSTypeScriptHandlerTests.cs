@@ -84,7 +84,7 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
     {
         var (clientStream, serverStream) = FullDuplexStream.CreatePair();
 
-        var testWorkspace = CreateWorkspace(options, workspaceKind: null);
+        var testWorkspace = CreateWorkspace(options, mutatingLspWorkspace: false, workspaceKind: null);
         testWorkspace.InitializeDocuments(XElement.Parse(workspaceXml), openDocuments: false);
 
         // Ensure workspace operations are completed so we don't get unexpected workspace changes while running.

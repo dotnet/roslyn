@@ -15,35 +15,28 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// A source for <see cref="TextAndVersion"/> constructed from an syntax tree.
         /// </summary>
-        private sealed class TreeTextSource : ITextAndVersionSource, ITextVersionable
+        private sealed class TreeTextSource(AsyncLazy<SourceText> textSource, VersionStamp version) : ITextAndVersionSource
         {
-            private readonly ValueSource<SourceText> _textSource;
-            private readonly VersionStamp _version;
+            private readonly VersionStamp _version = version;
 
             public bool CanReloadText
                 => false;
 
-            public TreeTextSource(ValueSource<SourceText> textSource, VersionStamp version)
-            {
-                _textSource = textSource;
-                _version = version;
-            }
-
             public async Task<TextAndVersion> GetValueAsync(LoadTextOptions options, CancellationToken cancellationToken)
             {
-                var text = await _textSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                var text = await textSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
                 return TextAndVersion.Create(text, _version);
             }
 
             public TextAndVersion GetValue(LoadTextOptions options, CancellationToken cancellationToken)
             {
-                var text = _textSource.GetValue(cancellationToken);
+                var text = textSource.GetValue(cancellationToken);
                 return TextAndVersion.Create(text, _version);
             }
 
             public bool TryGetValue(LoadTextOptions options, [NotNullWhen(true)] out TextAndVersion? value)
             {
-                if (_textSource.TryGetValue(out var text))
+                if (textSource.TryGetValue(out var text))
                 {
                     value = TextAndVersion.Create(text, _version);
                     return true;
@@ -55,11 +48,14 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public bool TryGetTextVersion(LoadTextOptions options, out VersionStamp version)
+            public bool TryGetVersion(LoadTextOptions options, out VersionStamp version)
             {
                 version = _version;
                 return version != default;
             }
+
+            public ValueTask<VersionStamp> GetVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+                => new(_version);
         }
     }
 }

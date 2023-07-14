@@ -183,7 +183,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     containingScopes.GetLocalNames(),
                     constantsBuilder.ToImmutableAndFree(),
                     reuseSpan,
-                    containingDocumentName: null);
+                    containingDocumentName: null,
+                    isPrimaryConstructor: false);
             }
             catch (InvalidOperationException)
             {

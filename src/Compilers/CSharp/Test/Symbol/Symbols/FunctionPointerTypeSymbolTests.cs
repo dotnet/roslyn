@@ -1418,11 +1418,8 @@ unsafe static class C
             comp.VerifyDiagnostics(
                 // (6,23): error CS0828: Cannot assign 'delegate*<void>' to anonymous type property
                 //         var a = new { Ptr = ptr };
-                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "Ptr = ptr").WithArguments("delegate*<void>").WithLocation(6, 23),
-                // (7,23): error CS0828: Cannot assign 'delegate*<void>[]' to anonymous type property
-                //         var b = new { Ptrs = new[] { ptr } };
-                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "Ptrs = new[] { ptr }").WithArguments("delegate*<void>[]").WithLocation(7, 23)
-            );
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "Ptr = ptr").WithArguments("delegate*<void>").WithLocation(6, 23)
+                );
 
             var syntaxTree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(syntaxTree);
@@ -1457,21 +1454,21 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
 ");
 
             VerifyOperationTreeForNode(comp, model, anonymousObjectCreations[1], expectedOperationTree: @"
-IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: delegate*<System.Void>[] Ptrs>, IsInvalid) (Syntax: 'new { Ptrs  ... ] { ptr } }')
+IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: delegate*<System.Void>[] Ptrs>) (Syntax: 'new { Ptrs  ... ] { ptr } }')
   Initializers(1):
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: delegate*<System.Void>[], IsInvalid) (Syntax: 'Ptrs = new[] { ptr }')
-        Left: 
-          IPropertyReferenceOperation: delegate*<System.Void>[] <anonymous type: delegate*<System.Void>[] Ptrs>.Ptrs { get; } (OperationKind.PropertyReference, Type: delegate*<System.Void>[], IsInvalid) (Syntax: 'Ptrs')
-            Instance Receiver: 
-              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: delegate*<System.Void>[] Ptrs>, IsInvalid, IsImplicit) (Syntax: 'new { Ptrs  ... ] { ptr } }')
-        Right: 
-          IArrayCreationOperation (OperationKind.ArrayCreation, Type: delegate*<System.Void>[], IsInvalid) (Syntax: 'new[] { ptr }')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: delegate*<System.Void>[]) (Syntax: 'Ptrs = new[] { ptr }')
+        Left:
+          IPropertyReferenceOperation: delegate*<System.Void>[] <anonymous type: delegate*<System.Void>[] Ptrs>.Ptrs { get; } (OperationKind.PropertyReference, Type: delegate*<System.Void>[]) (Syntax: 'Ptrs')
+            Instance Receiver:
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: delegate*<System.Void>[] Ptrs>, IsImplicit) (Syntax: 'new { Ptrs  ... ] { ptr } }')
+        Right:
+          IArrayCreationOperation (OperationKind.ArrayCreation, Type: delegate*<System.Void>[]) (Syntax: 'new[] { ptr }')
             Dimension Sizes(1):
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'new[] { ptr }')
-            Initializer: 
-              IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: '{ ptr }')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'new[] { ptr }')
+            Initializer:
+              IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ ptr }')
                 Element Values(1):
-                    IParameterReferenceOperation: ptr (OperationKind.ParameterReference, Type: delegate*<System.Void>, IsInvalid) (Syntax: 'ptr')
+                    IParameterReferenceOperation: ptr (OperationKind.ParameterReference, Type: delegate*<System.Void>) (Syntax: 'ptr')
 ");
         }
 
@@ -1494,13 +1491,10 @@ unsafe class C
 }");
 
             comp.VerifyDiagnostics(
-                // (5,48): error CS1637: Iterators cannot have unsafe parameters or yield types
+                // (5,48): error CS1637: Iterators cannot have pointer type parameters
                 //     IEnumerable<int> Iterator1(delegate*<void> i)
-                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "i").WithLocation(5, 48),
-                // (10,50): error CS1637: Iterators cannot have unsafe parameters or yield types
-                //     IEnumerable<int> Iterator2(delegate*<void>[] i)
-                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "i").WithLocation(10, 50)
-            );
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "i").WithLocation(5, 48)
+                );
         }
 
         [Fact]

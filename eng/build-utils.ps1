@@ -266,9 +266,9 @@ function Get-PackageDir([string]$name, [string]$version = "") {
 #
 # Important to not set $script:bootstrapDir here yet as we're actually in the process of
 # building the bootstrap.
-function Make-BootstrapBuild([switch]$force32 = $false) {
+function Make-BootstrapBuild([string]$bootstrapToolset = "") {
 
-  function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]$logFileName = "", [string]$configuration = $script:configuration, [switch]$runAnalyzers = $false) {
+  function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]$logFileName = "", [string]$configuration = $script:configuration) {
     # Because we override the C#/VB toolset to build against our LKG package, it is important
     # that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
     # we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
@@ -322,11 +322,19 @@ function Make-BootstrapBuild([switch]$force32 = $false) {
   Remove-Item -re $dir -ErrorAction SilentlyContinue
   Create-Directory $dir
 
-  $packageName = "Microsoft.Net.Compilers.Toolset"
-  $projectPath = "src\NuGet\$packageName\AnyCpu\$packageName.Package.csproj"
-  $force32Flag = if ($force32) { " /p:BOOTSTRAP32=true" } else { "" }
+  if ($bootstrapToolset -eq "" -or $bootstrapToolset -eq "AnyCPU") {
+    $projectPath = "src\NuGet\Microsoft.Net.Compilers.Toolset\AnyCpu\Microsoft.Net.Compilers.Toolset.Package.csproj"
+    $packageName = "Microsoft.Net.Compilers.Toolset"
+  }
+  elseif ($bootstrapToolset -eq "Framework") {
+    $projectPath = "src\NuGet\Microsoft.Net.Compilers.Toolset\Framework\Microsoft.Net.Compilers.Toolset.Framework.Package.csproj"
+    $packageName = "Microsoft.Net.Compilers.Toolset.Framework"
+  }
+  else {
+    throw "Unsupported bootstrap toolset $bootstrapToolset"
+  }
 
-  Run-MSBuild $projectPath "/restore /t:Pack /p:RoslynEnforceCodeStyle=false /p:RunAnalyzersDuringBuild=false /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath=`"$dir`" /p:EnableNgenOptimization=false /p:PublishWindowsPdb=false $force32Flag" -logFileName "Bootstrap" -configuration $bootstrapConfiguration -runAnalyzers
+  Run-MSBuild $projectPath "/restore /t:Pack /p:RoslynEnforceCodeStyle=false /p:RunAnalyzersDuringBuild=false /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath=`"$dir`" /p:EnableNgenOptimization=false /p:PublishWindowsPdb=false" -logFileName "Bootstrap" -configuration $bootstrapConfiguration
   $packageFile = Get-ChildItem -Path $dir -Filter "$packageName.*.nupkg"
   Unzip (Join-Path $dir $packageFile.Name) $dir
 

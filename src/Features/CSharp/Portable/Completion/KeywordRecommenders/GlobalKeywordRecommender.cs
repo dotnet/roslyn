@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             return
                 context.IsTypeContext ||
+                context.IsEnumBaseListContext ||
                 UsingKeywordRecommender.IsUsingDirectiveContext(context, forGlobalKeyword: true, cancellationToken);
         }
     }

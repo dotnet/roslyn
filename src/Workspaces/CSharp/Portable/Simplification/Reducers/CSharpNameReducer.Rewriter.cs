@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
                 }
 
-                var result = SimplifyExpression(
+                var result = SimplifyNode(
                     node,
                     newNode: base.VisitPredefinedType(node),
                     simplifier: s_simplifyName);
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
                 }
 
-                var result = SimplifyExpression(
+                var result = SimplifyNode(
                     node,
                     newNode: base.VisitAliasQualifiedName(node),
                     simplifier: s_simplifyName);
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
                 }
 
-                var result = SimplifyExpression(
+                var result = SimplifyNode(
                     node,
                     newNode: base.VisitQualifiedName(node),
                     simplifier: s_simplifyName);
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
                 }
 
-                var result = SimplifyExpression(
+                var result = SimplifyNode(
                     node,
                     newNode: base.VisitMemberAccessExpression(node),
                     simplifier: s_simplifyName);
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
                 }
 
-                var result = SimplifyExpression(
+                var result = SimplifyNode(
                     node,
                     newNode: base.VisitIdentifierName(node),
                     simplifier: s_simplifyName);
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
                 }
 
-                var result = SimplifyExpression(
+                var result = SimplifyNode(
                     node,
                     newNode: base.VisitGenericName(node),
                     simplifier: s_simplifyName);
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
                 }
 
-                var result = SimplifyExpression(
+                var result = SimplifyNode(
                     node,
                     newNode: base.VisitQualifiedCref(node),
                     simplifier: s_simplifyName);
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
                 }
 
-                var result = SimplifyExpression(
+                var result = SimplifyNode(
                     node,
                     newNode: base.VisitArrayType(node),
                     simplifier: s_simplifyName);
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
                 }
 
-                var result = SimplifyExpression(
+                var result = SimplifyNode(
                     node,
                     newNode: base.VisitNullableType(node),
                     simplifier: s_simplifyName);
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
                 }
 
-                var result = SimplifyExpression(
+                var result = SimplifyNode(
                     node,
                     newNode: base.VisitTupleType(node),
                     simplifier: s_simplifyName);

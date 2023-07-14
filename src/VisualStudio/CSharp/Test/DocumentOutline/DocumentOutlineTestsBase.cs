@@ -107,7 +107,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             async Task<ManualInvocationResponse?> RequestAsync(ITextBuffer textBuffer, Func<JToken, bool> capabilitiesFilter, string languageServerName, string method, Func<ITextSnapshot, JToken> parameterFactory, CancellationToken cancellationToken)
             {
                 var request = parameterFactory(textBuffer.CurrentSnapshot).ToObject<RoslynDocumentSymbolParams>();
-                var response = await testLspServer.ExecuteRequestAsync<RoslynDocumentSymbolParams, DocumentSymbol[]>(method, request!, cancellationToken);
+                var response = await testLspServer.ExecuteRequestAsync<RoslynDocumentSymbolParams, object[]>(method, request!, cancellationToken);
                 return new ManualInvocationResponse(string.Empty, JToken.FromObject(response!));
             }
         }
@@ -134,7 +134,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             }
 
             solution = solution.WithAnalyzerReferences(new[] { new TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()) });
-            workspace.ChangeSolution(solution);
+            await workspace.ChangeSolutionAsync(solution);
 
             // Important: We must wait for workspace creation operations to finish.
             // Otherwise we could have a race where workspace change events triggered by creation are changing the state

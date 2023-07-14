@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         AsyncBuilderField = 't',
         DelegateCacheContainerType = 'O',
         DynamicCallSiteContainerType = 'o',
+        PrimaryConstructorParameter = 'P',
         DynamicCallSiteField = 'p',
         AsyncIteratorPromiseOfValueOrEndBackingField = 'v',
         DisposeModeField = 'w',

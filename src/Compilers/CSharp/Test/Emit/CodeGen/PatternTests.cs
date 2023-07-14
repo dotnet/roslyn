@@ -5949,7 +5949,7 @@ class C
             compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("C.M1", @"
     {
-      // Code size       35 (0x23)
+      // Code size       33 (0x21)
       .maxstack  2
       .locals init (bool V_0)
       IL_0000:  ldarg.0
@@ -5971,11 +5971,9 @@ class C
       IL_001a:  ldc.i4.0
       IL_001b:  stloc.0
       IL_001c:  ldloc.0
-      IL_001d:  brtrue.s   IL_0021
-      IL_001f:  ldc.i4.0
+      IL_001d:  ldc.i4.0
+      IL_001e:  cgt.un
       IL_0020:  ret
-      IL_0021:  ldc.i4.1
-      IL_0022:  ret
     }
 ");
             compVerifier.VerifyIL("C.M2", @"

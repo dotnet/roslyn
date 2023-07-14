@@ -18,12 +18,6 @@ namespace Microsoft.CodeAnalysis.InlineHints
 {
     internal abstract class AbstractInlineParameterNameHintsService : IInlineParameterNameHintsService
     {
-        /// <summary>
-        /// Used as a tiebreaker to position coincident type and parameter hints.
-        /// Parameter hints will always appear first.
-        /// </summary>
-        private const double Ranking = 0.0;
-
         protected enum HintKind
         {
             Literal,
@@ -41,12 +35,14 @@ namespace Microsoft.CodeAnalysis.InlineHints
         protected abstract bool IsIndexer(SyntaxNode node, IParameterSymbol parameter);
         protected abstract string GetReplacementText(string parameterName);
 
-        public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, InlineParameterHintsOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(
+            Document document,
+            TextSpan textSpan,
+            InlineParameterHintsOptions options,
+            SymbolDescriptionOptions displayOptions,
+            bool displayAllOverride,
+            CancellationToken cancellationToken)
         {
-            // TODO: https://github.com/dotnet/roslyn/issues/57283
-            var globalOptions = document.Project.Solution.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
-            var displayAllOverride = globalOptions.InlineHintsOptionsDisplayAllOverride;
-
             var enabledForParameters = displayAllOverride || options.EnabledForParameters;
             if (!enabledForParameters)
                 return ImmutableArray<InlineHint>.Empty;
@@ -106,11 +102,18 @@ namespace Microsoft.CodeAnalysis.InlineHints
                     {
                         var inlineHintText = GetReplacementText(parameter.Name);
                         var textSpan = new TextSpan(position, 0);
+
+                        TextChange? replacementTextChange = null;
+                        if (!parameter.IsParams)
+                        {
+                            replacementTextChange = new TextChange(textSpan, inlineHintText);
+                        }
+
                         result.Add(new InlineHint(
                             textSpan,
                             ImmutableArray.Create(new TaggedText(TextTags.Text, parameter.Name + ": ")),
-                            new TextChange(textSpan, inlineHintText),
-                            ranking: Ranking,
+                            replacementTextChange,
+                            ranking: InlineHintsConstants.ParameterRanking,
                             InlineHintHelpers.GetDescriptionFunction(position, parameter.GetSymbolKey(cancellationToken: cancellationToken), displayOptions)));
                     }
                 }

@@ -18,16 +18,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
     [ContentType(ContentTypeNames.CSharpContentType)]
     [Name(nameof(CloseBlockCommentCommandHandler))]
     [Order(After = nameof(BlockCommentEditingCommandHandler))]
-    internal sealed class CloseBlockCommentCommandHandler : ICommandHandler<TypeCharCommandArgs>
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class CloseBlockCommentCommandHandler(EditorOptionsService editorOptionsService) : ICommandHandler<TypeCharCommandArgs>
     {
-        private readonly EditorOptionsService _editorOptionsService;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CloseBlockCommentCommandHandler(EditorOptionsService editorOptionsService)
-        {
-            _editorOptionsService = editorOptionsService;
-        }
+        private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
 
         public string DisplayName => EditorFeaturesResources.Block_Comment_Editing;
 

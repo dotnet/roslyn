@@ -7060,5 +7060,141 @@ public struct Vec4
             var comp = CreateCompilationWithSpan(source);
             comp.VerifyDiagnostics();
         }
+
+        [Fact]
+        public void Local_UsingStatementExpression()
+        {
+            string source = """
+                using System;
+                struct S : IDisposable
+                {
+                    public void Dispose() { }
+                }
+                ref struct R
+                {
+                    public ref int F;
+                    public R(ref int i) { F = ref i; }
+                    public static implicit operator S(R r) => default;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        int i = 0;
+                        var x = new R(ref i);
+                        using (x switch { R y => (S)y })
+                        {
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(67493, "https://github.com/dotnet/roslyn/issues/67493")]
+        [Fact]
+        public void Local_SwitchStatementExpression()
+        {
+            string source = """
+                ref struct R1
+                {
+                    public R2 F;
+                    public R1(ref int i) { F = new R2(ref i); }
+                }
+                ref struct R2
+                {
+                    ref int _i;
+                    public R2(ref int i) { _i = ref i; }
+                }
+                class Program
+                {
+                    static R2 F()
+                    {
+                        int i = 0;
+                        var x = new R1(ref i);
+                        switch (x switch { { F: R2 y } => y })
+                        {
+                            case R2 z:
+                                return z;
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (20,24): error CS8352: Cannot use variable 'z' in this context because it may expose referenced variables outside of their declaration scope
+                //                 return z;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "z").WithArguments("z").WithLocation(20, 24));
+        }
+
+        [WorkItem(67493, "https://github.com/dotnet/roslyn/issues/67493")]
+        [Fact]
+        public void Local_ForEachExpression()
+        {
+            string source = """
+                ref struct R
+                {
+                    public ref int F;
+                    public R(ref int i) { F = ref i; }
+                }
+                ref struct Enumerable
+                {
+                    public ref int F;
+                    public Enumerable(ref int i) { F = ref i; }
+                    public Enumerator GetEnumerator() => new Enumerator(ref F);
+                }
+                ref struct Enumerator
+                {
+                    public ref int F;
+                    public Enumerator(ref int i) { F = ref i; }
+                    public R Current => new R(ref F);
+                    public bool MoveNext() => false;
+                }
+                class Program
+                {
+                    static R F()
+                    {
+                        foreach (var y in 1 switch { int x => new Enumerable(ref x) })
+                        {
+                            return y;
+                        }
+                        return default;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (25,20): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
+                //             return y;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(25, 20));
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void ParameterEscape()
+        {
+            var source = """
+                using System;
+                ref struct R
+                {
+                    public R(Span<int> s) { }
+                    public void F(ReadOnlySpan<int> s) { }
+                }
+                class Program
+                {
+                    static void M(ReadOnlySpan<int> s)
+                    {
+                        R r = new R(stackalloc int[2]);
+                        while (true)
+                        {
+                            r.F(s);
+                            r.F(s.Slice(0, 1));
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics();
+        }
     }
 }

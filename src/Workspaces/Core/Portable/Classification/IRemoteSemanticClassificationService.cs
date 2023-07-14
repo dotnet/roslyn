@@ -7,12 +7,11 @@ using System.Collections.Immutable;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
@@ -47,13 +46,13 @@ namespace Microsoft.CodeAnalysis.Classification
     /// second and third ints encode the span.
     /// </summary>
     [DataContract]
-    internal sealed class SerializableClassifiedSpans
+    internal sealed class SerializableClassifiedSpans(ImmutableArray<string> classificationTypes, ImmutableArray<int> classificationTriples)
     {
         [DataMember(Order = 0)]
-        public List<string>? ClassificationTypes;
+        public readonly ImmutableArray<string> ClassificationTypes = classificationTypes;
 
         [DataMember(Order = 1)]
-        public List<int>? ClassificationTriples;
+        public readonly ImmutableArray<int> ClassificationTriples = classificationTriples;
 
         internal static SerializableClassifiedSpans Dehydrate(ImmutableArray<ClassifiedSpan> classifiedSpans)
         {
@@ -63,8 +62,8 @@ namespace Microsoft.CodeAnalysis.Classification
 
         private static SerializableClassifiedSpans Dehydrate(ImmutableArray<ClassifiedSpan> classifiedSpans, Dictionary<string, int> classificationTypeToId)
         {
-            var classificationTypes = new List<string>();
-            var classificationTriples = new List<int>(capacity: classifiedSpans.Length * 3);
+            using var _1 = ArrayBuilder<string>.GetInstance(out var classificationTypes);
+            using var _2 = ArrayBuilder<int>.GetInstance(capacity: classifiedSpans.Length * 3, out var classificationTriples);
 
             foreach (var classifiedSpan in classifiedSpans)
             {
@@ -82,19 +81,14 @@ namespace Microsoft.CodeAnalysis.Classification
                 classificationTriples.Add(textSpan.Length);
             }
 
-            return new SerializableClassifiedSpans
-            {
-                ClassificationTypes = classificationTypes,
-                ClassificationTriples = classificationTriples,
-            };
+            return new SerializableClassifiedSpans(
+                classificationTypes.ToImmutableAndClear(),
+                classificationTriples.ToImmutableAndClear());
         }
 
-        internal void Rehydrate(ArrayBuilder<ClassifiedSpan> classifiedSpans)
+        internal void Rehydrate(SegmentedList<ClassifiedSpan> classifiedSpans)
         {
-            Contract.ThrowIfNull(ClassificationTypes);
-            Contract.ThrowIfNull(ClassificationTriples);
-
-            for (var i = 0; i < ClassificationTriples.Count; i += 3)
+            for (int i = 0, n = ClassificationTriples.Length; i < n; i += 3)
             {
                 classifiedSpans.Add(new ClassifiedSpan(
                     ClassificationTypes[ClassificationTriples[i + 0]],

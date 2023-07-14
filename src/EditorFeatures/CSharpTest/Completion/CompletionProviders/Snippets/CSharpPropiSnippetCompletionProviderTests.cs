@@ -13,6 +13,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         protected override string GetDefaultPropertyBlockText()
             => "{ get; init; }";
 
+        public override async Task InsertSnippetInReadonlyStruct()
+        {
+            await VerifyDefaultPropertyAsync("""
+                readonly struct MyStruct
+                {
+                    $$
+                }
+                """);
+        }
+
         public override async Task InsertSnippetInInterface()
         {
             await VerifyDefaultPropertyAsync("""

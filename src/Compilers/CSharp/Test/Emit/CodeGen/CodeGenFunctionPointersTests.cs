@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             var comp = CreateCompilation(
                 sources,
                 references,
-                parseOptions: TestOptions.Regular9,
+                parseOptions: TestOptions.RegularPreview,
                 options: options ?? (expectedOutput is null ? TestOptions.UnsafeReleaseDll : TestOptions.UnsafeReleaseExe),
                 targetFramework: targetFramework);
 
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 
         private static CSharpCompilation CreateCompilationWithFunctionPointers(CSharpTestSource source, IEnumerable<MetadataReference>? references = null, CSharpCompilationOptions? options = null, TargetFramework? targetFramework = null)
         {
-            return CreateCompilation(source, references: references, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9, targetFramework: targetFramework ?? TargetFramework.Net50);
+            return CreateCompilation(source, references: references, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview, targetFramework: targetFramework ?? TargetFramework.Net50);
         }
 
         private static CSharpCompilation CreateCompilationWithFunctionPointers(CSharpTestSource source, bool includeUnmanagedCallersOnly, CSharpCompilationOptions? options = null)
@@ -53,12 +53,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             var references = includeUnmanagedCallersOnly
                 ? TargetFrameworkUtil.GetReferences(TargetFramework.Net50)
                 : TargetFrameworkUtil.GetReferencesWithout(TargetFramework.Net50, "System.Runtime.InteropServices.dll");
-            return CreateCompilation(source, references: references, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Empty);
+            return CreateCompilation(source, references: references, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Empty);
         }
 
         private CompilationVerifier CompileAndVerifyFunctionPointersWithIl(string source, string ilStub, Action<ModuleSymbol>? symbolValidator = null, string? expectedOutput = null)
         {
-            var comp = CreateCompilationWithIL(source, ilStub, parseOptions: TestOptions.Regular9, options: expectedOutput is null ? TestOptions.UnsafeReleaseDll : TestOptions.UnsafeReleaseExe);
+            var comp = CreateCompilationWithIL(source, ilStub, parseOptions: TestOptions.RegularPreview, options: expectedOutput is null ? TestOptions.UnsafeReleaseDll : TestOptions.UnsafeReleaseExe);
             return CompileAndVerify(comp, expectedOutput: expectedOutput, symbolValidator: symbolValidator, verify: Verification.Skipped);
         }
 
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             var references = includeUnmanagedCallersOnly
                 ? TargetFrameworkUtil.GetReferences(TargetFramework.Net50)
                 : TargetFrameworkUtil.GetReferencesWithout(TargetFramework.Net50, "System.Runtime.InteropServices.dll");
-            return CreateCompilationWithIL(source, ilStub, references: references, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Empty);
+            return CreateCompilationWithIL(source, ilStub, references: references, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Empty);
         }
 
         [Theory]
@@ -680,7 +680,7 @@ public class C
 }
 ";
 
-            var compilation = CreateCompilationWithIL(source: "", ilSource, parseOptions: TestOptions.Regular9);
+            var compilation = CreateCompilationWithIL(source: "", ilSource, parseOptions: TestOptions.RegularPreview);
             var testClass = compilation.GetTypeByMetadataName("Test1")!;
 
             var m = testClass.GetMethod("M");
@@ -2466,6 +2466,7 @@ Returned From Function 2");
 }");
         }
 
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68208")]
         [Fact]
         public void Typeof()
         {
@@ -2479,7 +2480,7 @@ class C
         Console.WriteLine(t.ToString());
     }
 }
-", expectedOutput: "System.IntPtr");
+", expectedOutput: ExecutionConditionUtil.IsCoreClr ? "System.Void()" : "System.IntPtr");
 
             verifier.VerifyIL("C.Main()", expectedIL: @"
 {
@@ -2582,7 +2583,7 @@ using System;
 public unsafe class C
 {
     public delegate*<I1> M() => throw null;
-}", references: new[] { nopiaReference }, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll).EmitToImageReference();
+}", references: new[] { nopiaReference }, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll).EmitToImageReference();
 
             CompileAndVerifyFunctionPointers(@"
 unsafe class C2
@@ -2619,7 +2620,7 @@ using System.Runtime.CompilerServices;
 internal class B
 {
     internal unsafe delegate*<A> M() => throw null;
-}", references: new[] { aRef }, assemblyName: "B", parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll).EmitToImageReference();
+}", references: new[] { aRef }, assemblyName: "B", parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll).EmitToImageReference();
 
             var cComp = CreateCompilation(@"
 internal class C
@@ -2628,7 +2629,7 @@ internal class C
     {
         b.M()();
     }
-}", references: new[] { aRef, bRef }, assemblyName: "C", parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
+}", references: new[] { aRef, bRef }, assemblyName: "C", parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll);
 
             cComp.VerifyDiagnostics(
                     // (6,9): error CS0122: 'B.M()' is inaccessible due to its protection level
@@ -2649,7 +2650,7 @@ using System.Runtime.CompilerServices;
 internal class B
 {
     internal unsafe delegate*<A> M() => throw null;
-}", references: new[] { aRef }, assemblyName: "B", parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll).EmitToImageReference();
+}", references: new[] { aRef }, assemblyName: "B", parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll).EmitToImageReference();
 
             var cComp = CreateCompilation(@"
 internal class C
@@ -2658,7 +2659,7 @@ internal class C
     {
         b.M()();
     }
-}", references: new[] { aRef, bRef }, assemblyName: "C", parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
+}", references: new[] { aRef, bRef }, assemblyName: "C", parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll);
 
             cComp.VerifyDiagnostics();
         }
@@ -5015,7 +5016,7 @@ static unsafe class C
         Span<delegate*<int, int>> p = stackalloc delegate*<int, int>[1];
     }
 }
-", options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9);
+", options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
 
             comp.VerifyDiagnostics(
                 // (7,14): error CS0306: The type 'delegate*<int, int>' may not be used as a type argument
@@ -7547,7 +7548,7 @@ unsafe class C
     }
 }
 ";
-            var allInCoreLib = CreateEmptyCompilation(source1 + source2, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute(), options: TestOptions.UnsafeReleaseDll);
+            var allInCoreLib = CreateEmptyCompilation(source1 + source2, parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute(), options: TestOptions.UnsafeReleaseDll);
             allInCoreLib.VerifyDiagnostics(
                 // (23,29): error CS8891: Type 'CallConvTest' must be public to be used as a calling convention.
                 //         delegate* unmanaged[Test]<void> ptr = null;
@@ -7567,7 +7568,7 @@ unsafe class C
             var coreLib = CreateEmptyCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             coreLib.VerifyDiagnostics();
 
-            var comp1 = CreateEmptyCompilation(source2, references: new[] { coreLib.EmitToImageReference() }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute(), options: TestOptions.UnsafeReleaseDll);
+            var comp1 = CreateEmptyCompilation(source2, references: new[] { coreLib.EmitToImageReference() }, parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute(), options: TestOptions.UnsafeReleaseDll);
             comp1.VerifyDiagnostics(
                 // (7,29): error CS8891: Type 'CallConvTest' must be public to be used as a calling convention.
                 //         delegate* unmanaged[Test]<void> ptr = null;
@@ -7616,7 +7617,7 @@ unsafe class C
     }
 }
 ";
-            var allInCoreLib = CreateEmptyCompilation(source1 + source2, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute(), options: TestOptions.UnsafeReleaseDll);
+            var allInCoreLib = CreateEmptyCompilation(source1 + source2, parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute(), options: TestOptions.UnsafeReleaseDll);
             allInCoreLib.VerifyDiagnostics(
                 // (23,29): error CS8890: Type 'CallConvTest' is not defined.
                 //         delegate* unmanaged[Test]<void> ptr = null;
@@ -7636,7 +7637,7 @@ unsafe class C
             var coreLib = CreateEmptyCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             coreLib.VerifyDiagnostics();
 
-            var comp1 = CreateEmptyCompilation(source2, references: new[] { coreLib.EmitToImageReference() }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute(), options: TestOptions.UnsafeReleaseDll);
+            var comp1 = CreateEmptyCompilation(source2, references: new[] { coreLib.EmitToImageReference() }, parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute(), options: TestOptions.UnsafeReleaseDll);
             comp1.VerifyDiagnostics(
                 // (7,29): error CS8890: Type 'CallConvTest' is not defined.
                 //         delegate* unmanaged[Test]<void> ptr = null;
@@ -11462,8 +11463,35 @@ class C<T> {}
                 class C { }
                 """;
 
-            // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
             CreateCompilation(source).VerifyEmitDiagnostics(
+                // (11,4): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [A(default(B<delegate*<void>[]>.E))]
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "default(B<delegate*<void>[]>.E)").WithLocation(11, 4),
+                // (11,14): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [A(default(B<delegate*<void>[]>.E))]
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(11, 14));
+        }
+
+        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_ObjectDefault_Enum_ConstructorArgument_WithUnsafeContext([CombinatorialValues("class", "struct")] string kind)
+        {
+            var source = $$"""
+                class A : System.Attribute
+                {
+                    public A(object o) { }
+                }
+
+                {{kind}} B<T>
+                {
+                    public enum E { }
+                }
+
+                [A(default(B<delegate*<void>[]>.E))]
+                unsafe class C { }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
                 // (11,2): error CS8911: Using a function pointer type in this context is not supported.
                 // [A(default(B<delegate*<void>[]>.E))]
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(default(B<delegate*<void>[]>.E))").WithLocation(11, 2));
@@ -11487,11 +11515,13 @@ class C<T> {}
                 class C { }
                 """;
 
-            // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
             CreateCompilation(source).VerifyEmitDiagnostics(
-                // (11,2): error CS8911: Using a function pointer type in this context is not supported.
+                // (11,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // [A<object>(default(B<delegate*<void>[]>.E))]
-                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A<object>(default(B<delegate*<void>[]>.E))").WithLocation(11, 2));
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "default(B<delegate*<void>[]>.E)").WithLocation(11, 12),
+                // (11,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [A<object>(default(B<delegate*<void>[]>.E))]
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(11, 22));
         }
 
         [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
@@ -11509,11 +11539,11 @@ class C<T> {}
                 }
 
                 [A(null, "abc", default(B<delegate*<void>[]>.E))]
-                class C { }
+                unsafe class C { }
                 """;
 
             // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
-            CreateCompilation(source).VerifyEmitDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
                 // (11,2): error CS8911: Using a function pointer type in this context is not supported.
                 // [A(null, "abc", default(B<delegate*<void>[]>.E))]
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, @"A(null, ""abc"", default(B<delegate*<void>[]>.E))").WithLocation(11, 2));
@@ -11534,11 +11564,11 @@ class C<T> {}
                 }
 
                 [A(P = default(B<delegate*<void>[]>.E))]
-                class C { }
+                unsafe class C { }
                 """;
 
             // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
-            CreateCompilation(source).VerifyEmitDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
                 // (11,2): error CS8911: Using a function pointer type in this context is not supported.
                 // [A(P = default(B<delegate*<void>[]>.E))]
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(P = default(B<delegate*<void>[]>.E))").WithLocation(11, 2));
@@ -11559,17 +11589,68 @@ class C<T> {}
                 }
 
                 [A(default)]
-                class C { }
+                unsafe class C { }
                 """;
 
             // https://github.com/dotnet/roslyn/issues/66187 tracks enabling runtime reflection support for this scenario.
-            var verifier = CompileAndVerify(source, symbolValidator: static module =>
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
+                // (3,16): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     public A(B<delegate*<void>[]>.E e) { }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(3, 16)
+                );
+        }
+
+        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_TypedDefault_Enum_Implicit_ConstructorArgument_WithUnsafeContext([CombinatorialValues("class", "struct")] string kind)
+        {
+            var source = $$"""
+                class A : System.Attribute
+                {
+                    public unsafe A(B<delegate*<void>[]>.E e) { }
+                }
+
+                {{kind}} B<T>
+                {
+                    public enum E { }
+                }
+
+                [A(default)]
+                unsafe class C { }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/66187 tracks enabling runtime reflection support for this scenario.
+            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugDll, symbolValidator: static module =>
             {
                 var c = module.GlobalNamespace.GetTypeMember("C");
                 var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
                 Assert.Empty(attr.ConstructorArguments);
             });
             verifier.VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_TypedDefault_Enum_Implicit_ConstructorArgument_WithoutUnsafeContext([CombinatorialValues("class", "struct")] string kind)
+        {
+            var source = $$"""
+                class A : System.Attribute
+                {
+                    public unsafe A(B<delegate*<void>[]>.E e) { }
+                }
+
+                {{kind}} B<T>
+                {
+                    public enum E { }
+                }
+
+                [A(default)]
+                class C { }
+                """;
+
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (11,4): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [A(default)]
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "default").WithLocation(11, 4)
+                );
         }
 
         [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
@@ -11587,11 +11668,11 @@ class C<T> {}
                 }
 
                 [A<B<delegate*<void>[]>.E>(default)]
-                class C { }
+                unsafe class C { }
                 """;
 
             // https://github.com/dotnet/roslyn/issues/66187 tracks enabling runtime reflection support for this scenario.
-            var verifier = CompileAndVerify(source, symbolValidator: static module =>
+            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugDll, symbolValidator: static module =>
             {
                 var c = module.GlobalNamespace.GetTypeMember("C");
                 var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
@@ -11606,7 +11687,7 @@ class C<T> {}
             var source = $$"""
                 class A : System.Attribute
                 {
-                    public B<delegate*<void>[]>.E P { get; set; }
+                    public unsafe B<delegate*<void>[]>.E P { get; set; }
                 }
 
                 {{kind}} B<T>
@@ -11619,7 +11700,7 @@ class C<T> {}
                 """;
 
             // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
-            CreateCompilation(source).VerifyEmitDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
                 // (11,2): error CS8911: Using a function pointer type in this context is not supported.
                 // [A(P = default)]
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(P = default)").WithLocation(11, 2));
@@ -11631,7 +11712,7 @@ class C<T> {}
             var source = $$"""
                 class A : System.Attribute
                 {
-                    public A(B<delegate*<void>[]>.E e) { }
+                    public unsafe A(B<delegate*<void>[]>.E e) { }
                 }
 
                 {{kind}} B<T>
@@ -11640,11 +11721,11 @@ class C<T> {}
                 }
 
                 [A(default(B<delegate*<void>[]>.E))]
-                class C { }
+                unsafe class C { }
                 """;
 
             // https://github.com/dotnet/roslyn/issues/66187 tracks enabling runtime reflection support for this scenario.
-            var verifier = CompileAndVerify(source, symbolValidator: static module =>
+            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugDll, symbolValidator: static module =>
             {
                 var c = module.GlobalNamespace.GetTypeMember("C");
                 var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
@@ -11660,7 +11741,7 @@ class C<T> {}
             var source = $$"""
                 class A : System.Attribute
                 {
-                    public B<delegate*<void>[]>.E P { get; set; }
+                    public unsafe B<delegate*<void>[]>.E P { get; set; }
                 }
 
                 {{kind}} B<T>
@@ -11669,11 +11750,11 @@ class C<T> {}
                 }
 
                 [A(P = default(B<delegate*<void>[]>.E))]
-                class C { }
+                unsafe class C { }
                 """;
 
             // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
-            CreateCompilation(source).VerifyEmitDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
                 // (11,2): error CS8911: Using a function pointer type in this context is not supported.
                 // [A(P = default(B<delegate*<void>[]>.E))]
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(P = default(B<delegate*<void>[]>.E))").WithLocation(11, 2));
@@ -11698,10 +11779,10 @@ class C<T> {}
                 class B<T> { }
 
                 [A(default(B<delegate*<void>[]>))]
-                class C { }
+                unsafe class C { }
                 """;
 
-            var verifier = CompileAndVerify(source, expectedOutput: "True", symbolValidator: static module =>
+            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugExe, expectedOutput: "True", symbolValidator: static module =>
             {
                 var c = module.GlobalNamespace.GetTypeMember("C");
                 var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
@@ -11777,11 +11858,11 @@ class C<T> {}
                 }
 
                 [A(B<delegate*<void>[]>.C)]
-                class C { }
+                unsafe class C { }
                 """;
 
             // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
-            CreateCompilation(source).VerifyEmitDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
                 // (12,2): error CS8911: Using a function pointer type in this context is not supported.
                 // [A(B<delegate*<void>[]>.C)]
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(B<delegate*<void>[]>.C)").WithLocation(12, 2));
@@ -11802,11 +11883,11 @@ class C<T> {}
                 }
 
                 [A(new B<delegate*<void>[]>.E[]{})]
-                class C { }
+                unsafe class C { }
                 """;
 
             // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
-            CreateCompilation(source).VerifyEmitDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
                 // (11,2): error CS8911: Using a function pointer type in this context is not supported.
                 // [A(new B<delegate*<void>[]>.E[]{})]
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(new B<delegate*<void>[]>.E[]{})").WithLocation(11, 2));
@@ -11829,11 +11910,11 @@ class C<T> {}
                 }
 
                 [A(new object[] { new B<delegate*<void>[]>.E() })]
-                class C { }
+                unsafe class C { }
                 """;
 
             // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
-            CreateCompilation(source).VerifyEmitDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
                 // (11,2): error CS8911: Using a function pointer type in this context is not supported.
                 // [A(new object[] { new B<delegate*<void>[]>.E() })]
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(new object[] { new B<delegate*<void>[]>.E() })").WithLocation(11, 2));
@@ -11854,9 +11935,9 @@ class C<T> {}
                 }
 
                 [A(new B<delegate*<void>[]>.E[]{})]
-                class C { }
+                unsafe class C { }
                 """;
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
                 // (11,4): error CS1503: Argument 1: cannot convert from 'B<delegate*<void>[]>.E[]' to 'object[]'
                 // [A(new B<delegate*<void>[]>.E[]{})]
                 Diagnostic(ErrorCode.ERR_BadArgType, "new B<delegate*<void>[]>.E[]{}").WithArguments("1", "B<delegate*<void>[]>.E[]", "object[]").WithLocation(11, 4));
@@ -11879,18 +11960,18 @@ class C<T> {}
                 }
 
                 [A(new B<delegate*<void>[]>.E{{initializer}})]
-                class C { }
+                unsafe class C { }
                 """;
 
             // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
-            CreateCompilation(source).VerifyEmitDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
                 // (11,2): error CS8911: Using a function pointer type in this context is not supported.
                 // [A(new B<delegate*<void>[]>.E())]
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, $"A(new B<delegate*<void>[]>.E{initializer})").WithLocation(11, 2));
         }
 
         [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
-        public void Attribute_GenericObjectConstant_Enum_ConstructorArgument([CombinatorialValues("class", "struct")] string kind)
+        public void Attribute_GenericObjectConstant_Enum_ConstructorArgument_NoUnsafeModifier([CombinatorialValues("class", "struct")] string kind)
         {
             var source = $$"""
                 class A<T> : System.Attribute
@@ -11908,8 +11989,39 @@ class C<T> {}
                 class C { }
                 """;
 
-            // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
             CreateCompilation(source).VerifyEmitDiagnostics(
+                // (12,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [A<object>(B<delegate*<void>[]>.C)]
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "B<delegate*<void>[]>").WithLocation(12, 12),
+                // (12,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [A<object>(B<delegate*<void>[]>.C)]
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "B<delegate*<void>[]>.C").WithLocation(12, 12),
+                // (12,14): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [A<object>(B<delegate*<void>[]>.C)]
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(12, 14));
+        }
+
+        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_GenericObjectConstant_Enum_ConstructorArgument_UnsafeModifier([CombinatorialValues("class", "struct")] string kind)
+        {
+            var source = $$"""
+                class A<T> : System.Attribute
+                {
+                    public A(T t) { }
+                }
+
+                {{kind}} B<T>
+                {
+                    public enum E { }
+                    public const E C = (E)33;
+                }
+
+                [A<object>(B<delegate*<void>[]>.C)]
+                unsafe class C { }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
                 // (12,2): error CS8911: Using a function pointer type in this context is not supported.
                 // [A<object>(B<delegate*<void>[]>.C)]
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A<object>(B<delegate*<void>[]>.C)").WithLocation(12, 2));
@@ -11931,11 +12043,11 @@ class C<T> {}
                 }
 
                 [A<B<delegate*<void>[]>.E>(B<delegate*<void>[]>.C)]
-                class C { }
+                unsafe class C { }
                 """;
 
             // https://github.com/dotnet/roslyn/issues/66187 tracks enabling runtime reflection support for this scenario.
-            var verifier = CompileAndVerify(source, symbolValidator: static module =>
+            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugDll, symbolValidator: static module =>
             {
                 var c = module.GlobalNamespace.GetTypeMember("C");
                 var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
@@ -11960,11 +12072,11 @@ class C<T> {}
                 }
 
                 [A(y: 1, x: B<delegate*<void>[]>.C)]
-                class C { }
+                unsafe class C { }
                 """;
 
             // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
-            CreateCompilation(source).VerifyEmitDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
                 // (12,2): error CS8911: Using a function pointer type in this context is not supported.
                 // [A(y: 1, x: B<delegate*<void>[]>.C)]
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(y: 1, x: B<delegate*<void>[]>.C)").WithLocation(12, 2));
@@ -11986,11 +12098,11 @@ class C<T> {}
                 }
 
                 [A(P = B<delegate*<void>[]>.C)]
-                class C { }
+                unsafe class C { }
                 """;
 
             // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
-            CreateCompilation(source).VerifyEmitDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
                 // (12,2): error CS8911: Using a function pointer type in this context is not supported.
                 // [A(P = B<delegate*<void>[]>.C)]
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(P = B<delegate*<void>[]>.C)").WithLocation(12, 2));
@@ -12011,11 +12123,11 @@ class C<T> {}
                 }
 
                 [A(P = new B<delegate*<void>[]>.E[]{})]
-                class C { }
+                unsafe class C { }
                 """;
 
             // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
-            CreateCompilation(source).VerifyEmitDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
                 // (11,2): error CS8911: Using a function pointer type in this context is not supported.
                 // [A(P = new B<delegate*<void>[]>.E[]{})]
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(P = new B<delegate*<void>[]>.E[]{})").WithLocation(11, 2));
@@ -12038,11 +12150,11 @@ class C<T> {}
                 }
 
                 [A(P = new object[] { new B<delegate*<void>[]>.E() })]
-                class C { }
+                unsafe class C { }
                 """;
 
             // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
-            CreateCompilation(source).VerifyEmitDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
                 // (11,2): error CS8911: Using a function pointer type in this context is not supported.
                 // [A(P = new object[] { new B<delegate*<void>[]>.E() })]
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(P = new object[] { new B<delegate*<void>[]>.E() })").WithLocation(11, 2));
@@ -12054,7 +12166,7 @@ class C<T> {}
             var source = $$"""
                 class A : System.Attribute
                 {
-                    public A(B<delegate*<void>[]>.E o) { }
+                    public unsafe A(B<delegate*<void>[]>.E o) { }
                 }
 
                 {{kind}} B<T>
@@ -12064,11 +12176,11 @@ class C<T> {}
                 }
 
                 [A(B<delegate*<void>[]>.C)]
-                class C { }
+                unsafe class C { }
                 """;
 
             // https://github.com/dotnet/roslyn/issues/66187 tracks enabling runtime reflection support for this scenario.
-            var verifier = CompileAndVerify(source, symbolValidator: static module =>
+            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugDll, symbolValidator: static module =>
             {
                 var c = module.GlobalNamespace.GetTypeMember("C");
                 var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
@@ -12083,7 +12195,7 @@ class C<T> {}
             var source = $$"""
                 class A : System.Attribute
                 {
-                    public A(B<delegate*<void>[]>.E[] a) { }
+                    public unsafe A(B<delegate*<void>[]>.E[] a) { }
                 }
 
                 {{kind}} B<T>
@@ -12092,11 +12204,11 @@ class C<T> {}
                 }
 
                 [A(new B<delegate*<void>[]>.E[]{})]
-                class C { }
+                unsafe class C { }
                 """;
 
             // https://github.com/dotnet/roslyn/issues/66187 tracks enabling runtime reflection support for this scenario.
-            var verifier = CompileAndVerify(source, symbolValidator: static module =>
+            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugDll, symbolValidator: static module =>
             {
                 var c = module.GlobalNamespace.GetTypeMember("C");
                 var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
@@ -12113,7 +12225,7 @@ class C<T> {}
             var source = $$"""
                 class A : System.Attribute
                 {
-                    public A(params B<delegate*<void>[]>.E[] a) { }
+                    public unsafe A(params B<delegate*<void>[]>.E[] a) { }
                 }
 
                 {{kind}} B<T>
@@ -12122,11 +12234,11 @@ class C<T> {}
                 }
 
                 [A(new B<delegate*<void>[]>.E{{initializer}})]
-                class C { }
+                unsafe class C { }
                 """;
 
             // https://github.com/dotnet/roslyn/issues/66187 tracks enabling runtime reflection support for this scenario.
-            var verifier = CompileAndVerify(source, symbolValidator: static module =>
+            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugDll, symbolValidator: static module =>
             {
                 var c = module.GlobalNamespace.GetTypeMember("C");
                 var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
@@ -12141,7 +12253,7 @@ class C<T> {}
             var source = $$"""
                 class A : System.Attribute
                 {
-                    public B<delegate*<void>[]>.E P { get; set; }
+                    public unsafe B<delegate*<void>[]>.E P { get; set; }
                 }
 
                 {{kind}} B<T>
@@ -12151,11 +12263,11 @@ class C<T> {}
                 }
 
                 [A(P = B<delegate*<void>[]>.C)]
-                class C { }
+                unsafe class C { }
                 """;
 
             // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
-            CreateCompilation(source).VerifyEmitDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
                 // (12,2): error CS8911: Using a function pointer type in this context is not supported.
                 // [A(P = B<delegate*<void>[]>.C)]
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(P = B<delegate*<void>[]>.C)").WithLocation(12, 2));

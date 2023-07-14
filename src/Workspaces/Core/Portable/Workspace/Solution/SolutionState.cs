@@ -52,13 +52,13 @@ namespace Microsoft.CodeAnalysis
         private ImmutableDictionary<ProjectId, ICompilationTracker> _projectIdToTrackerMap;
 
         // Checksums for this solution state
-        private readonly ValueSource<SolutionStateChecksums> _lazyChecksums;
+        private readonly AsyncLazy<SolutionStateChecksums> _lazyChecksums;
 
         /// <summary>
         /// Mapping from project-id to the checksums needed to synchronize it (and the projects it depends on) over 
         /// to an OOP host.  Lock this specific field before reading/writing to it.
         /// </summary>
-        private readonly Dictionary<ProjectId, ValueSource<SolutionStateChecksums>> _lazyProjectChecksums = new();
+        private readonly Dictionary<ProjectId, AsyncLazy<SolutionStateChecksums>> _lazyProjectChecksums = new();
 
         // holds on data calculated based on the AnalyzerReferences list
         private readonly Lazy<HostDiagnosticAnalyzers> _lazyAnalyzers;
@@ -105,8 +105,7 @@ namespace Microsoft.CodeAnalysis
             _frozenSourceGeneratedDocumentState = frozenSourceGeneratedDocument;
 
             // when solution state is changed, we recalculate its checksum
-            _lazyChecksums = new AsyncLazy<SolutionStateChecksums>(
-                c => ComputeChecksumsAsync(projectsToInclude: null, c), cacheResult: true);
+            _lazyChecksums = AsyncLazy.Create(c => ComputeChecksumsAsync(projectsToInclude: null, c));
 
             CheckInvariants();
 
@@ -2060,18 +2059,11 @@ namespace Microsoft.CodeAnalysis
 
         internal TestAccessor GetTestAccessor() => new TestAccessor(this);
 
-        internal readonly struct TestAccessor
+        internal readonly struct TestAccessor(SolutionState solutionState)
         {
-            private readonly SolutionState _solutionState;
-
-            public TestAccessor(SolutionState solutionState)
-            {
-                _solutionState = solutionState;
-            }
-
             public GeneratorDriver? GetGeneratorDriver(Project project)
             {
-                return project.SupportsCompilation ? _solutionState.GetCompilationTracker(project.Id).GeneratorDriver : null;
+                return project.SupportsCompilation ? solutionState.GetCompilationTracker(project.Id).GeneratorDriver : null;
             }
         }
     }

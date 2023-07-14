@@ -2,8 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
@@ -244,6 +242,41 @@ End Namespace"
 
             Dim markup = CreateMarkupForSingleProject(file1, file2, LanguageNames.VisualBasic)
             Await VerifyItemExistsAsync(markup, "Foo4", glyph:=Glyph.ClassPublic, inlineDescription:="Foo1.Foo2.Foo3", displayTextSuffix:="(Of ...)", isComplexTextEdit:=True)
+        End Function
+
+        <Fact>
+        Public Async Function TestEnumBaseList1() As Task
+            Dim source As String = "Enum MyEnum As $$"
+
+            Await VerifyItemExistsAsync(source, "Byte", glyph:=Glyph.StructurePublic, inlineDescription:="System")
+            Await VerifyItemExistsAsync(source, "SByte", glyph:=Glyph.StructurePublic, inlineDescription:="System")
+            Await VerifyItemExistsAsync(source, "Int16", glyph:=Glyph.StructurePublic, inlineDescription:="System")
+            Await VerifyItemExistsAsync(source, "UInt16", glyph:=Glyph.StructurePublic, inlineDescription:="System")
+            Await VerifyItemExistsAsync(source, "Int32", glyph:=Glyph.StructurePublic, inlineDescription:="System")
+            Await VerifyItemExistsAsync(source, "UInt32", glyph:=Glyph.StructurePublic, inlineDescription:="System")
+            Await VerifyItemExistsAsync(source, "Int64", glyph:=Glyph.StructurePublic, inlineDescription:="System")
+            Await VerifyItemExistsAsync(source, "UInt64", glyph:=Glyph.StructurePublic, inlineDescription:="System")
+
+            ' Verify that other things from `System` namespace are not present
+            Await VerifyItemIsAbsentAsync(source, "Console", inlineDescription:="System")
+            Await VerifyItemIsAbsentAsync(source, "Action", inlineDescription:="System")
+            Await VerifyItemIsAbsentAsync(source, "DateTime", inlineDescription:="System")
+
+            ' Verify that things from other namespaces are not present
+            Await VerifyItemIsAbsentAsync(source, "IEnumerable", inlineDescription:="System.Collections")
+            Await VerifyItemIsAbsentAsync(source, "Task", inlineDescription:="System.Threading.Tasks")
+            Await VerifyItemIsAbsentAsync(source, "AssemblyName", inlineDescription:="System.Reflection")
+        End Function
+
+        <Fact>
+        Public Async Function TestEnumBaseList2() As Task
+            Dim source As String =
+"Imports System
+
+Enum MyEnum As $$"
+
+            ' Everything valid is already in the scope
+            Await VerifyNoItemsExistAsync(source)
         End Function
     End Class
 End Namespace

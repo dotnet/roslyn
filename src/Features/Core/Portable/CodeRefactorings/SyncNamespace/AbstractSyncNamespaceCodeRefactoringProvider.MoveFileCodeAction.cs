@@ -23,21 +23,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
         where TCompilationUnitSyntax : SyntaxNode
         where TMemberDeclarationSyntax : SyntaxNode
     {
-        private class MoveFileCodeAction : CodeAction
+        private class MoveFileCodeAction(State state, ImmutableArray<string> newFolders) : CodeAction
         {
-            private readonly State _state;
-            private readonly ImmutableArray<string> _newfolders;
+            private readonly State _state = state;
+            private readonly ImmutableArray<string> _newfolders = newFolders;
 
             public override string Title
                 => _newfolders.Length > 0
                 ? string.Format(FeaturesResources.Move_file_to_0, string.Join(PathUtilities.DirectorySeparatorStr, _newfolders))
                 : FeaturesResources.Move_file_to_project_root_folder;
-
-            public MoveFileCodeAction(State state, ImmutableArray<string> newFolders)
-            {
-                _state = state;
-                _newfolders = newFolders;
-            }
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             {
@@ -47,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
                 solution = solution.RemoveDocument(document.Id);
 
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 solution = solution.AddDocument(newDocumentId, document.Name, text, folders: _newfolders);
 
                 return ImmutableArray.Create<CodeActionOperation>(

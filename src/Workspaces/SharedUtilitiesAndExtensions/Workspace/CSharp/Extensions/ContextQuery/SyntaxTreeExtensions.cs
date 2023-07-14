@@ -238,14 +238,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public static bool IsMemberDeclarationContext(
             this SyntaxTree syntaxTree,
             int position,
-            CSharpSyntaxContext? contextOpt,
+            CSharpSyntaxContext? context,
             ISet<SyntaxKind>? validModifiers,
             ISet<SyntaxKind>? validTypeDeclarations,
             bool canBePartial,
             CancellationToken cancellationToken)
         {
-            var typeDecl = contextOpt != null
-                ? contextOpt.ContainingTypeOrEnumDeclaration
+            var typeDecl = context != null
+                ? context.ContainingTypeOrEnumDeclaration
                 : syntaxTree.GetContainingTypeOrEnumDeclaration(position, cancellationToken);
 
             if (typeDecl == null)
@@ -261,12 +261,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             // Check many of the simple cases first.
-            var leftToken = contextOpt != null
-                ? contextOpt.LeftToken
+            var leftToken = context != null
+                ? context.LeftToken
                 : syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
 
-            var token = contextOpt != null
-                ? contextOpt.TargetToken
+            var token = context != null
+                ? context.TargetToken
                 : leftToken.GetPreviousTokenIfTouchingWord(position);
 
             if (token.IsAnyAccessorDeclarationContext(position))
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
-            var modifierTokens = contextOpt?.PrecedingModifiers ?? syntaxTree.GetPrecedingModifiers(position, cancellationToken);
+            var modifierTokens = context?.PrecedingModifiers ?? syntaxTree.GetPrecedingModifiers(position, cancellationToken);
             if (modifierTokens.IsEmpty())
                 return false;
 
@@ -527,7 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public static bool IsTypeDeclarationContext(
             this SyntaxTree syntaxTree,
             int position,
-            CSharpSyntaxContext? contextOpt,
+            CSharpSyntaxContext? context,
             ISet<SyntaxKind>? validModifiers,
             ISet<SyntaxKind>? validTypeDeclarations,
             bool canBePartial,
@@ -535,8 +535,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         {
             // We only allow nested types inside a class, struct, or interface, not inside a
             // an enum.
-            var typeDecl = contextOpt != null
-                ? contextOpt.ContainingTypeDeclaration
+            var typeDecl = context != null
+                ? context.ContainingTypeDeclaration
                 : syntaxTree.GetContainingTypeDeclaration(position, cancellationToken);
 
             validTypeDeclarations ??= SpecializedCollections.EmptySet<SyntaxKind>();
@@ -550,14 +550,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             // Check many of the simple cases first.
-            var leftToken = contextOpt != null
-                ? contextOpt.LeftToken
+            var leftToken = context != null
+                ? context.LeftToken
                 : syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
 
             // If we're touching the right of an identifier, move back to
             // previous token.
-            var token = contextOpt != null
-                ? contextOpt.TargetToken
+            var token = context != null
+                ? context.TargetToken
                 : leftToken.GetPreviousTokenIfTouchingWord(position);
 
             if (token.IsAnyAccessorDeclarationContext(position))
@@ -577,13 +577,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
-            // using static | is never a type declaration context
-            if (token.IsStaticKeywordInUsingDirective())
+            // using directive is never a type declaration context
+            if (token.GetAncestor<UsingDirectiveSyntax>() is not null)
             {
                 return false;
             }
 
-            var modifierTokens = contextOpt?.PrecedingModifiers ?? syntaxTree.GetPrecedingModifiers(position, cancellationToken);
+            var modifierTokens = context?.PrecedingModifiers ?? syntaxTree.GetPrecedingModifiers(position, cancellationToken);
             if (modifierTokens.IsEmpty())
                 return false;
 
@@ -654,7 +654,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             // using static |
-            if (token.IsStaticKeywordInUsingDirective())
+            // using static unsafe |
+            if (token.IsStaticKeywordContextInUsingDirective())
             {
                 return true;
             }
@@ -755,7 +756,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 syntaxTree.IsPossibleTupleContext(tokenOnLeftOfPosition, position) ||
                 syntaxTree.IsMemberDeclarationContext(
                     position,
-                    contextOpt: null,
+                    context: null,
                     validModifiers: SyntaxKindSet.AllMemberModifiers,
                     validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
                     canBePartial: false,
@@ -803,11 +804,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public static bool IsUsingStaticContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             // using static |
+            // using static unsafe |
 
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             token = token.GetPreviousTokenIfTouchingWord(position);
 
-            return token.IsStaticKeywordInUsingDirective();
+            return token.IsStaticKeywordContextInUsingDirective();
         }
 
         public static bool IsTypeArgumentOfConstraintClause(
@@ -2985,19 +2987,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
-        public static bool IsEnumBaseListContext(this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition)
+        public static bool IsEnumBaseListContext(this SyntaxTree syntaxTree, SyntaxToken targetToken)
         {
-            var token = tokenOnLeftOfPosition;
-            token = token.GetPreviousTokenIfTouchingWord(position);
-
             // Options:
             //  enum E : |
             //  enum E : i|
 
             return
-                token.IsKind(SyntaxKind.ColonToken) &&
-                token.Parent.IsKind(SyntaxKind.BaseList) &&
-                token.Parent.IsParentKind(SyntaxKind.EnumDeclaration);
+                targetToken.IsKind(SyntaxKind.ColonToken) &&
+                targetToken.Parent.IsKind(SyntaxKind.BaseList) &&
+                targetToken.Parent.IsParentKind(SyntaxKind.EnumDeclaration);
         }
 
         public static bool IsEnumTypeMemberAccessContext(this SyntaxTree syntaxTree, SemanticModel semanticModel, int position, CancellationToken cancellationToken)

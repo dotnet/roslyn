@@ -1250,6 +1250,119 @@ public class C
             Assert.True(SymbolKey.GetComparer(ignoreCase: true, ignoreAssemblyKeys: true).Equals(symbolKey1, symbolKey2));
         }
 
+        [Fact]
+        public void TestBodySymbolsWithEdits()
+        {
+            var source = @"
+using System.Collections.Generic;
+using System.Linq;
+
+public class C
+{
+    public void M()
+    {
+        void InteriorMethod()
+        {
+            int a, b;
+            if (a > b) {
+               int c = a + b;
+            }
+
+            {
+                string d = "";
+            }
+
+            {
+                double d = 0.0;
+            }
+
+            {
+                bool d = false;
+            }
+
+            var q = new { };
+
+            int[] xs = new int[] { 1, 2, 3, 4 };
+
+            {
+                var q = from x in xs where x > 2 select x;
+            }
+
+            {
+                var q2 = from x in xs where x < 4 select x;
+            }
+
+            start: goto end;
+            end: goto start;
+            end: ; // duplicate label
+
+            DeepLocalFunction();
+
+            void DeepLocalFunction()
+            {
+                int[] xs = new int[] { 1, 2, 3, 4 };
+
+                {
+                    string d = "";
+                }
+
+                {
+                    double d = 0.0;
+                }
+
+                {
+                    bool d = false;
+                }
+
+                {
+                    var q = from x in xs where x > 2 select x;
+                }
+
+                {
+                    var q2 = from x in xs where x < 4 select x;
+                }
+
+                InteriorMethod();
+            }
+        }
+    }
+}
+";
+            var compilation = GetCompilation(source, LanguageNames.CSharp);
+            var methods = GetDeclaredSymbols(compilation).OfType<IMethodSymbol>();
+            var symbols = methods.SelectMany(ms => GetInteriorSymbols(ms, compilation)).Where(s => SymbolKey.IsBodyLevelSymbol(s)).ToList();
+            Assert.Equal(25, symbols.Count);
+
+            // Ensure we have coverage for all our body symbols.
+            Assert.True(symbols.Any(s => s is ILocalSymbol));
+            Assert.True(symbols.Any(s => s is ILabelSymbol));
+            Assert.True(symbols.Any(s => s is IRangeVariableSymbol));
+            Assert.True(symbols.Any(s => s.IsLocalFunction()));
+
+            TestRoundTrip(symbols, compilation);
+
+            var syntaxTree = compilation.SyntaxTrees.Single();
+            var text = syntaxTree.GetText();
+
+            // replace all spaces with double spaces.  So nothing is in the same location anymore.
+            var newTree = syntaxTree.WithChangedText(text.WithChanges(new TextChange(new TextSpan(0, text.Length), text.ToString().Replace(" ", "  "))));
+            var newCompilation = compilation.ReplaceSyntaxTree(syntaxTree, newTree);
+
+            foreach (var symbol in symbols)
+            {
+                var key = SymbolKey.Create(symbol);
+                var resolved = key.Resolve(newCompilation);
+
+                Assert.NotNull(resolved.Symbol);
+
+                Assert.Equal(resolved.Symbol.Name, symbol.Name);
+                Assert.Equal(resolved.Symbol.Kind, symbol.Kind);
+
+                // Ensure that the local moved later in the file.
+                Assert.True(resolved.Symbol.Locations[0].SourceSpan.Start > symbol.Locations[0].SourceSpan.Start);
+            }
+        }
+
         private static void TestRoundTrip(IEnumerable<ISymbol> symbols, Compilation compilation, Func<ISymbol, object> fnId = null)
         {
             foreach (var symbol in symbols)
@@ -1299,7 +1412,7 @@ public class C
             throw new NotSupportedException();
         }
 
-        private List<ISymbol> GetAllSymbols(
+        private static List<ISymbol> GetAllSymbols(
             SemanticModel model, Func<SyntaxNode, bool> predicate = null)
         {
             var list = new List<ISymbol>();
@@ -1307,7 +1420,7 @@ public class C
             return list;
         }
 
-        private void GetAllSymbols(
+        private static void GetAllSymbols(
             SemanticModel model, SyntaxNode node,
             List<ISymbol> list, Func<SyntaxNode, bool> predicate)
         {
@@ -1335,14 +1448,14 @@ public class C
             }
         }
 
-        private List<ISymbol> GetDeclaredSymbols(Compilation compilation)
+        private static List<ISymbol> GetDeclaredSymbols(Compilation compilation)
         {
             var list = new List<ISymbol>();
             GetDeclaredSymbols(compilation.Assembly.GlobalNamespace, list);
             return list;
         }
 
-        private void GetDeclaredSymbols(INamespaceOrTypeSymbol container, List<ISymbol> symbols)
+        private static void GetDeclaredSymbols(INamespaceOrTypeSymbol container, List<ISymbol> symbols)
         {
             foreach (var member in container.GetMembers())
             {

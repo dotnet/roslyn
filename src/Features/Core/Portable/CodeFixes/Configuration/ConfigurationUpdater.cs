@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             }
 
             var solution = editorConfigDocument.Project.Solution;
-            var originalText = await editorConfigDocument.GetTextAsync(_cancellationToken).ConfigureAwait(false);
+            var originalText = await editorConfigDocument.GetValueTextAsync(_cancellationToken).ConfigureAwait(false);
 
             // Compute the updated text for analyzer config document.
             var newText = GetNewAnalyzerConfigDocumentText(originalText, editorConfigDocument);

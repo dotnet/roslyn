@@ -20,22 +20,19 @@ using Microsoft.VisualStudio.Text.Differencing;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.TextDiffing
 {
     [ExportWorkspaceService(typeof(IDocumentTextDifferencingService), ServiceLayer.Host), Shared]
-    internal class EditorTextDifferencingService : IDocumentTextDifferencingService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class EditorTextDifferencingService(ITextDifferencingSelectorService differenceSelectorService) : IDocumentTextDifferencingService
     {
-        private readonly ITextDifferencingSelectorService _differenceSelectorService;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public EditorTextDifferencingService(ITextDifferencingSelectorService differenceSelectorService)
-            => _differenceSelectorService = differenceSelectorService;
+        private readonly ITextDifferencingSelectorService _differenceSelectorService = differenceSelectorService;
 
         public Task<ImmutableArray<TextChange>> GetTextChangesAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
             => GetTextChangesAsync(oldDocument, newDocument, TextDifferenceTypes.Word, cancellationToken);
 
         public async Task<ImmutableArray<TextChange>> GetTextChangesAsync(Document oldDocument, Document newDocument, TextDifferenceTypes preferredDifferenceType, CancellationToken cancellationToken)
         {
-            var oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var oldText = await oldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+            var newText = await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             var diffService = _differenceSelectorService.GetTextDifferencingService(oldDocument.Project.Services.GetService<IContentTypeLanguageService>().GetDefaultContentType())
                 ?? _differenceSelectorService.DefaultTextDifferencingService;

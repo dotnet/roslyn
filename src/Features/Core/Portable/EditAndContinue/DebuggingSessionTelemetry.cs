@@ -10,35 +10,22 @@ using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal sealed class DebuggingSessionTelemetry
+    internal sealed class DebuggingSessionTelemetry(Guid solutionSessionId)
     {
-        internal readonly struct Data
+        internal readonly struct Data(DebuggingSessionTelemetry telemetry)
         {
-            public readonly Guid SolutionSessionId;
-            public readonly ImmutableArray<EditSessionTelemetry.Data> EditSessionData;
-            public readonly int EmptyEditSessionCount;
-            public readonly int EmptyHotReloadEditSessionCount;
-
-            public Data(DebuggingSessionTelemetry telemetry)
-            {
-                SolutionSessionId = telemetry._solutionSessionId;
-                EditSessionData = telemetry._editSessionData.ToImmutableArray();
-                EmptyEditSessionCount = telemetry._emptyEditSessionCount;
-                EmptyHotReloadEditSessionCount = telemetry._emptyHotReloadEditSessionCount;
-            }
+            public readonly Guid SolutionSessionId = telemetry._solutionSessionId;
+            public readonly ImmutableArray<EditSessionTelemetry.Data> EditSessionData = telemetry._editSessionData.ToImmutableArray();
+            public readonly int EmptyEditSessionCount = telemetry._emptyEditSessionCount;
+            public readonly int EmptyHotReloadEditSessionCount = telemetry._emptyHotReloadEditSessionCount;
         }
 
         private readonly object _guard = new();
 
-        private readonly Guid _solutionSessionId;
+        private readonly Guid _solutionSessionId = solutionSessionId;
         private readonly List<EditSessionTelemetry.Data> _editSessionData = new();
         private int _emptyEditSessionCount;
         private int _emptyHotReloadEditSessionCount;
-
-        public DebuggingSessionTelemetry(Guid solutionSessionId)
-        {
-            _solutionSessionId = solutionSessionId;
-        }
 
         public Data GetDataAndClear()
         {
@@ -127,7 +114,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     map["Capabilities"] = (int)editSessionData.Capabilities;
 
                     // Ids of all projects whose binaries were successfully updated during the session.
-                    map["ProjectIdsWithAppliedChanges"] = editSessionData.Committed ? editSessionData.ProjectsWithValidDelta.Select(id => new PiiValue(id.ToString("B").ToUpperInvariant())) : "";
+                    map["ProjectIdsWithAppliedChanges"] = editSessionData.Committed ? editSessionData.ProjectsWithValidDelta.Select(ProjectIdToPii) : "";
                 }));
 
                 foreach (var errorId in editSessionData.EmitErrorIds)
@@ -140,7 +127,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }));
                 }
 
-                foreach (var (editKind, syntaxKind) in editSessionData.RudeEdits)
+                foreach (var (editKind, syntaxKind, projectId) in editSessionData.RudeEdits)
                 {
                     log(FunctionId.Debugging_EncSession_EditSession_RudeEdit, KeyValueLogMessage.Create(map =>
                     {
@@ -150,8 +137,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         map["RudeEditKind"] = editKind;
                         map["RudeEditSyntaxKind"] = syntaxKind;
                         map["RudeEditBlocking"] = editSessionData.HadRudeEdits;
+                        map["RudeEditProjectId"] = ProjectIdToPii(projectId);
                     }));
                 }
+
+                static PiiValue ProjectIdToPii(Guid projectId)
+                    => new(projectId.ToString("B").ToUpperInvariant());
             }
         }
     }

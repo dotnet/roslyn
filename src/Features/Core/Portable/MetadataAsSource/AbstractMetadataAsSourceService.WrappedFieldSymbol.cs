@@ -11,15 +11,9 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
     internal partial class AbstractMetadataAsSourceService
     {
-        private class WrappedFieldSymbol : AbstractWrappedSymbol, IFieldSymbol
+        private class WrappedFieldSymbol(IFieldSymbol fieldSymbol, IDocumentationCommentFormattingService docCommentFormattingService) : AbstractWrappedSymbol(fieldSymbol, canImplementImplicitly: false, docCommentFormattingService: docCommentFormattingService), IFieldSymbol
         {
-            private readonly IFieldSymbol _symbol;
-
-            public WrappedFieldSymbol(IFieldSymbol fieldSymbol, IDocumentationCommentFormattingService docCommentFormattingService)
-                : base(fieldSymbol, canImplementImplicitly: false, docCommentFormattingService: docCommentFormattingService)
-            {
-                _symbol = fieldSymbol;
-            }
+            private readonly IFieldSymbol _symbol = fieldSymbol;
 
             public new IFieldSymbol OriginalDefinition => _symbol.OriginalDefinition;
 

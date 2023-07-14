@@ -13,6 +13,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         protected override string GetDefaultPropertyBlockText()
             => "{ get; set; }";
 
+        public override async Task InsertSnippetInReadonlyStruct()
+        {
+            // Ensure we don't generate redundant `set` accessor when executed in readonly struct
+            await VerifyPropertyAsync("""
+                readonly struct MyStruct
+                {
+                    $$
+                }
+                """, "public int MyProperty { get; }");
+        }
+
         public override async Task InsertSnippetInInterface()
         {
             await VerifyDefaultPropertyAsync("""

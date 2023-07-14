@@ -5224,6 +5224,9 @@
                                   AnyCPU32BitPreferred or anycpu (default).
 -preferreduilang                  Specify the preferred output language name.
 -nosdkpath                        Disable searching the default SDK path for standard library assemblies.
+-reportivts[+|-]                  Output information on all IVTs granted to this
+                                  assembly by all dependencies, and annotate foreign assembly
+                                  accessibility errors with what assembly they came from.
 -sdkpath:&lt;path&gt;                   Location of the .NET Framework SDK directory
                                   (mscorlib.dll).
 -subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
@@ -5669,5 +5672,26 @@
   </data>
   <data name="WRN_DuplicateAnalyzerReference_Title" xml:space="preserve">
     <value>Analyzer reference specified multiple times</value>
+  </data>
+  <data name="ERR_RequiredMemberMustBeSet" xml:space="preserve">
+    <value>Required member '{0}' must be set in the object initializer or attribute arguments.</value>
+  </data>
+  <data name="ERR_CannotInheritFromTypeWithRequiredMembers" xml:space="preserve">
+    <value>Cannot inherit from '{0}' because it has required members.</value>
+  </data>
+  <data name="ERR_RequiredMembersInvalid" xml:space="preserve">
+    <value>The required members list for '{0}' is malformed and cannot be interpreted.</value>
+  </data>
+  <data name="ERR_NewConstraintCannotHaveRequiredMembers" xml:space="preserve">
+    <value>'{2}' cannot satisfy the 'New' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</value>
+  </data>
+  <data name="ERR_DoNotUseRequiredMember" xml:space="preserve">
+    <value>'System.Runtime.CompilerServices.RequiredMemberAttribute' is reserved for compiler usage only.</value>
+  </data>
+  <data name="ERR_UnsupportedRefReturningCallInWithStatement" xml:space="preserve">
+    <value>A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.</value>
+  </data>
+  <data name="ERR_SymbolDefinedInAssembly" xml:space="preserve">
+    <value>'{0}' is defined in assembly '{1}'.</value>
   </data>
 </root>

@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
             // indentation of lines within them.
             //
             // https://github.com/dotnet/roslyn/issues/31575
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             foreach (var item in nodesAndTokens)
             {
                 if (item == null || item.Span.IsEmpty || item.IsMissing)

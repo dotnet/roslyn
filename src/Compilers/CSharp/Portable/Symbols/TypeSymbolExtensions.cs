@@ -1190,6 +1190,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static bool ContainsFunctionPointer(this TypeSymbol type) =>
             type.VisitType((TypeSymbol t, object? _, bool _) => t.IsFunctionPointer(), null) is object;
 
+        internal static bool ContainsPointer(this TypeSymbol type) =>
+            type.VisitType((TypeSymbol t, object? _, bool _) => t.TypeKind is TypeKind.Pointer or TypeKind.FunctionPointer, null) is object;
+
         /// <summary>
         /// Guess the non-error type that the given type was intended to represent.
         /// If the type itself is not an error type, then it will be returned.
@@ -1363,7 +1366,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool HasFileLocalTypes(this TypeSymbol type)
         {
-            var foundType = type.VisitType(predicate: (type, _, _) => type is SourceMemberContainerTypeSymbol { IsFileLocal: true }, arg: (object?)null);
+            var foundType = type.VisitType(predicate: (type, _, _) => type is NamedTypeSymbol { IsFileLocal: true }, arg: (object?)null);
             return foundType is not null;
         }
 
@@ -1429,27 +1432,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return checkedTypes.Add(type);
-        }
-
-        internal static bool IsUnsafe(this TypeSymbol type)
-        {
-            while (true)
-            {
-                switch (type.TypeKind)
-                {
-                    case TypeKind.Pointer:
-                    case TypeKind.FunctionPointer:
-                        return true;
-                    case TypeKind.Array:
-                        type = ((ArrayTypeSymbol)type).ElementType;
-                        break;
-                    default:
-                        // NOTE: we could consider a generic type with unsafe type arguments to be unsafe,
-                        // but that's already an error, so there's no reason to report it.  Also, this
-                        // matches Type::isUnsafe in Dev10.
-                        return false;
-                }
-            }
         }
 
         internal static bool IsVoidPointer(this TypeSymbol type)

@@ -15401,7 +15401,7 @@ public unsafe class C
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,39): error CS1637: Iterators cannot have unsafe parameters or yield types
+                // (6,39): error CS1637: Iterators cannot have pointer type parameters
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "p"));
         }
 
@@ -23249,7 +23249,7 @@ class Program
             );
         }
 
-        [WorkItem(542419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542419")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542419")]
         [Fact]
         public void EmptyAngleBrackets_Events()
         {
@@ -23273,35 +23273,6 @@ class Program
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // Parser
-
-                // (12,11): error CS1525: Invalid expression term '>'
-                //         E<> += null; //parse error
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(12, 11),
-                // (12,13): error CS1525: Invalid expression term '+='
-                //         E<> += null; //parse error
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "+=").WithArguments("+=").WithLocation(12, 13),
-                // (13,11): error CS1525: Invalid expression term '>'
-                //         F<> += null; //parse error
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(13, 11),
-                // (13,13): error CS1525: Invalid expression term '+='
-                //         F<> += null; //parse error
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "+=").WithArguments("+=").WithLocation(13, 13),
-                // (15,16): error CS1525: Invalid expression term '>'
-                //         this.E<> += null; //parse error
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(15, 16),
-                // (15,18): error CS1525: Invalid expression term '+='
-                //         this.E<> += null; //parse error
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "+=").WithArguments("+=").WithLocation(15, 18),
-                // (16,16): error CS1525: Invalid expression term '>'
-                //         this.F<> += null; //parse error
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(16, 16),
-                // (16,18): error CS1525: Invalid expression term '+='
-                //         this.F<> += null; //parse error
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "+=").WithArguments("+=").WithLocation(16, 18),
-
-                // Binder
-
                 // (9,14): error CS0307: The event 'Program.E' cannot be used with type arguments
                 //         Test(E<>);
                 Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "E<>").WithArguments("Program.E", "event").WithLocation(9, 14),
@@ -23311,12 +23282,24 @@ class Program
                 // (10,19): error CS0307: The event 'Program.E' cannot be used with type arguments
                 //         Test(this.E<>);
                 Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "E<>").WithArguments("Program.E", "event").WithLocation(10, 19),
-                // (13,9): error CS0079: The event 'Program.F' can only appear on the left hand side of += or -=
+                // (12,9): error CS0307: The event 'Program.E' cannot be used with type arguments
+                //         E<> += null; //parse error
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "E<>").WithArguments("Program.E", "event").WithLocation(12, 9),
+                // (13,9): error CS0307: The event 'Program.F' cannot be used with type arguments
                 //         F<> += null; //parse error
-                Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "F").WithArguments("Program.F").WithLocation(13, 9),
-                // (16,14): error CS0079: The event 'Program.F' can only appear on the left hand side of += or -=
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "F<>").WithArguments("Program.F", "event").WithLocation(13, 9),
+                // (15,9): error CS8389: Omitting the type argument is not allowed in the current context
+                //         this.E<> += null; //parse error
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "this.E<>").WithLocation(15, 9),
+                // (15,14): error CS0307: The event 'Program.E' cannot be used with type arguments
+                //         this.E<> += null; //parse error
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "E<>").WithArguments("Program.E", "event").WithLocation(15, 14),
+                // (16,9): error CS8389: Omitting the type argument is not allowed in the current context
                 //         this.F<> += null; //parse error
-                Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "F").WithArguments("Program.F").WithLocation(16, 14));
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "this.F<>").WithLocation(16, 9),
+                // (16,14): error CS0307: The event 'Program.F' cannot be used with type arguments
+                //         this.F<> += null; //parse error
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "F<>").WithArguments("Program.F", "event").WithLocation(16, 14));
         }
 
         [WorkItem(542419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542419")]
