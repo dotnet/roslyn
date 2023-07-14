@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     RefKind.None,
                                     declarationModifiers,
                                     returnsVoid: true,
+                                    returnsVoidIsSet: true,
                                     isExpressionBodied: false,
                                     isExtensionMethod: false,
                                     isVarArg: syntax.ParameterList.IsVarArg(),

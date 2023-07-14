@@ -5,6 +5,8 @@
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Contracts.EditAndContinue
+Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
     <UseExportProvider>
@@ -345,7 +347,7 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "Class C", DeletedSymbolDisplay(FeaturesResources.method, "Goo(a As Integer)")))
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "Class C", GetResource("method", "Goo(a As Integer)")))
         End Sub
 
         <Fact>
@@ -778,7 +780,8 @@ End Module
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, Nothing, DeletedSymbolDisplay(VBFeaturesResources.module_, "Module1")))
+                Diagnostic(RudeEditKind.Delete, Nothing, GetResource("Module", "Module1")),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, Nothing, GetResource("method", "Main()")))
         End Sub
 #End Region
 
@@ -1735,11 +1738,54 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
+
             edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "c As New D(2)"),
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "e As New D(2)"),
-                Diagnostic(RudeEditKind.Delete, "a As New D(2)", DeletedSymbolDisplay(FeaturesResources.field, "b")),
-                Diagnostic(RudeEditKind.Delete, "e As New D(2)", DeletedSymbolDisplay(FeaturesResources.field, "f")))
+                Diagnostic(RudeEditKind.Delete, "a As New D(2)", GetResource("field", "b")),
+                Diagnostic(RudeEditKind.Delete, "e As New D(2)", GetResource("field", "f")))
+        End Sub
+
+        <Fact>
+        Public Sub Initializer_AsNewMulti_DeleteInsert()
+            Dim srcA1 = "
+Partial Class C
+    Private <AS:0>a</AS:0>, b As New D(0)
+End Class
+"
+            Dim srcB1 = "
+Partial Class C
+End Class
+"
+
+            Dim srcA2 = "
+Partial Class C
+    Private <AS:0>b As New D(1)</AS:0>
+End Class
+"
+
+            Dim srcB2 = "
+Partial Class C
+    Private a As New D(0)
+End Class
+"
+
+            VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(
+                        GetActiveStatements(srcA1, srcA2),
+                        diagnostics:=
+                        {
+                            Diagnostic(RudeEditKind.DeleteActiveStatement, "Partial Class C", GetResource("field", "a"))
+                        }),
+                    DocumentResults(
+                        GetActiveStatements(srcB1, srcB2),
+                        semanticEdits:=
+                        {
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)
+                        })
+                })
         End Sub
 
         <Fact>
@@ -2206,7 +2252,8 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "Class C", DeletedSymbolDisplay(FeaturesResources.field, "a")))
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "Class C", GetResource("field", "a")),
+                Diagnostic(RudeEditKind.Delete, "Class C", GetResource("field", "a")))
         End Sub
 
         <Fact>
@@ -2259,7 +2306,8 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "a,      c        As New D()", DeletedSymbolDisplay(FeaturesResources.field, "b")))
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "Class C", GetResource("field", "b")),
+                Diagnostic(RudeEditKind.Delete, "a,      c        As New D()", GetResource("field", "b")))
         End Sub
 
         <Fact>
@@ -2286,7 +2334,8 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "a,      b        As New D()", DeletedSymbolDisplay(FeaturesResources.field, "c")))
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "Class C", GetResource("field", "c")),
+                Diagnostic(RudeEditKind.Delete, "a,      b        As New D()", GetResource("field", "c")))
         End Sub
 
         <Fact>
@@ -2340,7 +2389,8 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "a,b As Integer", DeletedSymbolDisplay(FeaturesResources.field, "c")))
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "Class C", GetResource("field", "c")),
+                Diagnostic(RudeEditKind.Delete, "a,b As Integer", GetResource("field", "c")))
         End Sub
 
         <Fact>
@@ -5495,7 +5545,7 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "Iterator Function() As IEnumerable(Of Integer)"))
+                Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "Iterator Function()"))
         End Sub
 
         <Fact>
@@ -5529,7 +5579,7 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.ChangingFromAsynchronousToSynchronous, "Function() As Task(Of Integer)", VBFeaturesResources.Lambda))
+                Diagnostic(RudeEditKind.ChangingFromAsynchronousToSynchronous, "Function()", GetResource("Lambda")))
         End Sub
 
         <Fact>
@@ -5567,7 +5617,7 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Function() As IEnumerable(Of Integer)", VBFeaturesResources.Lambda))
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Function()", GetResource("Lambda")))
         End Sub
 
         <Fact>

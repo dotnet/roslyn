@@ -358,6 +358,41 @@ interface Base{}
             comp.VerifyEmitDiagnostics();
         }
 
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68782")]
+        public void BindIdentifier()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public void Test()
+    {
+        foreach (ref read)
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,18): error CS1525: Invalid expression term 'ref'
+                //         foreach (ref read)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref read").WithArguments("ref").WithLocation(6, 18),
+                // (6,26): error CS1515: 'in' expected
+                //         foreach (ref read)
+                Diagnostic(ErrorCode.ERR_InExpected, ")").WithLocation(6, 26),
+                // (6,26): error CS0230: Type and identifier are both required in a foreach statement
+                //         foreach (ref read)
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, ")").WithLocation(6, 26),
+                // (6,26): error CS1525: Invalid expression term ')'
+                //         foreach (ref read)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 26),
+                // (6,27): error CS1525: Invalid expression term '}'
+                //         foreach (ref read)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(6, 27),
+                // (6,27): error CS1002: ; expected
+                //         foreach (ref read)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 27)
+                );
+        }
+
         [Theory]
         [CombinatorialData]
         public void ConstructorSymbol_01([CombinatorialValues("class ", "struct")] string keyword)
@@ -15828,6 +15863,44 @@ class C1(int p1)
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68796")]
+        public void ParameterCapturing_165_ColorColor_MemberAccess_InstanceAndStatic_MethodAndExtensionMethod_Generic()
+        {
+            var source = """
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.M1(this);
+    }
+}
+
+static class E
+{
+    public static void M1<T>(this T c, S1 x, int y = 0)
+    {
+    }
+}
+
+class Color
+{
+    public static void M1<T>(T x) where T : unmanaged
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+                //         Color.M1(this);
+                Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(5, 9)
+                );
+
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+        }
+
+        [Fact]
         public void CycleDueToIndexerNameAttribute_01()
         {
             var source = @"
@@ -16439,6 +16512,68 @@ public partial struct S
                     Diagnostic(ErrorCode.WRN_SequentialOnPartialClass, "S").WithArguments("S").WithLocation(2, 23)
                     );
             }
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67099")]
+        public void NullableWarningsForAssignment_01_NotCaptured()
+        {
+            var source = @"
+#nullable enable
+class C1(string p1, string p2)
+{
+    string? F1 = (p1 = null);
+    string F2 = p1;
+
+    string M1() => p2;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (5,24): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //     string? F1 = (p1 = null);
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(5, 24),
+                // (6,17): warning CS8601: Possible null reference assignment.
+                //     string F2 = p1;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "p1").WithLocation(6, 17)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67099")]
+        public void NullableWarningsForAssignment_02_Captured()
+        {
+            var source = @"
+#pragma warning disable CS9124 // Parameter 'string p1' is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.
+#nullable enable
+class C1(string p1)
+{
+    string? F1 = (p1 = null);
+    string F2 = p1;
+
+    void M1()
+    {
+        p1 = null;
+    }
+
+    void M2()
+    {
+        p1.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (6,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //     string? F1 = (p1 = null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 24),
+                // (7,17): warning CS8601: Possible null reference assignment.
+                //     string F2 = p1;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "p1").WithLocation(7, 17),
+                // (11,14): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         p1 = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(11, 14)
+                );
         }
 
         [Theory]

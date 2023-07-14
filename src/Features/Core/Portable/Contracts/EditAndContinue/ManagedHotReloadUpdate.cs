@@ -9,64 +9,49 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 
 [DataContract]
-internal readonly struct ManagedHotReloadUpdate
+internal readonly struct ManagedHotReloadUpdate(
+    Guid module,
+    string moduleName,
+    ImmutableArray<byte> ilDelta,
+    ImmutableArray<byte> metadataDelta,
+    ImmutableArray<byte> pdbDelta,
+    ImmutableArray<int> updatedTypes,
+    ImmutableArray<string> requiredCapabilities,
+    ImmutableArray<int> updatedMethods,
+    ImmutableArray<SequencePointUpdates> sequencePoints,
+    ImmutableArray<ManagedActiveStatementUpdate> activeStatements,
+    ImmutableArray<ManagedExceptionRegionUpdate> exceptionRegions)
 {
     [DataMember(Name = "module")]
-    public Guid Module { get; }
+    public Guid Module { get; } = module;
 
     [DataMember(Name = "moduleName")]
-    public string ModuleName { get; }
+    public string ModuleName { get; } = moduleName;
 
     [DataMember(Name = "ilDelta")]
-    public ImmutableArray<byte> ILDelta { get; }
+    public ImmutableArray<byte> ILDelta { get; } = ilDelta;
 
     [DataMember(Name = "metadataDelta")]
-    public ImmutableArray<byte> MetadataDelta { get; }
+    public ImmutableArray<byte> MetadataDelta { get; } = metadataDelta;
 
     [DataMember(Name = "pdbDelta")]
-    public ImmutableArray<byte> PdbDelta { get; }
+    public ImmutableArray<byte> PdbDelta { get; } = pdbDelta;
 
     [DataMember(Name = "updatedTypes")]
-    public ImmutableArray<int> UpdatedTypes { get; }
+    public ImmutableArray<int> UpdatedTypes { get; } = updatedTypes;
 
     [DataMember(Name = "requiredCapabilities")]
-    public ImmutableArray<string> RequiredCapabilities { get; }
+    public ImmutableArray<string> RequiredCapabilities { get; } = requiredCapabilities;
 
     [DataMember(Name = "updatedMethods")]
-    public ImmutableArray<int> UpdatedMethods { get; }
+    public ImmutableArray<int> UpdatedMethods { get; } = updatedMethods;
 
     [DataMember(Name = "sequencePoints")]
-    public ImmutableArray<SequencePointUpdates> SequencePoints { get; }
+    public ImmutableArray<SequencePointUpdates> SequencePoints { get; } = sequencePoints;
 
     [DataMember(Name = "activeStatements")]
-    public ImmutableArray<ManagedActiveStatementUpdate> ActiveStatements { get; }
+    public ImmutableArray<ManagedActiveStatementUpdate> ActiveStatements { get; } = activeStatements;
 
     [DataMember(Name = "exceptionRegions")]
-    public ImmutableArray<ManagedExceptionRegionUpdate> ExceptionRegions { get; }
-
-    public ManagedHotReloadUpdate(
-        Guid module,
-        string moduleName,
-        ImmutableArray<byte> ilDelta,
-        ImmutableArray<byte> metadataDelta,
-        ImmutableArray<byte> pdbDelta,
-        ImmutableArray<int> updatedTypes,
-        ImmutableArray<string> requiredCapabilities,
-        ImmutableArray<int> updatedMethods,
-        ImmutableArray<SequencePointUpdates> sequencePoints,
-        ImmutableArray<ManagedActiveStatementUpdate> activeStatements,
-        ImmutableArray<ManagedExceptionRegionUpdate> exceptionRegions)
-    {
-        Module = module;
-        ModuleName = moduleName;
-        ILDelta = ilDelta;
-        MetadataDelta = metadataDelta;
-        PdbDelta = pdbDelta;
-        SequencePoints = sequencePoints;
-        UpdatedMethods = updatedMethods;
-        UpdatedTypes = updatedTypes;
-        ActiveStatements = activeStatements;
-        ExceptionRegions = exceptionRegions;
-        RequiredCapabilities = requiredCapabilities;
-    }
+    public ImmutableArray<ManagedExceptionRegionUpdate> ExceptionRegions { get; } = exceptionRegions;
 }

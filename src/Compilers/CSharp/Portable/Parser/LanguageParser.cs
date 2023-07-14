@@ -7437,8 +7437,12 @@ done:;
 
             // Continue consuming element access expressions for `[x][y]...`.  We have to determine if this is a
             // collection expression being indexed into, or if it's a sequence of attributes.
+            var hadBracketArgumentList = false;
             while (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
+            {
                 ParseBracketedArgumentList();
+                hadBracketArgumentList = true;
+            }
 
             // Check the next token to see if it indicates the `[...]` sequence we have is a term or not. This is the
             // same set of tokens that ParsePostFixExpression looks for.
@@ -7449,6 +7453,48 @@ done:;
                 or SyntaxKind.PlusPlusToken
                 or SyntaxKind.MinusMinusToken
                 or SyntaxKind.MinusGreaterThanToken;
+
+            // Now look for another set of items that indicate that we're not an attribute, but instead are a collection
+            // expression misplaced in an invalid top level expression-statement. (like `[] + b`).  These are
+            // technically invalid. But checking for this allows us to parse effectively to then give a good semantic
+            // error later on. These cases came from: ParseExpressionContinued
+            isCollectionExpression = isCollectionExpression
+                || IsExpectedBinaryOperator(this.CurrentToken.Kind)
+                || IsExpectedAssignmentOperator(this.CurrentToken.Kind)
+                || this.CurrentToken.Kind is SyntaxKind.DotDotToken
+                || (this.CurrentToken.ContextualKind is SyntaxKind.SwitchKeyword or SyntaxKind.WithKeyword && this.PeekToken(1).Kind is SyntaxKind.OpenBraceToken);
+
+            if (!isCollectionExpression &&
+                hadBracketArgumentList &&
+                this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
+            {
+                // There are a few things that could be happening here:
+                //
+                // First is that we have an actual collection literal that we're invoking.  For example:
+                //
+                //      `[() => {}][rand.NextInt() % x]();`
+                //
+                // Second would be the start of a local function that returns a tuple.  For example:
+                //
+                //      `[Attr] (A, B) LocalFunc() { }
+                //
+                // Have to figure out what the parenthesized thing is in order to parse this.  By parsing out a type
+                // and looking for an identifier next, we handle the cases of:
+                //
+                //      `[Attr] (A, B) LocalFunc() { }
+                //      `[Attr] (A, B)[] LocalFunc() { }
+                //      `[Attr] (A, B)[,] LocalFunc() { }
+                //      `[Attr] (A, B)? LocalFunc() { }
+                //      `[Attr] (A, B)* LocalFunc() { }
+                //
+                // etc.
+                //
+                // Note: we do not accept the naked `[...](...)` as an invocation of a collection literal.  Collection
+                // literals never have a type that itself could possibly be invoked, so this ensures a more natural parse
+                // with what users may be expecting here.
+                var returnType = this.ParseReturnType();
+                isCollectionExpression = ContainsErrorDiagnostic(returnType) || !IsTrueIdentifier();
+            }
 
             // If this was a collection expression, not an attribute declaration, return no attributes so that the
             // caller will parse this out as a collection expression. Otherwise re-parse the code as the actual
@@ -10483,6 +10529,11 @@ done:;
 
                 bool isAssignmentOperator = false;
                 SyntaxKind opKind;
+
+                // If the set of expression continuations is updated here, please review ParseStatementAttributeDeclarations
+                // to see if it may need a similar look-ahead check to determine if something is a collection expression versus
+                // an attribute.
+
                 if (IsExpectedBinaryOperator(tk))
                 {
                     opKind = SyntaxFacts.GetBinaryExpression(tk);
@@ -11039,6 +11090,10 @@ done:;
 
             while (true)
             {
+                // If the set of postfix expressions is updated here, please review ParseStatementAttributeDeclarations
+                // to see if it may need a similar look-ahead check to determine if something is a collection expression
+                // versus an attribute.
+
                 switch (this.CurrentToken.Kind)
                 {
                     case SyntaxKind.OpenParenToken:
@@ -12984,7 +13039,8 @@ done:;
 
         private QueryExpressionSyntax ParseQueryExpression(Precedence precedence)
         {
-            this.EnterQuery();
+            var previousIsInQuery = this.IsInQuery;
+            this.IsInQuery = true;
             var fc = this.ParseFromClause();
             if (precedence > Precedence.Assignment)
             {
@@ -12992,7 +13048,7 @@ done:;
             }
 
             var body = this.ParseQueryBody();
-            this.LeaveQuery();
+            this.IsInQuery = previousIsInQuery;
             return _syntaxFactory.QueryExpression(fc, body);
         }
 
@@ -13235,14 +13291,8 @@ done:;
 
         private bool IsInAsync
         {
-            get
-            {
-                return _syntaxFactoryContext.IsInAsync;
-            }
-            set
-            {
-                _syntaxFactoryContext.IsInAsync = value;
-            }
+            get => _syntaxFactoryContext.IsInAsync;
+            set => _syntaxFactoryContext.IsInAsync = value;
         }
 
         private bool ForceConditionalAccessExpression
@@ -13253,18 +13303,8 @@ done:;
 
         private bool IsInQuery
         {
-            get { return _syntaxFactoryContext.IsInQuery; }
-        }
-
-        private void EnterQuery()
-        {
-            _syntaxFactoryContext.QueryDepth++;
-        }
-
-        private void LeaveQuery()
-        {
-            Debug.Assert(_syntaxFactoryContext.QueryDepth > 0);
-            _syntaxFactoryContext.QueryDepth--;
+            get => _syntaxFactoryContext.IsInQuery;
+            set => _syntaxFactoryContext.IsInQuery = value;
         }
 
         private delegate PostSkipAction SkipBadTokens<TNode>(
@@ -13398,15 +13438,15 @@ tryAgain:
             return new ResetPoint(
                 base.GetResetPoint(),
                 _termState,
-                _syntaxFactoryContext.IsInAsync,
-                _syntaxFactoryContext.QueryDepth);
+                IsInAsync,
+                IsInQuery);
         }
 
         private void Reset(ref ResetPoint state)
         {
             _termState = state.TerminatorState;
-            _syntaxFactoryContext.IsInAsync = state.IsInAsync;
-            _syntaxFactoryContext.QueryDepth = state.QueryDepth;
+            IsInAsync = state.IsInAsync;
+            IsInQuery = state.IsInQuery;
             base.Reset(ref state.BaseResetPoint);
         }
 
@@ -13445,18 +13485,18 @@ tryAgain:
             internal SyntaxParser.ResetPoint BaseResetPoint;
             internal readonly TerminatorState TerminatorState;
             internal readonly bool IsInAsync;
-            internal readonly int QueryDepth;
+            internal readonly bool IsInQuery;
 
             internal ResetPoint(
                 SyntaxParser.ResetPoint resetPoint,
                 TerminatorState terminatorState,
                 bool isInAsync,
-                int queryDepth)
+                bool isInQuery)
             {
                 this.BaseResetPoint = resetPoint;
                 this.TerminatorState = terminatorState;
                 this.IsInAsync = isInAsync;
-                this.QueryDepth = queryDepth;
+                this.IsInQuery = isInQuery;
             }
         }
 

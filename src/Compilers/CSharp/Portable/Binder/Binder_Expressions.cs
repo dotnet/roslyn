@@ -804,7 +804,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindScopedType(node, diagnostics);
 
                 case SyntaxKind.RefExpression:
-                    return BindRefExpression(node, diagnostics);
+                    return BindRefExpression((RefExpressionSyntax)node, diagnostics);
 
                 case SyntaxKind.DeclarationExpression:
                     return BindDeclarationExpressionAsError((DeclarationExpressionSyntax)node, diagnostics);
@@ -832,12 +832,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #nullable disable
 
-        private BoundExpression BindRefExpression(ExpressionSyntax node, BindingDiagnosticBag diagnostics)
+        private BoundExpression BindRefExpression(RefExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
             var firstToken = node.GetFirstToken();
             diagnostics.Add(ErrorCode.ERR_UnexpectedToken, firstToken.GetLocation(), firstToken.ValueText);
             return new BoundBadExpression(
-                node, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray<BoundExpression>.Empty,
+                node, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundExpression>(BindToTypeForErrorRecovery(BindValue(node.Expression, BindingDiagnosticBag.Discarded, BindValueKind.RefersToLocation))),
                 CreateErrorType("ref"));
         }
 
