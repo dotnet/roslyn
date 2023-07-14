@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
         {
             return CodeAction.Create(
                 string.Format(FeaturesResources.Change_0_to_1, oldName, newName),
-                cancellationToken => UpdateAsync(document, nameToken, newName, cancellationToken),
+                c => UpdateAsync(document, nameToken, newName, c),
                 equivalenceKey: newName,
                 CodeActionPriority.Low);
         }
