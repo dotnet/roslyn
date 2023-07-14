@@ -514,34 +514,24 @@ namespace Microsoft.CodeAnalysis.CodeActions
             return CodeActionWithNestedActions.Create(title, nestedActions, isInlinable, priority);
         }
 
-        internal abstract class SimpleCodeAction : CodeAction
-        {
-            private readonly CodeActionPriority _priority;
-
-            protected SimpleCodeAction(
+        internal abstract class SimpleCodeAction(
                 string title,
                 string? equivalenceKey,
                 CodeActionPriority priority,
-                bool createdFromFactoryMethod)
-            {
-                Title = title;
-                EquivalenceKey = equivalenceKey;
-                _priority = priority;
-                CreatedFromFactoryMethod = createdFromFactoryMethod;
-            }
-
-            public sealed override string Title { get; }
-            public sealed override string? EquivalenceKey { get; }
+                bool createdFromFactoryMethod) : CodeAction
+        {
+            public sealed override string Title { get; } = title;
+            public sealed override string? EquivalenceKey { get; } = equivalenceKey;
 
             protected sealed override CodeActionPriority ComputePriority()
-                => _priority;
+                => priority;
 
             /// <summary>
             /// Indicates if this CodeAction was created using one of the 'CodeAction.Create' factory methods.
             /// This is used in <see cref="GetTelemetryId(FixAllScope?)"/> to determine the appropriate type
             /// name to log in the CodeAction telemetry.
             /// </summary>
-            public bool CreatedFromFactoryMethod { get; }
+            public bool CreatedFromFactoryMethod { get; } = createdFromFactoryMethod;
         }
 
         internal class CodeActionWithNestedActions : SimpleCodeAction

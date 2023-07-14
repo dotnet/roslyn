@@ -25,14 +25,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
             string? equivalenceKey,
             CodeActionPriority priority) : SimpleCodeAction(title, equivalenceKey)
         {
-            private readonly Func<CancellationToken, Task<Document>> _createChangedDocument = createChangedDocument;
-            private readonly CodeActionPriority _priority = priority;
-
             protected sealed override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
-                => _createChangedDocument(cancellationToken);
+                => createChangedDocument(cancellationToken);
 
             protected sealed override CodeActionPriority ComputePriority()
-                => _priority;
+                => priority;
         }
 
         internal class SolutionChangeAction(
