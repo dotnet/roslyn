@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
             context.RegisterRefactoring(
                 CodeAction.Create(
                     FeaturesResources.Move_declaration_near_reference,
-                    cancellationToken => MoveDeclarationNearReferenceAsync(document, declaration, cancellationToken),
+                    c => MoveDeclarationNearReferenceAsync(document, declaration, c),
                     nameof(FeaturesResources.Move_declaration_near_reference),
                     CodeActionPriority.Low),
                 declaration.Span);
