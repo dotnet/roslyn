@@ -2242,6 +2242,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase = 9179,
 
+        ERR_InlineArrayRequiredElementField = 9180,
+
         #endregion
 
         // Note: you will need to do the following after adding warnings:

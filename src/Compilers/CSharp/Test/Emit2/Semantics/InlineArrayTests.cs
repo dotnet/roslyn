@@ -1895,6 +1895,63 @@ public struct Buffer
         }
 
         [Fact]
+        public void InlineArrayType_43_RequiredMember()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.InlineArray(4)]
+public struct Buffer
+{
+    required public int _element0;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics(
+                // (5,25): error CS9179: Inline array element field cannot be declared required.
+                //     required public int _element0;
+                Diagnostic(ErrorCode.ERR_InlineArrayRequiredElementField, "_element0").WithLocation(5, 25)
+                );
+        }
+
+        [Fact]
+        public void InlineArrayType_44_RequiredMember()
+        {
+            // [System.Runtime.CompilerServices.InlineArray(4)]
+            // public struct Buffer
+            // {
+            //     required public int _element0;
+            // }
+            var ilSource = @"
+.class public sequential ansi sealed beforefieldinit Buffer
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.InlineArrayAttribute::.ctor(int32) = (
+        01 00 04 00 00 00 00 00
+    )
+    // Fields
+    .field public int32 _element0
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+}
+";
+
+            var src = @"
+#pragma warning disable CS0219 // The variable 'a' is assigned but its value is never used
+var a = new Buffer();
+var b = new Buffer() { _element0 = 1 };
+";
+            var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics(
+                // (3,13): error CS9035: Required member 'Buffer._element0' must be set in the object initializer or attribute constructor.
+                // var a = new Buffer();
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Buffer").WithArguments("Buffer._element0").WithLocation(3, 13)
+                );
+        }
+
+        [Fact]
         public void Access_ArgumentType_01()
         {
             var src = @"
