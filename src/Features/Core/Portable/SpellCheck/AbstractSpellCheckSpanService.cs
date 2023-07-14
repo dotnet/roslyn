@@ -19,9 +19,6 @@ namespace Microsoft.CodeAnalysis.SpellCheck
     internal abstract class AbstractSpellCheckSpanService(char? escapeCharacter) : ISpellCheckSpanService
     {
         private readonly char? _escapeCharacter = escapeCharacter;
-#if NETSTANDARD2_0
-        private readonly string? _escapeString = escapeCharacter?.ToString();
-#endif
 
         public async Task<ImmutableArray<SpellCheckSpan>> GetSpansAsync(Document document, CancellationToken cancellationToken)
         {
@@ -93,16 +90,20 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             {
                 ProcessTriviaList(token.LeadingTrivia, cancellationToken);
 
-                if (_syntaxFacts.IsStringLiteral(token) ||
+                if (_syntaxFacts.IsStringLiteral(token))
+                {
+                    AddStringSpans(token, canContainEscapes: !syntaxFacts.IsVerbatimStringLiteral(token));
+                }
+                else if (
                     token.RawKind == _syntaxKinds.SingleLineRawStringLiteralToken ||
                     token.RawKind == _syntaxKinds.MultiLineRawStringLiteralToken)
                 {
-                    AddStringSpans(token);
+                    AddStringSpans(token, canContainEscapes: false);
                 }
                 else if (token.RawKind == _syntaxKinds.InterpolatedStringTextToken &&
                          token.Parent?.RawKind == _syntaxKinds.InterpolatedStringText)
                 {
-                    AddStringSpans(token);
+                    AddStringSpans(token, canContainEscapes: !syntaxFacts.IsVerbatimInterpolatedStringExpression(token.Parent.Parent));
                 }
                 else if (token.RawKind == _syntaxKinds.IdentifierToken)
                 {
@@ -112,7 +113,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                 ProcessTriviaList(token.TrailingTrivia, cancellationToken);
             }
 
-            private void AddStringSpans(SyntaxToken token)
+            private void AddStringSpans(SyntaxToken token, bool canContainEscapes)
             {
                 // Don't bother with strings that are in error.  This is both because we can't properly break them into
                 // pieces, and also because a string in error often may be grabbing more of the file than intended, and
@@ -124,18 +125,10 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                 // can just provide the entire string as-is to the caller to spell check since there's no escapes for
                 // them to be confused by.
                 var escapeChar = _spellCheckSpanService._escapeCharacter;
-                if (escapeChar != null &&
-#if NETSTANDARD2_0
-                    token.Text.Contains(_spellCheckSpanService._escapeString!)
-#else
-                    token.Text.Contains(escapeChar.Value)
-#endif
-                    )
+                if (canContainEscapes &&
+                    escapeChar != null &&
+                    token.Text.AsSpan().IndexOf(escapeChar.Value) >= 0)
                 {
-#if NETSTANDARD2_0
-                    ReadOnlySpan<char> c = default;
-                    c.Contains('c');
-#else
                     AddStringSubSpans(token);
                 }
                 else
