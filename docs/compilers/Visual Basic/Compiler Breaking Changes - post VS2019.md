@@ -8,8 +8,8 @@ Each entry should include a short description of the breaking change, followed b
 
 1. https://github.com/dotnet/roslyn/issues/38305 
 
-Compiler used to generate incorrect code when a built-in comparison operator producing Boolean? was used
-as an operand of a logical short-circuiting operator used as a Boolean expression.
+Compiler used to generate incorrect code when a built-in comparison operator producing `Boolean?` was used
+as an operand of a logical short-circuiting operator used as a `Boolean` expression.
 For example, for an expression 
 ```
     GetBool3() = True AndAlso GetBool2()
@@ -25,6 +25,6 @@ For example, for an expression
     End Function
 ```
 
-it is expected that GetBool2 function going to be called. This is also the expected behavior outside of
-a Boolean expression, but in context of a Boolean expression the GetBool2 function was not called.
-Compiler now generates code that follows language semantics and calls GetBool2 function for the expression above.
+it is expected that `GetBool2` function going to be called. This is also the expected behavior outside of
+a `Boolean` expression, but in context of a `Boolean` expression the `GetBool2` function was not called.
+Compiler now generates code that follows language semantics and calls `GetBool2` function for the expression above.

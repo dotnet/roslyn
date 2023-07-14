@@ -97,7 +97,7 @@ Each entry should include a short description of the breaking change, followed b
 10. Previously, reference assemblies were emitted including embedded resources. In Visual Studio 2019, embedded resources are no longer emitted into ref assemblies.
   See https://github.com/dotnet/roslyn/issues/31197
 
-11. Ref structs now support disposal via pattern. A ref struct enumerator with an accessible `void Dispose()` instance method will now have it invoked at the end of enumeration, regardless of whether the struct type implements IDisposable:
+11. Ref structs now support disposal via pattern. A ref struct enumerator with an accessible `void Dispose()` instance method will now have it invoked at the end of enumeration, regardless of whether the struct type implements `IDisposable`:
 
     ``` c#
     public class C
