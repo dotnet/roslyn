@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                 context.RegisterRefactoring(
                     CodeAction.Create(
                         CSharpFeaturesResources.Convert_to_raw_string,
-                        cancellationToken => UpdateDocumentAsync(document, span, ConvertToRawKind.SingleLine, options, cancellationToken),
+                        c => UpdateDocumentAsync(document, span, ConvertToRawKind.SingleLine, options, c),
                         s_kindToEquivalenceKeyMap[ConvertToRawKind.SingleLine],
                         priority),
                     token.Span);
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                 context.RegisterRefactoring(
                     CodeAction.Create(
                         CSharpFeaturesResources.Convert_to_raw_string,
-                        cancellationToken => UpdateDocumentAsync(document, span, ConvertToRawKind.MultiLineIndented, options, cancellationToken),
+                        c => UpdateDocumentAsync(document, span, ConvertToRawKind.MultiLineIndented, options, c),
                         s_kindToEquivalenceKeyMap[ConvertToRawKind.MultiLineIndented],
                         priority),
                     token.Span);
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                     context.RegisterRefactoring(
                         CodeAction.Create(
                             CSharpFeaturesResources.without_leading_whitespace_may_change_semantics,
-                            cancellationToken => UpdateDocumentAsync(document, span, ConvertToRawKind.MultiLineWithoutLeadingWhitespace, options, cancellationToken),
+                            c => UpdateDocumentAsync(document, span, ConvertToRawKind.MultiLineWithoutLeadingWhitespace, options, c),
                             s_kindToEquivalenceKeyMap[ConvertToRawKind.MultiLineWithoutLeadingWhitespace],
                             priority),
                         token.Span);
