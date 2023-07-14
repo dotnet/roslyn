@@ -652,7 +652,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         var verifier = CompileAndVerify(source, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
             sourceSymbolValidator: verify, symbolValidator: verify,
-            expectedOutput: "<>f__AnonymousDelegate0`1[System.Int32]");
+            expectedOutput: "<>A{00000004}`1[System.Int32]");
         verifier.VerifyDiagnostics();
 
         static void verify(ModuleSymbol m)
@@ -676,7 +676,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         var verifier = CompileAndVerify(source, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
             sourceSymbolValidator: verify, symbolValidator: verify,
-            expectedOutput: "<>f__AnonymousDelegate0`1[System.Int32]");
+            expectedOutput: "<>A{00000004}`1[System.Int32]");
         verifier.VerifyDiagnostics();
 
         static void verify(ModuleSymbol m)
@@ -701,7 +701,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             System.Console.WriteLine(((object)x).GetType());
             """;
         var verifier = CompileAndVerify(source, sourceSymbolValidator: verify, symbolValidator: verify,
-            expectedOutput: "<>f__AnonymousDelegate0`1[System.Int32]");
+            expectedOutput: "<>A{00000004}`1[System.Int32]");
         verifier.VerifyDiagnostics();
 
         static void verify(ModuleSymbol m)
@@ -710,7 +710,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
 
             if (m is not SourceModuleSymbol)
             {
-                var p = m.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke").Parameters.Single();
+                var p = m.GlobalNamespace.GetMember<MethodSymbol>("<>A{00000004}.Invoke").Parameters.Single();
                 VerifyRefReadonlyParameter(p,
                     // PROTOTYPE: Invoke method is virtual but no modreq is emitted. This happens for `in` parameters, as well.
                     useSiteError: true);

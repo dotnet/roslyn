@@ -767,7 +767,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // PROTOTYPE: RefKindVector does not support RefReadOnlyParameter.
             RefKindVector byRefs;
             if (hasByRefs)
             {
