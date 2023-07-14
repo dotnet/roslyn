@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -31,9 +30,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         bool OpenFileOnly(SimplifierOptions? options);
 
         /// <summary>
-        /// What priority this provider should run at.  This value is not allowed to be <see
-        /// cref="CodeActionRequestPriorityInternal.None"/>.
+        /// If this analyzer is privileged and should run with higher priority than other analyzers.
         /// </summary>
-        CodeActionRequestPriorityInternal RequestPriority { get; }
+        bool IsHighPriority { get; }
     }
 }

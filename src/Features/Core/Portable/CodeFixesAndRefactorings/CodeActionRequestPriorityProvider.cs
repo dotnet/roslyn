@@ -64,8 +64,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
             // Now compute this analyzer's priority and compare it with the provider's request 'Priority'.
             // Our internal 'IBuiltInAnalyzer' can specify custom request priority, while all
             // the third-party analyzers are assigned 'Medium' priority.
-            var analyzerPriority = analyzer is IBuiltInAnalyzer { RequestPriority: var requestPriority }
-                ? (CodeActionRequestPriority)requestPriority
+            var analyzerPriority = analyzer is IBuiltInAnalyzer { IsHighPriority: true }
+                ? CodeActionRequestPriority.High
                 : CodeActionRequestPriority.Normal;
 
             return priority == analyzerPriority;
