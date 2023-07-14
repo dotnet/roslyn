@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 async Task<ImmutableArray<UnifiedSuggestedActionSet>> GetCodeFixesAsync()
                 {
-                    using var _ = TelemetryLogging.LogBlockTimeAggregated(FunctionId.SuggestedAction_Summary, $"Total.Pri{(int)priorityProvider.Priority}.{nameof(GetCodeFixesAsync)}");
+                    using var _ = TelemetryLogging.LogBlockTimeAggregated(FunctionId.SuggestedAction_Summary, $"Total.Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(GetCodeFixesAsync)}");
 
                     if (owner._codeFixService == null ||
                         !supportsFeatureService.SupportsCodeFixes(target.SubjectBuffer) ||
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 async Task<ImmutableArray<UnifiedSuggestedActionSet>> GetRefactoringsAsync()
                 {
-                    using var _ = TelemetryLogging.LogBlockTimeAggregated(FunctionId.SuggestedAction_Summary, $"Total.Pri{(int)priorityProvider.Priority}.{nameof(GetRefactoringsAsync)}");
+                    using var _ = TelemetryLogging.LogBlockTimeAggregated(FunctionId.SuggestedAction_Summary, $"Total.Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(GetRefactoringsAsync)}");
 
                     if (!selection.HasValue)
                     {
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     {
                         CodeActionPriority.Lowest => SuggestedActionSetPriority.None,
                         CodeActionPriority.Low => SuggestedActionSetPriority.Low,
-                        CodeActionPriority.Normal => SuggestedActionSetPriority.Medium,
+                        CodeActionPriority.Default => SuggestedActionSetPriority.Medium,
                         CodeActionPriority.High => SuggestedActionSetPriority.High,
                         _ => throw ExceptionUtilities.Unreachable(),
                     };
