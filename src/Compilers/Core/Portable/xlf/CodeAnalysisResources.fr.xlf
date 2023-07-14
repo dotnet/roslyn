@@ -101,28 +101,28 @@
       </trans-unit>
       <trans-unit id="InternalsVisibleToCurrentAssembly">
         <source>Current assembly: '{0}'</source>
-        <target state="new">Current assembly: '{0}'</target>
+        <target state="translated">Assemblage actuel : '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="InternalsVisibleToHeaderSummary">
         <source>Printing 'InternalsVisibleToAttribute' information for the current compilation and all referenced assemblies.</source>
-        <target state="new">Printing 'InternalsVisibleToAttribute' information for the current compilation and all referenced assemblies.</target>
+        <target state="translated">Impression des informations 'InternalsVisibleToAttribute' pour la compilation actuelle et tous les assemblys référencés.</target>
         <note />
       </trans-unit>
       <trans-unit id="InternalsVisibleToReferencedAssembly">
         <source>Assembly reference: '{0}'
   Grants IVT to current assembly: {1}
   Grants IVTs to:</source>
-        <target state="new">Assembly reference: '{0}'
-  Grants IVT to current assembly: {1}
-  Grants IVTs to:</target>
+        <target state="translated">Référence d'assemblage : '{0}'
+  Accorde l'IVT à l'assembly actuel : {1}
+  Accorde des IVT à :</target>
         <note />
       </trans-unit>
       <trans-unit id="InternalsVisibleToReferencedAssemblyDetails">
         <source>    Assembly name: '{0}'
     Public Keys:</source>
-        <target state="new">    Assembly name: '{0}'
-    Public Keys:</target>
+        <target state="translated">    Nom de l'assemblage : '{0}'
+    Clés publiques :</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidAdditionalFile">
@@ -182,7 +182,7 @@
       </trans-unit>
       <trans-unit id="Nothing">
         <source>Nothing</source>
-        <target state="new">Nothing</target>
+        <target state="translated">Rien</target>
         <note />
       </trans-unit>
       <trans-unit id="OperationHasNullSemanticModel">

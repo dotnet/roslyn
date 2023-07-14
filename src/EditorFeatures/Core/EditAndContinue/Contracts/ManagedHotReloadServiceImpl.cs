@@ -11,12 +11,9 @@ using InternalContracts = Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal sealed class ManagedHotReloadServiceImpl : InternalContracts.IManagedHotReloadService
+    internal sealed class ManagedHotReloadServiceImpl(IManagedHotReloadService service) : InternalContracts.IManagedHotReloadService
     {
-        private readonly IManagedHotReloadService _service;
-
-        public ManagedHotReloadServiceImpl(IManagedHotReloadService service)
-            => _service = service;
+        private readonly IManagedHotReloadService _service = service;
 
         public async ValueTask<ImmutableArray<InternalContracts.ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellation)
             => (await _service.GetActiveStatementsAsync(cancellation).ConfigureAwait(false)).SelectAsArray(a => a.ToContract());

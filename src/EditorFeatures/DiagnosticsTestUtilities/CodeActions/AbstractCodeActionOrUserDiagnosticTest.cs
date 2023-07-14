@@ -760,7 +760,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 }
                 else
                 {
-                    Assert.Equal(expected, actual);
+                    AssertEx.EqualOrDiff(expected, actual);
                 }
             }
         }

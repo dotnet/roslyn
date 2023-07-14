@@ -33,10 +33,17 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
     [VSUtilities.ContentType(ContentTypeNames.RoslynContentType)]
     [TagType(typeof(InlineHintDataTag))]
     [VSUtilities.Name(nameof(InlineHintsDataTaggerProvider))]
-    internal partial class InlineHintsDataTaggerProvider : AsynchronousViewTaggerProvider<InlineHintDataTag>
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    [method: ImportingConstructor]
+    internal partial class InlineHintsDataTaggerProvider(
+        IThreadingContext threadingContext,
+        IGlobalOptionService globalOptions,
+        [Import(AllowDefault = true)] IInlineHintKeyProcessor inlineHintKeyProcessor,
+        [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
+        IAsynchronousOperationListenerProvider listenerProvider) : AsynchronousViewTaggerProvider<InlineHintDataTag>(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.InlineHints))
     {
-        private readonly IAsynchronousOperationListener _listener;
-        private readonly IInlineHintKeyProcessor _inlineHintKeyProcessor;
+        private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.InlineHints);
+        private readonly IInlineHintKeyProcessor _inlineHintKeyProcessor = inlineHintKeyProcessor;
 
         protected override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeInclusive;
 
@@ -47,20 +54,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         /// at whatever points the tracking spans moved them to.
         /// </summary>
         protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.RemoveTagsThatIntersectEdits;
-
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        [ImportingConstructor]
-        public InlineHintsDataTaggerProvider(
-            IThreadingContext threadingContext,
-            IGlobalOptionService globalOptions,
-            [Import(AllowDefault = true)] IInlineHintKeyProcessor inlineHintKeyProcessor,
-            [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
-            IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.InlineHints))
-        {
-            _listener = listenerProvider.GetListener(FeatureAttribute.InlineHints);
-            _inlineHintKeyProcessor = inlineHintKeyProcessor;
-        }
 
         protected override TaggerDelay EventChangeDelay => TaggerDelay.Short;
 

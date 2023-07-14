@@ -259,26 +259,17 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         internal TestAccessor GetTestAccessor()
             => new(this);
 
-        private readonly struct DiffResult
+        private readonly struct DiffResult(NormalizedSnapshotSpanCollection? added, NormalizedSnapshotSpanCollection? removed)
         {
-            public readonly NormalizedSnapshotSpanCollection Added;
-            public readonly NormalizedSnapshotSpanCollection Removed;
-
-            public DiffResult(NormalizedSnapshotSpanCollection? added, NormalizedSnapshotSpanCollection? removed)
-            {
-                Added = added ?? NormalizedSnapshotSpanCollection.Empty;
-                Removed = removed ?? NormalizedSnapshotSpanCollection.Empty;
-            }
+            public readonly NormalizedSnapshotSpanCollection Added = added ?? NormalizedSnapshotSpanCollection.Empty;
+            public readonly NormalizedSnapshotSpanCollection Removed = removed ?? NormalizedSnapshotSpanCollection.Empty;
 
             public int Count => Added.Count + Removed.Count;
         }
 
-        internal readonly struct TestAccessor
+        internal readonly struct TestAccessor(AbstractAsynchronousTaggerProvider<TTag> provider)
         {
-            private readonly AbstractAsynchronousTaggerProvider<TTag> _provider;
-
-            public TestAccessor(AbstractAsynchronousTaggerProvider<TTag> provider)
-                => _provider = provider;
+            private readonly AbstractAsynchronousTaggerProvider<TTag> _provider = provider;
 
             internal Task ProduceTagsAsync(TaggerContext<TTag> context)
                 => _provider.ProduceTagsAsync(context, CancellationToken.None);
