@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -92,7 +93,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
 
                 if (_syntaxFacts.IsStringLiteral(token))
                 {
-                    AddStringSpans(token, canContainEscapes: !syntaxFacts.IsVerbatimStringLiteral(token));
+                    AddStringSpans(token, canContainEscapes: !_syntaxFacts.IsVerbatimStringLiteral(token));
                 }
                 else if (
                     token.RawKind == _syntaxKinds.SingleLineRawStringLiteralToken ||
@@ -103,7 +104,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                 else if (token.RawKind == _syntaxKinds.InterpolatedStringTextToken &&
                          token.Parent?.RawKind == _syntaxKinds.InterpolatedStringText)
                 {
-                    AddStringSpans(token, canContainEscapes: !syntaxFacts.IsVerbatimInterpolatedStringExpression(token.Parent.Parent));
+                    AddStringSpans(token, canContainEscapes: !_syntaxFacts.IsVerbatimInterpolatedStringExpression(token.Parent.Parent));
                 }
                 else if (token.RawKind == _syntaxKinds.IdentifierToken)
                 {
