@@ -163,8 +163,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             // We only need to compute suppression/configuration fixes when request priority is
-            // 'CodeActionPriorityRequest.Lowest' or 'CodeActionPriorityRequest.None'.
-            var includeSuppressionFixes = priorityProvider.Priority is CodeActionRequestPriority.Lowest or CodeActionRequestPriority.None;
+            // 'CodeActionPriorityRequest.Lowest' or no priority was provided at all (so all providers should run).
+            var includeSuppressionFixes = priorityProvider.Priority is null or CodeActionRequestPriority.Lowest;
 
             // REVIEW: this is the first and simplest design. basically, when ctrl+. is pressed, it asks diagnostic
             // service to give back current diagnostics for the given span, and it will use that to get fixes.

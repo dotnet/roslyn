@@ -28,12 +28,6 @@ namespace Microsoft.CodeAnalysis.CodeActions;
 public enum CodeActionRequestPriority
 {
     /// <summary>
-    /// No priority specified, all refactoring, code fixes, and analyzers should be run.  This is equivalent
-    /// to <see cref="Lowest"/>, <see cref="Low"/>, <see cref="Normal"/> and <see cref="High"/> combined.
-    /// </summary>
-    None = 0,
-
-    /// <summary>
     /// Only lowest priority suppression and configuration fix providers should be run.  Specifically,
     /// <see cref="T:IConfigurationFixProvider"/> providers will be run.
     /// NOTE: This priority is reserved for suppression and configuration fix providers and should not be
@@ -74,6 +68,9 @@ internal static class CodeActionRequestPriorityExtensions
     /// </summary>
     public static CodeActionRequestPriority Clamp(this CodeActionRequestPriority priority, ImmutableArray<string> customTags)
     {
+        // Note: we intentionally clamp things lower than 'Low' (including 'Lowest') priorities to 'Low'.  The 'Lowest'
+        // value is only for use by specialized suppression/configuration providers.  Any values returned by an actual
+        // regular provider (either 1st or 3rd party) should still only be between Low and High.
         if (priority < CodeActionRequestPriority.Low)
             priority = CodeActionRequestPriority.Low;
 

@@ -15,7 +15,10 @@ namespace Microsoft.CodeAnalysis.CodeActions
 {
     internal interface ICodeActionRequestPriorityProvider
     {
-        CodeActionRequestPriority Priority { get; }
+        /// <summary>
+        /// <see langword="null"/> represents no specified priority.  i.e. any priority should match this.
+        /// </summary>
+        CodeActionRequestPriority? Priority { get; }
 
         /// <summary>
         /// Tracks the given <paramref name="analyzer"/> as a de-prioritized analyzer that should be moved to
@@ -40,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             var priority = provider.Priority;
 
             // If caller isn't asking for prioritized result, then run all analyzers.
-            if (priority == CodeActionRequestPriority.None)
+            if (priority is null)
                 return true;
 
             // 'CodeActionRequestPriority.Lowest' is used for suppression/configuration fixes,
@@ -77,11 +80,12 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// </summary>
         public static bool MatchesPriority(this ICodeActionRequestPriorityProvider provider, CodeFixProvider codeFixProvider)
         {
-            if (provider.Priority == CodeActionRequestPriority.None)
+            if (provider.Priority == null)
             {
                 // We are computing fixes for all priorities
                 return true;
             }
+
             if (provider.Priority == CodeActionRequestPriority.Low)
             {
                 // 'Low' priority can be used for two types of code fixers:
@@ -102,12 +106,12 @@ namespace Microsoft.CodeAnalysis.CodeActions
         private readonly object _gate = new();
         private HashSet<DiagnosticAnalyzer>? _lowPriorityAnalyzers;
 
-        public DefaultCodeActionRequestPriorityProvider(CodeActionRequestPriority priority = CodeActionRequestPriority.None)
+        public DefaultCodeActionRequestPriorityProvider(CodeActionRequestPriority? priority = null)
         {
             Priority = priority;
         }
 
-        public CodeActionRequestPriority Priority { get; }
+        public CodeActionRequestPriority? Priority { get; }
 
         public void AddDeprioritizedAnalyzerWithLowPriority(DiagnosticAnalyzer analyzer)
         {

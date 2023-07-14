@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             ICodeRefactoringService codeRefactoringService,
             TextDocument document,
             TextSpan selection,
-            CodeActionRequestPriority priority,
+            CodeActionRequestPriority? priority,
             CodeActionOptionsProvider options,
             Func<string, IDisposable?> addOperationScope,
             bool filterOutsideSelection,
