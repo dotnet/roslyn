@@ -29,6 +29,10 @@
       <_Parameter1>PackageBuildDate</_Parameter1>
       <_Parameter2>$([System.DateTime]::UtcNow.ToString(o))</_Parameter2>
     </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>RoslynVersion</_Parameter1>
+      <_Parameter2>$(RoslynVersion)</_Parameter2>
+    </AssemblyAttribute>
   </ItemGroup>
   <!-- </Metalama> -->
   <ItemGroup>
@@ -132,13 +136,15 @@
   <Import Project="..\..\..\Metalama\Metalama.Compiler.Shared\Metalama.Compiler.Shared.projitems" Label="Shared" />
   <Import Project="..\..\..\Metalama\Metalama.Compiler.CodeAnalysis\Metalama.Compiler.CodeAnalysis.projitems" Label="Shared" />
 
+  <!-- <Metalama> -->  
   <!-- based on https://stackoverflow.com/a/56018426/41071 -->
   <PropertyGroup>
-    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);SetPackageContent</TargetsForTfmSpecificBuildOutput>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);MetalamaSetPackageContent</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
-  <Target Name="SetPackageContent" DependsOnTargets="ResolveReferences">
+  <Target Name="MetalamaSetPackageContent" DependsOnTargets="ResolveReferences">
     <ItemGroup>
       <BuildOutputInPackage Include="$(ArtifactsBinDir)Metalama.Compiler.Interface.TypeForwards\$(Configuration)\netstandard2.0\Metalama.Compiler.Interface.dll" />
     </ItemGroup>
   </Target>
+  <!-- </Metalama> -->
 </Project>

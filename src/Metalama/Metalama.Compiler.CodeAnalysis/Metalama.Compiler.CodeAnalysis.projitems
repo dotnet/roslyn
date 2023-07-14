@@ -9,6 +9,7 @@
     <Import_RootNamespace>Metalama.Compiler</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)AnalyzerAssemblyRedirector.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MetalamaCompilerApplicationInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MetalamaCompilerExceptionHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MetalamaCompilerMessageProvider.cs" />

@@ -8,14 +8,16 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Text;
+using Metalama.Compiler;
+using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Metalama.Compiler;
-using Microsoft.CodeAnalysis.CommandLine;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -308,10 +310,6 @@ namespace Microsoft.CodeAnalysis
         internal StrongNameProvider GetStrongNameProvider(StrongNameFileSystem fileSystem)
             => new DesktopStrongNameProvider(KeyFileSearchPaths, fileSystem);
 
-        internal CommandLineArguments()
-        {
-        }
-
         /// <summary>
         /// Returns a full path of the file that the compiler will generate the assembly to if compilation succeeds.
         /// </summary>
@@ -538,18 +536,17 @@ namespace Microsoft.CodeAnalysis
             var resolvedReferencesList = ArrayBuilder<AnalyzerFileReference>.GetInstance();
             foreach (var reference in AnalyzerReferences.Distinct()) // <Metalama />: add Distinct()
             {
-                var resolvedReference = ResolveAnalyzerReference(reference, analyzerLoader);
+                // <Metalama>
+                var resolvedReference = ResolveAnalyzerReference(reference, analyzerLoader, messageProvider, diagnostics);
                 if (resolvedReference != null)
                 {
                     var isAdded = resolvedReferencesSet.Add(resolvedReference);
                     if (isAdded)
                     {
-                        // <Metalama>
                         // In Metalama, we always load analyzer assemblies even if they don't contain analyzer types because
                         // they may contain other compile-time types.
                         resolvedReference.LoadAssembly();
-                        // <_Metalama>
-                        
+
                         // register the reference to the analyzer loader:
                         analyzerLoader.AddDependencyLocation(resolvedReference.FullPath);
 
@@ -561,10 +558,7 @@ namespace Microsoft.CodeAnalysis
                         //diagnostics.Add(new DiagnosticInfo(messageProvider, messageProvider.WRN_DuplicateAnalyzerReference, reference.FilePath));
                     }
                 }
-                else
-                {
-                    diagnostics.Add(new DiagnosticInfo(messageProvider, messageProvider.ERR_MetadataFileNotFound, reference.FilePath));
-                }
+                // </Metalama>
             }
 
             // All analyzer references are registered now, we can start loading them.
@@ -573,13 +567,13 @@ namespace Microsoft.CodeAnalysis
                 resolvedReference.AnalyzerLoadFailed += errorHandler;
                 resolvedReference.AddAnalyzers(analyzerBuilder, language, shouldIncludeAnalyzer);
                 resolvedReference.AddGenerators(generatorBuilder, language);
-                
+
                 // <Metalama>
                 resolvedReference.AddTransformers(transformerBuilder, language);
                 resolvedReference.AddTransformerOrder(transformerOrders);
                 resolvedReference.AddCompilerPlugins(pluginBuilder, language);
                 // </Metalama>
-                
+
                 resolvedReference.AnalyzerLoadFailed -= errorHandler;
             }
 
@@ -595,7 +589,7 @@ namespace Microsoft.CodeAnalysis
             plugins = pluginBuilder.ToImmutable();
             transfomers = transformerBuilder.ToImmutable();
             // </Metalama>
-            
+
             generators = generatorBuilder.ToImmutable();
             analyzers = analyzerBuilder.ToImmutable();
 
@@ -603,7 +597,36 @@ namespace Microsoft.CodeAnalysis
             bool shouldIncludeAnalyzer(DiagnosticAnalyzer analyzer) => !skipAnalyzers || analyzer is DiagnosticSuppressor;
         }
 
-        private AnalyzerFileReference? ResolveAnalyzerReference(CommandLineAnalyzerReference reference, IAnalyzerAssemblyLoader analyzerLoader)
+        // <Metalama>
+        private static readonly Version? s_metalamaRoslynVersion = GetMetalamaRoslynVersion();
+
+        private static Version? GetMetalamaRoslynVersion()
+        {
+            var versionString = typeof(CommandLineArguments).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>()
+                .SingleOrDefault(a => a.Key == "RoslynVersion")
+                ?.Value;
+
+            if (!Version.TryParse(versionString, out var version))
+            {
+                return null;
+            }
+
+            // Replace empty version components with zeroes. Version says that e.g. 4.6.0.0 > 4.6.0, but we want those two to be considered equal.
+            if (version.Build == -1)
+            {
+                version = new Version(version.Major, version.Minor, 0, 0);
+            }
+            else if (version.Revision == -1)
+            {
+                version = new Version(version.Major, version.Minor, version.Build, 0);
+            }
+
+            return version;
+        }
+        // </Metalama>
+
+        // <Metalama> modified
+        private AnalyzerFileReference? ResolveAnalyzerReference(CommandLineAnalyzerReference reference, IAnalyzerAssemblyLoader analyzerLoader, CommonMessageProvider? messageProvider = null, List<DiagnosticInfo>? diagnostics = null)
         {
             string? resolvedPath = FileUtilities.ResolveRelativePath(reference.FilePath, basePath: null, baseDirectory: BaseDirectory, searchPaths: ReferencePaths, fileExists: File.Exists);
             if (resolvedPath != null)
@@ -611,13 +634,54 @@ namespace Microsoft.CodeAnalysis
                 resolvedPath = FileUtilities.TryNormalizeAbsolutePath(resolvedPath);
             }
 
-            if (resolvedPath != null)
+            if (resolvedPath == null)
             {
-                return new AnalyzerFileReference(resolvedPath, analyzerLoader);
+                diagnostics?.Add(new DiagnosticInfo(messageProvider!, messageProvider!.ERR_MetadataFileNotFound, reference.FilePath));
+
+                return null;
             }
 
-            return null;
+            if (s_metalamaRoslynVersion is { } metalamaRoslynVersion && getReferencedRoslynVersion() is { } referencedRoslynVersion)
+            {
+                if (referencedRoslynVersion.Major >= 2023)
+                {
+                    // If the version is year-based, assume the referenced version of Roslyn is from Metalama and so do nothing.
+                    // Though this should only happen in tests.
+                    RoslynDebug.Assert(AppDomain.CurrentDomain.GetAssemblies().Any(a => a.FullName?.StartsWith("xunit") == true));
+                }
+                else if (referencedRoslynVersion > metalamaRoslynVersion)
+                {
+                    if (AnalyzerAssemblyRedirector.GetRedirectedPath(resolvedPath) is { } redirectedPath)
+                    {
+                        // We're redirecting assemblies to their older versions, which means the behavior shouldn't change much.
+                        // So a single generic warning should be enough.
+                        if (diagnostics?.Contains(diagnostic => diagnostic.MessageProvider == MetalamaCompilerMessageProvider.Instance && diagnostic.Code == (int)MetalamaErrorCode.WRN_AnalyzerAssembliesRedirected) == false)
+                        {
+                            diagnostics.Add(new DiagnosticInfo(MetalamaCompilerMessageProvider.Instance, (int)MetalamaErrorCode.WRN_AnalyzerAssembliesRedirected, referencedRoslynVersion.ToString(), metalamaRoslynVersion.ToString()));
+                        }
+
+                        resolvedPath = redirectedPath;
+                    }
+                    else
+                    {
+                        // We were unable to redirect, so we're disabling this assembly and informing the user.
+                        diagnostics?.Add(new DiagnosticInfo(MetalamaCompilerMessageProvider.Instance, (int)MetalamaErrorCode.WRN_AnalyzerAssemblyCantRedirect, reference.FilePath, referencedRoslynVersion.ToString(), metalamaRoslynVersion.ToString()));
+
+                        return null;
+                    }
+                }
+            }
+
+            return new AnalyzerFileReference(resolvedPath, analyzerLoader);
+
+            Version? getReferencedRoslynVersion()
+            {
+                using var assembly = AssemblyMetadata.CreateFromFile(resolvedPath);
+
+                return assembly.GetModules().FirstOrDefault()?.Module.ReferencedAssemblies.FirstOrDefault(a => a.Name == "Microsoft.CodeAnalysis")?.Version;
+            }
         }
+        // </Metalama>
         #endregion
     }
 }
