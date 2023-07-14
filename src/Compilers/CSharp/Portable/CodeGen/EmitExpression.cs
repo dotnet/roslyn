@@ -358,8 +358,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitLoweredIsPatternExpression(BoundLoweredIsPatternExpression node, bool used, bool sense = true)
         {
-            Debug.Assert(sense || used);
-
             EmitSideEffects(node.Statements);
 
             if (!used)
@@ -873,8 +871,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitSequenceExpression(BoundSequence sequence, bool used, bool sense = true)
         {
-            Debug.Assert(sense || used);
-
             DefineLocals(sequence);
             EmitSideEffects(sequence);
 
@@ -887,13 +883,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(sequence.Value.Kind != BoundKind.TypeExpression || !used);
             if (sequence.Value.Kind != BoundKind.TypeExpression)
             {
-                if (!used || sequence.Type.SpecialType != SpecialType.System_Boolean)
+                if (used && sequence.Type.SpecialType == SpecialType.System_Boolean)
                 {
-                    EmitExpression(sequence.Value, used);
+                    EmitCondExpr(sequence.Value, sense: sense);
                 }
                 else
                 {
-                    EmitCondExpr(sequence.Value, sense: sense);
+                    EmitExpression(sequence.Value, used);
                 }
             }
 
