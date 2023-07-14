@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// them acting on an error reported in code, and can be computed fast as it only uses syntax not semantics.
         /// It's also the 8th most common fix that people use, and is picked almost all the times it is shown.
         /// </summary>
-        public override CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.High;
+        public override CodeActionRequestPriorityInternal RequestPriority => CodeActionRequestPriorityInternal.High;
 
         private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
         {

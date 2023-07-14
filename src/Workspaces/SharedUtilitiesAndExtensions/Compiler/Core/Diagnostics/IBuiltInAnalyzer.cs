@@ -31,8 +31,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         bool OpenFileOnly(SimplifierOptions? options);
 
         /// <summary>
-        /// What priority this provider should run at.  This value is not allowed to be <see cref="CodeActionRequestPriority.None"/>.
+        /// What priority this provider should run at.  This value is not allowed to be <see
+        /// cref="CodeActionRequestPriorityInternal.None"/>.
         /// </summary>
-        CodeActionRequestPriority RequestPriority { get; }
+        CodeActionRequestPriorityInternal RequestPriority { get; }
     }
 }
