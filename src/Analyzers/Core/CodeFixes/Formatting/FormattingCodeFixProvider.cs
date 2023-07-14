@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         {
 #if !CODE_STYLE
             // Backdoor that allows this provider to use the high-priority bucket.
-            this.CustomTags = this.CustomTags.Add(CodeActionRequestPriorityExtensions.CanBeHighPriorityTag);
+            this.CustomTags = this.CustomTags.Add(CodeAction.CanBeHighPriorityTag);
 #endif
         }
 

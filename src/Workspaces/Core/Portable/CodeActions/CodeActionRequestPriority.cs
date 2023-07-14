@@ -54,12 +54,6 @@ public enum CodeActionRequestPriority
 internal static class CodeActionRequestPriorityExtensions
 {
     /// <summary>
-    /// Special tag that indicates that it's this is a privileged code action that is allowed to use the <see
-    /// cref="CodeActionRequestPriority.High"/> priority class.
-    /// </summary>
-    public static readonly string CanBeHighPriorityTag = Guid.NewGuid().ToString();
-
-    /// <summary>
     /// Clamps the value of <paramref name="priority"/> (which could be any integer) to the legal range of values
     /// present in <see cref="CodeActionRequestPriority"/>.
     /// </summary>
@@ -74,7 +68,7 @@ internal static class CodeActionRequestPriorityExtensions
         if (priority > CodeActionRequestPriority.High)
             priority = CodeActionRequestPriority.High;
 
-        if (priority == CodeActionRequestPriority.High && !customTags.Contains(CanBeHighPriorityTag))
+        if (priority == CodeActionRequestPriority.High && !customTags.Contains(CodeAction.CanBeHighPriorityTag))
             priority = CodeActionRequestPriority.Default;
 
         return priority;
