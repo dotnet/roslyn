@@ -2007,6 +2007,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static bool IsWellKnownTypeInAttribute(this TypeSymbol typeSymbol)
             => typeSymbol.IsWellKnownInteropServicesTopLevelType("InAttribute");
 
+        internal static bool IsWellKnownTypeRequiresLocationAttribute(this TypeSymbol typeSymbol)
+            => typeSymbol.IsWellKnownCompilerServicesTopLevelType("RequiresLocationAttribute");
+
         internal static bool IsWellKnownTypeUnmanagedType(this TypeSymbol typeSymbol)
             => typeSymbol.IsWellKnownInteropServicesTopLevelType("UnmanagedType");
 
