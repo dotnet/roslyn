@@ -6,9 +6,12 @@ Microsoft.CodeAnalysis.CodeActions.CodeActionPriority.Low = 1 -> Microsoft.CodeA
 Microsoft.CodeAnalysis.CodeActions.CodeActionPriority.Lowest = 0 -> Microsoft.CodeAnalysis.CodeActions.CodeActionPriority
 Microsoft.CodeAnalysis.CodeActions.CodeActionPriority.Medium = 2 -> Microsoft.CodeAnalysis.CodeActions.CodeActionPriority
 Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
-Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority.Default = 1 -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
-Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority.Low = 0 -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
-Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority.Medium = 1 -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
+Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority.Default = 3 -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
+Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority.High = 4 -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
+Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority.Low = 2 -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
+Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority.Lowest = 1 -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
+Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority.None = 0 -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
+Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority.Normal = 3 -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
 static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CodeActions.CodeAction> nestedActions, bool isInlinable, Microsoft.CodeAnalysis.CodeActions.CodeActionPriority priority = Microsoft.CodeAnalysis.CodeActions.CodeActionPriority.Default) -> Microsoft.CodeAnalysis.CodeActions.CodeAction
 static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>> createChangedDocument, string equivalenceKey = null, Microsoft.CodeAnalysis.CodeActions.CodeActionPriority priority = Microsoft.CodeAnalysis.CodeActions.CodeActionPriority.Default) -> Microsoft.CodeAnalysis.CodeActions.CodeAction
 static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>> createChangedDocument, string equivalenceKey) -> Microsoft.CodeAnalysis.CodeActions.CodeAction

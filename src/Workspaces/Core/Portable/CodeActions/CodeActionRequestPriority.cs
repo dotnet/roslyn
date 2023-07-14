@@ -8,6 +8,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions;
 
+#pragma warning disable CA1200 // Avoid using cref tags with a prefix
+
 /// <summary>
 /// Priority class that a particular <see cref="CodeRefactoringProvider"/> or <see cref="CodeFixProvider"/> should
 /// run at.  Providers are run in priority order, allowing the results of higher priority providers to be computed
@@ -24,49 +26,69 @@ namespace Microsoft.CodeAnalysis.CodeActions;
 public enum CodeActionRequestPriority
 {
     /// <summary>
-    /// Run the priority below <see cref="Medium"/> priority.  The provider may run slow, or its results may be
+    /// No priority specified, all refactoring, code fixes, and analyzers should be run.  This is equivalent
+    /// to <see cref="Lowest"/>, <see cref="Low"/>, <see cref="Normal"/> and <see cref="High"/> combined.
+    /// </summary>
+    None = 0,
+
+    /// <summary>
+    /// Only lowest priority suppression and configuration fix providers should be run.  Specifically,
+    /// <see cref="T:IConfigurationFixProvider"/> providers will be run.
+    /// NOTE: This priority is reserved for suppression and configuration fix providers and should not be
+    /// used by regular code fix providers and refactoring providers.
+    /// </summary>
+    Lowest = 1,
+
+    /// <summary>
+    /// Run the priority below <see cref="Normal"/> priority.  The provider may run slow, or its results may be
     /// commonly less relevant for the user.
     /// </summary>
-    Low = 0,
+    Low = 2,
 
     /// <summary>
-    /// Run this provider at default priority.   The provider will run in reasonable speeds and provide results that
-    /// are commonly relevant to the user.
+    /// Run this provider at default priority.  The provider will run in reasonable speeds and provide results that are
+    /// commonly relevant to the user.
     /// </summary>
-    Medium = 1,
+    Normal = 3,
 
     /// <summary>
-    /// Default provider priority.  Equivalent to <see cref="Medium"/>.
+    /// Run this provider at high priority. Note: High priority is simply a request on the part of a provider. The core
+    /// engine may automatically downgrade these items to <see cref="Default"/> priority.
     /// </summary>
-    Default = Medium,
+    High = 4,
+
+    /// <summary>
+    /// Default provider priority.  Equivalent to <see cref="Normal"/>.
+    /// </summary>
+    Default = Normal,
 }
 
-internal static class CodeActionRequestPriorityExtensions
-{
-    /// <summary>
-    /// Clamps the value of <paramref name="priority"/> (which could be any integer) to the legal range of values
-    /// present in <see cref="CodeActionRequestPriority"/>.
-    /// </summary>
-    private static CodeActionRequestPriority Clamp(this CodeActionRequestPriority priority)
-    {
-        if (priority < CodeActionRequestPriority.Low)
-            priority = CodeActionRequestPriority.Low;
+//internal static class CodeActionRequestPriorityExtensions
+//{
+//    /// <summary>
+//    /// Clamps the value of <paramref name="priority"/> (which could be any integer) to the legal range of values
+//    /// present in <see cref="CodeActionRequestPriority"/>.
+//    /// </summary>
+//    private static CodeActionRequestPriority Clamp(this CodeActionRequestPriority priority)
+//    {
+//        if (priority < CodeActionRequestPriority.Low)
+//            priority = CodeActionRequestPriority.Low;
 
-        if (priority > CodeActionRequestPriority.Medium)
-            priority = CodeActionRequestPriority.Medium;
+//        if (priority > CodeActionRequestPriority.Medium)
+//            priority = CodeActionRequestPriority.Medium;
 
-        return priority;
-    }
+//        return priority;
+//    }
 
-    public static CodeActionRequestPriorityInternal ConvertToInternalPriority(this CodeActionRequestPriority priority)
-    {
-        priority = priority.Clamp();
+//    public static CodeActionRequestPriorityInternal ConvertToInternalPriority(this CodeActionRequestPriority priority)
+//    {
+//        priority = priority.Clamp();
 
-        return priority switch
-        {
-            CodeActionRequestPriority.Low => CodeActionRequestPriorityInternal.Low,
-            CodeActionRequestPriority.Medium => CodeActionRequestPriorityInternal.Normal,
-            _ => throw ExceptionUtilities.UnexpectedValue(priority),
-        };
-    }
-}
+//        return priority switch
+//        {
+//            CodeActionRequestPriority.Low => CodeActionRequestPriorityInternal.Low,
+//            CodeActionRequestPriority.Medium => CodeActionRequestPriorityInternal.Normal,
+//            _ => throw ExceptionUtilities.UnexpectedValue(priority),
+//        };
+//    }
+//}
