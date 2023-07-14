@@ -67,7 +67,9 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 where !string.IsNullOrWhiteSpace(textWithoutComment)
                 let trimmedTextWithoutComment = textWithoutComment.TrimEnd()
                 let span = commentIndex == -1 ? line.Span : new Text.TextSpan(line.Span.Start, trimmedTextWithoutComment.Length)
-                select new BanFileEntry(compilation, trimmedTextWithoutComment, span, sourceText, additionalFile.Path);
+                let entry = new BanFileEntry(compilation, trimmedTextWithoutComment, span, sourceText, additionalFile.Path)
+                where !string.IsNullOrWhiteSpace(entry.DeclarationId)
+                select entry;
 
             var entries = query.ToList();
 
