@@ -125,6 +125,9 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                 // First, see if there's actually the presence of an escape character in the string token.  If not, we
                 // can just provide the entire string as-is to the caller to spell check since there's no escapes for
                 // them to be confused by.
+                //
+                // Note: .Text on a string token is non-allocating.  It is captured at the time of token creation and
+                // held by the token.
                 var escapeChar = _spellCheckSpanService._escapeCharacter;
                 if (canContainEscapes &&
                     escapeChar != null &&
