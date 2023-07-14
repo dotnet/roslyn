@@ -129,38 +129,28 @@ internal sealed class CSharpUsePrimaryConstructorDiagnosticAnalyzer : AbstractBu
     /// <summary>
     /// Helper type we create that encapsulates all the state we need while processing.
     /// </summary>
-    private sealed class Analyzer
+    private sealed class Analyzer(
+        CSharpUsePrimaryConstructorDiagnosticAnalyzer diagnosticAnalyzer,
+        CodeStyleOption2<bool> styleOption,
+        INamedTypeSymbol namedType,
+        ConstructorDeclarationSyntax primaryConstructorDeclaration,
+        PooledDictionary<ISymbol, IParameterSymbol> candidateMembersToRemove,
+        ConcurrentDictionary<INamedTypeSymbol, Analyzer> namedTypeToAnalyzer)
     {
-        private readonly CSharpUsePrimaryConstructorDiagnosticAnalyzer _diagnosticAnalyzer;
+        private readonly CSharpUsePrimaryConstructorDiagnosticAnalyzer _diagnosticAnalyzer = diagnosticAnalyzer;
 
-        private readonly CodeStyleOption2<bool> _styleOption;
-        private readonly INamedTypeSymbol _namedType;
-        private readonly ConstructorDeclarationSyntax _primaryConstructorDeclaration;
+        private readonly CodeStyleOption2<bool> _styleOption = styleOption;
+        private readonly INamedTypeSymbol _namedType = namedType;
+        private readonly ConstructorDeclarationSyntax _primaryConstructorDeclaration = primaryConstructorDeclaration;
 
-        private readonly PooledDictionary<ISymbol, IParameterSymbol> _candidateMembersToRemove;
-        private readonly ConcurrentDictionary<INamedTypeSymbol, Analyzer> _namedTypeToAnalyzer;
+        private readonly PooledDictionary<ISymbol, IParameterSymbol> _candidateMembersToRemove = candidateMembersToRemove;
+        private readonly ConcurrentDictionary<INamedTypeSymbol, Analyzer> _namedTypeToAnalyzer = namedTypeToAnalyzer;
 
         /// <summary>
         /// Needs to be concurrent as we can process members in parallel in <see
         /// cref="AnalyzeFieldOrPropertyReference"/>.
         /// </summary>
         private readonly ConcurrentSet<ISymbol> _membersThatCannotBeRemoved = s_concurrentSetPool.Allocate();
-
-        public Analyzer(
-            CSharpUsePrimaryConstructorDiagnosticAnalyzer diagnosticAnalyzer,
-            CodeStyleOption2<bool> styleOption,
-            INamedTypeSymbol namedType,
-            ConstructorDeclarationSyntax primaryConstructorDeclaration,
-            PooledDictionary<ISymbol, IParameterSymbol> candidateMembersToRemove,
-            ConcurrentDictionary<INamedTypeSymbol, Analyzer> namedTypeToAnalyzer)
-        {
-            _diagnosticAnalyzer = diagnosticAnalyzer;
-            _styleOption = styleOption;
-            _namedType = namedType;
-            _primaryConstructorDeclaration = primaryConstructorDeclaration;
-            _candidateMembersToRemove = candidateMembersToRemove;
-            _namedTypeToAnalyzer = namedTypeToAnalyzer;
-        }
 
         public bool HasCandidateMembersToRemove => _candidateMembersToRemove.Count > 0;
 

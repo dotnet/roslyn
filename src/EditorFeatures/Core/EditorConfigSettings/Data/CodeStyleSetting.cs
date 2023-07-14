@@ -10,14 +10,9 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 {
-    internal abstract class CodeStyleSetting : Setting
+    internal abstract class CodeStyleSetting(OptionKey2 optionKey, string description, OptionUpdater updater, SettingLocation location) : Setting(optionKey, description, updater, location)
     {
         private static readonly bool[] s_boolValues = new[] { true, false };
-
-        public CodeStyleSetting(OptionKey2 optionKey, string description, OptionUpdater updater, SettingLocation location)
-            : base(optionKey, description, updater, location)
-        {
-        }
 
         public abstract ICodeStyleOption GetCodeStyle();
 

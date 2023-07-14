@@ -10,14 +10,11 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
 {
     [ExportContentTypeLanguageService(ContentTypeNames.CSharpContentType, LanguageNames.CSharp), Shared]
-    internal class CSharpContentTypeLanguageService : IContentTypeLanguageService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class CSharpContentTypeLanguageService(IContentTypeRegistryService contentTypeRegistry) : IContentTypeLanguageService
     {
-        private readonly IContentTypeRegistryService _contentTypeRegistry;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpContentTypeLanguageService(IContentTypeRegistryService contentTypeRegistry)
-            => _contentTypeRegistry = contentTypeRegistry;
+        private readonly IContentTypeRegistryService _contentTypeRegistry = contentTypeRegistry;
 
         public IContentType GetDefaultContentType()
             => _contentTypeRegistry.GetContentType(ContentTypeNames.CSharpContentType);

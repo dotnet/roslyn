@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -33,12 +34,12 @@ Console.WriteLine(1)/*4*/;
 
             var knownMatches = new KeyValuePair<SyntaxNode, SyntaxNode>[]
             {
-                new KeyValuePair<SyntaxNode, SyntaxNode>(m1.Statements[1], m2.Statements[0])
+                new KeyValuePair<SyntaxNode, SyntaxNode>(((BlockSyntax)m1.RootNodes.First()).Statements[1], ((BlockSyntax)m2.RootNodes.First()).Statements[0])
             };
 
             // pre-matched:
 
-            var match = SyntaxComparer.Statement.ComputeMatch(m1, m2, knownMatches);
+            var match = m1.ComputeMatch(m2, knownMatches);
 
             var actual = ToMatchingPairs(match);
 
@@ -52,7 +53,7 @@ Console.WriteLine(1)/*4*/;
 
             // not pre-matched:
 
-            match = SyntaxComparer.Statement.ComputeMatch(m1, m2);
+            match = m1.ComputeMatch(m2, knownMatches: null);
 
             actual = ToMatchingPairs(match);
 
@@ -79,8 +80,8 @@ Console.WriteLine(2);
             var m1 = MakeMethodBody(src1);
             var m2 = MakeMethodBody(src2);
 
-            var knownMatches = new[] { new KeyValuePair<SyntaxNode, SyntaxNode>(m1, m2) };
-            var match = SyntaxComparer.Statement.ComputeMatch(m1, m2, knownMatches);
+            var knownMatches = new[] { new KeyValuePair<SyntaxNode, SyntaxNode>(m1.RootNodes.First(), m2.RootNodes.First()) };
+            var match = m1.ComputeMatch(m2, knownMatches);
             var actual = ToMatchingPairs(match);
 
             var expected = new MatchingPairs

@@ -30,41 +30,29 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 {
-    internal abstract class AbstractPreviewFactoryService<TDifferenceViewer> : IPreviewFactoryService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
+        IThreadingContext threadingContext,
+        ITextBufferFactoryService textBufferFactoryService,
+        IContentTypeRegistryService contentTypeRegistryService,
+        IProjectionBufferFactoryService projectionBufferFactoryService,
+        EditorOptionsService editorOptionsService,
+        ITextDifferencingSelectorService differenceSelectorService,
+        IDifferenceBufferFactoryService differenceBufferService,
+        ITextViewRoleSet previewRoleSet) : IPreviewFactoryService
         where TDifferenceViewer : IDifferenceViewer
     {
         private const double DefaultZoomLevel = 0.75;
-        private readonly ITextViewRoleSet _previewRoleSet;
-        private readonly ITextBufferFactoryService _textBufferFactoryService;
-        private readonly IContentTypeRegistryService _contentTypeRegistryService;
-        private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
-        private readonly EditorOptionsService _editorOptionsService;
-        private readonly ITextDifferencingSelectorService _differenceSelectorService;
-        private readonly IDifferenceBufferFactoryService _differenceBufferService;
+        private readonly ITextViewRoleSet _previewRoleSet = previewRoleSet;
+        private readonly ITextBufferFactoryService _textBufferFactoryService = textBufferFactoryService;
+        private readonly IContentTypeRegistryService _contentTypeRegistryService = contentTypeRegistryService;
+        private readonly IProjectionBufferFactoryService _projectionBufferFactoryService = projectionBufferFactoryService;
+        private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
+        private readonly ITextDifferencingSelectorService _differenceSelectorService = differenceSelectorService;
+        private readonly IDifferenceBufferFactoryService _differenceBufferService = differenceBufferService;
 
-        protected readonly IThreadingContext ThreadingContext;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public AbstractPreviewFactoryService(
-            IThreadingContext threadingContext,
-            ITextBufferFactoryService textBufferFactoryService,
-            IContentTypeRegistryService contentTypeRegistryService,
-            IProjectionBufferFactoryService projectionBufferFactoryService,
-            EditorOptionsService editorOptionsService,
-            ITextDifferencingSelectorService differenceSelectorService,
-            IDifferenceBufferFactoryService differenceBufferService,
-            ITextViewRoleSet previewRoleSet)
-        {
-            ThreadingContext = threadingContext;
-            _textBufferFactoryService = textBufferFactoryService;
-            _contentTypeRegistryService = contentTypeRegistryService;
-            _projectionBufferFactoryService = projectionBufferFactoryService;
-            _editorOptionsService = editorOptionsService;
-            _differenceSelectorService = differenceSelectorService;
-            _differenceBufferService = differenceBufferService;
-            _previewRoleSet = previewRoleSet;
-        }
+        protected readonly IThreadingContext ThreadingContext = threadingContext;
 
         public SolutionPreviewResult? GetSolutionPreviews(Solution oldSolution, Solution? newSolution, CancellationToken cancellationToken)
             => GetSolutionPreviews(oldSolution, newSolution, DefaultZoomLevel, cancellationToken);

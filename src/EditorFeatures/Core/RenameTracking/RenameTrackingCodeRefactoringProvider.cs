@@ -14,20 +14,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
         Name = PredefinedCodeRefactoringProviderNames.RenameTracking), Shared]
-    internal class RenameTrackingCodeRefactoringProvider : CodeRefactoringProvider
+    [method: ImportingConstructor]
+    [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+    internal class RenameTrackingCodeRefactoringProvider(
+        ITextUndoHistoryRegistry undoHistoryRegistry,
+        [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices) : CodeRefactoringProvider
     {
-        private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
-        private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
-
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public RenameTrackingCodeRefactoringProvider(
-            ITextUndoHistoryRegistry undoHistoryRegistry,
-            [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices)
-        {
-            _undoHistoryRegistry = undoHistoryRegistry;
-            _refactorNotifyServices = refactorNotifyServices;
-        }
+        private readonly ITextUndoHistoryRegistry _undoHistoryRegistry = undoHistoryRegistry;
+        private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices = refactorNotifyServices;
 
         public override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {

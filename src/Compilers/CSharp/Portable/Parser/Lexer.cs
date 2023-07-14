@@ -8,10 +8,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
@@ -434,8 +434,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             info.Kind = SyntaxKind.None;
             info.ContextualKind = SyntaxKind.None;
             info.Text = null;
+
             char character;
-            char surrogateCharacter = SlidingTextWindow.InvalidCharacter;
             bool isEscaped = false;
             int startingPosition = TextWindow.Position;
 
@@ -863,18 +863,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     break;
 
                 case '\\':
+                    // Could be unicode escape. Try that.
+                    isEscaped = true;
+                    character = PeekCharOrUnicodeEscape(out _);
+                    if (SyntaxFacts.IsIdentifierStartCharacter(character))
                     {
-                        // Could be unicode escape. Try that.
-                        character = PeekCharOrUnicodeEscape(out surrogateCharacter);
-
-                        isEscaped = true;
-                        if (SyntaxFacts.IsIdentifierStartCharacter(character))
-                        {
-                            goto case 'a';
-                        }
-
-                        goto default;
+                        goto case 'a';
                     }
+
+                    goto default;
 
                 case SlidingTextWindow.InvalidCharacter:
                     if (!TextWindow.IsReallyAtEnd())
@@ -903,29 +900,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                     if (isEscaped)
                     {
-                        SyntaxDiagnosticInfo? error;
-                        NextCharOrUnicodeEscape(out surrogateCharacter, out error);
+                        NextCharOrUnicodeEscape(out _, out var error);
                         AddError(error);
                     }
                     else
                     {
                         TextWindow.AdvanceChar();
+
+                        // If we ran into the start of a surrogate pair, then see if we have the whole pair.  If so,
+                        // skip the pair in its entirety so we can produce a good error message that treats the two as a
+                        // single entity to tell the user about.
+                        if (char.IsHighSurrogate(character) && char.IsLowSurrogate(TextWindow.PeekChar()))
+                            TextWindow.AdvanceChar();
                     }
 
-                    if (_badTokenCount++ > 200)
-                    {
-                        // If we get too many characters that we cannot make sense of, absorb the rest of the input.
-                        int end = TextWindow.Text.Length;
-                        int width = end - startingPosition;
-                        info.Text = TextWindow.Text.ToString(new TextSpan(startingPosition, width));
-                        TextWindow.Reset(end);
-                    }
-                    else
+                    // If we get too many characters that we cannot make sense of, treat the entire rest of the file as
+                    // a single invalid character, so we can bail out of parsing early without producing an unbounded
+                    // number of errors.
+                    if (_badTokenCount++ <= 200)
                     {
                         info.Text = TextWindow.GetText(intern: true);
                     }
+                    else
+                    {
+                        int end = TextWindow.Text.Length;
+                        info.Text = TextWindow.Text.ToString(TextSpan.FromBounds(startingPosition, end));
+                        TextWindow.Reset(end);
+                    }
 
-                    this.AddError(ErrorCode.ERR_UnexpectedCharacter, info.Text);
+                    // if the original text wasn't already escaped, then escape it in the error message so that it's
+                    // clear what the issue is.  i.e. if the users source had the literal six characters in order like
+                    // so:  `\` `u` `D` `C` `E` `7`, then there's no need to escape that again when reporting the error.
+                    // However, if the user's code has the actual System.Char \uDCE7 char in it, then we want to print
+                    // that out in escaped form so they have an actual clue about what the character value is that we
+                    // have a problem with.
+                    var messageText = isEscaped ? info.Text : ObjectDisplay.FormatLiteral(info.Text, ObjectDisplayOptions.EscapeNonPrintableCharacters);
+                    this.AddError(ErrorCode.ERR_UnexpectedCharacter, messageText);
                     break;
             }
         }

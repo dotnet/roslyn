@@ -2239,7 +2239,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_InterceptorArityNotCompatible = 9177,
         ERR_InterceptorCannotBeGeneric = 9178,
-        ERR_CollectionBuilderAttributeMethodNotFound = 9179,
+
+        WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase = 9179,
+        ERR_CollectionBuilderAttributeMethodNotFound = 9180,
 
         #endregion
 
