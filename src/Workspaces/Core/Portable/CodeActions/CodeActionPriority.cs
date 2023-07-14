@@ -23,25 +23,20 @@ public enum CodeActionPriority
     Lowest = 0,
 
     /// <summary>
-    /// Low priority code action.  Will show up after <see cref="Medium"/> priority items.
+    /// Low priority code action.  Will show up after <see cref="Normal"/> priority items.
     /// </summary>
     Low = 1,
 
     /// <summary>
     /// Medium priority code action.
     /// </summary>
-    Medium = 2,
+    Normal = 2,
 
     /// <summary>
     /// High priority code action. Note: High priority is simply a request on the part of a <see cref="CodeAction"/>.
-    /// The core engine may automatically downgrade these items to <see cref="Default"/> priority.
+    /// The core engine may automatically downgrade these items to <see cref="Normal"/> priority.
     /// </summary>
     High = 3,
-
-    /// <summary>
-    /// Default priority for code actions.  Equivalent to <see cref="Medium"/>.
-    /// </summary>
-    Default = Medium,
 }
 
 #if false

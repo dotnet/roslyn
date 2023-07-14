@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     {
                         CodeActionPriority.Lowest => SuggestedActionSetPriority.None,
                         CodeActionPriority.Low => SuggestedActionSetPriority.Low,
-                        CodeActionPriority.Medium => SuggestedActionSetPriority.Medium,
+                        CodeActionPriority.Normal => SuggestedActionSetPriority.Medium,
                         CodeActionPriority.High => SuggestedActionSetPriority.High,
                         _ => throw ExceptionUtilities.Unreachable(),
                     };

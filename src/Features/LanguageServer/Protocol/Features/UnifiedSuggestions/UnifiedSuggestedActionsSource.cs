@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         /// <remarks>
         /// Fix groups are returned in priority order determined based on <see cref="ExtensionOrderAttribute"/>.
         /// Priority for all <see cref="UnifiedSuggestedActionSet"/>s containing fixes is set to <see
-        /// cref="CodeActionPriority.Medium"/> by default. The only exception is the case where a <see
+        /// cref="CodeActionPriority.Normal"/> by default. The only exception is the case where a <see
         /// cref="UnifiedSuggestedActionSet"/> only contains suppression fixes - the priority of such <see
         /// cref="UnifiedSuggestedActionSet"/>s is set to <see cref="CodeActionPriority.Lowest"/> so that suppression
         /// fixes always show up last after all other fixes (and refactorings) for the selected line of code.

@@ -29,7 +29,7 @@ public enum CodeActionRequestPriority
 {
     /// <summary>
     /// No priority specified, all refactoring, code fixes, and analyzers should be run.  This is equivalent
-    /// to <see cref="Lowest"/>, <see cref="Low"/>, <see cref="Medium"/> and <see cref="High"/> combined.
+    /// to <see cref="Lowest"/>, <see cref="Low"/>, <see cref="Normal"/> and <see cref="High"/> combined.
     /// </summary>
     None = 0,
 
@@ -42,7 +42,7 @@ public enum CodeActionRequestPriority
     Lowest = 1,
 
     /// <summary>
-    /// Run the priority below <see cref="Medium"/> priority.  The provider may run slow, or its results may be
+    /// Run the priority below <see cref="Normal"/> priority.  The provider may run slow, or its results may be
     /// commonly less relevant for the user.
     /// </summary>
     Low = 2,
@@ -51,18 +51,13 @@ public enum CodeActionRequestPriority
     /// Run this provider at default priority.  The provider will run in reasonable speeds and provide results that are
     /// commonly relevant to the user.
     /// </summary>
-    Medium = 3,
+    Normal = 3,
 
     /// <summary>
     /// Run this provider at high priority. Note: High priority is simply a request on the part of a provider. The core
-    /// engine may automatically downgrade these items to <see cref="Default"/> priority.
+    /// engine may automatically downgrade these items to <see cref="Normal"/> priority.
     /// </summary>
     High = 4,
-
-    /// <summary>
-    /// Default provider priority.  Equivalent to <see cref="Medium"/>.
-    /// </summary>
-    Default = Medium,
 }
 
 internal static class CodeActionRequestPriorityExtensions
@@ -83,10 +78,10 @@ internal static class CodeActionRequestPriorityExtensions
             priority = CodeActionRequestPriority.Low;
 
         if (priority > CodeActionRequestPriority.High)
-            priority = CodeActionRequestPriority.Default;
+            priority = CodeActionRequestPriority.High;
 
         if (priority == CodeActionRequestPriority.High && !customTags.Contains(CanBeHighPriorityTag))
-            priority = CodeActionRequestPriority.Default;
+            priority = CodeActionRequestPriority.Normal;
 
         return priority;
     }

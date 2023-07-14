@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             {
                 CodeActionPriority.Lowest => LSP.VSInternalPriorityLevel.Lowest,
                 CodeActionPriority.Low => LSP.VSInternalPriorityLevel.Low,
-                CodeActionPriority.Medium => LSP.VSInternalPriorityLevel.Normal,
+                CodeActionPriority.Normal => LSP.VSInternalPriorityLevel.Normal,
                 CodeActionPriority.High => LSP.VSInternalPriorityLevel.High,
                 _ => throw ExceptionUtilities.UnexpectedValue(priority)
             };

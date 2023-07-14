@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             // If we have escaped quotes in the string, then this is a good option to bubble up as something to convert
             // to a raw string.  Otherwise, still offer this refactoring, but at low priority as the user may be
             // invoking this on lots of strings that they have no interest in converting.
-            var priority = AllEscapesAreQuotes(convertParams.Characters) ? CodeActionPriority.Medium : CodeActionPriority.Low;
+            var priority = AllEscapesAreQuotes(convertParams.Characters) ? CodeActionPriority.Normal : CodeActionPriority.Low;
 
             var options = context.Options;
 

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
     {
         /// <summary>
         /// Returns true if the given <paramref name="analyzer"/> can report diagnostics that can have fixes from a code
-        /// fix provider with <see cref="CodeFixProvider.RequestPriorityInternal"/> matching <see
+        /// fix provider with <see cref="CodeFixProvider.RequestPriority"/> matching <see
         /// cref="ICodeActionRequestPriorityProvider.Priority"/>. This method is useful for performing a performance
         /// optimization for lightbulb diagnostic computation, wherein we can reduce the set of analyzers to be executed
         /// when computing fixes for a specific <see cref="ICodeActionRequestPriorityProvider.Priority"/>.
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
             // Now compute this analyzer's priority and compare it with the provider's request 'Priority'.
             // Our internal 'IBuiltInAnalyzer' can specify custom request priority, while all
-            // the third-party analyzers are assigned 'Normal' priority.
+            // the third-party analyzers are assigned 'Medium' priority.
             var analyzerPriority = analyzer is IBuiltInAnalyzer { RequestPriority: var requestPriority }
                 ? requestPriority
                 : CodeActionRequestPriority.Normal;
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 return true;
             }
 
-            return provider.Priority == codeFixProvider.RequestPriorityInternal;
+            return provider.Priority == codeFixProvider.RequestPriority;
         }
     }
 
