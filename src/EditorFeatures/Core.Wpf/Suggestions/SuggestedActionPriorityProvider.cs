@@ -24,7 +24,7 @@ internal sealed class SuggestedActionPriorityProvider : ICodeActionRequestPriori
         _lowPriorityAnalyzers = lowPriorityAnalyzers;
     }
 
-    public CodeActionRequestPriority Priority { get; }
+    public CodeActionRequestPriority? Priority { get; }
 
     public void AddDeprioritizedAnalyzerWithLowPriority(DiagnosticAnalyzer analyzer)
         => _lowPriorityAnalyzers.Add(analyzer);
