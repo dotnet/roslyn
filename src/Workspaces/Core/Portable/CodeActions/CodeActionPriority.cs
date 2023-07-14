@@ -36,38 +36,13 @@ public enum CodeActionPriority
     /// High priority code action. Note: High priority is simply a request on the part of a <see cref="CodeAction"/>.
     /// The core engine may automatically downgrade these items to <see cref="Normal"/> priority.
     /// </summary>
+    // <remarks>
+    // If <see cref="CodeActionPriority.High"/> is used, the analyzer that specifies that value should implement and
+    // return true for <see cref="IBuiltInAnalyzer.IsHighPriority"/>, and <see cref="CodeActionRequestPriority.High> for
+    // <see cref="T:Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider.RequestPriority"/> and <see
+    // cref="T:Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringProvider.RequestPriority"/>. This will ensure that
+    // the analysis engine runs the analzyers and providers that will produce those actions first, thus allowing those
+    // actions to be computed and displayed prior to running all other providers.
+    // </remarks>
     High = 3,
 }
-
-#if false
-internal static class CodeActionPriorityExtensions
-{
-    /// <summary>
-    /// Clamps the value of <paramref name="priority"/> (which could be any integer) to the legal range of values
-    /// present in <see cref="CodeActionPriority"/>.
-    /// </summary>
-    private static CodeActionPriority Clamp(this CodeActionPriority priority)
-    {
-        if (priority < CodeActionPriority.Lowest)
-            priority = CodeActionPriority.Lowest;
-
-        if (priority > CodeActionPriority.Medium)
-            priority = CodeActionPriority.Medium;
-
-        return priority;
-    }
-
-    public static CodeActionPriority ConvertToInternalPriority(this CodeActionPriority priority)
-    {
-        priority = priority.Clamp();
-
-        return priority switch
-        {
-            CodeActionPriority.Lowest => CodeActionPriority.Lowest,
-            CodeActionPriority.Low => CodeActionPriority.Low,
-            CodeActionPriority.Medium => CodeActionPriority.Medium,
-            _ => throw ExceptionUtilities.UnexpectedValue(priority),
-        };
-    }
-}
-#endif

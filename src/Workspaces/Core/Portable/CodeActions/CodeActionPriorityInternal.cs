@@ -13,14 +13,6 @@ namespace Microsoft.CodeAnalysis.CodeActions;
 /// the highest precedence when ordering items so that we can ensure very important items get top prominence,
 /// and low priority items do not.
 /// </summary>
-/// <remarks>
-/// If <see cref="CodeActionPriority.High"/> is used, the feature that specifies that value should 
-/// implement and return <see cref="CodeActionRequestPriority.High"/> for <see cref="IBuiltInAnalyzer.RequestPriority"/>,
-/// <see cref="T:Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider.RequestPriority"/> and
-/// <see cref="T:Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringProvider.RequestPriority"/>. This
-/// will ensure that the analysis engine runs the providers that will produce those actions first,
-/// thus allowing those actions to be computed and displayed prior to running all other providers.
-/// </remarks>
 internal enum CodeActionPriority
 {
     Lowest = 0,
