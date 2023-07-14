@@ -10,8 +10,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions;
 
-#pragma warning disable CA1200 // Avoid using cref tags with a prefix
-
 /// <summary>
 /// Priority class that a particular <see cref="CodeRefactoringProvider"/> or <see cref="CodeFixProvider"/> should
 /// run at.  Providers are run in priority order, allowing the results of higher priority providers to be computed
@@ -28,10 +26,9 @@ namespace Microsoft.CodeAnalysis.CodeActions;
 public enum CodeActionRequestPriority
 {
     /// <summary>
-    /// Only lowest priority suppression and configuration fix providers should be run.  Specifically,
-    /// <see cref="T:IConfigurationFixProvider"/> providers will be run.
-    /// NOTE: This priority is reserved for suppression and configuration fix providers and should not be
-    /// used by regular code fix providers and refactoring providers.
+    /// Only lowest priority suppression and configuration fix providers should be run.  Specifically, <see
+    /// cref="IConfigurationFixProvider"/> providers will be run. NOTE: This priority is reserved for suppression and
+    /// configuration fix providers and should not be used by regular code fix providers and refactoring providers.
     /// </summary>
     Lowest = 1,
 
