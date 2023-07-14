@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             {
                 var codeAction = CodeAction.Create(
                     AnalyzersResources.Fix_formatting,
-                    cancellationToken => FixOneAsync(context, diagnostic, cancellationToken),
+                    c => FixOneAsync(context, diagnostic, c),
                     nameof(AbstractFormattingCodeFixProvider),
                     CodeActionPriority.High);
 
