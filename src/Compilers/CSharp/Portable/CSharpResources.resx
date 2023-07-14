@@ -4094,6 +4094,12 @@ You should consider suppressing the warning only if you're sure that you don't w
   <data name="WRN_DefaultValueForUnconsumedLocation_Title" xml:space="preserve">
     <value>The default value specified will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</value>
   </data>
+  <data name="WRN_RefReadonlyParameterDefaultValue" xml:space="preserve">
+    <value>A default value is specified for 'ref readonly' parameter '{0}', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.</value>
+  </data>
+  <data name="WRN_RefReadonlyParameterDefaultValue_Title" xml:space="preserve">
+    <value>A default value is specified for 'ref readonly' parameter, but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.</value>
+  </data>
   <data name="ERR_PublicKeyFileFailure" xml:space="preserve">
     <value>Error signing output with public key from file '{0}' -- {1}</value>
   </data>

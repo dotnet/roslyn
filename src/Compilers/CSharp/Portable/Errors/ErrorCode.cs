@@ -2247,6 +2247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadArgExtraRefLangVersion = 9505,
         WRN_ArgExpectedIn = 9506,
         ERR_OutAttrOnRefReadonlyParam = 9520,
+        WRN_RefReadonlyParameterDefaultValue = 9521,
 
         #endregion
 
