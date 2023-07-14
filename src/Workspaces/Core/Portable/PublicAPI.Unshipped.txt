@@ -1,5 +1,8 @@
 *REMOVED*abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.WithTypeConstraint(Microsoft.CodeAnalysis.SyntaxNode declaration, string typeParameterName, Microsoft.CodeAnalysis.Editing.SpecialTypeConstraintKind kinds, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> types = null) -> Microsoft.CodeAnalysis.SyntaxNode
 *REMOVED*abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.SetAccessorDeclaration(Microsoft.CodeAnalysis.Accessibility accessibility = Microsoft.CodeAnalysis.Accessibility.NotApplicable, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> statements = null) -> Microsoft.CodeAnalysis.SyntaxNode
+*REMOVED*static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>> createChangedDocument, string equivalenceKey = null) -> Microsoft.CodeAnalysis.CodeActions.CodeAction
+*REMOVED*static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Solution>> createChangedSolution, string equivalenceKey = null) -> Microsoft.CodeAnalysis.CodeActions.CodeAction
+
 Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority.Default = 3 -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.SetAccessorDeclaration(Microsoft.CodeAnalysis.Accessibility accessibility = Microsoft.CodeAnalysis.Accessibility.NotApplicable, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> statements = null) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.WithTypeConstraint(Microsoft.CodeAnalysis.SyntaxNode declaration, string typeParameterName, Microsoft.CodeAnalysis.Editing.SpecialTypeConstraintKind kinds, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> types = null) -> Microsoft.CodeAnalysis.SyntaxNode
@@ -9,7 +12,6 @@ Microsoft.CodeAnalysis.CodeActions.CodeActionPriority.Default = 2 -> Microsoft.C
 Microsoft.CodeAnalysis.CodeActions.CodeActionPriority.High = 3 -> Microsoft.CodeAnalysis.CodeActions.CodeActionPriority
 Microsoft.CodeAnalysis.CodeActions.CodeActionPriority.Low = 1 -> Microsoft.CodeAnalysis.CodeActions.CodeActionPriority
 Microsoft.CodeAnalysis.CodeActions.CodeActionPriority.Lowest = 0 -> Microsoft.CodeAnalysis.CodeActions.CodeActionPriority
-Microsoft.CodeAnalysis.CodeActions.CodeActionPriority.Medium = 2 -> Microsoft.CodeAnalysis.CodeActions.CodeActionPriority
 Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
 Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority.High = 4 -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
 Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority.Low = 2 -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
