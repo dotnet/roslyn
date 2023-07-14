@@ -101,28 +101,28 @@
       </trans-unit>
       <trans-unit id="InternalsVisibleToCurrentAssembly">
         <source>Current assembly: '{0}'</source>
-        <target state="new">Current assembly: '{0}'</target>
+        <target state="translated">Aktuální sestavení: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="InternalsVisibleToHeaderSummary">
         <source>Printing 'InternalsVisibleToAttribute' information for the current compilation and all referenced assemblies.</source>
-        <target state="new">Printing 'InternalsVisibleToAttribute' information for the current compilation and all referenced assemblies.</target>
+        <target state="translated">Tisk informací InternalsVisibleToAttribute pro aktuální kompilaci a všechna odkazovaná sestavení.</target>
         <note />
       </trans-unit>
       <trans-unit id="InternalsVisibleToReferencedAssembly">
         <source>Assembly reference: '{0}'
   Grants IVT to current assembly: {1}
   Grants IVTs to:</source>
-        <target state="new">Assembly reference: '{0}'
-  Grants IVT to current assembly: {1}
-  Grants IVTs to:</target>
+        <target state="translated">Odkaz na sestavení: {0}
+  Uděluje IVT aktuálnímu sestavení: {1}
+  Uděluje IVT:</target>
         <note />
       </trans-unit>
       <trans-unit id="InternalsVisibleToReferencedAssemblyDetails">
         <source>    Assembly name: '{0}'
     Public Keys:</source>
-        <target state="new">    Assembly name: '{0}'
-    Public Keys:</target>
+        <target state="translated">    Název sestavení: {0}
+    Veřejné klíče:</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidAdditionalFile">
@@ -182,7 +182,7 @@
       </trans-unit>
       <trans-unit id="Nothing">
         <source>Nothing</source>
-        <target state="new">Nothing</target>
+        <target state="translated">Nic</target>
         <note />
       </trans-unit>
       <trans-unit id="OperationHasNullSemanticModel">

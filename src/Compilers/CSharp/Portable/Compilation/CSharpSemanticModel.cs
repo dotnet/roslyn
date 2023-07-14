@@ -4707,8 +4707,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref LookupResultKind resultKind,
             CSharpCompilation compilation)
         {
-            Debug.Assert(singleResult.Kind != LookupResultKind.Empty);
-            Debug.Assert((object)singleResult.Symbol != null);
+            if (singleResult.Symbol is null)
+            {
+                return;
+            }
+
             Debug.Assert(singleResult.Symbol.Kind == SymbolKind.Method);
 
             var singleKind = singleResult.Kind;
