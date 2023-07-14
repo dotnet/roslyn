@@ -227,6 +227,7 @@ namespace Microsoft.CodeAnalysis
             {
                 _writer.WriteArrayStart("rules");
 
+                var reportAnalyzerExecutionTime = !string.IsNullOrEmpty(_totalAnalyzerExecutionTime);
                 foreach (var (_, descriptor, descriptorInfo) in _descriptors.ToSortedList())
                 {
                     _writer.WriteObjectStart(); // rule
@@ -264,7 +265,6 @@ namespace Microsoft.CodeAnalysis
                     var hasAnySourceSuppression = _diagnosticIdsWithAnySourceSuppressions.Contains(descriptor.Id);
                     var isEverSuppressed = descriptorInfo.HasAnyExternalSuppression || hasAnySourceSuppression;
 
-                    var reportAnalyzerExecutionTime = !string.IsNullOrEmpty(_totalAnalyzerExecutionTime);
                     Debug.Assert(reportAnalyzerExecutionTime || descriptorInfo.ExecutionTime == 0);
                     Debug.Assert(reportAnalyzerExecutionTime || descriptorInfo.ExecutionPercentage == 0);
 
@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis
                 if (_distinctDescriptors.TryGetValue(descriptor, out var descriptorInfoWithIndex))
                 {
                     // Descriptor has already been seen.
-                    // Update 'HasAnyExternalSuppression' value if different from the saved one.
+                    // Update 'Info' value if different from the saved one.
                     if (info.HasValue && descriptorInfoWithIndex.Info != info)
                     {
                         descriptorInfoWithIndex = new(descriptorInfoWithIndex.Index, info.Value);
