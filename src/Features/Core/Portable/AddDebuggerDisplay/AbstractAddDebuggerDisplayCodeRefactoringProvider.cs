@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
 
             context.RegisterRefactoring(CodeAction.Create(
                 FeaturesResources.Add_DebuggerDisplay_attribute,
-                cancellationToken => ApplyAsync(document, type, debuggerAttributeTypeSymbol, cancellationToken),
+                c => ApplyAsync(document, type, debuggerAttributeTypeSymbol, c),
                 nameof(FeaturesResources.Add_DebuggerDisplay_attribute),
                 priority));
         }
