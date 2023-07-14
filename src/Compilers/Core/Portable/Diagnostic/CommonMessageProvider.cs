@@ -329,6 +329,6 @@ namespace Microsoft.CodeAnalysis
 
         public abstract int ERR_BadAssemblyName { get; }
 
-        public abstract int WRN_ByValArraySizeConstRequired { get; }
+        public abstract int? WRN_ByValArraySizeConstRequired { get; }
     }
 }

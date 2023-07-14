@@ -622,9 +622,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Public Overrides ReadOnly Property WRN_ByValArraySizeConstRequired As Integer
+        Public Overrides ReadOnly Property WRN_ByValArraySizeConstRequired As Integer?
             Get
-                Return ERRID.Unknown
+                Return Nothing
             End Get
         End Property
 
