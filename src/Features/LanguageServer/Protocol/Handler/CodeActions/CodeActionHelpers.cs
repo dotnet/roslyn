@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             }
 
             return CodeAction.Create(
-                codeAction.Title, nestedActions.ToImmutable(), codeAction.IsInlinable);
+                codeAction.Title, nestedActions.ToImmutable(), codeAction.IsInlinable, codeAction.Priority);
         }
 
         private static async ValueTask<ImmutableArray<UnifiedSuggestedActionSet>> GetActionSetsAsync(
