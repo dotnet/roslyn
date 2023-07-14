@@ -2592,6 +2592,16 @@
         <target state="translated">参数在 lambda 中具有参数修饰符，但在目标委托类型中没有参数修饰符。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase">
+        <source>Primary constructor parameter '{0}' is shadowed by a member from base.</source>
+        <target state="new">Primary constructor parameter '{0}' is shadowed by a member from base.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase_Title">
+        <source>Primary constructor parameter is shadowed by a member from base</source>
+        <target state="new">Primary constructor parameter is shadowed by a member from base</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">
         <source>'{0}' defines 'Equals' but not 'GetHashCode'</source>
         <target state="translated">“{0}”定义 "Equals"，而不定义 "GetHashCode"</target>
