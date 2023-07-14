@@ -134,7 +134,6 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
 
         protected override Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
             => SpecializedTasks.EmptyEnumerable<CodeActionOperation>();
-
     }
 
 #endif
