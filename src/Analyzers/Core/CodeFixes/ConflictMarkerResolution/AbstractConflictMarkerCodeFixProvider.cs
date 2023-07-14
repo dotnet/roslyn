@@ -59,8 +59,8 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
         /// them if they bring up the lightbulb on a <c>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</c> line, it should run ahead of
         /// normal fix providers else so the user can quickly fix the conflict and move onto the next conflict.
         /// </summary>
-        private protected override CodeActionRequestPriorityInternal ComputeRequestPriorityInternal()
-            => CodeActionRequestPriorityInternal.High;
+        private protected override CodeActionRequestPriority ComputeRequestPriorityInternal()
+            => CodeActionRequestPriority.High;
 
 #endif
 

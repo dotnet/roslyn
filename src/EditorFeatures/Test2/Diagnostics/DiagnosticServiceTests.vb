@@ -2531,9 +2531,9 @@ class MyClass
                 _category = category
             End Sub
 
-            Public ReadOnly Property RequestPriority As CodeActionRequestPriorityInternal Implements IBuiltInAnalyzer.RequestPriority
+            Public ReadOnly Property RequestPriority As CodeActionRequestPriority Implements IBuiltInAnalyzer.RequestPriority
                 Get
-                    Return CodeActionRequestPriorityInternal.Normal
+                    Return CodeActionRequestPriority.Normal
                 End Get
             End Property
 

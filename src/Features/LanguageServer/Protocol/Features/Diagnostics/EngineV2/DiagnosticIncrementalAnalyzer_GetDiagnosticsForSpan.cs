@@ -463,7 +463,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // Conditions 1. and 2.
                     if (kind != AnalysisKind.Semantic ||
                         !span.HasValue ||
-                        _priorityProvider.Priority != CodeActionRequestPriorityInternal.Normal)
+                        _priorityProvider.Priority != CodeActionRequestPriority.Normal)
                     {
                         return false;
                     }

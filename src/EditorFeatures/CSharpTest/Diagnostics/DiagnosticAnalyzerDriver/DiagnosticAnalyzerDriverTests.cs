@@ -183,7 +183,7 @@ class C
 
         private class ThrowingDoNotCatchDiagnosticAnalyzer<TLanguageKindEnum> : ThrowingDiagnosticAnalyzer<TLanguageKindEnum>, IBuiltInAnalyzer where TLanguageKindEnum : struct
         {
-            public CodeActionRequestPriorityInternal RequestPriority => CodeActionRequestPriorityInternal.Normal;
+            public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
 
             public bool OpenFileOnly(SimplifierOptions? options) => false;
 

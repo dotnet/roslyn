@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeQuality
             _generatedCodeAnalysisFlags = generatedCodeAnalysisFlags;
         }
 
-        public CodeActionRequestPriorityInternal RequestPriority => CodeActionRequestPriorityInternal.Normal;
+        public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
         public sealed override void Initialize(AnalysisContext context)

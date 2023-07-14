@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Roslyn.Utilities;
@@ -27,7 +29,7 @@ public enum CodeActionRequestPriority
 {
     /// <summary>
     /// No priority specified, all refactoring, code fixes, and analyzers should be run.  This is equivalent
-    /// to <see cref="Lowest"/>, <see cref="Low"/>, <see cref="Normal"/> and <see cref="High"/> combined.
+    /// to <see cref="Lowest"/>, <see cref="Low"/>, <see cref="Medium"/> and <see cref="High"/> combined.
     /// </summary>
     None = 0,
 
@@ -40,7 +42,7 @@ public enum CodeActionRequestPriority
     Lowest = 1,
 
     /// <summary>
-    /// Run the priority below <see cref="Normal"/> priority.  The provider may run slow, or its results may be
+    /// Run the priority below <see cref="Medium"/> priority.  The provider may run slow, or its results may be
     /// commonly less relevant for the user.
     /// </summary>
     Low = 2,
@@ -49,7 +51,7 @@ public enum CodeActionRequestPriority
     /// Run this provider at default priority.  The provider will run in reasonable speeds and provide results that are
     /// commonly relevant to the user.
     /// </summary>
-    Normal = 3,
+    Medium = 3,
 
     /// <summary>
     /// Run this provider at high priority. Note: High priority is simply a request on the part of a provider. The core
@@ -58,37 +60,46 @@ public enum CodeActionRequestPriority
     High = 4,
 
     /// <summary>
-    /// Default provider priority.  Equivalent to <see cref="Normal"/>.
+    /// Default provider priority.  Equivalent to <see cref="Medium"/>.
     /// </summary>
-    Default = Normal,
+    Default = Medium,
 }
 
-//internal static class CodeActionRequestPriorityExtensions
-//{
-//    /// <summary>
-//    /// Clamps the value of <paramref name="priority"/> (which could be any integer) to the legal range of values
-//    /// present in <see cref="CodeActionRequestPriority"/>.
-//    /// </summary>
-//    private static CodeActionRequestPriority Clamp(this CodeActionRequestPriority priority)
-//    {
-//        if (priority < CodeActionRequestPriority.Low)
-//            priority = CodeActionRequestPriority.Low;
+internal static class CodeActionRequestPriorityExtensions
+{
+    /// <summary>
+    /// Special tag that indicates that it's this is a privileged code action that is allowed to use the <see
+    /// cref="CodeActionRequestPriority.High"/> priority class.
+    /// </summary>
+    public static readonly string CanBeHighPriorityTag = Guid.NewGuid().ToString();
 
-//        if (priority > CodeActionRequestPriority.Medium)
-//            priority = CodeActionRequestPriority.Medium;
+    /// <summary>
+    /// Clamps the value of <paramref name="priority"/> (which could be any integer) to the legal range of values
+    /// present in <see cref="CodeActionRequestPriority"/>.
+    /// </summary>
+    public static CodeActionRequestPriority Clamp(this CodeActionRequestPriority priority, ImmutableArray<string> customTags)
+    {
+        if (priority < CodeActionRequestPriority.Low)
+            priority = CodeActionRequestPriority.Low;
 
-//        return priority;
-//    }
+        if (priority > CodeActionRequestPriority.High)
+            priority = CodeActionRequestPriority.Default;
 
-//    public static CodeActionRequestPriorityInternal ConvertToInternalPriority(this CodeActionRequestPriority priority)
-//    {
-//        priority = priority.Clamp();
+        if (priority == CodeActionRequestPriority.High && !customTags.Contains(CanBeHighPriorityTag))
+            priority = CodeActionRequestPriority.Default;
 
-//        return priority switch
-//        {
-//            CodeActionRequestPriority.Low => CodeActionRequestPriorityInternal.Low,
-//            CodeActionRequestPriority.Medium => CodeActionRequestPriorityInternal.Normal,
-//            _ => throw ExceptionUtilities.UnexpectedValue(priority),
-//        };
-//    }
-//}
+        return priority;
+    }
+
+    //public static CodeActionRequestPriority ConvertToInternalPriority(this CodeActionRequestPriority priority)
+    //{
+    //    priority = priority.Clamp();
+
+    //    return priority switch
+    //    {
+    //        CodeActionRequestPriority.Low => CodeActionRequestPriority.Low,
+    //        CodeActionRequestPriority.Medium => CodeActionRequestPriority.Normal,
+    //        _ => throw ExceptionUtilities.UnexpectedValue(priority),
+    //    };
+    //}
+}

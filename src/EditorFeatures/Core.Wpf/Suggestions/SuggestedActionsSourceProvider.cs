@@ -101,13 +101,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 _threadingContext, _globalOptions, this, textView, textBuffer, _suggestedActionCategoryRegistry, this.OperationListener);
         }
 
-        private static CodeActionRequestPriorityInternal? TryGetPriority(string priority)
+        private static CodeActionRequestPriority? TryGetPriority(string priority)
             => priority switch
             {
-                DefaultOrderings.Highest => CodeActionRequestPriorityInternal.High,
-                DefaultOrderings.Default => CodeActionRequestPriorityInternal.Normal,
-                DefaultOrderings.Low => CodeActionRequestPriorityInternal.Low,
-                DefaultOrderings.Lowest => CodeActionRequestPriorityInternal.Lowest,
+                DefaultOrderings.Highest => CodeActionRequestPriority.High,
+                DefaultOrderings.Default => CodeActionRequestPriority.Normal,
+                DefaultOrderings.Low => CodeActionRequestPriority.Low,
+                DefaultOrderings.Lowest => CodeActionRequestPriority.Lowest,
                 _ => null,
             };
     }

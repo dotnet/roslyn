@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // For CodeActionPriorityRequest.High, we only run compiler analyzer, which always has fixable diagnostics,
             // so we can return a null predicate here to include all diagnostics.
 
-            if (!(priorityProvider.Priority is CodeActionRequestPriorityInternal.Normal or CodeActionRequestPriorityInternal.Low))
+            if (!(priorityProvider.Priority is CodeActionRequestPriority.Normal or CodeActionRequestPriority.Low))
                 return null;
 
             var hasWorkspaceFixers = TryGetWorkspaceFixersMap(document, out var workspaceFixersMap);
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             // We only need to compute suppression/configuration fixes when request priority is
             // 'CodeActionPriorityRequest.Lowest' or 'CodeActionPriorityRequest.None'.
-            var includeSuppressionFixes = priorityProvider.Priority is CodeActionRequestPriorityInternal.Lowest or CodeActionRequestPriorityInternal.None;
+            var includeSuppressionFixes = priorityProvider.Priority is CodeActionRequestPriority.Lowest or CodeActionRequestPriority.None;
 
             // REVIEW: this is the first and simplest design. basically, when ctrl+. is pressed, it asks diagnostic
             // service to give back current diagnostics for the given span, and it will use that to get fixes.
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 var spanToDiagnostics = ConvertToMap(text, diagnostics);
 
                 // 'CodeActionRequestPriority.Lowest' is used when the client only wants suppression/configuration fixes.
-                if (priorityProvider.Priority != CodeActionRequestPriorityInternal.Lowest)
+                if (priorityProvider.Priority != CodeActionRequestPriority.Lowest)
                 {
                     await foreach (var collection in StreamFixesAsync(
                         document, spanToDiagnostics, fixAllForInSpan: false,

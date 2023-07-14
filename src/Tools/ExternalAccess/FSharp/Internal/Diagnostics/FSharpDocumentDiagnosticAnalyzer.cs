@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
             return dummyDescriptors.ToImmutable();
         }
 
-        public CodeActionRequestPriorityInternal RequestPriority => CodeActionRequestPriorityInternal.Normal;
+        public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
 
         public override int Priority => 10; // Default = 50
 

@@ -15,11 +15,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
 {
     internal interface ICodeActionRequestPriorityProvider
     {
-        CodeActionRequestPriorityInternal Priority { get; }
+        CodeActionRequestPriority Priority { get; }
 
         /// <summary>
         /// Tracks the given <paramref name="analyzer"/> as a de-prioritized analyzer that should be moved to
-        /// <see cref="CodeActionRequestPriorityInternal.Low"/> bucket.
+        /// <see cref="CodeActionRequestPriority.Low"/> bucket.
         /// </summary>
         void AddDeprioritizedAnalyzerWithLowPriority(DiagnosticAnalyzer analyzer);
 
@@ -40,12 +40,12 @@ namespace Microsoft.CodeAnalysis.CodeActions
             var priority = provider.Priority;
 
             // If caller isn't asking for prioritized result, then run all analyzers.
-            if (priority == CodeActionRequestPriorityInternal.None)
+            if (priority == CodeActionRequestPriority.None)
                 return true;
 
             // 'CodeActionRequestPriority.Lowest' is used for suppression/configuration fixes,
             // which requires all analyzer diagnostics.
-            if (priority == CodeActionRequestPriorityInternal.Lowest)
+            if (priority == CodeActionRequestPriority.Lowest)
                 return true;
 
             // The compiler analyzer always counts for any priority.  It's diagnostics may be fixed
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
             // Check if we are computing diagnostics for 'CodeActionRequestPriority.Low' and
             // this analyzer was de-prioritized to low priority bucket.
-            if (priority == CodeActionRequestPriorityInternal.Low &&
+            if (priority == CodeActionRequestPriority.Low &&
                 provider.IsDeprioritizedAnalyzerWithLowPriority(analyzer))
             {
                 return true;
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             // the third-party analyzers are assigned 'Normal' priority.
             var analyzerPriority = analyzer is IBuiltInAnalyzer { RequestPriority: var requestPriority }
                 ? requestPriority
-                : CodeActionRequestPriorityInternal.Normal;
+                : CodeActionRequestPriority.Normal;
 
             return priority == analyzerPriority;
         }
@@ -77,12 +77,12 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// </summary>
         public static bool MatchesPriority(this ICodeActionRequestPriorityProvider provider, CodeFixProvider codeFixProvider)
         {
-            if (provider.Priority == CodeActionRequestPriorityInternal.None)
+            if (provider.Priority == CodeActionRequestPriority.None)
             {
                 // We are computing fixes for all priorities
                 return true;
             }
-            if (provider.Priority == CodeActionRequestPriorityInternal.Low)
+            if (provider.Priority == CodeActionRequestPriority.Low)
             {
                 // 'Low' priority can be used for two types of code fixers:
                 //  1. Those which explicitly set their 'RequestPriority' to 'Low' and
@@ -102,12 +102,12 @@ namespace Microsoft.CodeAnalysis.CodeActions
         private readonly object _gate = new();
         private HashSet<DiagnosticAnalyzer>? _lowPriorityAnalyzers;
 
-        public DefaultCodeActionRequestPriorityProvider(CodeActionRequestPriorityInternal priority = CodeActionRequestPriorityInternal.None)
+        public DefaultCodeActionRequestPriorityProvider(CodeActionRequestPriority priority = CodeActionRequestPriority.None)
         {
             Priority = priority;
         }
 
-        public CodeActionRequestPriorityInternal Priority { get; }
+        public CodeActionRequestPriority Priority { get; }
 
         public void AddDeprioritizedAnalyzerWithLowPriority(DiagnosticAnalyzer analyzer)
         {

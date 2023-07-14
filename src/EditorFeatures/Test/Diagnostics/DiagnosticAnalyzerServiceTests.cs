@@ -1354,7 +1354,7 @@ class A
             public DiagnosticAnalyzerCategory GetAnalyzerCategory()
                 => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
-            public CodeActionRequestPriorityInternal RequestPriority => CodeActionRequestPriorityInternal.Normal;
+            public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
 
             public bool OpenFileOnly(SimplifierOptions options)
                 => true;

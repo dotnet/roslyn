@@ -7,7 +7,7 @@
 //namespace Microsoft.CodeAnalysis.CodeActions
 //{
 //#pragma warning disable CA1200 // Avoid using cref tags with a prefix
-//    internal enum CodeActionRequestPriorityInternal
+//    internal enum CodeActionRequestPriority
 //    {
 //        /// <summary>
 //        /// No priority specified, all refactoring, code fixes, and analyzers should be run.  This is equivalent

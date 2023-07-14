@@ -105,6 +105,15 @@ namespace Microsoft.CodeAnalysis.CodeActions
             }
         }
 
+        /// <summary>
+        /// Computes the <see cref="CodeActionPriority"/> group this code action should be presented in. Legal values
+        /// this can be must be between <see cref="CodeActionPriority.Lowest"/> and <see cref="CodeActionPriority.High"/>.
+        /// </summary>
+        /// <remarks>
+        /// Values outside of this range will be clamped to be within that range.  Requests for <see
+        /// cref="CodeActionPriority.High"/> may be downgraded to <see cref="CodeActionPriority.Default"/> as they
+        /// poorly behaving high-priority items can cause a negative user experience.
+        /// </remarks>
         protected virtual CodeActionPriority ComputePriority()
             => CodeActionPriority.Default;
 

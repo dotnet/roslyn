@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     // items should be pushed higher up, and less important items shouldn't take up that much space.
                     var currentActionCount = 0;
 
-                    var pendingActionSets = new MultiDictionary<CodeActionRequestPriorityInternal, SuggestedActionSet>();
+                    var pendingActionSets = new MultiDictionary<CodeActionRequestPriority, SuggestedActionSet>();
 
                     // Keep track of the diagnostic analyzers that have been deprioritized across calls to the
                     // diagnostic engine.  We'll run them once we get around to the low-priority bucket.  We want to
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     // Collectors are in priority order.  So just walk them from highest to lowest.
                     foreach (var collector in collectors)
                     {
-                        if (TryGetPriority(collector.Priority) is CodeActionRequestPriorityInternal priority)
+                        if (TryGetPriority(collector.Priority) is CodeActionRequestPriority priority)
                         {
                             var allSets = GetCodeFixesAndRefactoringsAsync(
                                 state, requestedActionCategories, document,
@@ -128,10 +128,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                                 // group the set says it wants to be in.
                                 var actualSetPriority = set.Priority switch
                                 {
-                                    SuggestedActionSetPriority.None => CodeActionRequestPriorityInternal.Lowest,
-                                    SuggestedActionSetPriority.Low => CodeActionRequestPriorityInternal.Low,
-                                    SuggestedActionSetPriority.Medium => CodeActionRequestPriorityInternal.Normal,
-                                    SuggestedActionSetPriority.High => CodeActionRequestPriorityInternal.High,
+                                    SuggestedActionSetPriority.None => CodeActionRequestPriority.Lowest,
+                                    SuggestedActionSetPriority.Low => CodeActionRequestPriority.Low,
+                                    SuggestedActionSetPriority.Medium => CodeActionRequestPriority.Normal,
+                                    SuggestedActionSetPriority.High => CodeActionRequestPriority.High,
                                     _ => throw ExceptionUtilities.UnexpectedValue(set.Priority),
                                 };
 
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     // 'CodeActionRequestPriority.Lowest' is reserved for suppression/configuration code fixes.
                     // No code refactoring should have this request priority.
-                    if (priorityProvider.Priority == CodeActionRequestPriorityInternal.Lowest)
+                    if (priorityProvider.Priority == CodeActionRequestPriority.Lowest)
                         return SpecializedTasks.EmptyImmutableArray<UnifiedSuggestedActionSet>();
 
                     // If we are computing refactorings outside the 'Refactoring' context, i.e. for example, from the lightbulb under a squiggle or selection,
