@@ -85,16 +85,4 @@ internal static class CodeActionRequestPriorityExtensions
 
         return priority;
     }
-
-    //public static CodeActionRequestPriority ConvertToInternalPriority(this CodeActionRequestPriority priority)
-    //{
-    //    priority = priority.Clamp();
-
-    //    return priority switch
-    //    {
-    //        CodeActionRequestPriority.Low => CodeActionRequestPriority.Low,
-    //        CodeActionRequestPriority.Medium => CodeActionRequestPriority.Normal,
-    //        _ => throw ExceptionUtilities.UnexpectedValue(priority),
-    //    };
-    //}
 }
