@@ -417,9 +417,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 #nullable enable
         internal sealed override bool HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName)
         {
-            builderType = null;
-            methodName = null;
-            return false;
+            bool result = _underlyingType.HasCollectionBuilderAttribute(out builderType, out methodName);
+            if (builderType is { })
+            {
+                builderType = this.RetargetingTranslator.Retarget(builderType, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
+            }
+            return result;
         }
 #nullable disable
     }

@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // collection type and builder type are nested in the same generic containing type.
             // At the collection literal use-site, the target type will be a specific instantiation of the
             // collection type (and containing type), so the builder type should use the same type args.
-            return OriginalDefinition.HasCollectionBuilderAttribute(out builderType, out methodName);
+            return _underlyingType.HasCollectionBuilderAttribute(out builderType, out methodName);
         }
 #nullable disable
 

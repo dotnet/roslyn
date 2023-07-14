@@ -5,6 +5,8 @@
 #nullable disable
 
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -7114,6 +7116,63 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (6,26): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection y = [1, 2, 3];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1, 2, 3]").WithArguments("Create").WithLocation(6, 26));
+        }
+
+        [Fact]
+        public void CollectionBuilder_Retargeting()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                public struct MyCollection<T> : IEnumerable<T>
+                {
+                    public IEnumerator<T> GetEnumerator() => default;
+                    IEnumerator IEnumerable.GetEnumerator() => default;
+                }
+                public class MyCollectionBuilder
+                {
+                    public static void Create(int[] items) { }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Mscorlib40);
+            var refA = comp.ToMetadataReference();
+
+            string sourceB = """
+                #pragma warning disable 219
+                class Program
+                {
+                    static void Main()
+                    {
+                        F([]);
+                        F(new());
+                    }
+                    static void F(MyCollection<int> c)
+                    {
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Mscorlib45);
+            comp.VerifyEmitDiagnostics(
+                // (6,11): error CS9181: Could not find an accessible 'Create' method with the expected signature.
+                //         F([]);
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(6, 11));
+
+            var collectionType = (NamedTypeSymbol)comp.GetMember<MethodSymbol>("Program.F").Parameters[0].Type;
+            Assert.Equal("MyCollection<System.Int32>", collectionType.ToTestDisplayString());
+            TypeSymbol? builderType;
+            string methodName;
+            Assert.True(collectionType.HasCollectionBuilderAttribute(out builderType, out methodName));
+            Assert.Equal("MyCollectionBuilder", builderType.ToTestDisplayString());
+            Assert.Equal("Create", methodName);
+
+            var retargetingType = (RetargetingNamedTypeSymbol)collectionType.OriginalDefinition;
+            Assert.Equal("MyCollection<T>", retargetingType.ToTestDisplayString());
+            Assert.True(retargetingType.HasCollectionBuilderAttribute(out builderType, out methodName));
+            Assert.IsType<RetargetingNamedTypeSymbol>(builderType);
+            Assert.Equal("MyCollectionBuilder", builderType.ToTestDisplayString());
+            Assert.Equal("Create", methodName);
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
