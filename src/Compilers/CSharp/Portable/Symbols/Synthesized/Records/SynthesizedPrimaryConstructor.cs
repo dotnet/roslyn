@@ -205,6 +205,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal void SetParametersPassedToTheBase(Roslyn.Utilities.IReadOnlySet<ParameterSymbol> value)
         {
+#if DEBUG
+            var oldSet = _parametersPassedToTheBase;
+
+            if (oldSet is not null)
+            {
+                int count = oldSet.Count;
+                Debug.Assert(count == value.Count);
+
+                if (count != 0)
+                {
+                    foreach (ParameterSymbol p in Parameters)
+                    {
+                        if (value.Contains(p))
+                        {
+                            count--;
+                            Debug.Assert(oldSet.Contains(p));
+                        }
+                    }
+
+                    Debug.Assert(count == 0);
+                }
+            }
+#endif
             _parametersPassedToTheBase = value;
         }
     }

@@ -17600,7 +17600,7 @@ class C1(int p1) : Base
 
 class C2(string p2)
 {
-    C2() : this(1)
+    C2() : this(""1"")
     {
         string a = p2; 
     }
@@ -17615,9 +17615,6 @@ class C2(string p2)
                 // (11,20): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
                 //         string a = p1; 
                 Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(11, 20),
-                // (17,17): error CS1503: Argument 1: cannot convert from 'int' to 'string'
-                //     C2() : this(1)
-                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "string").WithLocation(17, 17),
                 // (19,20): error CS9105: Cannot use primary constructor parameter 'string p2' in this context.
                 //         string a = p2; 
                 Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "p2").WithArguments("string p2").WithLocation(19, 20)
@@ -17708,6 +17705,42 @@ class Base(string p1)
                 //         string a = p1; 
                 Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(6, 20)
                 );
+        }
+
+        [Fact]
+        public void ShadowedByMemberFromBase_26_PropertyVsParameterInIndirectBase()
+        {
+            var source = @"
+class Base0
+{
+    protected string p1 => """";
+}
+
+class Base1 : Base0
+{
+}
+
+class C1(int p1) : Base1
+{
+    void M()
+    {
+        var a = p1; 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+
+            var expected = new[] {
+                // (11,14): warning CS9113: Parameter 'p1' is unread.
+                // class C1(int p1) : Base1
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(11, 14),
+                // (15,17): warning CS9179: Primary constructor parameter 'int p1' is shadowed by a member from base.
+                //         var a = p1; 
+                Diagnostic(ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase, "p1").WithArguments("int p1").WithLocation(15, 17)
+                };
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
         }
     }
 }
