@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
                 // always offer to convert from verbatim string to normal string.
                 context.RegisterRefactoring(CodeAction.Create(
                     CSharpFeaturesResources.Convert_to_regular_string,
-                    cancellationToken => ConvertToRegularStringAsync(document, literalExpression, cancellationToken),
+                    c => ConvertToRegularStringAsync(document, literalExpression, c),
                     nameof(CSharpFeaturesResources.Convert_to_regular_string),
                     CodeActionPriority.Low));
             }
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
                 // escapes that can be directly embedded in the verbatim string.
                 context.RegisterRefactoring(CodeAction.Create(
                     CSharpFeaturesResources.Convert_to_verbatim_string,
-                    cancellationToken => ConvertToVerbatimStringAsync(document, literalExpression, cancellationToken),
+                    c => ConvertToVerbatimStringAsync(document, literalExpression, c),
                     nameof(CSharpFeaturesResources.Convert_to_verbatim_string),
                     CodeActionPriority.Low));
             }
