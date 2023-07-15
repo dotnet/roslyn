@@ -7118,12 +7118,178 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1, 2, 3]").WithArguments("Create").WithLocation(6, 26));
         }
 
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_Substituted_01(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                public struct MyCollection<T> : IEnumerable<T>
+                {
+                    public IEnumerator<T> GetEnumerator() => default;
+                    IEnumerator IEnumerable.GetEnumerator() => default;
+                }
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                #pragma warning disable 219
+                class Program
+                {
+                    static void Main()
+                    {
+                        F([]);
+                        F([1, 2, 3]);
+                    }
+                    static void F(MyCollection<int> c)
+                    {
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics();
+
+            var collectionType = (NamedTypeSymbol)comp.GetMember<MethodSymbol>("Program.F").Parameters[0].Type;
+            Assert.Equal("MyCollection<System.Int32>", collectionType.ToTestDisplayString());
+            TypeSymbol builderType;
+            string methodName;
+            Assert.True(collectionType.HasCollectionBuilderAttribute(out builderType, out methodName));
+            Assert.Equal("MyCollectionBuilder", builderType.ToTestDisplayString());
+            Assert.Equal("Create", methodName);
+
+            var originalType = collectionType.OriginalDefinition;
+            Assert.Equal("MyCollection<T>", originalType.ToTestDisplayString());
+            Assert.True(originalType.HasCollectionBuilderAttribute(out builderType, out methodName));
+            Assert.Equal("MyCollectionBuilder", builderType.ToTestDisplayString());
+            Assert.Equal("Create", methodName);
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_Substituted_02(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(Container<string>.MyCollectionBuilder), "Create")]
+                public struct MyCollection<T> : IEnumerable<T>
+                {
+                    public IEnumerator<T> GetEnumerator() => default;
+                    IEnumerator IEnumerable.GetEnumerator() => default;
+                }
+                public class Container<T>
+                {
+                    public class MyCollectionBuilder
+                    {
+                        public static MyCollection<U> Create<U>(ReadOnlySpan<U> items) => default;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                #pragma warning disable 219
+                class Program
+                {
+                    static void Main()
+                    {
+                        F([]);
+                        F(new());
+                    }
+                    static void F(MyCollection<int> c)
+                    {
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (6,11): error CS9181: Could not find an accessible 'Create' method with the expected signature.
+                //         F([]);
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(6, 11));
+
+            var collectionType = (NamedTypeSymbol)comp.GetMember<MethodSymbol>("Program.F").Parameters[0].Type;
+            Assert.Equal("MyCollection<System.Int32>", collectionType.ToTestDisplayString());
+            TypeSymbol builderType;
+            string methodName;
+            Assert.True(collectionType.HasCollectionBuilderAttribute(out builderType, out methodName));
+            Assert.Equal("Container<System.String>.MyCollectionBuilder", builderType.ToTestDisplayString());
+            Assert.Equal("Create", methodName);
+
+            var originalType = collectionType.OriginalDefinition;
+            Assert.Equal("MyCollection<T>", originalType.ToTestDisplayString());
+            Assert.True(originalType.HasCollectionBuilderAttribute(out builderType, out methodName));
+            Assert.Equal("Container<System.String>.MyCollectionBuilder", builderType.ToTestDisplayString());
+            Assert.Equal("Create", methodName);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void CollectionBuilder_Substituted_03()
+        {
+            string source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                public class Container<T>
+                {
+                    [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                    public struct MyCollection : IEnumerable<T>
+                    {
+                        public IEnumerator<T> GetEnumerator() => default;
+                        IEnumerator IEnumerable.GetEnumerator() => default;
+                    }
+                    public class MyCollectionBuilder
+                    {
+                        public static MyCollection Create(ReadOnlySpan<T> items) => default;
+                    }
+                }
+                #pragma warning disable 219
+                class Program
+                {
+                    static void Main()
+                    {
+                        F([]);
+                        F(new());
+                    }
+                    static void F(Container<string>.MyCollection c)
+                    {
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { source, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(7,24): error CS0416: 'Container<T>.MyCollectionBuilder': an attribute argument cannot use type parameters
+                //     [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                Diagnostic(ErrorCode.ERR_AttrArgWithTypeVars, "typeof(MyCollectionBuilder)").WithArguments("Container<T>.MyCollectionBuilder").WithLocation(7, 24));
+
+            var collectionType = (NamedTypeSymbol)comp.GetMember<MethodSymbol>("Program.F").Parameters[0].Type;
+            Assert.Equal("Container<System.String>.MyCollection", collectionType.ToTestDisplayString());
+            Assert.False(collectionType.HasCollectionBuilderAttribute(out _, out _));
+
+            var originalType = collectionType.OriginalDefinition;
+            Assert.Equal("Container<T>.MyCollection", originalType.ToTestDisplayString());
+            Assert.False(originalType.HasCollectionBuilderAttribute(out _, out _));
+        }
+
         [Fact]
         public void CollectionBuilder_Retargeting()
         {
             string sourceA = """
                 using System;
                 using System.Collections;
+                using System.Collections.Generic;
                 using System.Runtime.CompilerServices;
                 [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
                 public struct MyCollection<T> : IEnumerable<T>
@@ -7161,7 +7327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var collectionType = (NamedTypeSymbol)comp.GetMember<MethodSymbol>("Program.F").Parameters[0].Type;
             Assert.Equal("MyCollection<System.Int32>", collectionType.ToTestDisplayString());
-            TypeSymbol? builderType;
+            TypeSymbol builderType;
             string methodName;
             Assert.True(collectionType.HasCollectionBuilderAttribute(out builderType, out methodName));
             Assert.Equal("MyCollectionBuilder", builderType.ToTestDisplayString());
