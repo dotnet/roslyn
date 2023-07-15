@@ -5947,12 +5947,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (6,34): error CS9181: Could not find an accessible 'Create' method with the expected signature.
-                //         MyCollection<string> x = [];
-                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(6, 34),
-                // (7,31): error CS9181: Could not find an accessible 'Create' method with the expected signature.
+                // (6,34): error CS9182: 'MyCollection<object>' has a CollectionBuilderAttribute but no element type.
+                //         MyCollection<object> x = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderNoElementType, "[]").WithArguments("MyCollection<object>").WithLocation(6, 34),
+                // (7,31): error CS9182: 'MyCollection<int>' has a CollectionBuilderAttribute but no element type.
                 //         MyCollection<int> y = [1, 2, 3];
-                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1, 2, 3]").WithArguments("Create").WithLocation(7, 31));
+                Diagnostic(ErrorCode.ERR_CollectionBuilderNoElementType, "[1, 2, 3]").WithArguments("MyCollection<int>").WithLocation(7, 31));
         }
 
         [CombinatorialData]
@@ -6217,10 +6217,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var refA = comp.EmitToImageReference();
 
             string sourceB = """
+                using System.Collections;
+                using System.Collections.Generic;
                 using System.Runtime.CompilerServices;
                 [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
-                public struct MyCollection<T>
+                public struct MyCollection<T> : IEnumerable<T>
                 {
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => default;
+                    IEnumerator IEnumerable.GetEnumerator() => default;
                 }
                 """;
             comp = CreateCompilation(new[] { sourceB, s_constructibleCollectionAttributeDefinition }, references: new[] { refA }, targetFramework: TargetFramework.Net70);
@@ -6296,10 +6300,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void CollectionBuilder_NullType(bool useCompilationReference)
         {
             string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
                 using System.Runtime.CompilerServices;
                 [CollectionBuilder(null, "Create")]
-                public struct MyCollection<T>
+                public struct MyCollection<T> : IEnumerable<T>
                 {
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => default;
+                    IEnumerator IEnumerable.GetEnumerator() => default;
                 }
                 """;
             var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
@@ -6538,10 +6546,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void CollectionBuilder_InvalidMethod_01(bool useCompilationReference)
         {
             string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
                 using System.Runtime.CompilerServices;
                 [CollectionBuilder(typeof(MyCollectionBuilder), null)]
-                public struct MyCollection<T>
+                public struct MyCollection<T> : IEnumerable<T>
                 {
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => default;
+                    IEnumerator IEnumerable.GetEnumerator() => default;
                 }
                 public class MyCollectionBuilder
                 {
@@ -6577,10 +6589,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void CollectionBuilder_InvalidMethod_02(bool useCompilationReference)
         {
             string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
                 using System.Runtime.CompilerServices;
                 [CollectionBuilder(typeof(MyCollectionBuilder), "")]
-                public struct MyCollection<T>
+                public struct MyCollection<T> : IEnumerable<T>
                 {
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => default;
+                    IEnumerator IEnumerable.GetEnumerator() => default;
                 }
                 public class MyCollectionBuilder
                 {
@@ -6709,10 +6725,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string sourceA = """
                 using System;
+                using System.Collections;
+                using System.Collections.Generic;
                 using System.Runtime.CompilerServices;
                 [CollectionBuilder(typeof(MyCollectionBuilder<>), "Create")]
-                public struct MyCollection<T>
+                public struct MyCollection<T> : IEnumerable<T>
                 {
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => default;
+                    IEnumerator IEnumerable.GetEnumerator() => default;
                 }
                 public sealed class MyCollectionBuilder<T>
                 {
@@ -6750,10 +6770,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string sourceA = """
                 using System;
+                using System.Collections;
+                using System.Collections.Generic;
                 using System.Runtime.CompilerServices;
                 [CollectionBuilder(typeof(MyCollectionBuilder<int>), "Create")]
-                public struct MyCollection<T>
+                public struct MyCollection<T> : IEnumerable<T>
                 {
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => default;
+                    IEnumerator IEnumerable.GetEnumerator() => default;
                 }
                 public sealed class MyCollectionBuilder<T>
                 {

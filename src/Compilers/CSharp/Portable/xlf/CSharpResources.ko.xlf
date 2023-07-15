@@ -402,6 +402,11 @@
         <target state="new">Could not find an accessible '{0}' method with the expected signature.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionBuilderNoElementType">
+        <source>'{0}' has a CollectionBuilderAttribute but no element type.</source>
+        <target state="new">'{0}' has a CollectionBuilderAttribute but no element type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionLiteralNoTargetType">
         <source>There is no target type for the collection literal.</source>
         <target state="new">There is no target type for the collection literal.</target>

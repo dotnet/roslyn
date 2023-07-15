@@ -758,8 +758,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var syntax = (ExpressionSyntax)node.Syntax;
 
-            targetType.HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName);
-            var constructMethod = GetCollectionBuilderMethod(syntax, targetType, builderType, methodName, diagnostics);
+            bool hasAttribute = targetType.HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName);
+            Debug.Assert(hasAttribute);
+
+            TryGetCollectionIterationType(syntax, targetType.OriginalDefinition, out TypeWithAnnotations elementTypeOriginalDefinition);
+            if (!elementTypeOriginalDefinition.HasType)
+            {
+                diagnostics.Add(ErrorCode.ERR_CollectionBuilderNoElementType, syntax, targetType);
+                return BindCollectionLiteralForErrorRecovery(node, targetType, diagnostics);
+            }
+
+            var constructMethod = GetCollectionBuilderMethod(syntax, targetType, elementTypeOriginalDefinition.Type, builderType, methodName, diagnostics);
             if (constructMethod is null)
             {
                 diagnostics.Add(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, syntax, methodName ?? "");
@@ -807,6 +816,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private MethodSymbol? GetCollectionBuilderMethod(
             ExpressionSyntax syntax,
             NamedTypeSymbol targetType,
+            TypeSymbol elementTypeOriginalDefinition,
             TypeSymbol? builderType,
             string? methodName,
             BindingDiagnosticBag diagnostics)
@@ -817,13 +827,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (string.IsNullOrEmpty(methodName))
-            {
-                return null;
-            }
-
-            TryGetCollectionIterationType(syntax, targetType.OriginalDefinition, out TypeWithAnnotations elementTypeWithAnnotations);
-            TypeSymbol? elementType = elementTypeWithAnnotations.Type;
-            if (elementType is null)
             {
                 return null;
             }
@@ -842,7 +845,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var mDef = m.OriginalDefinition.Construct(allTypeParameters);
                         var spanElementType = ((NamedTypeSymbol)mDef.Parameters[0].Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
-                        if (!elementType.Equals(spanElementType, TypeCompareKind.AllIgnoreOptions))
+                        if (!elementTypeOriginalDefinition.Equals(spanElementType, TypeCompareKind.AllIgnoreOptions))
                         {
                             continue;
                         }

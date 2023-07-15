@@ -2244,6 +2244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_InlineArrayRequiredElementField = 9180,
         ERR_CollectionBuilderAttributeMethodNotFound = 9181,
+        ERR_CollectionBuilderNoElementType = 9182,
 
         #endregion
 

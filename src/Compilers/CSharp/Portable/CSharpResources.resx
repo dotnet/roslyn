@@ -6804,6 +6804,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_CollectionBuilderAttributeMethodNotFound" xml:space="preserve">
     <value>Could not find an accessible '{0}' method with the expected signature.</value>
   </data>
+  <data name="ERR_CollectionBuilderNoElementType" xml:space="preserve">
+    <value>'{0}' has a CollectionBuilderAttribute but no element type.</value>
+  </data>
   <data name="ERR_EqualityContractRequiresGetter" xml:space="preserve">
     <value>Record equality contract property '{0}' must have a get accessor.</value>
   </data>

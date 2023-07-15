@@ -2364,6 +2364,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase:
                 case ErrorCode.ERR_InlineArrayRequiredElementField:
                 case ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound:
+                case ErrorCode.ERR_CollectionBuilderNoElementType:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement
