@@ -553,6 +553,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal bool TryGetCollectionIterationType(ExpressionSyntax syntax, TypeSymbol collectionType, out TypeWithAnnotations iterationType)
+        {
+            BoundExpression collectionExpr = new BoundValuePlaceholder(syntax, collectionType);
+            return GetEnumeratorInfoAndInferCollectionElementType(
+                syntax,
+                syntax,
+                ref collectionExpr,
+                isAsync: false,
+                BindingDiagnosticBag.Discarded,
+                out iterationType,
+                builder: out _);
+        }
+
         private BoundCollectionLiteralExpression BindArrayOrSpanCollectionLiteral(
             BoundUnconvertedCollectionLiteralExpression node,
             TypeSymbol targetType,
@@ -743,7 +756,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool wasCompilerGenerated,
             BindingDiagnosticBag diagnostics)
         {
-            var syntax = node.Syntax;
+            var syntax = (ExpressionSyntax)node.Syntax;
 
             targetType.HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName);
             var constructMethod = GetCollectionBuilderMethod(syntax, targetType, builderType, methodName, diagnostics);
@@ -792,19 +805,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private MethodSymbol? GetCollectionBuilderMethod(
-            SyntaxNode syntax,
+            ExpressionSyntax syntax,
             NamedTypeSymbol targetType,
             TypeSymbol? builderType,
             string? methodName,
             BindingDiagnosticBag diagnostics)
         {
-            if (builderType is null
-                || builderType is NamedTypeSymbol { IsGenericType: true }
-                || string.IsNullOrEmpty(methodName))
+            if (!(builderType is NamedTypeSymbol { TypeKind: TypeKind.Class or TypeKind.Struct, IsGenericType: false }))
             {
                 return null;
             }
 
+            if (string.IsNullOrEmpty(methodName))
+            {
+                return null;
+            }
+
+            TryGetCollectionIterationType(syntax, targetType.OriginalDefinition, out TypeWithAnnotations elementTypeWithAnnotations);
+            TypeSymbol? elementType = elementTypeWithAnnotations.Type;
+            if (elementType is null)
+            {
+                return null;
+            }
+
+            var allTypeParameters = TypeMap.TypeParametersAsTypeSymbolsWithAnnotations(targetType.OriginalDefinition.GetAllTypeParameters());
             var allTypeArguments = getAllTypeArguments(targetType);
             MethodSymbol? method = null;
 
@@ -816,6 +840,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (allTypeArguments.Length > 0)
                     {
+                        var mDef = m.OriginalDefinition.Construct(allTypeParameters);
+                        var spanElementType = ((NamedTypeSymbol)mDef.Parameters[0].Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+                        if (!elementType.Equals(spanElementType, TypeCompareKind.AllIgnoreOptions))
+                        {
+                            continue;
+                        }
                         m = m.Construct(allTypeArguments);
                     }
                     if (targetType.Equals(m.ReturnType, TypeCompareKind.AllIgnoreOptions))

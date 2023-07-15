@@ -5671,21 +5671,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string sourceA = """
                 using System;
                 using System.Collections;
+                using System.Collections.Generic;
                 using System.Runtime.CompilerServices;
                 [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
-                public struct MyCollection<T> : IEnumerable
+                public struct MyCollection<T> : IEnumerable<T>
                 {
-                    private readonly T[] _array;
-                    public MyCollection(T[] array) { _array = array; }
-                    public int Length => _array.Length;
-                    public T this[int index] => _array[index];
-                    IEnumerator IEnumerable.GetEnumerator() => _array.GetEnumerator();
+                    private readonly List<T> _list;
+                    public MyCollection(List<T> list) { _list = list; }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
                 }
                 public class MyCollectionBuilder
                 {
                     public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
                     {
-                        return new MyCollection<T>(items.ToArray());
+                        return new MyCollection<T>(new List<T>(items.ToArray()));
                     }
                 }
                 """;
@@ -5739,52 +5739,47 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             verifier.VerifyIL("Program.F2",
                 """
                 {
-                  // Code size       92 (0x5c)
+                  // Code size       79 (0x4f)
                   .maxstack  2
                   .locals init (System.Collections.Generic.List<object> V_0,
-                                System.Collections.IEnumerator V_1,
-                                object V_2,
-                                System.IDisposable V_3)
+                                System.Collections.Generic.IEnumerator<object> V_1,
+                                object V_2)
                   IL_0000:  newobj     "System.Collections.Generic.List<object>..ctor()"
                   IL_0005:  stloc.0
                   IL_0006:  ldarga.s   V_0
-                  IL_0008:  constrained. "MyCollection<object>"
-                  IL_000e:  callvirt   "System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()"
-                  IL_0013:  stloc.1
+                  IL_0008:  call       "System.Collections.Generic.IEnumerator<object> MyCollection<object>.GetEnumerator()"
+                  IL_000d:  stloc.1
                   .try
                   {
-                    IL_0014:  br.s       IL_0024
-                    IL_0016:  ldloc.1
-                    IL_0017:  callvirt   "object System.Collections.IEnumerator.Current.get"
-                    IL_001c:  stloc.2
-                    IL_001d:  ldloc.0
-                    IL_001e:  ldloc.2
-                    IL_001f:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
-                    IL_0024:  ldloc.1
-                    IL_0025:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
-                    IL_002a:  brtrue.s   IL_0016
-                    IL_002c:  leave.s    IL_003f
+                    IL_000e:  br.s       IL_001e
+                    IL_0010:  ldloc.1
+                    IL_0011:  callvirt   "object System.Collections.Generic.IEnumerator<object>.Current.get"
+                    IL_0016:  stloc.2
+                    IL_0017:  ldloc.0
+                    IL_0018:  ldloc.2
+                    IL_0019:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
+                    IL_001e:  ldloc.1
+                    IL_001f:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                    IL_0024:  brtrue.s   IL_0010
+                    IL_0026:  leave.s    IL_0032
                   }
                   finally
                   {
-                    IL_002e:  ldloc.1
-                    IL_002f:  isinst     "System.IDisposable"
-                    IL_0034:  stloc.3
-                    IL_0035:  ldloc.3
-                    IL_0036:  brfalse.s  IL_003e
-                    IL_0038:  ldloc.3
-                    IL_0039:  callvirt   "void System.IDisposable.Dispose()"
-                    IL_003e:  endfinally
+                    IL_0028:  ldloc.1
+                    IL_0029:  brfalse.s  IL_0031
+                    IL_002b:  ldloc.1
+                    IL_002c:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_0031:  endfinally
                   }
-                  IL_003f:  ldloc.0
-                  IL_0040:  ldc.i4.3
-                  IL_0041:  box        "int"
-                  IL_0046:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
-                  IL_004b:  ldloc.0
-                  IL_004c:  callvirt   "object[] System.Collections.Generic.List<object>.ToArray()"
-                  IL_0051:  newobj     "System.ReadOnlySpan<object>..ctor(object[])"
-                  IL_0056:  call       "MyCollection<object> MyCollectionBuilder.Create<object>(System.ReadOnlySpan<object>)"
-                  IL_005b:  ret
+                  IL_0032:  ldloc.0
+                  IL_0033:  ldc.i4.3
+                  IL_0034:  box        "int"
+                  IL_0039:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
+                  IL_003e:  ldloc.0
+                  IL_003f:  callvirt   "object[] System.Collections.Generic.List<object>.ToArray()"
+                  IL_0044:  newobj     "System.ReadOnlySpan<object>..ctor(object[])"
+                  IL_0049:  call       "MyCollection<object> MyCollectionBuilder.Create<object>(System.ReadOnlySpan<object>)"
+                  IL_004e:  ret
                 }
                 """);
         }
@@ -5801,9 +5796,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
                 public sealed class MyCollection : IEnumerable<int>
                 {
-                    private readonly List<int> _array;
-                    public MyCollection(List<int> array) { _array = array; }
-                    public IEnumerator<int> GetEnumerator() => _array.GetEnumerator();
+                    private readonly List<int> _list;
+                    public MyCollection(List<int> list) { _list = list; }
+                    public IEnumerator<int> GetEnumerator() => _list.GetEnumerator();
                     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
                 }
                 public sealed class MyCollectionBuilder
@@ -5849,9 +5844,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         new MyCollection<T>(new List<T>(items.ToArray()));
                     private sealed class MyCollection<T> : IMyCollection<T>
                     {
-                        private readonly List<T> _array;
-                        public MyCollection(List<T> array) { _array = array; }
-                        public IEnumerator<T> GetEnumerator() => _array.GetEnumerator();
+                        private readonly List<T> _list;
+                        public MyCollection(List<T> list) { _list = list; }
+                        public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
                         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
                     }
                 }
@@ -5888,9 +5883,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
                     public sealed class MyCollection<T> : IEnumerable<T>
                     {
-                        private readonly List<T> _array;
-                        public MyCollection(List<T> array) { _array = array; }
-                        public IEnumerator<T> GetEnumerator() => _array.GetEnumerator();
+                        private readonly List<T> _list;
+                        public MyCollection(List<T> list) { _list = list; }
+                        public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
                         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
                     }
                     public sealed class MyCollectionBuilder
@@ -5916,6 +5911,298 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net70, expectedOutput: "(MyCollection<System.String>) [], (MyCollection<System.Int32>) [1, 2, 3], ");
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_NoElementType(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                public struct MyCollection<T>
+                {
+                    public MyCollection(T[] array) { }
+                }
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                #pragma warning disable 219
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<object> x = [];
+                        MyCollection<int> y = [1, 2, 3];
+                        MyCollection<string> z = new();
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (6,34): error CS9181: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection<string> x = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(6, 34),
+                // (7,31): error CS9181: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection<int> y = [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1, 2, 3]").WithArguments("Create").WithLocation(7, 31));
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_ElementTypeFromPattern_01(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                public struct MyCollection<T>
+                {
+                    private readonly T[] _array;
+                    public MyCollection(T[] array) { _array = array; }
+                    public MyEnumerator<T> GetEnumerator()
+                        => new MyEnumerator<T>(_array);
+                }
+                public struct MyEnumerator<T>
+                {
+                    private readonly T[] _array;
+                    private int _index;
+                    public MyEnumerator(T[] array)
+                    {
+                        _array = array;
+                        _index = -1;
+                    }
+                    public bool MoveNext()
+                    {
+                        if (_index < _array.Length) _index++;
+                        return _index < _array.Length;
+                    }
+                    public T Current => _array[_index];
+                }
+                public struct MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+                        => new MyCollection<T>(items.ToArray());
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<string> x = [];
+                        GetElements(x).Report();
+                        MyCollection<int> y = [1, 2, 3];
+                        GetElements(y).Report();
+                    }
+                    static IEnumerable<T> GetElements<T>(MyCollection<T> c)
+                    {
+                        foreach (var e in c) yield return e;
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net70, expectedOutput: "[], [1, 2, 3], ");
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_ElementTypeFromPattern_02(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                public struct MyCollection
+                {
+                    private readonly object[] _array;
+                    public MyCollection(object[] array) { _array = array; }
+                    public MyEnumerator GetEnumerator()
+                        => new MyEnumerator(_array);
+                }
+                public struct MyEnumerator
+                {
+                    private readonly object[] _array;
+                    private int _index;
+                    public MyEnumerator(object[] array)
+                    {
+                        _array = array;
+                        _index = -1;
+                    }
+                    public bool MoveNext()
+                    {
+                        if (_index < _array.Length) _index++;
+                        return _index < _array.Length;
+                    }
+                    public object Current => _array[_index];
+                }
+                public struct MyCollectionBuilder
+                {
+                    public static MyCollection Create(ReadOnlySpan<object> items)
+                        => new MyCollection(items.ToArray());
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                using System.Collections;
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection x = [];
+                        GetElements(x).Report();
+                        MyCollection y = [1, 2, 3];
+                        GetElements(y).Report();
+                    }
+                    static IEnumerable GetElements(MyCollection c)
+                    {
+                        foreach (var e in c) yield return e;
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net70, expectedOutput: "[], [1, 2, 3], ");
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_ObjectElementType_01(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                public struct MyCollection : IEnumerable
+                {
+                    private readonly object[] _array;
+                    public MyCollection(object[] array) { _array = array; }
+                    IEnumerator IEnumerable.GetEnumerator() => _array.GetEnumerator();
+                }
+                public struct MyCollectionBuilder
+                {
+                    public static MyCollection Create(ReadOnlySpan<object> items)
+                        => new MyCollection(items.ToArray());
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection x = [];
+                        x.Report();
+                        MyCollection y = [1, 2, 3];
+                        y.Report();
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net70, expectedOutput: "[], [1, 2, 3], ");
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_ObjectElementType_02(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                public struct MyCollection<T> : IEnumerable
+                {
+                    public MyCollection(T[] array) { }
+                    public IEnumerator GetEnumerator() => default;
+                }
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                #pragma warning disable 219
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<object> x = [];
+                        MyCollection<int> y = [1, 2, 3];
+                        MyCollection<string> z = new();
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (6,34): error CS9181: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection<string> x = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(6, 34),
+                // (7,31): error CS9181: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection<int> y = [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1, 2, 3]").WithArguments("Create").WithLocation(7, 31));
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_ConstructedElementType(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                public sealed class E<T>
+                {
+                    private readonly T _t;
+                    public E(T t) { _t = t; }
+                    public override string ToString() => $"E({_t})";
+                }
+                [CollectionBuilder(typeof(Builder), "Create")]
+                public sealed class C<T> : IEnumerable<E<T>>
+                {
+                    private readonly List<E<T>> _list;
+                    public C(List<E<T>> list) { _list = list; }
+                    public IEnumerator<E<T>> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+                public sealed class Builder
+                {
+                    public static C<T> Create<T>(ReadOnlySpan<E<T>> items)
+                        => new C<T>(new List<E<T>>(items.ToArray()));
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        C<string> x = [null];
+                        x.Report(includeType: true);
+                        C<int> y = [new E<int>(1), default];
+                        y.Report(includeType: true);
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net70, expectedOutput: "(C<System.String>) [null], (C<System.Int32>) [E(1), null], ");
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -5966,10 +6253,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void CollectionBuilder_MissingMethod(bool useCompilationReference)
         {
             string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
                 using System.Runtime.CompilerServices;
                 [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
-                public struct MyCollection<T>
+                public struct MyCollection<T> : IEnumerable<T>
                 {
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => default;
+                    IEnumerator IEnumerable.GetEnumerator() => default;
                 }
                 public class MyCollectionBuilder
                 {
@@ -6038,15 +6329,146 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [CombinatorialData]
         [ConditionalTheory(typeof(CoreClrOnly))]
-        public void CollectionBuilder_InvalidType_01(
+        public void CollectionBuilder_InvalidType_01(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                public struct MyCollection<T> : IEnumerable<T>
+                {
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => default;
+                    IEnumerator IEnumerable.GetEnumerator() => default;
+                }
+                public interface MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                #pragma warning disable 219
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> x = [];
+                        MyCollection<string> y = [null];
+                        MyCollection<object> z = new();
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (6,31): error CS9181: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection<int> x = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(6, 31),
+                // (7,34): error CS9181: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection<string> y = [null];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[null]").WithArguments("Create").WithLocation(7, 34));
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_InvalidType_02(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "ToString")]
+                public struct MyCollection<T> : IEnumerable<T>
+                {
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => default;
+                    IEnumerator IEnumerable.GetEnumerator() => default;
+                }
+                public delegate void MyCollectionBuilder();
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                #pragma warning disable 219
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> x = [];
+                        MyCollection<string> y = [null];
+                        MyCollection<object> z = new();
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (6,31): error CS9181: Could not find an accessible 'ToString' method with the expected signature.
+                //         MyCollection<int> x = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("ToString").WithLocation(6, 31),
+                // (7,34): error CS9181: Could not find an accessible 'ToString' method with the expected signature.
+                //         MyCollection<string> y = [null];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[null]").WithArguments("ToString").WithLocation(7, 34));
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_InvalidType_03(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "ToString")]
+                public struct MyCollection<T> : IEnumerable<T>
+                {
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => default;
+                    IEnumerator IEnumerable.GetEnumerator() => default;
+                }
+                public enum MyCollectionBuilder { }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                #pragma warning disable 219
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> x = [];
+                        MyCollection<string> y = [null];
+                        MyCollection<object> z = new();
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (6,31): error CS9181: Could not find an accessible 'ToString' method with the expected signature.
+                //         MyCollection<int> x = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("ToString").WithLocation(6, 31),
+                // (7,34): error CS9181: Could not find an accessible 'ToString' method with the expected signature.
+                //         MyCollection<string> y = [null];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[null]").WithArguments("ToString").WithLocation(7, 34));
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_InvalidType_04(
             [CombinatorialValues("int[]", "int*")] string typeName,
             bool useCompilationReference)
         {
             string sourceA = $$"""
+                using System.Collections;
+                using System.Collections.Generic;
                 using System.Runtime.CompilerServices;
                 [CollectionBuilder(typeof({{typeName}}), "ToString")]
-                public struct MyCollection<T>
+                public struct MyCollection<T> : IEnumerable<T>
                 {
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => default;
+                    IEnumerator IEnumerable.GetEnumerator() => default;
                 }
                 """;
             var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
@@ -6075,15 +6497,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void CollectionBuilder_InvalidType_02()
+        public void CollectionBuilder_InvalidType_05()
         {
             string source = """
+                using System.Collections;
+                using System.Collections.Generic;
                 using System.Runtime.CompilerServices;
                 struct Container<T>
                 {
                     [CollectionBuilder(typeof(T), "ToString")]
-                    public struct MyCollection
+                    public struct MyCollection : IEnumerable<int>
                     {
+                        IEnumerator<int> IEnumerable<int>.GetEnumerator() => default;
+                        IEnumerator IEnumerable.GetEnumerator() => default;
                     }
                 }
                 #pragma warning disable 219
@@ -6099,20 +6525,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(new[] { source, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // 0.cs(4,24): error CS0416: 'T': an attribute argument cannot use type parameters
+                // 0.cs(6,24): error CS0416: 'T': an attribute argument cannot use type parameters
                 //     [CollectionBuilder(typeof(T), "ToString")]
-                Diagnostic(ErrorCode.ERR_AttrArgWithTypeVars, "typeof(T)").WithArguments("T").WithLocation(4, 24),
-                // 0.cs(14,41): error CS9174: Cannot initialize type 'Container<int>.MyCollection' with a collection literal because the type is not constructible.
-                //         Container<int>.MyCollection x = [];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[]").WithArguments("Container<int>.MyCollection").WithLocation(14, 41),
-                // 0.cs(15,44): error CS9174: Cannot initialize type 'Container<string>.MyCollection' with a collection literal because the type is not constructible.
+                Diagnostic(ErrorCode.ERR_AttrArgWithTypeVars, "typeof(T)").WithArguments("T").WithLocation(6, 24),
+                // 0.cs(19,45): error CS1061: 'Container<string>.MyCollection' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'Container<string>.MyCollection' could be found (are you missing a using directive or an assembly reference?)
                 //         Container<string>.MyCollection y = [null];
-                Diagnostic(ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, "[null]").WithArguments("Container<string>.MyCollection").WithLocation(15, 44));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "null").WithArguments("Container<string>.MyCollection", "Add").WithLocation(19, 45));
         }
 
         [CombinatorialData]
         [ConditionalTheory(typeof(CoreClrOnly))]
-        public void CollectionBuilder_InvalidMethodName_01(bool useCompilationReference)
+        public void CollectionBuilder_InvalidMethod_01(bool useCompilationReference)
         {
             string sourceA = """
                 using System.Runtime.CompilerServices;
@@ -6151,7 +6574,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [CombinatorialData]
         [ConditionalTheory(typeof(CoreClrOnly))]
-        public void CollectionBuilder_InvalidMethodName_02(bool useCompilationReference)
+        public void CollectionBuilder_InvalidMethod_02(bool useCompilationReference)
         {
             string sourceA = """
                 using System.Runtime.CompilerServices;
@@ -6190,18 +6613,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [CombinatorialData]
         [ConditionalTheory(typeof(CoreClrOnly))]
-        public void CollectionBuilder_InstanceMethod(bool useCompilationReference)
+        public void CollectionBuilder_InvalidMethod_03(bool useCompilationReference)
         {
             string sourceA = """
                 using System;
+                using System.Collections;
+                using System.Collections.Generic;
                 using System.Runtime.CompilerServices;
                 [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
-                public struct MyCollection<T>
+                public class MyCollection<T> : IEnumerable<T>
                 {
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => default;
+                    IEnumerator IEnumerable.GetEnumerator() => default;
                 }
                 public class MyCollectionBuilder
                 {
-                        public MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
+                        public MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default; // PROTOTYPE: Test method name referring to a field, property, nested type.
                 }
                 """;
             var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
@@ -6231,49 +6658,47 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [CombinatorialData]
         [ConditionalTheory(typeof(CoreClrOnly))]
-        public void CollectionBuilder_ElementType(bool useCompilationReference)
+        public void CollectionBuilder_InstanceMethod(bool useCompilationReference)
         {
             string sourceA = """
                 using System;
                 using System.Collections;
                 using System.Collections.Generic;
                 using System.Runtime.CompilerServices;
-                public sealed class E<T>
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                public struct MyCollection<T> : IEnumerable<T>
                 {
-                    private readonly T _t;
-                    public E(T t) { _t = t; }
-                    public override string ToString() => $"E({_t})";
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => default;
+                    IEnumerator IEnumerable.GetEnumerator() => default;
                 }
-                [CollectionBuilder(typeof(Builder), "Create")]
-                public sealed class C<T> : IEnumerable<E<T>>
+                public class MyCollectionBuilder
                 {
-                    private readonly List<E<T>> _array;
-                    public C(List<E<T>> array) { _array = array; }
-                    public IEnumerator<E<T>> GetEnumerator() => _array.GetEnumerator();
-                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-                }
-                public sealed class Builder
-                {
-                    public static C<T> Create<T>(ReadOnlySpan<E<T>> items)
-                        => new C<T>(new List<E<T>>(items.ToArray()));
+                        public MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
                 }
                 """;
             var comp = CreateCompilation(new[] { sourceA, s_constructibleCollectionAttributeDefinition }, targetFramework: TargetFramework.Net70);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
+                #pragma warning disable 219
                 class Program
                 {
                     static void Main()
                     {
-                        C<string> x = [null];
-                        x.Report(includeType: true);
-                        C<int> y = [new E<int>(1), default];
-                        y.Report(includeType: true);
+                        MyCollection<int> x = [];
+                        MyCollection<string> y = [null];
+                        MyCollection<object> z = new();
                     }
                 }
                 """;
-            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net70, expectedOutput: "(C<System.String>) [null], (C<System.Int32>) [E(1), null], ");
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (6,31): error CS9181: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection<int> x = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(6, 31),
+                // (7,34): error CS9181: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection<string> y = [null];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[null]").WithArguments("Create").WithLocation(7, 34));
         }
 
         // PROTOTYPE: Test ignorable differences between expected and actual parameter types and return types: nullability, tuple element names, etc.
@@ -6625,10 +7050,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string sourceA = """
                 using System;
+                using System.Collections;
+                using System.Collections.Generic;
                 using System.Runtime.CompilerServices;
                 [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
-                public struct MyCollection<T>
+                public struct MyCollection<T> : IEnumerable<T>
                 {
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => default;
+                    IEnumerator IEnumerable.GetEnumerator() => default;
                 }
                 internal class MyCollectionBuilder
                 {
@@ -6712,11 +7141,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string sourceA = """
                 using System;
+                using System.Collections;
+                using System.Collections.Generic;
                 using System.Runtime.CompilerServices;
                 [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
-                public struct MyCollection<T>
+                public struct MyCollection<T> : IEnumerable<T>
                 {
                     static readonly MyCollection<int> _instance = [1, 2, 3];
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => default;
+                    IEnumerator IEnumerable.GetEnumerator() => default;
                 }
                 public class MyCollectionBuilder
                 {
@@ -6755,13 +7188,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string sourceA = """
                 using System;
                 using System.Collections;
+                using System.Collections.Generic;
                 using System.Runtime.CompilerServices;
                 [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
-                public struct MyCollection<T> : IEnumerable
+                public struct MyCollection<T> : IEnumerable<T>
                 {
-                    private readonly T[] _array;
-                    public MyCollection(T[] array) { _array = array; }
-                    IEnumerator IEnumerable.GetEnumerator() => _array.GetEnumerator();
+                    private readonly List<T> _list;
+                    public MyCollection(List<T> list) { _list = list; }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
                 }
                 public class MyCollectionBuilder
                 {
@@ -6775,7 +7210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                     public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
                     {
-                        return new MyCollection<T>(items.ToArray());
+                        return new MyCollection<T>(new List<T>(items.ToArray()));
                     }
                     public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, int index = 0)
                     {
@@ -6808,19 +7243,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string sourceA = """
                 using System;
                 using System.Collections;
+                using System.Collections.Generic;
                 using System.Runtime.CompilerServices;
                 [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
-                public struct MyCollection<T> : IEnumerable
+                public struct MyCollection<T> : IEnumerable<T>
                 {
-                    private readonly T[] _array;
-                    public MyCollection(T[] array) { _array = array; }
-                    IEnumerator IEnumerable.GetEnumerator() => _array.GetEnumerator();
+                    private readonly List<T> _list;
+                    public MyCollection(List<T> list) { _list = list; }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
                 }
                 public class MyCollectionBuilder
                 {
                     public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
                     {
-                        return new MyCollection<T>(items.ToArray());
+                        return new MyCollection<T>(new List<T>(items.ToArray()));
                     }
                     public static MyCollection<int> Create(ReadOnlySpan<int> items)
                     {
@@ -6854,10 +7291,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string sourceA = """
                 using System;
+                using System.Collections;
+                using System.Collections.Generic;
                 using System.Runtime.CompilerServices;
                 [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
-                public struct MyCollection<T>
+                public struct MyCollection<T> : IEnumerable<T>
                 {
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => default;
+                    IEnumerator IEnumerable.GetEnumerator() => default;
                 }
                 public class MyCollectionBuilder
                 {
@@ -6868,23 +7309,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
+                #pragma warning disable 219
                 class Program
                 {
                     static void Main()
                     {
                         MyCollection<string> x = [];
                         MyCollection<int> y = [1, 2, 3];
+                        MyCollection<object> z = new();
                     }
                 }
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (5,34): error CS9181: Could not find an accessible 'Create' method with the expected signature.
+                // (6,34): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection<string> x = [];
-                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(5, 34),
-                // (6,31): error CS9181: Could not find an accessible 'Create' method with the expected signature.
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(6, 34),
+                // (7,31): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection<int> y = [1, 2, 3];
-                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1, 2, 3]").WithArguments("Create").WithLocation(6, 31));
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1, 2, 3]").WithArguments("Create").WithLocation(7, 31));
         }
 
         [CombinatorialData]
@@ -6893,10 +7336,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string sourceA = """
                 using System;
+                using System.Collections;
+                using System.Collections.Generic;
                 using System.Runtime.CompilerServices;
                 [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
-                public struct MyCollection<T>
+                public struct MyCollection<T> : IEnumerable<T>
                 {
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => default;
+                    IEnumerator IEnumerable.GetEnumerator() => default;
                 }
                 public class MyCollectionBuilder
                 {
@@ -6907,22 +7354,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
+                #pragma warning disable 219
                 class Program
                 {
                     static void Main()
                     {
                         MyCollection<string> x = [];
                         MyCollection<int> y = [1, 2, 3];
-                        MyCollection<string> z = ["4"];
+                        MyCollection<object> z = new();
                     }
                 }
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
-            // PROTOTYPE: x = [] and y = [1, 2, 3] should not bind successfully.
             comp.VerifyEmitDiagnostics(
-                // (7,35): error CS0029: Cannot implicitly convert type 'string' to 'int'
-                //         MyCollection<string> z = ["4"];
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""4""").WithArguments("string", "int").WithLocation(7, 35));
+                // (6,34): error CS9181: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection<string> x = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(6, 34),
+                // (7,31): error CS9181: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection<int> y = [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1, 2, 3]").WithArguments("Create").WithLocation(7, 31));
         }
 
         [CombinatorialData]
@@ -6931,10 +7381,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string sourceA = """
                 using System;
+                using System.Collections;
+                using System.Collections.Generic;
                 using System.Runtime.CompilerServices;
                 [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
-                public struct MyCollection<T>
+                public struct MyCollection<T> : IEnumerable<T>
                 {
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => default;
+                    IEnumerator IEnumerable.GetEnumerator() => default;
                 }
                 public class MyCollectionBuilder
                 {
@@ -6945,21 +7399,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
+                #pragma warning disable 219
                 class Program
                 {
                     static void Main()
                     {
                         MyCollection<string> x = [];
                         MyCollection<int> y = [1, 2, 3];
+                        MyCollection<object> z = new();
                     }
                 }
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
             // PROTOTYPE: y = [1, 2, 3] should not bind successfully.
             comp.VerifyEmitDiagnostics(
-                // (5,34): error CS9181: Could not find an accessible 'Create' method with the expected signature.
+                // (6,34): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection<string> x = [];
-                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(5, 34));
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(6, 34));
         }
 
         [CombinatorialData]
@@ -6968,10 +7424,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string sourceA = """
                 using System;
+                using System.Collections;
+                using System.Collections.Generic;
                 using System.Runtime.CompilerServices;
                 [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
-                public struct MyCollection<T>
+                public struct MyCollection<T> : IEnumerable<T>
                 {
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => default;
+                    IEnumerator IEnumerable.GetEnumerator() => default;
                 }
                 public class MyCollectionBuilder
                 {
@@ -6982,23 +7442,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
+                #pragma warning disable 219
                 class Program
                 {
                     static void Main()
                     {
                         MyCollection<string> x = [];
                         MyCollection<int> y = [1, 2, 3];
+                        MyCollection<object> z = new();
                     }
                 }
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (5,34): error CS9181: Could not find an accessible 'Create' method with the expected signature.
+                // (6,34): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection<string> x = [];
-                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(5, 34),
-                // (6,31): error CS9181: Could not find an accessible 'Create' method with the expected signature.
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(6, 34),
+                // (7,31): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection<int> y = [1, 2, 3];
-                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1, 2, 3]").WithArguments("Create").WithLocation(6, 31));
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1, 2, 3]").WithArguments("Create").WithLocation(7, 31));
         }
 
         [CombinatorialData]
@@ -7007,10 +7469,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string sourceA = """
                 using System;
+                using System.Collections;
+                using System.Collections.Generic;
                 using System.Runtime.CompilerServices;
                 [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
-                public struct MyCollection<T>
+                public struct MyCollection<T> : IEnumerable<T>
                 {
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => default;
+                    IEnumerator IEnumerable.GetEnumerator() => default;
                 }
                 public class MyCollectionBuilder
                 {
@@ -7021,23 +7487,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
+                #pragma warning disable 219
                 class Program
                 {
                     static void Main()
                     {
                         MyCollection<string> x = [];
                         MyCollection<int> y = [1, 2, 3];
+                        MyCollection<object> z = new();
                     }
                 }
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (5,34): error CS9181: Could not find an accessible 'Create' method with the expected signature.
+                // (6,34): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection<string> x = [];
-                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(5, 34),
-                // (6,31): error CS9181: Could not find an accessible 'Create' method with the expected signature.
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(6, 34),
+                // (7,31): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection<int> y = [1, 2, 3];
-                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1, 2, 3]").WithArguments("Create").WithLocation(6, 31));
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1, 2, 3]").WithArguments("Create").WithLocation(7, 31));
         }
 
         [CombinatorialData]
@@ -7046,10 +7514,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string sourceA = """
                 using System;
+                using System.Collections;
+                using System.Collections.Generic;
                 using System.Runtime.CompilerServices;
                 [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
-                public struct MyCollection
+                public struct MyCollection: IEnumerable<object>
                 {
+                    IEnumerator<object> IEnumerable<object>.GetEnumerator() => default;
+                    IEnumerator IEnumerable.GetEnumerator() => default;
                 }
                 public class MyCollectionBuilder
                 {
@@ -7060,23 +7532,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
+                #pragma warning disable 219
                 class Program
                 {
                     static void Main()
                     {
                         MyCollection x = [];
                         MyCollection y = [1, 2, 3];
+                        MyCollection z = new();
                     }
                 }
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (5,26): error CS9181: Could not find an accessible 'Create' method with the expected signature.
-                //         MyCollection x = [];
-                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(5, 26),
                 // (6,26): error CS9181: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection x = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(6, 26),
+                // (7,26): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection y = [1, 2, 3];
-                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1, 2, 3]").WithArguments("Create").WithLocation(6, 26));
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1, 2, 3]").WithArguments("Create").WithLocation(7, 26));
         }
 
         [CombinatorialData]
@@ -7085,10 +7559,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string sourceA = """
                 using System;
+                using System.Collections;
                 using System.Runtime.CompilerServices;
                 [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
-                public struct MyCollection
+                public struct MyCollection : IEnumerable
                 {
+                    IEnumerator IEnumerable.GetEnumerator() => default;
                 }
                 public class MyCollectionBuilder
                 {
@@ -7099,23 +7575,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
+                #pragma warning disable 219
                 class Program
                 {
                     static void Main()
                     {
                         MyCollection x = [];
                         MyCollection y = [1, 2, 3];
+                        MyCollection z = new();
                     }
                 }
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (5,26): error CS9181: Could not find an accessible 'Create' method with the expected signature.
-                //         MyCollection x = [];
-                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(5, 26),
                 // (6,26): error CS9181: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection x = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(6, 26),
+                // (7,26): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection y = [1, 2, 3];
-                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1, 2, 3]").WithArguments("Create").WithLocation(6, 26));
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1, 2, 3]").WithArguments("Create").WithLocation(7, 26));
         }
 
         [CombinatorialData]
