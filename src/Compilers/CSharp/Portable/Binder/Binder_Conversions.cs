@@ -775,6 +775,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BindCollectionLiteralForErrorRecovery(node, targetType, diagnostics);
             }
 
+            ReportDiagnosticsIfObsolete(diagnostics, constructMethod.ContainingType, syntax, hasBaseReceiver: false);
+            ReportDiagnosticsIfObsolete(diagnostics, constructMethod, syntax, hasBaseReceiver: false);
+
             var spanType = (NamedTypeSymbol)constructMethod.Parameters[0].Type;
             Debug.Assert(spanType.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions));
 
@@ -831,58 +834,56 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            var allTypeParameters = TypeMap.TypeParametersAsTypeSymbolsWithAnnotations(targetType.OriginalDefinition.GetAllTypeParameters());
-            var allTypeArguments = getAllTypeArguments(targetType);
-            MethodSymbol? method = null;
-
             foreach (var candidate in builderType.GetMembers(methodName))
             {
-                if (candidate is MethodSymbol m &&
-                    hasExpectedSignature(Compilation, allTypeArguments, m) &&
-                    IsAccessible(m, syntax, diagnostics)) // PROTOTYPE: Are we reporting errors from IsAccessible()?
+                var method = candidate as MethodSymbol;
+                if (method is null || !method.IsStatic)
                 {
-                    if (allTypeArguments.Length > 0)
-                    {
-                        var mDef = m.OriginalDefinition.Construct(allTypeParameters);
-                        var spanElementType = ((NamedTypeSymbol)mDef.Parameters[0].Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
-                        if (!elementTypeOriginalDefinition.Equals(spanElementType, TypeCompareKind.AllIgnoreOptions))
-                        {
-                            continue;
-                        }
-                        m = m.Construct(allTypeArguments);
-                    }
-                    if (targetType.Equals(m.ReturnType, TypeCompareKind.AllIgnoreOptions))
-                    {
-                        if (method == null)
-                        {
-                            method = m;
-                        }
-                        else
-                        {
-                            return null;
-                        }
-                    }
+                    continue;
                 }
-            }
 
-            return method;
+                var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                if (!IsAccessible(method, ref useSiteInfo))
+                {
+                    continue;
+                }
 
-            static ImmutableArray<TypeWithAnnotations> getAllTypeArguments(NamedTypeSymbol targetType)
-            {
                 var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-                // PROTOTYPE: Use GetAllTypeArguments() rather than GetAllTypeArgumentsNoUseSiteDiagnostics()
-                // and verify use-site diagnostics.
                 targetType.GetAllTypeArgumentsNoUseSiteDiagnostics(builder);
-                return builder.ToImmutableAndFree();
+                var allTypeArguments = builder.ToImmutableAndFree();
+
+                if (method.Arity != allTypeArguments.Length)
+                {
+                    continue;
+                }
+
+                if (!(method.Parameters is [var parameter] && isReadOnlySpanType(Compilation, parameter.Type)))
+                {
+                    continue;
+                }
+
+                if (allTypeArguments.Length > 0)
+                {
+                    var allTypeParameters = TypeMap.TypeParametersAsTypeSymbolsWithAnnotations(targetType.OriginalDefinition.GetAllTypeParameters());
+                    var mDef = method.OriginalDefinition.Construct(allTypeParameters);
+                    var spanElementType = ((NamedTypeSymbol)mDef.Parameters[0].Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+                    if (!elementTypeOriginalDefinition.Equals(spanElementType, TypeCompareKind.AllIgnoreOptions))
+                    {
+                        continue;
+                    }
+                    method = method.Construct(allTypeArguments);
+                }
+
+                if (!targetType.Equals(method.ReturnType, TypeCompareKind.AllIgnoreOptions))
+                {
+                    continue;
+                }
+
+                diagnostics.Add(syntax, useSiteInfo);
+                return method;
             }
 
-            static bool hasExpectedSignature(CSharpCompilation compilation, ImmutableArray<TypeWithAnnotations> allTypeArguments, MethodSymbol method)
-            {
-                return method.IsStatic
-                    && method.Arity == allTypeArguments.Length
-                    && method.Parameters is [var parameter]
-                    && isReadOnlySpanType(compilation, parameter.Type);
-            }
+            return null;
 
             static bool isReadOnlySpanType(CSharpCompilation compilation, TypeSymbol type)
             {
