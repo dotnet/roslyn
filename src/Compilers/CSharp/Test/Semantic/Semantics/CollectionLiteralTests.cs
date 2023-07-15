@@ -77,20 +77,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         typeName = typeName.Substring(0, index);
                     }
-                    // PROTOTYPE: Fix handling of nested generic types.
-                    //if (type.DeclaringType is { } declaringType)
-                    //{
-                    //    typeName = Concat(GetTypeName(declaringType), typeName);
-                    //}
-                    //else
+                    if (!type.IsGenericParameter)
                     {
-                        typeName = Concat(type.Namespace, typeName);
+                        if (type.DeclaringType is { } declaringType)
+                        {
+                            typeName = Concat(GetTypeName(declaringType), typeName);
+                        }
+                        else
+                        {
+                            typeName = Concat(type.Namespace, typeName);
+                        }
                     }
                     if (!type.IsGenericType)
                     {
                         return typeName;
                     }
-                    return $"{typeName}<{string.Join(", ", type.GetGenericArguments().Select(GetTypeName))}>";
+                    var typeArgs = type.GetGenericArguments();
+                    return $"{typeName}<{string.Join(", ", typeArgs.Select(GetTypeName))}>";
                 }
                 private static string Concat(string container, string name)
                 {
@@ -5866,7 +5869,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net70, expectedOutput: "(MyCollection<System.String>) [], (MyCollection<System.Int32>) [1, 2, 3], ");
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net70, expectedOutput: "(MyCollectionBuilder.MyCollection<System.String>) [], (MyCollectionBuilder.MyCollection<System.Int32>) [1, 2, 3], ");
         }
 
         [CombinatorialData]
@@ -5910,7 +5913,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net70, expectedOutput: "(MyCollection<System.String>) [], (MyCollection<System.Int32>) [1, 2, 3], ");
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net70, expectedOutput: "(Container.MyCollection<System.String>) [], (Container.MyCollection<System.Int32>) [1, 2, 3], ");
         }
 
         [CombinatorialData]
@@ -6204,8 +6207,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net70, expectedOutput: "(C<System.String>) [null], (C<System.Int32>) [E(1), null], ");
         }
-
-        // PROTOTYPE: Report error if multiple [CollectionBuilder] attributes.
 
         [ConditionalFact(typeof(CoreClrOnly))]
         public void CollectionBuilder_MissingType()
@@ -6791,6 +6792,71 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net70, expectedOutput: $"[], {expectedOutput}, ");
         }
 
+        // If there are multiple attributes, the first is used.
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_MultipleAttributes(bool useCompilationReference)
+        {
+            string sourceAttribute = """
+                namespace System.Runtime.CompilerServices
+                {
+                    [AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+                    public sealed class CollectionBuilderAttribute : Attribute
+                    {
+                        public CollectionBuilderAttribute(Type builderType, string methodName) { }
+                    }
+                }
+                """;
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder1), "Create1")]
+                [CollectionBuilder(typeof(MyCollectionBuilder2), "Create2")]
+                public sealed class MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    public MyCollection(List<T> list) { _list = list; }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+                public struct MyCollectionBuilder1
+                {
+                    public static MyCollection<T> Create1<T>(ReadOnlySpan<T> items)
+                        => new MyCollection<T>(new List<T>(items.ToArray()));
+                }
+                public struct MyCollectionBuilder2
+                {
+                    public static MyCollection<T> Create2<T>(ReadOnlySpan<T> items)
+                        => throw null;
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceAttribute, sourceA }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                class Program
+                {
+                    static MyCollection<int> F() => [1, 2, 3];
+                    static void Main()
+                    {
+                        F().Report();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net70, expectedOutput: "[1, 2, 3], ");
+            comp = (CSharpCompilation)verifier.Compilation;
+
+            var collectionType = (NamedTypeSymbol)comp.GetMember<MethodSymbol>("Program.F").ReturnType;
+            Assert.Equal("MyCollection<System.Int32>", collectionType.ToTestDisplayString());
+            TypeSymbol builderType;
+            string methodName;
+            Assert.True(collectionType.HasCollectionBuilderAttribute(out builderType, out methodName));
+            Assert.Equal("MyCollectionBuilder1", builderType.ToTestDisplayString());
+            Assert.Equal("Create1", methodName);
+        }
+
         [CombinatorialData]
         [ConditionalTheory(typeof(CoreClrOnly))]
         public void CollectionBuilder_GenericType_01(bool useCompilationReference)
@@ -6967,7 +7033,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net70, expectedOutput: "(MyCollection<System.String>) [], (MyCollection<System.Int32>) [1, 2, 3], ");
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net70, expectedOutput: "(Container<T>.MyCollection<System.String>) [], (Container<T>.MyCollection<System.Int32>) [1, 2, 3], ");
         }
 
         [CombinatorialData]
@@ -7011,7 +7077,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net70, expectedOutput: "(MyCollection<System.Int32>) [], (MyCollection<System.String>) [1, 2, 3], ");
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net70, expectedOutput: "(Container<T>.MyCollection<System.Int32>) [], (Container<T>.MyCollection<System.String>) [1, 2, 3], ");
         }
 
         [CombinatorialData]
@@ -7055,7 +7121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net70, expectedOutput: "(MyCollection<System.Int32, System.String>) [], (MyCollection<System.String, System.Int32>) [1, 2, 3], ");
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net70, expectedOutput: "(Container<T>.MyCollection<System.Int32, System.String>) [], (Container<T>.MyCollection<System.String, System.Int32>) [1, 2, 3], ");
         }
 
         [CombinatorialData]
@@ -7505,11 +7571,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
-            // PROTOTYPE: y = [1, 2, 3] should not bind successfully.
             comp.VerifyEmitDiagnostics(
                 // (6,34): error CS9181: Could not find an accessible 'Create' method with the expected signature.
                 //         MyCollection<string> x = [];
-                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(6, 34));
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create").WithLocation(6, 34),
+                // (7,31): error CS9181: Could not find an accessible 'Create' method with the expected signature.
+                //         MyCollection<int> y = [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1, 2, 3]").WithArguments("Create").WithLocation(7, 31));
         }
 
         [CombinatorialData]

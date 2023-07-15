@@ -788,7 +788,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // The array initializer includes at least one spread element, so we'll create an intermediate List<T> instance.
                 // https://github.com/dotnet/roslyn/issues/68785: Avoid intermediate List<T> if all spread elements have Length property.
-                // PROTOTYPE: Should use CollectionsMarshal.AsSpan<T>(List<T>) instead, to avoid creating an intermediate array in addition to the list.
+                // https://github.com/dotnet/roslyn/issues/68785: Use CollectionsMarshal.AsSpan<T>(List<T>) to create a span
+                // from the list, to avoid creating an additional intermediate array.
                 _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray, diagnostics, syntax: syntax);
                 var result = BindCollectionInitializerCollectionLiteral(
                     node,
@@ -868,6 +869,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var mDef = method.OriginalDefinition.Construct(allTypeParameters);
                     var spanElementType = ((NamedTypeSymbol)mDef.Parameters[0].Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
                     if (!elementTypeOriginalDefinition.Equals(spanElementType, TypeCompareKind.AllIgnoreOptions))
+                    {
+                        continue;
+                    }
+                    if (!targetType.OriginalDefinition.Equals(mDef.ReturnType, TypeCompareKind.AllIgnoreOptions))
                     {
                         continue;
                     }

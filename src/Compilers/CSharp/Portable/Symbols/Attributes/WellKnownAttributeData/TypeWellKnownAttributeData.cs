@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             set
             {
                 VerifySealed(expected: false);
-                _collectionBuilder = value;
+                _collectionBuilder ??= value;
                 SetDataStored();
             }
         }
