@@ -8,12 +8,14 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    internal interface IClientCapabilitiesManager : ILspService
+    internal interface IInitializeManager : ILspService
     {
         ClientCapabilities GetClientCapabilities();
 
         ClientCapabilities? TryGetClientCapabilities();
 
-        void SetClientCapabilities(ClientCapabilities clientCapabilities);
+        InitializeParams? TryGetInitializeParams();
+
+        void SetInitializeParams(InitializeParams initializeParams);
     }
 }
