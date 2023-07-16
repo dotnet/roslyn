@@ -16760,5 +16760,85 @@ file class C
   IL_0008:  ret
 }");
         }
+
+        [Fact]
+        public void StackAlloc()
+        {
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.NetLatest, verification: Verification.Fails)
+                .AddBaseline(
+                    source: MarkedSource($$"""
+                        using System;
+                        class C
+                        {
+                            void F()
+                            {
+                                Span<bool> <N:0>x = stackalloc bool[64]</N:0>;
+                            }
+                        }
+                        """),
+                    validator: g =>
+                    {
+                        g.VerifyMethodBody("C.F", """
+                        {
+                          // Code size       17 (0x11)
+                          .maxstack  2
+                          .locals init (System.Span<bool> V_0, //x
+                                        System.Span<bool> V_1)
+                          // sequence point: {
+                          IL_0000:  nop
+                          // sequence point: Span<bool>      x = stackalloc bool[64]      ;
+                          IL_0001:  ldc.i4.s   64
+                          IL_0003:  conv.u
+                          IL_0004:  localloc
+                          IL_0006:  ldc.i4.s   64
+                          IL_0008:  newobj     "System.Span<bool>..ctor(void*, int)"
+                          IL_000d:  stloc.1
+                          IL_000e:  ldloc.1
+                          IL_000f:  stloc.0
+                          // sequence point: }
+                          IL_0010:  ret
+                        }
+                        """);
+                    })
+
+                .AddGeneration(
+                    source: MarkedSource("""
+                        using System;
+                        class C
+                        {
+                            void F()
+                            {
+                                /**/Span<bool> <N:0>x = stackalloc bool[64]</N:0>;
+                            }
+                        }
+                        """),
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyIL("C.F", """
+                        {
+                          // Code size       17 (0x11)
+                          .maxstack  2
+                          .locals init (System.Span<bool> V_0, //x
+                                        [unchanged] V_1,
+                                        System.Span<bool> V_2)
+                          IL_0000:  nop
+                          IL_0001:  ldc.i4.s   64
+                          IL_0003:  conv.u
+                          IL_0004:  localloc
+                          IL_0006:  ldc.i4.s   64
+                          IL_0008:  newobj     "System.Span<bool>..ctor(void*, int)"
+                          IL_000d:  stloc.2
+                          IL_000e:  ldloc.2
+                          IL_000f:  stloc.0
+                          IL_0010:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
     }
 }
