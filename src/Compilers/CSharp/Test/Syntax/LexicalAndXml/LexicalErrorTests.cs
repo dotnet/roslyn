@@ -4,8 +4,11 @@
 
 #nullable disable
 
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -387,6 +390,154 @@ class A
                 // (4,10): error CS1056: Unexpected character '\u0060'
                 //     int x\u0060 = 0;
                 Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\u0060"));
+        }
+
+        [Fact]
+        public void CS1056ERR_UnexpectedCharacter_UnpairedSurrogate1()
+        {
+            var test = $$"""
+                using System;
+                class Test
+                {
+                    public static void Main()
+                    {
+                        int {{'\ud86d'}} = 1;
+                    }
+                }
+                """;
+
+            ParsingTests.ParseAndValidate(test,
+                // (6,13): error CS1001: Identifier expected
+                //         int � = 1;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "\ud86d").WithLocation(6, 13),
+                // (6,13): error CS1056: Unexpected character '\ud86d'
+                //         int � = 1;
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\ud86d").WithLocation(6, 13),
+                // (6,15): error CS1002: ; expected
+                //         int � = 1;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "=").WithLocation(6, 15),
+                // (6,15): error CS1525: Invalid expression term '='
+                //         int � = 1;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(6, 15));
+        }
+
+        [Fact]
+        public void CS1056ERR_UnexpectedCharacter_UnpairedSurrogate2()
+        {
+            var test = $$"""
+                using System;
+                class Test
+                {
+                    public static void Main()
+                    {
+                        int {{'\udce7'}} = 1;
+                    }
+                }
+                """;
+
+            ParsingTests.ParseAndValidate(test,
+                // (6,13): error CS1001: Identifier expected
+                //         int � = 1;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "\udce7").WithLocation(6, 13),
+                // (6,13): error CS1056: Unexpected character '\udce7'
+                //         int � = 1;
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\udce7").WithLocation(6, 13),
+                // (6,15): error CS1002: ; expected
+                //         int � = 1;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "=").WithLocation(6, 15),
+                // (6,15): error CS1525: Invalid expression term '='
+                //         int � = 1;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(6, 15));
+        }
+
+        [Fact]
+        public void CS1056ERR_UnexpectedCharacter_Surrogate()
+        {
+            var test = """
+                using System;
+                class Test
+                {
+                    public static void Main()
+                    {
+                        int 𫓧龦 = 1;
+                    }
+                }
+                """;
+
+            ParsingTests.ParseAndValidate(test,
+                // (6,13): error CS1001: Identifier expected
+                //         int 𫓧龦 = 1;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "𫓧").WithLocation(6, 13),
+                // (6,13): error CS1056: Unexpected character '𫓧'
+                //         int 𫓧龦 = 1;
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("𫓧").WithLocation(6, 13),
+                // (6,15): error CS1002: ; expected
+                //         int 𫓧龦 = 1;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "龦").WithLocation(6, 15));
+        }
+
+        [Fact]
+        public void CS1056ERR_UnexpectedCharacter_Surrogate_Long()
+        {
+            // Create a file with 200 slashes in a row.  This will cause 200 'expected character' errors, after which
+            // the compiler will give up and make a single error (with a multi-char message) for the remainder of the doc.
+
+            var test = $$"""
+                using System;
+                class Test
+                {
+                    public static void Main()
+                    {
+                        int {{new string('\\', 200)}}𫓧𫓧 = 1;
+                    }
+                }
+                """;
+
+            var descriptions = new List<DiagnosticDescription>
+            { 
+                // (6,13): error CS1001: Identifier expected
+                //         int \..200 more slashes..\𫓧𫓧 = 1;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, @"\").WithLocation(6, 13),
+            };
+
+            for (int i = 0; i < 200; i++)
+            {
+                descriptions.Add(
+                    // (6,13 + i): error CS1056: Unexpected character '\'
+                    //         int \..200 more slashes..\𫓧𫓧 = 1;
+                    Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("\\").WithLocation(6, 13 + i));
+            }
+
+            descriptions.Add(
+                // (6,213): error CS1056: Unexpected character '𫓧'
+                //         int \..200 more slashes..\𫓧𫓧 = 1;
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"𫓧").WithLocation(6, 213));
+
+            // (6,214): error CS1056: Unexpected character '龦 = 1;\r\n    }\r\n}'
+            //         int \..200 more slashes..\𫓧𫓧 = 1;
+            if (PathUtilities.IsUnixLikePlatform)
+            {
+                descriptions.Add(Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"𫓧 = 1;\n    }\n}").WithLocation(6, 215));
+            }
+            else
+            {
+                descriptions.Add(Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"𫓧 = 1;\r\n    }\r\n}").WithLocation(6, 215));
+            }
+
+            descriptions.AddRange(new[]
+            { 
+                // (8,2): error CS1002: ; expected
+                // }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(8, 2),
+                // (8,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(8, 2),
+                // (8,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(8, 2),
+            });
+
+            ParsingTests.ParseAndValidate(test, descriptions.ToArray());
         }
 
         [Fact, WorkItem(535937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535937")]
