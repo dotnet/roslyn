@@ -1,24 +1,3 @@
-*REMOVED*Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Equals(Microsoft.CodeAnalysis.Editing.DeclarationModifiers modifiers) -> bool
-*REMOVED*Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.Equals(Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers modifiers) -> bool
-*REMOVED*Microsoft.CodeAnalysis.LoadTextOptions.Equals(Microsoft.CodeAnalysis.LoadTextOptions other) -> bool
-*REMOVED*override Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Equals(object obj) -> bool
-*REMOVED*override Microsoft.CodeAnalysis.Editing.DeclarationModifiers.GetHashCode() -> int
-*REMOVED*override Microsoft.CodeAnalysis.FindSymbols.ReferenceLocation.Equals(object obj) -> bool
-*REMOVED*override Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.Equals(object obj) -> bool
-*REMOVED*override Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.GetHashCode() -> int
-*REMOVED*override Microsoft.CodeAnalysis.LoadTextOptions.Equals(object obj) -> bool
-*REMOVED*override Microsoft.CodeAnalysis.LoadTextOptions.GetHashCode() -> int
-*REMOVED*override Microsoft.CodeAnalysis.Options.OptionKey.Equals(object obj) -> bool
-*REMOVED*static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.operator !=(Microsoft.CodeAnalysis.Editing.DeclarationModifiers left, Microsoft.CodeAnalysis.Editing.DeclarationModifiers right) -> bool
-*REMOVED*static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.operator ==(Microsoft.CodeAnalysis.Editing.DeclarationModifiers left, Microsoft.CodeAnalysis.Editing.DeclarationModifiers right) -> bool
-*REMOVED*static Microsoft.CodeAnalysis.FindSymbols.ReferenceLocation.operator !=(Microsoft.CodeAnalysis.FindSymbols.ReferenceLocation left, Microsoft.CodeAnalysis.FindSymbols.ReferenceLocation right) -> bool
-*REMOVED*static Microsoft.CodeAnalysis.FindSymbols.ReferenceLocation.operator ==(Microsoft.CodeAnalysis.FindSymbols.ReferenceLocation left, Microsoft.CodeAnalysis.FindSymbols.ReferenceLocation right) -> bool
-*REMOVED*static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.operator !=(Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers left, Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers right) -> bool
-*REMOVED*static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.operator ==(Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers left, Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers right) -> bool
-*REMOVED*static Microsoft.CodeAnalysis.LoadTextOptions.operator ==(Microsoft.CodeAnalysis.LoadTextOptions left, Microsoft.CodeAnalysis.LoadTextOptions right) -> bool
-*REMOVED*static Microsoft.CodeAnalysis.LoadTextOptions.operator !=(Microsoft.CodeAnalysis.LoadTextOptions left, Microsoft.CodeAnalysis.LoadTextOptions right) -> bool
-*REMOVED*static Microsoft.CodeAnalysis.Options.OptionKey.operator ==(Microsoft.CodeAnalysis.Options.OptionKey left, Microsoft.CodeAnalysis.Options.OptionKey right) -> bool
-*REMOVED*static Microsoft.CodeAnalysis.Options.OptionKey.operator !=(Microsoft.CodeAnalysis.Options.OptionKey left, Microsoft.CodeAnalysis.Options.OptionKey right) -> bool
 *REMOVED*abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.WithTypeConstraint(Microsoft.CodeAnalysis.SyntaxNode declaration, string typeParameterName, Microsoft.CodeAnalysis.Editing.SpecialTypeConstraintKind kinds, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> types = null) -> Microsoft.CodeAnalysis.SyntaxNode
 *REMOVED*abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.SetAccessorDeclaration(Microsoft.CodeAnalysis.Accessibility accessibility = Microsoft.CodeAnalysis.Accessibility.NotApplicable, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> statements = null) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.SetAccessorDeclaration(Microsoft.CodeAnalysis.Accessibility accessibility = Microsoft.CodeAnalysis.Accessibility.NotApplicable, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> statements = null) -> Microsoft.CodeAnalysis.SyntaxNode
