@@ -3,12 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+
+#if !METALAMA_COMPILER_INTERFACE
+using System.Linq;
+#endif
 
 #pragma warning disable 8618
 // ReSharper disable UnassignedGetOnlyAutoProperty
@@ -20,6 +23,7 @@ namespace Metalama.Compiler;
 /// The implementation can modify the compilation using the methods <see cref="AddSyntaxTrees(Microsoft.CodeAnalysis.SyntaxTree[])"/>, <see cref="ReplaceSyntaxTree"/> or
 /// <see cref="AddResources(ManagedResource[])"/>. It can report a diagnostic using <see cref="ReportDiagnostic"/> or suppress diagnostics using <see cref="RegisterDiagnosticFilter"/>.
 /// </summary>
+// ReSharper disable once ClassCannotBeInstantiated
 public sealed class TransformerContext
 {
 #if !METALAMA_COMPILER_INTERFACE
@@ -202,6 +206,7 @@ public sealed class TransformerContext
 #if METALAMA_COMPILER_INTERFACE
         throw new InvalidOperationException("This operation works only inside Metalama.");
 #else
+        // ReSharper disable LocalizableElement
         if (Compilation.GetMetadataReference(assemblySymbol) is not { } reference)
         {
             throw new ArgumentException("Could not retrieve MetadataReference for the given assembly symbol.",
@@ -218,6 +223,7 @@ public sealed class TransformerContext
         {
             throw new ArgumentException("Could not access path for the given assembly symbol.", nameof(assemblySymbol));
         }
+        // ReSharper restore LocalizableElement
 
         return _assemblyLoader.LoadFromPath(path);
 #endif

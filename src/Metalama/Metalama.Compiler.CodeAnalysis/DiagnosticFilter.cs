@@ -22,16 +22,16 @@ namespace Metalama.Compiler
         }
 
     }
-    
+
     internal record DiagnosticFilters(ImmutableArray<DiagnosticFilter> Filters)
     {
         public static DiagnosticFilters Empty { get; } =
-            new (ImmutableArray<DiagnosticFilter>.Empty);
+            new(ImmutableArray<DiagnosticFilter>.Empty);
 
         public ImmutableDictionary<string, ImmutableArray<DiagnosticFilter>> FiltersByDiagnosticId =
             Filters.Select(f => new KeyValuePair<string, DiagnosticFilter>(f.Descriptor.SuppressedDiagnosticId, f))
                 .GroupBy(p => p.Key)
-                .ToImmutableDictionary(g => g.Key, g => g.Select(x=>x.Value).ToImmutableArray(), StringComparer.OrdinalIgnoreCase);
+                .ToImmutableDictionary(g => g.Key, g => g.Select(x => x.Value).ToImmutableArray(), StringComparer.OrdinalIgnoreCase);
     }
 
 }

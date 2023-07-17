@@ -1,3 +1,46 @@
+const Metalama.Compiler.MetalamaCompilerAnnotations.GeneratedCodeAnnotationKind = "Metalama.Compiler.GeneratedCode" -> string!
+Metalama.Compiler.DiagnosticFilteringRequest
+Metalama.Compiler.DiagnosticFilteringRequest.Compilation.get -> Microsoft.CodeAnalysis.Compilation!
+Metalama.Compiler.DiagnosticFilteringRequest.Diagnostic.get -> Microsoft.CodeAnalysis.Diagnostic!
+Metalama.Compiler.DiagnosticFilteringRequest.IsSuppressed.get -> bool
+Metalama.Compiler.DiagnosticFilteringRequest.Suppress() -> void
+Metalama.Compiler.DiagnosticFilteringRequest.Symbol.get -> Microsoft.CodeAnalysis.ISymbol!
+Metalama.Compiler.DiagnosticFilteringRequest.SyntaxNode.get -> Microsoft.CodeAnalysis.SyntaxNode!
+Metalama.Compiler.Intrinsics
+Metalama.Compiler.ManagedResource
+Metalama.Compiler.ManagedResource.DataProvider.get -> System.Func<System.IO.Stream!>?
+Metalama.Compiler.ManagedResource.IncludeInRefAssembly.get -> bool
+Metalama.Compiler.ManagedResource.IsEmbedded.get -> bool?
+Metalama.Compiler.ManagedResource.IsPublic.get -> bool
+Metalama.Compiler.ManagedResource.ManagedResource(string! name, byte[]! data, bool includeInRefAssembly = false) -> void
+Metalama.Compiler.ManagedResource.Name.get -> string!
+Metalama.Compiler.ManagedResource.Resource.get -> Microsoft.CodeAnalysis.ResourceDescription!
+Metalama.Compiler.MetalamaCompilerAnnotations
+Metalama.Compiler.MetalamaCompilerInfo
+Metalama.Compiler.MetalamaPlugInAttribute
+Metalama.Compiler.MetalamaPlugInAttribute.MetalamaPlugInAttribute() -> void
+Metalama.Compiler.SyntaxTreeTransformation
+Metalama.Compiler.SyntaxTreeTransformation.FilePath.get -> string!
+Metalama.Compiler.SyntaxTreeTransformation.Kind.get -> Metalama.Compiler.SyntaxTreeTransformationKind
+Metalama.Compiler.SyntaxTreeTransformation.NewTree.get -> Microsoft.CodeAnalysis.SyntaxTree?
+Metalama.Compiler.SyntaxTreeTransformation.OldTree.get -> Microsoft.CodeAnalysis.SyntaxTree?
+Metalama.Compiler.SyntaxTreeTransformation.SyntaxTreeTransformation() -> void
+Metalama.Compiler.SyntaxTreeTransformationKind
+Metalama.Compiler.SyntaxTreeTransformationKind.Add = 1 -> Metalama.Compiler.SyntaxTreeTransformationKind
+Metalama.Compiler.SyntaxTreeTransformationKind.None = 0 -> Metalama.Compiler.SyntaxTreeTransformationKind
+Metalama.Compiler.SyntaxTreeTransformationKind.Remove = 2 -> Metalama.Compiler.SyntaxTreeTransformationKind
+Metalama.Compiler.SyntaxTreeTransformationKind.Replace = 3 -> Metalama.Compiler.SyntaxTreeTransformationKind
+Metalama.Compiler.TransformerAttribute
+Metalama.Compiler.TransformerAttribute.TransformerAttribute() -> void
+Metalama.Compiler.TransformerContext.AddSyntaxTreeTransformations(params Metalama.Compiler.SyntaxTreeTransformation[]! transformations) -> void
+Metalama.Compiler.TransformerContext.AnalyzerConfigOptionsProvider.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider!
+Metalama.Compiler.TransformerContext.Options.get -> Metalama.Compiler.TransformerOptions!
+Metalama.Compiler.TransformerContext.Services.get -> System.IServiceProvider?
+Metalama.Compiler.TransformerOptions
+Metalama.Compiler.TransformerOptions.RequiresCodeCoverageAnnotations.get -> bool
+Metalama.Compiler.TransformerOrderAttribute
+Metalama.Compiler.TransformerOrderAttribute.TransformerNames.get -> string![]!
+Metalama.Compiler.TransformerOrderAttribute.TransformerOrderAttribute(params string![]! transformerNames) -> void
 Microsoft.CodeAnalysis.Compilation.SupportsRuntimeCapability(Microsoft.CodeAnalysis.RuntimeCapability capability) -> bool
 Microsoft.CodeAnalysis.Emit.MethodInstrumentation
 Microsoft.CodeAnalysis.Emit.MethodInstrumentation.Kinds.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Emit.InstrumentationKind>
@@ -21,6 +64,23 @@ Microsoft.CodeAnalysis.SymbolDisplayLocalOptions.IncludeModifiers = 4 -> Microso
 Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions.ExpandValueTuple = 1024 -> Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions
 Microsoft.CodeAnalysis.SymbolDisplayParameterOptions.IncludeModifiers = 2 -> Microsoft.CodeAnalysis.SymbolDisplayParameterOptions
 Microsoft.CodeAnalysis.SyntaxNode.ContainsDirective(int rawKind) -> bool
+static Metalama.Compiler.Intrinsics.GetRuntimeFieldHandle(string! documentationId) -> System.RuntimeFieldHandle
+static Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(string! documentationId) -> System.RuntimeMethodHandle
+static Metalama.Compiler.Intrinsics.GetRuntimeTypeHandle(string! documentationId) -> System.RuntimeTypeHandle
+static Metalama.Compiler.MetalamaCompilerAnnotations.CreateGeneratedCodeAnnotation(string! origin) -> Microsoft.CodeAnalysis.SyntaxAnnotation!
+static Metalama.Compiler.MetalamaCompilerAnnotations.IncludeInReferenceAssemblyAnnotation.get -> Microsoft.CodeAnalysis.SyntaxAnnotation!
+static Metalama.Compiler.MetalamaCompilerAnnotations.SourceCodeAnnotation.get -> Microsoft.CodeAnalysis.SyntaxAnnotation!
+static Metalama.Compiler.MetalamaCompilerAnnotations.TryGetCodeCoverageRedirectionFromAnnotation(this Microsoft.CodeAnalysis.SyntaxNode! syntaxNode, Microsoft.CodeAnalysis.Compilation! compilation, out Microsoft.CodeAnalysis.ISymbol? redirectedSymbol) -> bool
+static Metalama.Compiler.MetalamaCompilerAnnotations.WithIgnoreCodeCoverageAnnotation<T>(this T! syntaxNode) -> T!
+static Metalama.Compiler.MetalamaCompilerAnnotations.WithIncludeInReferenceAssemblyAnnotation<T>(this T! syntaxNode) -> T!
+static Metalama.Compiler.MetalamaCompilerAnnotations.WithOriginalLocationAnnotationFrom<T>(this T! node, Microsoft.CodeAnalysis.SyntaxNode! originalNode) -> T!
+static Metalama.Compiler.MetalamaCompilerAnnotations.WithRedirectCodeCoverageAnnotation<T>(this T! syntaxNode, Microsoft.CodeAnalysis.ISymbol! originalSymbol) -> T!
+static Metalama.Compiler.MetalamaCompilerInfo.EnsureInitialized() -> void
+static Metalama.Compiler.MetalamaCompilerInfo.IsActive.get -> bool
+static Metalama.Compiler.SyntaxTreeTransformation.AddTree(Microsoft.CodeAnalysis.SyntaxTree! tree) -> Metalama.Compiler.SyntaxTreeTransformation
+static Metalama.Compiler.SyntaxTreeTransformation.RemoveTree(Microsoft.CodeAnalysis.SyntaxTree! tree) -> Metalama.Compiler.SyntaxTreeTransformation
+static Metalama.Compiler.SyntaxTreeTransformation.ReplaceTree(Microsoft.CodeAnalysis.SyntaxTree! oldTree, Microsoft.CodeAnalysis.SyntaxTree! newTree) -> Metalama.Compiler.SyntaxTreeTransformation
+static Metalama.Compiler.TransformerOptions.Default.get -> Metalama.Compiler.TransformerOptions!
 static Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Create(Microsoft.CodeAnalysis.Operations.IAttributeOperation! attribute, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph!
 static Microsoft.CodeAnalysis.Location.Create(string! filePath, Microsoft.CodeAnalysis.Text.TextSpan textSpan, Microsoft.CodeAnalysis.Text.LinePositionSpan lineSpan, string! mappedFilePath, Microsoft.CodeAnalysis.Text.LinePositionSpan mappedLineSpan) -> Microsoft.CodeAnalysis.Location!
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitAttribute(Microsoft.CodeAnalysis.Operations.IAttributeOperation! operation) -> void

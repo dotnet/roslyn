@@ -17,7 +17,7 @@ namespace Metalama.Compiler
         /// Gets the underlying <see cref="ResourceDescription"/>.
         /// </summary>
         public ResourceDescription Resource { get; }
-        
+
         /// <summary>
         /// Gets a value indicating whether the resource should be included in reference assemblies.
         /// </summary>
@@ -38,7 +38,6 @@ namespace Metalama.Compiler
             this.IncludeInRefAssembly = includeInRefAssembly;
         }
 #endif
-        
 
         /// <summary>
         /// Initializes a new instance of <see cref="ManagedResource"/> that represents a new public resource
@@ -49,24 +48,24 @@ namespace Metalama.Compiler
         /// <param name="includeInRefAssembly">A value indicating whether the resource should be included in reference assemblies.</param>
         public ManagedResource(string name, byte[] data, bool includeInRefAssembly = false)
         {
-            this.Resource = new ResourceDescription(name, () => new MemoryStream( data ), true);
+            this.Resource = new ResourceDescription(name, () => new MemoryStream(data), true);
             this.Name = name;
             this.IsPublic = true;
             this.IsEmbedded = true;
             this.DataProvider = () => new MemoryStream(data);
             this.IncludeInRefAssembly = includeInRefAssembly;
         }
-    
+
         /// <summary>
         /// Gets the resource name.
         /// </summary>
         public string Name { get; }
-    
+
         /// <summary>
         /// Gets a value indicating whether the resource is public.
         /// </summary>
         public bool IsPublic { get; }
-      
+
         /// <summary>
         /// Gets a value indicating whether the resource is embedded in the module.
         /// </summary>
@@ -77,5 +76,4 @@ namespace Metalama.Compiler
         /// </summary>
         public Func<Stream>? DataProvider { get; }
     }
-
 }

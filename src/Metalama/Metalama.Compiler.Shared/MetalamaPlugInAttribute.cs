@@ -6,7 +6,6 @@ using System;
 
 namespace Metalama.Compiler;
 
-
 /// <summary>
 /// Custom attribute that, when applied to a class, means that an instance
 /// of this class must be created and exposed to the <see cref="TransformerContext.Plugins"/> property.

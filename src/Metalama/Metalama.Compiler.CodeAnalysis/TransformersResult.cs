@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Immutable;
-using Metalama.Compiler;
+﻿using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -13,15 +11,15 @@ namespace Metalama.Compiler
         ImmutableArray<SyntaxTreeTransformation> TransformedTrees,
         DiagnosticFilters DiagnosticFilters,
         ImmutableArray<ResourceDescription> AdditionalResources,
-        AnalyzerConfigOptionsProvider MappedAnalyzerOptions )
+        AnalyzerConfigOptionsProvider MappedAnalyzerOptions)
     {
         public bool Success { get; private init; } = true;
 
-        public static TransformersResult Empty(Compilation compilation, AnalyzerConfigOptionsProvider analyzerOptions )
+        public static TransformersResult Empty(Compilation compilation, AnalyzerConfigOptionsProvider analyzerOptions)
             => new TransformersResult(
                 compilation,
                 compilation,
-                ImmutableArray<SyntaxTreeTransformation>.Empty, 
+                ImmutableArray<SyntaxTreeTransformation>.Empty,
                 DiagnosticFilters.Empty,
                 ImmutableArray<ResourceDescription>.Empty,
                 analyzerOptions);
@@ -33,7 +31,7 @@ namespace Metalama.Compiler
                 ImmutableArray<SyntaxTreeTransformation>.Empty,
                 DiagnosticFilters.Empty,
                 ImmutableArray<ResourceDescription>.Empty,
-                CompilerAnalyzerConfigOptionsProvider.Empty) 
+                CompilerAnalyzerConfigOptionsProvider.Empty)
             {
                 Success = false
             };

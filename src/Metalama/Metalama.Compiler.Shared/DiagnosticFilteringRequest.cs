@@ -2,18 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
 
 #pragma warning disable 8618
 // ReSharper disable UnassignedGetOnlyAutoProperty
 
 namespace Metalama.Compiler
 {
-
+    // ReSharper disable once ClassCannotBeInstantiated
     public sealed class DiagnosticFilteringRequest
     {
         public Diagnostic Diagnostic { get; }

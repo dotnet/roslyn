@@ -20,7 +20,6 @@ namespace Metalama.Compiler.Graphs
         private T? value;
         private SimpleLinkedListNode<T>? next;
 
-
         private SimpleLinkedListNode()
         {
         }
@@ -35,7 +34,6 @@ namespace Metalama.Compiler.Graphs
             this.value = value;
             this.next = next;
         }
-
 
         /// <summary>
         /// Gets or sets the node value.
@@ -75,7 +73,6 @@ namespace Metalama.Compiler.Graphs
             return last;
         }
 
-
         /// <summary>
         /// Inserts a value at the beginning of a list.
         /// </summary>
@@ -95,15 +92,8 @@ namespace Metalama.Compiler.Graphs
         [SuppressMessage("Microsoft.Design", "CA1045:DoNotPassTypesByReference")]
         public static void Append(ref SimpleLinkedListNode<T> node, T value)
         {
-            if (node == null)
-            {
-                node = new SimpleLinkedListNode<T>(value, null);
-            }
-            else
-            {
-                SimpleLinkedListNode<T> last = node.GetLast();
-                last.next = new SimpleLinkedListNode<T>(value, null);
-            }
+            SimpleLinkedListNode<T> last = node.GetLast();
+            last.next = new SimpleLinkedListNode<T>(value, null);
         }
 
         /// <summary>
@@ -120,22 +110,9 @@ namespace Metalama.Compiler.Graphs
         [SuppressMessage("Microsoft.Design", "CA1045:DoNotPassTypesByReference")]
         public static void Append(ref SimpleLinkedListNode<T> node, SimpleLinkedListNode<T> list)
         {
-            if (list == null)
-            {
-                return;
-            }
-
-            if (node == null)
-            {
-                node = list.Clone();
-            }
-            else
-            {
-                SimpleLinkedListNode<T> last = node.GetLast();
-                last.next = list.Clone();
-            }
+            SimpleLinkedListNode<T> last = node.GetLast();
+            last.next = list.Clone();
         }
-
 
         /// <summary>
         /// Finds a node in a list and removes it.

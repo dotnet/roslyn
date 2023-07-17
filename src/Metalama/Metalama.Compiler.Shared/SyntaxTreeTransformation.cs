@@ -69,7 +69,6 @@ public readonly struct SyntaxTreeTransformation
     public string FilePath =>
         OldTree?.FilePath ?? NewTree?.FilePath ?? throw new InvalidOperationException();
 
-
     public SyntaxTreeTransformationKind Kind => (OldTree, NewTree) switch
     {
         (null, null) => SyntaxTreeTransformationKind.None,

@@ -7,18 +7,18 @@ namespace Metalama.Compiler
 {
     internal static class ServiceProviderExtensions
     {
-        public static TService? GetService<TService>( this IServiceProvider serviceProvider )
+        public static TService? GetService<TService>(this IServiceProvider serviceProvider)
         {
-            return (TService?) serviceProvider.GetService( typeof(TService) );
+            return (TService?)serviceProvider.GetService(typeof(TService));
         }
 
-        public static TService GetRequiredService<TService>( this IServiceProvider serviceProvider )
+        public static TService GetRequiredService<TService>(this IServiceProvider serviceProvider)
         {
             var service = serviceProvider.GetService<TService>();
 
-            if ( service == null )
+            if (service == null)
             {
-                throw new InvalidOperationException( $"There is no service of type {typeof(TService).Name}" );
+                throw new InvalidOperationException($"There is no service of type {typeof(TService).Name}");
             }
 
             return service;

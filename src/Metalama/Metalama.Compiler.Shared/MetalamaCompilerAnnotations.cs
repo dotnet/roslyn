@@ -24,7 +24,6 @@ public static class MetalamaCompilerAnnotations
     /// </summary>
     public const string GeneratedCodeAnnotationKind = "Metalama.Compiler.GeneratedCode";
 
-
     /// <summary>
     /// Gets an annotation that means that the target syntax nodes and its children are source code, even if there is an annotation
     /// of kind <see cref="GeneratedCodeAnnotationKind"/> in a parent node.
@@ -51,27 +50,6 @@ public static class MetalamaCompilerAnnotations
         }
 #endif
     }
-
-    /*
-    /// <summary>
-    /// Adds a <see cref="SyntaxAnnotation"/> to a token that maps the token to the location of another token in source code.
-    /// </summary>
-    public static SyntaxToken WithOriginalLocationAnnotationFrom(this SyntaxToken token, SyntaxToken originalToken)
-    {
-#if METALAMA_COMPILER_INTERFACE
-        return token;
-#else
-        if (!originalToken.HasAnnotations(OriginalLocationAnnotationKind))
-        {
-            return token;
-        }
-        else
-        {
-            return token.WithAdditionalAnnotations(originalToken.GetAnnotations(OriginalLocationAnnotationKind));
-        }
-#endif
-    }
-    */
 
     /// <summary>
     /// Creates a <see cref="SyntaxAnnotation"/> that can be added to syntax nodes to mean that they have been
@@ -107,7 +85,7 @@ public static class MetalamaCompilerAnnotations
 #endif
 
     internal const string IgnoreCodeCoverageAnnotationKind = "Metalama.Compiler.IgnoreCodeCoverage";
-    internal const string RedirectCodeCoverageAnnotationKind = "Metalama.Compiler.RedirectCodeCoverage";    
+    internal const string RedirectCodeCoverageAnnotationKind = "Metalama.Compiler.RedirectCodeCoverage";
 
     private static readonly SyntaxAnnotation _ignoreCodeCoverageAnnotation = new SyntaxAnnotation(IgnoreCodeCoverageAnnotationKind);
 

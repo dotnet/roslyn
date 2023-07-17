@@ -2,14 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#if !METALAMA_COMPILER_INTERFACE
+
 using System;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 
 namespace Metalama.Compiler
 {
-#if !METALAMA_COMPILER_INTERFACE
-
     internal class SyntaxTreeHistory
     {
         private SyntaxTree? _first;
@@ -62,7 +62,7 @@ namespace Metalama.Compiler
             where TTarget : class
             where TProperty : class
         {
-            return Impl<TTarget, TProperty>.Properties.TryGetValue(obj, out var value) && value != null;
+            return Impl<TTarget, TProperty>.Properties.TryGetValue(obj, out _);
         }
 
         public static TProperty GetOrAdd<TTarget, TProperty>(TTarget obj)
@@ -83,7 +83,6 @@ namespace Metalama.Compiler
             where TProperty : class
             => Impl<TTarget, TProperty>.Properties.Add(obj, value);
 
-
         private static class Impl<TTarget, TProperty>
             where TTarget : class
             where TProperty : class
@@ -91,6 +90,5 @@ namespace Metalama.Compiler
             public static readonly ConditionalWeakTable<TTarget, TProperty> Properties = new();
         }
     }
-
-#endif
 }
+#endif

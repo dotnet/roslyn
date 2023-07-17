@@ -30,7 +30,6 @@ namespace Metalama.Compiler.Graphs
             return vector;
         }
 
-
         public abstract void AddEdge(int predecessor, int successor);
 
         public abstract void RemoveEdge(int predecessor, int successor);
