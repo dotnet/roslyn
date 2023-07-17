@@ -1373,7 +1373,7 @@ value").VerifyDiagnostics(
                 01 00 01 70 00 00
             )
         // Method begins at RVA 0x2050
-        // Code size 9 (0x9)
+        // Code size: 9 (0x9)
         .maxstack 8
 
         IL_0000: nop
@@ -1881,7 +1881,7 @@ value").VerifyDiagnostics(
                 01 00 01 70 00 00
             )
         // Method begins at RVA 0x2050
-        // Code size 16 (0x10)
+        // Code size: 16 (0x10)
         .maxstack 8
 
         IL_0000: ldarg.0
@@ -2262,7 +2262,7 @@ class Program
                 01 00 01 61 00 00
             )
         // Method begins at RVA 0x2050
-        // Code size 37 (0x25)
+        // Code size: 37 (0x25)
         .maxstack 8
 
         IL_0000: ldarg.0

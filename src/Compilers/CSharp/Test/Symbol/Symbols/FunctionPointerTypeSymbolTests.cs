@@ -1365,7 +1365,7 @@ unsafe static class C
             01 00 00 00
         )
         // Method begins at RVA 0x205c
-        // Code size 9 (0x9)
+        // Code size: 9 (0x9)
         .maxstack 8
 
         IL_0001: ldc.i4.1

@@ -10017,7 +10017,7 @@ class C
 			instance void .ctor () cil managed 
 		{
 			// Method begins at RVA 0x20a1
-			// Code size 8 (0x8)
+			// Code size: 8 (0x8)
 			.maxstack 8
 			IL_0000: ldarg.0
 			IL_0001: call instance void [netstandard]System.Object::.ctor()
@@ -10028,7 +10028,7 @@ class C
 			instance int32 '<F>b__0' () cil managed 
 		{
 			// Method begins at RVA 0x20ac
-			// Code size 38 (0x26)
+			// Code size: 38 (0x26)
 			.maxstack 2
 			.locals init (
 				[0] int32,
@@ -10067,7 +10067,7 @@ class C
 		) cil managed 
 	{
 		// Method begins at RVA 0x2050
-		// Code size 69 (0x45)
+		// Code size: 69 (0x45)
 		.maxstack 2
 		.locals init (
 			[0] class C/'<>c__DisplayClass0_0',
@@ -10111,7 +10111,7 @@ class C
 		instance void .ctor () cil managed 
 	{
 		// Method begins at RVA 0x20a1
-		// Code size 8 (0x8)
+		// Code size: 8 (0x8)
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: call instance void [netstandard]System.Object::.ctor()
@@ -10227,7 +10227,7 @@ class C
 			instance void .ctor () cil managed 
 		{
 			// Method begins at RVA 0x20a5
-			// Code size 8 (0x8)
+			// Code size: 8 (0x8)
 			.maxstack 8
 			IL_0000: ldarg.0
 			IL_0001: call instance void [netstandard]System.Object::.ctor()
@@ -10238,7 +10238,7 @@ class C
 			instance string '<F>b__0' () cil managed 
 		{
 			// Method begins at RVA 0x20b0
-			// Code size 78 (0x4e)
+			// Code size: 78 (0x4e)
 			.maxstack 3
 			.locals init (
 				[0] string,
@@ -10283,7 +10283,7 @@ class C
 			instance string '<F>b__1' () cil managed 
 		{
 			// Method begins at RVA 0x210a
-			// Code size 22 (0x16)
+			// Code size: 22 (0x16)
 			.maxstack 8
 			IL_0000: ldstr ""2""
 			IL_0005: ldarg.0
@@ -10300,7 +10300,7 @@ class C
 		) cil managed 
 	{
 		// Method begins at RVA 0x2050
-		// Code size 73 (0x49)
+		// Code size: 73 (0x49)
 		.maxstack 2
 		.locals init (
 			[0] class C/'<>c__DisplayClass0_0',
@@ -10344,7 +10344,7 @@ class C
 		instance void .ctor () cil managed 
 	{
 		// Method begins at RVA 0x20a5
-		// Code size 8 (0x8)
+		// Code size: 8 (0x8)
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: call instance void [netstandard]System.Object::.ctor()

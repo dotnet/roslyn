@@ -185,7 +185,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 		/// <param name="expected">The expected IL</param>
         public void VerifyTypeIL(string typeName, string expected)
         {
-            VerifyTypeIL(typeName, output => AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, output, escapeQuotes: false));
+            VerifyTypeIL(typeName, output =>
+            {
+                // All our tests predate ilspy adding `// Header size: ...` to the contents.  So trim that out since we
+                // really don't need to validate superfluous IL comments
+                expected = RemoveHeaderComments(expected);
+                output = RemoveHeaderComments(output);
+
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, output, escapeQuotes: false);
+            });
+        }
+
+        private static readonly Regex s_headerCommentsRegex = new("""^\s*// Header size: [0-9]+\s*$""", RegexOptions.Multiline);
+
+        private static string RemoveHeaderComments(string value)
+        {
+            return s_headerCommentsRegex.Replace(value, "");
         }
 
         /// <summary>

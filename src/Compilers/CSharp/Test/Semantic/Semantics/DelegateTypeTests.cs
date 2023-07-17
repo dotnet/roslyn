@@ -10719,7 +10719,7 @@ class Program
                                 01 00 00 00
                             )
                         // Method begins at RVA 0x20a2
-                        // Code size 2 (0x2)
+                        // Code size: 2 (0x2)
                         .maxstack 8
 
                         IL_0000: nop
@@ -10761,7 +10761,7 @@ class Program
                                 01 00 00 00
                             )
                         // Method begins at RVA 0x20a2
-                        // Code size 2 (0x2)
+                        // Code size: 2 (0x2)
                         .maxstack 8
 
                         IL_0000: nop
@@ -12407,7 +12407,7 @@ $@"
         void .cctor () cil managed 
     {{
         // Method begins at RVA 0x20de
-        // Code size 11 (0xb)
+        // Code size: 11 (0xb)
         .maxstack 8
         IL_0000: newobj instance void Program/'<>c'::.ctor()
         IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
@@ -12417,7 +12417,7 @@ $@"
         instance void .ctor () cil managed 
     {{
         // Method begins at RVA 0x20d6
-        // Code size 7 (0x7)
+        // Code size: 7 (0x7)
         .maxstack 8
         IL_0000: ldarg.0
         IL_0001: call instance void [{s_libPrefix}]System.Object::.ctor()
@@ -12430,7 +12430,7 @@ $@"
     {{
         .param [1] = int32(30)
         // Method begins at RVA 0x20ea
-        // Code size 2 (0x2)
+        // Code size: 2 (0x2)
         .maxstack 8
         IL_0000: ldarg.1
         IL_0001: ret
@@ -12525,7 +12525,7 @@ $@"
 		void .cctor () cil managed 
 	{{
 		// Method begins at RVA 0x20d3
-		// Code size 11 (0xb)
+		// Code size: 11 (0xb)
 		.maxstack 8
 		IL_0000: newobj instance void Program/'<>c'::.ctor()
 		IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
@@ -12535,7 +12535,7 @@ $@"
 		instance void .ctor () cil managed 
 	{{
 		// Method begins at RVA 0x20cb
-		// Code size 7 (0x7)
+		// Code size: 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: call instance void [{s_libPrefix}]System.Object::.ctor()
@@ -12551,7 +12551,7 @@ $@"
 		.param [2] = ""b""
 		.param [3] = ""c""
 		// Method begins at RVA 0x20df
-		// Code size 9 (0x9)
+		// Code size: 9 (0x9)
 		.maxstack 8
 		IL_0000: ldarg.1
 		IL_0001: ldarg.2
@@ -12999,7 +12999,7 @@ $@"
 		void .cctor () cil managed 
 	{{
 		// Method begins at RVA 0x20d3
-		// Code size 11 (0xb)
+		// Code size: 11 (0xb)
 		.maxstack 8
 		IL_0000: newobj instance void Program/'<>c'::.ctor()
 		IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
@@ -13009,7 +13009,7 @@ $@"
 		instance void .ctor () cil managed 
 	{{
 		// Method begins at RVA 0x20cb
-		// Code size 7 (0x7)
+		// Code size: 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: call instance void [{s_libPrefix}]System.Object::.ctor()
@@ -13024,7 +13024,7 @@ $@"
 	{{
 		.param [3] = int32(3)
 		// Method begins at RVA 0x20df
-		// Code size 7 (0x7)
+		// Code size: 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.2
 		IL_0001: ldarg.1
@@ -14301,7 +14301,7 @@ $$"""
                 		void .cctor () cil managed 
                 	{
                 		// Method begins at RVA 0x208d
-                		// Code size 11 (0xb)
+                		// Code size: 11 (0xb)
                 		.maxstack 8
                 		IL_0000: newobj instance void Program/'<>c'::.ctor()
                 		IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
@@ -14311,7 +14311,7 @@ $$"""
                 		instance void .ctor () cil managed 
                 	{
                 		// Method begins at RVA 0x2085
-                		// Code size 7 (0x7)
+                		// Code size: 7 (0x7)
                 		.maxstack 8
                 		IL_0000: ldarg.0
                 		IL_0001: call instance void [{{s_libPrefix}}]System.Object::.ctor()
@@ -14327,7 +14327,7 @@ $$"""
                 				01 00 00 00
                 			)
                 		// Method begins at RVA 0x2099
-                		// Code size 1 (0x1)
+                		// Code size: 1 (0x1)
                 		.maxstack 8
                 		IL_0000: ret
                 	} // end of method '<>c'::'<Main>b__0_0'
@@ -14394,7 +14394,7 @@ $$"""
 		void .cctor () cil managed 
 	{
 		// Method begins at RVA 0x20a2
-		// Code size 11 (0xb)
+		// Code size: 11 (0xb)
 		.maxstack 8
 		IL_0000: newobj instance void Program/'<>c'::.ctor()
 		IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
@@ -14404,7 +14404,7 @@ $$"""
 		instance void .ctor () cil managed 
 	{
 		// Method begins at RVA 0x209a
-		// Code size 7 (0x7)
+		// Code size: 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: call instance void [{{s_libPrefix}}]System.Object::.ctor()
@@ -14421,7 +14421,7 @@ $$"""
 				01 00 00 00
 			)
 		// Method begins at RVA 0x20ae
-		// Code size 3 (0x3)
+		// Code size: 3 (0x3)
 		.maxstack 8
 		IL_0000: ldarg.1
 		IL_0001: ldind.i4
@@ -14602,7 +14602,7 @@ class Program
                 		void .cctor () cil managed 
                 	{
                 		// Method begins at RVA 0x20a9
-                		// Code size 11 (0xb)
+                		// Code size: 11 (0xb)
                 		.maxstack 8
                 		IL_0000: newobj instance void Program/'<>c'::.ctor()
                 		IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
@@ -14612,7 +14612,7 @@ class Program
                 		instance void .ctor () cil managed 
                 	{
                 		// Method begins at RVA 0x20a1
-                		// Code size 7 (0x7)
+                		// Code size: 7 (0x7)
                 		.maxstack 8
                 		IL_0000: ldarg.0
                 		IL_0001: call instance void [{{s_libPrefix}}]System.Object::.ctor()
@@ -14629,7 +14629,7 @@ class Program
                 				00 00
                 			)
                 		// Method begins at RVA 0x20b5
-                		// Code size 1 (0x1)
+                		// Code size: 1 (0x1)
                 		.maxstack 8
                 		IL_0000: ret
                 	} // end of method '<>c'::'<<Main>$>b__0_0'
@@ -14644,7 +14644,7 @@ class Program
                 				00 00
                 			)
                 		// Method begins at RVA 0x20b5
-                		// Code size 1 (0x1)
+                		// Code size: 1 (0x1)
                 		.maxstack 8
                 		IL_0000: ret
                 	} // end of method '<>c'::'<<Main>$>b__0_1'
@@ -14714,7 +14714,7 @@ class Program
                 		) cil managed 
                 	{
                 		// Method begins at RVA 0x2067
-                		// Code size 1 (0x1)
+                		// Code size: 1 (0x1)
                 		.maxstack 8
                 		.entrypoint
                 		IL_0000: ret
@@ -14723,7 +14723,7 @@ class Program
                 		instance void .ctor () cil managed 
                 	{
                 		// Method begins at RVA 0x2069
-                		// Code size 7 (0x7)
+                		// Code size: 7 (0x7)
                 		.maxstack 8
                 		IL_0000: ldarg.0
                 		IL_0001: call instance void [{{s_libPrefix}}]System.Object::.ctor()
@@ -14743,7 +14743,7 @@ class Program
                 				00 00
                 			)
                 		// Method begins at RVA 0x2067
-                		// Code size 1 (0x1)
+                		// Code size: 1 (0x1)
                 		.maxstack 8
                 		IL_0000: ret
                 	} // end of method Program::'<<Main>$>g__local1|0_0'
@@ -14761,7 +14761,7 @@ class Program
                 				00 00
                 			)
                 		// Method begins at RVA 0x2067
-                		// Code size 1 (0x1)
+                		// Code size: 1 (0x1)
                 		.maxstack 8
                 		IL_0000: ret
                 	} // end of method Program::'<<Main>$>g__local2|0_1'
@@ -14900,7 +14900,7 @@ class Program
                 		void .cctor () cil managed 
                 	{
                 		// Method begins at RVA 0x20a9
-                		// Code size 11 (0xb)
+                		// Code size: 11 (0xb)
                 		.maxstack 8
                 		IL_0000: newobj instance void Program/'<>c'::.ctor()
                 		IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
@@ -14910,7 +14910,7 @@ class Program
                 		instance void .ctor () cil managed 
                 	{
                 		// Method begins at RVA 0x20a1
-                		// Code size 7 (0x7)
+                		// Code size: 7 (0x7)
                 		.maxstack 8
                 		IL_0000: ldarg.0
                 		IL_0001: call instance void [{{s_libPrefix}}]System.Object::.ctor()
@@ -14926,7 +14926,7 @@ class Program
                 				01 00 64 00 00 00 00 00 00 00 00 00
                 			)
                 		// Method begins at RVA 0x20b5
-                		// Code size 1 (0x1)
+                		// Code size: 1 (0x1)
                 		.maxstack 8
                 		IL_0000: ret
                 	} // end of method '<>c'::'<<Main>$>b__0_0'
@@ -14940,7 +14940,7 @@ class Program
                 				01 00 64 00 00 00 00 00 00 00 00 00
                 			)
                 		// Method begins at RVA 0x20b5
-                		// Code size 1 (0x1)
+                		// Code size: 1 (0x1)
                 		.maxstack 8
                 		IL_0000: ret
                 	} // end of method '<>c'::'<<Main>$>b__0_1'
@@ -15000,7 +15000,7 @@ class Program
                 		) cil managed 
                 	{
                 		// Method begins at RVA 0x2067
-                		// Code size 1 (0x1)
+                		// Code size: 1 (0x1)
                 		.maxstack 8
                 		.entrypoint
                 		IL_0000: ret
@@ -15009,7 +15009,7 @@ class Program
                 		instance void .ctor () cil managed 
                 	{
                 		// Method begins at RVA 0x2069
-                		// Code size 7 (0x7)
+                		// Code size: 7 (0x7)
                 		.maxstack 8
                 		IL_0000: ldarg.0
                 		IL_0001: call instance void [{{s_libPrefix}}]System.Object::.ctor()
@@ -15028,7 +15028,7 @@ class Program
                  				01 00 64 00 00 00 00 00 00 00 00 00
                  			)
                 		// Method begins at RVA 0x2067
-                		// Code size 1 (0x1)
+                		// Code size: 1 (0x1)
                 		.maxstack 8
                 		IL_0000: ret
                 	} // end of method Program::'<<Main>$>g__local1|0_0'
@@ -15045,7 +15045,7 @@ class Program
                  				01 00 64 00 00 00 00 00 00 00 00 00
                  			)
                 		// Method begins at RVA 0x2067
-                		// Code size 1 (0x1)
+                		// Code size: 1 (0x1)
                 		.maxstack 8
                 		IL_0000: ret
                 	} // end of method Program::'<<Main>$>g__local2|0_1'
@@ -16044,7 +16044,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 		void .cctor () cil managed 
                 	{
                 		// Method begins at RVA 0x20a4
-                		// Code size 11 (0xb)
+                		// Code size: 11 (0xb)
                 		.maxstack 8
                 		IL_0000: newobj instance void Program/'<>c'::.ctor()
                 		IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
@@ -16054,7 +16054,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 		instance void .ctor () cil managed 
                 	{
                 		// Method begins at RVA 0x209c
-                		// Code size 7 (0x7)
+                		// Code size: 7 (0x7)
                 		.maxstack 8
                 		IL_0000: ldarg.0
                 		IL_0001: call instance void [{{s_libPrefix}}]System.Object::.ctor()
@@ -16067,7 +16067,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 		) cil managed 
                 	{
                 		// Method begins at RVA 0x20b0
-                		// Code size 1 (0x1)
+                		// Code size: 1 (0x1)
                 		.maxstack 8
                 		IL_0000: ret
                 	} // end of method '<>c'::'<<Main>$>b__0_0'
@@ -16100,7 +16100,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 		void M () cil managed 
                 	{
                 		// Method begins at RVA 0x2067
-                		// Code size 1 (0x1)
+                		// Code size: 1 (0x1)
                 		.maxstack 8
                 		IL_0000: ret
                 	} // end of method C::M
@@ -16108,7 +16108,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 		instance void .ctor () cil managed 
                 	{
                 		// Method begins at RVA 0x2069
-                		// Code size 7 (0x7)
+                		// Code size: 7 (0x7)
                 		.maxstack 8
                 		IL_0000: ldarg.0
                 		IL_0001: call instance void [{{s_libPrefix}}]System.Object::.ctor()
@@ -16124,7 +16124,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 			01 00 00 00
                 		)
                 		// Method begins at RVA 0x2067
-                		// Code size 1 (0x1)
+                		// Code size: 1 (0x1)
                 		.maxstack 8
                 		IL_0000: ret
                 	} // end of method C::'<M>g__local|0_0'
