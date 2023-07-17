@@ -162,16 +162,64 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
                 var allFieldsAction = CodeAction.Create(
                     FeaturesResources.Create_and_assign_remaining_as_fields,
-                    c => AddAllSymbolInitializationsAsync(
-                        document, typeDeclaration, parameters, fields, fallbackOptions, c),
+                    cancellationToken => AddAllSymbolInitializationsAsync(parameters, fields, cancellationToken),
                     nameof(FeaturesResources.Create_and_assign_remaining_as_fields));
                 var allPropertiesAction = CodeAction.Create(
                     FeaturesResources.Create_and_assign_remaining_as_properties,
-                    c => AddAllSymbolInitializationsAsync(
-                        document, typeDeclaration, parameters, properties, fallbackOptions, c),
+                    cancellationToken => AddAllSymbolInitializationsAsync(parameters, properties, cancellationToken),
                     nameof(FeaturesResources.Create_and_assign_remaining_as_properties));
 
                 return (allFieldsAction, allPropertiesAction);
+            }
+
+            async Task<Solution> AddAllSymbolInitializationsAsync(
+                ImmutableArray<IParameterSymbol> parameters,
+                ImmutableArray<ISymbol> fieldsOrProperties,
+                CancellationToken cancellationToken)
+            {
+                Debug.Assert(parameters.Length >= 2);
+                Debug.Assert(fieldsOrProperties.Length > 0);
+                Debug.Assert(parameters.Length == fieldsOrProperties.Length);
+
+                // Process each param+field/prop in order.  Apply the pair to the document getting the updated document.
+                // Then find all the current data in that updated document and move onto the next pair.
+
+                var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+                var trackedRoot = root.TrackNodes(typeDeclaration);
+                var currentSolution = document.WithSyntaxRoot(trackedRoot).Project.Solution;
+
+                for (var i = 0; i < parameters.Length; i++)
+                {
+                    var parameter = parameters[i];
+                    var fieldOrProperty = fieldsOrProperties[i];
+
+                    var currentDocument = currentSolution.GetRequiredDocument(document.Id);
+                    var currentSemanticModel = await currentDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    var currentCompilation = currentSemanticModel.Compilation;
+                    var currentRoot = await currentDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+                    var currentTypeDeclaration = currentRoot.GetCurrentNode(typeDeclaration);
+                    if (currentTypeDeclaration == null)
+                        continue;
+
+                    var currentParameter = (IParameterSymbol?)parameter.GetSymbolKey(cancellationToken).Resolve(currentCompilation, cancellationToken: cancellationToken).GetAnySymbol();
+                    if (currentParameter == null)
+                        continue;
+
+                    // fieldOrProperty is a new member.  So we don't have to track it to this edit we're making.
+
+                    currentSolution = await AddSingleSymbolInitializationAsync(
+                        currentDocument,
+                        currentTypeDeclaration,
+                        currentParameter,
+                        fieldOrProperty,
+                        isThrowNotImplementedProperty: false,
+                        fallbackOptions,
+                        cancellationToken).ConfigureAwait(false);
+                }
+
+                return currentSolution;
             }
         }
 
@@ -310,59 +358,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             // We place a special rule in s_builtInRules that matches all properties.  So we should 
             // always find a matching rule.
             throw ExceptionUtilities.Unreachable();
-        }
-
-        private static async Task<Solution> AddAllSymbolInitializationsAsync(
-            Document document,
-            TypeDeclarationSyntax typeDeclaration,
-            ImmutableArray<IParameterSymbol> parameters,
-            ImmutableArray<ISymbol> fieldsOrProperties,
-            CodeGenerationOptionsProvider fallbackOptions,
-            CancellationToken cancellationToken)
-        {
-            Debug.Assert(parameters.Length >= 2);
-            Debug.Assert(fieldsOrProperties.Length > 0);
-            Debug.Assert(parameters.Length == fieldsOrProperties.Length);
-
-            // Process each param+field/prop in order.  Apply the pair to the document getting the updated document.
-            // Then find all the current data in that updated document and move onto the next pair.
-
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            var trackedRoot = root.TrackNodes(typeDeclaration);
-            var currentSolution = document.WithSyntaxRoot(trackedRoot).Project.Solution;
-
-            for (var i = 0; i < parameters.Length; i++)
-            {
-                var parameter = parameters[i];
-                var fieldOrProperty = fieldsOrProperties[i];
-
-                var currentDocument = currentSolution.GetRequiredDocument(document.Id);
-                var currentSemanticModel = await currentDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var currentCompilation = currentSemanticModel.Compilation;
-                var currentRoot = await currentDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-                var currentTypeDeclaration = currentRoot.GetCurrentNode(typeDeclaration);
-                if (currentTypeDeclaration == null)
-                    continue;
-
-                var currentParameter = (IParameterSymbol?)parameter.GetSymbolKey(cancellationToken).Resolve(currentCompilation, cancellationToken: cancellationToken).GetAnySymbol();
-                if (currentParameter == null)
-                    continue;
-
-                // fieldOrProperty is a new member.  So we don't have to track it to this edit we're making.
-
-                currentSolution = await AddSingleSymbolInitializationAsync(
-                    currentDocument,
-                    currentTypeDeclaration,
-                    currentParameter,
-                    fieldOrProperty,
-                    isThrowNotImplementedProperty: false,
-                    fallbackOptions,
-                    cancellationToken).ConfigureAwait(false);
-            }
-
-            return currentSolution;
         }
 
         private static async Task<Solution> AddSingleSymbolInitializationAsync(
