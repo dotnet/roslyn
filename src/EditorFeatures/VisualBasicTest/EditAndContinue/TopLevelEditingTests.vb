@@ -5522,7 +5522,7 @@ End Interface
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.UpdateStaticLocal, "Sub Main()", FeaturesResources.method))
+                Diagnostic(RudeEditKind.UpdateStaticLocal, "Static a = 0", FeaturesResources.method))
         End Sub
 
         <Fact>
@@ -5532,7 +5532,7 @@ End Interface
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.UpdateStaticLocal, "Sub Main()", FeaturesResources.method))
+                Diagnostic(RudeEditKind.UpdateStaticLocal, "Static a = 0", FeaturesResources.method))
         End Sub
 
         <Fact>

@@ -1628,15 +1628,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Sub
 
             Private Sub ReportError(kind As RudeEditKind)
-                ReportError(kind, {GetDisplayName(If(_newNode, _oldNode), EditKind.Update)})
-            End Sub
-
-            Private Sub ReportError(kind As RudeEditKind, args As String())
-                _diagnostics.Add(New RudeEditDiagnostic(kind, GetSpan(), If(_newNode, _oldNode), args))
-            End Sub
-
-            Private Sub ReportError(kind As RudeEditKind, spanNode As SyntaxNode, displayNode As SyntaxNode)
-                _diagnostics.Add(New RudeEditDiagnostic(kind, GetDiagnosticSpan(spanNode, _kind), displayNode, {GetDisplayName(displayNode, EditKind.Update)}))
+                _diagnostics.Add(New RudeEditDiagnostic(
+                    kind,
+                    span:=GetSpan(),
+                    node:=If(_newNode, _oldNode),
+                    arguments:={GetDisplayName(If(_newNode, _oldNode), EditKind.Update)}))
             End Sub
 
             Private Function GetSpan() As TextSpan
@@ -1855,30 +1851,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         Return
                 End Select
             End Sub
-
-            Public Sub ClassifyMemberOrLambdaBodyRudeUpdates(newBody As DeclarationBody)
-                For Each root In newBody.RootNodes
-                    Dim lambdaBody = TryCast(newBody, LambdaBody)
-                    For Each topMostBodyNode In If(lambdaBody IsNot Nothing, lambdaBody.GetExpressionsAndStatements(), {root})
-                        For Each node In topMostBodyNode.DescendantNodesAndSelf(AddressOf LambdaUtilities.IsNotLambda)
-                            Select Case node.Kind()
-                                Case SyntaxKind.AggregateClause,
-                                     SyntaxKind.GroupByClause,
-                                     SyntaxKind.SimpleJoinClause,
-                                     SyntaxKind.GroupJoinClause
-                                    ReportError(RudeEditKind.ComplexQueryExpression, node, Me._newNode)
-                                    Return
-
-                                Case SyntaxKind.LocalDeclarationStatement
-                                    Dim declaration = DirectCast(node, LocalDeclarationStatementSyntax)
-                                    If declaration.Modifiers.Any(SyntaxKind.StaticKeyword) Then
-                                        ReportError(RudeEditKind.UpdateStaticLocal)
-                                    End If
-                            End Select
-                        Next
-                    Next
-                Next
-            End Sub
 #End Region
         End Structure
 
@@ -1917,9 +1889,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             classifier.ClassifyEdit()
         End Sub
 
-        Friend Overrides Sub ReportMemberOrLambdaBodyUpdateRudeEditsImpl(diagnostics As ArrayBuilder(Of RudeEditDiagnostic), newDeclaration As SyntaxNode, newBody As DeclarationBody, span As TextSpan?)
-            Dim classifier = New EditClassifier(Me, diagnostics, Nothing, newDeclaration, EditKind.Update, span:=span)
-            classifier.ClassifyMemberOrLambdaBodyRudeUpdates(newBody)
+        Friend Overrides Sub ReportMemberOrLambdaBodyUpdateRudeEditsImpl(diagnostics As ArrayBuilder(Of RudeEditDiagnostic), newDeclaration As SyntaxNode, newBody As DeclarationBody)
+            ' Disallow editing the body even if the change is only in trivia.
+            ' The compiler might not emit equivallent IL for these constructs (e.g. different names of backing fields for static locals).
+
+            For Each root In newBody.RootNodes
+                Dim lambdaBody = TryCast(newBody, LambdaBody)
+                For Each topMostBodyNode In If(lambdaBody IsNot Nothing, lambdaBody.GetExpressionsAndStatements(), {root})
+                    For Each node In topMostBodyNode.DescendantNodesAndSelf(AddressOf LambdaUtilities.IsNotLambda)
+                        Dim rudeEdit = RudeEditKind.None
+
+                        Select Case node.Kind()
+                            Case SyntaxKind.AggregateClause,
+                                 SyntaxKind.GroupByClause,
+                                 SyntaxKind.SimpleJoinClause,
+                                 SyntaxKind.GroupJoinClause
+                                rudeEdit = RudeEditKind.ComplexQueryExpression
+
+                            Case SyntaxKind.LocalDeclarationStatement
+                                Dim declaration = DirectCast(node, LocalDeclarationStatementSyntax)
+                                If declaration.Modifiers.Any(SyntaxKind.StaticKeyword) Then
+                                    rudeEdit = RudeEditKind.UpdateStaticLocal
+                                End If
+                        End Select
+
+                        If rudeEdit <> RudeEditKind.None Then
+                            diagnostics.Add(New RudeEditDiagnostic(
+                                rudeEdit,
+                                GetDiagnosticSpan(node, EditKind.Update),
+                                newDeclaration,
+                                {GetDisplayName(newDeclaration, EditKind.Update)}))
+
+                            Return
+                        End If
+                    Next
+                Next
+            Next
         End Sub
 
 #End Region
