@@ -2831,9 +2831,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (7,29): warning CS9507: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in overridden or implemented member.
             //     protected override void M(ref readonly int x) => System.Console.WriteLine("C.M" + x);
             Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "M").WithArguments("ref readonly int x", "in int x").WithLocation(7, 29),
-            // (12,17): warning CS9502: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
-            //         c.M(ref x);
-            Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(12, 17));
+            // (14,13): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            //         c.M(x);
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(14, 13));
 
         static void verify(ModuleSymbol m)
         {
@@ -2890,9 +2890,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (22,9): warning CS9507: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in overridden or implemented member.
             //         set { }
             Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "set").WithArguments("ref readonly int x", "in int x").WithLocation(22, 9),
-            // (28,19): warning CS9502: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
-            //         _ = c[ref x];
-            Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(28, 19));
+            // (30,15): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            //         _ = c[x];
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(30, 15));
 
         static void verify(ModuleSymbol m)
         {
@@ -2933,9 +2933,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (7,29): warning CS9507: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in overridden or implemented member.
             //     protected override void M(in int x) => System.Console.WriteLine("C.M" + x);
             Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "M").WithArguments("in int x", "ref readonly int x").WithLocation(7, 29),
-            // (14,13): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
-            //         c.M(x);
-            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(14, 13));
+            // (12,17): warning CS9502: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            //         c.M(ref x);
+            Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(12, 17));
 
         static void verify(ModuleSymbol m)
         {
