@@ -2468,33 +2468,33 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayConversionOperatorNotUsed">
-        <source>Conversion operator will not be used for conversion from expression of the declaring type.</source>
-        <target state="new">Conversion operator will not be used for conversion from expression of the declaring type.</target>
+        <source>Inline array conversion operator will not be used for conversion from expression of the declaring type.</source>
+        <target state="new">Inline array conversion operator will not be used for conversion from expression of the declaring type.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayConversionOperatorNotUsed_Title">
-        <source>Conversion operator will not be used for conversion from expression of the declaring type.</source>
-        <target state="new">Conversion operator will not be used for conversion from expression of the declaring type.</target>
+        <source>Inline array conversion operator will not be used for conversion from expression of the declaring type.</source>
+        <target state="new">Inline array conversion operator will not be used for conversion from expression of the declaring type.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayIndexerNotUsed">
-        <source>Indexer will not be used for element access expression.</source>
-        <target state="new">Indexer will not be used for element access expression.</target>
+        <source>Inline array indexer will not be used for element access expression.</source>
+        <target state="new">Inline array indexer will not be used for element access expression.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayIndexerNotUsed_Title">
-        <source>Indexer will not be used for element access expression.</source>
-        <target state="new">Indexer will not be used for element access expression.</target>
+        <source>Inline array indexer will not be used for element access expression.</source>
+        <target state="new">Inline array indexer will not be used for element access expression.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArraySliceNotUsed">
-        <source>Slice method will not be used for element access expression.</source>
-        <target state="new">Slice method will not be used for element access expression.</target>
+        <source>Inline array 'Slice' method will not be used for element access expression.</source>
+        <target state="new">Inline array 'Slice' method will not be used for element access expression.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArraySliceNotUsed_Title">
-        <source>Slice method will not be used for element access expression.</source>
-        <target state="new">Slice method will not be used for element access expression.</target>
+        <source>Inline array 'Slice' method will not be used for element access expression.</source>
+        <target state="new">Inline array 'Slice' method will not be used for element access expression.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InterceptorSignatureMismatch">

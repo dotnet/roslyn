@@ -7760,7 +7760,7 @@ public struct Buffer10<T>
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics(
-                // (22,14): warning CS9181: Indexer will not be used for element access expression.
+                // (22,14): warning CS9181: Inline array indexer will not be used for element access expression.
                 //     public T this[int i]
                 Diagnostic(ErrorCode.WRN_InlineArrayIndexerNotUsed, "this").WithLocation(22, 14)
                 );
@@ -7852,7 +7852,7 @@ public struct Buffer10<T>
                 // (14,37): error CS1913: Member '[^10]' cannot be initialized. It is not a field or property.
                 //     static C M2() => new C() { F = {[^10] = 111} };
                 Diagnostic(ErrorCode.ERR_MemberCannotBeInitialized, "[^10]").WithArguments("[^10]").WithLocation(14, 37),
-                // (22,14): warning CS9181: Indexer will not be used for element access expression.
+                // (22,14): warning CS9181: Inline array indexer will not be used for element access expression.
                 //     public T this[int i]
                 Diagnostic(ErrorCode.WRN_InlineArrayIndexerNotUsed, "this").WithLocation(22, 14)
                 );
@@ -16345,7 +16345,7 @@ public struct Buffer10
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics(
-                // (17,37): warning CS9183: Conversion operator will not be used for conversion from expression of the declaring type.
+                // (17,37): warning CS9183: Inline array conversion operator will not be used for conversion from expression of the declaring type.
                 //     public static implicit operator System.ReadOnlySpan<int>(Buffer10 x) => new[] { -111 };
                 Diagnostic(ErrorCode.WRN_InlineArrayConversionOperatorNotUsed, "System.ReadOnlySpan<int>").WithLocation(17, 37)
                 );
@@ -16920,7 +16920,7 @@ public struct Buffer10<T>
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics(
-                // (27,14): warning CS9181: Indexer will not be used for element access expression.
+                // (27,14): warning CS9181: Inline array indexer will not be used for element access expression.
                 //     public T this[int i]
                 Diagnostic(ErrorCode.WRN_InlineArrayIndexerNotUsed, "this").WithLocation(27, 14)
                 );
@@ -16994,7 +16994,7 @@ public struct Buffer10<T>
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics(
-                // (27,14): warning CS9181: Indexer will not be used for element access expression.
+                // (27,14): warning CS9181: Inline array indexer will not be used for element access expression.
                 //     public T this[int i]
                 Diagnostic(ErrorCode.WRN_InlineArrayIndexerNotUsed, "this").WithLocation(27, 14)
                 );
@@ -17069,10 +17069,10 @@ public struct Buffer10<T>
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: Verification.Fails).VerifyDiagnostics(
-                // (27,14): warning CS9181: Indexer will not be used for element access expression.
+                // (27,14): warning CS9181: Inline array indexer will not be used for element access expression.
                 //     public T this[int i]
                 Diagnostic(ErrorCode.WRN_InlineArrayIndexerNotUsed, "this").WithLocation(27, 14),
-                // (34,29): warning CS9182: Slice method will not be used for element access expression.
+                // (34,29): warning CS9182: Inline array 'Slice' method will not be used for element access expression.
                 //     public System.Span<int> Slice(int start, int length) => throw null;
                 Diagnostic(ErrorCode.WRN_InlineArraySliceNotUsed, "Slice").WithLocation(34, 29)
                 );
@@ -20744,13 +20744,13 @@ struct Buffer4
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
-                // (7,12): warning CS9181: Indexer will not be used for element access expression.
+                // (7,12): warning CS9181: Inline array indexer will not be used for element access expression.
                 //     string this[int i] => "int";
                 Diagnostic(ErrorCode.WRN_InlineArrayIndexerNotUsed, "this").WithLocation(7, 12)
                 );
 
             CompileAndVerify(comp, expectedOutput: "0").VerifyDiagnostics(
-                // (7,12): warning CS9181: Indexer will not be used for element access expression.
+                // (7,12): warning CS9181: Inline array indexer will not be used for element access expression.
                 //     string this[int i] => "int";
                 Diagnostic(ErrorCode.WRN_InlineArrayIndexerNotUsed, "this").WithLocation(7, 12)
                 );
@@ -20777,7 +20777,7 @@ struct Buffer4
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: "0").VerifyDiagnostics(
-                // (7,12): warning CS9181: Indexer will not be used for element access expression.
+                // (7,12): warning CS9181: Inline array indexer will not be used for element access expression.
                 //     string this[System.Index i] => "index";
                 Diagnostic(ErrorCode.WRN_InlineArrayIndexerNotUsed, "this").WithLocation(7, 12)
                 );
@@ -20804,7 +20804,7 @@ struct Buffer4
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: "0", verify: Verification.Fails).VerifyDiagnostics(
-                // (7,12): warning CS9181: Indexer will not be used for element access expression.
+                // (7,12): warning CS9181: Inline array indexer will not be used for element access expression.
                 //     string this[System.Range i] => "range";
                 Diagnostic(ErrorCode.WRN_InlineArrayIndexerNotUsed, "this").WithLocation(7, 12)
                 );
@@ -20897,13 +20897,13 @@ struct Buffer4
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
-                // (8,12): warning CS9182: Slice method will not be used for element access expression.
+                // (8,12): warning CS9182: Inline array 'Slice' method will not be used for element access expression.
                 //     string Slice(int i, int j) => "int";
                 Diagnostic(ErrorCode.WRN_InlineArraySliceNotUsed, "Slice").WithLocation(8, 12)
                 );
 
             CompileAndVerify(comp, expectedOutput: "0", verify: Verification.Fails).VerifyDiagnostics(
-                // (8,12): warning CS9182: Slice method will not be used for element access expression.
+                // (8,12): warning CS9182: Inline array 'Slice' method will not be used for element access expression.
                 //     string Slice(int i, int j) => "int";
                 Diagnostic(ErrorCode.WRN_InlineArraySliceNotUsed, "Slice").WithLocation(8, 12)
                 );
@@ -20935,6 +20935,34 @@ struct Buffer4
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
+        public void UserDefinedSlice_Warning_03()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.InlineArray(4)]
+struct Buffer4 : I1
+{
+    private int _element0;
+
+    int Length => 4;
+    string I1.Slice(int i, int j) => ""int"";
+
+    static void Main()
+    {
+        Buffer4 b = default;
+        System.Console.WriteLine(b[..][0]);
+    }
+}
+
+interface I1
+{
+    string Slice(int i, int j);
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "0", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void UserDefinedConversion_Warning_01()
         {
             var src = @"
@@ -20955,13 +20983,13 @@ struct Buffer4
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
-                // (7,37): warning CS9183: Conversion operator will not be used for conversion from expression of the declaring type.
+                // (7,37): warning CS9183: Inline array conversion operator will not be used for conversion from expression of the declaring type.
                 //     public static implicit operator System.Span<int>(Buffer4 b) => throw null; 
                 Diagnostic(ErrorCode.WRN_InlineArrayConversionOperatorNotUsed, "System.Span<int>").WithLocation(7, 37)
                 );
 
             CompileAndVerify(comp, expectedOutput: "0", verify: Verification.Fails).VerifyDiagnostics(
-                // (7,37): warning CS9183: Conversion operator will not be used for conversion from expression of the declaring type.
+                // (7,37): warning CS9183: Inline array conversion operator will not be used for conversion from expression of the declaring type.
                 //     public static implicit operator System.Span<int>(Buffer4 b) => throw null; 
                 Diagnostic(ErrorCode.WRN_InlineArrayConversionOperatorNotUsed, "System.Span<int>").WithLocation(7, 37)
                 );
@@ -20988,13 +21016,13 @@ struct Buffer4
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
-                // (7,37): warning CS9183: Conversion operator will not be used for conversion from expression of the declaring type.
+                // (7,37): warning CS9183: Inline array conversion operator will not be used for conversion from expression of the declaring type.
                 //     public static explicit operator System.ReadOnlySpan<int>(in Buffer4 b) => throw null; 
                 Diagnostic(ErrorCode.WRN_InlineArrayConversionOperatorNotUsed, "System.ReadOnlySpan<int>").WithLocation(7, 37)
                 );
 
             CompileAndVerify(comp, expectedOutput: "0", verify: Verification.Fails).VerifyDiagnostics(
-                // (7,37): warning CS9183: Conversion operator will not be used for conversion from expression of the declaring type.
+                // (7,37): warning CS9183: Inline array conversion operator will not be used for conversion from expression of the declaring type.
                 //     public static explicit operator System.ReadOnlySpan<int>(in Buffer4 b) => throw null; 
                 Diagnostic(ErrorCode.WRN_InlineArrayConversionOperatorNotUsed, "System.ReadOnlySpan<int>").WithLocation(7, 37)
                 );

@@ -7683,21 +7683,21 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Inline array element field cannot be declared required.</value>
   </data>
   <data name="WRN_InlineArrayIndexerNotUsed" xml:space="preserve">
-    <value>Indexer will not be used for element access expression.</value>
+    <value>Inline array indexer will not be used for element access expression.</value>
   </data>
   <data name="WRN_InlineArrayIndexerNotUsed_Title" xml:space="preserve">
-    <value>Indexer will not be used for element access expression.</value>
+    <value>Inline array indexer will not be used for element access expression.</value>
   </data>
   <data name="WRN_InlineArraySliceNotUsed" xml:space="preserve">
-    <value>Slice method will not be used for element access expression.</value>
+    <value>Inline array 'Slice' method will not be used for element access expression.</value>
   </data>
   <data name="WRN_InlineArraySliceNotUsed_Title" xml:space="preserve">
-    <value>Slice method will not be used for element access expression.</value>
+    <value>Inline array 'Slice' method will not be used for element access expression.</value>
   </data>
   <data name="WRN_InlineArrayConversionOperatorNotUsed" xml:space="preserve">
-    <value>Conversion operator will not be used for conversion from expression of the declaring type.</value>
+    <value>Inline array conversion operator will not be used for conversion from expression of the declaring type.</value>
   </data>
   <data name="WRN_InlineArrayConversionOperatorNotUsed_Title" xml:space="preserve">
-    <value>Conversion operator will not be used for conversion from expression of the declaring type.</value>
+    <value>Inline array conversion operator will not be used for conversion from expression of the declaring type.</value>
   </data>
 </root>
