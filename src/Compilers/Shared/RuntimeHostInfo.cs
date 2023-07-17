@@ -53,15 +53,15 @@ namespace Microsoft.CodeAnalysis
         /// Get the path to the dotnet executable. In the case the host did not provide this information
         /// in the environment this will return simply "dotnet".
         /// </summary>
+        /// <remarks>
+        /// See the following issue for rationale why only %PATH% is considered
+        /// https://github.com/dotnet/runtime/issues/88754
+        /// </remarks>
         internal static string GetDotNetPathOrDefault()
         {
             var (fileName, sep) = PlatformInformation.IsWindows
                 ? ("dotnet.exe", ';')
                 : ("dotnet", ':');
-            if (Environment.GetEnvironmentVariable("DOTNET_ROOT") is { } rootStr)
-            {
-                return Path.Combine(rootStr, fileName);
-            }
 
             var path = Environment.GetEnvironmentVariable("PATH") ?? "";
             foreach (var item in path.Split(sep, StringSplitOptions.RemoveEmptyEntries))
