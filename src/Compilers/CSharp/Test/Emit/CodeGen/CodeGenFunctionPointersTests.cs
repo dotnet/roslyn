@@ -6094,6 +6094,13 @@ unsafe class C<T>
     static void M2(C<delegate*<{refKind1} object, void>[]> c) => throw null;
     static void M2(C<delegate*<{refKind2} object, void>[]> c) => throw null;
 }}
+
+namespace System.Runtime.CompilerServices
+{{
+    class RequiresLocationAttribute : System.Attribute
+    {{
+    }}
+}}
 ");
 
             comp.VerifyDiagnostics(
