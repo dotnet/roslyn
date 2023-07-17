@@ -1062,6 +1062,46 @@ namespace N
         }
 
         [Fact]
+        public async Task Csharp_BannedConstructor_AttributeAsync()
+        {
+            var source = @"
+using System;
+
+[AttributeUsage(AttributeTargets.All, Inherited = true)]
+class BannedAttribute : Attribute
+{
+    public BannedAttribute() {}
+    public BannedAttribute(int banned) {}
+    public BannedAttribute(string notBanned) {}
+}
+
+class C
+{
+    [{|#0:Banned|}]
+    public int SomeProperty { get; }
+
+    [{|#1:Banned(1)|}]
+    public void SomeMethod() {}
+
+    [Banned("""")]
+    class D {}
+}
+";
+            var bannedText1 = @"M:BannedAttribute.#ctor";
+            var bannedText2 = @"M:BannedAttribute.#ctor(System.Int32)";
+
+            await VerifyCSharpAnalyzerAsync(
+                source,
+                bannedText1,
+                GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute.BannedAttribute()", ""));
+
+            await VerifyCSharpAnalyzerAsync(
+                source,
+                bannedText2,
+                GetCSharpResultAt(1, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute.BannedAttribute(int)", ""));
+        }
+
+        [Fact]
         public async Task CSharp_BannedMethodAsync()
         {
             var source = @"
@@ -1866,6 +1906,46 @@ End Namespace";
                 source,
                 bannedText2,
                 GetBasicResultAt(1, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Sub New(I As Integer)", ""));
+        }
+
+        [Fact]
+        public async Task VisualBasic_BannedConstructor_AttributeAsync()
+        {
+            var source = @"
+Imports System
+
+<AttributeUsage(System.AttributeTargets.All, Inherited:=True)>
+Class BannedAttribute
+    Inherits System.Attribute
+
+    Sub New : End Sub
+    Sub New(ByVal Banned As Integer) : End Sub
+    Sub New(ByVal NotBanned As String) : End Sub
+End Class
+
+Class C
+    <{|#0:Banned|}>
+    Public ReadOnly Property SomeProperty As Integer
+
+    <{|#1:Banned(1)|}>
+    Public Sub SomeMethod : End Sub
+
+    <Banned("""")>
+    Class D : End Class
+End Class
+";
+            var bannedText1 = @"M:BannedAttribute.#ctor";
+            var bannedText2 = @"M:BannedAttribute.#ctor(System.Int32)";
+
+            await VerifyBasicAnalyzerAsync(
+                source,
+                bannedText1,
+                GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Sub New()", ""));
+
+            await VerifyBasicAnalyzerAsync(
+                source,
+                bannedText2,
+                GetBasicResultAt(1, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Sub New(Banned As Integer)", ""));
         }
 
         [Fact]
