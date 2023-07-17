@@ -2894,8 +2894,11 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         CompileAndVerify(source, expectedOutput: "C111").VerifyDiagnostics(
             // (7,17): warning CS0108: 'C.M(ref readonly int)' hides inherited member 'B.M(in int)'. Use the new keyword if hiding was intended.
-            //     public void M(ref readonly int x) { }
-            Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("C.M(ref readonly int)", "B.M(in int)").WithLocation(7, 17));
+            //     public void M(ref readonly int x) => System.Console.Write("C" + x);
+            Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("C.M(ref readonly int)", "B.M(in int)").WithLocation(7, 17),
+            // (7,17): warning CS9508: Modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in hidden member.
+            //     public void M(ref readonly int x) => System.Console.Write("C" + x);
+            Diagnostic(ErrorCode.WRN_HidingDifferentRefness, "M").WithArguments("ref readonly int x", "in int x").WithLocation(7, 17));
     }
 
     [Fact]
@@ -2942,8 +2945,11 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         CompileAndVerify(source, expectedOutput: "C111").VerifyDiagnostics(
             // (7,17): warning CS0108: 'C.M(in int)' hides inherited member 'B.M(ref readonly int)'. Use the new keyword if hiding was intended.
-            //     public void M(in int x) { }
-            Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("C.M(in int)", "B.M(ref readonly int)").WithLocation(7, 17));
+            //     public void M(in int x) => System.Console.Write("C" + x);
+            Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("C.M(in int)", "B.M(ref readonly int)").WithLocation(7, 17),
+            // (7,17): warning CS9508: Modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in hidden member.
+            //     public void M(in int x) => System.Console.Write("C" + x);
+            Diagnostic(ErrorCode.WRN_HidingDifferentRefness, "M").WithArguments("in int x", "ref readonly int x").WithLocation(7, 17));
     }
 
     [Fact]
