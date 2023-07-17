@@ -6632,17 +6632,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private sealed class TypedConstantComparer : IEqualityComparer<TypedConstant>
         {
-            public static TypedConstantComparer Instance = new TypedConstantComparer();
+            public static readonly TypedConstantComparer Instance = new();
 
             public bool Equals(TypedConstant x, TypedConstant y)
                 => x.Kind.Equals(y.Kind) &&
-                   x.IsNull.Equals(y.IsNull) &&
+                   x.IsNull == y.IsNull &&
                    SymbolEquivalenceComparer.Instance.Equals(x.Type, y.Type) &&
                    x.Kind switch
                    {
-                       TypedConstantKind.Array => x.Values.SequenceEqual(y.Values, TypedConstantComparer.Instance),
-                       TypedConstantKind.Type => TypesEquivalent(x.Value as ITypeSymbol, y.Value as ITypeSymbol, exact: false),
-                       _ => object.Equals(x.Value, y.Value)
+                       TypedConstantKind.Array => x.Values.IsDefault || x.Values.SequenceEqual(y.Values, Instance),
+                       TypedConstantKind.Type => TypesEquivalent((ITypeSymbol?)x.Value, (ITypeSymbol?)y.Value, exact: false),
+                       _ => Equals(x.Value, y.Value)
                    };
 
             public int GetHashCode(TypedConstant obj)
@@ -6651,7 +6651,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private sealed class NamedArgumentComparer : IEqualityComparer<KeyValuePair<string, TypedConstant>>
         {
-            public static NamedArgumentComparer Instance = new NamedArgumentComparer();
+            public static readonly NamedArgumentComparer Instance = new();
 
             public bool Equals(KeyValuePair<string, TypedConstant> x, KeyValuePair<string, TypedConstant> y)
                 => x.Key.Equals(y.Key) &&
