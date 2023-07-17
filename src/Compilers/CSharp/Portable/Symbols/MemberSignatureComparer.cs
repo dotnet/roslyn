@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerReturnType: false,
             considerTypeConstraints: false,
             considerCallingConvention: false, //ignore static-ness
-            refKindCompareMode: RefKindCompareMode.ConsiderDifferences,
+            refKindCompareMode: RefKindCompareMode.ConsiderDifferences | RefKindCompareMode.AllowRefReadonlyVsInMismatch,
             typeComparison: TypeCompareKind.AllIgnoreOptions);
 
         /// <summary>
