@@ -151,9 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             (CodeAction? fieldAction, CodeAction? propertyAction) AddAllParameterInitializationActions(
                 AccessibilityModifiersRequired accessibilityModifiersRequired)
             {
-                var parameters = GetParametersWithoutAssociatedMembers(
-                    compilation, rules, constructor, cancellationToken);
-
+                var parameters = GetParametersWithoutAssociatedMembers();
                 if (parameters.Length < 2)
                     return default;
 
@@ -170,6 +168,26 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                     nameof(FeaturesResources.Create_and_assign_remaining_as_properties));
 
                 return (allFieldsAction, allPropertiesAction);
+            }
+
+            ImmutableArray<IParameterSymbol> GetParametersWithoutAssociatedMembers()
+            {
+                using var _ = ArrayBuilder<IParameterSymbol>.GetInstance(out var result);
+
+                foreach (var parameter in constructor.Parameters)
+                {
+                    var parameterNameParts = IdentifierNameParts.CreateIdentifierNameParts(parameter, rules);
+                    if (parameterNameParts.BaseName == "")
+                        continue;
+
+                    var assignmentOp = TryFindFieldOrPropertyInitializerValue(compilation, parameter, cancellationToken);
+                    if (assignmentOp != null)
+                        continue;
+
+                    result.Add(parameter);
+                }
+
+                return result.ToImmutable();
             }
 
             async Task<Solution> AddAllSymbolInitializationsAsync(
@@ -247,30 +265,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 nameof(FeaturesResources.Create_and_assign_property_0) + "_" + property.Name);
 
             return (fieldAction, propertyAction);
-        }
-
-        private static ImmutableArray<IParameterSymbol> GetParametersWithoutAssociatedMembers(
-            Compilation compilation,
-            ImmutableArray<NamingRule> rules,
-            IMethodSymbol method,
-            CancellationToken cancellationToken)
-        {
-            using var _ = ArrayBuilder<IParameterSymbol>.GetInstance(out var result);
-
-            foreach (var parameter in method.Parameters)
-            {
-                var parameterNameParts = IdentifierNameParts.CreateIdentifierNameParts(parameter, rules);
-                if (parameterNameParts.BaseName == "")
-                    continue;
-
-                var assignmentOp = TryFindFieldOrPropertyInitializerValue(compilation, parameter, cancellationToken);
-                if (assignmentOp != null)
-                    continue;
-
-                result.Add(parameter);
-            }
-
-            return result.ToImmutable();
         }
 
         private static ISymbol? TryFindSiblingFieldOrProperty(
