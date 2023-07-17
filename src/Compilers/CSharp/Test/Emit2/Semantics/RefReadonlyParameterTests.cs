@@ -2765,18 +2765,33 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         var source = """
             class B
             {
-                protected virtual void M(in int x) { }
+                protected virtual void M(in int x) => System.Console.WriteLine("B.M" + x);
             }
             class C : B
             {
-                protected override void M(ref readonly int x) { }
+                protected override void M(ref readonly int x) => System.Console.WriteLine("C.M" + x);
+                static void Main()
+                {
+                    var x = 123;
+                    var c = new C();
+                    c.M(ref x);
+                    c.M(in x);
+                    c.M(x);
+                }
             }
             """;
-        var verifier = CompileAndVerify(source, sourceSymbolValidator: verify, symbolValidator: verify);
+        var verifier = CompileAndVerify(source, expectedOutput: """
+            C.M123
+            C.M123
+            C.M123
+            """, sourceSymbolValidator: verify, symbolValidator: verify);
         verifier.VerifyDiagnostics(
             // (7,29): warning CS9507: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in overridden or implemented member.
-            //     protected override void M(ref readonly int x) { }
-            Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "M").WithArguments("ref readonly int x", "in int x").WithLocation(7, 29));
+            //     protected override void M(ref readonly int x) => System.Console.WriteLine("C.M" + x);
+            Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "M").WithArguments("ref readonly int x", "in int x").WithLocation(7, 29),
+            // (12,17): warning CS9502: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            //         c.M(ref x);
+            Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(12, 17));
 
         static void verify(ModuleSymbol m)
         {
@@ -2793,18 +2808,33 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         var source = """
             class B
             {
-                protected virtual void M(ref readonly int x) { }
+                protected virtual void M(ref readonly int x) => System.Console.WriteLine("B.M" + x);
             }
             class C : B
             {
-                protected override void M(in int x) { }
+                protected override void M(in int x) => System.Console.WriteLine("C.M" + x);
+                static void Main()
+                {
+                    var x = 123;
+                    var c = new C();
+                    c.M(ref x);
+                    c.M(in x);
+                    c.M(x);
+                }
             }
             """;
-        var verifier = CompileAndVerify(source, sourceSymbolValidator: verify, symbolValidator: verify);
+        var verifier = CompileAndVerify(source, expectedOutput: """
+            C.M123
+            C.M123
+            C.M123
+            """, sourceSymbolValidator: verify, symbolValidator: verify);
         verifier.VerifyDiagnostics(
             // (7,29): warning CS9507: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in overridden or implemented member.
-            //     protected override void M(in int x) { }
-            Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "M").WithArguments("in int x", "ref readonly int x").WithLocation(7, 29));
+            //     protected override void M(in int x) => System.Console.WriteLine("C.M" + x);
+            Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "M").WithArguments("in int x", "ref readonly int x").WithLocation(7, 29),
+            // (14,13): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            //         c.M(x);
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(14, 13));
 
         static void verify(ModuleSymbol m)
         {
