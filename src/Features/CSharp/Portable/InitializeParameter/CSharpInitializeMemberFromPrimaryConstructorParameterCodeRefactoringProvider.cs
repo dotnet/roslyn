@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
             // See if we're already assigning this parameter to a field/property in this type. If so, there's nothing
             // more for us to do.
-            var initializerValue = TryFindFieldOrPropertyInitializerValue(semanticModel.Compilation, parameter, cancellationToken);
+            var initializerValue = TryFindFieldOrPropertyInitializerValue(compilation, parameter, out _, cancellationToken);
             if (initializerValue != null)
                 return;
 
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
             ImmutableArray<IParameterSymbol> GetParametersWithoutAssociatedMembers()
             {
-                using var _ = ArrayBuilder<IParameterSymbol>.GetInstance(out var result);
+                using var _1 = ArrayBuilder<IParameterSymbol>.GetInstance(out var result);
 
                 foreach (var parameter in constructor.Parameters)
                 {
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                     if (parameterNameParts.BaseName == "")
                         continue;
 
-                    var assignmentOp = TryFindFieldOrPropertyInitializerValue(compilation, parameter, cancellationToken);
+                    var assignmentOp = TryFindFieldOrPropertyInitializerValue(compilation, parameter, out _, cancellationToken);
                     if (assignmentOp != null)
                         continue;
 
@@ -559,12 +559,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 }
             }
         }
-
-        private static IOperation? TryFindFieldOrPropertyInitializerValue(
-            Compilation compilation,
-            IParameterSymbol parameter,
-            CancellationToken cancellationToken)
-            => TryFindFieldOrPropertyInitializerValue(compilation, parameter, out _, cancellationToken);
 
         private static IOperation? TryFindFieldOrPropertyInitializerValue(
             Compilation compilation,
