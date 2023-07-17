@@ -38,11 +38,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(
-                CodeAction.CreateWithPriority(
-                    CodeActionPriority.Low,
+                CodeAction.Create(
                     CSharpAnalyzersResources.Use_pattern_matching,
                     GetDocumentUpdater(context),
-                    nameof(CSharpAnalyzersResources.Use_pattern_matching)),
+                    nameof(CSharpAnalyzersResources.Use_pattern_matching),
+                    CodeActionPriority.Low),
                 context.Diagnostics);
             return Task.CompletedTask;
         }

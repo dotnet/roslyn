@@ -1,8 +1,31 @@
 *REMOVED*abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.WithTypeConstraint(Microsoft.CodeAnalysis.SyntaxNode declaration, string typeParameterName, Microsoft.CodeAnalysis.Editing.SpecialTypeConstraintKind kinds, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> types = null) -> Microsoft.CodeAnalysis.SyntaxNode
 *REMOVED*abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.SetAccessorDeclaration(Microsoft.CodeAnalysis.Accessibility accessibility = Microsoft.CodeAnalysis.Accessibility.NotApplicable, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> statements = null) -> Microsoft.CodeAnalysis.SyntaxNode
 *REMOVED*Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Equals(Microsoft.CodeAnalysis.Editing.DeclarationModifiers modifiers) -> bool
+*REMOVED*static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>> createChangedDocument, string equivalenceKey = null) -> Microsoft.CodeAnalysis.CodeActions.CodeAction
+*REMOVED*static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Solution>> createChangedSolution, string equivalenceKey = null) -> Microsoft.CodeAnalysis.CodeActions.CodeAction
+Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority.Default = 3 -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.SetAccessorDeclaration(Microsoft.CodeAnalysis.Accessibility accessibility = Microsoft.CodeAnalysis.Accessibility.NotApplicable, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> statements = null) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.WithTypeConstraint(Microsoft.CodeAnalysis.SyntaxNode declaration, string typeParameterName, Microsoft.CodeAnalysis.Editing.SpecialTypeConstraintKind kinds, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> types = null) -> Microsoft.CodeAnalysis.SyntaxNode
+Microsoft.CodeAnalysis.CodeActions.CodeAction.Priority.get -> Microsoft.CodeAnalysis.CodeActions.CodeActionPriority
+Microsoft.CodeAnalysis.CodeActions.CodeActionPriority
+Microsoft.CodeAnalysis.CodeActions.CodeActionPriority.Default = 2 -> Microsoft.CodeAnalysis.CodeActions.CodeActionPriority
+Microsoft.CodeAnalysis.CodeActions.CodeActionPriority.High = 3 -> Microsoft.CodeAnalysis.CodeActions.CodeActionPriority
+Microsoft.CodeAnalysis.CodeActions.CodeActionPriority.Low = 1 -> Microsoft.CodeAnalysis.CodeActions.CodeActionPriority
+Microsoft.CodeAnalysis.CodeActions.CodeActionPriority.Lowest = 0 -> Microsoft.CodeAnalysis.CodeActions.CodeActionPriority
+Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
+Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority.High = 4 -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
+Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority.Low = 2 -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
+Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority.Lowest = 1 -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
+Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider.RequestPriority.get -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
+Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringProvider.RequestPriority.get -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
+static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CodeActions.CodeAction> nestedActions, bool isInlinable, Microsoft.CodeAnalysis.CodeActions.CodeActionPriority priority = Microsoft.CodeAnalysis.CodeActions.CodeActionPriority.Default) -> Microsoft.CodeAnalysis.CodeActions.CodeAction
+static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>> createChangedDocument, string equivalenceKey = null, Microsoft.CodeAnalysis.CodeActions.CodeActionPriority priority = Microsoft.CodeAnalysis.CodeActions.CodeActionPriority.Default) -> Microsoft.CodeAnalysis.CodeActions.CodeAction
+static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>> createChangedDocument, string equivalenceKey) -> Microsoft.CodeAnalysis.CodeActions.CodeAction
+static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Solution>> createChangedSolution, string equivalenceKey = null, Microsoft.CodeAnalysis.CodeActions.CodeActionPriority priority = Microsoft.CodeAnalysis.CodeActions.CodeActionPriority.Default) -> Microsoft.CodeAnalysis.CodeActions.CodeAction
+static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Solution>> createChangedSolution, string equivalenceKey) -> Microsoft.CodeAnalysis.CodeActions.CodeAction
+virtual Microsoft.CodeAnalysis.CodeActions.CodeAction.ComputePriority() -> Microsoft.CodeAnalysis.CodeActions.CodeActionPriority
+virtual Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider.ComputeRequestPriority() -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
+virtual Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringProvider.ComputeRequestPriority() -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
 Microsoft.CodeAnalysis.Rename.DocumentRenameOptions.Deconstruct(out bool RenameMatchingTypeInStrings, out bool RenameMatchingTypeInComments) -> void
 Microsoft.CodeAnalysis.Rename.DocumentRenameOptions.Equals(Microsoft.CodeAnalysis.Rename.DocumentRenameOptions other) -> bool
 Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.Deconstruct(out bool RenameOverloads, out bool RenameInStrings, out bool RenameInComments, out bool RenameFile) -> void
