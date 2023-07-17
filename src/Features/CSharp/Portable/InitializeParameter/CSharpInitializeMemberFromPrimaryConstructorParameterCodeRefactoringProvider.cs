@@ -66,24 +66,75 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             if (assignmentExpression != null)
                 return;
 
-            // Haven't initialized any fields/properties with this parameter.  Offer to assign
-            // to an existing matching field/prop if we can find one, or add a new field/prop
-            // if we can't.
+            // Haven't initialized any fields/properties with this parameter.  Offer to assign to an existing matching
+            // field/prop if we can find one, or add a new field/prop if we can't.
             var fallbackOptions = context.Options;
             var rules = await document.GetNamingRulesAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             var parameterNameParts = IdentifierNameParts.CreateIdentifierNameParts(parameter, rules);
             if (parameterNameParts.BaseName == "")
                 return;
 
-            var (fieldOrProperty, isThrowNotImplementedProperty) = await TryFindMatchingUninitializedFieldOrPropertySymbolAsync(
-                document, parameter, rules, parameterNameParts.BaseNameParts, cancellationToken).ConfigureAwait(false);
-
+            var (fieldOrProperty, isThrowNotImplementedProperty) = await TryFindMatchingUninitializedFieldOrPropertySymbolAsync().ConfigureAwait(false);
             var refactorings = fieldOrProperty != null
                 ? HandleExistingFieldOrProperty()
                 : await HandleNoExistingFieldOrPropertyAsync().ConfigureAwait(false);
 
             context.RegisterRefactorings(refactorings, context.Span);
             return;
+
+            async Task<(ISymbol?, bool isThrowNotImplementedProperty)> TryFindMatchingUninitializedFieldOrPropertySymbolAsync()
+            {
+                // Look for a field/property that really looks like it corresponds to this parameter. Use a variety of
+                // heuristics around the name/type to see if this is a match.
+
+                var parameterWords = parameterNameParts.BaseNameParts;
+                var containingType = parameter.ContainingType;
+                var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+                // Walk through the naming rules against this parameter's name to see what name the user would like for
+                // it as a member in this type.  Note that we have some fallback rules that use the standard conventions
+                // around properties /fields so that can still find things even if the user has no naming preferences
+                // set.
+
+                foreach (var rule in rules)
+                {
+                    var memberName = rule.NamingStyle.CreateName(parameterWords);
+                    foreach (var memberWithName in containingType.GetMembers(memberName))
+                    {
+                        // We found members in our type with that name.  If it's a writable field that we could assign
+                        // this parameter to, and it's not already been assigned to, then this field is a good candidate
+                        // for us to hook up to.
+                        if (memberWithName is IFieldSymbol field &&
+                            !field.IsConst &&
+                            InitializeParameterHelpers.IsImplicitConversion(compilation, source: parameter.Type, destination: field.Type) &&
+                            field.DeclaringSyntaxReferences is [var syntaxRef1, ..] &&
+                            syntaxRef1.GetSyntax(cancellationToken) is VariableDeclaratorSyntax { Initializer: null })
+                        {
+                            return (field, isThrowNotImplementedProperty: false);
+                        }
+
+                        // If it's a writable property that we could assign this parameter to, and it's not already been
+                        // assigned to, then this property is a good candidate for us to hook up to.
+                        if (memberWithName is IPropertySymbol property &&
+                            InitializeParameterHelpers.IsImplicitConversion(compilation, source: parameter.Type, destination: property.Type) &&
+                            property.DeclaringSyntaxReferences is [var syntaxRef2, ..] &&
+                            syntaxRef2.GetSyntax(cancellationToken) is PropertyDeclarationSyntax { Initializer: null })
+                        {
+                            // We also allow assigning into a property of the form `=> throw new
+                            // NotImplementedException()`. That way users can easily spit out those methods, but then
+                            // convert them to be normal properties with ease.
+                            if (IsThrowNotImplementedProperty(compilation, property, cancellationToken))
+                                return (property, isThrowNotImplementedProperty: true);
+
+                            if (property.IsWritableInConstructor())
+                                return (property, isThrowNotImplementedProperty: false);
+                        }
+                    }
+                }
+
+                // Couldn't find any existing member.  Just return nothing so we can offer to create a member for them.
+                return default;
+            }
 
             ImmutableArray<CodeAction> HandleExistingFieldOrProperty()
             {
@@ -579,64 +630,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
             fieldOrProperty = null;
             return null;
-        }
-
-        private static async Task<(ISymbol?, bool isThrowNotImplementedProperty)> TryFindMatchingUninitializedFieldOrPropertySymbolAsync(
-            Document document, IParameterSymbol parameter, ImmutableArray<NamingRule> rules, ImmutableArray<string> parameterWords, CancellationToken cancellationToken)
-        {
-            // Look for a field/property that really looks like it corresponds to this parameter.
-            // Use a variety of heuristics around the name/type to see if this is a match.
-
-            var containingType = parameter.ContainingType;
-            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-            // Walk through the naming rules against this parameter's name to see what
-            // name the user would like for it as a member in this type.  Note that we
-            // have some fallback rules that use the standard conventions around 
-            // properties /fields so that can still find things even if the user has no
-            // naming preferences set.
-
-            foreach (var rule in rules)
-            {
-                var memberName = rule.NamingStyle.CreateName(parameterWords);
-                foreach (var memberWithName in containingType.GetMembers(memberName))
-                {
-                    // We found members in our type with that name.  If it's a writable
-                    // field that we could assign this parameter to, and it's not already
-                    // been assigned to, then this field is a good candidate for us to
-                    // hook up to.
-                    if (memberWithName is IFieldSymbol field &&
-                        !field.IsConst &&
-                        InitializeParameterHelpers.IsImplicitConversion(compilation, source: parameter.Type, destination: field.Type) &&
-                        field.DeclaringSyntaxReferences is [var syntaxRef1, ..] &&
-                        syntaxRef1.GetSyntax(cancellationToken) is VariableDeclaratorSyntax { Initializer: null })
-                    {
-                        return (field, isThrowNotImplementedProperty: false);
-                    }
-
-                    // If it's a writable property that we could assign this parameter to, and it's
-                    // not already been assigned to, then this property is a good candidate for us to
-                    // hook up to.
-                    if (memberWithName is IPropertySymbol property &&
-                        InitializeParameterHelpers.IsImplicitConversion(compilation, source: parameter.Type, destination: property.Type) &&
-                        property.DeclaringSyntaxReferences is [var syntaxRef2, ..] &&
-                        syntaxRef2.GetSyntax(cancellationToken) is PropertyDeclarationSyntax { Initializer: null })
-                    {
-                        // We also allow assigning into a property of the form `=> throw new NotImplementedException()`.
-                        // That way users can easily spit out those methods, but then convert them to be normal
-                        // properties with ease.
-                        if (IsThrowNotImplementedProperty(compilation, property, cancellationToken))
-                            return (property, isThrowNotImplementedProperty: true);
-
-                        if (property.IsWritableInConstructor())
-                            return (property, isThrowNotImplementedProperty: false);
-                    }
-                }
-            }
-
-            // Couldn't find any existing member.  Just return nothing so we can offer to
-            // create a member for them.
-            return default;
         }
     }
 }
