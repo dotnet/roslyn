@@ -2277,8 +2277,8 @@
   <Node Name="BoundLoweredIsPatternExpression" Base="BoundExpression" HasValidate="true">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Statements" Type="ImmutableArray&lt;BoundStatement&gt;"/>
-    <Field Name="WhenTrueLabel" Type="LabelSymbol"/>
-    <Field Name="WhenFalseLabel" Type="LabelSymbol"/>
+    <Field Name="WhenTrueLabel" Type="LabelSymbol" Null="disallow"/>
+    <Field Name="WhenFalseLabel" Type="LabelSymbol" Null="disallow"/>
   </Node>
 
   <AbstractNode Name="BoundPattern" Base="BoundNode">

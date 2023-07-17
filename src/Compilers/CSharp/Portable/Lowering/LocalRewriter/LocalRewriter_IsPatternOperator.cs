@@ -111,8 +111,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(node.Type is { SpecialType: SpecialType.System_Boolean });
 
                 _factory.Syntax = node.Syntax;
-                var sideEffectsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
                 var inputExpression = _localRewriter.VisitExpression(node.Expression);
+                var sideEffectsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
 
                 // The optimization of sharing pattern-matching temps with user variables can always apply to
                 // an is-pattern expression because there is no when clause that could possibly intervene during
@@ -120,8 +120,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 decisionDag = ShareTempsAndEvaluateInput(inputExpression, decisionDag, sideEffectsBuilder.Add, out _);
 
                 // lower the decision dag.
-                var resultBuilder = ArrayBuilder<BoundStatement>.GetInstance();
                 ImmutableArray<BoundStatement> loweredDag = LowerDecisionDagCore(decisionDag);
+                var resultBuilder = ArrayBuilder<BoundStatement>.GetInstance(loweredDag.Length + _statements.Count);
                 resultBuilder.AddRange(loweredDag);
                 resultBuilder.AddRange(_statements);
                 return _factory.Sequence(

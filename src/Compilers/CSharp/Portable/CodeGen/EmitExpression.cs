@@ -889,7 +889,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
                 else
                 {
-                    EmitExpression(sequence.Value, used);
+                    EmitExpression(sequence.Value, used: used);
                 }
             }
 

@@ -576,6 +576,28 @@ oneMoreTime:
                     }
                     return;
 
+                case BoundKind.LoweredIsPatternExpression:
+                    {
+                        var loweredIs = (BoundLoweredIsPatternExpression)condition;
+                        dest ??= new object();
+
+                        EmitSideEffects(loweredIs.Statements);
+
+                        if (sense)
+                        {
+                            _builder.MarkLabel(loweredIs.WhenTrueLabel);
+                            _builder.EmitBranch(ILOpCode.Br, dest);
+                            _builder.MarkLabel(loweredIs.WhenFalseLabel);
+                        }
+                        else
+                        {
+                            _builder.MarkLabel(loweredIs.WhenFalseLabel);
+                            _builder.EmitBranch(ILOpCode.Br, dest);
+                            _builder.MarkLabel(loweredIs.WhenTrueLabel);
+                        }
+                    }
+                    return;
+
                 case BoundKind.UnaryOperator:
                     var unOp = (BoundUnaryOperator)condition;
                     if (unOp.OperatorKind == UnaryOperatorKind.BoolLogicalNegation)
@@ -606,27 +628,6 @@ oneMoreTime:
                 case BoundKind.Sequence:
                     var seq = (BoundSequence)condition;
                     EmitSequenceCondBranch(seq, ref dest, sense);
-                    return;
-
-                case BoundKind.LoweredIsPatternExpression:
-                    var loweredIs = (BoundLoweredIsPatternExpression)condition;
-                    dest ??= new object();
-
-                    EmitSideEffects(loweredIs.Statements);
-
-                    if (sense)
-                    {
-                        _builder.MarkLabel(loweredIs.WhenTrueLabel);
-                        _builder.EmitBranch(ILOpCode.Br, dest);
-                        _builder.MarkLabel(loweredIs.WhenFalseLabel);
-                    }
-                    else
-                    {
-                        _builder.MarkLabel(loweredIs.WhenFalseLabel);
-                        _builder.EmitBranch(ILOpCode.Br, dest);
-                        _builder.MarkLabel(loweredIs.WhenTrueLabel);
-                    }
-
                     return;
 
                 default:

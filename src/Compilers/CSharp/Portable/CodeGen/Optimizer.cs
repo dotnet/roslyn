@@ -401,10 +401,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private ExprContext _context;
         private BoundLocal _assignmentLocal;
 
-#if DEBUG
-        private int _expectedStackDepth = 0;
-#endif
-
         private readonly Dictionary<LocalSymbol, LocalDefUseInfo> _locals;
 
         // we need to guarantee same stack patterns at branches and labels.
@@ -418,6 +414,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         public static readonly DummyLocal empty = new DummyLocal();
 
         private int _recursionDepth;
+
+#if DEBUG
+        private int _expectedStackDepth = 0;
+#endif
 
         private StackOptimizerPass1(Dictionary<LocalSymbol, LocalDefUseInfo> locals,
             ArrayBuilder<ValueTuple<BoundExpression, ExprContext>> evalStack,
