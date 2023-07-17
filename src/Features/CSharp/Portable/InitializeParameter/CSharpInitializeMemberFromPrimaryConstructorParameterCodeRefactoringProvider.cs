@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 return;
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = semanticModel.Compilation;
             var parameter = (IParameterSymbol)semanticModel.GetRequiredDeclaredSymbol(selectedParameter, cancellationToken);
             if (parameter?.Name is null or "")
                 return;
@@ -78,97 +79,100 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 document, parameter, rules, parameterNameParts.BaseNameParts, cancellationToken).ConfigureAwait(false);
 
             var refactorings = fieldOrProperty != null
-                ? HandleExistingFieldOrProperty(document, typeDeclaration, parameter, fieldOrProperty, isThrowNotImplementedProperty, fallbackOptions)
-                : await HandleNoExistingFieldOrPropertyAsync(
-                    document, typeDeclaration, parameter, constructor, rules, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                ? HandleExistingFieldOrProperty()
+                : await HandleNoExistingFieldOrPropertyAsync().ConfigureAwait(false);
 
             context.RegisterRefactorings(refactorings, context.Span);
-        }
+            return;
 
-        private static async Task<ImmutableArray<CodeAction>> HandleNoExistingFieldOrPropertyAsync(
-            Document document,
-            TypeDeclarationSyntax typeDeclaration,
-            IParameterSymbol parameter,
-            IMethodSymbol method,
-            ImmutableArray<NamingRule> rules,
-            CleanCodeGenerationOptionsProvider fallbackOptions,
-            CancellationToken cancellationToken)
-        {
-            // Didn't find a field/prop that this parameter could be assigned to.
-            // Offer to create new one and assign to that.
-            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var allActions);
-
-            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
-
-            var (fieldAction, propertyAction) = AddSpecificParameterInitializationActions(
-                document, typeDeclaration, parameter, rules, formattingOptions.AccessibilityModifiersRequired, fallbackOptions);
-
-            // Check if the surrounding parameters are assigned to another field in this class.  If so, offer to
-            // make this parameter into a field as well.  Otherwise, default to generating a property
-            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var siblingFieldOrProperty = TryFindSiblingFieldOrProperty(compilation, parameter, cancellationToken);
-            if (siblingFieldOrProperty is IFieldSymbol)
+            ImmutableArray<CodeAction> HandleExistingFieldOrProperty()
             {
-                allActions.Add(fieldAction);
-                allActions.Add(propertyAction);
-            }
-            else
-            {
-                allActions.Add(propertyAction);
-                allActions.Add(fieldAction);
+                // Found a field/property that this parameter should be assigned to.
+                // Just offer the simple assignment to it.
+
+                var resource = fieldOrProperty.Kind == SymbolKind.Field
+                    ? FeaturesResources.Initialize_field_0
+                    : FeaturesResources.Initialize_property_0;
+
+                var title = string.Format(resource, fieldOrProperty.Name);
+
+                return ImmutableArray.Create(CodeAction.Create(
+                    title,
+                    cancellationToken => AddSingleSymbolInitializationAsync(
+                        document, typeDeclaration, parameter, fieldOrProperty, isThrowNotImplementedProperty, fallbackOptions, cancellationToken),
+                    title));
             }
 
-            var (allFieldsAction, allPropertiesAction) = AddAllParameterInitializationActions(
-                document, compilation, typeDeclaration, method, rules, formattingOptions.AccessibilityModifiersRequired, fallbackOptions, cancellationToken);
-
-            if (allFieldsAction != null && allPropertiesAction != null)
+            async Task<ImmutableArray<CodeAction>> HandleNoExistingFieldOrPropertyAsync()
             {
+                // Didn't find a field/prop that this parameter could be assigned to.
+                // Offer to create new one and assign to that.
+                using var _ = ArrayBuilder<CodeAction>.GetInstance(out var allActions);
+
+                var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+
+                var (fieldAction, propertyAction) = AddSpecificParameterInitializationActions(
+                    document, typeDeclaration, parameter, rules, formattingOptions.AccessibilityModifiersRequired, fallbackOptions);
+
+                // Check if the surrounding parameters are assigned to another field in this class.  If so, offer to
+                // make this parameter into a field as well.  Otherwise, default to generating a property
+                var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var siblingFieldOrProperty = TryFindSiblingFieldOrProperty(compilation, parameter, cancellationToken);
                 if (siblingFieldOrProperty is IFieldSymbol)
                 {
-                    allActions.Add(allFieldsAction);
-                    allActions.Add(allPropertiesAction);
+                    allActions.Add(fieldAction);
+                    allActions.Add(propertyAction);
                 }
                 else
                 {
-                    allActions.Add(allPropertiesAction);
-                    allActions.Add(allFieldsAction);
+                    allActions.Add(propertyAction);
+                    allActions.Add(fieldAction);
                 }
+
+                var (allFieldsAction, allPropertiesAction) = AddAllParameterInitializationActions(formattingOptions.AccessibilityModifiersRequired);
+
+                if (allFieldsAction != null && allPropertiesAction != null)
+                {
+                    if (siblingFieldOrProperty is IFieldSymbol)
+                    {
+                        allActions.Add(allFieldsAction);
+                        allActions.Add(allPropertiesAction);
+                    }
+                    else
+                    {
+                        allActions.Add(allPropertiesAction);
+                        allActions.Add(allFieldsAction);
+                    }
+                }
+
+                return allActions.ToImmutable();
             }
 
-            return allActions.ToImmutable();
-        }
+            (CodeAction? fieldAction, CodeAction? propertyAction) AddAllParameterInitializationActions(
+                AccessibilityModifiersRequired accessibilityModifiersRequired)
+            {
+                var parameters = GetParametersWithoutAssociatedMembers(
+                    compilation, rules, constructor, cancellationToken);
 
-        private static (CodeAction? fieldAction, CodeAction? propertyAction) AddAllParameterInitializationActions(
-            Document document,
-            Compilation compilation,
-            TypeDeclarationSyntax typeDeclaration,
-            IMethodSymbol method,
-            ImmutableArray<NamingRule> rules,
-            AccessibilityModifiersRequired accessibilityModifiersRequired,
-            CodeGenerationOptionsProvider fallbackOptions,
-            CancellationToken cancellationToken)
-        {
-            var parameters = GetParametersWithoutAssociatedMembers(
-                compilation, rules, method, cancellationToken);
+                if (parameters.Length < 2)
+                    return default;
 
-            if (parameters.Length < 2)
-                return default;
+                var fields = parameters.SelectAsArray(p => (ISymbol)CreateField(p, accessibilityModifiersRequired, rules));
+                var properties = parameters.SelectAsArray(p => (ISymbol)CreateProperty(p, rules));
 
-            var fields = parameters.SelectAsArray(p => (ISymbol)CreateField(p, accessibilityModifiersRequired, rules));
-            var properties = parameters.SelectAsArray(p => (ISymbol)CreateProperty(p, rules));
+                var allFieldsAction = CodeAction.Create(
+                    FeaturesResources.Create_and_assign_remaining_as_fields,
+                    c => AddAllSymbolInitializationsAsync(
+                        document, typeDeclaration, parameters, fields, fallbackOptions, c),
+                    nameof(FeaturesResources.Create_and_assign_remaining_as_fields));
+                var allPropertiesAction = CodeAction.Create(
+                    FeaturesResources.Create_and_assign_remaining_as_properties,
+                    c => AddAllSymbolInitializationsAsync(
+                        document, typeDeclaration, parameters, properties, fallbackOptions, c),
+                    nameof(FeaturesResources.Create_and_assign_remaining_as_properties));
 
-            var allFieldsAction = CodeAction.Create(
-                FeaturesResources.Create_and_assign_remaining_as_fields,
-                c => AddAllSymbolInitializationsAsync(
-                    document, typeDeclaration, parameters, fields, fallbackOptions, c),
-                nameof(FeaturesResources.Create_and_assign_remaining_as_fields));
-            var allPropertiesAction = CodeAction.Create(
-                FeaturesResources.Create_and_assign_remaining_as_properties,
-                c => AddAllSymbolInitializationsAsync(
-                    document, typeDeclaration, parameters, properties, fallbackOptions, c),
-                nameof(FeaturesResources.Create_and_assign_remaining_as_properties));
-
-            return (allFieldsAction, allPropertiesAction);
+                return (allFieldsAction, allPropertiesAction);
+            }
         }
 
         private static (CodeAction fieldAction, CodeAction propertyAction) AddSpecificParameterInitializationActions(
@@ -219,30 +223,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             }
 
             return result.ToImmutable();
-        }
-
-        private static ImmutableArray<CodeAction> HandleExistingFieldOrProperty(
-            Document document,
-            TypeDeclarationSyntax typeDeclaration,
-            IParameterSymbol parameter,
-            ISymbol fieldOrProperty,
-            bool isThrowNotImplementedProperty,
-            CodeGenerationOptionsProvider fallbackOptions)
-        {
-            // Found a field/property that this parameter should be assigned to.
-            // Just offer the simple assignment to it.
-
-            var resource = fieldOrProperty.Kind == SymbolKind.Field
-                ? FeaturesResources.Initialize_field_0
-                : FeaturesResources.Initialize_property_0;
-
-            var title = string.Format(resource, fieldOrProperty.Name);
-
-            return ImmutableArray.Create(CodeAction.Create(
-                title,
-                cancellationToken => AddSingleSymbolInitializationAsync(
-                    document, typeDeclaration, parameter, fieldOrProperty, isThrowNotImplementedProperty, fallbackOptions, cancellationToken),
-                title));
         }
 
         private static ISymbol? TryFindSiblingFieldOrProperty(
