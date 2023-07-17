@@ -146,9 +146,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 """
                 class C(string s)
                 {
-                    private string S => null;
-
                     public string S1 { get; } = s;
+
+                    private string S => null;
                 }
                 """);
         }
@@ -166,8 +166,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 """
                 class C(string s)
                 {
-                    private string T { get; }
                     public string S { get; } = s;
+                    private string T { get; }
                 }
                 """);
         }
@@ -285,11 +285,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 {
                     private string s;
                     private string t = t;
-
-                    public C
-                    {
-                        this.t = t;
-                    }
                 }
                 """,
                 """
@@ -475,6 +470,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 {
                     public string S { get; } = s;
                 }
+
                 """);
         }
 
@@ -490,6 +486,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 {
                     private readonly string s = s;
                 }
+
                 """,
                 index: 1);
         }
@@ -795,7 +792,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 """
                 class C(string p_s_End)
                 {
-                    private readonly string _s = p_s_End
+                    private readonly string _s = p_s_End;
                 }
                 """, index: 1, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
@@ -863,7 +860,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 """
                 class C(string t_s)
                 {
-                    public string S { get; } = t_s
+                    public string S { get; } = t_s;
                 }
                 """, parameters: new TestParameters(options: options.PropertyNamesArePascalCase));
         }
@@ -984,7 +981,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 }
                 """,
                 """
-                class CC(string t_p_s_End)
+                class C(string t_p_s_End)
                 {
                     private readonly string _s = t_p_s_End;
                 }
@@ -1602,7 +1599,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 """
                 class C(int i, int j, int k)
                 {
-                    private readonly int i;
+                    private readonly int i = i;
 
                     public int J { get; } = j;
                     public int K { get; } = k;
@@ -1835,9 +1832,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
 
                 class C(string s)
                 {
-                    private string S => throw new InvalidOperationException();
-
                     public string S1 { get; } = s;
+
+                    private string S => throw new InvalidOperationException();
                 }
                 """);
         }
