@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             TargetFramework targetFramework = TargetFramework.Standard,
             Verification? verification = null)
         {
-            _options = options ?? TestOptions.DebugDll;
+            _options = options ?? EditAndContinueTestBase.ComSafeDebugDll;
             _targetFramework = targetFramework;
             _parseOptions = parseOptions ?? TestOptions.Regular.WithNoRefSafetyRulesAttribute();
             _verification = verification ?? Verification.Passes;

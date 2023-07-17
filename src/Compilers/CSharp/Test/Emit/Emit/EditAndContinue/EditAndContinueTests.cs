@@ -16764,7 +16764,7 @@ file class C
         [Fact]
         public void StackAlloc()
         {
-            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net80, verification: Verification.Fails)
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.NetCoreApp, verification: Verification.Fails)
                 .AddBaseline(
                     source: MarkedSource($$"""
                         using System;
