@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             if (parameter?.Name is null or "")
                 return;
 
-            if (parameter.ContainingSymbol is not IMethodSymbol methodSymbol ||
+            if (parameter.ContainingSymbol is not IMethodSymbol { MethodKind: MethodKind.Constructor } methodSymbol ||
                 methodSymbol.IsAbstract ||
                 methodSymbol.IsExtern ||
                 methodSymbol.PartialImplementationPart != null ||
@@ -86,10 +86,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             CleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
-            // Only supported for constructor parameters.
-            if (method.MethodKind != MethodKind.Constructor)
-                return ImmutableArray<CodeAction>.Empty;
-
             // See if we're already assigning this parameter to a field/property in this type. If so, there's nothing
             // more for us to do.
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -314,10 +310,12 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                         : Accessibility.Private;
 
                     return CodeGenerationSymbolFactory.CreateFieldSymbol(
-                        default,
+                        attributes: default,
                         accessibilityLevel,
                         DeclarationModifiers.ReadOnly,
-                        parameter.Type, uniqueName);
+                        parameter.Type,
+                        uniqueName,
+                        initializer: IdentifierName(parameter.Name.EscapeIdentifier()));
                 }
             }
 
@@ -341,12 +339,13 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                     var accessibilityLevel = Accessibility.Public;
 
                     var getMethod = CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                        default,
+                        attributes: default,
                         Accessibility.Public,
-                        default);
+                        statements: default);
 
                     return CodeGenerationSymbolFactory.CreatePropertySymbol(
-                        default,
+                        containingType: null,
+                        attributes: default,
                         accessibilityLevel,
                         new DeclarationModifiers(),
                         parameter.Type,
@@ -355,7 +354,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                         name: uniqueName,
                         parameters: default,
                         getMethod: getMethod,
-                        setMethod: null);
+                        setMethod: null,
+                        initializer: IdentifierName(parameter.Name.EscapeIdentifier()));
                 }
             }
 
@@ -492,7 +492,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                             var newPropertyDeclaration = isThrowNotImplementedProperty ? RemoveThrowNotImplemented(propertyDeclaration) : propertyDeclaration;
                             editor.ReplaceNode(
                                 propertyDeclaration,
-                                newPropertyDeclaration.WithInitializer(EqualsValueClause(IdentifierName(parameter.Name.EscapeIdentifier()))));
+                                newPropertyDeclaration.WithoutTrailingTrivia()
+                                    .WithSemicolonToken(Token(SyntaxKind.SemicolonToken).WithTrailingTrivia(newPropertyDeclaration.GetTrailingTrivia()))
+                                    .WithInitializer(EqualsValueClause(IdentifierName(parameter.Name.EscapeIdentifier()))));
                         }
                     }
                 }
