@@ -431,12 +431,29 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var parseOptions = root.SyntaxTree.Options;
+
             var solutionEditor = new SolutionEditor(solution);
             var options = await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
 
+            // We're assigning the parameter to a field/prop (either new or existing).  Convert all existing references
+            // to this primary constructor parameter (within this type) to refer to the field/prop now instead.
+            await UpdateParameterReferencesAsync(solutionEditor, parameter, cancellationToken).ConfigureAwait(false);
+
             // var mainEditor = await editor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
             if (fieldOrProperty.ContainingType == null)
+            {
+                await AddFieldOrPropertyAsync().ConfigureAwait(false);
+            }
+            else
+            {
+                await UpdateFieldOrPropertyAsync().ConfigureAwait(false);
+            }
+
+            return solutionEditor.GetChangedSolution();
+
+            async Task AddFieldOrPropertyAsync()
             {
                 // We're generating a new field/property.  Place into the containing type, ideally before/after a
                 // relevant existing member.
@@ -459,14 +476,14 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                         {
                             return codeGenerator.AddProperty(
                                 currentTypeDecl, property,
-                                codeGenerator.GetInfo(addContext, options, root.SyntaxTree.Options),
+                                codeGenerator.GetInfo(addContext, options, parseOptions),
                                 cancellationToken);
                         }
                         else if (fieldOrProperty is IFieldSymbol field)
                         {
                             return codeGenerator.AddField(
                                 currentTypeDecl, field,
-                                codeGenerator.GetInfo(addContext, options, root.SyntaxTree.Options),
+                                codeGenerator.GetInfo(addContext, options, parseOptions),
                                 cancellationToken);
                         }
                         else
@@ -475,7 +492,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                         }
                     });
             }
-            else
+
+            async Task UpdateFieldOrPropertyAsync()
             {
                 // We're updating an exiting field/prop.
                 if (fieldOrProperty is IPropertySymbol property)
@@ -517,8 +535,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                     throw ExceptionUtilities.Unreachable();
                 }
             }
-
-            return solutionEditor.GetChangedSolution();
         }
 
         private static (ISymbol? symbol, SyntaxNode? syntax, CodeGenerationContext context) GetAddContext<TSymbol>(
