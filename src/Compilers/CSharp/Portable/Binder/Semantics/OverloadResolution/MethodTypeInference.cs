@@ -2733,11 +2733,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (containsFunctionTypes(lower) &&
                 (containsNonFunctionTypes(lower) || containsNonFunctionTypes(exact) || containsNonFunctionTypes(upper)))
             {
-                lower = removeTypes(lower, static type => isFunctionType(type, out _));
+                removeTypes(lower, static type => isFunctionType(type, out _));
             }
-
-            // Remove any function types with no delegate type.
-            lower = removeTypes(lower, static type => isFunctionType(type, out var functionType) && functionType.GetInternalDelegateType() is null);
+            else
+            {
+                // Remove any function types with no delegate type.
+                removeTypes(lower, static type => isFunctionType(type, out var functionType) && functionType.GetInternalDelegateType() is null);
+            }
 
             // Optimization: if we have one exact bound then we need not add any
             // inexact bounds; we're just going to remove them anyway.
@@ -2878,22 +2880,9 @@ OuterBreak:
                 return false;
             }
 
-            static HashSet<TypeWithAnnotations>? removeTypes(HashSet<TypeWithAnnotations>? types, Func<TypeWithAnnotations, bool> predicate)
+            static void removeTypes(HashSet<TypeWithAnnotations>? types, Predicate<TypeWithAnnotations> predicate)
             {
-                if (types is null)
-                {
-                    return null;
-                }
-                HashSet<TypeWithAnnotations>? updated = null;
-                foreach (var type in types)
-                {
-                    if (!predicate(type))
-                    {
-                        updated ??= new HashSet<TypeWithAnnotations>(TypeWithAnnotations.EqualsComparer.ConsiderEverythingComparer);
-                        updated.Add(type);
-                    }
-                }
-                return updated;
+                types?.RemoveWhere(predicate);
             }
         }
 
