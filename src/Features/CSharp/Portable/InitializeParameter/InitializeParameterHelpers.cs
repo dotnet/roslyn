@@ -157,31 +157,31 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         }
 
         public static SyntaxNode RemoveThrowNotImplemented(SyntaxNode node)
-        {
-            if (node is PropertyDeclarationSyntax propertyDeclaration)
-            {
-                if (propertyDeclaration.ExpressionBody != null)
-                {
-                    var result = propertyDeclaration
-                        .WithExpressionBody(null)
-                        .WithSemicolonToken(default)
-                        .AddAccessorListAccessors(SyntaxFactory
-                            .AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
-                            .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)))
-                        .WithTrailingTrivia(propertyDeclaration.SemicolonToken.TrailingTrivia)
-                        .WithAdditionalAnnotations(Formatter.Annotation);
-                    return result;
-                }
+            => node is PropertyDeclarationSyntax propertyDeclaration ? RemoveThrowNotImplemented(propertyDeclaration) : node;
 
-                if (propertyDeclaration.AccessorList != null)
-                {
-                    var accessors = propertyDeclaration.AccessorList.Accessors.Select(RemoveThrowNotImplemented);
-                    return propertyDeclaration.WithAccessorList(
-                        propertyDeclaration.AccessorList.WithAccessors(SyntaxFactory.List(accessors)));
-                }
+        public static PropertyDeclarationSyntax RemoveThrowNotImplemented(PropertyDeclarationSyntax propertyDeclaration)
+        {
+            if (propertyDeclaration.ExpressionBody != null)
+            {
+                var result = propertyDeclaration
+                    .WithExpressionBody(null)
+                    .WithSemicolonToken(default)
+                    .AddAccessorListAccessors(SyntaxFactory
+                        .AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
+                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)))
+                    .WithTrailingTrivia(propertyDeclaration.SemicolonToken.TrailingTrivia)
+                    .WithAdditionalAnnotations(Formatter.Annotation);
+                return result;
             }
 
-            return node;
+            if (propertyDeclaration.AccessorList != null)
+            {
+                var accessors = propertyDeclaration.AccessorList.Accessors.Select(RemoveThrowNotImplemented);
+                return propertyDeclaration.WithAccessorList(
+                    propertyDeclaration.AccessorList.WithAccessors(SyntaxFactory.List(accessors)));
+            }
+
+            return propertyDeclaration;
         }
 
         private static AccessorDeclarationSyntax RemoveThrowNotImplemented(AccessorDeclarationSyntax accessorDeclaration)

@@ -7,14 +7,14 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
@@ -26,13 +26,13 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Naming;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 {
     using static InitializeParameterHelpers;
     using static InitializeParameterHelpersCore;
+    using static SyntaxFactory;
 
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InitializeMemberFromPrimaryConstructorParameter), Shared]
     internal sealed class CSharpInitializeMemberFromPrimaryConstructorParameterCodeRefactoringProvider : CodeRefactoringProvider
@@ -421,10 +421,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             throw ExceptionUtilities.Unreachable();
         }
 
-        private async Task<Solution> AddAllSymbolInitializationsAsync(
+        private static async Task<Solution> AddAllSymbolInitializationsAsync(
             Document document,
-            SyntaxNode constructorDeclaration,
-            IBlockOperation? blockStatement,
+            TypeDeclarationSyntax typeDeclaration,
             ImmutableArray<IParameterSymbol> parameters,
             ImmutableArray<ISymbol> fieldsOrProperties,
             CodeGenerationOptionsProvider fallbackOptions,
@@ -438,11 +437,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             // Then find all the current data in that updated document and move onto the next pair.
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var nodesToTrack = new List<SyntaxNode> { constructorDeclaration };
-            if (blockStatement != null)
-                nodesToTrack.Add(blockStatement.Syntax);
 
-            var trackedRoot = root.TrackNodes(nodesToTrack);
+            var trackedRoot = root.TrackNodes(typeDeclaration);
             var currentSolution = document.WithSyntaxRoot(trackedRoot).Project.Solution;
 
             for (var i = 0; i < parameters.Length; i++)
@@ -455,17 +451,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 var currentCompilation = currentSemanticModel.Compilation;
                 var currentRoot = await currentDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                var currentConstructorDeclaration = currentRoot.GetCurrentNode(constructorDeclaration);
-                if (currentConstructorDeclaration == null)
+                var currentTypeDeclaration = currentRoot.GetCurrentNode(typeDeclaration);
+                if (currentTypeDeclaration == null)
                     continue;
-
-                IBlockOperation? currentBlockStatement = null;
-                if (blockStatement != null)
-                {
-                    currentBlockStatement = (IBlockOperation?)currentSemanticModel.GetOperation(currentRoot.GetCurrentNode(blockStatement.Syntax)!, cancellationToken);
-                    if (currentBlockStatement == null)
-                        continue;
-                }
 
                 var currentParameter = (IParameterSymbol?)parameter.GetSymbolKey(cancellationToken).Resolve(currentCompilation, cancellationToken: cancellationToken).GetAnySymbol();
                 if (currentParameter == null)
@@ -475,8 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
                 currentSolution = await AddSingleSymbolInitializationAsync(
                     currentDocument,
-                    currentConstructorDeclaration,
-                    currentBlockStatement,
+                    currentTypeDeclaration,
                     currentParameter,
                     fieldOrProperty,
                     isThrowNotImplementedProperty: false,
@@ -487,7 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             return currentSolution;
         }
 
-        private async Task<Solution> AddSingleSymbolInitializationAsync(
+        private static async Task<Solution> AddSingleSymbolInitializationAsync(
             Document document,
             TypeDeclarationSyntax typeDeclaration,
             IParameterSymbol parameter,
@@ -496,30 +483,33 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             CodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
-            var services = document.Project.Solution.Services;
+            var project = document.Project;
+            var solution = project.Solution;
+            var services = solution.Services;
 
-            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var editor = new SolutionEditor(document.Project.Solution);
+            var solutionEditor = new SolutionEditor(solution);
             var options = await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
 
-            var mainEditor = await editor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
-            var generator = mainEditor.Generator;
+            // var mainEditor = await editor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
             if (fieldOrProperty.ContainingType == null)
             {
-                // We're generating a new field/property.  Place into the containing type,
-                // ideally before/after a relevant existing member.
-                //
-                // Now add the field/property to this type.  Use the 'ReplaceNode+callback' form
-                // so that nodes will be appropriate tracked and so we can then update the constructor
-                // below even after we've replaced the whole type with a new type.
-                //
-                // Note: We'll pass the appropriate options so that the new field/property 
-                // is appropriate placed before/after an existing field/property.  We'll try
-                // to preserve the same order for fields/properties that we have for the constructor
-                // parameters.
-                mainEditor.ReplaceNode(
+                // We're generating a new field/property.  Place into the containing type, ideally before/after a
+                // relevant existing member.
+                var (sibling, siblingSyntax, addContext) = fieldOrProperty switch
+                {
+                    IPropertySymbol => GetAddContext<IPropertySymbol>(compilation, parameter, cancellationToken),
+                    IFieldSymbol => GetAddContext<IFieldSymbol>(compilation, parameter, cancellationToken),
+                    _ => throw ExceptionUtilities.UnexpectedValue(fieldOrProperty),
+                };
+
+                var preferredTypeDeclaration = siblingSyntax?.GetAncestorOrThis<TypeDeclarationSyntax>() ?? typeDeclaration;
+
+                var editingDocument = solution.GetRequiredDocument(typeDeclaration.SyntaxTree);
+                var editor = await solutionEditor.GetDocumentEditorAsync(editingDocument.Id, cancellationToken).ConfigureAwait(false);
+                editor.ReplaceNode(
                     typeDeclaration,
                     (currentTypeDecl, _) =>
                     {
@@ -527,14 +517,14 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                         {
                             return codeGenerator.AddProperty(
                                 currentTypeDecl, property,
-                                codeGenerator.GetInfo(GetAddContext<IPropertySymbol>(compilation, parameter, typeDeclaration, cancellationToken), options, root.SyntaxTree.Options),
+                                codeGenerator.GetInfo(addContext, options, root.SyntaxTree.Options),
                                 cancellationToken);
                         }
                         else if (fieldOrProperty is IFieldSymbol field)
                         {
                             return codeGenerator.AddField(
                                 currentTypeDecl, field,
-                                codeGenerator.GetInfo(GetAddContext<IFieldSymbol>(compilation, parameter, typeDeclaration, cancellationToken), options, root.SyntaxTree.Options),
+                                codeGenerator.GetInfo(addContext, options, root.SyntaxTree.Options),
                                 cancellationToken);
                         }
                         else
@@ -543,72 +533,83 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                         }
                     });
             }
-
-            AddAssignment(constructorDeclaration, blockStatement, parameter, fieldOrProperty, editor);
-
-            // If the user had a property that has 'throw NotImplementedException' in it, then remove those throws.
-            var currentSolution = document.Project.Solution;
-            if (isThrowNotImplementedProperty)
+            else
             {
-                var declarationService = document.GetRequiredLanguageService<ISymbolDeclarationService>();
-                var propertySyntax = await declarationService.GetDeclarations(fieldOrProperty)[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-                var withoutThrowNotImplemented = InitializeParameterHelpers.RemoveThrowNotImplemented(propertySyntax);
-
-                if (propertySyntax.SyntaxTree == root.SyntaxTree)
+                // We're updating an exiting field/prop.
+                if (fieldOrProperty is IPropertySymbol property)
                 {
-                    // Edit to the same file, just update this editor.
-                    mainEditor.ReplaceNode(propertySyntax, withoutThrowNotImplemented);
+                    foreach (var syntaxRef in property.DeclaringSyntaxReferences)
+                    {
+                        if (syntaxRef.GetSyntax(cancellationToken) is PropertyDeclarationSyntax propertyDeclaration)
+                        {
+                            var editingDocument = solution.GetRequiredDocument(propertyDeclaration.SyntaxTree);
+                            var editor = await solutionEditor.GetDocumentEditorAsync(editingDocument.Id, cancellationToken).ConfigureAwait(false);
+
+                            // If the user had a property that has 'throw NotImplementedException' in it, then remove those throws.
+                            var newPropertyDeclaration = isThrowNotImplementedProperty ? RemoveThrowNotImplemented(propertyDeclaration) : propertyDeclaration;
+                            editor.ReplaceNode(
+                                propertyDeclaration,
+                                newPropertyDeclaration.WithInitializer(EqualsValueClause(IdentifierName(parameter.Name.EscapeIdentifier()))));
+                        }
+                    }
+                }
+                else if (fieldOrProperty is IFieldSymbol field)
+                {
+                    foreach (var syntaxRef in field.DeclaringSyntaxReferences)
+                    {
+                        if (syntaxRef.GetSyntax(cancellationToken) is VariableDeclaratorSyntax variableDeclarator)
+                        {
+                            var editingDocument = solution.GetRequiredDocument(variableDeclarator.SyntaxTree);
+                            var editor = await solutionEditor.GetDocumentEditorAsync(editingDocument.Id, cancellationToken).ConfigureAwait(false);
+                            editor.ReplaceNode(
+                                variableDeclarator,
+                                variableDeclarator.WithInitializer(EqualsValueClause(IdentifierName(parameter.Name.EscapeIdentifier()))));
+                            break;
+                        }
+                    }
                 }
                 else
                 {
-                    // edit to a different file.  Just replace things directly in there.
-                    var otherDocument = currentSolution.GetDocument(propertySyntax.SyntaxTree);
-                    if (otherDocument != null)
-                    {
-                        var otherRoot = await propertySyntax.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-                        currentSolution = currentSolution.WithDocumentSyntaxRoot(
-                            otherDocument.Id, otherRoot.ReplaceNode(propertySyntax, withoutThrowNotImplemented));
-                    }
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
-            return editor.GetChangedSolution();
+            return solutionEditor.GetChangedSolution();
         }
 
-        private void AddAssignment(
-            IParameterSymbol parameter,
-            ISymbol fieldOrProperty,
-            SyntaxEditor editor)
-        {
-            //// First see if the user has `(_x, y) = (x, y);` and attempt to update that. 
-            //if (TryUpdateTupleAssignment(blockStatement, parameter, fieldOrProperty, editor))
-            //    return;
+        //private void AddAssignment(
+        //    IParameterSymbol parameter,
+        //    ISymbol fieldOrProperty,
+        //    SyntaxEditor editor)
+        //{
+        //    //// First see if the user has `(_x, y) = (x, y);` and attempt to update that. 
+        //    //if (TryUpdateTupleAssignment(blockStatement, parameter, fieldOrProperty, editor))
+        //    //    return;
 
-            var generator = editor.Generator;
+        //    var generator = editor.Generator;
 
-            // Now that we've added any potential members, create an assignment between it
-            // and the parameter.
-            var initializationStatement = (StatementSyntax)generator.ExpressionStatement(
-                generator.AssignmentStatement(
-                    generator.MemberAccessExpression(
-                        generator.ThisExpression(),
-                        generator.IdentifierName(fieldOrProperty.Name)),
-                    generator.IdentifierName(parameter.Name)));
+        //    // Now that we've added any potential members, create an assignment between it
+        //    // and the parameter.
+        //    var initializationStatement = (StatementSyntax)generator.ExpressionStatement(
+        //        generator.AssignmentStatement(
+        //            generator.MemberAccessExpression(
+        //                generator.ThisExpression(),
+        //                generator.IdentifierName(fieldOrProperty.Name)),
+        //            generator.IdentifierName(parameter.Name)));
 
-            // Attempt to place the initialization in a good location in the constructor
-            // We'll want to keep initialization statements in the same order as we see
-            // parameters for the constructor.
-            var statementToAddAfter = TryGetStatementToAddInitializationAfter(parameter, blockStatement);
+        //    // Attempt to place the initialization in a good location in the constructor
+        //    // We'll want to keep initialization statements in the same order as we see
+        //    // parameters for the constructor.
+        //    var statementToAddAfter = TryGetStatementToAddInitializationAfter(parameter, blockStatement);
 
-            InsertStatement(editor, constructorDeclaration, returnsVoid: true, statementToAddAfter, initializationStatement);
-        }
+        //    InsertStatement(editor, constructorDeclaration, returnsVoid: true, statementToAddAfter, initializationStatement);
+        //}
 
-        private static CodeGenerationContext GetAddContext<TSymbol>(
+        private static (ISymbol? symbol, SyntaxNode? syntax, CodeGenerationContext context) GetAddContext<TSymbol>(
             Compilation compilation,
             IParameterSymbol parameter,
-            TypeDeclarationSyntax typeDeclaration,
             CancellationToken cancellationToken)
-            where TSymbol : ISymbol
+            where TSymbol : class, ISymbol
         {
             foreach (var (sibling, before) in GetSiblingParameters(parameter))
             {
@@ -616,28 +617,16 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                     compilation, sibling, out var fieldOrProperty, cancellationToken);
 
                 if (initializer != null &&
-                    fieldOrProperty is TSymbol symbol)
+                    fieldOrProperty is TSymbol { DeclaringSyntaxReferences: [var syntaxReference, ..] } symbol)
                 {
-                    var symbolSyntax = symbol.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
-                    if (symbolSyntax.Ancestors().Contains(typeDeclaration))
-                    {
-                        if (before)
-                        {
-                            // Found an existing field/property that corresponds to a preceding parameter.
-                            // Place ourselves directly after it.
-                            return new CodeGenerationContext(afterThisLocation: symbolSyntax.GetLocation());
-                        }
-                        else
-                        {
-                            // Found an existing field/property that corresponds to a following parameter.
-                            // Place ourselves directly before it.
-                            return new CodeGenerationContext(beforeThisLocation: symbolSyntax.GetLocation());
-                        }
-                    }
+                    var syntax = syntaxReference.GetSyntax(cancellationToken);
+                    return (symbol, syntax, before
+                        ? new CodeGenerationContext(afterThisLocation: syntax.GetLocation())
+                        : new CodeGenerationContext(beforeThisLocation: syntax.GetLocation()));
                 }
             }
 
-            return CodeGenerationContext.Default;
+            return (symbol: null, syntax: null, CodeGenerationContext.Default);
         }
 
         //private SyntaxNode? TryGetStatementToAddInitializationAfter(
