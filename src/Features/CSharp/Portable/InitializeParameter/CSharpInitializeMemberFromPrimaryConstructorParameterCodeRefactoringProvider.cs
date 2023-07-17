@@ -205,8 +205,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
             (CodeAction fieldAction, CodeAction propertyAction) AddSpecificParameterInitializationActions()
             {
-                var field = CreateField(parameter, formattingOptions.AccessibilityModifiersRequired, rules);
-                var property = CreateProperty(parameter, rules);
+                var field = CreateField(parameter);
+                var property = CreateProperty(parameter);
 
                 // we're generating the field or property, so we don't have to handle throwing versions of them.
                 var isThrowNotImplementedProperty = false;
@@ -229,8 +229,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 if (parameters.Length < 2)
                     return default;
 
-                var fields = parameters.SelectAsArray(p => (ISymbol)CreateField(p, formattingOptions.AccessibilityModifiersRequired, rules));
-                var properties = parameters.SelectAsArray(p => (ISymbol)CreateProperty(p, rules));
+                var fields = parameters.SelectAsArray(p => (ISymbol)CreateField(p));
+                var properties = parameters.SelectAsArray(p => (ISymbol)CreateProperty(p));
 
                 var allFieldsAction = CodeAction.Create(
                     FeaturesResources.Create_and_assign_remaining_as_fields,
@@ -263,78 +263,73 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
                 return result.ToImmutable();
             }
-        }
 
-        private static IFieldSymbol CreateField(
-            IParameterSymbol parameter,
-            AccessibilityModifiersRequired accessibilityModifiersRequired,
-            ImmutableArray<NamingRule> rules)
-        {
-            var parameterNameParts = IdentifierNameParts.CreateIdentifierNameParts(parameter, rules).BaseNameParts;
-
-            foreach (var rule in rules)
+            IFieldSymbol CreateField(IParameterSymbol parameter)
             {
-                if (rule.SymbolSpecification.AppliesTo(SymbolKind.Field, Accessibility.Private))
+                var parameterNameParts = IdentifierNameParts.CreateIdentifierNameParts(parameter, rules).BaseNameParts;
+
+                foreach (var rule in rules)
                 {
-                    var uniqueName = GenerateUniqueName(parameter, parameterNameParts, rule);
+                    if (rule.SymbolSpecification.AppliesTo(SymbolKind.Field, Accessibility.Private))
+                    {
+                        var uniqueName = GenerateUniqueName(parameter, parameterNameParts, rule);
 
-                    var accessibilityLevel = accessibilityModifiersRequired is AccessibilityModifiersRequired.Never or AccessibilityModifiersRequired.OmitIfDefault
-                        ? Accessibility.NotApplicable
-                        : Accessibility.Private;
+                        var accessibilityLevel = formattingOptions.AccessibilityModifiersRequired is AccessibilityModifiersRequired.Never or AccessibilityModifiersRequired.OmitIfDefault
+                            ? Accessibility.NotApplicable
+                            : Accessibility.Private;
 
-                    return CodeGenerationSymbolFactory.CreateFieldSymbol(
-                        attributes: default,
-                        accessibilityLevel,
-                        DeclarationModifiers.ReadOnly,
-                        parameter.Type,
-                        uniqueName,
-                        initializer: IdentifierName(parameter.Name.EscapeIdentifier()));
+                        return CodeGenerationSymbolFactory.CreateFieldSymbol(
+                            attributes: default,
+                            accessibilityLevel,
+                            DeclarationModifiers.ReadOnly,
+                            parameter.Type,
+                            uniqueName,
+                            initializer: IdentifierName(parameter.Name.EscapeIdentifier()));
+                    }
                 }
+
+                // We place a special rule in s_builtInRules that matches all fields.  So we should 
+                // always find a matching rule.
+                throw ExceptionUtilities.Unreachable();
             }
 
-            // We place a special rule in s_builtInRules that matches all fields.  So we should 
-            // always find a matching rule.
-            throw ExceptionUtilities.Unreachable();
-        }
-
-        private static IPropertySymbol CreateProperty(
-            IParameterSymbol parameter,
-            ImmutableArray<NamingRule> rules)
-        {
-            var parameterNameParts = IdentifierNameParts.CreateIdentifierNameParts(parameter, rules).BaseNameParts;
-
-            foreach (var rule in rules)
+            IPropertySymbol CreateProperty(IParameterSymbol parameter)
             {
-                if (rule.SymbolSpecification.AppliesTo(SymbolKind.Property, Accessibility.Public))
+                var parameterNameParts = IdentifierNameParts.CreateIdentifierNameParts(parameter, rules).BaseNameParts;
+
+                foreach (var rule in rules)
                 {
-                    var uniqueName = GenerateUniqueName(parameter, parameterNameParts, rule);
+                    if (rule.SymbolSpecification.AppliesTo(SymbolKind.Property, Accessibility.Public))
+                    {
+                        var uniqueName = GenerateUniqueName(parameter, parameterNameParts, rule);
 
-                    var accessibilityLevel = Accessibility.Public;
+                        var accessibilityLevel = Accessibility.Public;
 
-                    var getMethod = CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                        attributes: default,
-                        Accessibility.Public,
-                        statements: default);
+                        var getMethod = CodeGenerationSymbolFactory.CreateAccessorSymbol(
+                            attributes: default,
+                            Accessibility.Public,
+                            statements: default);
 
-                    return CodeGenerationSymbolFactory.CreatePropertySymbol(
-                        containingType: null,
-                        attributes: default,
-                        accessibilityLevel,
-                        new DeclarationModifiers(),
-                        parameter.Type,
-                        RefKind.None,
-                        explicitInterfaceImplementations: default,
-                        name: uniqueName,
-                        parameters: default,
-                        getMethod: getMethod,
-                        setMethod: null,
-                        initializer: IdentifierName(parameter.Name.EscapeIdentifier()));
+                        return CodeGenerationSymbolFactory.CreatePropertySymbol(
+                            containingType: null,
+                            attributes: default,
+                            accessibilityLevel,
+                            new DeclarationModifiers(),
+                            parameter.Type,
+                            RefKind.None,
+                            explicitInterfaceImplementations: default,
+                            name: uniqueName,
+                            parameters: default,
+                            getMethod: getMethod,
+                            setMethod: null,
+                            initializer: IdentifierName(parameter.Name.EscapeIdentifier()));
+                    }
                 }
-            }
 
-            // We place a special rule in s_builtInRules that matches all properties.  So we should 
-            // always find a matching rule.
-            throw ExceptionUtilities.Unreachable();
+                // We place a special rule in s_builtInRules that matches all properties.  So we should 
+                // always find a matching rule.
+                throw ExceptionUtilities.Unreachable();
+            }
         }
 
         private static async Task<Solution> AddAllSymbolInitializationsAsync(
