@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -332,34 +333,37 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             out ISymbol? fieldOrProperty,
             CancellationToken cancellationToken)
         {
-            foreach (var syntaxReference in parameter.ContainingType.DeclaringSyntaxReferences)
+            foreach (var group in parameter.ContainingType.DeclaringSyntaxReferences.GroupBy(r => r.SyntaxTree))
             {
-                if (syntaxReference.GetSyntax(cancellationToken) is TypeDeclarationSyntax typeDeclaration)
-                {
-                    var semanticModel = compilation.GetSemanticModel(syntaxReference.SyntaxTree);
+                var semanticModel = compilation.GetSemanticModel(group.Key);
 
-                    foreach (var member in typeDeclaration.Members)
+                foreach (var syntaxReference in group)
+                {
+                    if (syntaxReference.GetSyntax(cancellationToken) is TypeDeclarationSyntax typeDeclaration)
                     {
-                        if (member is PropertyDeclarationSyntax { Initializer.Value: var propertyInitializer } propertyDeclaration)
+                        foreach (var member in typeDeclaration.Members)
                         {
-                            var operation = semanticModel.GetOperation(propertyInitializer, cancellationToken);
-                            if (IsParameterReferenceOrCoalesceOfParameterReference(operation, parameter))
+                            if (member is PropertyDeclarationSyntax { Initializer.Value: var propertyInitializer } propertyDeclaration)
                             {
-                                fieldOrProperty = semanticModel.GetDeclaredSymbol(propertyDeclaration, cancellationToken);
-                                return operation;
-                            }
-                        }
-                        else if (member is FieldDeclarationSyntax field)
-                        {
-                            foreach (var varDecl in field.Declaration.Variables)
-                            {
-                                if (varDecl is { Initializer.Value: var fieldInitializer })
+                                var operation = semanticModel.GetOperation(propertyInitializer, cancellationToken);
+                                if (IsParameterReferenceOrCoalesceOfParameterReference(operation, parameter))
                                 {
-                                    var operation = semanticModel.GetOperation(fieldInitializer, cancellationToken);
-                                    if (IsParameterReferenceOrCoalesceOfParameterReference(operation, parameter))
+                                    fieldOrProperty = semanticModel.GetDeclaredSymbol(propertyDeclaration, cancellationToken);
+                                    return operation;
+                                }
+                            }
+                            else if (member is FieldDeclarationSyntax field)
+                            {
+                                foreach (var varDecl in field.Declaration.Variables)
+                                {
+                                    if (varDecl is { Initializer.Value: var fieldInitializer })
                                     {
-                                        fieldOrProperty = semanticModel.GetDeclaredSymbol(varDecl, cancellationToken);
-                                        return operation;
+                                        var operation = semanticModel.GetOperation(fieldInitializer, cancellationToken);
+                                        if (IsParameterReferenceOrCoalesceOfParameterReference(operation, parameter))
+                                        {
+                                            fieldOrProperty = semanticModel.GetDeclaredSymbol(varDecl, cancellationToken);
+                                            return operation;
+                                        }
                                     }
                                 }
                             }
