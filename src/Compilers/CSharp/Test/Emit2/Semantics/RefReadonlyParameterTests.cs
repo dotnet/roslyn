@@ -2873,32 +2873,40 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "in string", "ref readonly int").WithLocation(9, 14));
     }
 
-    [Fact]
-    public void DefaultParameterValue_EqualsValue()
+    [Theory, CombinatorialData]
+    public void DefaultParameterValue_EqualsValue(bool fromMetadata)
     {
-        var source = """
-            class C
+        var source1 = """
+            public class C
             {
-                static void M(ref readonly int i = 1) => System.Console.Write(i);
+                public static void M(ref readonly int i = 1) => System.Console.Write(i);
+            }
+            """;
+        var source2 = """
+            class D
+            {
                 static void Main()
                 {
                     int x = 2;
-                    M();
-                    M(x);
-                    M(ref x);
-                    M(in x);
+                    C.M();
+                    C.M(x);
+                    C.M(ref x);
+                    C.M(in x);
                 }
-                static void M2() => M();
+                static void M2() => C.M();
             }
             """;
-        var verifier = CompileAndVerify(source, expectedOutput: "1222").VerifyDiagnostics(
-            // (3,40): warning CS9521: A default value is specified for 'ref readonly' parameter 'i', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
-            //     static void M(ref readonly int i = 1) => System.Console.Write(i);
-            Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "1").WithArguments("i").WithLocation(3, 40),
-            // (8,11): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
-            //         M(x);
-            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(8, 11));
-        verifier.VerifyIL("C.M2", """
+        var comp = fromMetadata
+            ? CreateCompilation(source2, new[] { CreateCompilation(source1).ToMetadataReference() }, options: TestOptions.ReleaseExe)
+            : CreateCompilation(new[] { source1, source2 }, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "1222").VerifyDiagnostics(
+            // (3,47): warning CS9521: A default value is specified for 'ref readonly' parameter 'i', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
+            //     public static void M(ref readonly int i = 1) => System.Console.Write(i);
+            Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "1").WithArguments("i").WithLocation(3, 47),
+            // (7,13): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            //         C.M(x);
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(7, 13));
+        verifier.VerifyIL("D.M2", """
             {
               // Code size       10 (0xa)
               .maxstack  1
@@ -2912,33 +2920,41 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """);
     }
 
-    [Fact]
-    public void DefaultParameterValue_Attribute()
+    [Theory, CombinatorialData]
+    public void DefaultParameterValue_Attribute(bool fromMetadata)
     {
-        var source = """
+        var source1 = """
             using System.Runtime.InteropServices;
-            class C
+            public class C
             {
-                static void M([Optional, DefaultParameterValue(1)] ref readonly int i) => System.Console.Write(i);
+                public static void M([Optional, DefaultParameterValue(1)] ref readonly int i) => System.Console.Write(i);
+            }
+            """;
+        var source2 = """
+            class D
+            {
                 static void Main()
                 {
                     int x = 2;
-                    M();
-                    M(x);
-                    M(ref x);
-                    M(in x);
+                    C.M();
+                    C.M(x);
+                    C.M(ref x);
+                    C.M(in x);
                 }
-                static void M2() => M();
+                static void M2() => C.M();
             }
             """;
-        var verifier = CompileAndVerify(source, expectedOutput: "1222").VerifyDiagnostics(
-            // (4,30): warning CS9521: A default value is specified for 'ref readonly' parameter 'i', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
-            //     static void M([Optional, DefaultParameterValue(1)] ref readonly int i) => System.Console.Write(i);
-            Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "DefaultParameterValue(1)").WithArguments("i").WithLocation(4, 30),
-            // (9,11): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
-            //         M(x);
-            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(9, 11));
-        verifier.VerifyIL("C.M2", """
+        var comp = fromMetadata
+            ? CreateCompilation(source2, new[] { CreateCompilation(source1).ToMetadataReference() }, options: TestOptions.ReleaseExe)
+            : CreateCompilation(new[] { source1, source2 }, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "1222").VerifyDiagnostics(
+            // (4,37): warning CS9521: A default value is specified for 'ref readonly' parameter 'i', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
+            //     public static void M([Optional, DefaultParameterValue(1)] ref readonly int i) => System.Console.Write(i);
+            Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "DefaultParameterValue(1)").WithArguments("i").WithLocation(4, 37),
+            // (7,13): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            //         C.M(x);
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(7, 13));
+        verifier.VerifyIL("D.M2", """
             {
               // Code size       10 (0xa)
               .maxstack  1
@@ -3018,37 +3034,45 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_ParamDefaultValueDiffersFromAttribute, "1").WithLocation(4, 77));
     }
 
-    [Fact]
-    public void DefaultParameterValue_DecimalConstant_Valid()
+    [Theory, CombinatorialData]
+    public void DefaultParameterValue_DecimalConstant_Valid(bool fromMetadata)
     {
-        var source = """
+        var source1 = """
             using System;
             using System.Globalization;
             using System.Runtime.CompilerServices;
             using System.Runtime.InteropServices;
-            class C
+            public class C
             {
-                static void M1([Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] ref readonly decimal d) => Console.WriteLine("M1 " + d.ToString(CultureInfo.InvariantCulture));
-                static void M2(ref readonly decimal d = 1.1m) => Console.WriteLine("M2 " + d.ToString(CultureInfo.InvariantCulture));
+                public static void M1([Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] ref readonly decimal d) => Console.WriteLine("M1 " + d.ToString(CultureInfo.InvariantCulture));
+                public static void M2(ref readonly decimal d = 1.1m) => Console.WriteLine("M2 " + d.ToString(CultureInfo.InvariantCulture));
+            }
+            """;
+        var source2 = """
+            class D
+            {
                 static void Main()
                 {
                     decimal x = 2.2m;
-                    M1();
-                    M1(x);
-                    M1(ref x);
-                    M1(in x);
+                    C.M1();
+                    C.M1(x);
+                    C.M1(ref x);
+                    C.M1(in x);
 
                     decimal y = 3.3m;
-                    M2();
-                    M2(y);
-                    M2(ref y);
-                    M2(in y);
+                    C.M2();
+                    C.M2(y);
+                    C.M2(ref y);
+                    C.M2(in y);
                 }
-                static void M3() => M1();
-                static void M4() => M2();
+                static void M3() => C.M1();
+                static void M4() => C.M2();
             }
             """;
-        var verifier = CompileAndVerify(source, expectedOutput: """
+        var comp = fromMetadata
+            ? CreateCompilation(source2, new[] { CreateCompilation(source1).ToMetadataReference() }, options: TestOptions.ReleaseExe)
+            : CreateCompilation(new[] { source1, source2 }, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: """
             M1 1.1
             M1 2.2
             M1 2.2
@@ -3058,19 +3082,19 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             M2 3.3
             M2 3.3
             """).VerifyDiagnostics(
-            // (7,31): warning CS9521: A default value is specified for 'ref readonly' parameter 'd', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
-            //     static void M1([Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] ref readonly decimal d) => Console.WriteLine("M1 " + d.ToString(CultureInfo.InvariantCulture));
-            Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "DecimalConstant(1, 0, 0u, 0u, 11u)").WithArguments("d").WithLocation(7, 31),
-            // (8,45): warning CS9521: A default value is specified for 'ref readonly' parameter 'd', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
-            //     static void M2(ref readonly decimal d = 1.1m) => Console.WriteLine("M2 " + d.ToString(CultureInfo.InvariantCulture));
-            Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "1.1m").WithArguments("d").WithLocation(8, 45),
-            // (13,12): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
-            //         M1(x);
-            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(13, 12),
-            // (19,12): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
-            //         M2(y);
-            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "y").WithArguments("1").WithLocation(19, 12));
-        verifier.VerifyIL("C.M3", """
+            // (7,14): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            //         C.M1(x);
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(7, 14),
+            // (7,38): warning CS9521: A default value is specified for 'ref readonly' parameter 'd', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
+            //     public static void M1([Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] ref readonly decimal d) => Console.WriteLine("M1 " + d.ToString(CultureInfo.InvariantCulture));
+            Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "DecimalConstant(1, 0, 0u, 0u, 11u)").WithArguments("d").WithLocation(7, 38),
+            // (8,52): warning CS9521: A default value is specified for 'ref readonly' parameter 'd', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
+            //     public static void M2(ref readonly decimal d = 1.1m) => Console.WriteLine("M2 " + d.ToString(CultureInfo.InvariantCulture));
+            Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "1.1m").WithArguments("d").WithLocation(8, 52),
+            // (13,14): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            //         C.M2(y);
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "y").WithArguments("1").WithLocation(13, 14));
+        verifier.VerifyIL("D.M3", """
             {
               // Code size       20 (0x14)
               .maxstack  5
@@ -3087,7 +3111,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
               IL_0013:  ret
             }
             """);
-        verifier.VerifyIL("C.M4", """
+        verifier.VerifyIL("D.M4", """
             {
               // Code size       20 (0x14)
               .maxstack  5
@@ -3135,24 +3159,32 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M1").WithArguments("d", "C.M1(ref readonly decimal)").WithLocation(9, 9));
     }
 
-    [Fact]
-    public void DefaultParameterValue_DateTimeConstant_Valid()
+    [Theory, CombinatorialData]
+    public void DefaultParameterValue_DateTimeConstant_Valid(bool fromMetadata)
     {
-        var source = """
+        var source1 = """
             using System;
             using System.Runtime.CompilerServices;
             using System.Runtime.InteropServices;
-            class C
+            public class C
             {
-                static void M([Optional, DateTimeConstant(100L)] ref readonly DateTime d) => Console.Write(d.Ticks);
-                static void Main() => M();
+                public static void M([Optional, DateTimeConstant(100L)] ref readonly DateTime d) => Console.Write(d.Ticks);
             }
             """;
-        var verifier = CompileAndVerify(source, expectedOutput: "100").VerifyDiagnostics(
-            // (6,30): warning CS9521: A default value is specified for 'ref readonly' parameter 'd', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
-            //     static void M([Optional, DateTimeConstant(100L)] ref readonly DateTime d) => Console.Write(d.Ticks);
-            Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "DateTimeConstant(100L)").WithArguments("d").WithLocation(6, 30));
-        verifier.VerifyIL("C.Main", """
+        var source2 = """
+            class D
+            {
+                static void Main() => C.M();
+            }
+            """;
+        var comp = fromMetadata
+            ? CreateCompilation(source2, new[] { CreateCompilation(source1).ToMetadataReference() }, options: TestOptions.ReleaseExe)
+            : CreateCompilation(new[] { source1, source2 }, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "100").VerifyDiagnostics(
+            // (6,37): warning CS9521: A default value is specified for 'ref readonly' parameter 'd', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
+            //     public static void M([Optional, DateTimeConstant(100L)] ref readonly DateTime d) => Console.Write(d.Ticks);
+            Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "DateTimeConstant(100L)").WithArguments("d").WithLocation(6, 37));
+        verifier.VerifyIL("D.Main", """
             {
               // Code size       17 (0x11)
               .maxstack  1
