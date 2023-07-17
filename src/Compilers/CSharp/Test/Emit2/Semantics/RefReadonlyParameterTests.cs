@@ -2760,6 +2760,46 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
     }
 
     [Fact]
+    public void Overridden_RefReadonly_RefReadonly()
+    {
+        var source = """
+            class B
+            {
+                protected virtual void M(ref readonly int x) => System.Console.WriteLine("B.M" + x);
+            }
+            class C : B
+            {
+                protected override void M(ref readonly int x) => System.Console.WriteLine("C.M" + x);
+                static void Main()
+                {
+                    var x = 123;
+                    var c = new C();
+                    c.M(ref x);
+                    c.M(in x);
+                    c.M(x);
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(source, expectedOutput: """
+            C.M123
+            C.M123
+            C.M123
+            """, sourceSymbolValidator: verify, symbolValidator: verify);
+        verifier.VerifyDiagnostics(
+            // (14,13): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            //         c.M(x);
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(14, 13));
+
+        static void verify(ModuleSymbol m)
+        {
+            VerifyRequiresLocationAttributeSynthesized(m);
+
+            var p = m.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
+            VerifyRefReadonlyParameter(p, modreq: true);
+        }
+    }
+
+    [Fact]
     public void Overridden_In_RefReadonly()
     {
         var source = """
@@ -2902,6 +2942,75 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (8,29): error CS0462: The inherited members 'B<T>.M(in T)' and 'B<T>.M(ref readonly int)' have the same signature in type 'C', so they cannot be overridden
             //     protected override void M(ref readonly int x)
             Diagnostic(ErrorCode.ERR_AmbigOverride, "M").WithArguments("B<T>.M(in T)", "B<T>.M(ref readonly int)", "C").WithLocation(8, 29));
+    }
+
+    [Fact]
+    public void Hiding_RefReadonly_RefReadonly()
+    {
+        var source = """
+            class B
+            {
+                public void M(ref readonly int x) => System.Console.WriteLine("B" + x);
+            }
+            class C : B
+            {
+                public void M(ref readonly int x) => System.Console.WriteLine("C" + x);
+                static void Main()
+                {
+                    var x = 111;
+                    var c = new C();
+                    c.M(ref x);
+                    c.M(in x);
+                    c.M(x);
+                    ((B)c).M(in x);
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: """
+            C111
+            C111
+            C111
+            B111
+            """).VerifyDiagnostics(
+            // (7,17): warning CS0108: 'C.M(ref readonly int)' hides inherited member 'B.M(ref readonly int)'. Use the new keyword if hiding was intended.
+            //     public void M(ref readonly int x) => System.Console.WriteLine("C" + x);
+            Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("C.M(ref readonly int)", "B.M(ref readonly int)").WithLocation(7, 17),
+            // (14,13): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            //         c.M(x);
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(14, 13));
+    }
+
+    [Fact]
+    public void Hiding_RefReadonly_RefReadonly_New()
+    {
+        var source = """
+            class B
+            {
+                public void M(ref readonly int x) => System.Console.WriteLine("B" + x);
+            }
+            class C : B
+            {
+                public new void M(ref readonly int x) => System.Console.WriteLine("C" + x);
+                static void Main()
+                {
+                    var x = 111;
+                    var c = new C();
+                    c.M(ref x);
+                    c.M(in x);
+                    c.M(x);
+                    ((B)c).M(in x);
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: """
+            C111
+            C111
+            C111
+            B111
+            """).VerifyDiagnostics(
+            // (14,13): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            //         c.M(x);
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(14, 13));
     }
 
     [Fact]
@@ -3177,6 +3286,38 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
     }
 
     [Fact]
+    public void Implementation_RefReadonly_RefReadonly()
+    {
+        var source = """
+            interface I
+            {
+                void M(ref readonly int x);
+            }
+            class C : I
+            {
+                public void M(ref readonly int x) { }
+            }
+            """;
+        CreateCompilation(source).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Implementation_RefReadonly_RefReadonly_Explicit()
+    {
+        var source = """
+            interface I
+            {
+                void M(ref readonly int x);
+            }
+            class C : I
+            {
+                void I.M(ref readonly int x) { }
+            }
+            """;
+        CreateCompilation(source).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
     public void Implementation_RefReadonly_In()
     {
         var source = """
@@ -3293,6 +3434,22 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (4,10): error CS0663: 'C' cannot define an overloaded method that differs only on parameter modifiers 'in' and 'ref readonly'
             //     void M(in int x) => throw null;
             Diagnostic(ErrorCode.ERR_OverloadRefKind, "M").WithArguments("C", "method", modifier, "ref readonly").WithLocation(4, 10));
+    }
+
+    [Fact]
+    public void PartialMembers_RefReadonly()
+    {
+        var source = """
+            partial class C
+            {
+                public partial void M(ref readonly int x);
+            }
+            partial class C
+            {
+                public partial void M(ref readonly int x) => throw null;
+            }
+            """;
+        CreateCompilation(source).VerifyEmitDiagnostics();
     }
 
     [Fact]
