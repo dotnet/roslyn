@@ -4043,4 +4043,74 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             //     public partial string? M(out int x) => throw null;
             Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments($"C.M({modifier}int)").WithLocation(8, 28));
     }
+
+    [Fact]
+    public void MethodGroupComparer_In()
+    {
+        var source = """
+            class C
+            {
+                void M(ref readonly int x) { }
+                void M2()
+                {
+                    var m = this.M;
+                    System.Console.Write(m.GetType());
+                }
+                static void Main() => new C().M2();
+            }
+            static class E1
+            {
+                public static void M(this C c, in int x) { }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "<>f__AnonymousDelegate0`1[System.Int32]").VerifyDiagnostics();
+    }
+
+    [Theory, CombinatorialData]
+    public void MethodGroupComparer_NotIn([CombinatorialValues("ref", "")] string modifier)
+    {
+        var source = $$"""
+            class C
+            {
+                void M(ref readonly int x) { }
+                void M2()
+                {
+                    var m = this.M;
+                    System.Console.Write(m.GetType());
+                }
+                static void Main() => new C().M2();
+            }
+            static class E1
+            {
+                public static void M(this C c, {{modifier}} int x) { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (6,17): error CS8917: The delegate type could not be inferred.
+            //         var m = this.M;
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "this.M").WithLocation(6, 17));
+    }
+
+    /// <summary>
+    /// If <see cref="MemberSignatureComparer.CrefComparer"/> allowed 'ref readonly'/'in' mismatch,
+    /// this would report ambiguous cref warning for 'in'.
+    /// </summary>
+    [Theory, CombinatorialData]
+    public void CrefComparer([CombinatorialValues("ref", "in")] string modifier)
+    {
+        var source = $$"""
+            /// <summary>
+            /// <see cref="M({{modifier}} int)"/>
+            /// </summary>
+            public class C
+            {
+                void M(ref readonly int x) { }
+                void M({{modifier}} int x) { }
+            }
+            """;
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(
+            // (7,10): error CS0663: 'C' cannot define an overloaded method that differs only on parameter modifiers 'ref' and 'ref readonly'
+            //     void M(ref int x) { }
+            Diagnostic(ErrorCode.ERR_OverloadRefKind, "M").WithArguments("C", "method", modifier, "ref readonly").WithLocation(7, 10));
+    }
 }

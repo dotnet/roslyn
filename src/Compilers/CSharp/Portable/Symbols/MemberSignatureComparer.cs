@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerReturnType: true,
             considerTypeConstraints: false,
             considerCallingConvention: true,
-            refKindCompareMode: RefKindCompareMode.ConsiderDifferences | RefKindCompareMode.AllowRefReadonlyVsInMismatch, // PROTOTYPE: Figure out how to test this.
+            refKindCompareMode: RefKindCompareMode.ConsiderDifferences | RefKindCompareMode.AllowRefReadonlyVsInMismatch,
             typeComparison: TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreNativeIntegers);
 
         /// <summary>
@@ -301,20 +301,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false, // constraints are checked by caller instead
             considerCallingConvention: true,
             refKindCompareMode: RefKindCompareMode.DoNotConsiderDifferences,
-            typeComparison: TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreNativeIntegers);
-
-        // NOTE: Not used anywhere. Do we still need to keep it?
-        /// <summary>
-        /// This instance is used to search for members that have the same name, parameters, (return) type, and constraints (if any)
-        /// according to the C# definition. Custom modifiers are ignored.
-        /// </summary>
-        public static readonly MemberSignatureComparer CSharpSignatureAndConstraintsAndReturnTypeComparer = new MemberSignatureComparer(
-            considerName: true,
-            considerExplicitlyImplementedInterfaces: true,
-            considerReturnType: true,
-            considerTypeConstraints: true,
-            considerCallingConvention: true,
-            refKindCompareMode: RefKindCompareMode.ConsiderDifferences,
             typeComparison: TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreNativeIntegers);
 
         /// <summary>
@@ -339,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerReturnType: false,
             considerTypeConstraints: false,
             considerCallingConvention: false, //ignore static-ness
-            refKindCompareMode: RefKindCompareMode.ConsiderDifferences, // PROTOTYPE: AllowRefReadonlyVsInMismatch?
+            refKindCompareMode: RefKindCompareMode.ConsiderDifferences,
             typeComparison: TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreDynamicAndTupleNames);
 
         /// <summary>
@@ -350,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerExplicitlyImplementedInterfaces: false,
             considerReturnType: true,
             considerTypeConstraints: false,
-            refKindCompareMode: RefKindCompareMode.ConsiderDifferences,
+            refKindCompareMode: RefKindCompareMode.ConsiderDifferences | RefKindCompareMode.AllowRefReadonlyVsInMismatch,
             considerCallingConvention: false,
             typeComparison: TypeCompareKind.AllIgnoreOptions);
 
