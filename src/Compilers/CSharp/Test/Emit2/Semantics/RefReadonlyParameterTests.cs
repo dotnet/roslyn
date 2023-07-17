@@ -45,7 +45,8 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         bool metadataIn = true,
         bool attributes = true,
         bool modreq = false,
-        bool useSiteError = false)
+        bool useSiteError = false,
+        bool isProperty = false)
     {
         Assert.Equal(refKind, RefKind.RefReadOnlyParameter == parameter.RefKind);
 
@@ -66,7 +67,8 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Assert.Empty(parameter.RefCustomModifiers);
         }
 
-        var method = (MethodSymbol)parameter.ContainingSymbol;
+        var method = parameter.ContainingSymbol;
+        Assert.IsAssignableFrom(isProperty ? typeof(PropertySymbol) : typeof(MethodSymbol), method);
 
         if (useSiteError)
         {
@@ -2843,6 +2845,65 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
     }
 
     [Fact]
+    public void Overridden_In_RefReadonly_Indexer()
+    {
+        var source = """
+            class B
+            {
+                protected virtual int this[in int x]
+                {
+                    get
+                    {
+                        System.Console.WriteLine("B" + x);
+                        return 0;
+                    }
+                    set { }
+                }
+            }
+            class C : B
+            {
+                protected override int this[ref readonly int x]
+                {
+                    get
+                    {
+                        System.Console.WriteLine("C" + x);
+                        return 0;
+                    }
+                    set { }
+                }
+                static void Main()
+                {
+                    var x = 123;
+                    var c = new C();
+                    _ = c[ref x];
+                    _ = c[in x];
+                    _ = c[x];
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(source, expectedOutput: """
+            C123
+            C123
+            C123
+            """, sourceSymbolValidator: verify, symbolValidator: verify);
+        verifier.VerifyDiagnostics(
+            // (22,9): warning CS9507: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in overridden or implemented member.
+            //         set { }
+            Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "set").WithArguments("ref readonly int x", "in int x").WithLocation(22, 9),
+            // (28,19): warning CS9502: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            //         _ = c[ref x];
+            Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(28, 19));
+
+        static void verify(ModuleSymbol m)
+        {
+            VerifyRequiresLocationAttributeSynthesized(m);
+
+            var p = m.GlobalNamespace.GetMember<PropertySymbol>("C.this[]").Parameters.Single();
+            VerifyRefReadonlyParameter(p, modreq: true, isProperty: true);
+        }
+    }
+
+    [Fact]
     public void Overridden_RefReadonly_In()
     {
         var source = """
@@ -3086,6 +3147,119 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (14,13): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
             //         c.M(x);
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(14, 13));
+    }
+
+    [Fact]
+    public void Hiding_In_RefReadonly_Indexer()
+    {
+        var source = """
+            class B
+            {
+                public int this[in int x]
+                {
+                    get
+                    {
+                        System.Console.WriteLine("B" + x);
+                        return 0;
+                    }
+                    set { }
+                }
+            }
+            class C : B
+            {
+                public int this[ref readonly int x]
+                {
+                    get
+                    {
+                        System.Console.WriteLine("C" + x);
+                        return 0;
+                    }
+                    set { }
+                }
+                static void Main()
+                {
+                    var x = 111;
+                    var c = new C();
+                    _ = c[ref x];
+                    _ = c[in x];
+                    _ = c[x];
+                    _ = ((B)c)[in x];
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: """
+            C111
+            C111
+            C111
+            B111
+            """).VerifyDiagnostics(
+            // (15,16): warning CS0108: 'C.this[ref readonly int]' hides inherited member 'B.this[in int]'. Use the new keyword if hiding was intended.
+            //     public int this[ref readonly int x]
+            Diagnostic(ErrorCode.WRN_NewRequired, "this").WithArguments("C.this[ref readonly int]", "B.this[in int]").WithLocation(15, 16),
+            // (17,9): warning CS9508: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in hidden member.
+            //         get
+            Diagnostic(ErrorCode.WRN_HidingDifferentRefness, "get").WithArguments("ref readonly int x", "in int x").WithLocation(17, 9),
+            // (22,9): warning CS9508: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in hidden member.
+            //         set { }
+            Diagnostic(ErrorCode.WRN_HidingDifferentRefness, "set").WithArguments("ref readonly int x", "in int x").WithLocation(22, 9),
+            // (30,15): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            //         _ = c[x];
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(30, 15));
+    }
+
+    [Fact]
+    public void Hiding_In_RefReadonly_Indexer_New()
+    {
+        var source = """
+            class B
+            {
+                public int this[in int x]
+                {
+                    get
+                    {
+                        System.Console.WriteLine("B" + x);
+                        return 0;
+                    }
+                    set { }
+                }
+            }
+            class C : B
+            {
+                public new int this[ref readonly int x]
+                {
+                    get
+                    {
+                        System.Console.WriteLine("C" + x);
+                        return 0;
+                    }
+                    set { }
+                }
+                static void Main()
+                {
+                    var x = 111;
+                    var c = new C();
+                    _ = c[ref x];
+                    _ = c[in x];
+                    _ = c[x];
+                    _ = ((B)c)[in x];
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: """
+            C111
+            C111
+            C111
+            B111
+            """).VerifyDiagnostics(
+            // (17,9): warning CS9508: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in hidden member.
+            //         get
+            Diagnostic(ErrorCode.WRN_HidingDifferentRefness, "get").WithArguments("ref readonly int x", "in int x").WithLocation(17, 9),
+            // (22,9): warning CS9508: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in hidden member.
+            //         set { }
+            Diagnostic(ErrorCode.WRN_HidingDifferentRefness, "set").WithArguments("ref readonly int x", "in int x").WithLocation(22, 9),
+            // (30,15): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            //         _ = c[x];
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(30, 15));
     }
 
     [Fact]
@@ -3363,6 +3537,52 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (9,12): warning CS9507: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in overridden or implemented member.
             //     void I.M2(in int x) { }
             Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "M2").WithArguments("in int x", "ref readonly int x").WithLocation(9, 12));
+    }
+
+    [Fact]
+    public void Implementation_RefReadonly_In_Indexer()
+    {
+        var source = """
+            interface I
+            {
+                int this[ref readonly int x] { get; set; }
+            }
+            class C : I
+            {
+                public int this[in int x]
+                {
+                    get => 0;
+                    set { }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyEmitDiagnostics(
+            // (10,9): warning CS9507: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in overridden or implemented member.
+            //         set { }
+            Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "set").WithArguments("in int x", "ref readonly int x").WithLocation(10, 9));
+    }
+
+    [Fact]
+    public void Implementation_RefReadonly_In_Indexer_Explicit()
+    {
+        var source = """
+            interface I
+            {
+                int this[ref readonly int x] { get; set; }
+            }
+            class C : I
+            {
+                int I.this[in int x]
+                {
+                    get => 0;
+                    set { }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyEmitDiagnostics(
+            // (10,9): warning CS9507: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in overridden or implemented member.
+            //         set { }
+            Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "set").WithArguments("in int x", "ref readonly int x").WithLocation(10, 9));
     }
 
     [Theory, CombinatorialData]
