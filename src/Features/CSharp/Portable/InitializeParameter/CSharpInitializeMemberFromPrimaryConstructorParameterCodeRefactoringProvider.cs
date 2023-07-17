@@ -71,54 +71,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 return;
             }
 
-            //// We shouldn't offer a refactoring if the compilation doesn't contain the ArgumentNullException type,
-            //// as we use it later on in our computations.
-            //var argumentNullExceptionType = typeof(ArgumentNullException).FullName;
-            //if (argumentNullExceptionType is null || semanticModel.Compilation.GetTypeByMetadataName(argumentNullExceptionType) is null)
-            //    return;
-
-            //if (CanOfferRefactoring(functionDeclaration, semanticModel, syntaxFacts, cancellationToken, out var blockStatementOpt))
-            //{
-            // Ok.  Looks like the selected parameter could be refactored. Defer to subclass to 
-            // actually determine if there are any viable refactorings here.
             var refactorings = await GetRefactoringsForSingleParameterAsync(
                 document, typeDeclaration, parameter, methodSymbol, context.Options, cancellationToken).ConfigureAwait(false);
             context.RegisterRefactorings(refactorings, context.Span);
-            // }
-
-            //// List with parameterNodes that pass all checks
-            //using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var listOfPotentiallyValidParametersNodes);
-            //foreach (var parameterNode in parameterNodes)
-            //{
-            //    if (!TryGetParameterSymbol(parameterNode, semanticModel, out parameter, cancellationToken))
-            //        return;
-
-            //    // Update the list of valid parameter nodes
-            //    listOfPotentiallyValidParametersNodes.Add(parameterNode);
-            //}
-
-            //if (listOfPotentiallyValidParametersNodes.Count > 1)
-            //{
-            //    // Looks like we can offer a refactoring for more than one parameter. Defer to subclass to 
-            //    // actually determine if there are any viable refactorings here.
-            //    var refactorings = await GetRefactoringsForAllParametersAsync(
-            //        document, functionDeclaration, methodSymbol, blockStatementOpt,
-            //        listOfPotentiallyValidParametersNodes.ToImmutable(), selectedParameter.Span, context.Options, cancellationToken).ConfigureAwait(false);
-            //    context.RegisterRefactorings(refactorings, context.Span);
-            //}
 
             return;
-
-            //static bool TryGetParameterSymbol(
-            //    SyntaxNode parameterNode,
-            //    SemanticModel semanticModel,
-            //    [NotNullWhen(true)] out IParameterSymbol? parameter,
-            //    CancellationToken cancellationToken)
-            //{
-            //    parameter = (IParameterSymbol?)semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
-
-            //    return parameter is { Name: not "" };
-            //}
         }
 
         private async Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
@@ -355,14 +312,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                     var accessibilityLevel = accessibilityModifiersRequired is AccessibilityModifiersRequired.Never or AccessibilityModifiersRequired.OmitIfDefault
                         ? Accessibility.NotApplicable
                         : Accessibility.Private;
-                    //if (accessibilityModifiersRequired is AccessibilityModifiersRequired.Never or AccessibilityModifiersRequired.OmitIfDefault)
-                    //{
-                    //    var defaultAccessibility = DetermineDefaultFieldAccessibility(parameter.ContainingType);
-                    //    if (defaultAccessibility == Accessibility.Private)
-                    //    {
-                    //        accessibilityLevel = Accessibility.NotApplicable;
-                    //    }
-                    //}
 
                     return CodeGenerationSymbolFactory.CreateFieldSymbol(
                         default,
@@ -571,34 +520,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             return solutionEditor.GetChangedSolution();
         }
 
-        //private void AddAssignment(
-        //    IParameterSymbol parameter,
-        //    ISymbol fieldOrProperty,
-        //    SyntaxEditor editor)
-        //{
-        //    //// First see if the user has `(_x, y) = (x, y);` and attempt to update that. 
-        //    //if (TryUpdateTupleAssignment(blockStatement, parameter, fieldOrProperty, editor))
-        //    //    return;
-
-        //    var generator = editor.Generator;
-
-        //    // Now that we've added any potential members, create an assignment between it
-        //    // and the parameter.
-        //    var initializationStatement = (StatementSyntax)generator.ExpressionStatement(
-        //        generator.AssignmentStatement(
-        //            generator.MemberAccessExpression(
-        //                generator.ThisExpression(),
-        //                generator.IdentifierName(fieldOrProperty.Name)),
-        //            generator.IdentifierName(parameter.Name)));
-
-        //    // Attempt to place the initialization in a good location in the constructor
-        //    // We'll want to keep initialization statements in the same order as we see
-        //    // parameters for the constructor.
-        //    var statementToAddAfter = TryGetStatementToAddInitializationAfter(parameter, blockStatement);
-
-        //    InsertStatement(editor, constructorDeclaration, returnsVoid: true, statementToAddAfter, initializationStatement);
-        //}
-
         private static (ISymbol? symbol, SyntaxNode? syntax, CodeGenerationContext context) GetAddContext<TSymbol>(
             Compilation compilation,
             IParameterSymbol parameter,
@@ -623,63 +544,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             return (symbol: null, syntax: null, CodeGenerationContext.Default);
         }
 
-        //private SyntaxNode? TryGetStatementToAddInitializationAfter(
-        //    IParameterSymbol parameter, IBlockOperation? blockStatement)
-        //{
-        //    // look for an existing assignment for a parameter that comes before/after us.
-        //    // If we find one, we'll add ourselves before/after that parameter check.
-        //    foreach (var (sibling, before) in GetSiblingParameters(parameter))
-        //    {
-        //        var statement = TryFindFieldOrPropertyAssignmentStatement(sibling, blockStatement);
-        //        if (statement != null)
-        //        {
-        //            if (before)
-        //            {
-        //                return statement.Syntax;
-        //            }
-        //            else
-        //            {
-        //                var statementIndex = blockStatement!.Operations.IndexOf(statement);
-        //                return statementIndex > 0 ? blockStatement.Operations[statementIndex - 1].Syntax : null;
-        //            }
-        //        }
-        //    }
-
-        //    // We couldn't find a reasonable location for the new initialization statement.
-        //    // Just place ourselves after the last statement in the constructor.
-        //    return TryGetLastStatement(blockStatement);
-        //}
-
         private static IOperation? TryFindFieldOrPropertyInitializerValue(
             Compilation compilation,
             IParameterSymbol parameter,
             CancellationToken cancellationToken)
             => TryFindFieldOrPropertyInitializerValue(compilation, parameter, out _, cancellationToken);
-
-        //protected static bool TryGetPartsOfTupleAssignmentOperation(
-        //    IOperation operation,
-        //    [NotNullWhen(true)] out ITupleOperation? targetTuple,
-        //    [NotNullWhen(true)] out ITupleOperation? valueTuple)
-        //{
-        //    if (operation is IExpressionStatementOperation
-        //        {
-        //            Operation: IDeconstructionAssignmentOperation
-        //            {
-        //                Target: ITupleOperation targetTupleTemp,
-        //                Value: IConversionOperation { Operand: ITupleOperation valueTupleTemp },
-        //            }
-        //        } &&
-        //        targetTupleTemp.Elements.Length == valueTupleTemp.Elements.Length)
-        //    {
-        //        targetTuple = targetTupleTemp;
-        //        valueTuple = valueTupleTemp;
-        //        return true;
-        //    }
-
-        //    targetTuple = null;
-        //    valueTuple = null;
-        //    return false;
-        //}
 
         private static IOperation? TryFindFieldOrPropertyInitializerValue(
             Compilation compilation,
@@ -722,36 +591,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                     }
                 }
             }
-
-            //if (blockStatement != null)
-            //{
-            //    var containingType = parameter.ContainingType;
-            //    foreach (var statement in blockStatement.Operations)
-            //    {
-            //        // look for something of the form:  "this.s = s" or "this.s = s ?? ..."
-            //        if (IsFieldOrPropertyAssignment(statement, containingType, out var assignmentExpression, out fieldOrProperty) &&
-            //            IsParameterReferenceOrCoalesceOfParameterReference(assignmentExpression, parameter))
-            //        {
-            //            return statement;
-            //        }
-
-            //        //// look inside the form `(this.s, this.t) = (s, t)`
-            //        //if (TryGetPartsOfTupleAssignmentOperation(statement, out var targetTuple, out var valueTuple))
-            //        //{
-            //        //    for (int i = 0, n = targetTuple.Elements.Length; i < n; i++)
-            //        //    {
-            //        //        var target = targetTuple.Elements[i];
-            //        //        var value = valueTuple.Elements[i];
-
-            //        //        if (IsFieldOrPropertyReference(target, containingType, out fieldOrProperty) &&
-            //        //            IsParameterReference(value, parameter))
-            //        //        {
-            //        //            return statement;
-            //        //        }
-            //        //    }
-            //        //}
-            //    }
-            //}
 
             fieldOrProperty = null;
             return null;
@@ -813,54 +652,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             // Couldn't find any existing member.  Just return nothing so we can offer to
             // create a member for them.
             return default;
-
-            //static bool ContainsMemberAssignment(IBlockOperation? blockStatement, ISymbol member)
-            //{
-            //    if (blockStatement != null)
-            //    {
-            //        foreach (var statement in blockStatement.Operations)
-            //        {
-            //            if (IsFieldOrPropertyAssignment(statement, member.ContainingType, out var assignmentExpression) &&
-            //                assignmentExpression.Target.UnwrapImplicitConversion() is IMemberReferenceOperation memberReference &&
-            //                member.Equals(memberReference.Member))
-            //            {
-            //                return true;
-            //            }
-            //        }
-            //    }
-
-            //    return false;
-            //}
-
-            //bool IsThrowNotImplementedProperty(IPropertySymbol property)
-            //{
-            //    using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var accessors);
-
-            //    if (property.GetMethod != null)
-            //        accessors.AddIfNotNull(InitializeParameterHelpers.GetAccessorBody(property.GetMethod, cancellationToken));
-
-            //    if (property.SetMethod != null)
-            //        accessors.AddIfNotNull(InitializeParameterHelpers.GetAccessorBody(property.SetMethod, cancellationToken));
-
-            //    if (accessors.Count == 0)
-            //        return false;
-
-            //    foreach (var group in accessors.GroupBy(node => node.SyntaxTree))
-            //    {
-            //        var semanticModel = compilation.GetSemanticModel(group.Key);
-            //        foreach (var accessorBody in accessors)
-            //        {
-            //            var operation = semanticModel.GetOperation(accessorBody, cancellationToken);
-            //            if (operation is null)
-            //                return false;
-
-            //            if (!operation.IsSingleThrowNotImplementedOperation())
-            //                return false;
-            //        }
-            //    }
-
-            //    return true;
-            //}
         }
     }
 }
