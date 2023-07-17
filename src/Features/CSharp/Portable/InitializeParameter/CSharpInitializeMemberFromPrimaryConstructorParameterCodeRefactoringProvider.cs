@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -16,6 +17,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.InitializeParameter;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -49,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             if (selectedParameter == null)
                 return;
 
-            if (selectedParameter.Parent is not ParameterListSyntax { Parent: TypeDeclarationSyntax typeDeclaration })
+            if (selectedParameter.Parent is not ParameterListSyntax { Parent: TypeDeclarationSyntax(kind: SyntaxKind.ClassDeclaration or SyntaxKind.StructDeclaration) typeDeclaration })
                 return;
 
             // var parameterNodes = generator.GetParameters(functionDeclaration);
@@ -439,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
             // We're assigning the parameter to a field/prop (either new or existing).  Convert all existing references
             // to this primary constructor parameter (within this type) to refer to the field/prop now instead.
-            await UpdateParameterReferencesAsync(solutionEditor, parameter, cancellationToken).ConfigureAwait(false);
+            await UpdateParameterReferencesAsync().ConfigureAwait(false);
 
             // var mainEditor = await editor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
             if (fieldOrProperty.ContainingType == null)
@@ -452,6 +454,36 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             }
 
             return solutionEditor.GetChangedSolution();
+
+            async Task UpdateParameterReferencesAsync()
+            {
+                var namedType = parameter.ContainingType;
+                var documents = namedType.DeclaringSyntaxReferences
+                    .Select(r => solution.GetDocument(r.SyntaxTree))
+                    .WhereNotNull()
+                    .ToImmutableHashSet();
+
+                var references = await SymbolFinder.FindReferencesAsync(parameter, solution, documents, cancellationToken).ConfigureAwait(false);
+                foreach (var group in references.SelectMany(r => r.Locations.Where(loc => !loc.IsImplicit).GroupBy(loc => loc.Document)))
+                {
+                    var editingDocument = group.Key;
+                    var editor = await solutionEditor.GetDocumentEditorAsync(editingDocument.Id, cancellationToken).ConfigureAwait(false);
+
+                    foreach (var location in group)
+                    {
+                        var node = location.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
+                        if (node is IdentifierNameSyntax { Parent: not NameColonSyntax } identifierName &&
+                            identifierName.Identifier.ValueText == parameter.Name)
+                        {
+                            // we may have things like `new MyType(x: ...)` we don't want to update `x` there to 'X'
+                            // just because we're generating a new property 'X' for the parameter to be assigned to.
+                            editor.ReplaceNode(
+                                identifierName,
+                                IdentifierName(fieldOrProperty.Name.EscapeIdentifier()).WithTriviaFrom(identifierName));
+                        }
+                    }
+                }
+            }
 
             async Task AddFieldOrPropertyAsync()
             {

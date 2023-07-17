@@ -1880,5 +1880,205 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 </Workspace>
                 """);
         }
+
+        [Fact]
+        public async Task TestUpdateCodeToReferenceExistingField1()
+        {
+            await TestInRegularAndScript1Async(
+                """
+                using System;
+
+                class C([||]string s)
+                {
+                    private string _s;
+
+                    private void M()
+                    {
+                        Console.WriteLine(s);
+                        var v = new C(s: "");
+                    }
+                }
+                """,
+                """
+                using System;
+                
+                class C(string s)
+                {
+                    private string _s = s;
+                
+                    private void M()
+                    {
+                        Console.WriteLine(_s);
+                        var v = new C(s: "");
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestUpdateCodeToReferenceExistingField2()
+        {
+            await TestInRegularAndScript1Async(
+                """
+                using System;
+
+                class C([||]string s)
+                {
+                    private string _s;
+
+                    private void M()
+                    {
+                        Console.WriteLine(/*t*/ s /*t2*/);
+                        var v = new C(s: "");
+                    }
+                }
+                """,
+                """
+                using System;
+                
+                class C(string s)
+                {
+                    private string _s = s;
+                
+                    private void M()
+                    {
+                        Console.WriteLine(/*t*/ _s /*t2*/);
+                        var v = new C(s: "");
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestUpdateCodeToReferenceExistingProperty()
+        {
+            await TestInRegularAndScript1Async(
+                """
+                using System;
+
+                class C([||]string s)
+                {
+                    public string S { get; }
+
+                    private void M()
+                    {
+                        Console.WriteLine(s);
+                        var v = new C(s: "");
+                    }
+                }
+                """,
+                """
+                using System;
+                
+                class C(string s)
+                {
+                    public string S { get; } = s;
+                
+                    private void M()
+                    {
+                        Console.WriteLine(S);
+                        var v = new C(s: "");
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestUpdateCodeToReferenceExistingProperty2()
+        {
+            await TestInRegularAndScript1Async(
+                """
+                using System;
+
+                class C([||]string s)
+                {
+                    public string S { get; }
+
+                    private void M()
+                    {
+                        Console.WriteLine(/*t*/ s /*t2*/);
+                        var v = new C(s: "");
+                    }
+                }
+                """,
+                """
+                using System;
+                
+                class C(string s)
+                {
+                    public string S { get; } = s;
+                
+                    private void M()
+                    {
+                        Console.WriteLine(/*t*/ S /*t2*/);
+                        var v = new C(s: "");
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestUpdateCodeToReferenceNewProperty1()
+        {
+            await TestInRegularAndScript1Async(
+                """
+                using System;
+
+                class C([||]string s)
+                {
+                    private void M()
+                    {
+                        Console.WriteLine(s);
+                        var v = new C(s: "");
+                    }
+                }
+                """,
+                """
+                using System;
+                
+                class C(string s)
+                {
+                    public string S { get; } = s;
+
+                    private void M()
+                    {
+                        Console.WriteLine(S);
+                        var v = new C(s: "");
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestUpdateCodeToReferenceNewField1()
+        {
+            await TestInRegularAndScript1Async(
+                """
+                using System;
+
+                class C([||]string s)
+                {
+                    private void M()
+                    {
+                        Console.WriteLine(s);
+                        var v = new C(s: "");
+                    }
+                }
+                """,
+                """
+                using System;
+                
+                class C(string s)
+                {
+                    private readonly string _s = s;
+
+                    private void M()
+                    {
+                        Console.WriteLine(_s);
+                        var v = new C(s: "");
+                    }
+                }
+                """, index: 1, parameters: new TestParameters(options: options.FieldNamesAreCamelCaseWithUnderscorePrefix));
+        }
     }
 }
