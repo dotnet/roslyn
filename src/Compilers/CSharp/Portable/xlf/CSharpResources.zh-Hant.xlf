@@ -887,6 +887,11 @@
         <target state="translated">索引超出內嵌陣列的界限。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InlineArrayRequiredElementField">
+        <source>Inline array element field cannot be declared required.</source>
+        <target state="new">Inline array element field cannot be declared required.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
         <source>Instance properties in interfaces cannot have initializers.</source>
         <target state="translated">介面中的執行個體屬性不可有初始設定式。</target>
@@ -2590,6 +2595,16 @@
       <trans-unit id="WRN_ParamsArrayInLambdaOnly_Title">
         <source>Parameter has params modifier in lambda but not in target delegate type.</source>
         <target state="translated">參數在 Lambda 中具有參數修飾元，但不在目標委派類型中。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase">
+        <source>Primary constructor parameter '{0}' is shadowed by a member from base.</source>
+        <target state="new">Primary constructor parameter '{0}' is shadowed by a member from base.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase_Title">
+        <source>Primary constructor parameter is shadowed by a member from base</source>
+        <target state="new">Primary constructor parameter is shadowed by a member from base</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">
