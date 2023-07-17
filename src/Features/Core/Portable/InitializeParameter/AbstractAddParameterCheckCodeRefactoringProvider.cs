@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 var operation = semanticModel.GetOperation(coalesceNode, cancellationToken);
                 if (operation is ICoalesceOperation coalesceExpression)
                 {
-                    if (InitializeParameterHelpersCore.IsParameterReference(coalesceExpression.Value, parameter) &&
+                    if (IsParameterReference(coalesceExpression.Value, parameter) &&
                         syntaxFacts.IsThrowExpression(coalesceExpression.WhenNull.Syntax))
                     {
                         return true;
