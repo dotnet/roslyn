@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             // to this primary constructor parameter (within this type) to refer to the field/prop now instead.
             await UpdateParameterReferencesAsync().ConfigureAwait(false);
 
-            // var mainEditor = await editor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
+            // Now, either add the new field/prop, or update the existing one by assigning the parameter to it.
             if (fieldOrProperty.ContainingType == null)
             {
                 await AddFieldOrPropertyAsync().ConfigureAwait(false);
@@ -478,8 +478,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 // relevant existing member.
                 var (sibling, siblingSyntax, addContext) = fieldOrProperty switch
                 {
-                    IPropertySymbol => GetAddContext<IPropertySymbol>(compilation, parameter, cancellationToken),
-                    IFieldSymbol => GetAddContext<IFieldSymbol>(compilation, parameter, cancellationToken),
+                    IPropertySymbol => GetAddContext<IPropertySymbol>(),
+                    IFieldSymbol => GetAddContext<IFieldSymbol>(),
                     _ => throw ExceptionUtilities.UnexpectedValue(fieldOrProperty),
                 };
 
@@ -510,6 +510,26 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                             throw ExceptionUtilities.Unreachable();
                         }
                     });
+            }
+
+            (ISymbol? symbol, SyntaxNode? syntax, CodeGenerationContext context) GetAddContext<TSymbol>() where TSymbol : class, ISymbol
+            {
+                foreach (var (sibling, before) in GetSiblingParameters(parameter))
+                {
+                    var initializer = TryFindFieldOrPropertyInitializerValue(
+                        compilation, sibling, out var fieldOrProperty, cancellationToken);
+
+                    if (initializer != null &&
+                        fieldOrProperty is TSymbol { DeclaringSyntaxReferences: [var syntaxReference, ..] } symbol)
+                    {
+                        var syntax = syntaxReference.GetSyntax(cancellationToken);
+                        return (symbol, syntax, before
+                            ? new CodeGenerationContext(afterThisLocation: syntax.GetLocation())
+                            : new CodeGenerationContext(beforeThisLocation: syntax.GetLocation()));
+                    }
+                }
+
+                return (symbol: null, syntax: null, CodeGenerationContext.Default);
             }
 
             async Task UpdateFieldOrPropertyAsync()
@@ -554,30 +574,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                     throw ExceptionUtilities.Unreachable();
                 }
             }
-        }
-
-        private static (ISymbol? symbol, SyntaxNode? syntax, CodeGenerationContext context) GetAddContext<TSymbol>(
-            Compilation compilation,
-            IParameterSymbol parameter,
-            CancellationToken cancellationToken)
-            where TSymbol : class, ISymbol
-        {
-            foreach (var (sibling, before) in GetSiblingParameters(parameter))
-            {
-                var initializer = TryFindFieldOrPropertyInitializerValue(
-                    compilation, sibling, out var fieldOrProperty, cancellationToken);
-
-                if (initializer != null &&
-                    fieldOrProperty is TSymbol { DeclaringSyntaxReferences: [var syntaxReference, ..] } symbol)
-                {
-                    var syntax = syntaxReference.GetSyntax(cancellationToken);
-                    return (symbol, syntax, before
-                        ? new CodeGenerationContext(afterThisLocation: syntax.GetLocation())
-                        : new CodeGenerationContext(beforeThisLocation: syntax.GetLocation()));
-                }
-            }
-
-            return (symbol: null, syntax: null, CodeGenerationContext.Default);
         }
 
         private static IOperation? TryFindFieldOrPropertyInitializerValue(
