@@ -12,6 +12,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.PortableExecutable;
+using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
@@ -39,6 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private AssemblySymbol _corLibrary;
 
+        private TypeConversions _lazyTypeConversions;
+
         /// <summary>
         /// The system assembly, which provides primitive types like Object, String, etc., e.g. mscorlib.dll. 
         /// The value is MissingAssemblySymbol if none of the referenced assemblies can be used as a source for the 
@@ -50,6 +53,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return _corLibrary;
+            }
+        }
+
+        internal TypeConversions TypeConversions
+        {
+            get
+            {
+                if (_lazyTypeConversions is null)
+                {
+                    Interlocked.CompareExchange(ref _lazyTypeConversions, new TypeConversions(this), null);
+                }
+
+                return _lazyTypeConversions;
             }
         }
 

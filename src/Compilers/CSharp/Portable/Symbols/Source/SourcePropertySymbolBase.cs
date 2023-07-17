@@ -1460,7 +1460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 if (parameters.Length > 0)
                                 {
                                     var diagnostics = BindingDiagnosticBag.GetInstance();
-                                    var conversions = new TypeConversions(this.ContainingAssembly.CorLibrary);
+                                    var conversions = this.ContainingAssembly.CorLibrary.TypeConversions;
                                     foreach (var parameter in this.Parameters)
                                     {
                                         parameter.ForceComplete(locationOpt, cancellationToken);
@@ -1489,7 +1489,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if (_state.NotePartComplete(CompletionPart.StartPropertyType))
                             {
                                 var diagnostics = BindingDiagnosticBag.GetInstance();
-                                var conversions = new TypeConversions(this.ContainingAssembly.CorLibrary);
+                                var conversions = this.ContainingAssembly.CorLibrary.TypeConversions;
                                 this.Type.CheckAllConstraints(DeclaringCompilation, conversions, Location, diagnostics);
 
                                 ValidatePropertyType(diagnostics);

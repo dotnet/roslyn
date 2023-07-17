@@ -673,7 +673,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                     bool isCallerLineNumber = HasCallerLineNumberAttribute
-                        && new TypeConversions(ContainingAssembly).HasCallerLineNumberConversion(this.Type, ref discardedUseSiteInfo);
+                        && ContainingAssembly.TypeConversions.HasCallerLineNumberConversion(this.Type, ref discardedUseSiteInfo);
 
                     value = _packedFlags.SetWellKnownAttribute(flag, isCallerLineNumber);
                 }
@@ -693,7 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                     bool isCallerFilePath = !HasCallerLineNumberAttribute
                         && HasCallerFilePathAttribute
-                        && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type, ref discardedUseSiteInfo);
+                        && ContainingAssembly.TypeConversions.HasCallerInfoStringConversion(this.Type, ref discardedUseSiteInfo);
 
                     value = _packedFlags.SetWellKnownAttribute(flag, isCallerFilePath);
                 }
@@ -714,7 +714,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     bool isCallerMemberName = !HasCallerLineNumberAttribute
                         && !HasCallerFilePathAttribute
                         && HasCallerMemberNameAttribute
-                        && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type, ref discardedUseSiteInfo);
+                        && ContainingAssembly.TypeConversions.HasCallerInfoStringConversion(this.Type, ref discardedUseSiteInfo);
 
                     value = _packedFlags.SetWellKnownAttribute(flag, isCallerMemberName);
                 }
@@ -737,7 +737,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     && !HasCallerLineNumberAttribute
                     && !HasCallerFilePathAttribute
                     && !HasCallerMemberNameAttribute
-                    && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type, ref discardedUseSiteInfo);
+                    && ContainingAssembly.TypeConversions.HasCallerInfoStringConversion(this.Type, ref discardedUseSiteInfo);
 
                 if (isCallerArgumentExpression)
                 {
