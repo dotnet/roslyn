@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Debug.Assert(EqualsIgnoringInstanceLocation(analysisEntityToMerge));
             Debug.Assert(!InstanceLocation.Equals(analysisEntityToMerge.InstanceLocation));
 
-            var mergedInstanceLocation = PointsToAnalysis.PointsToAnalysis.PointsToAbstractValueDomainInstance.Merge(InstanceLocation, analysisEntityToMerge.InstanceLocation);
+            var mergedInstanceLocation = PointsToAnalysis.PointsToAnalysis.ValueDomainInstance.Merge(InstanceLocation, analysisEntityToMerge.InstanceLocation);
             return new AnalysisEntity(Symbol, Indices, InstanceReferenceOperationSyntax, CaptureId, mergedInstanceLocation, Type, Parent, IsThisOrMeInstance);
         }
 
@@ -203,6 +203,30 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         };
 
         public bool IsLValueFlowCaptureEntity => CaptureId.HasValue && CaptureId.Value.IsLValueFlowCapture;
+
+        public bool EqualsIgnoringIndices(AnalysisEntity? other)
+        {
+            // Perform fast equality checks first.
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other == null ||
+                EqualsIgnoringInstanceLocationId != other.EqualsIgnoringInstanceLocationId)
+            {
+                return false;
+            }
+
+            // Now perform slow check that compares individual hash code parts sequences.
+            return Symbol.GetHashCodeOrDefault() == other.Symbol.GetHashCodeOrDefault()
+                && InstanceLocation.GetHashCode() == other.InstanceLocation.GetHashCode()
+                && InstanceReferenceOperationSyntax.GetHashCodeOrDefault() == other.InstanceReferenceOperationSyntax.GetHashCodeOrDefault()
+                && CaptureId.GetHashCodeOrDefault() == other.CaptureId.GetHashCodeOrDefault()
+                && Type.GetHashCodeOrDefault() == other.Type.GetHashCodeOrDefault()
+                && Parent.GetHashCodeOrDefault() == other.Parent.GetHashCodeOrDefault()
+                && IsThisOrMeInstance.GetHashCode() == other.IsThisOrMeInstance.GetHashCode();
+        }
 
         public bool EqualsIgnoringInstanceLocation(AnalysisEntity? other)
         {

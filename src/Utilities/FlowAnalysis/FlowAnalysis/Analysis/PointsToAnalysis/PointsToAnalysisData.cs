@@ -51,6 +51,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             AssertValidPointsToAnalysisData();
         }
 
+        protected override AbstractValueDomain<PointsToAbstractValue> ValueDomain => PointsToAnalysis.ValueDomainInstance;
         public override AnalysisEntityBasedPredicateAnalysisData<PointsToAbstractValue> Clone() => new PointsToAnalysisData(this);
 
         public override int Compare(AnalysisEntityBasedPredicateAnalysisData<PointsToAbstractValue> other, MapAbstractDomain<AnalysisEntity, PointsToAbstractValue> coreDataAnalysisDomain)

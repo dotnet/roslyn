@@ -17,6 +17,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
     /// </summary>
     public partial class ValueContentAnalysis : ForwardDataFlowAnalysis<ValueContentAnalysisData, ValueContentAnalysisContext, ValueContentAnalysisResult, ValueContentBlockAnalysisResult, ValueContentAbstractValue>
     {
+        internal static readonly AbstractValueDomain<ValueContentAbstractValue> ValueDomainInstance = ValueContentAbstractValueDomain.Default;
+
         private ValueContentAnalysis(ValueContentAnalysisDomain analysisDomain, ValueContentDataFlowOperationVisitor operationVisitor)
             : base(analysisDomain, operationVisitor)
         {
@@ -98,7 +100,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 null;
 
             var analysisContext = ValueContentAnalysisContext.Create(
-                ValueContentAbstractValueDomain.Default, wellKnownTypeProvider, cfg, owningSymbol, analyzerOptions,
+                ValueDomainInstance, wellKnownTypeProvider, cfg, owningSymbol, analyzerOptions,
                 interproceduralAnalysisConfig, pessimisticAnalysis, copyAnalysisResult,
                 pointsToAnalysisResult, TryGetOrComputeResultForAnalysisContext,
                 additionalSupportedValueTypes, getValueContentValueForAdditionalSupportedValueTypeOperation,

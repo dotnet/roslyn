@@ -1,6 +1,7 @@
 ﻿#nullable enable
 abstract Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.AbstractDataFlowAnalysisContext<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>.ComputeEqualsByHashCodeParts(Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.AbstractDataFlowAnalysisContext<TAnalysisData!, TAnalysisContext!, TAnalysisResult!, TAbstractAnalysisValue>! obj) -> bool
 abstract Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.AbstractDataFlowAnalysisContext<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>.ComputeHashCodePartsSpecific(ref Analyzer.Utilities.RoslynHashCode hashCode) -> void
+abstract Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.AnalysisEntityBasedPredicateAnalysisData<TValue>.ValueDomain.get -> Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.AbstractValueDomain<TValue>!
 abstract Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CacheBasedEquatable<T>.ComputeEqualsByHashCodeParts(Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CacheBasedEquatable<T!>! obj) -> bool
 abstract Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CacheBasedEquatable<T>.ComputeHashCodeParts(ref Analyzer.Utilities.RoslynHashCode hashCode) -> void
 abstract Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>.GetAbstractDefaultValue(Microsoft.CodeAnalysis.ITypeSymbol? type) -> TAbstractAnalysisValue
