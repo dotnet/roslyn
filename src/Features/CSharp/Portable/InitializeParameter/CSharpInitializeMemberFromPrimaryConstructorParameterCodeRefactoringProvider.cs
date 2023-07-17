@@ -229,16 +229,13 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 if (parameters.Length < 2)
                     return default;
 
-                var fields = parameters.SelectAsArray(p => (ISymbol)CreateField(p));
-                var properties = parameters.SelectAsArray(p => (ISymbol)CreateProperty(p));
-
                 var allFieldsAction = CodeAction.Create(
                     FeaturesResources.Create_and_assign_remaining_as_fields,
-                    cancellationToken => AddAllSymbolInitializationsAsync(document, typeDeclaration, parameters, fields, fallbackOptions, cancellationToken),
+                    cancellationToken => AddAllSymbolInitializationsAsync(document, typeDeclaration, parameters, parameters.SelectAsArray(CreateField), fallbackOptions, cancellationToken),
                     nameof(FeaturesResources.Create_and_assign_remaining_as_fields));
                 var allPropertiesAction = CodeAction.Create(
                     FeaturesResources.Create_and_assign_remaining_as_properties,
-                    cancellationToken => AddAllSymbolInitializationsAsync(document, typeDeclaration, parameters, properties, fallbackOptions, cancellationToken),
+                    cancellationToken => AddAllSymbolInitializationsAsync(document, typeDeclaration, parameters, parameters.SelectAsArray(CreateProperty), fallbackOptions, cancellationToken),
                     nameof(FeaturesResources.Create_and_assign_remaining_as_properties));
 
                 return (allFieldsAction, allPropertiesAction);
@@ -264,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 return result.ToImmutable();
             }
 
-            IFieldSymbol CreateField(IParameterSymbol parameter)
+            ISymbol CreateField(IParameterSymbol parameter)
             {
                 var parameterNameParts = IdentifierNameParts.CreateIdentifierNameParts(parameter, rules).BaseNameParts;
 
@@ -293,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 throw ExceptionUtilities.Unreachable();
             }
 
-            IPropertySymbol CreateProperty(IParameterSymbol parameter)
+            ISymbol CreateProperty(IParameterSymbol parameter)
             {
                 var parameterNameParts = IdentifierNameParts.CreateIdentifierNameParts(parameter, rules).BaseNameParts;
 
