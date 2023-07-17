@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.InitializeParameter;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Naming;
 using Roslyn.Utilities;
@@ -239,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
             ImmutableArray<IParameterSymbol> GetParametersWithoutAssociatedMembers()
             {
-                using var _1 = ArrayBuilder<IParameterSymbol>.GetInstance(out var result);
+                using var result = TemporaryArray<IParameterSymbol>.Empty;
 
                 foreach (var parameter in constructor.Parameters)
                 {
@@ -254,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                     result.Add(parameter);
                 }
 
-                return result.ToImmutable();
+                return result.ToImmutableAndClear();
             }
 
             ISymbol CreateField(IParameterSymbol parameter)
