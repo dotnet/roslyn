@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerReturnType: false,
             considerTypeConstraints: false,
             considerCallingConvention: false,
-            refKindCompareMode: RefKindCompareMode.ConsiderDifferences | RefKindCompareMode.AllowRefReadonlyVsInMismatch,
+            refKindCompareMode: RefKindCompareMode.ConsiderDifferences,
             typeComparison: TypeCompareKind.AllIgnoreOptions);
 
         /// <summary>
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerReturnType: true,
             considerTypeConstraints: false,
             considerCallingConvention: false,
-            refKindCompareMode: RefKindCompareMode.ConsiderDifferences | RefKindCompareMode.AllowRefReadonlyVsInMismatch,
+            refKindCompareMode: RefKindCompareMode.ConsiderDifferences,
             typeComparison: TypeCompareKind.ObliviousNullableModifierMatchesAny);
 
         /// <summary>

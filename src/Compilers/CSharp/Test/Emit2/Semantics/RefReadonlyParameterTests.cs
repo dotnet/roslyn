@@ -3999,70 +3999,8 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         CreateCompilation(source).VerifyEmitDiagnostics();
     }
 
-    [Fact]
-    public void PartialMembers_In()
-    {
-        var source = """
-            partial class C
-            {
-                public partial void M(ref readonly int x);
-            }
-            partial class C
-            {
-                public partial void M(in int x) => throw null;
-            }
-            """;
-        CreateCompilation(source).VerifyDiagnostics(
-            // (7,25): error CS9509: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in partial declaration.
-            //     public partial void M(in int x) => throw null;
-            Diagnostic(ErrorCode.ERR_PartialDifferentRefness, "M").WithArguments("ref readonly int x", "in int x").WithLocation(7, 25));
-    }
-
-    [Fact]
-    public void PartialMembers_In_DifferentNullability()
-    {
-        var source = """
-            #nullable enable
-            partial class C
-            {
-                public partial void M(ref readonly object x);
-            }
-            partial class C
-            {
-                public partial void M(in object? x) => throw null!;
-            }
-            """;
-        CreateCompilation(source).VerifyDiagnostics(
-            // (8,25): error CS9509: Reference kind modifier of parameter 'ref readonly object x' doesn't match the corresponding parameter 'in object? x' in partial declaration.
-            //     public partial void M(in object? x) => throw null;
-            Diagnostic(ErrorCode.ERR_PartialDifferentRefness, "M").WithArguments("ref readonly object x", "in object? x").WithLocation(8, 25));
-    }
-
-    [Fact]
-    public void PartialMembers_In_DifferentReturnType()
-    {
-        var source = """
-            #nullable enable
-            partial class C
-            {
-                public partial string M(ref readonly int x);
-            }
-            partial class C
-            {
-                public partial string? M(in int x) => throw null!;
-            }
-            """;
-        CreateCompilation(source).VerifyDiagnostics(
-            // (8,28): warning CS8819: Nullability of reference types in return type doesn't match partial method declaration.
-            //     public partial string? M(in int x) => throw null;
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, "M").WithLocation(8, 28),
-            // (8,28): error CS9509: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in partial declaration.
-            //     public partial string? M(in int x) => throw null;
-            Diagnostic(ErrorCode.ERR_PartialDifferentRefness, "M").WithArguments("ref readonly int x", "in int x").WithLocation(8, 28));
-    }
-
     [Theory, CombinatorialData]
-    public void PartialMembers_NotIn([CombinatorialValues("ref", "out")] string modifier)
+    public void PartialMembers([CombinatorialValues("ref ", "out ", "in ", "")] string modifier)
     {
         var source = $$"""
             partial class C
@@ -4080,11 +4018,11 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "M").WithArguments("C.M(ref readonly int)").WithLocation(3, 25),
             // (7,25): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(ref int)'
             //     public partial void M(ref int x) => throw null;
-            Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments($"C.M({modifier} int)").WithLocation(7, 25));
+            Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments($"C.M({modifier}int)").WithLocation(7, 25));
     }
 
     [Theory, CombinatorialData]
-    public void PartialMembers_NotIn_DifferentReturnType([CombinatorialValues("ref", "out")] string modifier)
+    public void PartialMembers_DifferentReturnType([CombinatorialValues("ref ", "out ", "in ", "")] string modifier)
     {
         var source = $$"""
             #nullable enable
@@ -4103,6 +4041,6 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "M").WithArguments("C.M(ref readonly int)").WithLocation(4, 27),
             // (8,28): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(out int)'
             //     public partial string? M(out int x) => throw null;
-            Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments($"C.M({modifier} int)").WithLocation(8, 28));
+            Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments($"C.M({modifier}int)").WithLocation(8, 28));
     }
 }

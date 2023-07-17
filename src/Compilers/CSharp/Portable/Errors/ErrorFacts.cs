@@ -2373,7 +2373,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_ArgExpectedIn:
                 case ErrorCode.WRN_OverridingDifferentRefness:
                 case ErrorCode.WRN_HidingDifferentRefness:
-                case ErrorCode.ERR_PartialDifferentRefness:
                 case ErrorCode.ERR_OutAttrOnRefReadonlyParam:
                     return false;
                 default:

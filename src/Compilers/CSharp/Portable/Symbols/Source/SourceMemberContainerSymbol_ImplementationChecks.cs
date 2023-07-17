@@ -1497,10 +1497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        /// <returns>
-        /// <see langword="true"/> if a diagnostic was added.
-        /// </returns>
-        internal static bool CheckRefReadonlyInMismatch<TArg>(
+        internal static void CheckRefReadonlyInMismatch<TArg>(
             MethodSymbol? baseMethod,
             MethodSymbol? overrideMethod,
             BindingDiagnosticBag diagnostics,
@@ -1513,10 +1510,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (baseMethod is null || overrideMethod is null)
             {
-                return false;
+                return;
             }
 
-            bool hasErrors = false;
             var baseParameters = baseMethod.Parameters;
             var overrideParameters = overrideMethod.Parameters;
             var overrideParameterOffset = invokedAsExtensionMethod ? 1 : 0;
@@ -1529,11 +1525,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if ((baseParameter.RefKind, overrideParameter.RefKind) is (RefKind.RefReadOnlyParameter, RefKind.In) or (RefKind.In, RefKind.RefReadOnlyParameter))
                 {
                     reportMismatchInParameterType(diagnostics, baseMethod, overrideMethod, overrideParameter, topLevel: true, (baseParameter, extraArgument));
-                    hasErrors = true;
                 }
             }
-
-            return hasErrors;
         }
 #nullable disable
 

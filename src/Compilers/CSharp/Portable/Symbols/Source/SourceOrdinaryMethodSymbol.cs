@@ -565,21 +565,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasTypeDifferences = true;
             }
 
-            if (SourceMemberContainerTypeSymbol.CheckRefReadonlyInMismatch(
-                constructedDefinition, implementation, diagnostics,
-                static (diagnostics, _, implementation, implementationParameter, _, arg) =>
-                {
-                    var (definitionParameter, _) = arg;
-                    var location = implementation.GetFirstLocation();
-                    // Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in partial declaration.
-                    diagnostics.Add(ErrorCode.ERR_PartialDifferentRefness, location, definitionParameter, implementationParameter);
-                },
-                extraArgument: (object)null,
-                invokedAsExtensionMethod: false))
-            {
-                hasTypeDifferences = true;
-            }
-
             if ((!hasTypeDifferences && !MemberSignatureComparer.PartialMethodsStrictComparer.Equals(definition, implementation)) ||
                 hasDifferencesInParameterOrTypeParameterName(definition, implementation))
             {

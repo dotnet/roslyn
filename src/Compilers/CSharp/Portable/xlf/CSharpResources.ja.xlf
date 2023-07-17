@@ -1442,11 +1442,6 @@
         <target state="translated">'parameter null-checking' 機能はサポートされていません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialDifferentRefness">
-        <source>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in partial declaration.</source>
-        <target state="new">Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in partial declaration.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_PartialMethodAccessibilityDifference">
         <source>Both partial method declarations must have identical accessibility modifiers.</source>
         <target state="translated">両方の部分メソッド宣言には、同じアクセシビリティ修飾子を指定する必要があります。</target>
