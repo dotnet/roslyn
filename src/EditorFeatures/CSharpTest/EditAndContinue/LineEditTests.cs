@@ -654,7 +654,7 @@ class C
     }
 }";
 
-            // TODO: https://github.com/dotnet/roslyn/issues/69027
+            // TODO: https://github.com/dotnet/roslyn/issues/67307
             // When we allow updating non-active bodies with stack alloc we will need to pass active statements to VerifyLineEdits
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
