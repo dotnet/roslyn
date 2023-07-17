@@ -3,11 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -21,8 +19,6 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InitializeParameter;
-using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Naming;
@@ -57,10 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             if (selectedParameter.Parent is not ParameterListSyntax { Parent: TypeDeclarationSyntax typeDeclaration })
                 return;
 
-            var generator = SyntaxGenerator.GetGenerator(document);
             // var parameterNodes = generator.GetParameters(functionDeclaration);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             // we can't just call GetDeclaredSymbol on functionDeclaration because it could an anonymous function,
             // so first we have to get the parameter symbol and then its containing method symbol
@@ -88,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             // Ok.  Looks like the selected parameter could be refactored. Defer to subclass to 
             // actually determine if there are any viable refactorings here.
             var refactorings = await GetRefactoringsForSingleParameterAsync(
-                document, typeDeclaration, selectedParameter, parameter, methodSymbol, context.Options, cancellationToken).ConfigureAwait(false);
+                document, typeDeclaration, parameter, methodSymbol, context.Options, cancellationToken).ConfigureAwait(false);
             context.RegisterRefactorings(refactorings, context.Span);
             // }
 
@@ -130,7 +124,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         private async Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
             Document document,
             TypeDeclarationSyntax typeDeclaration,
-            ParameterSyntax parameterSyntax,
             IParameterSymbol parameter,
             IMethodSymbol method,
             CleanCodeGenerationOptionsProvider fallbackOptions,
@@ -162,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             if (fieldOrProperty != null)
             {
                 return HandleExistingFieldOrProperty(
-                    document, parameter, fieldOrProperty, isThrowNotImplementedProperty, fallbackOptions);
+                    document, typeDeclaration, parameter, fieldOrProperty, isThrowNotImplementedProperty, fallbackOptions);
             }
             else
             {
@@ -171,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             }
         }
 
-        private async Task<ImmutableArray<CodeAction>> HandleNoExistingFieldOrPropertyAsync(
+        private static async Task<ImmutableArray<CodeAction>> HandleNoExistingFieldOrPropertyAsync(
             Document document,
             TypeDeclarationSyntax typeDeclaration,
             IParameterSymbol parameter,
@@ -187,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
 
             var (fieldAction, propertyAction) = AddSpecificParameterInitializationActions(
-                document, parameter, constructorDeclaration, blockStatement, rules, formattingOptions.AccessibilityModifiersRequired, fallbackOptions);
+                document, typeDeclaration, parameter, rules, formattingOptions.AccessibilityModifiersRequired, fallbackOptions);
 
             // Check if the surrounding parameters are assigned to another field in this class.  If so, offer to
             // make this parameter into a field as well.  Otherwise, default to generating a property
@@ -205,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             }
 
             var (allFieldsAction, allPropertiesAction) = AddAllParameterInitializationActions(
-                document, compilation, method, rules, formattingOptions.AccessibilityModifiersRequired, fallbackOptions, cancellationToken);
+                document, compilation, typeDeclaration, method, rules, formattingOptions.AccessibilityModifiersRequired, fallbackOptions, cancellationToken);
 
             if (allFieldsAction != null && allPropertiesAction != null)
             {
@@ -224,9 +217,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             return allActions.ToImmutable();
         }
 
-        private (CodeAction? fieldAction, CodeAction? propertyAction) AddAllParameterInitializationActions(
+        private static (CodeAction? fieldAction, CodeAction? propertyAction) AddAllParameterInitializationActions(
             Document document,
             Compilation compilation,
+            TypeDeclarationSyntax typeDeclaration,
             IMethodSymbol method,
             ImmutableArray<NamingRule> rules,
             AccessibilityModifiersRequired accessibilityModifiersRequired,
@@ -245,22 +239,21 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             var allFieldsAction = CodeAction.Create(
                 FeaturesResources.Create_and_assign_remaining_as_fields,
                 c => AddAllSymbolInitializationsAsync(
-                    document, constructorDeclaration, blockStatement, parameters, fields, fallbackOptions, c),
+                    document, typeDeclaration, parameters, fields, fallbackOptions, c),
                 nameof(FeaturesResources.Create_and_assign_remaining_as_fields));
             var allPropertiesAction = CodeAction.Create(
                 FeaturesResources.Create_and_assign_remaining_as_properties,
                 c => AddAllSymbolInitializationsAsync(
-                    document, constructorDeclaration, blockStatement, parameters, properties, fallbackOptions, c),
+                    document, typeDeclaration, parameters, properties, fallbackOptions, c),
                 nameof(FeaturesResources.Create_and_assign_remaining_as_properties));
 
             return (allFieldsAction, allPropertiesAction);
         }
 
-        private (CodeAction fieldAction, CodeAction propertyAction) AddSpecificParameterInitializationActions(
+        private static (CodeAction fieldAction, CodeAction propertyAction) AddSpecificParameterInitializationActions(
             Document document,
+            TypeDeclarationSyntax typeDeclaration,
             IParameterSymbol parameter,
-            SyntaxNode constructorDeclaration,
-            IBlockOperation? blockStatement,
             ImmutableArray<NamingRule> rules,
             AccessibilityModifiersRequired accessibilityModifiersRequired,
             CodeGenerationOptionsProvider fallbackOptions)
@@ -273,11 +266,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
             var fieldAction = CodeAction.Create(
                 string.Format(FeaturesResources.Create_and_assign_field_0, field.Name),
-                c => AddSingleSymbolInitializationAsync(document, constructorDeclaration, blockStatement, parameter, field, isThrowNotImplementedProperty, fallbackOptions, c),
+                c => AddSingleSymbolInitializationAsync(document, typeDeclaration, parameter, field, isThrowNotImplementedProperty, fallbackOptions, c),
                 nameof(FeaturesResources.Create_and_assign_field_0) + "_" + field.Name);
             var propertyAction = CodeAction.Create(
                 string.Format(FeaturesResources.Create_and_assign_property_0, property.Name),
-                c => AddSingleSymbolInitializationAsync(document, constructorDeclaration, blockStatement, parameter, property, isThrowNotImplementedProperty, fallbackOptions, c),
+                c => AddSingleSymbolInitializationAsync(document, typeDeclaration, parameter, property, isThrowNotImplementedProperty, fallbackOptions, c),
                 nameof(FeaturesResources.Create_and_assign_property_0) + "_" + property.Name);
 
             return (fieldAction, propertyAction);
@@ -307,8 +300,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             return result.ToImmutable();
         }
 
-        private ImmutableArray<CodeAction> HandleExistingFieldOrProperty(
+        private static ImmutableArray<CodeAction> HandleExistingFieldOrProperty(
             Document document,
+            TypeDeclarationSyntax typeDeclaration,
             IParameterSymbol parameter,
             ISymbol fieldOrProperty,
             bool isThrowNotImplementedProperty,
@@ -326,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             return ImmutableArray.Create(CodeAction.Create(
                 title,
                 cancellationToken => AddSingleSymbolInitializationAsync(
-                    document, parameter, fieldOrProperty, isThrowNotImplementedProperty, fallbackOptions, cancellationToken),
+                    document, typeDeclaration, parameter, fieldOrProperty, isThrowNotImplementedProperty, fallbackOptions, cancellationToken),
                 title));
         }
 
@@ -383,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             throw ExceptionUtilities.Unreachable();
         }
 
-        private IPropertySymbol CreateProperty(
+        private static IPropertySymbol CreateProperty(
             IParameterSymbol parameter,
             ImmutableArray<NamingRule> rules)
         {
