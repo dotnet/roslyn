@@ -3315,6 +3315,26 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
     }
 
     [Fact]
+    public void PartialMembers_In_DifferentNullability()
+    {
+        var source = """
+            #nullable enable
+            partial class C
+            {
+                public partial void M(ref readonly object x);
+            }
+            partial class C
+            {
+                public partial void M(in object? x) => throw null!;
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (8,25): error CS9509: Reference kind modifier of parameter 'ref readonly object x' doesn't match the corresponding parameter 'in object? x' in partial declaration.
+            //     public partial void M(in object? x) => throw null;
+            Diagnostic(ErrorCode.ERR_PartialDifferentRefness, "M").WithArguments("ref readonly object x", "in object? x").WithLocation(8, 25));
+    }
+
+    [Fact]
     public void PartialMembers_In_DifferentReturnType()
     {
         var source = """
