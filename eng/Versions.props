@@ -6,7 +6,7 @@
   -->
 
 <PropertyGroup>
-    <MetalamaBackstageVersion>2023.1.5</MetalamaBackstageVersion>
+    <MetalamaBackstageVersion>2023.1.6</MetalamaBackstageVersion>
     <PostSharpEngineeringVersion>2023.2.24</PostSharpEngineeringVersion>
 </PropertyGroup>
 
