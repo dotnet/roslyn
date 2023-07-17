@@ -62,8 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
             // See if we're already assigning this parameter to a field/property in this type. If so, there's nothing
             // more for us to do.
-            var assignmentExpression = TryFindFieldOrPropertyInitializerValue(semanticModel.Compilation, parameter, cancellationToken);
-            if (assignmentExpression != null)
+            var initializerValue = TryFindFieldOrPropertyInitializerValue(semanticModel.Compilation, parameter, cancellationToken);
+            if (initializerValue != null)
                 return;
 
             // Haven't initialized any fields/properties with this parameter.  Offer to assign to an existing matching
