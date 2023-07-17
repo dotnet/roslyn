@@ -52,58 +52,37 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 return;
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
             var parameter = (IParameterSymbol)semanticModel.GetRequiredDeclaredSymbol(selectedParameter, cancellationToken);
             if (parameter?.Name is null or "")
                 return;
 
-            if (parameter.ContainingSymbol is not IMethodSymbol { MethodKind: MethodKind.Constructor } methodSymbol)
+            if (parameter.ContainingSymbol is not IMethodSymbol { MethodKind: MethodKind.Constructor } constructor)
                 return;
 
-            var refactorings = await GetRefactoringsForSingleParameterAsync(
-                document, typeDeclaration, parameter, methodSymbol, context.Options, cancellationToken).ConfigureAwait(false);
-            context.RegisterRefactorings(refactorings, context.Span);
-
-            return;
-        }
-
-        private static async Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
-            Document document,
-            TypeDeclarationSyntax typeDeclaration,
-            IParameterSymbol parameter,
-            IMethodSymbol method,
-            CleanCodeGenerationOptionsProvider fallbackOptions,
-            CancellationToken cancellationToken)
-        {
             // See if we're already assigning this parameter to a field/property in this type. If so, there's nothing
             // more for us to do.
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var assignmentExpression = TryFindFieldOrPropertyInitializerValue(semanticModel.Compilation, parameter, cancellationToken);
             if (assignmentExpression != null)
-                return ImmutableArray<CodeAction>.Empty;
+                return;
 
             // Haven't initialized any fields/properties with this parameter.  Offer to assign
             // to an existing matching field/prop if we can find one, or add a new field/prop
             // if we can't.
-
+            var fallbackOptions = context.Options;
             var rules = await document.GetNamingRulesAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             var parameterNameParts = IdentifierNameParts.CreateIdentifierNameParts(parameter, rules);
             if (parameterNameParts.BaseName == "")
-                return ImmutableArray<CodeAction>.Empty;
+                return;
 
             var (fieldOrProperty, isThrowNotImplementedProperty) = await TryFindMatchingUninitializedFieldOrPropertySymbolAsync(
                 document, parameter, rules, parameterNameParts.BaseNameParts, cancellationToken).ConfigureAwait(false);
 
-            if (fieldOrProperty != null)
-            {
-                return HandleExistingFieldOrProperty(
-                    document, typeDeclaration, parameter, fieldOrProperty, isThrowNotImplementedProperty, fallbackOptions);
-            }
-            else
-            {
-                return await HandleNoExistingFieldOrPropertyAsync(
-                    document, typeDeclaration, parameter, method, rules, fallbackOptions, cancellationToken).ConfigureAwait(false);
-            }
+            var refactorings = fieldOrProperty != null
+                ? HandleExistingFieldOrProperty(document, typeDeclaration, parameter, fieldOrProperty, isThrowNotImplementedProperty, fallbackOptions)
+                : await HandleNoExistingFieldOrPropertyAsync(
+                    document, typeDeclaration, parameter, constructor, rules, fallbackOptions, cancellationToken).ConfigureAwait(false);
+
+            context.RegisterRefactorings(refactorings, context.Span);
         }
 
         private static async Task<ImmutableArray<CodeAction>> HandleNoExistingFieldOrPropertyAsync(
