@@ -95,6 +95,18 @@ End Class");
         }
 
         [Fact]
+        public async Task NoDiagnosticReportedForMultilineMessageOnlyBannedTextAsync()
+        {
+            var source = @"";
+            var bannedText = @"
+;first
+  ;second
+;third // comment";
+
+            await VerifyCSharpAnalyzerAsync(source, bannedText);
+        }
+
+        [Fact]
         public async Task DiagnosticReportedForDuplicateBannedApiLinesAsync()
         {
             var source = @"";
