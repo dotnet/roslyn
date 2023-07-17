@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerReturnType: false,
             considerTypeConstraints: false,
             considerCallingConvention: false, //ignore static-ness
-            refKindCompareMode: RefKindCompareMode.ConsiderDifferences, // PROTOTYPE: RefReadonlyParameterRules?
+            refKindCompareMode: RefKindCompareMode.ConsiderDifferences, // PROTOTYPE: AllowRefReadonlyVsInMismatch?
             typeComparison: TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreDynamicAndTupleNames);
 
         /// <summary>
