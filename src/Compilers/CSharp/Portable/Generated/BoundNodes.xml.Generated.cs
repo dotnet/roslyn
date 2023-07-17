@@ -7683,7 +7683,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Statements = statements;
             this.WhenTrueLabel = whenTrueLabel;
             this.WhenFalseLabel = whenFalseLabel;
+            Validate();
         }
+
+        [Conditional("DEBUG")]
+        private partial void Validate();
 
         public new TypeSymbol Type => base.Type!;
         public ImmutableArray<BoundStatement> Statements { get; }

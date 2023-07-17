@@ -2274,7 +2274,7 @@
     <Field Name="WhenFalseLabel" Type="LabelSymbol" Null="disallow"/>
   </Node>
 
-  <Node Name="BoundLoweredIsPatternExpression" Base="BoundExpression">
+  <Node Name="BoundLoweredIsPatternExpression" Base="BoundExpression" HasValidate="true">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Statements" Type="ImmutableArray&lt;BoundStatement&gt;"/>
     <Field Name="WhenTrueLabel" Type="LabelSymbol"/>
