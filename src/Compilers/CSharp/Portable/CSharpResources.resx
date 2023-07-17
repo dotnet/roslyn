@@ -7718,10 +7718,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_HidingDifferentRefness_Title" xml:space="preserve">
     <value>Modifier of parameter doesn't match the corresponding parameter in hidden member.</value>
   </data>
-  <data name="WRN_PartialDifferentRefness" xml:space="preserve">
+  <data name="ERR_PartialDifferentRefness" xml:space="preserve">
     <value>Modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in partial declaration.</value>
-  </data>
-  <data name="WRN_PartialDifferentRefness_Title" xml:space="preserve">
-    <value>Modifier of parameter doesn't match the corresponding parameter in partial declaration.</value>
   </data>
 </root>

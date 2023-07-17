@@ -1442,6 +1442,11 @@
         <target state="translated">Funkce parameter null-checking se nepodporuje.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialDifferentRefness">
+        <source>Modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in partial declaration.</source>
+        <target state="new">Modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in partial declaration.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMethodAccessibilityDifference">
         <source>Both partial method declarations must have identical accessibility modifiers.</source>
         <target state="translated">Obě deklarace částečných metod musí mít shodné modifikátory přístupnosti.</target>
@@ -2655,16 +2660,6 @@
       <trans-unit id="WRN_ParamsArrayInLambdaOnly_Title">
         <source>Parameter has params modifier in lambda but not in target delegate type.</source>
         <target state="translated">Parametr má modifikátor params ve výrazu lambda, ale ne v cílovém typu delegáta.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_PartialDifferentRefness">
-        <source>Modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in partial declaration.</source>
-        <target state="new">Modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in partial declaration.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_PartialDifferentRefness_Title">
-        <source>Modifier of parameter doesn't match the corresponding parameter in partial declaration.</source>
-        <target state="new">Modifier of parameter doesn't match the corresponding parameter in partial declaration.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">

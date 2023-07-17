@@ -3145,9 +3145,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (7,25): warning CS9509: Modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in partial declaration.
+            // (7,25): error CS9509: Modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in partial declaration.
             //     public partial void M(in int x) => throw null;
-            Diagnostic(ErrorCode.WRN_PartialDifferentRefness, "M").WithArguments("ref readonly int x", "in int x").WithLocation(7, 25));
+            Diagnostic(ErrorCode.ERR_PartialDifferentRefness, "M").WithArguments("ref readonly int x", "in int x").WithLocation(7, 25));
     }
 
     [Fact]
@@ -3168,9 +3168,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (8,28): warning CS8819: Nullability of reference types in return type doesn't match partial method declaration.
             //     public partial string? M(in int x) => throw null;
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, "M").WithLocation(8, 28),
-            // (8,28): warning CS9509: Modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in partial declaration.
+            // (8,28): error CS9509: Modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in partial declaration.
             //     public partial string? M(in int x) => throw null;
-            Diagnostic(ErrorCode.WRN_PartialDifferentRefness, "M").WithArguments("ref readonly int x", "in int x").WithLocation(8, 28));
+            Diagnostic(ErrorCode.ERR_PartialDifferentRefness, "M").WithArguments("ref readonly int x", "in int x").WithLocation(8, 28));
     }
 
     [Theory, CombinatorialData]

@@ -1442,6 +1442,11 @@
         <target state="translated">O recurso de 'verificação nula de parâmetro' não tem suporte.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialDifferentRefness">
+        <source>Modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in partial declaration.</source>
+        <target state="new">Modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in partial declaration.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMethodAccessibilityDifference">
         <source>Both partial method declarations must have identical accessibility modifiers.</source>
         <target state="translated">As duas declarações de métodos parciais precisam ter modificadores de acessibilidade idênticos.</target>
@@ -2655,16 +2660,6 @@
       <trans-unit id="WRN_ParamsArrayInLambdaOnly_Title">
         <source>Parameter has params modifier in lambda but not in target delegate type.</source>
         <target state="translated">O parâmetro tem modificador de parâmetros em lambda, mas não no tipo delegado de destino.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_PartialDifferentRefness">
-        <source>Modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in partial declaration.</source>
-        <target state="new">Modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in partial declaration.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_PartialDifferentRefness_Title">
-        <source>Modifier of parameter doesn't match the corresponding parameter in partial declaration.</source>
-        <target state="new">Modifier of parameter doesn't match the corresponding parameter in partial declaration.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">

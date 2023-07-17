@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var (definitionParameter, _) = arg;
                     var location = implementation.GetFirstLocation();
                     // Modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in partial declaration.
-                    diagnostics.Add(ErrorCode.WRN_PartialDifferentRefness, location, definitionParameter, implementationParameter);
+                    diagnostics.Add(ErrorCode.ERR_PartialDifferentRefness, location, definitionParameter, implementationParameter);
                 },
                 extraArgument: (object)null,
                 invokedAsExtensionMethod: false))
