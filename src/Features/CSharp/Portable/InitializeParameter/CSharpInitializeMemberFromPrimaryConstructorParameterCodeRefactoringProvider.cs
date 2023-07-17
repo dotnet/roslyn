@@ -139,14 +139,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
             ImmutableArray<CodeAction> HandleExistingFieldOrProperty()
             {
-                // Found a field/property that this parameter should be assigned to.
-                // Just offer the simple assignment to it.
-
-                var resource = fieldOrProperty.Kind == SymbolKind.Field
+                // Found a field/property that this parameter should be assigned to. Just offer the simple assignment to it.
+                var title = string.Format(fieldOrProperty.Kind == SymbolKind.Field
                     ? FeaturesResources.Initialize_field_0
-                    : FeaturesResources.Initialize_property_0;
-
-                var title = string.Format(resource, fieldOrProperty.Name);
+                    : FeaturesResources.Initialize_property_0, fieldOrProperty.Name);
 
                 return ImmutableArray.Create(CodeAction.Create(
                     title,
