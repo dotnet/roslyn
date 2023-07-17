@@ -191,8 +191,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
             // Check if the surrounding parameters are assigned to another field in this class.  If so, offer to
             // make this parameter into a field as well.  Otherwise, default to generating a property
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var siblingFieldOrProperty = TryFindSiblingFieldOrProperty(semanticModel, typeDeclaration, parameter, cancellationToken);
+            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var siblingFieldOrProperty = TryFindSiblingFieldOrProperty(compilation, parameter, cancellationToken);
             if (siblingFieldOrProperty is IFieldSymbol)
             {
                 allActions.Add(fieldAction);
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             }
 
             var (allFieldsAction, allPropertiesAction) = AddAllParameterInitializationActions(
-                document, semanticModel, typeDeclaration, method, rules, formattingOptions.AccessibilityModifiersRequired, fallbackOptions, cancellationToken);
+                document, compilation, method, rules, formattingOptions.AccessibilityModifiersRequired, fallbackOptions, cancellationToken);
 
             if (allFieldsAction != null && allPropertiesAction != null)
             {
@@ -226,8 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
         private (CodeAction? fieldAction, CodeAction? propertyAction) AddAllParameterInitializationActions(
             Document document,
-            SemanticModel semanticModel,
-            TypeDeclarationSyntax typeDeclaration,
+            Compilation compilation,
             IMethodSymbol method,
             ImmutableArray<NamingRule> rules,
             AccessibilityModifiersRequired accessibilityModifiersRequired,
@@ -235,13 +234,13 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             CancellationToken cancellationToken)
         {
             var parameters = GetParametersWithoutAssociatedMembers(
-                semanticModel, typeDeclaration, rules, method, cancellationToken);
+                compilation, rules, method, cancellationToken);
 
             if (parameters.Length < 2)
                 return default;
 
             var fields = parameters.SelectAsArray(p => (ISymbol)CreateField(p, accessibilityModifiersRequired, rules));
-            var properties = parameters.SelectAsArray(p => (ISymbol)CreateProperty(p, accessibilityModifiersRequired, rules));
+            var properties = parameters.SelectAsArray(p => (ISymbol)CreateProperty(p, rules));
 
             var allFieldsAction = CodeAction.Create(
                 FeaturesResources.Create_and_assign_remaining_as_fields,
@@ -267,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             CodeGenerationOptionsProvider fallbackOptions)
         {
             var field = CreateField(parameter, accessibilityModifiersRequired, rules);
-            var property = CreateProperty(parameter, accessibilityModifiersRequired, rules);
+            var property = CreateProperty(parameter, rules);
 
             // we're generating the field or property, so we don't have to handle throwing versions of them.
             var isThrowNotImplementedProperty = false;
@@ -573,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 }
             }
 
-            return currentSolution.WithDocumentSyntaxRoot(document.Id, editor.GetChangedRoot());
+            return editor.GetChangedSolution();
         }
 
         private void AddAssignment(
