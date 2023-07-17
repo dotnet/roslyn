@@ -16,9 +16,6 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-// PROTOTYPE: Temporarily commented out, until CollectionLiteralTests.cs is moved to Emit2.
-#pragma warning disable IDE0055
-#if false
     public class DelegateTypeTests : CSharpTestBase
     {
         private const string s_utils =
@@ -16441,5 +16438,4 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "c").WithArguments("3").WithLocation(1, 40));
         }
     }
-#endif
 }
