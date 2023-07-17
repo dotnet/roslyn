@@ -74,6 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             if (parameterNameParts.BaseName == "")
                 return;
 
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+
             var (fieldOrProperty, isThrowNotImplementedProperty) = await TryFindMatchingUninitializedFieldOrPropertySymbolAsync().ConfigureAwait(false);
             var refactorings = fieldOrProperty != null
                 ? HandleExistingFieldOrProperty()
@@ -160,10 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 // Offer to create new one and assign to that.
                 using var _ = ArrayBuilder<CodeAction>.GetInstance(out var allActions);
 
-                var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
-
-                var (fieldAction, propertyAction) = AddSpecificParameterInitializationActions(
-                    document, typeDeclaration, parameter, rules, formattingOptions.AccessibilityModifiersRequired, fallbackOptions);
+                var (fieldAction, propertyAction) = AddSpecificParameterInitializationActions();
 
                 // Check if the surrounding parameters are assigned to another field in this class.  If so, offer to
                 // make this parameter into a field as well.  Otherwise, default to generating a property
@@ -180,8 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                     allActions.Add(fieldAction);
                 }
 
-                var (allFieldsAction, allPropertiesAction) = AddAllParameterInitializationActions(formattingOptions.AccessibilityModifiersRequired);
-
+                var (allFieldsAction, allPropertiesAction) = AddAllParameterInitializationActions();
                 if (allFieldsAction != null && allPropertiesAction != null)
                 {
                     if (siblingFieldOrProperty is IFieldSymbol)
@@ -199,14 +197,33 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 return allActions.ToImmutable();
             }
 
-            (CodeAction? fieldAction, CodeAction? propertyAction) AddAllParameterInitializationActions(
-                AccessibilityModifiersRequired accessibilityModifiersRequired)
+            (CodeAction fieldAction, CodeAction propertyAction) AddSpecificParameterInitializationActions()
+            {
+                var field = CreateField(parameter, formattingOptions.AccessibilityModifiersRequired, rules);
+                var property = CreateProperty(parameter, rules);
+
+                // we're generating the field or property, so we don't have to handle throwing versions of them.
+                var isThrowNotImplementedProperty = false;
+
+                var fieldAction = CodeAction.Create(
+                    string.Format(FeaturesResources.Create_and_assign_field_0, field.Name),
+                    c => AddSingleSymbolInitializationAsync(document, typeDeclaration, parameter, field, isThrowNotImplementedProperty, fallbackOptions, c),
+                    nameof(FeaturesResources.Create_and_assign_field_0) + "_" + field.Name);
+                var propertyAction = CodeAction.Create(
+                    string.Format(FeaturesResources.Create_and_assign_property_0, property.Name),
+                    c => AddSingleSymbolInitializationAsync(document, typeDeclaration, parameter, property, isThrowNotImplementedProperty, fallbackOptions, c),
+                    nameof(FeaturesResources.Create_and_assign_property_0) + "_" + property.Name);
+
+                return (fieldAction, propertyAction);
+            }
+
+            (CodeAction? fieldAction, CodeAction? propertyAction) AddAllParameterInitializationActions()
             {
                 var parameters = GetParametersWithoutAssociatedMembers();
                 if (parameters.Length < 2)
                     return default;
 
-                var fields = parameters.SelectAsArray(p => (ISymbol)CreateField(p, accessibilityModifiersRequired, rules));
+                var fields = parameters.SelectAsArray(p => (ISymbol)CreateField(p, formattingOptions.AccessibilityModifiersRequired, rules));
                 var properties = parameters.SelectAsArray(p => (ISymbol)CreateProperty(p, rules));
 
                 var allFieldsAction = CodeAction.Create(
@@ -290,32 +307,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
                 return currentSolution;
             }
-        }
-
-        private static (CodeAction fieldAction, CodeAction propertyAction) AddSpecificParameterInitializationActions(
-            Document document,
-            TypeDeclarationSyntax typeDeclaration,
-            IParameterSymbol parameter,
-            ImmutableArray<NamingRule> rules,
-            AccessibilityModifiersRequired accessibilityModifiersRequired,
-            CodeGenerationOptionsProvider fallbackOptions)
-        {
-            var field = CreateField(parameter, accessibilityModifiersRequired, rules);
-            var property = CreateProperty(parameter, rules);
-
-            // we're generating the field or property, so we don't have to handle throwing versions of them.
-            var isThrowNotImplementedProperty = false;
-
-            var fieldAction = CodeAction.Create(
-                string.Format(FeaturesResources.Create_and_assign_field_0, field.Name),
-                c => AddSingleSymbolInitializationAsync(document, typeDeclaration, parameter, field, isThrowNotImplementedProperty, fallbackOptions, c),
-                nameof(FeaturesResources.Create_and_assign_field_0) + "_" + field.Name);
-            var propertyAction = CodeAction.Create(
-                string.Format(FeaturesResources.Create_and_assign_property_0, property.Name),
-                c => AddSingleSymbolInitializationAsync(document, typeDeclaration, parameter, property, isThrowNotImplementedProperty, fallbackOptions, c),
-                nameof(FeaturesResources.Create_and_assign_property_0) + "_" + property.Name);
-
-            return (fieldAction, propertyAction);
         }
 
         private static ISymbol? TryFindSiblingFieldOrProperty(
@@ -405,6 +396,13 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             throw ExceptionUtilities.Unreachable();
         }
 
+        /// <summary>
+        /// This is the workhorse function that actually goes and handles each parameter and either creates a
+        /// field/property for it, or updates an existing field/property with it.  It's extracted out from the rest as
+        /// we do not want it capturing anything.  Specifically, this is called in a loop for each parameter we're
+        /// processing.  For each, we produce new solution snapshots and thus must ensure we're always pointing at the
+        /// new view of the world, not anything from the original view.
+        /// </summary>
         private static async Task<Solution> AddSingleSymbolInitializationAsync(
             Document document,
             TypeDeclarationSyntax typeDeclaration,
