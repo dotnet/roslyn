@@ -776,19 +776,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var refKind2 = param2.RefKind;
 
                 // Metadata signatures don't distinguish ref/out, but C# does - even when comparing metadata method signatures.
-                var refKindMismatchAllowed = refKindMatching == RefKindMatching.RefReadonlyParameterRules &&
-                    ((refKind1 == RefKind.RefReadOnlyParameter && refKind2 == RefKind.In) ||
-                    (refKind1 == RefKind.In && refKind2 == RefKind.RefReadOnlyParameter));
                 if (refKindMatching != RefKindMatching.None)
                 {
-                    if (refKind1 != refKind2 && !refKindMismatchAllowed)
+                    if (refKind1 != refKind2 && !(refKindMatching == RefKindMatching.RefReadonlyParameterRules &&
+                        ((refKind1 == RefKind.RefReadOnlyParameter && refKind2 == RefKind.In) ||
+                        (refKind1 == RefKind.In && refKind2 == RefKind.RefReadOnlyParameter))))
                     {
                         return false;
                     }
                 }
                 else
                 {
-                    if ((refKind1 == RefKind.None) != (refKind2 == RefKind.None) && !refKindMismatchAllowed)
+                    if ((refKind1 == RefKind.None) != (refKind2 == RefKind.None))
                     {
                         return false;
                     }
