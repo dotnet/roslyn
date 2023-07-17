@@ -101,7 +101,7 @@ class {|Identifier:C|}
         [Fact]
         public async Task TestString1()
         {
-            await TestAsync(@""" {|String:goo|} """);
+            await TestAsync(@"{|String:"" goo ""|}");
         }
 
         [Fact]
@@ -114,7 +114,7 @@ class {|Identifier:C|}
         public async Task TestString3()
         {
             await TestAsync(@"
-"" {|String:goo|} """);
+{|String:"" goo ""|}");
         }
 
         [Fact]
@@ -128,7 +128,7 @@ class {|Identifier:C|}
         public async Task TestString5()
         {
             await TestAsync(@"
-@"" {|String:goo|} """);
+{|String:@"" goo ""|}");
         }
 
         [Fact]
@@ -141,7 +141,7 @@ class {|Identifier:C|}
         [Fact]
         public async Task TestString7()
         {
-            await TestAsync(@""""""" {|String:goo|} """"""");
+            await TestAsync(@"{|String:"""""" goo """"""|}");
         }
 
         [Fact]
@@ -165,9 +165,9 @@ class {|Identifier:C|}
         [Fact]
         public async Task TestString11()
         {
-            await TestAsync(@"""""""
-    {|String:goo|} 
-    """"""");
+            await TestAsync(@"{|String:""""""
+    goo 
+    """"""|}");
         }
 
         [Fact]
@@ -198,28 +198,28 @@ class {|Identifier:C|}
         public async Task TestString15()
         {
             await TestAsync(@"
-$"" {|String:goo|} """);
+$""{|String: goo |}""");
         }
 
         [Fact]
         public async Task TestString16()
         {
             await TestAsync(@"
-$"" {|String:goo|} {0} {|String:bar|} """);
+$""{|String: goo |}{0}{|String: bar |}""");
         }
 
         [Fact]
         public async Task TestString17()
         {
             await TestAsync(@"
-$"""""" {|String:goo|} {0} {|String:bar|} """"""");
+$""""""{|String: goo |}{0}{|String: bar |}""""""");
         }
 
         [Fact]
         public async Task TestString18()
         {
             await TestAsync(@"
-$"""""" {|String:goo|} {0:abcd} {|String:bar|} """"""");
+$""""""{|String: goo |}{0:abcd}{|String: bar |}""""""");
         }
 
         [Fact]
@@ -249,7 +249,7 @@ $"""""" {|String:goo|} {0:abcd} {|String:bar|} """"""");
         [Fact]
         public async Task TestEscapedString5()
         {
-            await TestAsync(""" @" {|String:C|}:\{|String:tests|} " """);
+            await TestAsync(""" {|String:@" C:\tests "|} """);
         }
 
         [Fact]
@@ -267,7 +267,19 @@ $"""""" {|String:goo|} {0:abcd} {|String:bar|} """"""");
         [Fact]
         public async Task TestEscapedString8()
         {
-            await TestAsync(""" @" {|String:C|}:\{|String:tests|}\{|String:goo|} " """);
+            await TestAsync(""" {|String:@" C:\tests\goo "|} """);
+        }
+
+        [Fact]
+        public async Task TestEscapedString9()
+        {
+            await TestAsync(""" $" {|String:C|}:\\{|String:tests|}\\{|String:goo|} {0} {|String:C|}:\\{|String:tests|}\\{|String:bar|} " """);
+        }
+
+        [Fact]
+        public async Task TestEscapedString10()
+        {
+            await TestAsync(""" $@"{|String: C:\tests\goo |}{0}{|String: C:\tests\bar |}" """);
         }
 
         [Fact]

@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -15,35 +17,39 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.SpellCheck
 {
-    internal abstract class AbstractSpellCheckSpanService : ISpellCheckSpanService
+    internal abstract class AbstractSpellCheckSpanService(char? escapeCharacter) : ISpellCheckSpanService
     {
+        private readonly char? _escapeCharacter = escapeCharacter;
+
         public async Task<ImmutableArray<SpellCheckSpan>> GetSpansAsync(Document document, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            return GetSpans();
 
-            return GetSpans(document, root, cancellationToken);
-        }
+            // Broken into its own method as it uses a ref-struct, which isn't allowed with the async call above.
+            ImmutableArray<SpellCheckSpan> GetSpans()
+            {
+                var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+                var classifier = document.GetRequiredLanguageService<ISyntaxClassificationService>();
+                var virtualCharService = document.GetRequiredLanguageService<IVirtualCharLanguageService>();
 
-        private static ImmutableArray<SpellCheckSpan> GetSpans(Document document, SyntaxNode root, CancellationToken cancellationToken)
-        {
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var classifier = document.GetRequiredLanguageService<ISyntaxClassificationService>();
-            var virtualCharService = document.GetRequiredLanguageService<IVirtualCharLanguageService>();
+                using var _ = ArrayBuilder<SpellCheckSpan>.GetInstance(out var spans);
 
-            using var _ = ArrayBuilder<SpellCheckSpan>.GetInstance(out var spans);
+                var worker = new Worker(this, syntaxFacts, classifier, virtualCharService, spans);
+                worker.Recurse(root, cancellationToken);
 
-            var worker = new Worker(syntaxFacts, classifier, virtualCharService, spans);
-            worker.Recurse(root, cancellationToken);
-
-            return spans.ToImmutable();
+                return spans.ToImmutable();
+            }
         }
 
         private readonly ref struct Worker(
+            AbstractSpellCheckSpanService spellCheckSpanService,
             ISyntaxFactsService syntaxFacts,
             ISyntaxClassificationService classifier,
             IVirtualCharLanguageService virtualCharService,
             ArrayBuilder<SpellCheckSpan> spans)
         {
+            private readonly AbstractSpellCheckSpanService _spellCheckSpanService = spellCheckSpanService;
             private readonly ISyntaxFactsService _syntaxFacts = syntaxFacts;
             private readonly ISyntaxKinds _syntaxKinds = syntaxFacts.SyntaxKinds;
             private readonly ISyntaxClassificationService _classifier = classifier;
@@ -85,16 +91,20 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             {
                 ProcessTriviaList(token.LeadingTrivia, cancellationToken);
 
-                if (_syntaxFacts.IsStringLiteral(token) ||
+                if (_syntaxFacts.IsStringLiteral(token))
+                {
+                    AddStringSpans(token, canContainEscapes: !_syntaxFacts.IsVerbatimStringLiteral(token));
+                }
+                else if (
                     token.RawKind == _syntaxKinds.SingleLineRawStringLiteralToken ||
                     token.RawKind == _syntaxKinds.MultiLineRawStringLiteralToken)
                 {
-                    AddStringSubSpans(token);
+                    AddStringSpans(token, canContainEscapes: false);
                 }
                 else if (token.RawKind == _syntaxKinds.InterpolatedStringTextToken &&
                          token.Parent?.RawKind == _syntaxKinds.InterpolatedStringText)
                 {
-                    AddStringSubSpans(token);
+                    AddStringSpans(token, canContainEscapes: !_syntaxFacts.IsVerbatimInterpolatedStringExpression(token.Parent.Parent));
                 }
                 else if (token.RawKind == _syntaxKinds.IdentifierToken)
                 {
@@ -102,6 +112,34 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                 }
 
                 ProcessTriviaList(token.TrailingTrivia, cancellationToken);
+            }
+
+            private void AddStringSpans(SyntaxToken token, bool canContainEscapes)
+            {
+                // Don't bother with strings that are in error.  This is both because we can't properly break them into
+                // pieces, and also because a string in error often may be grabbing more of the file than intended, and
+                // we don't want to start spell checking normal code that is caught up in the middle of being edited.
+                if (token.ContainsDiagnostics)
+                    return;
+
+                // First, see if there's actually the presence of an escape character in the string token.  If not, we
+                // can just provide the entire string as-is to the caller to spell check since there's no escapes for
+                // them to be confused by.
+                //
+                // Note: .Text on a string token is non-allocating.  It is captured at the time of token creation and
+                // held by the token.
+                var escapeChar = _spellCheckSpanService._escapeCharacter;
+                if (canContainEscapes &&
+                    escapeChar != null &&
+                    token.Text.AsSpan().IndexOf(escapeChar.Value) >= 0)
+                {
+                    AddStringSubSpans(token);
+                }
+                else
+                {
+                    // Just add the full string span as is and let the client handle it.
+                    AddSpan(new SpellCheckSpan(token.Span, SpellCheckKind.String));
+                }
             }
 
             private void AddStringSubSpans(SyntaxToken token)
