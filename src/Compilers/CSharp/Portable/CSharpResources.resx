@@ -7707,18 +7707,18 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>ref readonly parameters</value>
   </data>
   <data name="WRN_OverridingDifferentRefness" xml:space="preserve">
-    <value>Modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in overridden or implemented member.</value>
+    <value>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in overridden or implemented member.</value>
   </data>
   <data name="WRN_OverridingDifferentRefness_Title" xml:space="preserve">
-    <value>Modifier of parameter doesn't match the corresponding parameter in overridden or implemented member.</value>
+    <value>Reference kind modifier of parameter doesn't match the corresponding parameter in overridden or implemented member.</value>
   </data>
   <data name="WRN_HidingDifferentRefness" xml:space="preserve">
-    <value>Modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in hidden member.</value>
+    <value>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in hidden member.</value>
   </data>
   <data name="WRN_HidingDifferentRefness_Title" xml:space="preserve">
-    <value>Modifier of parameter doesn't match the corresponding parameter in hidden member.</value>
+    <value>Reference kind modifier of parameter doesn't match the corresponding parameter in hidden member.</value>
   </data>
   <data name="ERR_PartialDifferentRefness" xml:space="preserve">
-    <value>Modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in partial declaration.</value>
+    <value>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in partial declaration.</value>
   </data>
 </root>

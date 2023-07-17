@@ -1443,8 +1443,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialDifferentRefness">
-        <source>Modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in partial declaration.</source>
-        <target state="new">Modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in partial declaration.</target>
+        <source>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in partial declaration.</source>
+        <target state="new">Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in partial declaration.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodAccessibilityDifference">
@@ -2513,13 +2513,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_HidingDifferentRefness">
-        <source>Modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in hidden member.</source>
-        <target state="new">Modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in hidden member.</target>
+        <source>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in hidden member.</source>
+        <target state="new">Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in hidden member.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_HidingDifferentRefness_Title">
-        <source>Modifier of parameter doesn't match the corresponding parameter in hidden member.</source>
-        <target state="new">Modifier of parameter doesn't match the corresponding parameter in hidden member.</target>
+        <source>Reference kind modifier of parameter doesn't match the corresponding parameter in hidden member.</source>
+        <target state="new">Reference kind modifier of parameter doesn't match the corresponding parameter in hidden member.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InterceptorSignatureMismatch">
@@ -2623,13 +2623,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_OverridingDifferentRefness">
-        <source>Modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in overridden or implemented member.</source>
-        <target state="new">Modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in overridden or implemented member.</target>
+        <source>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in overridden or implemented member.</source>
+        <target state="new">Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in overridden or implemented member.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_OverridingDifferentRefness_Title">
-        <source>Modifier of parameter doesn't match the corresponding parameter in overridden or implemented member.</source>
-        <target state="new">Modifier of parameter doesn't match the corresponding parameter in overridden or implemented member.</target>
+        <source>Reference kind modifier of parameter doesn't match the corresponding parameter in overridden or implemented member.</source>
+        <target state="new">Reference kind modifier of parameter doesn't match the corresponding parameter in overridden or implemented member.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">

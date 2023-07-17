@@ -1874,7 +1874,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 {
                                     var (implementedParameter, implementingType) = arg;
                                     var location = GetImplicitImplementationDiagnosticLocation(implementedMethod, implementingType, implementingMethod);
-                                    // Modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in overridden or implemented member.
+                                    // Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in overridden or implemented member.
                                     diagnostics.Add(ErrorCode.WRN_OverridingDifferentRefness, location, implementingParameter, implementedParameter);
                                 },
                                 implementingType,
