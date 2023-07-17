@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             return;
         }
 
-        private async Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
+        private static async Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
             Document document,
             TypeDeclarationSyntax typeDeclaration,
             IParameterSymbol parameter,
@@ -596,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             return null;
         }
 
-        private async Task<(ISymbol?, bool isThrowNotImplementedProperty)> TryFindMatchingUninitializedFieldOrPropertySymbolAsync(
+        private static async Task<(ISymbol?, bool isThrowNotImplementedProperty)> TryFindMatchingUninitializedFieldOrPropertySymbolAsync(
             Document document, IParameterSymbol parameter, ImmutableArray<NamingRule> rules, ImmutableArray<string> parameterWords, CancellationToken cancellationToken)
         {
             // Look for a field/property that really looks like it corresponds to this parameter.
