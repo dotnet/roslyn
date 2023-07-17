@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
             var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
 
-            var (fieldOrProperty, isThrowNotImplementedProperty) = await TryFindMatchingUninitializedFieldOrPropertySymbolAsync().ConfigureAwait(false);
+            var (fieldOrProperty, isThrowNotImplementedProperty) = TryFindMatchingUninitializedFieldOrPropertySymbol();
             var refactorings = fieldOrProperty != null
                 ? HandleExistingFieldOrProperty()
                 : await HandleNoExistingFieldOrPropertyAsync().ConfigureAwait(false);
@@ -84,14 +84,13 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             context.RegisterRefactorings(refactorings, context.Span);
             return;
 
-            async Task<(ISymbol?, bool isThrowNotImplementedProperty)> TryFindMatchingUninitializedFieldOrPropertySymbolAsync()
+            (ISymbol?, bool isThrowNotImplementedProperty) TryFindMatchingUninitializedFieldOrPropertySymbol()
             {
                 // Look for a field/property that really looks like it corresponds to this parameter. Use a variety of
                 // heuristics around the name/type to see if this is a match.
 
                 var parameterWords = parameterNameParts.BaseNameParts;
                 var containingType = parameter.ContainingType;
-                var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
                 // Walk through the naming rules against this parameter's name to see what name the user would like for
                 // it as a member in this type.  Note that we have some fallback rules that use the standard conventions
