@@ -6635,7 +6635,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             public static readonly TypedConstantComparer Instance = new();
 
             public bool Equals(TypedConstant x, TypedConstant y)
-                => x.Kind.Equals(y.Kind) &&
+                => x.Kind == y.Kind &&
                    x.IsNull == y.IsNull &&
                    SymbolEquivalenceComparer.Instance.Equals(x.Type, y.Type) &&
                    x.Kind switch
