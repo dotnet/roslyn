@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             var (fieldOrProperty, isThrowNotImplementedProperty) = TryFindMatchingUninitializedFieldOrPropertySymbol();
             var refactorings = fieldOrProperty != null
                 ? HandleExistingFieldOrProperty()
-                : await HandleNoExistingFieldOrPropertyAsync().ConfigureAwait(false);
+                : HandleNoExistingFieldOrProperty();
 
             context.RegisterRefactorings(refactorings, context.Span);
             return;
@@ -151,18 +151,17 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                     title));
             }
 
-            async Task<ImmutableArray<CodeAction>> HandleNoExistingFieldOrPropertyAsync()
+            ImmutableArray<CodeAction> HandleNoExistingFieldOrProperty()
             {
                 // Didn't find a field/prop that this parameter could be assigned to.
                 // Offer to create new one and assign to that.
                 using var _ = ArrayBuilder<CodeAction>.GetInstance(out var allActions);
 
-                var (fieldAction, propertyAction) = AddSpecificParameterInitializationActions();
-
                 // Check if the surrounding parameters are assigned to another field in this class.  If so, offer to
                 // make this parameter into a field as well.  Otherwise, default to generating a property
-                var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var siblingFieldOrProperty = TryFindSiblingFieldOrProperty(compilation, parameter, cancellationToken);
+                var siblingFieldOrProperty = TryFindSiblingFieldOrProperty();
+                var (fieldAction, propertyAction) = AddSpecificParameterInitializationActions();
+
                 if (siblingFieldOrProperty is IFieldSymbol)
                 {
                     allActions.Add(fieldAction);
@@ -190,6 +189,18 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 }
 
                 return allActions.ToImmutable();
+            }
+
+            ISymbol? TryFindSiblingFieldOrProperty()
+            {
+                foreach (var (siblingParam, _) in InitializeParameterHelpersCore.GetSiblingParameters(parameter))
+                {
+                    TryFindFieldOrPropertyInitializerValue(compilation, siblingParam, out var sibling, cancellationToken);
+                    if (sibling != null)
+                        return sibling;
+                }
+
+                return null;
             }
 
             (CodeAction fieldAction, CodeAction propertyAction) AddSpecificParameterInitializationActions()
@@ -302,21 +313,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
                 return currentSolution;
             }
-        }
-
-        private static ISymbol? TryFindSiblingFieldOrProperty(
-            Compilation compilation,
-            IParameterSymbol parameter,
-            CancellationToken cancellationToken)
-        {
-            foreach (var (siblingParam, _) in InitializeParameterHelpersCore.GetSiblingParameters(parameter))
-            {
-                TryFindFieldOrPropertyInitializerValue(compilation, siblingParam, out var sibling, cancellationToken);
-                if (sibling != null)
-                    return sibling;
-            }
-
-            return null;
         }
 
         private static IFieldSymbol CreateField(
