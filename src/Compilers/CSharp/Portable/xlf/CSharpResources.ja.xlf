@@ -2467,6 +2467,36 @@
         <target state="translated">このコンテキストでの変数の使用は、参照される変数が宣言のスコープ外に公開される可能性があります</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_InlineArrayConversionOperatorNotUsed">
+        <source>Conversion operator will not be used for conversion from expression of the declaring type.</source>
+        <target state="new">Conversion operator will not be used for conversion from expression of the declaring type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InlineArrayConversionOperatorNotUsed_Title">
+        <source>Conversion operator will not be used for conversion from expression of the declaring type.</source>
+        <target state="new">Conversion operator will not be used for conversion from expression of the declaring type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InlineArrayIndexerNotUsed">
+        <source>Indexer will not be used for element access expression.</source>
+        <target state="new">Indexer will not be used for element access expression.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InlineArrayIndexerNotUsed_Title">
+        <source>Indexer will not be used for element access expression.</source>
+        <target state="new">Indexer will not be used for element access expression.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InlineArraySliceNotUsed">
+        <source>Slice method will not be used for element access expression.</source>
+        <target state="new">Slice method will not be used for element access expression.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InlineArraySliceNotUsed_Title">
+        <source>Slice method will not be used for element access expression.</source>
+        <target state="new">Slice method will not be used for element access expression.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_InterceptorSignatureMismatch">
         <source>Intercepting a call to '{0}' with interceptor '{1}', but the signatures do not match.</source>
         <target state="translated">インターセプター '{1}' を使用して'{0}' への呼び出しをインターセプトしていますが、署名が一致しません。</target>
