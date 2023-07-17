@@ -44,9 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         {
             var (document, _, cancellationToken) = context;
 
-            // TODO: One could try to retrieve TParameterList and then filter out parameters that intersect with
-            // textSpan and use that as `parameterNodes`, where `selectedParameter` would be the first one.
-
             var selectedParameter = await context.TryGetRelevantNodeAsync<ParameterSyntax>().ConfigureAwait(false);
             if (selectedParameter == null)
                 return;
@@ -54,23 +51,14 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             if (selectedParameter.Parent is not ParameterListSyntax { Parent: TypeDeclarationSyntax(kind: SyntaxKind.ClassDeclaration or SyntaxKind.StructDeclaration) typeDeclaration })
                 return;
 
-            // var parameterNodes = generator.GetParameters(functionDeclaration);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            // we can't just call GetDeclaredSymbol on functionDeclaration because it could an anonymous function,
-            // so first we have to get the parameter symbol and then its containing method symbol
             var parameter = (IParameterSymbol)semanticModel.GetRequiredDeclaredSymbol(selectedParameter, cancellationToken);
             if (parameter?.Name is null or "")
                 return;
 
-            if (parameter.ContainingSymbol is not IMethodSymbol { MethodKind: MethodKind.Constructor } methodSymbol ||
-                methodSymbol.IsAbstract ||
-                methodSymbol.IsExtern ||
-                methodSymbol.PartialImplementationPart != null ||
-                methodSymbol.ContainingType.TypeKind == TypeKind.Interface)
-            {
+            if (parameter.ContainingSymbol is not IMethodSymbol { MethodKind: MethodKind.Constructor } methodSymbol)
                 return;
-            }
 
             var refactorings = await GetRefactoringsForSingleParameterAsync(
                 document, typeDeclaration, parameter, methodSymbol, context.Options, cancellationToken).ConfigureAwait(false);
