@@ -1907,6 +1907,9 @@ unsafe class C
                 // (8,19): error CS8808: 'in' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.
                 //         delegate*<in int> ptr2;
                 Diagnostic(ErrorCode.ERR_InvalidFuncPointerReturnTypeModifier, "in").WithArguments("in").WithLocation(8, 19),
+                // (9,19): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresLocationAttribute' is not defined or imported
+                //         delegate*<ref readonly int, void> ptr3;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly int").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(9, 19),
                 // (9,23): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         delegate*<ref readonly int, void> ptr3;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(9, 23),
@@ -1926,7 +1929,7 @@ unsafe class C
 
             Assert.Equal("delegate*<System.Int32> ptr1", model.GetDeclaredSymbol(decls[0]).ToTestDisplayString());
             Assert.Equal("delegate*<System.Int32> ptr2", model.GetDeclaredSymbol(decls[1]).ToTestDisplayString());
-            Assert.Equal("delegate*<ref readonly modreq(System.Runtime.InteropServices.InAttribute) System.Int32, System.Void> ptr3", model.GetDeclaredSymbol(decls[2]).ToTestDisplayString());
+            Assert.Equal("delegate*<ref readonly modopt(System.Runtime.CompilerServices.RequiresLocationAttribute[missing]) System.Int32, System.Void> ptr3", model.GetDeclaredSymbol(decls[2]).ToTestDisplayString());
             Assert.Equal("delegate*<System.Void, System.Void> ptr4", model.GetDeclaredSymbol(decls[3]).ToTestDisplayString());
             Assert.Equal("delegate*<ref System.Void> ptr5", model.GetDeclaredSymbol(decls[4]).ToTestDisplayString());
         }

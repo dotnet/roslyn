@@ -37,14 +37,14 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         RefReadOnly = 3,
 
-        // NOTE: There is an additional value of this enum type - RefKindExtensions.StrictIn == RefKind.In + 1
-        //       It is used internally during lowering. 
-        //       Consider that when adding values or changing this enum in some other way.
-
         /// <summary>
         /// Indicates a "ref readonly" parameter.
         /// </summary>
-        RefReadOnlyParameter = 5, // PROTOTYPE: Change to 4 to make public values sequential.
+        RefReadOnlyParameter = 4,
+
+        // NOTE: There is an additional value of this enum type - RefKindExtensions.StrictIn == RefKind.RefReadOnlyParameter + 1
+        //       It is used internally during lowering. 
+        //       Consider that when adding values or changing this enum in some other way.
     }
 
     internal static class RefKindExtensions
@@ -90,6 +90,6 @@ namespace Microsoft.CodeAnalysis
         // There is at least one kind of analysis that cares about this distinction - hoisting
         // of variables to the frame for async rewriting: a variable that was passed without the
         // `In` modifier may be correctly captured by value or by reference.
-        internal const RefKind StrictIn = RefKind.In + 1;
+        internal const RefKind StrictIn = RefKind.RefReadOnlyParameter + 1;
     }
 }
