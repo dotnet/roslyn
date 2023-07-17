@@ -36,6 +36,9 @@ namespace Analyzer.Utilities
         public const string MicrosoftCodeAnalysisCSharpCSharpCompilation = "Microsoft.CodeAnalysis.CSharp.CSharpCompilation";
         public const string MicrosoftCodeAnalysisCSharpCSharpExtensions = "Microsoft.CodeAnalysis.CSharp.CSharpExtensions";
         public const string MicrosoftCodeAnalysisCSharpExtensions = "Microsoft.CodeAnalysis.CSharpExtensions";
+        public const string MicrosoftCodeAnalysisCSharpSyntaxBaseFieldDeclarationSyntax = "Microsoft.CodeAnalysis.CSharp.Syntax.BaseFieldDeclarationSyntax";
+        public const string MicrosoftCodeAnalysisCSharpSyntaxGlobalStatementSyntax = "Microsoft.CodeAnalysis.CSharp.Syntax.GlobalStatementSyntax";
+        public const string MicrosoftCodeAnalysisCSharpSyntaxIncompleteMemberSyntax = "Microsoft.CodeAnalysis.CSharp.Syntax.IncompleteMemberSyntax";
         public const string MicrosoftCodeAnalysisDiagnostic = "Microsoft.CodeAnalysis.Diagnostic";
         public const string MicrosoftCodeAnalysisDiagnosticDescriptor = "Microsoft.CodeAnalysis.DiagnosticDescriptor";
         public const string MicrosoftCodeAnalysisDiagnosticsAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.AnalysisContext";
@@ -59,6 +62,7 @@ namespace Analyzer.Utilities
         public const string MicrosoftCodeAnalysisISourceGenerator = "Microsoft.CodeAnalysis.ISourceGenerator";
         public const string MicrosoftCodeAnalysisLocalizableResourceString = "Microsoft.CodeAnalysis.LocalizableResourceString";
         public const string MicrosoftCodeAnalysisLocalizableString = "Microsoft.CodeAnalysis.LocalizableString";
+        public const string MicrosoftCodeAnalysisModelExtensions = "Microsoft.CodeAnalysis.ModelExtensions";
         public const string MicrosoftCodeAnalysisSharedCollectionsTemporaryArrayExtensions = "Microsoft.CodeAnalysis.Shared.Collections.TemporaryArrayExtensions";
         public const string MicrosoftCodeAnalysisSymbolKind = "Microsoft.CodeAnalysis.SymbolKind";
         public const string MicrosoftCodeAnalysisVisualBasicExtensions = "Microsoft.CodeAnalysis.VisualBasicExtensions";
