@@ -3252,8 +3252,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Parameter types should be taken from the least overridden member:
             var parameters = methodResult.LeastOverriddenMember.GetParameters();
-            // But ref kinds should be taken from the actually called member:
-            var actualParameters = methodResult.Member.GetParameters();
 
             for (int arg = 0; arg < arguments.Count; ++arg)
             {
@@ -3269,7 +3267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Disallow using `ref readonly` parameters with no or `in` argument modifier,
                         // same as older versions of the compiler would (since they would see the parameter as `ref`).
                         if (argRefKind is RefKind.None or RefKind.In &&
-                            GetCorrespondingParameter(ref result, actualParameters, arg).RefKind == RefKind.RefReadOnlyParameter)
+                            GetCorrespondingParameter(ref result, parameters, arg).RefKind == RefKind.RefReadOnlyParameter)
                         {
                             var available = CheckFeatureAvailability(argument.Syntax, MessageID.IDS_FeatureRefReadonlyParameters, diagnostics);
                             Debug.Assert(!available);
@@ -3280,7 +3278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Warn for `ref`/`in` or None/`ref readonly` mismatch.
                         if (argRefKind == RefKind.Ref)
                         {
-                            if (GetCorrespondingParameter(ref result, actualParameters, arg).RefKind == RefKind.In)
+                            if (GetCorrespondingParameter(ref result, parameters, arg).RefKind == RefKind.In)
                             {
                                 // The 'ref' modifier for argument {0} corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
                                 diagnostics.Add(
@@ -3290,7 +3288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
                         else if (argRefKind == RefKind.None &&
-                            GetCorrespondingParameter(ref result, actualParameters, arg).RefKind == RefKind.RefReadOnlyParameter)
+                            GetCorrespondingParameter(ref result, parameters, arg).RefKind == RefKind.RefReadOnlyParameter)
                         {
                             if (!this.CheckValueKind(argument.Syntax, argument, BindValueKind.RefersToLocation, checkingReceiver: false, BindingDiagnosticBag.Discarded))
                             {
