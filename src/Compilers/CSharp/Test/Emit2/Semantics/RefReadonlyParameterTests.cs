@@ -3796,10 +3796,15 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             class C : I
             {
-                public void M(ref readonly int x) { }
+                public void M(ref readonly int x) => System.Console.WriteLine("C.M" + x);
+                static void Main()
+                {
+                    var x = 1;
+                    new C().M(in x);
+                }
             }
             """;
-        CreateCompilation(source).VerifyEmitDiagnostics();
+        CompileAndVerify(source, expectedOutput: "C.M1").VerifyDiagnostics();
     }
 
     [Fact]
@@ -3812,10 +3817,16 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             class C : I
             {
-                void I.M(ref readonly int x) { }
+                void I.M(ref readonly int x) => System.Console.WriteLine("C.M" + x);
+                static void Main()
+                {
+                    var x = 1;
+                    I c = new C();
+                    c.M(in x);
+                }
             }
             """;
-        CreateCompilation(source).VerifyEmitDiagnostics();
+        CompileAndVerify(source, expectedOutput: "C.M1").VerifyDiagnostics();
     }
 
     [Fact]
@@ -3829,11 +3840,21 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             class C : I
             {
-                public void M1(ref readonly int x) { }
-                public void M2(in int x) { }
+                public void M1(ref readonly int x) => System.Console.WriteLine("C.M1" + x);
+                public void M2(in int x) => System.Console.WriteLine("C.M2" + x);
+                static void Main()
+                {
+                    var x = 1;
+                    var c = new C();
+                    c.M1(in x);
+                    c.M2(in x);
+                }
             }
             """;
-        CreateCompilation(source).VerifyEmitDiagnostics(
+        CompileAndVerify(source, expectedOutput: """
+            C.M11
+            C.M21
+            """).VerifyDiagnostics(
             // (8,17): warning CS9507: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in overridden or implemented member.
             //     public void M1(ref readonly int x) { }
             Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "M1").WithArguments("ref readonly int x", "in int x").WithLocation(8, 17),
@@ -3853,11 +3874,21 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             class C : I
             {
-                void I.M1(ref readonly int x) { }
-                void I.M2(in int x) { }
+                void I.M1(ref readonly int x) => System.Console.WriteLine("C.M1" + x);
+                void I.M2(in int x) => System.Console.WriteLine("C.M2" + x);
+                static void Main()
+                {
+                    var x = 1;
+                    I c = new C();
+                    c.M1(in x);
+                    c.M2(in x);
+                }
             }
             """;
-        CreateCompilation(source).VerifyEmitDiagnostics(
+        CompileAndVerify(source, expectedOutput: """
+            C.M11
+            C.M21
+            """).VerifyDiagnostics(
             // (8,12): warning CS9507: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in overridden or implemented member.
             //     void I.M1(ref readonly int x) { }
             Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "M1").WithArguments("ref readonly int x", "in int x").WithLocation(8, 12),
@@ -3878,15 +3909,32 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             {
                 public int this[in int x]
                 {
-                    get => 0;
-                    set { }
+                    get
+                    {
+                        System.Console.WriteLine("get" + x);
+                        return 0;
+                    }
+                    set
+                    {
+                        System.Console.WriteLine("set" + x);
+                    }
+                }
+                static void Main()
+                {
+                    var x = 1;
+                    var c = new C();
+                    _ = c[in x];
+                    c[in x] = 0;
                 }
             }
             """;
-        CreateCompilation(source).VerifyEmitDiagnostics(
-            // (10,9): warning CS9507: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in overridden or implemented member.
-            //         set { }
-            Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "set").WithArguments("in int x", "ref readonly int x").WithLocation(10, 9));
+        CompileAndVerify(source, expectedOutput: """
+            get1
+            set1
+            """).VerifyDiagnostics(
+            // (14,9): warning CS9507: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in overridden or implemented member.
+            //         set
+            Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "set").WithArguments("in int x", "ref readonly int x").WithLocation(14, 9));
     }
 
     [Fact]
@@ -3901,15 +3949,32 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             {
                 int I.this[in int x]
                 {
-                    get => 0;
-                    set { }
+                    get
+                    {
+                        System.Console.WriteLine("get" + x);
+                        return 0;
+                    }
+                    set
+                    {
+                        System.Console.WriteLine("set" + x);
+                    }
+                }
+                static void Main()
+                {
+                    var x = 1;
+                    I c = new C();
+                    _ = c[in x];
+                    c[in x] = 0;
                 }
             }
             """;
-        CreateCompilation(source).VerifyEmitDiagnostics(
-            // (10,9): warning CS9507: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in overridden or implemented member.
-            //         set { }
-            Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "set").WithArguments("in int x", "ref readonly int x").WithLocation(10, 9));
+        CompileAndVerify(source, expectedOutput: """
+            get1
+            set1
+            """).VerifyDiagnostics(
+            // (14,9): warning CS9507: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in overridden or implemented member.
+            //         set
+            Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "set").WithArguments("in int x", "ref readonly int x").WithLocation(14, 9));
     }
 
     [Theory, CombinatorialData]
