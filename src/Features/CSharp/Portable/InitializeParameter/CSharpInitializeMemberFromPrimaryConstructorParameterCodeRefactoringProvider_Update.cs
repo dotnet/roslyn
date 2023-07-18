@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             var services = solution.Services;
 
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var parseOptions = document.DocumentState.ParseOptions;
+            var parseOptions = document.DocumentState.ParseOptions!;
 
             var solutionEditor = new SolutionEditor(solution);
             var options = await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 }
             }
 
-            async Task<Solution> AddFieldOrPropertyAsync()
+            async ValueTask<Solution> AddFieldOrPropertyAsync()
             {
                 // We're generating a new field/property.  Place into the containing type, ideally before/after a
                 // relevant existing member.
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 return (symbol: null, syntax: null, CodeGenerationContext.Default);
             }
 
-            async Task<Solution> UpdateFieldOrPropertyAsync()
+            async ValueTask<Solution> UpdateFieldOrPropertyAsync()
             {
                 // We're updating an exiting field/prop.
                 if (fieldOrProperty is IPropertySymbol property)
