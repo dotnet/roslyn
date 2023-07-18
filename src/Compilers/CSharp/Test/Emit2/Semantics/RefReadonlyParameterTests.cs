@@ -3045,6 +3045,68 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """);
     }
 
+    [Theory, CombinatorialData]
+    public void Invocation_ExtensionMethod([CombinatorialValues("ref readonly", "ref", "in")] string modifier)
+    {
+        var source = $$"""
+            static class C
+            {
+                static void M(this {{modifier}} int x) => System.Console.Write(x);
+                static void Main()
+                {
+                    var x = 1;
+                    x.M();
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(source, expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.Main", $$"""
+            {
+              // Code size       10 (0xa)
+              .maxstack  1
+              .locals init (int V_0) //x
+              IL_0000:  ldc.i4.1
+              IL_0001:  stloc.0
+              IL_0002:  ldloca.s   V_0
+              IL_0004:  call       "void C.M({{modifier}} int)"
+              IL_0009:  ret
+            }
+            """);
+    }
+
+    [Theory, CombinatorialData]
+    public void Invocation_ExtensionMethod_Pointer([CombinatorialValues("ref readonly", "ref", "in")] string modifier)
+    {
+        var source = $$"""
+            static class C
+            {
+                static void M(this {{modifier}} int x) => System.Console.Write(x);
+                static unsafe void Main()
+                {
+                    var x = 1;
+                    (&x)->M();
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(source, expectedOutput: "1",
+            options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.Main", $$"""
+            {
+              // Code size       11 (0xb)
+              .maxstack  1
+              .locals init (int V_0) //x
+              IL_0000:  ldc.i4.1
+              IL_0001:  stloc.0
+              IL_0002:  ldloca.s   V_0
+              IL_0004:  conv.u
+              IL_0005:  call       "void C.M({{modifier}} int)"
+              IL_000a:  ret
+            }
+            """);
+    }
+
     [Fact]
     public void Invocation_Delegate()
     {
