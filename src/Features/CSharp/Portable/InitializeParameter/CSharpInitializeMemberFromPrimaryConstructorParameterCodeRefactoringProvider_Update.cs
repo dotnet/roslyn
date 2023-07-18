@@ -106,16 +106,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             await UpdateParameterReferencesAsync().ConfigureAwait(false);
 
             // Now, either add the new field/prop, or update the existing one by assigning the parameter to it.
-            if (fieldOrProperty.ContainingType == null)
-            {
-                await AddFieldOrPropertyAsync().ConfigureAwait(false);
-            }
-            else
-            {
-                await UpdateFieldOrPropertyAsync().ConfigureAwait(false);
-            }
-
-            return solutionEditor.GetChangedSolution();
+            return fieldOrProperty.ContainingType == null
+                ? await AddFieldOrPropertyAsync().ConfigureAwait(false)
+                : await UpdateFieldOrPropertyAsync().ConfigureAwait(false);
 
             async Task UpdateParameterReferencesAsync()
             {
@@ -147,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 }
             }
 
-            async Task AddFieldOrPropertyAsync()
+            async Task<Solution> AddFieldOrPropertyAsync()
             {
                 // We're generating a new field/property.  Place into the containing type, ideally before/after a
                 // relevant existing member.
@@ -185,6 +178,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                             throw ExceptionUtilities.Unreachable();
                         }
                     });
+
+                return solutionEditor.GetChangedSolution();
             }
 
             (ISymbol? symbol, SyntaxNode? syntax, CodeGenerationContext context) GetAddContext<TSymbol>() where TSymbol : class, ISymbol
@@ -207,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 return (symbol: null, syntax: null, CodeGenerationContext.Default);
             }
 
-            async Task UpdateFieldOrPropertyAsync()
+            async Task<Solution> UpdateFieldOrPropertyAsync()
             {
                 // We're updating an exiting field/prop.
                 if (fieldOrProperty is IPropertySymbol property)
@@ -248,6 +243,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 {
                     throw ExceptionUtilities.Unreachable();
                 }
+
+                return solutionEditor.GetChangedSolution();
             }
         }
     }
