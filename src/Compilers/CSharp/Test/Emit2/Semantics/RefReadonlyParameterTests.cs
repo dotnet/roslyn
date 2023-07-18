@@ -4064,6 +4064,22 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         CreateCompilation(source).VerifyEmitDiagnostics();
     }
 
+    [Fact]
+    public void PartialMembers_RefReadonly_Inverse()
+    {
+        var source = """
+            partial class C
+            {
+                public partial void M(ref readonly int x) => throw null;
+            }
+            partial class C
+            {
+                public partial void M(ref readonly int x);
+            }
+            """;
+        CreateCompilation(source).VerifyEmitDiagnostics();
+    }
+
     [Theory, CombinatorialData]
     public void PartialMembers([CombinatorialValues("ref ", "out ", "in ", "")] string modifier)
     {
@@ -4084,6 +4100,28 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (7,25): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(ref int)'
             //     public partial void M(ref int x) => throw null;
             Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments($"C.M({modifier}int)").WithLocation(7, 25));
+    }
+
+    [Theory, CombinatorialData]
+    public void PartialMembers_Inverse([CombinatorialValues("ref ", "out ", "in ", "")] string modifier)
+    {
+        var source = $$"""
+            partial class C
+            {
+                public partial void M(ref readonly int x) => throw null;
+            }
+            partial class C
+            {
+                public partial void M({{modifier}} int x);
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (3,25): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(ref readonly int)'
+            //     public partial void M(ref readonly int x) => throw null;
+            Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("C.M(ref readonly int)").WithLocation(3, 25),
+            // (7,25): error CS8795: Partial method 'C.M(ref int)' must have an implementation part because it has accessibility modifiers.
+            //     public partial void M(ref int x);
+            Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "M").WithArguments($"C.M({modifier}int)").WithLocation(7, 25));
     }
 
     [Theory, CombinatorialData]
@@ -4124,6 +4162,29 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             static class E1
             {
                 public static void M(this C c, {{modifier}} int x) { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (6,17): error CS8917: The delegate type could not be inferred.
+            //         var m = this.M;
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "this.M").WithLocation(6, 17));
+    }
+
+    [Theory, CombinatorialData]
+    public void MethodGroupComparer_Inverse([CombinatorialValues("ref", "in", "")] string modifier)
+    {
+        var source = $$"""
+            class C
+            {
+                void M({{modifier}} int x) { }
+                void M2()
+                {
+                    var m = this.M;
+                }
+            }
+            static class E1
+            {
+                public static void M(this C c, ref readonly int x) { }
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
