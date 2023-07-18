@@ -236,10 +236,6 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
                     }
                 }
             }
-            else
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
 
             return solutionEditor.GetChangedSolution();
         }
