@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 }
 
                 if (canOverlap &&
-                    entity.EqualsIgnoringIndices(analysisEntity) &&
+                    entity.WithIndices(analysisEntity.Indices).Equals(analysisEntity) &&
                     CoreAnalysisData.TryGetValue(entity, out var existingValue))
                 {
                     var mergedValue = ValueDomain.Merge(value, existingValue);

@@ -204,29 +204,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public bool IsLValueFlowCaptureEntity => CaptureId.HasValue && CaptureId.Value.IsLValueFlowCapture;
 
-        internal bool EqualsIgnoringIndices(AnalysisEntity? other)
-        {
-            // Perform fast equality checks first.
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other == null ||
-                EqualsIgnoringInstanceLocationId != other.EqualsIgnoringInstanceLocationId)
-            {
-                return false;
-            }
-
-            // Now perform slow check that compares individual hash code parts sequences.
-            return Symbol.GetHashCodeOrDefault() == other.Symbol.GetHashCodeOrDefault()
-                && InstanceLocation.GetHashCode() == other.InstanceLocation.GetHashCode()
-                && InstanceReferenceOperationSyntax.GetHashCodeOrDefault() == other.InstanceReferenceOperationSyntax.GetHashCodeOrDefault()
-                && CaptureId.GetHashCodeOrDefault() == other.CaptureId.GetHashCodeOrDefault()
-                && Type.GetHashCodeOrDefault() == other.Type.GetHashCodeOrDefault()
-                && Parent.GetHashCodeOrDefault() == other.Parent.GetHashCodeOrDefault()
-                && IsThisOrMeInstance.GetHashCode() == other.IsThisOrMeInstance.GetHashCode();
-        }
+        internal AnalysisEntity WithIndices(ImmutableArray<AbstractIndex> indices)
+            => new(Symbol, indices, InstanceReferenceOperationSyntax, CaptureId, InstanceLocation, Type, Parent, IsThisOrMeInstance);
 
         public bool EqualsIgnoringInstanceLocation(AnalysisEntity? other)
         {
