@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
             // See if we're already assigning this parameter to a field/property in this type. If so, there's nothing
             // more for us to do.
-            var initializerValue = TryFindFieldOrPropertyInitializerValue(compilation, parameter, out _, cancellationToken);
+            var (initializerValue, _) = TryFindFieldOrPropertyInitializerValue(compilation, parameter, cancellationToken);
             if (initializerValue != null)
                 return;
 
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             {
                 foreach (var (siblingParam, _) in InitializeParameterHelpersCore.GetSiblingParameters(parameter))
                 {
-                    TryFindFieldOrPropertyInitializerValue(compilation, siblingParam, out var sibling, cancellationToken);
+                    var (_, sibling) = TryFindFieldOrPropertyInitializerValue(compilation, siblingParam, cancellationToken);
                     if (sibling != null)
                         return sibling;
                 }
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                     if (parameterNameParts.BaseName == "")
                         continue;
 
-                    var assignmentOp = TryFindFieldOrPropertyInitializerValue(compilation, parameter, out _, cancellationToken);
+                    var (assignmentOp, _) = TryFindFieldOrPropertyInitializerValue(compilation, parameter, cancellationToken);
                     if (assignmentOp != null)
                         continue;
 
@@ -324,16 +324,14 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             }
         }
 
-        private static IOperation? TryFindFieldOrPropertyInitializerValue(
+        private static (IOperation? initializer, ISymbol? fieldOrProperty) TryFindFieldOrPropertyInitializerValue(
             Compilation compilation,
             IParameterSymbol parameter,
-            out ISymbol? fieldOrProperty,
             CancellationToken cancellationToken)
         {
             foreach (var group in parameter.ContainingType.DeclaringSyntaxReferences.GroupBy(r => r.SyntaxTree))
             {
                 var semanticModel = compilation.GetSemanticModel(group.Key);
-
                 foreach (var syntaxReference in group)
                 {
                     if (syntaxReference.GetSyntax(cancellationToken) is TypeDeclarationSyntax typeDeclaration)
@@ -344,10 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                             {
                                 var operation = semanticModel.GetOperation(propertyInitializer, cancellationToken);
                                 if (IsParameterReferenceOrCoalesceOfParameterReference(operation, parameter))
-                                {
-                                    fieldOrProperty = semanticModel.GetDeclaredSymbol(propertyDeclaration, cancellationToken);
-                                    return operation;
-                                }
+                                    return (operation, semanticModel.GetDeclaredSymbol(propertyDeclaration, cancellationToken));
                             }
                             else if (member is FieldDeclarationSyntax field)
                             {
@@ -357,10 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                                     {
                                         var operation = semanticModel.GetOperation(fieldInitializer, cancellationToken);
                                         if (IsParameterReferenceOrCoalesceOfParameterReference(operation, parameter))
-                                        {
-                                            fieldOrProperty = semanticModel.GetDeclaredSymbol(varDecl, cancellationToken);
-                                            return operation;
-                                        }
+                                            return (operation, semanticModel.GetDeclaredSymbol(varDecl, cancellationToken));
                                     }
                                 }
                             }
@@ -369,8 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 }
             }
 
-            fieldOrProperty = null;
-            return null;
+            return default;
         }
     }
 }
