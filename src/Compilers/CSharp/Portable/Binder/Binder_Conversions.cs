@@ -777,6 +777,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ReportDiagnosticsIfObsolete(diagnostics, constructMethod.ContainingType, syntax, hasBaseReceiver: false);
             ReportDiagnosticsIfObsolete(diagnostics, constructMethod, syntax, hasBaseReceiver: false);
+            ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, constructMethod, syntax, isDelegateConversion: false);
 
             var spanType = (NamedTypeSymbol)constructMethod.Parameters[0].Type;
             Debug.Assert(spanType.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions));

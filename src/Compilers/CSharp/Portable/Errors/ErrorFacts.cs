@@ -2365,6 +2365,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_InlineArrayRequiredElementField:
                 case ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound:
                 case ErrorCode.ERR_CollectionBuilderNoElementType:
+                case ErrorCode.ERR_CollectionBuilderAttributeInvalidType:
+                case ErrorCode.ERR_CollectionBuilderAttributeInvalidMethodName:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

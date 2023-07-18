@@ -397,6 +397,16 @@
         <target state="translated">{0} neimplementuje člen rozhraní {1}. {2} nemůže implementovat {1}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionBuilderAttributeInvalidMethodName">
+        <source>The CollectionBuilderAttribute method name is invalid.</source>
+        <target state="new">The CollectionBuilderAttribute method name is invalid.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionBuilderAttributeInvalidType">
+        <source>The CollectionBuilderAttribute builder type must be a non-generic class or struct.</source>
+        <target state="new">The CollectionBuilderAttribute builder type must be a non-generic class or struct.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeMethodNotFound">
         <source>Could not find an accessible '{0}' method with the expected signature.</source>
         <target state="new">Could not find an accessible '{0}' method with the expected signature.</target>

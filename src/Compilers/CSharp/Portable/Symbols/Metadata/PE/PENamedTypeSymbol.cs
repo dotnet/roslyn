@@ -2481,7 +2481,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return false;
             }
 
-            if (ReferenceEquals(uncommon.lazyCollectionBuilderAttributeData, CollectionBuilderAttributeData.Uninitialized))
+            if ((object)uncommon.lazyCollectionBuilderAttributeData == CollectionBuilderAttributeData.Uninitialized)
             {
                 Interlocked.CompareExchange(
                     ref uncommon.lazyCollectionBuilderAttributeData,

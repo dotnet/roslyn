@@ -1157,7 +1157,17 @@ next:;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.CollectionBuilderAttribute))
             {
-                arguments.GetOrCreateData<TypeWellKnownAttributeData>().CollectionBuilder = attribute.DecodeCollectionBuilderAttribute();
+                var data = attribute.DecodeCollectionBuilderAttribute();
+                arguments.GetOrCreateData<TypeWellKnownAttributeData>().CollectionBuilder = data;
+
+                if (data.BuilderType is not NamedTypeSymbol { TypeKind: TypeKind.Class or TypeKind.Struct, IsGenericType: false })
+                {
+                    diagnostics.Add(ErrorCode.ERR_CollectionBuilderAttributeInvalidType, arguments.AttributeSyntaxOpt.Name.Location);
+                }
+                if (string.IsNullOrEmpty(data.MethodName))
+                {
+                    diagnostics.Add(ErrorCode.ERR_CollectionBuilderAttributeInvalidMethodName, arguments.AttributeSyntaxOpt.Name.Location);
+                }
             }
             else if (_lazyIsExplicitDefinitionOfNoPiaLocalType == ThreeState.Unknown && attribute.IsTargetAttribute(this, AttributeDescription.TypeIdentifierAttribute))
             {
