@@ -451,21 +451,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return null;
         }
 
-        public static INamedTypeSymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, BaseTypeDeclarationSyntax declaration, CancellationToken cancellationToken)
+        public static INamedTypeSymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, BaseTypeDeclarationSyntax syntax, CancellationToken cancellationToken)
         {
-            return semanticModel.GetDeclaredSymbol(declaration, cancellationToken)
+            return semanticModel.GetDeclaredSymbol(syntax, cancellationToken)
                 ?? throw new InvalidOperationException();
         }
 
-        public static IMethodSymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, ConstructorDeclarationSyntax declaration, CancellationToken cancellationToken)
+        public static IMethodSymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, ConstructorDeclarationSyntax syntax, CancellationToken cancellationToken)
         {
-            return semanticModel.GetDeclaredSymbol(declaration, cancellationToken)
+            return semanticModel.GetDeclaredSymbol(syntax, cancellationToken)
                 ?? throw new InvalidOperationException();
         }
 
-        public static IParameterSymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, ParameterSyntax parameter, CancellationToken cancellationToken)
+        public static IParameterSymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, ParameterSyntax syntax, CancellationToken cancellationToken)
         {
-            return semanticModel.GetDeclaredSymbol(parameter, cancellationToken)
+            return semanticModel.GetDeclaredSymbol(syntax, cancellationToken)
+                ?? throw new InvalidOperationException();
+        }
+
+        public static IPropertySymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, PropertyDeclarationSyntax syntax, CancellationToken cancellationToken)
+        {
+            return semanticModel.GetDeclaredSymbol(syntax, cancellationToken)
                 ?? throw new InvalidOperationException();
         }
     }

@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                             {
                                 var operation = semanticModel.GetOperation(propertyInitializer, cancellationToken);
                                 if (IsParameterReferenceOrCoalesceOfParameterReference(operation, parameter))
-                                    return (operation, semanticModel.GetDeclaredSymbol(propertyDeclaration, cancellationToken));
+                                    return (operation, semanticModel.GetRequiredDeclaredSymbol(propertyDeclaration, cancellationToken));
                             }
                             else if (member is FieldDeclarationSyntax field)
                             {
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                                     {
                                         var operation = semanticModel.GetOperation(fieldInitializer, cancellationToken);
                                         if (IsParameterReferenceOrCoalesceOfParameterReference(operation, parameter))
-                                            return (operation, semanticModel.GetDeclaredSymbol(varDecl, cancellationToken));
+                                            return (operation, semanticModel.GetRequiredDeclaredSymbol(varDecl, cancellationToken));
                                     }
                                 }
                             }
