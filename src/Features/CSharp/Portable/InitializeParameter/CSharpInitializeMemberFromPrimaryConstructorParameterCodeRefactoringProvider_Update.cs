@@ -196,8 +196,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             {
                 foreach (var (sibling, before) in GetSiblingParameters(parameter))
                 {
-                    var initializer = TryFindFieldOrPropertyInitializerValue(
-                        compilation, sibling, out var fieldOrProperty, cancellationToken);
+                    var (initializer, fieldOrProperty) = TryFindFieldOrPropertyInitializerValue(
+                        compilation, sibling, cancellationToken);
 
                     if (initializer != null &&
                         fieldOrProperty is TSymbol { DeclaringSyntaxReferences: [var syntaxReference, ..] } symbol)

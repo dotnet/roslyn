@@ -157,30 +157,14 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 var siblingFieldOrProperty = TryFindSiblingFieldOrProperty();
                 var (fieldAction, propertyAction) = AddSpecificParameterInitializationActions();
 
-                if (siblingFieldOrProperty is IFieldSymbol)
-                {
-                    allActions.Add(fieldAction);
-                    allActions.Add(propertyAction);
-                }
-                else
-                {
-                    allActions.Add(propertyAction);
-                    allActions.Add(fieldAction);
-                }
+                allActions.Add(siblingFieldOrProperty is IFieldSymbol ? fieldAction : propertyAction);
+                allActions.Add(siblingFieldOrProperty is IFieldSymbol ? propertyAction : fieldAction);
 
                 var (allFieldsAction, allPropertiesAction) = AddAllParameterInitializationActions();
                 if (allFieldsAction != null && allPropertiesAction != null)
                 {
-                    if (siblingFieldOrProperty is IFieldSymbol)
-                    {
-                        allActions.Add(allFieldsAction);
-                        allActions.Add(allPropertiesAction);
-                    }
-                    else
-                    {
-                        allActions.Add(allPropertiesAction);
-                        allActions.Add(allFieldsAction);
-                    }
+                    allActions.Add(siblingFieldOrProperty is IFieldSymbol ? allFieldsAction : allPropertiesAction);
+                    allActions.Add(siblingFieldOrProperty is IFieldSymbol ? allPropertiesAction : allFieldsAction);
                 }
 
                 return allActions.ToImmutableAndClear();
