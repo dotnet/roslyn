@@ -3800,7 +3800,8 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                 static void Main()
                 {
                     var x = 1;
-                    new C().M(in x);
+                    I c = new C();
+                    c.M(in x);
                 }
             }
             """;
@@ -3845,7 +3846,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                 static void Main()
                 {
                     var x = 1;
-                    var c = new C();
+                    I c = new C();
                     c.M1(in x);
                     c.M2(in x);
                 }
@@ -3922,7 +3923,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                 static void Main()
                 {
                     var x = 1;
-                    var c = new C();
+                    I c = new C();
                     _ = c[in x];
                     c[in x] = 0;
                 }
