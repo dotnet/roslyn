@@ -1,8 +1,8 @@
 *REMOVED*abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.WithTypeConstraint(Microsoft.CodeAnalysis.SyntaxNode declaration, string typeParameterName, Microsoft.CodeAnalysis.Editing.SpecialTypeConstraintKind kinds, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> types = null) -> Microsoft.CodeAnalysis.SyntaxNode
 *REMOVED*abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.SetAccessorDeclaration(Microsoft.CodeAnalysis.Accessibility accessibility = Microsoft.CodeAnalysis.Accessibility.NotApplicable, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> statements = null) -> Microsoft.CodeAnalysis.SyntaxNode
+*REMOVED*Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Equals(Microsoft.CodeAnalysis.Editing.DeclarationModifiers modifiers) -> bool
 *REMOVED*static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>> createChangedDocument, string equivalenceKey = null) -> Microsoft.CodeAnalysis.CodeActions.CodeAction
 *REMOVED*static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Solution>> createChangedSolution, string equivalenceKey = null) -> Microsoft.CodeAnalysis.CodeActions.CodeAction
-
 Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority.Default = 3 -> Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.SetAccessorDeclaration(Microsoft.CodeAnalysis.Accessibility accessibility = Microsoft.CodeAnalysis.Accessibility.NotApplicable, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> statements = null) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.WithTypeConstraint(Microsoft.CodeAnalysis.SyntaxNode declaration, string typeParameterName, Microsoft.CodeAnalysis.Editing.SpecialTypeConstraintKind kinds, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> types = null) -> Microsoft.CodeAnalysis.SyntaxNode
@@ -30,6 +30,7 @@ Microsoft.CodeAnalysis.Rename.DocumentRenameOptions.Deconstruct(out bool RenameM
 Microsoft.CodeAnalysis.Rename.DocumentRenameOptions.Equals(Microsoft.CodeAnalysis.Rename.DocumentRenameOptions other) -> bool
 Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.Deconstruct(out bool RenameOverloads, out bool RenameInStrings, out bool RenameInComments, out bool RenameFile) -> void
 Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.Equals(Microsoft.CodeAnalysis.Rename.SymbolRenameOptions other) -> bool
+override Microsoft.CodeAnalysis.FindSymbols.ReferenceLocation.ToString() -> string
 override Microsoft.CodeAnalysis.Rename.DocumentRenameOptions.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.Rename.DocumentRenameOptions.GetHashCode() -> int
 override Microsoft.CodeAnalysis.Rename.DocumentRenameOptions.ToString() -> string
@@ -43,3 +44,4 @@ static Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.operator ==(Microsoft.C
 virtual Microsoft.CodeAnalysis.Editing.SymbolEditor.AsyncDeclarationEditAction.Invoke(Microsoft.CodeAnalysis.Editing.DocumentEditor editor, Microsoft.CodeAnalysis.SyntaxNode declaration, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task
 virtual Microsoft.CodeAnalysis.Editing.SymbolEditor.DeclarationEditAction.Invoke(Microsoft.CodeAnalysis.Editing.DocumentEditor editor, Microsoft.CodeAnalysis.SyntaxNode declaration) -> void
 virtual Microsoft.CodeAnalysis.Host.HostWorkspaceServices.MetadataFilter.Invoke(System.Collections.Generic.IReadOnlyDictionary<string, object> metadata) -> bool
+Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Equals(Microsoft.CodeAnalysis.Editing.DeclarationModifiers other) -> bool
