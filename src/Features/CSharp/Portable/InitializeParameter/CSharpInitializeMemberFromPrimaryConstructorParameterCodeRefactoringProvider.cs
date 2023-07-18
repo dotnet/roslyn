@@ -150,17 +150,33 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
         {
             // Didn't find a field/prop that this parameter could be assigned to. Offer to create new one and assign to that.
 
-            // Check if the surrounding parameters are assigned to another field in this class.  If so, offer to
-            // make this parameter into a field as well.  Otherwise, default to generating a property
+            // Check if the surrounding parameters are assigned to another field in this class.  If so, offer to make
+            // this parameter into a field as well.  Otherwise, default to generating a property
             var siblingFieldOrProperty = TryFindSiblingFieldOrProperty();
-            var (fieldAction, propertyAction) = AddSpecificParameterInitializationActions();
+
+            var field = CreateField(parameter);
+            var property = CreateProperty(parameter);
+
+            var fieldAction = CreateCodeAction(
+                string.Format(FeaturesResources.Create_and_assign_field_0, field.Name),
+                cancellationToken => AddMultipleMembersAsync(document, typeDeclaration, ImmutableArray.Create(parameter), ImmutableArray.Create(field), fallbackOptions, cancellationToken));
+            var propertyAction = CreateCodeAction(
+                string.Format(FeaturesResources.Create_and_assign_property_0, property.Name),
+                cancellationToken => AddMultipleMembersAsync(document, typeDeclaration, ImmutableArray.Create(parameter), ImmutableArray.Create(property), fallbackOptions, cancellationToken));
 
             yield return siblingFieldOrProperty is IFieldSymbol ? fieldAction : propertyAction;
             yield return siblingFieldOrProperty is IFieldSymbol ? propertyAction : fieldAction;
 
-            var (allFieldsAction, allPropertiesAction) = AddAllParameterInitializationActions();
-            if (allFieldsAction != null && allPropertiesAction != null)
+            var parameters = GetParametersWithoutAssociatedMembers();
+            if (parameters.Length >= 2)
             {
+                var allFieldsAction = CodeAction.Create(
+                    FeaturesResources.Create_and_assign_remaining_as_fields,
+                    cancellationToken => AddMultipleMembersAsync(document, typeDeclaration, parameters, parameters.SelectAsArray(CreateField), fallbackOptions, cancellationToken));
+                var allPropertiesAction = CodeAction.Create(
+                    FeaturesResources.Create_and_assign_remaining_as_properties,
+                    cancellationToken => AddMultipleMembersAsync(document, typeDeclaration, parameters, parameters.SelectAsArray(CreateProperty), fallbackOptions, cancellationToken));
+
                 yield return siblingFieldOrProperty is IFieldSymbol ? allFieldsAction : allPropertiesAction;
                 yield return siblingFieldOrProperty is IFieldSymbol ? allPropertiesAction : allFieldsAction;
             }
@@ -176,37 +192,6 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
             }
 
             return null;
-        }
-
-        (CodeAction fieldAction, CodeAction propertyAction) AddSpecificParameterInitializationActions()
-        {
-            var field = CreateField(parameter);
-            var property = CreateProperty(parameter);
-
-            var fieldAction = CreateCodeAction(
-                string.Format(FeaturesResources.Create_and_assign_field_0, field.Name),
-                cancellationToken => AddMultipleMembersAsync(document, typeDeclaration, ImmutableArray.Create(parameter), ImmutableArray.Create(field), fallbackOptions, cancellationToken));
-            var propertyAction = CreateCodeAction(
-                string.Format(FeaturesResources.Create_and_assign_property_0, property.Name),
-                cancellationToken => AddMultipleMembersAsync(document, typeDeclaration, ImmutableArray.Create(parameter), ImmutableArray.Create(property), fallbackOptions, cancellationToken));
-
-            return (fieldAction, propertyAction);
-        }
-
-        (CodeAction? fieldAction, CodeAction? propertyAction) AddAllParameterInitializationActions()
-        {
-            var parameters = GetParametersWithoutAssociatedMembers();
-            if (parameters.Length < 2)
-                return default;
-
-            var allFieldsAction = CodeAction.Create(
-                FeaturesResources.Create_and_assign_remaining_as_fields,
-                cancellationToken => AddMultipleMembersAsync(document, typeDeclaration, parameters, parameters.SelectAsArray(CreateField), fallbackOptions, cancellationToken));
-            var allPropertiesAction = CodeAction.Create(
-                FeaturesResources.Create_and_assign_remaining_as_properties,
-                cancellationToken => AddMultipleMembersAsync(document, typeDeclaration, parameters, parameters.SelectAsArray(CreateProperty), fallbackOptions, cancellationToken));
-
-            return (allFieldsAction, allPropertiesAction);
         }
 
         ImmutableArray<IParameterSymbol> GetParametersWithoutAssociatedMembers()
