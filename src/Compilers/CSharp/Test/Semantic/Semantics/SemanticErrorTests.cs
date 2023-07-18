@@ -24669,5 +24669,149 @@ unsafe class C<T, U, V, X, Y, Z> where T : byte*
                     // class A<T> where T : object[] {}
                     Diagnostic(ErrorCode.ERR_BadConstraintType, "object[]").WithLocation(1, 22));
         }
+
+        [Fact]
+        public void BestType_NestedError_ArrayCreation()
+        {
+            var source = """
+                public class C {
+                    public void M0() {
+                        M1(new[] { ERROR, 1 });
+                        M2(new[] { (ERROR, 1), (1, 2) });
+                    }
+
+                    public void M1(int[] arr) { }
+                    public void M2((int, int)[] arr) { }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,20): error CS0103: The name 'ERROR' does not exist in the current context
+                //         M1(new[] { ERROR, 1 });
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(3, 20),
+                // (4,21): error CS0103: The name 'ERROR' does not exist in the current context
+                //         M2(new[] { (ERROR, 1), (1, 2) });
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(4, 21));
+        }
+
+        [Fact]
+        public void BestType_NestedError_StackallocArrayCreation()
+        {
+            var source = """
+                using System;
+
+                public class C {
+                    public void M0() {
+                        M1(stackalloc int[] { ERROR, 1 });
+                        M2(stackalloc (int, int)[] { (ERROR, 1), (1, 2) });
+                    }
+
+                    public void M1(Span<int> arr) { }
+                    public void M2(Span<(int, int)> arr) { }
+                }
+                """;
+            var comp = CreateCompilationWithSpan(source);
+            comp.VerifyDiagnostics(
+                // (5,31): error CS0103: The name 'ERROR' does not exist in the current context
+                //         M1(stackalloc int[] { ERROR, 1 });
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(5, 31),
+                // (6,39): error CS0103: The name 'ERROR' does not exist in the current context
+                //         M2(stackalloc (int, int)[] { (ERROR, 1), (1, 2) });
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(6, 39));
+        }
+
+        [Fact]
+        public void BestType_NestedError_SwitchExpr()
+        {
+            var source = """
+                public class C {
+                    public int M0() {
+                        return 1 switch
+                        {
+                            1 => ERROR,
+                            _ => 1
+                        };
+                    }
+
+                    public (int, int) M1() {
+                        return 1 switch
+                        {
+                            1 => (ERROR, 1),
+                            _ => (1, 2)
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,18): error CS0103: The name 'ERROR' does not exist in the current context
+                //             1 => ERROR,
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(5, 18),
+                // (13,19): error CS0103: The name 'ERROR' does not exist in the current context
+                //             1 => (ERROR, 1),
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(13, 19));
+        }
+
+        [Fact]
+        public void BestType_NestedError_ConditionalExpr()
+        {
+            var source = """
+                public class C {
+                    public int M0() {
+                        return 1 == 1 ? ERROR : 1;
+                    }
+
+                    public (int, int) M1() {
+                        return 1 == 1 ? (ERROR, 1) : (1, 2);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,25): error CS0103: The name 'ERROR' does not exist in the current context
+                //         return 1 == 1 ? ERROR : 1;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(3, 25),
+                // (7,26): error CS0103: The name 'ERROR' does not exist in the current context
+                //         return 1 == 1 ? (ERROR, 1) : (1, 2);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(7, 26));
+        }
+
+        [Fact]
+        public void BestType_NestedError_LambdaReturns()
+        {
+            var source = """
+                using System;
+
+                public class C {
+                    public void M0() {
+                        Func<bool, int> fn1 = flag =>
+                        {
+                            if (flag) return ERROR;
+                            return 1;
+                        };
+
+                        Func<bool, int> fn2 = flag =>
+                        {
+                            if (flag) return (ERROR, 1);
+                            return (1, 2);
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,30): error CS0103: The name 'ERROR' does not exist in the current context
+                //             if (flag) return ERROR;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(7, 30),
+                // (13,31): error CS0103: The name 'ERROR' does not exist in the current context
+                //             if (flag) return (ERROR, 1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(13, 31),
+                // (14,20): error CS0029: Cannot implicitly convert type '(int, int)' to 'int'
+                //             return (1, 2);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(1, 2)").WithArguments("(int, int)", "int").WithLocation(14, 20),
+                // (14,20): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //             return (1, 2);
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "(1, 2)").WithArguments("lambda expression").WithLocation(14, 20));
+        }
     }
 }

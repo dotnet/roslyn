@@ -100,29 +100,5 @@ class C
             Assert.NotNull(typeInfo.Type);
             Assert.NotNull(typeInfo.ConvertedType);
         }
-
-        [Fact]
-        public void BestType_NestedError()
-        {
-            var source = """
-                public class C {
-                    public void M0() {
-                        M1(new[] { ERROR, 1 });
-                        M2(new[] { (ERROR, 1), (1, 2) });
-                    }
-
-                    public void M1(int[] arr) { }
-                    public void M2((int, int)[] arr) { }
-                }
-                """;
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (3,20): error CS0103: The name 'ERROR' does not exist in the current context
-                //         M1(new[] { ERROR, 1 });
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(3, 20),
-                // (4,21): error CS0103: The name 'ERROR' does not exist in the current context
-                //         M2(new[] { (ERROR, 1), (1, 2) });
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(4, 21));
-        }
     }
 }
