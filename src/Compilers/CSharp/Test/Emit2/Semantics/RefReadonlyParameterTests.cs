@@ -4044,30 +4044,8 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments($"C.M({modifier}int)").WithLocation(8, 28));
     }
 
-    [Fact]
-    public void MethodGroupComparer_In()
-    {
-        var source = """
-            class C
-            {
-                void M(ref readonly int x) { }
-                void M2()
-                {
-                    var m = this.M;
-                    System.Console.Write(m.GetType());
-                }
-                static void Main() => new C().M2();
-            }
-            static class E1
-            {
-                public static void M(this C c, in int x) { }
-            }
-            """;
-        CompileAndVerify(source, expectedOutput: "<>f__AnonymousDelegate0`1[System.Int32]").VerifyDiagnostics();
-    }
-
     [Theory, CombinatorialData]
-    public void MethodGroupComparer_NotIn([CombinatorialValues("ref", "")] string modifier)
+    public void MethodGroupComparer([CombinatorialValues("ref", "in", "")] string modifier)
     {
         var source = $$"""
             class C
@@ -4076,9 +4054,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                 void M2()
                 {
                     var m = this.M;
-                    System.Console.Write(m.GetType());
                 }
-                static void Main() => new C().M2();
             }
             static class E1
             {

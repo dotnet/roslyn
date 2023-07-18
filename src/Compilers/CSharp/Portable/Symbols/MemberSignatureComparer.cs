@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerExplicitlyImplementedInterfaces: false,
             considerReturnType: true,
             considerTypeConstraints: false,
-            refKindCompareMode: RefKindCompareMode.ConsiderDifferences | RefKindCompareMode.AllowRefReadonlyVsInMismatch,
+            refKindCompareMode: RefKindCompareMode.ConsiderDifferences,
             considerCallingConvention: false,
             typeComparison: TypeCompareKind.AllIgnoreOptions);
 
