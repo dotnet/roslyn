@@ -242,23 +242,20 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             ISymbol CreateField(IParameterSymbol parameter)
             {
                 var parameterNameParts = IdentifierNameParts.CreateIdentifierNameParts(parameter, rules).BaseNameParts;
+                var accessibilityLevel = formattingOptions.AccessibilityModifiersRequired is AccessibilityModifiersRequired.Never or AccessibilityModifiersRequired.OmitIfDefault
+                    ? Accessibility.NotApplicable
+                    : Accessibility.Private;
 
                 foreach (var rule in rules)
                 {
                     if (rule.SymbolSpecification.AppliesTo(SymbolKind.Field, Accessibility.Private))
                     {
-                        var uniqueName = GenerateUniqueName(parameter, parameterNameParts, rule);
-
-                        var accessibilityLevel = formattingOptions.AccessibilityModifiersRequired is AccessibilityModifiersRequired.Never or AccessibilityModifiersRequired.OmitIfDefault
-                            ? Accessibility.NotApplicable
-                            : Accessibility.Private;
-
                         return CodeGenerationSymbolFactory.CreateFieldSymbol(
                             attributes: default,
                             accessibilityLevel,
                             DeclarationModifiers.ReadOnly,
                             parameter.Type,
-                            uniqueName,
+                            name: GenerateUniqueName(parameter, parameterNameParts, rule),
                             initializer: IdentifierName(parameter.Name.EscapeIdentifier()));
                     }
                 }
@@ -276,26 +273,20 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 {
                     if (rule.SymbolSpecification.AppliesTo(SymbolKind.Property, Accessibility.Public))
                     {
-                        var uniqueName = GenerateUniqueName(parameter, parameterNameParts, rule);
-
-                        var accessibilityLevel = Accessibility.Public;
-
-                        var getMethod = CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                            attributes: default,
-                            Accessibility.Public,
-                            statements: default);
-
                         return CodeGenerationSymbolFactory.CreatePropertySymbol(
                             containingType: null,
                             attributes: default,
-                            accessibilityLevel,
-                            new DeclarationModifiers(),
+                            Accessibility.Public,
+                            modifiers: default,
                             parameter.Type,
                             RefKind.None,
                             explicitInterfaceImplementations: default,
-                            name: uniqueName,
+                            name: GenerateUniqueName(parameter, parameterNameParts, rule),
                             parameters: default,
-                            getMethod: getMethod,
+                            getMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(
+                                attributes: default,
+                                Accessibility.Public,
+                                statements: default),
                             setMethod: null,
                             initializer: IdentifierName(parameter.Name.EscapeIdentifier()));
                     }
