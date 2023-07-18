@@ -1898,5 +1898,77 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
                 
                 """);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69094")]
+        public async Task TestWithoutAssignmentOfInvokedExpression3()
+        {
+            await TestInRegularAndScriptAsync("""
+                using System;
+                using System.Threading.Tasks;
+
+                class C
+                {
+                    void M()
+                    {
+                        TaskCompletionSource<bool> valueSet = new();
+                        Helper helper = new([|v => |]valueSet.SetResult(v));
+                        helper.Set(true);
+                        helper.Set(false);
+
+                        var v = () =>
+                        {
+                            // this is a different local.  it should not impact the outer simplification
+                            TaskCompletionSource<bool> valueSet = new();
+                            valueSet = new();
+                        };
+                    }
+                }
+
+                class Helper
+                {
+                   private readonly Action<bool> action;
+                   internal Helper(Action<bool> action)
+                   {
+                     this.action = action;
+                   }
+
+                   internal void Set(bool value) => action(value);
+                }
+                
+                """, """
+                using System;
+                using System.Threading.Tasks;
+
+                class C
+                {
+                    void M()
+                    {
+                        TaskCompletionSource<bool> valueSet = new();
+                        Helper helper = new(valueSet.SetResult);
+                        helper.Set(true);
+                        helper.Set(false);
+                
+                        var v = () =>
+                        {
+                            // this is a different local.  it should not impact the outer simplification
+                            TaskCompletionSource<bool> valueSet = new();
+                            valueSet = new();
+                        };
+                    }
+                }
+
+                class Helper
+                {
+                   private readonly Action<bool> action;
+                   internal Helper(Action<bool> action)
+                   {
+                     this.action = action;
+                   }
+
+                   internal void Set(bool value) => action(value);
+                }
+                
+                """);
+        }
     }
 }
