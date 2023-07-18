@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -2905,9 +2906,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             //         C.M(x);
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(7, 13);
         var comp = fromMetadata
-            ? CreateCompilation(source2, new[] { CreateCompilation(source1).VerifyDiagnostics(warning1).EmitToImageReference() }, options: TestOptions.ReleaseExe).VerifyDiagnostics(warning2)
-            : CreateCompilation(new[] { source1, source2 }, options: TestOptions.ReleaseExe).VerifyDiagnostics(warning1, warning2);
+            ? CreateCompilation(source2, new[] { CreateCompilation(source1).VerifyDiagnostics(warning1).EmitToImageReference() }, options: TestOptions.ReleaseExe)
+            : CreateCompilation(new[] { source1, source2 }, options: TestOptions.ReleaseExe);
         var verifier = CompileAndVerify(comp, expectedOutput: "1222");
+        verifier.VerifyDiagnostics(fromMetadata ? new[] { warning2 } : new[] { warning1, warning2 });
         verifier.VerifyIL("D.M2", """
             {
               // Code size       10 (0xa)
@@ -2955,9 +2957,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             //         C.M(x);
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(7, 13);
         var comp = fromMetadata
-            ? CreateCompilation(source2, new[] { CreateCompilation(source1).VerifyDiagnostics(warning1).EmitToImageReference() }, options: TestOptions.ReleaseExe).VerifyDiagnostics(warning2)
-            : CreateCompilation(new[] { source1, source2 }, options: TestOptions.ReleaseExe).VerifyDiagnostics(warning1, warning2);
+            ? CreateCompilation(source2, new[] { CreateCompilation(source1).VerifyDiagnostics(warning1).EmitToImageReference() }, options: TestOptions.ReleaseExe)
+            : CreateCompilation(new[] { source1, source2 }, options: TestOptions.ReleaseExe);
         var verifier = CompileAndVerify(comp, expectedOutput: "1222");
+        verifier.VerifyDiagnostics(fromMetadata ? new[] { warning2 } : new[] { warning1, warning2 });
         verifier.VerifyIL("D.M2", """
             {
               // Code size       10 (0xa)
@@ -3092,8 +3095,8 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "y").WithArguments("1").WithLocation(13, 14)
         };
         var comp = fromMetadata
-            ? CreateCompilation(source2, new[] { CreateCompilation(source1).VerifyDiagnostics(warnings1).EmitToImageReference() }, options: TestOptions.ReleaseExe).VerifyDiagnostics(warnings2)
-            : CreateCompilation(new[] { source1, source2 }, options: TestOptions.ReleaseExe).VerifyDiagnostics(warnings1.Concat(warnings2).ToArray());
+            ? CreateCompilation(source2, new[] { CreateCompilation(source1).VerifyDiagnostics(warnings1).EmitToImageReference() }, options: TestOptions.ReleaseExe)
+            : CreateCompilation(new[] { source1, source2 }, options: TestOptions.ReleaseExe);
         var verifier = CompileAndVerify(comp, expectedOutput: """
             M1 1.1
             M1 2.2
@@ -3104,6 +3107,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             M2 3.3
             M2 3.3
             """);
+        verifier.VerifyDiagnostics(fromMetadata ? warnings2 : warnings1.Concat(warnings2).ToArray());
         verifier.VerifyIL("D.M3", """
             {
               // Code size       20 (0x14)
@@ -3192,9 +3196,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         var comp = fromMetadata
-            ? CreateCompilation(source2, new[] { CreateCompilation(source1).VerifyDiagnostics(warning1).EmitToImageReference() }, options: TestOptions.ReleaseExe).VerifyDiagnostics()
-            : CreateCompilation(new[] { source1, source2 }, options: TestOptions.ReleaseExe).VerifyDiagnostics(warning1);
+            ? CreateCompilation(source2, new[] { CreateCompilation(source1).VerifyDiagnostics(warning1).EmitToImageReference() }, options: TestOptions.ReleaseExe)
+            : CreateCompilation(new[] { source1, source2 }, options: TestOptions.ReleaseExe);
         var verifier = CompileAndVerify(comp, expectedOutput: "100");
+        verifier.VerifyDiagnostics(fromMetadata ? Array.Empty<DiagnosticDescription>() : new[] { warning1 });
         verifier.VerifyIL("D.Main", """
             {
               // Code size       17 (0x11)
