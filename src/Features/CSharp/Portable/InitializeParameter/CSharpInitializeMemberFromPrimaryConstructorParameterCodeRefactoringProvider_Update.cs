@@ -23,7 +23,7 @@ using static InitializeParameterHelpers;
 using static InitializeParameterHelpersCore;
 using static SyntaxFactory;
 
-internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParameterCodeRefactoringProvider : CodeRefactoringProvider
+internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParameterCodeRefactoringProvider
 {
     private static async Task<Solution> AddMultipleMembersAsync(
         Document document,
@@ -71,6 +71,10 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
         }
 
         return currentSolution;
+
+        // Intentionally static so that we do not capture outer state.  This function is called in a loop with a fresh
+        // fork of the solution after each change that has been made.  This ensures we don't accidentally refer to the
+        // original state in any way.
 
         static async Task<Solution> AddSingleMemberAsync(
             Document document,
