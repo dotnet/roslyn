@@ -102,37 +102,11 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
 
         // We're assigning the parameter to a field/prop (either new or existing).  Convert all existing references
         // to this primary constructor parameter (within this type) to refer to the field/prop now instead.
-        await UpdateParameterReferencesAsync().ConfigureAwait(false);
+        await UpdateParameterReferencesAsync(
+            solutionEditor, parameter, fieldOrProperty, cancellationToken).ConfigureAwait(false);
 
         // Now, either add the new field/prop, or update the existing one by assigning the parameter to it.
         return await AddFieldOrPropertyAsync().ConfigureAwait(false);
-
-        async Task UpdateParameterReferencesAsync()
-        {
-            var namedType = parameter.ContainingType;
-            var documents = namedType.DeclaringSyntaxReferences
-                .Select(r => solution.GetRequiredDocument(r.SyntaxTree))
-                .ToImmutableHashSet();
-
-            var references = await SymbolFinder.FindReferencesAsync(parameter, solution, documents, cancellationToken).ConfigureAwait(false);
-            foreach (var group in references.SelectMany(r => r.Locations.Where(loc => !loc.IsImplicit).GroupBy(loc => loc.Document)))
-            {
-                var editor = await solutionEditor.GetDocumentEditorAsync(group.Key.Id, cancellationToken).ConfigureAwait(false);
-                foreach (var location in group)
-                {
-                    var node = location.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
-                    if (node is IdentifierNameSyntax { Parent: not NameColonSyntax } identifierName &&
-                        identifierName.Identifier.ValueText == parameter.Name)
-                    {
-                        // we may have things like `new MyType(x: ...)` we don't want to update `x` there to 'X'
-                        // just because we're generating a new property 'X' for the parameter to be assigned to.
-                        editor.ReplaceNode(
-                            identifierName,
-                            IdentifierName(fieldOrProperty.Name.EscapeIdentifier()).WithTriviaFrom(identifierName));
-                    }
-                }
-            }
-        }
 
         async ValueTask<Solution> AddFieldOrPropertyAsync()
         {
@@ -197,6 +171,38 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
         }
     }
 
+    private static async Task UpdateParameterReferencesAsync(
+        SolutionEditor solutionEditor,
+        IParameterSymbol parameter,
+        ISymbol fieldOrProperty,
+        CancellationToken cancellationToken)
+    {
+        var solution = solutionEditor.OriginalSolution;
+        var namedType = parameter.ContainingType;
+        var documents = namedType.DeclaringSyntaxReferences
+            .Select(r => solution.GetRequiredDocument(r.SyntaxTree))
+            .ToImmutableHashSet();
+
+        var references = await SymbolFinder.FindReferencesAsync(parameter, solution, documents, cancellationToken).ConfigureAwait(false);
+        foreach (var group in references.SelectMany(r => r.Locations.Where(loc => !loc.IsImplicit).GroupBy(loc => loc.Document)))
+        {
+            var editor = await solutionEditor.GetDocumentEditorAsync(group.Key.Id, cancellationToken).ConfigureAwait(false);
+            foreach (var location in group)
+            {
+                var node = location.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
+                if (node is IdentifierNameSyntax { Parent: not NameColonSyntax } identifierName &&
+                    identifierName.Identifier.ValueText == parameter.Name)
+                {
+                    // we may have things like `new MyType(x: ...)` we don't want to update `x` there to 'X'
+                    // just because we're generating a new property 'X' for the parameter to be assigned to.
+                    editor.ReplaceNode(
+                        identifierName,
+                        IdentifierName(fieldOrProperty.Name.EscapeIdentifier()).WithTriviaFrom(identifierName));
+                }
+            }
+        }
+    }
+
     private static async Task<Solution> UpdateExistingMemberAsync(
         Document document,
         IParameterSymbol parameter,
@@ -206,46 +212,16 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
     {
         var project = document.Project;
         var solution = project.Solution;
-        var services = solution.Services;
-
-        var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-        var parseOptions = document.DocumentState.ParseOptions!;
 
         var solutionEditor = new SolutionEditor(solution);
 
         // We're assigning the parameter to a field/prop (either new or existing).  Convert all existing references
         // to this primary constructor parameter (within this type) to refer to the field/prop now instead.
-        await UpdateParameterReferencesAsync().ConfigureAwait(false);
+        await UpdateParameterReferencesAsync(
+            solutionEditor, parameter, fieldOrProperty, cancellationToken).ConfigureAwait(false);
 
         // Now, either add the new field/prop, or update the existing one by assigning the parameter to it.
         return await UpdateFieldOrPropertyAsync().ConfigureAwait(false);
-
-        async Task UpdateParameterReferencesAsync()
-        {
-            var namedType = parameter.ContainingType;
-            var documents = namedType.DeclaringSyntaxReferences
-                .Select(r => solution.GetRequiredDocument(r.SyntaxTree))
-                .ToImmutableHashSet();
-
-            var references = await SymbolFinder.FindReferencesAsync(parameter, solution, documents, cancellationToken).ConfigureAwait(false);
-            foreach (var group in references.SelectMany(r => r.Locations.Where(loc => !loc.IsImplicit).GroupBy(loc => loc.Document)))
-            {
-                var editor = await solutionEditor.GetDocumentEditorAsync(group.Key.Id, cancellationToken).ConfigureAwait(false);
-                foreach (var location in group)
-                {
-                    var node = location.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
-                    if (node is IdentifierNameSyntax { Parent: not NameColonSyntax } identifierName &&
-                        identifierName.Identifier.ValueText == parameter.Name)
-                    {
-                        // we may have things like `new MyType(x: ...)` we don't want to update `x` there to 'X'
-                        // just because we're generating a new property 'X' for the parameter to be assigned to.
-                        editor.ReplaceNode(
-                            identifierName,
-                            IdentifierName(fieldOrProperty.Name.EscapeIdentifier()).WithTriviaFrom(identifierName));
-                    }
-                }
-            }
-        }
 
         async ValueTask<Solution> UpdateFieldOrPropertyAsync()
         {
