@@ -25,14 +25,15 @@ using static SyntaxFactory;
 
 internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParameterCodeRefactoringProvider : CodeRefactoringProvider
 {
-    /// This functions are the workhorses that actually go and handle each parameter (either creating a
-    /// field/property for it, or updates an existing field/property with it).  They are extracted out from the rest
-    /// as we do not want it capturing anything.  Specifically, AddSingleSymbolInitializationAsync is called in a
-    /// loop from AddAllSymbolInitializationsAsync for each parameter we're processing.  For each, we produce new
-    /// solution snapshots and thus must ensure we're always pointing at the new view of the world, not anything
-    /// from the original view.
-
-    private static async Task<Solution> AddAllSymbolInitializationsAsync(
+    /// <summary>
+    /// These functions are the workhorses that actually go and handle each parameter (either creating a field/property
+    /// for it, or updates an existing field/property with it).  They are extracted out from the rest as we do not want
+    /// it capturing anything.  Specifically, <see cref="AddSingleMemberAsync"/> is called in a loop from <see
+    /// cref="AddMultipleMembersAsync"/> for each parameter we're processing.  For each, we produce new solution
+    /// snapshots and thus must ensure we're always pointing at the new view of the world, not anything from the
+    /// original view.
+    /// </summary> 
+    private static async Task<Solution> AddMultipleMembersAsync(
         Document document,
         TypeDeclarationSyntax typeDeclaration,
         ImmutableArray<IParameterSymbol> parameters,
@@ -68,12 +69,11 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
 
             // fieldOrProperty is a new member.  So we don't have to track it to this edit we're making.
 
-            currentSolution = await AddSingleSymbolInitializationAsync(
+            currentSolution = await AddSingleMemberAsync(
                 currentDocument,
                 currentTypeDeclaration,
                 currentParameter,
                 fieldOrProperty,
-                isThrowNotImplementedProperty: false,
                 fallbackOptions,
                 cancellationToken).ConfigureAwait(false);
         }
@@ -81,12 +81,11 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
         return currentSolution;
     }
 
-    private static async Task<Solution> AddSingleSymbolInitializationAsync(
+    private static async Task<Solution> AddSingleMemberAsync(
         Document document,
         TypeDeclarationSyntax typeDeclaration,
         IParameterSymbol parameter,
         ISymbol fieldOrProperty,
-        bool isThrowNotImplementedProperty,
         CodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
@@ -106,9 +105,7 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
         await UpdateParameterReferencesAsync().ConfigureAwait(false);
 
         // Now, either add the new field/prop, or update the existing one by assigning the parameter to it.
-        return fieldOrProperty.ContainingType == null
-            ? await AddFieldOrPropertyAsync().ConfigureAwait(false)
-            : await UpdateFieldOrPropertyAsync().ConfigureAwait(false);
+        return await AddFieldOrPropertyAsync().ConfigureAwait(false);
 
         async Task UpdateParameterReferencesAsync()
         {
@@ -197,6 +194,57 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
             }
 
             return (symbol: null, syntax: null, CodeGenerationContext.Default);
+        }
+    }
+
+    private static async Task<Solution> UpdateExistingMemberAsync(
+        Document document,
+        IParameterSymbol parameter,
+        ISymbol fieldOrProperty,
+        bool isThrowNotImplementedProperty,
+        CancellationToken cancellationToken)
+    {
+        var project = document.Project;
+        var solution = project.Solution;
+        var services = solution.Services;
+
+        var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+        var parseOptions = document.DocumentState.ParseOptions!;
+
+        var solutionEditor = new SolutionEditor(solution);
+
+        // We're assigning the parameter to a field/prop (either new or existing).  Convert all existing references
+        // to this primary constructor parameter (within this type) to refer to the field/prop now instead.
+        await UpdateParameterReferencesAsync().ConfigureAwait(false);
+
+        // Now, either add the new field/prop, or update the existing one by assigning the parameter to it.
+        return await UpdateFieldOrPropertyAsync().ConfigureAwait(false);
+
+        async Task UpdateParameterReferencesAsync()
+        {
+            var namedType = parameter.ContainingType;
+            var documents = namedType.DeclaringSyntaxReferences
+                .Select(r => solution.GetRequiredDocument(r.SyntaxTree))
+                .ToImmutableHashSet();
+
+            var references = await SymbolFinder.FindReferencesAsync(parameter, solution, documents, cancellationToken).ConfigureAwait(false);
+            foreach (var group in references.SelectMany(r => r.Locations.Where(loc => !loc.IsImplicit).GroupBy(loc => loc.Document)))
+            {
+                var editor = await solutionEditor.GetDocumentEditorAsync(group.Key.Id, cancellationToken).ConfigureAwait(false);
+                foreach (var location in group)
+                {
+                    var node = location.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
+                    if (node is IdentifierNameSyntax { Parent: not NameColonSyntax } identifierName &&
+                        identifierName.Identifier.ValueText == parameter.Name)
+                    {
+                        // we may have things like `new MyType(x: ...)` we don't want to update `x` there to 'X'
+                        // just because we're generating a new property 'X' for the parameter to be assigned to.
+                        editor.ReplaceNode(
+                            identifierName,
+                            IdentifierName(fieldOrProperty.Name.EscapeIdentifier()).WithTriviaFrom(identifierName));
+                    }
+                }
+            }
         }
 
         async ValueTask<Solution> UpdateFieldOrPropertyAsync()

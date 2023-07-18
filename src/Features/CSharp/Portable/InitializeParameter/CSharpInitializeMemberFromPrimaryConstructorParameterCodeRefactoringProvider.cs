@@ -141,8 +141,8 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
             // Found a field/property that this parameter should be assigned to. Just offer the simple assignment to it.
             yield return CreateCodeAction(
                 string.Format(fieldOrProperty.Kind == SymbolKind.Field ? FeaturesResources.Initialize_field_0 : FeaturesResources.Initialize_property_0, fieldOrProperty.Name),
-                cancellationToken => AddSingleSymbolInitializationAsync(
-                    document, typeDeclaration, parameter, fieldOrProperty, isThrowNotImplementedProperty, fallbackOptions, cancellationToken));
+                cancellationToken => UpdateExistingMemberAsync(
+                    document, parameter, fieldOrProperty, isThrowNotImplementedProperty, cancellationToken));
         }
 
         IEnumerable<CodeAction> HandleNoExistingFieldOrProperty()
@@ -182,15 +182,12 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
             var field = CreateField(parameter);
             var property = CreateProperty(parameter);
 
-            // we're generating the field or property, so we don't have to handle throwing versions of them.
-            var isThrowNotImplementedProperty = false;
-
             var fieldAction = CreateCodeAction(
                 string.Format(FeaturesResources.Create_and_assign_field_0, field.Name),
-                cancellationToken => AddSingleSymbolInitializationAsync(document, typeDeclaration, parameter, field, isThrowNotImplementedProperty, fallbackOptions, cancellationToken));
+                cancellationToken => AddSingleMemberAsync(document, typeDeclaration, parameter, field, fallbackOptions, cancellationToken));
             var propertyAction = CreateCodeAction(
                 string.Format(FeaturesResources.Create_and_assign_property_0, property.Name),
-                cancellationToken => AddSingleSymbolInitializationAsync(document, typeDeclaration, parameter, property, isThrowNotImplementedProperty, fallbackOptions, cancellationToken));
+                cancellationToken => AddSingleMemberAsync(document, typeDeclaration, parameter, property, fallbackOptions, cancellationToken));
 
             return (fieldAction, propertyAction);
         }
@@ -203,10 +200,10 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
 
             var allFieldsAction = CodeAction.Create(
                 FeaturesResources.Create_and_assign_remaining_as_fields,
-                cancellationToken => AddAllSymbolInitializationsAsync(document, typeDeclaration, parameters, parameters.SelectAsArray(CreateField), fallbackOptions, cancellationToken));
+                cancellationToken => AddMultipleMembersAsync(document, typeDeclaration, parameters, parameters.SelectAsArray(CreateField), fallbackOptions, cancellationToken));
             var allPropertiesAction = CodeAction.Create(
                 FeaturesResources.Create_and_assign_remaining_as_properties,
-                cancellationToken => AddAllSymbolInitializationsAsync(document, typeDeclaration, parameters, parameters.SelectAsArray(CreateProperty), fallbackOptions, cancellationToken));
+                cancellationToken => AddMultipleMembersAsync(document, typeDeclaration, parameters, parameters.SelectAsArray(CreateProperty), fallbackOptions, cancellationToken));
 
             return (allFieldsAction, allPropertiesAction);
         }
