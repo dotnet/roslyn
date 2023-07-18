@@ -94,7 +94,7 @@
       </trans-unit>
       <trans-unit id="ERR_SymbolDefinedInAssembly">
         <source>'{0}' is defined in assembly '{1}'.</source>
-        <target state="new">'{0}' is defined in assembly '{1}'.</target>
+        <target state="translated">'{0}' se define en el ensamblado '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
@@ -307,7 +307,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="needs-review-translation">                  Opciones del compilador de Visual Basic
+        <target state="translated">                  Opciones del compilador de Visual Basic
 
                                   - ARCHIVO DE SALIDA -
 -out:&lt;file&gt;                       Especifica el nombre del archivo de salida.
@@ -461,6 +461,9 @@
                                   AnyCPU32BitPreferred o anycpu (valor predeterminado).
 -preferreduilang                  Especifique el nombre del idioma de salida preferido.
 -nosdkpath                        Deshabilita la búsqueda de rutas de acceso SDK predeterminadas para la biblioteca estándar.
+-reportivts[+|-]                  Información de salida sobre todos los IVT concedidos a este
+                                  ensamblado por todas las dependencias y anotar los errores de accesibilidad de ensamblados
+                                  externos con el ensamblado del que proceden.
 -sdkpath:&lt;path&gt;                   Ubicación del directorio de .NET Framework SDK
                                   (mscorlib.dll).
 -subsystemversion:&lt;version&gt;       Especificar versión del subsistema del PE de salida.

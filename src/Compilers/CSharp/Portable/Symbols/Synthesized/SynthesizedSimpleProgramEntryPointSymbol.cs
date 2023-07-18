@@ -73,6 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     RefKind.None,
                                     declarationModifiers,
                                     returnsVoid: !hasAwait && !hasReturnWithExpression,
+                                    returnsVoidIsSet: true,
                                     isExpressionBodied: false,
                                     isExtensionMethod: false,
                                     isNullableAnalysisEnabled: isNullableAnalysisEnabled,

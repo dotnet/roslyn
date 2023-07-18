@@ -94,7 +94,7 @@
       </trans-unit>
       <trans-unit id="ERR_SymbolDefinedInAssembly">
         <source>'{0}' is defined in assembly '{1}'.</source>
-        <target state="new">'{0}' is defined in assembly '{1}'.</target>
+        <target state="translated">'{0}', '{1}' derlemesinde tanımlı.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
@@ -307,7 +307,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="needs-review-translation">                  Visual Basic Derleyicisi Seçenekleri
+        <target state="translated">                  Visual Basic Derleyicisi Seçenekleri
 
                                   - ÇIKIŞ DOSYASI -
 -out:&lt;file&gt;                       Çıkış dosyası adını belirtir.
@@ -327,7 +327,7 @@
                                   - GİRİŞ DOSYALARI -
 -addmodule:&lt;file_list&gt;            Belirtilen modüllerdeki başvuru meta verileri
 -link:&lt;file_list&gt;                 Belirtilen birlikte çalışma derlemesinden meta veri
-                                  ekler. (Kısa biçimi: -l)
+                                  meta verileri. (Kısa biçimi: -l)
 -recurse:&lt;wildcard&gt;               Joker karakter belirtimlerine göre
                                   geçerli dizindeki ve alt dizinlerdeki tüm
                                   dosyaları ekler.
@@ -341,7 +341,7 @@
 
                                   - KAYNAKLAR -
 -linkresource:&lt;resinfo&gt;           Belirtilen dosyayı bir dış derleme kaynağı
-                                  olarak bağlar.
+                                  olarak ekler.
                                   resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
                                   (Kısa biçimi: -linkres)
 -nowin32manifest                  Varsayılan bildirim çıkış PE’sinin bildirim bölümüne
@@ -429,7 +429,7 @@
 -codepage:&lt;number&gt;                Kaynak dosyalar açılırken kullanılan kod sayfasını
                                   belirtir.
 -delaysign[+|-]                   Tanımlayıcı ad anahtarının ortak bölümünü kullanarak
-                                  derlemeyi gecikmeli imzalar.
+                                  derlemeyi genel imzalar.
 -publicsign[+|-]                   Tanımlayıcı ad anahtarının ortak bölümünü kullanarak
                                   derlemeyi genel imzalar.
 -errorreport:&lt;string&gt;             İç derleyici hatalarının nasıl işleneceğini belirtir;
@@ -461,6 +461,9 @@
                                   AnyCPU32BitPreferred veya anycpu (varsayılan) olmalıdır.
 -preferreduilang                  Tercih edilen çıkış dili adını belirtir.
 -nosdkpath                        Standart kitaplık derlemeleri için varsayılan SDK yolunu aramayı devre dışı bırakır.
+-reportivts[+|-]                  Bu derlemeye tüm bağımlılıklar tarafından verilen tüm IVT'ler hakkında çıkış bilgisi
+                                  ve hangi derlemeden geldikleri dahil olmak üzere
+                                  yabancı derleme erişilebilirlik hataları hakkında ek açıklamalar.
 -sdkpath:&lt;path&gt;                   .NET Framework SDK dizininin konumu
                                   (mscorlib.dll).
 -subsystemversion:&lt;version&gt;       Çıkış PE’sinin alt sistem sürümünü belirtir.
@@ -471,6 +474,7 @@
 -vbruntime[+|-|*]                 Varsayılan Visual Basic çalışma zamanı ile/olmadan
                                   derler.
 -vbruntime:&lt;file&gt;                 &lt;file&gt; içindeki alternatif Visual Basic çalışma zamanı ile
+
                                   derler.
 </target>
         <note />

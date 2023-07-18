@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers declarationModifiers)
             : base(delegateType, syntax.GetReference(), location: syntax.Identifier.GetLocation(), isIterator: false,
                    (declarationModifiers, MakeFlags(
-                                                    methodKind, refKind, declarationModifiers, returnType.IsVoidType(), isExpressionBodied: false,
+                                                    methodKind, refKind, declarationModifiers, returnType.IsVoidType(), returnsVoidIsSet: true, isExpressionBodied: false,
                                                     isExtensionMethod: false, isVarArg: false, isNullableAnalysisEnabled: false, isExplicitInterfaceImplementation: false)))
         {
             _returnType = returnType;

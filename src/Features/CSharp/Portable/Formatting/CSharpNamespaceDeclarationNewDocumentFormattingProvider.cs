@@ -10,13 +10,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertNamespace;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
@@ -40,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (namespaces.Count != 1)
                 return document;
 
-            return await ConvertNamespaceTransform.ConvertAsync(document, namespaces[0], options.FormattingOptions, cancellationToken).ConfigureAwait(false);
+            return await ConvertNamespaceTransform.ConvertAsync(document, namespaces[0], formattingOptions, cancellationToken).ConfigureAwait(false);
         }
 
         private static IEnumerable<BaseNamespaceDeclarationSyntax> GetNamespacesToReplace(Document document, CompilationUnitSyntax root, CodeStyleOption2<NamespaceDeclarationPreference> option)

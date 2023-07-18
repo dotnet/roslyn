@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         /// <summary>Creates a new UsingDirectiveSyntax instance.</summary>
         public static UsingDirectiveSyntax UsingDirective(SyntaxToken staticKeyword, NameEqualsSyntax? alias, NameSyntax name)
-            => UsingDirective(globalKeyword: default, usingKeyword: default, staticKeyword, unsafeKeyword: default, alias, namespaceOrType: name, semicolonToken: default);
+            => UsingDirective(globalKeyword: default, usingKeyword: Token(SyntaxKind.UsingKeyword), staticKeyword, unsafeKeyword: default, alias, namespaceOrType: name, semicolonToken: Token(SyntaxKind.SemicolonToken));
 
         /// <summary>Creates a new UsingDirectiveSyntax instance.</summary>
         public static UsingDirectiveSyntax UsingDirective(SyntaxToken globalKeyword, SyntaxToken usingKeyword, SyntaxToken staticKeyword, NameEqualsSyntax? alias, NameSyntax name, SyntaxToken semicolonToken)

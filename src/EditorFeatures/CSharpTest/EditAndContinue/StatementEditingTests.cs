@@ -4013,8 +4013,8 @@ class C
                 Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "a2", "y", CSharpFeaturesResources.lambda));
         }
 
-        [Fact]
-        public void Lambdas_Update_CeaseCapture_IndexerParameter1()
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51297")]
+        public void Lambdas_Update_CeaseCapture_IndexerParameter_WithExpressionBody()
         {
             var src1 = @"
 using System;
@@ -4038,8 +4038,66 @@ class C
                 Diagnostic(RudeEditKind.NotCapturingVariable, "int a1", "a1"));
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51297")]
+        public void Lambdas_Update_CeaseCapture_IndexerParameter_WithExpressionBody_LambdaBlock()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    int this[int a] => new Func<int>(() => { return a + 1; })();
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    int this[int a] => new Func<int>(() => { return 2; })();   // not capturing a anymore
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [int this[int a] => new Func<int>(() => { return a + 1; })();]@35 -> [int this[int a] => new Func<int>(() => { return 2; })();]@35",
+                "Update [=> new Func<int>(() => { return a + 1; })()]@51 -> [=> new Func<int>(() => { return 2; })()]@51");
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "int a", "a"));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51297")]
+        public void Lambdas_Update_CeaseCapture_IndexerParameter_WithExpressionBody_Delegate()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    int this[int a] => new Func<int>(delegate { return a + 1; })();
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    int this[int a] => new Func<int>(delegate { return 2; })();   // not capturing a anymore
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [int this[int a] => new Func<int>(delegate { return a + 1; })();]@35 -> [int this[int a] => new Func<int>(delegate { return 2; })();]@35",
+                "Update [=> new Func<int>(delegate { return a + 1; })()]@51 -> [=> new Func<int>(delegate { return 2; })()]@51");
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "int a", "a"));
+        }
+
         [Fact]
-        public void Lambdas_Update_CeaseCapture_IndexerParameter2()
+        public void Lambdas_Update_CeaseCapture_IndexerParameter_WithExpressionBody_Getter()
         {
             var src1 = @"
 using System;
@@ -4061,6 +4119,38 @@ class C
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.NotCapturingVariable, "int a1", "a1"));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51297")]
+        public void Lambdas_Update_CeaseCapture_IndexerParameter_WithExpressionBody_Partial()
+        {
+            var srcA1 = @"
+partial class C
+{
+}";
+            var srcB1 = @"
+partial class C
+{
+    int this[int a] => new System.Func<int>(() => a + 1);
+}";
+
+            var srcA2 = @"
+partial class C
+{
+    int this[int a] => new System.Func<int>(() => 2); // no capture
+}";
+            var srcB2 = @"
+partial class C
+{
+}";
+
+            EditAndContinueValidation.VerifySemantics(
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[]
+                {
+                    DocumentResults(diagnostics: new[] { Diagnostic(RudeEditKind.NotCapturingVariable, "int a", "a") }),
+                    DocumentResults(),
+                });
         }
 
         [Fact]
@@ -4089,7 +4179,7 @@ class C
         }
 
         [Fact]
-        public void Lambdas_Update_CeaseCapture_MethodParameter1()
+        public void Lambdas_Update_CeaseCapture_MethodParameter()
         {
             var src1 = @"
 using System;
@@ -4119,8 +4209,8 @@ class C
                 Diagnostic(RudeEditKind.NotCapturingVariable, "int a2", "a2"));
         }
 
-        [Fact]
-        public void Lambdas_Update_CeaseCapture_MethodParameter2()
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51297")]
+        public void Lambdas_Update_CeaseCapture_MethodParameter_WithExpressionBody()
         {
             var src1 = @"
 using System;
@@ -4425,6 +4515,123 @@ class C
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.NotCapturingVariable, "remove", "value"));
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/68731")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
+        public void Lambdas_Update_CeaseCapture_ConstructorInitializer_This()
+        {
+            var src1 = "class C { C(int x) : this(() => x) {} C(Func<int> f) {} }";
+            var src2 = "class C { C(int x) : this(() => 1) {} C(Func<int> f) {} }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "int x", "x"));
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/68731")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
+        public void Lambdas_Update_CeaseCapture_ConstructorInitializer_Base()
+        {
+            var src1 = "class C : B { C(int x) : base(() => x) {} } class B { public B(Func<int> f) {} }";
+            var src2 = "class C : B { C(int x) : base(() => 1) {} } class B { public B(Func<int> f) {} }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "int x", "x"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Lambdas_Update_CeaseCapture_PrimaryParameter_InPrimaryConstructor_First(
+            [CombinatorialValues("class", "struct", "record", "record struct")] string keyword)
+        {
+            var src1 = keyword + " C(int x, int y) { System.Func<int> z = () => x; }";
+            var src2 = keyword + " C(int x, int y) { System.Func<int> z = () => 1; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "int x", "x"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Lambdas_Update_CeaseCapture_PrimaryParameter_InPrimaryConstructor_Second(
+            [CombinatorialValues("class", "struct", "record", "record struct")] string keyword)
+        {
+            var src1 = keyword + " C(int x, int y) { System.Func<int> z = () => x + y; }";
+            var src2 = keyword + " C(int x, int y) { System.Func<int> z = () => x; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "int y", "y"));
+        }
+
+        [Theory(Skip = "https://github.com/dotnet/roslyn/issues/68731")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
+        [CombinatorialData]
+        public void Lambdas_Update_CeaseCapture_PrimaryParameter_InPrimaryConstructor_BaseInitializer(
+            [CombinatorialValues("class", "struct", "record")] string keyword)
+        {
+            var src1 = keyword + " C(int x, int y) : B(() => x);";
+            var src2 = keyword + " C(int x, int y) : B(() => 1);";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "x", "x"));
+        }
+
+        [Fact]
+        public void Lambdas_Update_CeaseCapture_PrimaryParameter_Method_First()
+        {
+            var src1 = "class C(int x, int y) { System.Func<int> M() => () => x; }";
+            var src2 = "class C(int x, int y) { System.Func<int> M() => () => 1; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "M", "x"));
+        }
+
+        [Fact]
+        public void Lambdas_Update_CeaseCapture_PrimaryParameter_Method_Second()
+        {
+            var src1 = "class C(int x, int y) { System.Func<int> M() => () => x + y; }";
+            var src2 = "class C(int x, int y) { System.Func<int> M() => () => x; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M"), preserveLocalVariables: true));
+        }
+
+        [Fact]
+        public void Lambdas_Update_CeaseCapture_PrimaryParameter_Method_ThisToPrimaryCapture()
+        {
+            var src1 = "class C(int x, int y) { System.Func<int> M() => () => x; }";
+            var src2 = "class C(int x, int y) { System.Func<int> M() => () => this.M()(); }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M"), preserveLocalVariables: true));
+        }
+
+        [Fact]
+        public void Lambdas_Update_CeaseCapture_PrimaryParameter_Method_PrimaryToThisCapture()
+        {
+            var src1 = "class C(int x, int y) { System.Func<int> M() => () => this.M()(); }";
+            var src2 = "class C(int x, int y) { System.Func<int> M() => () => x; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M"), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -4820,6 +5027,123 @@ class C
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1"));
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/68731")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
+        public void Lambdas_Update_Capturing_ConstructorInitializer_This()
+        {
+            var src1 = "class C { C(int x) : this(() => 1) {} C(Func<int> f) {} }";
+            var src2 = "class C { C(int x) : this(() => x) {} C(Func<int> f) {} }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "x", "x"));
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/68731")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
+        public void Lambdas_Update_Capturing_ConstructorInitializer_Base()
+        {
+            var src1 = "class C : B { C(int x) : base(() => 1) {} } class B { public B(Func<int> f) {} }";
+            var src2 = "class C : B { C(int x) : base(() => x) {} } class B { public B(Func<int> f) {} }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "x", "x"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Lambdas_Update_Capturing_PrimaryParameter_InPrimaryConstructor_First(
+            [CombinatorialValues("class", "struct", "record", "record struct")] string keyword)
+        {
+            var src1 = keyword + " C(int x, int y) { System.Func<int> z = () => 1; }";
+            var src2 = keyword + " C(int x, int y) { System.Func<int> z = () => x; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "x", "x"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Lambdas_Update_Capturing_PrimaryParameter_InPrimaryConstructor_Second(
+            [CombinatorialValues("class", "struct", "record", "record struct")] string keyword)
+        {
+            var src1 = keyword + " C(int x, int y) { System.Func<int> z = () => x; }";
+            var src2 = keyword + " C(int x, int y) { System.Func<int> z = () => x + y; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "y", "y"));
+        }
+
+        [Theory(Skip = "https://github.com/dotnet/roslyn/issues/68731")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
+        [CombinatorialData]
+        public void Lambdas_Update_Capturing_PrimaryParameter_InPrimaryConstructor_BaseInitializer(
+            [CombinatorialValues("class", "struct", "record")] string keyword)
+        {
+            var src1 = keyword + " C(int x, int y) : B(() => 1);";
+            var src2 = keyword + " C(int x, int y) : B(() => x);";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "x", "x"));
+        }
+
+        [Fact]
+        public void Lambdas_Update_Capturing_PrimaryParameter_Method_First()
+        {
+            var src1 = "class C(int x, int y) { System.Func<int> M() => () => 1; }";
+            var src2 = "class C(int x, int y) { System.Func<int> M() => () => x; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "x", "x"));
+        }
+
+        [Fact]
+        public void Lambdas_Update_Capturing_PrimaryParameter_Method_Second()
+        {
+            var src1 = "class C(int x, int y) { System.Func<int> M() => () => x; }";
+            var src2 = "class C(int x, int y) { System.Func<int> M() => () => x + y; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M"), preserveLocalVariables: true));
+        }
+
+        [Fact]
+        public void Lambdas_Update_Capturing_PrimaryParameter_Method_ThisToPrimaryCapture()
+        {
+            var src1 = "class C(int x, int y) { System.Func<int> M() => () => this.M()(); }";
+            var src2 = "class C(int x, int y) { System.Func<int> M() => () => x; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M"), preserveLocalVariables: true));
+        }
+
+        [Fact]
+        public void Lambdas_Update_Capturing_PrimaryParameter_Method_PrimaryToThisCapture()
+        {
+            var src1 = "class C(int x, int y) { System.Func<int> M() => () => x; }";
+            var src2 = "class C(int x, int y) { System.Func<int> M() => () => this.M()(); }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M"), preserveLocalVariables: true));
         }
 
         [Fact]

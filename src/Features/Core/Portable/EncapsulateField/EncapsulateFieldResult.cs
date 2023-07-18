@@ -11,18 +11,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EncapsulateField
 {
-    internal class EncapsulateFieldResult
+    internal class EncapsulateFieldResult(string name, Glyph glyph, Func<CancellationToken, Task<Solution>> getSolutionAsync)
     {
-        public readonly string Name;
-        public readonly Glyph Glyph;
-        private readonly AsyncLazy<Solution> _lazySolution;
-
-        public EncapsulateFieldResult(string name, Glyph glyph, Func<CancellationToken, Task<Solution>> getSolutionAsync)
-        {
-            Name = name;
-            Glyph = glyph;
-            _lazySolution = AsyncLazy.Create(getSolutionAsync);
-        }
+        public readonly string Name = name;
+        public readonly Glyph Glyph = glyph;
+        private readonly AsyncLazy<Solution> _lazySolution = AsyncLazy.Create(getSolutionAsync);
 
         public Task<Solution> GetSolutionAsync(CancellationToken cancellationToken)
             => _lazySolution.GetValueAsync(cancellationToken);

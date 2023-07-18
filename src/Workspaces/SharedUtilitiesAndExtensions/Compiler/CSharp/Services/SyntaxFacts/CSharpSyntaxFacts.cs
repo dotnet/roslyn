@@ -1514,9 +1514,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public SyntaxNode GetTypeOfTypePattern(SyntaxNode node)
             => ((TypePatternSyntax)node).Type;
 
-        public bool IsVerbatimInterpolatedStringExpression(SyntaxNode node)
-            => node is InterpolatedStringExpressionSyntax interpolatedString &&
-                interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken);
+        public bool IsVerbatimInterpolatedStringExpression([NotNullWhen(true)] SyntaxNode? node)
+            => node is InterpolatedStringExpressionSyntax { StringStartToken: (kind: SyntaxKind.InterpolatedVerbatimStringStartToken) } interpolatedString;
 
         public bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
@@ -1544,6 +1543,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
 
         public bool IsMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node)
             => node is MemberAccessExpressionSyntax;
+
+        public bool IsMethodDeclaration([NotNullWhen(true)] SyntaxNode? node)
+            => node is MethodDeclarationSyntax;
 
         public bool IsSimpleName([NotNullWhen(true)] SyntaxNode? node)
             => node is SimpleNameSyntax;

@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
                     progress.SearchCap > 0
                         ? Math.Min(progress.ReferencesCount, progress.SearchCap)
                         : progress.ReferencesCount, progress.SearchCapReached, projectVersion.ToString())),
-                progress => Task.FromResult(new ReferenceCount(progress.SearchCap, isCapped: true, projectVersion.ToString())),
+                progress => Task.FromResult(new ReferenceCount(progress.SearchCap, IsCapped: true, projectVersion.ToString())),
                 maxSearchResults, cancellationToken).ConfigureAwait(false);
         }
 

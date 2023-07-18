@@ -15,18 +15,12 @@ namespace Microsoft.CodeAnalysis.AddImport
 {
     internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
-        private partial class AssemblyReference : Reference
+        private partial class AssemblyReference(
+            AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
+            SearchResult searchResult,
+            ReferenceAssemblyWithTypeResult referenceAssemblyWithType) : Reference(provider, searchResult)
         {
-            private readonly ReferenceAssemblyWithTypeResult _referenceAssemblyWithType;
-
-            public AssemblyReference(
-                AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
-                SearchResult searchResult,
-                ReferenceAssemblyWithTypeResult referenceAssemblyWithType)
-                : base(provider, searchResult)
-            {
-                _referenceAssemblyWithType = referenceAssemblyWithType;
-            }
+            private readonly ReferenceAssemblyWithTypeResult _referenceAssemblyWithType = referenceAssemblyWithType;
 
             public override async Task<AddImportFixData> TryGetFixDataAsync(
                 Document document, SyntaxNode node, CodeCleanupOptions options, CancellationToken cancellationToken)

@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.UnconvertedConditionalOperator:
                 case BoundKind.DefaultLiteral:
                 case BoundKind.UnconvertedInterpolatedString:
+                case BoundKind.UnconvertedCollectionLiteralExpression:
                     return true;
                 case BoundKind.StackAllocArrayCreation:
                     // A BoundStackAllocArrayCreation is given a null type when it is in a

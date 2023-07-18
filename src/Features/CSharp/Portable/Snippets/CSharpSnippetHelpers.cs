@@ -10,11 +10,24 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
-internal static class СSharpSnippetIndentationHelpers
+internal static class CSharpSnippetHelpers
 {
+    public static int GetTargetCaretPositionInBlock<TTargetNode>(SyntaxNode caretTarget, Func<TTargetNode, BlockSyntax> getBlock, SourceText sourceText)
+        where TTargetNode : SyntaxNode
+    {
+        var targetNode = (TTargetNode)caretTarget;
+        var block = getBlock(targetNode);
+
+        var triviaSpan = block.CloseBraceToken.LeadingTrivia.Span;
+        var line = sourceText.Lines.GetLineFromPosition(triviaSpan.Start);
+        // Getting the location at the end of the line before the newline.
+        return line.Span.End;
+    }
+
     public static string GetBlockLikeIndentationString(Document document, int startPositionOfOpenCurlyBrace, SyntaxFormattingOptions syntaxFormattingOptions, CancellationToken cancellationToken)
     {
         var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
@@ -24,7 +37,7 @@ internal static class СSharpSnippetIndentationHelpers
         var newLine = indentationOptions.FormattingOptions.NewLine;
 
         var indentationService = parsedDocument.LanguageServices.GetRequiredService<IIndentationService>();
-        var indentation = indentationService.GetIndentation(parsedDocument, openBraceLine + 1, indentationOptions, cancellationToken);
+        var indentation = indentationService.GetIndentation(parsedDocument, openBraceLine, indentationOptions, cancellationToken);
 
         // Adding the offset calculated with one tab so that it is indented once past the line containing the opening brace
         var newIndentation = new IndentationResult(indentation.BasePosition, indentation.Offset + syntaxFormattingOptions.TabSize);

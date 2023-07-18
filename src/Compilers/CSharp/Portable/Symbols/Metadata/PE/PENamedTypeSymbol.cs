@@ -2457,6 +2457,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
         }
 
+        internal sealed override bool HasInlineArrayAttribute(out int length)
+        {
+            if (this.ContainingPEModule.Module.HasInlineArrayAttribute(_handle, out length) && length > 0)
+            {
+                return true;
+            }
+
+            length = 0;
+            return false;
+        }
+
         /// <summary>
         /// Specialized PENamedTypeSymbol for types with no type parameters in
         /// metadata (no type parameters on this type and all containing types).

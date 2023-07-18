@@ -3020,4 +3020,81 @@ public partial class UsePrimaryConstructorTests
             LanguageVersion = LanguageVersion.Preview,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestMergeConstructorSummaryIntoTypeDocComment()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue
+                {
+                    /// <summary>
+                    /// Active instruction identifier.
+                    /// It has the information necessary to track an active instruction within the debug session.
+                    /// </summary>
+                    [CLSCompliant(false)]
+                    internal readonly struct ManagedInstructionId
+                    {
+                        /// <summary>
+                        /// Method which the instruction is scoped to.
+                        /// </summary>
+                        public string Method { get; }
+                
+                        /// <summary>
+                        /// The IL offset for the instruction.
+                        /// </summary>
+                        public int ILOffset { get; }
+
+                        /// <summary>
+                        /// Creates an ActiveInstructionId.
+                        /// </summary>
+                        /// <param name="method">Method which the instruction is scoped to.</param>
+                        /// <param name="ilOffset">IL offset for the instruction.</param>
+                        public [|ManagedInstructionId|](
+                            string method,
+                            int ilOffset)
+                        {
+                            Method = method;
+                            ILOffset = ilOffset;
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue
+                {
+                    /// <summary>
+                    /// Active instruction identifier.
+                    /// It has the information necessary to track an active instruction within the debug session.
+                    /// </summary>
+                    /// <remarks>
+                    /// Creates an ActiveInstructionId.
+                    /// </remarks>
+                    /// <param name="method">Method which the instruction is scoped to.</param>
+                    /// <param name="ilOffset">IL offset for the instruction.</param>
+                    [CLSCompliant(false)]
+                    internal readonly struct ManagedInstructionId(
+                        string method,
+                        int ilOffset)
+                    {
+                        /// <summary>
+                        /// Method which the instruction is scoped to.
+                        /// </summary>
+                        public string Method { get; } = method;
+
+                        /// <summary>
+                        /// The IL offset for the instruction.
+                        /// </summary>
+                        public int ILOffset { get; } = ilOffset;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
 }

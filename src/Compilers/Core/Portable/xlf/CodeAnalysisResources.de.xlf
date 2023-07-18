@@ -101,28 +101,28 @@
       </trans-unit>
       <trans-unit id="InternalsVisibleToCurrentAssembly">
         <source>Current assembly: '{0}'</source>
-        <target state="new">Current assembly: '{0}'</target>
+        <target state="translated">Aktuelle Assembly: "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="InternalsVisibleToHeaderSummary">
         <source>Printing 'InternalsVisibleToAttribute' information for the current compilation and all referenced assemblies.</source>
-        <target state="new">Printing 'InternalsVisibleToAttribute' information for the current compilation and all referenced assemblies.</target>
+        <target state="translated">Die InternalsVisibleToAttribute-Informationen für die aktuelle Kompilierung und alle Assemblys, auf die verwiesen wird, werden gedruckt.</target>
         <note />
       </trans-unit>
       <trans-unit id="InternalsVisibleToReferencedAssembly">
         <source>Assembly reference: '{0}'
   Grants IVT to current assembly: {1}
   Grants IVTs to:</source>
-        <target state="new">Assembly reference: '{0}'
-  Grants IVT to current assembly: {1}
-  Grants IVTs to:</target>
+        <target state="translated">Assemblyverweis: "{0}"
+  Gewährt der aktuellen Assembly IVT: {1}
+  Gewährt IVTs für:</target>
         <note />
       </trans-unit>
       <trans-unit id="InternalsVisibleToReferencedAssemblyDetails">
         <source>    Assembly name: '{0}'
     Public Keys:</source>
-        <target state="new">    Assembly name: '{0}'
-    Public Keys:</target>
+        <target state="translated">    Assemblyname: "{0}"
+    Öffentliche Schlüssel:</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidAdditionalFile">
@@ -182,7 +182,7 @@
       </trans-unit>
       <trans-unit id="Nothing">
         <source>Nothing</source>
-        <target state="new">Nothing</target>
+        <target state="translated">Nichts</target>
         <note />
       </trans-unit>
       <trans-unit id="OperationHasNullSemanticModel">
