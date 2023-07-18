@@ -712,7 +712,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             {
                 var p = m.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke").Parameters.Single();
                 VerifyRefReadonlyParameter(p,
-                    // PROTOTYPE: Invoke method is virtual but no modreq is emitted. This happens for `in` parameters, as well.
+                    // Invoke method is virtual but no modreq is emitted. https://github.com/dotnet/roslyn/issues/69079
                     useSiteError: true);
             }
         }
