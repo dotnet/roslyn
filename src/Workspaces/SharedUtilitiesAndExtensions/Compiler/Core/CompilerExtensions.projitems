@@ -186,7 +186,6 @@
       <Link>InternalUtilities\UnicodeCharacterUtilities.cs</Link>
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)AddImport\AddImportPlacementOptions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\CodeActionRequestPriority.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeCleanup\CodeCleanupOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CleanCodeGenerationOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CodeGenerationOptions.cs" />
