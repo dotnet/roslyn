@@ -100,55 +100,49 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
         var options = await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
         var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
 
-        // We're assigning the parameter to a field/prop (either new or existing).  Convert all existing references
-        // to this primary constructor parameter (within this type) to refer to the field/prop now instead.
+        // We're assigning the parameter to a new field/prop .  Convert all existing references to this primary
+        // constructor parameter (within this type) to refer to the field/prop now instead.
         await UpdateParameterReferencesAsync(
             solutionEditor, parameter, fieldOrProperty, cancellationToken).ConfigureAwait(false);
 
-        // Now, either add the new field/prop, or update the existing one by assigning the parameter to it.
-        return await AddFieldOrPropertyAsync().ConfigureAwait(false);
-
-        async ValueTask<Solution> AddFieldOrPropertyAsync()
+        // We're generating a new field/property.  Place into the containing type, ideally before/after a
+        // relevant existing member.
+        var (sibling, siblingSyntax, addContext) = fieldOrProperty switch
         {
-            // We're generating a new field/property.  Place into the containing type, ideally before/after a
-            // relevant existing member.
-            var (sibling, siblingSyntax, addContext) = fieldOrProperty switch
+            IPropertySymbol => GetAddContext<IPropertySymbol>(),
+            IFieldSymbol => GetAddContext<IFieldSymbol>(),
+            _ => throw ExceptionUtilities.UnexpectedValue(fieldOrProperty),
+        };
+
+        var preferredTypeDeclaration = siblingSyntax?.GetAncestorOrThis<TypeDeclarationSyntax>() ?? typeDeclaration;
+
+        var editingDocument = solution.GetRequiredDocument(preferredTypeDeclaration.SyntaxTree);
+        var editor = await solutionEditor.GetDocumentEditorAsync(editingDocument.Id, cancellationToken).ConfigureAwait(false);
+        editor.ReplaceNode(
+            preferredTypeDeclaration,
+            (currentTypeDecl, _) =>
             {
-                IPropertySymbol => GetAddContext<IPropertySymbol>(),
-                IFieldSymbol => GetAddContext<IFieldSymbol>(),
-                _ => throw ExceptionUtilities.UnexpectedValue(fieldOrProperty),
-            };
-
-            var preferredTypeDeclaration = siblingSyntax?.GetAncestorOrThis<TypeDeclarationSyntax>() ?? typeDeclaration;
-
-            var editingDocument = solution.GetRequiredDocument(preferredTypeDeclaration.SyntaxTree);
-            var editor = await solutionEditor.GetDocumentEditorAsync(editingDocument.Id, cancellationToken).ConfigureAwait(false);
-            editor.ReplaceNode(
-                preferredTypeDeclaration,
-                (currentTypeDecl, _) =>
+                if (fieldOrProperty is IPropertySymbol property)
                 {
-                    if (fieldOrProperty is IPropertySymbol property)
-                    {
-                        return codeGenerator.AddProperty(
-                            currentTypeDecl, property,
-                            codeGenerator.GetInfo(addContext, options, parseOptions),
-                            cancellationToken);
-                    }
-                    else if (fieldOrProperty is IFieldSymbol field)
-                    {
-                        return codeGenerator.AddField(
-                            currentTypeDecl, field,
-                            codeGenerator.GetInfo(addContext, options, parseOptions),
-                            cancellationToken);
-                    }
-                    else
-                    {
-                        throw ExceptionUtilities.Unreachable();
-                    }
-                });
+                    return codeGenerator.AddProperty(
+                        currentTypeDecl, property,
+                        codeGenerator.GetInfo(addContext, options, parseOptions),
+                        cancellationToken);
+                }
+                else if (fieldOrProperty is IFieldSymbol field)
+                {
+                    return codeGenerator.AddField(
+                        currentTypeDecl, field,
+                        codeGenerator.GetInfo(addContext, options, parseOptions),
+                        cancellationToken);
+                }
+                else
+                {
+                    throw ExceptionUtilities.Unreachable();
+                }
+            });
 
-            return solutionEditor.GetChangedSolution();
-        }
+        return solutionEditor.GetChangedSolution();
 
         (ISymbol? symbol, SyntaxNode? syntax, CodeGenerationContext context) GetAddContext<TSymbol>() where TSymbol : class, ISymbol
         {
@@ -215,53 +209,47 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
 
         var solutionEditor = new SolutionEditor(solution);
 
-        // We're assigning the parameter to a field/prop (either new or existing).  Convert all existing references
-        // to this primary constructor parameter (within this type) to refer to the field/prop now instead.
+        // We're assigning the parameter to a field/prop.  Convert all existing references to this primary constructor
+        // parameter (within this type) to refer to the field/prop now instead.
         await UpdateParameterReferencesAsync(
             solutionEditor, parameter, fieldOrProperty, cancellationToken).ConfigureAwait(false);
 
-        // Now, either add the new field/prop, or update the existing one by assigning the parameter to it.
-        return await UpdateFieldOrPropertyAsync().ConfigureAwait(false);
-
-        async ValueTask<Solution> UpdateFieldOrPropertyAsync()
+        // We're updating an exiting field/prop.
+        if (fieldOrProperty is IPropertySymbol property)
         {
-            // We're updating an exiting field/prop.
-            if (fieldOrProperty is IPropertySymbol property)
+            foreach (var syntaxRef in property.DeclaringSyntaxReferences)
             {
-                foreach (var syntaxRef in property.DeclaringSyntaxReferences)
+                if (syntaxRef.GetSyntax(cancellationToken) is PropertyDeclarationSyntax propertyDeclaration)
                 {
-                    if (syntaxRef.GetSyntax(cancellationToken) is PropertyDeclarationSyntax propertyDeclaration)
-                    {
-                        var editingDocument = solution.GetRequiredDocument(propertyDeclaration.SyntaxTree);
-                        var editor = await solutionEditor.GetDocumentEditorAsync(editingDocument.Id, cancellationToken).ConfigureAwait(false);
+                    var editingDocument = solution.GetRequiredDocument(propertyDeclaration.SyntaxTree);
+                    var editor = await solutionEditor.GetDocumentEditorAsync(editingDocument.Id, cancellationToken).ConfigureAwait(false);
 
-                        // If the user had a property that has 'throw NotImplementedException' in it, then remove those throws.
-                        var newPropertyDeclaration = isThrowNotImplementedProperty ? RemoveThrowNotImplemented(propertyDeclaration) : propertyDeclaration;
-                        editor.ReplaceNode(
-                            propertyDeclaration,
-                            newPropertyDeclaration.WithoutTrailingTrivia()
-                                .WithSemicolonToken(Token(SyntaxKind.SemicolonToken).WithTrailingTrivia(newPropertyDeclaration.GetTrailingTrivia()))
-                                .WithInitializer(EqualsValueClause(IdentifierName(parameter.Name.EscapeIdentifier()))));
-                    }
+                    // If the user had a property that has 'throw NotImplementedException' in it, then remove those throws.
+                    var newPropertyDeclaration = isThrowNotImplementedProperty ? RemoveThrowNotImplemented(propertyDeclaration) : propertyDeclaration;
+                    editor.ReplaceNode(
+                        propertyDeclaration,
+                        newPropertyDeclaration.WithoutTrailingTrivia()
+                            .WithSemicolonToken(Token(SyntaxKind.SemicolonToken).WithTrailingTrivia(newPropertyDeclaration.GetTrailingTrivia()))
+                            .WithInitializer(EqualsValueClause(IdentifierName(parameter.Name.EscapeIdentifier()))));
                 }
             }
-            else if (fieldOrProperty is IFieldSymbol field)
-            {
-                foreach (var syntaxRef in field.DeclaringSyntaxReferences)
-                {
-                    if (syntaxRef.GetSyntax(cancellationToken) is VariableDeclaratorSyntax variableDeclarator)
-                    {
-                        var editingDocument = solution.GetRequiredDocument(variableDeclarator.SyntaxTree);
-                        var editor = await solutionEditor.GetDocumentEditorAsync(editingDocument.Id, cancellationToken).ConfigureAwait(false);
-                        editor.ReplaceNode(
-                            variableDeclarator,
-                            variableDeclarator.WithInitializer(EqualsValueClause(IdentifierName(parameter.Name.EscapeIdentifier()))));
-                        break;
-                    }
-                }
-            }
-
-            return solutionEditor.GetChangedSolution();
         }
+        else if (fieldOrProperty is IFieldSymbol field)
+        {
+            foreach (var syntaxRef in field.DeclaringSyntaxReferences)
+            {
+                if (syntaxRef.GetSyntax(cancellationToken) is VariableDeclaratorSyntax variableDeclarator)
+                {
+                    var editingDocument = solution.GetRequiredDocument(variableDeclarator.SyntaxTree);
+                    var editor = await solutionEditor.GetDocumentEditorAsync(editingDocument.Id, cancellationToken).ConfigureAwait(false);
+                    editor.ReplaceNode(
+                        variableDeclarator,
+                        variableDeclarator.WithInitializer(EqualsValueClause(IdentifierName(parameter.Name.EscapeIdentifier()))));
+                    break;
+                }
+            }
+        }
+
+        return solutionEditor.GetChangedSolution();
     }
 }
