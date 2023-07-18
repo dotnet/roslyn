@@ -43,7 +43,20 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServer
         "CS1969", // ErrorCode.ERR_DynamicRequiredTypesMissing:
         "CS8984", // ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged:
         "CS9026", // ErrorCode.ERR_CannotBeConvertedToUtf8:
-        "CS9068" // ErrorCode.ERR_FileTypeNonUniquePath:
+        "CS9068", // ErrorCode.ERR_FileTypeNonUniquePath:
+        "CS9144", // ErrorCode.ERR_InterceptorSignatureMismatch
+        "CS9148", // ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter
+        "CS9149", // ErrorCode.ERR_InterceptorMustNotHaveThisParameter
+        "CS9153", // ErrorCode.ERR_DuplicateInterceptor
+        "CS9154", // ErrorCode.WRN_InterceptorSignatureMismatch,
+        "CS9155", // ErrorCode.ERR_InterceptorNotAccessible
+        "CS9156", // ErrorCode.ERR_InterceptorScopedMismatch
+        "CS9158", // ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor
+        "CS9159", // ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor
+        "CS9160", // ErrorCode.ERR_InterceptorCannotInterceptNameof
+        "CS9163", // ErrorCode.ERR_SymbolDefinedInAssembly
+        "CS9177", // ErrorCode.ERR_InterceptorArityNotCompatible
+        "CS9178" // ErrorCode.ERR_InterceptorCannotBeGeneric
         )]
     internal sealed class CSharpLspBuildOnlyDiagnostics : ILspBuildOnlyDiagnostics
     {

@@ -1110,7 +1110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return constructors
         End Function
 
-        Private Sub AppendConstructors(members As SyntaxList(Of StatementSyntax), constructors As List(Of SyntaxNode), cancellationToken As CancellationToken)
+        Private Shared Sub AppendConstructors(members As SyntaxList(Of StatementSyntax), constructors As List(Of SyntaxNode), cancellationToken As CancellationToken)
             For Each member As StatementSyntax In members
                 cancellationToken.ThrowIfCancellationRequested()
 
@@ -1742,6 +1742,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
         Public Function IsMemberAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsMemberAccessExpression
             Return TypeOf node Is MemberAccessExpressionSyntax
+        End Function
+
+        Public Function IsMethodDeclaration(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsMethodDeclaration
+            Return TypeOf node Is MethodBlockSyntax
         End Function
 
         Public Function IsSimpleName(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsSimpleName

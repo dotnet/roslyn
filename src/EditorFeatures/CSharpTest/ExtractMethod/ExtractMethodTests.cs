@@ -8360,7 +8360,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541627")]
-        public async Task DontUseConvertedTypeForImplicitNumericConversion()
+        public async Task DoNotUseConvertedTypeForImplicitNumericConversion()
         {
             var code = """
                 class T
@@ -8471,7 +8471,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539862")]
-        public async Task DontBlindlyPutCapturedVariable1()
+        public async Task DoNotBlindlyPutCapturedVariable1()
         {
             var code = """
                 using System;
@@ -8532,7 +8532,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539862")]
-        public async Task DontBlindlyPutCapturedVariable2()
+        public async Task DoNotBlindlyPutCapturedVariable2()
         {
             var code = """
                 using System;
@@ -8573,7 +8573,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541889")]
-        public async Task DontCrashOnRangeVariableSymbol()
+        public async Task DoNotCrashOnRangeVariableSymbol()
         {
             var code = """
                 class Test
@@ -10975,7 +10975,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
         }
 
         [Fact]
-        public async Task TestDontPutOutOrRefForStructOff()
+        public async Task TestDoNotPutOutOrRefForStructOff()
         {
             var code =
                 """
@@ -11010,7 +11010,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
         }
 
         [Fact]
-        public async Task TestDontPutOutOrRefForStructOn()
+        public async Task TestDoNotPutOutOrRefForStructOn()
         {
             var code =
                 """

@@ -18,17 +18,12 @@ namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 /// indicator that background work is happening.
 /// </summary>
 [ExportWorkspaceService(typeof(IBackgroundWorkIndicatorFactory)), Shared]
-internal class DefaultBackgroundWorkIndicatorFactory : IBackgroundWorkIndicatorFactory
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class DefaultBackgroundWorkIndicatorFactory(
+    IUIThreadOperationExecutor uiThreadOperationExecutor) : IBackgroundWorkIndicatorFactory
 {
-    private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public DefaultBackgroundWorkIndicatorFactory(
-        IUIThreadOperationExecutor uiThreadOperationExecutor)
-    {
-        _uiThreadOperationExecutor = uiThreadOperationExecutor;
-    }
+    private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor = uiThreadOperationExecutor;
 
     public IBackgroundWorkIndicatorContext Create(
         ITextView textView, SnapshotSpan applicableToSpan, string description, bool cancelOnEdit = true, bool cancelOnFocusLost = true)
@@ -37,14 +32,9 @@ internal class DefaultBackgroundWorkIndicatorFactory : IBackgroundWorkIndicatorF
             description, description, allowCancellation: true, showProgress: true));
     }
 
-    private class DefaultBackgroundWorkIndicatorContext : IBackgroundWorkIndicatorContext
+    private class DefaultBackgroundWorkIndicatorContext(IUIThreadOperationContext context) : IBackgroundWorkIndicatorContext
     {
-        private readonly IUIThreadOperationContext _context;
-
-        public DefaultBackgroundWorkIndicatorContext(IUIThreadOperationContext context)
-        {
-            _context = context;
-        }
+        private readonly IUIThreadOperationContext _context = context;
 
         public bool CancelOnEdit { get; set; }
         public bool CancelOnFocusLost { get; set; }

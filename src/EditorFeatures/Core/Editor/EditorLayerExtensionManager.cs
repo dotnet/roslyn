@@ -26,20 +26,14 @@ using static Microsoft.CodeAnalysis.RoslynAssemblyHelper;
 namespace Microsoft.CodeAnalysis.Editor
 {
     [ExportWorkspaceServiceFactory(typeof(IExtensionManager), ServiceLayer.Editor), Shared]
-    internal class EditorLayerExtensionManager : IWorkspaceServiceFactory
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class EditorLayerExtensionManager(
+        IGlobalOptionService optionService,
+        [ImportMany] IEnumerable<IExtensionErrorHandler> errorHandlers) : IWorkspaceServiceFactory
     {
-        private readonly List<IExtensionErrorHandler> _errorHandlers;
-        private readonly IGlobalOptionService _optionService;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public EditorLayerExtensionManager(
-            IGlobalOptionService optionService,
-            [ImportMany] IEnumerable<IExtensionErrorHandler> errorHandlers)
-        {
-            _optionService = optionService;
-            _errorHandlers = errorHandlers.ToList();
-        }
+        private readonly List<IExtensionErrorHandler> _errorHandlers = errorHandlers.ToList();
+        private readonly IGlobalOptionService _optionService = optionService;
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
@@ -48,24 +42,16 @@ namespace Microsoft.CodeAnalysis.Editor
             return new ExtensionManager(_optionService, errorReportingService, errorLoggerService, _errorHandlers);
         }
 
-        internal class ExtensionManager : AbstractExtensionManager
+        internal class ExtensionManager(
+            IGlobalOptionService globalOptions,
+            IErrorReportingService errorReportingService,
+            IErrorLoggerService errorLoggerService,
+            List<IExtensionErrorHandler> errorHandlers) : AbstractExtensionManager
         {
-            private readonly List<IExtensionErrorHandler> _errorHandlers;
-            private readonly IGlobalOptionService _globalOptions;
-            private readonly IErrorReportingService _errorReportingService;
-            private readonly IErrorLoggerService _errorLoggerService;
-
-            public ExtensionManager(
-                IGlobalOptionService globalOptions,
-                IErrorReportingService errorReportingService,
-                IErrorLoggerService errorLoggerService,
-                List<IExtensionErrorHandler> errorHandlers)
-            {
-                _globalOptions = globalOptions;
-                _errorHandlers = errorHandlers;
-                _errorReportingService = errorReportingService;
-                _errorLoggerService = errorLoggerService;
-            }
+            private readonly List<IExtensionErrorHandler> _errorHandlers = errorHandlers;
+            private readonly IGlobalOptionService _globalOptions = globalOptions;
+            private readonly IErrorReportingService _errorReportingService = errorReportingService;
+            private readonly IErrorLoggerService _errorLoggerService = errorLoggerService;
 
             public override void HandleException(object provider, Exception exception)
             {

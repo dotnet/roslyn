@@ -646,7 +646,7 @@ $$", @"         using
 
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530716")]
         [WpfFact]
-        public void DontAssertOnMultilineToken()
+        public void DoNotAssertOnMultilineToken()
         {
             Test(@"interface I
 {

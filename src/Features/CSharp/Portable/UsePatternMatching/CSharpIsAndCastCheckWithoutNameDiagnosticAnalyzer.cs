@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                     ImmutableDictionary<string, string?>.Empty));
         }
 
-        public (HashSet<CastExpressionSyntax>, string localName) AnalyzeExpression(
+        public static (HashSet<CastExpressionSyntax>, string localName) AnalyzeExpression(
             SemanticModel semanticModel,
             BinaryExpressionSyntax isExpression,
             INamedTypeSymbol? expressionType,
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             return null;
         }
 
-        private void AddMatches(
+        private static void AddMatches(
             SyntaxNode node, ExpressionSyntax expr, TypeSyntax type, HashSet<CastExpressionSyntax> matches)
         {
             // Don't bother recursing down nodes that are before the type in the is-expression.

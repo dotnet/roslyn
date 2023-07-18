@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {

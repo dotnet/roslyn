@@ -28,7 +28,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 TaggerDelay.NearImmediate => DelayTimeSpan.NearImmediate,
                 TaggerDelay.Short => DelayTimeSpan.Short,
                 TaggerDelay.Medium => DelayTimeSpan.Medium,
-                _ => DelayTimeSpan.Idle,
+                TaggerDelay.OnIdle => DelayTimeSpan.Idle,
+                _ => DelayTimeSpan.NonFocus,
             };
     }
 }

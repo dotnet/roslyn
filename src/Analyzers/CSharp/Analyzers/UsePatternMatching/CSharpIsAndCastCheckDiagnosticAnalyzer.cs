@@ -80,6 +80,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
             }
 
+            // Bail out if the potential diagnostic location is outside the analysis span.
+            if (!syntaxContext.ShouldAnalyzeSpan(localDeclarationStatement.Span))
+                return;
+
             // It's of the form:
             //
             //     if (expr is Type)

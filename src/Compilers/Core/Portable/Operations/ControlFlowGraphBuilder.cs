@@ -2132,6 +2132,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
+        public override IOperation? VisitInlineArrayAccess(IInlineArrayAccessOperation operation, int? captureIdForResult)
+        {
+            EvalStackFrame frame = PushStackFrame();
+            PushOperand(VisitRequired(operation.Instance));
+            IOperation argument = VisitRequired(operation.Argument);
+            IOperation instance = PopOperand();
+            PopStackFrame(frame);
+            return new InlineArrayAccessOperation(instance, argument, semanticModel: null,
+                operation.Syntax, operation.Type, IsImplicit(operation));
+        }
+
         private static bool IsConditional(IBinaryOperation operation)
         {
             switch (operation.OperatorKind)
@@ -4493,9 +4504,25 @@ oneMoreTime:
 
                 if (info?.GetEnumeratorMethod != null)
                 {
+                    IOperation? collection = info.GetEnumeratorMethod.IsStatic ? null : Visit(operation.Collection);
+
+                    if (collection is not null && info.InlineArrayConversion is { } inlineArrayConversion)
+                    {
+                        if (info.CollectionIsInlineArrayValue)
+                        {
+                            // We cannot convert a value to a span, need to make a local copy and convert that.
+                            int localCopyCaptureId = GetNextCaptureId(enumeratorCaptureRegion);
+                            AddStatement(new FlowCaptureOperation(localCopyCaptureId, operation.Collection.Syntax, collection));
+
+                            collection = new FlowCaptureReferenceOperation(localCopyCaptureId, operation.Collection.Syntax, collection.Type, constantValue: null);
+                        }
+
+                        collection = applyConversion(inlineArrayConversion, collection, info.GetEnumeratorMethod.ContainingType);
+                    }
+
                     IOperation invocation = makeInvocation(operation.Collection.Syntax,
                                                            info.GetEnumeratorMethod,
-                                                           info.GetEnumeratorMethod.IsStatic ? null : Visit(operation.Collection),
+                                                           collection,
                                                            info.GetEnumeratorArguments);
 
                     int enumeratorCaptureId = GetNextCaptureId(enumeratorCaptureRegion);
@@ -5964,7 +5991,8 @@ oneMoreTime:
                         // special handling in the context of a collection or object initializer before just assuming that it's fine.
 #if DEBUG
                         var validKinds = ImmutableArray.Create(OperationKind.Invocation, OperationKind.DynamicInvocation, OperationKind.Increment, OperationKind.Literal,
-                                                               OperationKind.LocalReference, OperationKind.Binary, OperationKind.FieldReference, OperationKind.Invalid);
+                                                               OperationKind.LocalReference, OperationKind.Binary, OperationKind.FieldReference, OperationKind.Invalid,
+                                                               OperationKind.InterpolatedString);
                         Debug.Assert(validKinds.Contains(innerInitializer.Kind));
 #endif
                         EvalStackFrame frame = PushStackFrame();

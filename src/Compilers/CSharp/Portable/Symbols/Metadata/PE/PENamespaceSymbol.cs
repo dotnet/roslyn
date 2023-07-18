@@ -27,13 +27,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// A map of namespaces immediately contained within this namespace 
         /// mapped by their name (case-sensitively).
         /// </summary>
-        protected Dictionary<string, PENestedNamespaceSymbol> lazyNamespaces;
+        protected Dictionary<ReadOnlyMemory<char>, PENestedNamespaceSymbol> lazyNamespaces;
 
         /// <summary>
         /// A map of types immediately contained within this namespace 
         /// grouped by their name (case-sensitively).
         /// </summary>
-        protected Dictionary<string, ImmutableArray<PENamedTypeSymbol>> lazyTypes;
+        protected Dictionary<ReadOnlyMemory<char>, ImmutableArray<PENamedTypeSymbol>> lazyTypes;
 
         /// <summary>
         /// A map of NoPia local types immediately contained in this assembly.
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return StaticCast<NamedTypeSymbol>.From(_lazyFlattenedTypes);
         }
 
-        public sealed override ImmutableArray<Symbol> GetMembers(string name)
+        public sealed override ImmutableArray<Symbol> GetMembers(ReadOnlyMemory<char> name)
         {
             EnsureAllMembersLoaded();
 
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return GetMemberTypesPrivate();
         }
 
-        public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
+        public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name)
         {
             EnsureAllMembersLoaded();
 
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 : ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
-        public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
+        public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity)
         {
             return GetTypeMembers(name).WhereAsArray((type, arity) => type.Arity == arity, arity);
         }
@@ -224,12 +224,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if (this.lazyNamespaces == null)
             {
-                var namespaces = new Dictionary<string, PENestedNamespaceSymbol>(StringOrdinalComparer.Instance);
+                var namespaces = new Dictionary<ReadOnlyMemory<char>, PENestedNamespaceSymbol>(ReadOnlyMemoryOfCharComparer.Instance);
 
                 foreach (var child in childNamespaces)
                 {
                     var c = new PENestedNamespaceSymbol(child.Key, this, child.Value);
-                    namespaces.Add(c.Name, c);
+                    namespaces.Add(c.Name.AsMemory(), c);
                 }
 
                 Interlocked.CompareExchange(ref this.lazyNamespaces, namespaces, null);
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
                 }
 
-                var typesDict = children.ToDictionary(c => c.Name, StringOrdinalComparer.Instance);
+                var typesDict = children.ToDictionary(c => c.Name.AsMemory(), ReadOnlyMemoryOfCharComparer.Instance);
                 children.Free();
 
                 if (noPiaLocalTypes != null)

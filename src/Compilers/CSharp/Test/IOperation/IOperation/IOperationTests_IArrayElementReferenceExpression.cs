@@ -504,7 +504,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")]
-        public void ArrayElementReferenceError_NoArrayReference()
+        public void ArrayElementReferenceError_NoArrayReference1()
         {
             string source = @"
 class C
@@ -517,20 +517,52 @@ class C
     public string[] F2() => null;
 }
 ";
+
             string expectedOperationTree = @"
-IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '[0]')
-  Children(2):
+IOperation:  (OperationKind.None, Type: ?, IsInvalid) (Syntax: '[0]')
+  Children(1):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
-      IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
-        Children(0)
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1525: Invalid expression term '['
+            var expectedDiagnostics = new DiagnosticDescription[]
+            {
+                // (6,27): error CS9176: There is no target type for the collection literal.
                 //         var a = /*<bind>*/[0]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(6, 27)
+                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[0]").WithLocation(6, 27)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<CollectionExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")]
+        public void ArrayElementReferenceError_NoArrayReference2()
+        {
+            string source = @"
+class C
+{
+    public void F()
+    {
+        var a = .?/*<bind>*/[0]/*</bind>*/;
+    }
+
+    public string[] F2() => null;
+}
+";
+            string expectedOperationTree = @"
+IInvalidOperation (OperationKind.Invalid, Type: ?) (Syntax: '[0]')
+  Children(2):
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+      IConditionalAccessInstanceOperation (OperationKind.ConditionalAccessInstance, Type: ?, IsInvalid, IsImplicit) (Syntax: '.')";
+            var expectedDiagnostics = new DiagnosticDescription[] { 
+                // (6,17): error CS1525: Invalid expression term '.'
+                //         var a = .?/*<bind>*/[0]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ".").WithArguments(".").WithLocation(6, 17),
+                // (6,18): error CS1001: Identifier expected
+                //         var a = .?/*<bind>*/[0]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "?").WithLocation(6, 18)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ElementBindingExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]

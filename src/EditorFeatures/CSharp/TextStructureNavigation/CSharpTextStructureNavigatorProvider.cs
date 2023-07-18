@@ -17,18 +17,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.TextStructureNavigation
 {
     [Export(typeof(ITextStructureNavigatorProvider))]
     [ContentType(ContentTypeNames.CSharpContentType)]
-    internal class CSharpTextStructureNavigatorProvider : AbstractTextStructureNavigatorProvider
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class CSharpTextStructureNavigatorProvider(
+        ITextStructureNavigatorSelectorService selectorService,
+        IContentTypeRegistryService contentTypeService,
+        IUIThreadOperationExecutor uIThreadOperationExecutor) : AbstractTextStructureNavigatorProvider(selectorService, contentTypeService, uIThreadOperationExecutor)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpTextStructureNavigatorProvider(
-            ITextStructureNavigatorSelectorService selectorService,
-            IContentTypeRegistryService contentTypeService,
-            IUIThreadOperationExecutor uIThreadOperationExecutor)
-            : base(selectorService, contentTypeService, uIThreadOperationExecutor)
-        {
-        }
-
         protected override bool ShouldSelectEntireTriviaFromStart(SyntaxTrivia trivia)
             => trivia.IsRegularOrDocComment();
 

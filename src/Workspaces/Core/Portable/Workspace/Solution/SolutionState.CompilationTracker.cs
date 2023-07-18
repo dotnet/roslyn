@@ -670,18 +670,11 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private readonly struct CompilationInfo
+            private readonly struct CompilationInfo(Compilation compilation, bool hasSuccessfullyLoaded, CompilationTrackerGeneratorInfo generatorInfo)
             {
-                public Compilation Compilation { get; }
-                public bool HasSuccessfullyLoaded { get; }
-                public CompilationTrackerGeneratorInfo GeneratorInfo { get; }
-
-                public CompilationInfo(Compilation compilation, bool hasSuccessfullyLoaded, CompilationTrackerGeneratorInfo generatorInfo)
-                {
-                    Compilation = compilation;
-                    HasSuccessfullyLoaded = hasSuccessfullyLoaded;
-                    GeneratorInfo = generatorInfo;
-                }
+                public Compilation Compilation { get; } = compilation;
+                public bool HasSuccessfullyLoaded { get; } = hasSuccessfullyLoaded;
+                public CompilationTrackerGeneratorInfo GeneratorInfo { get; } = generatorInfo;
             }
 
             /// <summary>
@@ -1137,7 +1130,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     var tmp = solution; // temp. local to avoid a closure allocation for the fast path
                     // note: solution is captured here, but it will go away once GetValueAsync executes.
-                    Interlocked.CompareExchange(ref _lazyDependentVersion, new AsyncLazy<VersionStamp>(c => ComputeDependentVersionAsync(tmp, c), cacheResult: true), null);
+                    Interlocked.CompareExchange(ref _lazyDependentVersion, AsyncLazy.Create(c => ComputeDependentVersionAsync(tmp, c)), null);
                 }
 
                 return _lazyDependentVersion.GetValueAsync(cancellationToken);
@@ -1170,7 +1163,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     var tmp = solution; // temp. local to avoid a closure allocation for the fast path
                     // note: solution is captured here, but it will go away once GetValueAsync executes.
-                    Interlocked.CompareExchange(ref _lazyDependentSemanticVersion, new AsyncLazy<VersionStamp>(c => ComputeDependentSemanticVersionAsync(tmp, c), cacheResult: true), null);
+                    Interlocked.CompareExchange(ref _lazyDependentSemanticVersion, AsyncLazy.Create(c => ComputeDependentSemanticVersionAsync(tmp, c)), null);
                 }
 
                 return _lazyDependentSemanticVersion.GetValueAsync(cancellationToken);
@@ -1201,7 +1194,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     var tmp = solution; // temp. local to avoid a closure allocation for the fast path
                     // note: solution is captured here, but it will go away once GetValueAsync executes.
-                    Interlocked.CompareExchange(ref _lazyDependentChecksum, new AsyncLazy<Checksum>(c => ComputeDependentChecksumAsync(tmp, c), cacheResult: true), null);
+                    Interlocked.CompareExchange(ref _lazyDependentChecksum, AsyncLazy.Create(c => ComputeDependentChecksumAsync(tmp, c)), null);
                 }
 
                 return _lazyDependentChecksum.GetValueAsync(cancellationToken);

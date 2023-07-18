@@ -9,9 +9,9 @@ using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
@@ -21,75 +21,40 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         [DataContract]
         internal readonly struct Data
         {
-            [DataMember(Order = 0)]
-            public readonly ModuleUpdates ModuleUpdates;
+            [DataMember]
+            public required ModuleUpdates ModuleUpdates { get; init; }
 
-            [DataMember(Order = 1)]
-            public readonly ImmutableArray<DiagnosticData> Diagnostics;
+            [DataMember]
+            public required ImmutableArray<DiagnosticData> Diagnostics { get; init; }
 
-            [DataMember(Order = 2)]
-            public readonly ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> RudeEdits;
+            [DataMember]
+            public required ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> RudeEdits { get; init; }
 
-            [DataMember(Order = 3)]
-            public readonly DiagnosticData? SyntaxError;
-
-            public Data(
-                ModuleUpdates moduleUpdates,
-                ImmutableArray<DiagnosticData> diagnostics,
-                ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> rudeEdits,
-                DiagnosticData? syntaxError)
-            {
-                ModuleUpdates = moduleUpdates;
-                Diagnostics = diagnostics;
-                RudeEdits = rudeEdits;
-                SyntaxError = syntaxError;
-            }
+            [DataMember]
+            public required DiagnosticData? SyntaxError { get; init; }
         }
 
-        public static readonly EmitSolutionUpdateResults Empty =
-            new(moduleUpdates: new ModuleUpdates(ModuleUpdateStatus.None, ImmutableArray<ModuleUpdate>.Empty),
-                diagnostics: ImmutableArray<(ProjectId, ImmutableArray<Diagnostic>)>.Empty,
-                documentsWithRudeEdits: ImmutableArray<(DocumentId, ImmutableArray<RudeEditDiagnostic>)>.Empty,
-                syntaxError: null);
-
-        public readonly ModuleUpdates ModuleUpdates;
-        public readonly ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostics)> Diagnostics;
-        public readonly ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> RudeEdits;
-        public readonly Diagnostic? SyntaxError;
-
-        public EmitSolutionUpdateResults(
-            ModuleUpdates moduleUpdates,
-            ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostic)> diagnostics,
-            ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> documentsWithRudeEdits,
-            Diagnostic? syntaxError)
+        public static readonly EmitSolutionUpdateResults Empty = new()
         {
-            ModuleUpdates = moduleUpdates;
-            Diagnostics = diagnostics;
-            RudeEdits = documentsWithRudeEdits;
-            SyntaxError = syntaxError;
-        }
+            ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.None, ImmutableArray<ManagedHotReloadUpdate>.Empty),
+            Diagnostics = ImmutableArray<ProjectDiagnostics>.Empty,
+            RudeEdits = ImmutableArray<(DocumentId, ImmutableArray<RudeEditDiagnostic>)>.Empty,
+            SyntaxError = null
+        };
+
+        public required ModuleUpdates ModuleUpdates { get; init; }
+        public required ImmutableArray<ProjectDiagnostics> Diagnostics { get; init; }
+        public required ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> RudeEdits { get; init; }
+        public required Diagnostic? SyntaxError { get; init; }
 
         public Data Dehydrate(Solution solution)
-            => new(ModuleUpdates, GetDiagnosticData(solution), RudeEdits, GetSyntaxErrorData(solution));
-
-        public ImmutableArray<DiagnosticData> GetDiagnosticData(Solution solution)
-        {
-            using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var result);
-
-            foreach (var (projectId, diagnostics) in Diagnostics)
+            => new()
             {
-                var project = solution.GetRequiredProject(projectId);
-
-                foreach (var diagnostic in diagnostics)
-                {
-                    var document = solution.GetDocument(diagnostic.Location.SourceTree);
-                    var data = (document != null) ? DiagnosticData.Create(diagnostic, document) : DiagnosticData.Create(solution, diagnostic, project);
-                    result.Add(data);
-                }
-            }
-
-            return result.ToImmutable();
-        }
+                ModuleUpdates = ModuleUpdates,
+                Diagnostics = Diagnostics.ToDiagnosticData(solution),
+                RudeEdits = RudeEdits,
+                SyntaxError = GetSyntaxErrorData(solution)
+            };
 
         public DiagnosticData? GetSyntaxErrorData(Solution solution)
         {
@@ -149,16 +114,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     continue;
                 }
 
-                var fileSpan = data.DataLocation.MappedFileSpan;
-
-                builder.Add(new ManagedHotReloadDiagnostic(
-                    data.Id,
-                    data.Message ?? FeaturesResources.Unknown_error_occurred,
-                    updateStatus == ModuleUpdateStatus.RestartRequired
-                        ? ManagedHotReloadDiagnosticSeverity.RestartRequired
-                        : ManagedHotReloadDiagnosticSeverity.Error,
-                    fileSpan.Path ?? "",
-                    fileSpan.Span.ToSourceSpan()));
+                builder.Add(data.ToHotReloadDiagnostic(updateStatus));
 
                 // only report first error
                 break;

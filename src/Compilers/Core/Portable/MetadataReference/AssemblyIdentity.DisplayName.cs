@@ -163,6 +163,18 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Perf: ETW traces show 2%+ of all allocations parsing assembly identity names.  This is due to how large
+        /// these strings can be (600+ characters in some cases), and how many substrings are continually produced as
+        /// the string is broken up into the pieces needed by AssemblyIdentity.  The capacity of 1024 was picked as
+        /// around 700 unique strings were found in a solution the size of Roslyn.sln.  So this seems like a reasonable
+        /// starting point for a large solution.  This cache takes up around 240k in memory, but ends up saving >80MB of
+        /// garbage over typing even a few characters.  And, of course, that savings just grows over the lifetime of a
+        /// session this is hosted within.
+        /// </summary>
+        private static readonly ConcurrentCache<string, (AssemblyIdentity? identity, AssemblyIdentityParts parts)> s_TryParseDisplayNameCache =
+            new ConcurrentCache<string, (AssemblyIdentity? identity, AssemblyIdentityParts parts)>(1024, ReferenceEqualityComparer.Instance);
+
+        /// <summary>
         /// Parses display name filling defaults for any basic properties that are missing.
         /// </summary>
         /// <param name="displayName">Display name.</param>
@@ -181,239 +193,255 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentNullException"><paramref name="displayName"/> is null.</exception>
         public static bool TryParseDisplayName(string displayName, [NotNullWhen(true)] out AssemblyIdentity? identity, out AssemblyIdentityParts parts)
         {
-            // see ndp\clr\src\Binder\TextualIdentityParser.cpp, ndp\clr\src\Binder\StringLexer.cpp
-
-            identity = null;
-            parts = 0;
-
-            if (displayName == null)
+            if (!s_TryParseDisplayNameCache.TryGetValue(displayName, out var identityAndParts))
             {
-                throw new ArgumentNullException(nameof(displayName));
-            }
-
-            if (displayName.IndexOf('\0') >= 0)
-            {
-                return false;
-            }
-
-            int position = 0;
-            string? simpleName;
-            if (!TryParseNameToken(displayName, ref position, out simpleName))
-            {
-                return false;
-            }
-
-            var parsedParts = AssemblyIdentityParts.Name;
-            var seen = AssemblyIdentityParts.Name;
-
-            Version? version = null;
-            string? culture = null;
-            bool isRetargetable = false;
-            var contentType = AssemblyContentType.Default;
-            var publicKey = default(ImmutableArray<byte>);
-            var publicKeyToken = default(ImmutableArray<byte>);
-
-            while (position < displayName.Length)
-            {
-                // Parse ',' name '=' value
-                if (displayName[position] != ',')
+                if (tryParseDisplayName(displayName, out var localIdentity, out var localParts))
                 {
-                    return false;
-                }
-
-                position++;
-
-                string? propertyName;
-                if (!TryParseNameToken(displayName, ref position, out propertyName))
-                {
-                    return false;
-                }
-
-                if (position >= displayName.Length || displayName[position] != '=')
-                {
-                    return false;
-                }
-
-                position++;
-
-                string? propertyValue;
-                if (!TryParseNameToken(displayName, ref position, out propertyValue))
-                {
-                    return false;
-                }
-
-                // Process property
-                if (string.Equals(propertyName, "Version", StringComparison.OrdinalIgnoreCase))
-                {
-                    if ((seen & AssemblyIdentityParts.Version) != 0)
-                    {
-                        return false;
-                    }
-
-                    seen |= AssemblyIdentityParts.Version;
-
-                    if (propertyValue == "*")
-                    {
-                        continue;
-                    }
-
-                    ulong versionLong;
-                    AssemblyIdentityParts versionParts;
-                    if (!TryParseVersion(propertyValue, out versionLong, out versionParts))
-                    {
-                        return false;
-                    }
-
-                    version = ToVersion(versionLong);
-                    parsedParts |= versionParts;
-                }
-                else if (string.Equals(propertyName, "Culture", StringComparison.OrdinalIgnoreCase) ||
-                         string.Equals(propertyName, "Language", StringComparison.OrdinalIgnoreCase))
-                {
-                    if ((seen & AssemblyIdentityParts.Culture) != 0)
-                    {
-                        return false;
-                    }
-
-                    seen |= AssemblyIdentityParts.Culture;
-
-                    if (propertyValue == "*")
-                    {
-                        continue;
-                    }
-
-                    culture = string.Equals(propertyValue, InvariantCultureDisplay, StringComparison.OrdinalIgnoreCase) ? null : propertyValue;
-                    parsedParts |= AssemblyIdentityParts.Culture;
-                }
-                else if (string.Equals(propertyName, "PublicKey", StringComparison.OrdinalIgnoreCase))
-                {
-                    if ((seen & AssemblyIdentityParts.PublicKey) != 0)
-                    {
-                        return false;
-                    }
-
-                    seen |= AssemblyIdentityParts.PublicKey;
-
-                    if (propertyValue == "*")
-                    {
-                        continue;
-                    }
-
-                    ImmutableArray<byte> value;
-                    if (!TryParsePublicKey(propertyValue, out value))
-                    {
-                        return false;
-                    }
-
-                    // NOTE: Fusion would also set the public key token (as derived from the public key) here.
-                    //       We may need to do this as well for error cases, as Fusion would fail to parse the
-                    //       assembly name if public key token calculation failed.
-
-                    publicKey = value;
-                    parsedParts |= AssemblyIdentityParts.PublicKey;
-                }
-                else if (string.Equals(propertyName, "PublicKeyToken", StringComparison.OrdinalIgnoreCase))
-                {
-                    if ((seen & AssemblyIdentityParts.PublicKeyToken) != 0)
-                    {
-                        return false;
-                    }
-
-                    seen |= AssemblyIdentityParts.PublicKeyToken;
-
-                    if (propertyValue == "*")
-                    {
-                        continue;
-                    }
-
-                    ImmutableArray<byte> value;
-                    if (!TryParsePublicKeyToken(propertyValue, out value))
-                    {
-                        return false;
-                    }
-
-                    publicKeyToken = value;
-                    parsedParts |= AssemblyIdentityParts.PublicKeyToken;
-                }
-                else if (string.Equals(propertyName, "Retargetable", StringComparison.OrdinalIgnoreCase))
-                {
-                    if ((seen & AssemblyIdentityParts.Retargetability) != 0)
-                    {
-                        return false;
-                    }
-
-                    seen |= AssemblyIdentityParts.Retargetability;
-
-                    if (propertyValue == "*")
-                    {
-                        continue;
-                    }
-
-                    if (string.Equals(propertyValue, "Yes", StringComparison.OrdinalIgnoreCase))
-                    {
-                        isRetargetable = true;
-                    }
-                    else if (string.Equals(propertyValue, "No", StringComparison.OrdinalIgnoreCase))
-                    {
-                        isRetargetable = false;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-
-                    parsedParts |= AssemblyIdentityParts.Retargetability;
-                }
-                else if (string.Equals(propertyName, "ContentType", StringComparison.OrdinalIgnoreCase))
-                {
-                    if ((seen & AssemblyIdentityParts.ContentType) != 0)
-                    {
-                        return false;
-                    }
-
-                    seen |= AssemblyIdentityParts.ContentType;
-
-                    if (propertyValue == "*")
-                    {
-                        continue;
-                    }
-
-                    if (string.Equals(propertyValue, "WindowsRuntime", StringComparison.OrdinalIgnoreCase))
-                    {
-                        contentType = AssemblyContentType.WindowsRuntime;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-
-                    parsedParts |= AssemblyIdentityParts.ContentType;
-                }
-                else
-                {
-                    parsedParts |= AssemblyIdentityParts.Unknown;
+                    identityAndParts = (localIdentity, localParts);
+                    s_TryParseDisplayNameCache.TryAdd(displayName, identityAndParts);
                 }
             }
 
-            // incompatible values:
-            if (isRetargetable && contentType == AssemblyContentType.WindowsRuntime)
+            identity = identityAndParts.identity;
+            parts = identityAndParts.parts;
+            return identity != null;
+
+            static bool tryParseDisplayName(string displayName, [NotNullWhen(true)] out AssemblyIdentity? identity, out AssemblyIdentityParts parts)
             {
-                return false;
-            }
+                // see ndp\clr\src\Binder\TextualIdentityParser.cpp, ndp\clr\src\Binder\StringLexer.cpp
 
-            bool hasPublicKey = !publicKey.IsDefault;
-            bool hasPublicKeyToken = !publicKeyToken.IsDefault;
-
-            identity = new AssemblyIdentity(simpleName, version, culture, hasPublicKey ? publicKey : publicKeyToken, hasPublicKey, isRetargetable, contentType);
-
-            if (hasPublicKey && hasPublicKeyToken && !identity.PublicKeyToken.SequenceEqual(publicKeyToken))
-            {
                 identity = null;
-                return false;
-            }
+                parts = 0;
 
-            parts = parsedParts;
-            return true;
+                if (displayName == null)
+                {
+                    throw new ArgumentNullException(nameof(displayName));
+                }
+
+                if (displayName.IndexOf('\0') >= 0)
+                {
+                    return false;
+                }
+
+                int position = 0;
+                string? simpleName;
+                if (!TryParseNameToken(displayName, ref position, out simpleName))
+                {
+                    return false;
+                }
+
+                var parsedParts = AssemblyIdentityParts.Name;
+                var seen = AssemblyIdentityParts.Name;
+
+                Version? version = null;
+                string? culture = null;
+                bool isRetargetable = false;
+                var contentType = AssemblyContentType.Default;
+                var publicKey = default(ImmutableArray<byte>);
+                var publicKeyToken = default(ImmutableArray<byte>);
+
+                while (position < displayName.Length)
+                {
+                    // Parse ',' name '=' value
+                    if (displayName[position] != ',')
+                    {
+                        return false;
+                    }
+
+                    position++;
+
+                    string? propertyName;
+                    if (!TryParseNameToken(displayName, ref position, out propertyName))
+                    {
+                        return false;
+                    }
+
+                    if (position >= displayName.Length || displayName[position] != '=')
+                    {
+                        return false;
+                    }
+
+                    position++;
+
+                    string? propertyValue;
+                    if (!TryParseNameToken(displayName, ref position, out propertyValue))
+                    {
+                        return false;
+                    }
+
+                    // Process property
+                    if (string.Equals(propertyName, "Version", StringComparison.OrdinalIgnoreCase))
+                    {
+                        if ((seen & AssemblyIdentityParts.Version) != 0)
+                        {
+                            return false;
+                        }
+
+                        seen |= AssemblyIdentityParts.Version;
+
+                        if (propertyValue == "*")
+                        {
+                            continue;
+                        }
+
+                        ulong versionLong;
+                        AssemblyIdentityParts versionParts;
+                        if (!TryParseVersion(propertyValue, out versionLong, out versionParts))
+                        {
+                            return false;
+                        }
+
+                        version = ToVersion(versionLong);
+                        parsedParts |= versionParts;
+                    }
+                    else if (string.Equals(propertyName, "Culture", StringComparison.OrdinalIgnoreCase) ||
+                             string.Equals(propertyName, "Language", StringComparison.OrdinalIgnoreCase))
+                    {
+                        if ((seen & AssemblyIdentityParts.Culture) != 0)
+                        {
+                            return false;
+                        }
+
+                        seen |= AssemblyIdentityParts.Culture;
+
+                        if (propertyValue == "*")
+                        {
+                            continue;
+                        }
+
+                        culture = string.Equals(propertyValue, InvariantCultureDisplay, StringComparison.OrdinalIgnoreCase) ? null : propertyValue;
+                        parsedParts |= AssemblyIdentityParts.Culture;
+                    }
+                    else if (string.Equals(propertyName, "PublicKey", StringComparison.OrdinalIgnoreCase))
+                    {
+                        if ((seen & AssemblyIdentityParts.PublicKey) != 0)
+                        {
+                            return false;
+                        }
+
+                        seen |= AssemblyIdentityParts.PublicKey;
+
+                        if (propertyValue == "*")
+                        {
+                            continue;
+                        }
+
+                        ImmutableArray<byte> value;
+                        if (!TryParsePublicKey(propertyValue, out value))
+                        {
+                            return false;
+                        }
+
+                        // NOTE: Fusion would also set the public key token (as derived from the public key) here.
+                        //       We may need to do this as well for error cases, as Fusion would fail to parse the
+                        //       assembly name if public key token calculation failed.
+
+                        publicKey = value;
+                        parsedParts |= AssemblyIdentityParts.PublicKey;
+                    }
+                    else if (string.Equals(propertyName, "PublicKeyToken", StringComparison.OrdinalIgnoreCase))
+                    {
+                        if ((seen & AssemblyIdentityParts.PublicKeyToken) != 0)
+                        {
+                            return false;
+                        }
+
+                        seen |= AssemblyIdentityParts.PublicKeyToken;
+
+                        if (propertyValue == "*")
+                        {
+                            continue;
+                        }
+
+                        ImmutableArray<byte> value;
+                        if (!TryParsePublicKeyToken(propertyValue, out value))
+                        {
+                            return false;
+                        }
+
+                        publicKeyToken = value;
+                        parsedParts |= AssemblyIdentityParts.PublicKeyToken;
+                    }
+                    else if (string.Equals(propertyName, "Retargetable", StringComparison.OrdinalIgnoreCase))
+                    {
+                        if ((seen & AssemblyIdentityParts.Retargetability) != 0)
+                        {
+                            return false;
+                        }
+
+                        seen |= AssemblyIdentityParts.Retargetability;
+
+                        if (propertyValue == "*")
+                        {
+                            continue;
+                        }
+
+                        if (string.Equals(propertyValue, "Yes", StringComparison.OrdinalIgnoreCase))
+                        {
+                            isRetargetable = true;
+                        }
+                        else if (string.Equals(propertyValue, "No", StringComparison.OrdinalIgnoreCase))
+                        {
+                            isRetargetable = false;
+                        }
+                        else
+                        {
+                            return false;
+                        }
+
+                        parsedParts |= AssemblyIdentityParts.Retargetability;
+                    }
+                    else if (string.Equals(propertyName, "ContentType", StringComparison.OrdinalIgnoreCase))
+                    {
+                        if ((seen & AssemblyIdentityParts.ContentType) != 0)
+                        {
+                            return false;
+                        }
+
+                        seen |= AssemblyIdentityParts.ContentType;
+
+                        if (propertyValue == "*")
+                        {
+                            continue;
+                        }
+
+                        if (string.Equals(propertyValue, "WindowsRuntime", StringComparison.OrdinalIgnoreCase))
+                        {
+                            contentType = AssemblyContentType.WindowsRuntime;
+                        }
+                        else
+                        {
+                            return false;
+                        }
+
+                        parsedParts |= AssemblyIdentityParts.ContentType;
+                    }
+                    else
+                    {
+                        parsedParts |= AssemblyIdentityParts.Unknown;
+                    }
+                }
+
+                // incompatible values:
+                if (isRetargetable && contentType == AssemblyContentType.WindowsRuntime)
+                {
+                    return false;
+                }
+
+                bool hasPublicKey = !publicKey.IsDefault;
+                bool hasPublicKeyToken = !publicKeyToken.IsDefault;
+
+                identity = new AssemblyIdentity(simpleName, version, culture, hasPublicKey ? publicKey : publicKeyToken, hasPublicKey, isRetargetable, contentType);
+
+                if (hasPublicKey && hasPublicKeyToken && !identity.PublicKeyToken.SequenceEqual(publicKeyToken))
+                {
+                    identity = null;
+                    return false;
+                }
+
+                parts = parsedParts;
+                return true;
+            }
         }
 
         private static bool TryParseNameToken(string displayName, ref int position, [NotNullWhen(true)] out string? value)

@@ -312,11 +312,6 @@
         <target state="translated">Nepoužitá místní</target>
         <note />
       </trans-unit>
-      <trans-unit id="VB_Coding_Conventions">
-        <source>VB Coding Conventions</source>
-        <target state="translated">Konvence kódování ve VB</target>
-        <note />
-      </trans-unit>
       <trans-unit id="nothing_checking_colon">
         <source>'nothing' checking:</source>
         <target state="translated">'Kontrola hodnot nothing:</target>

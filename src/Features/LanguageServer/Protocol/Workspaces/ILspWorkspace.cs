@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
@@ -35,11 +37,5 @@ internal interface ILspWorkspace
     /// name="sourceText"/>.  Does nothing if the document is not present in the workspace (for example if something
     /// else removed it).
     /// </summary>
-    void UpdateTextIfPresent(DocumentId documentId, SourceText sourceText);
-    /// <summary>
-    /// If <paramref name="documentId"/> is currently within this workspace, then its text is updated to <paramref
-    /// name="textLoader"/>.  Does nothing if the document is not present in the workspace (for example if something
-    /// else removed it).
-    /// </summary>
-    void UpdateTextIfPresent(DocumentId documentId, TextLoader textLoader);
+    ValueTask UpdateTextIfPresentAsync(DocumentId documentId, SourceText sourceText, CancellationToken cancellationToken);
 }

@@ -120,39 +120,31 @@ namespace Microsoft.CodeAnalysis.Rename
                     symbol.Name);
             }
 
-            private readonly struct AnalysisResult
+            private readonly struct AnalysisResult(
+                Document document,
+                string newDocumentName,
+                string newSymbolName,
+                string originalSymbolName)
             {
                 /// <summary>
                 /// Name of the document that the action was produced for.
                 /// </summary>
-                public string OriginalDocumentName { get; }
+                public string OriginalDocumentName { get; } = document.Name;
 
                 /// <summary>
                 /// The new document name that will be used.
                 /// </summary>
-                public string NewDocumentName { get; }
+                public string NewDocumentName { get; } = newDocumentName;
 
                 /// <summary>
                 /// The original name of the symbol that will be changed.
                 /// </summary>
-                public string OriginalSymbolName { get; }
+                public string OriginalSymbolName { get; } = originalSymbolName;
 
                 /// <summary>
                 /// The new name for the symbol.
                 /// </summary>
-                public string NewSymbolName { get; }
-
-                public AnalysisResult(
-                    Document document,
-                    string newDocumentName,
-                    string newSymbolName,
-                    string originalSymbolName)
-                {
-                    OriginalDocumentName = document.Name;
-                    NewDocumentName = newDocumentName;
-                    NewSymbolName = newSymbolName;
-                    OriginalSymbolName = originalSymbolName;
-                }
+                public string NewSymbolName { get; } = newSymbolName;
             }
         }
     }

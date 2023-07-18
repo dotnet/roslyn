@@ -45,8 +45,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var lazy = new AsyncLazy<object>(
                 c => Task.FromResult(synchronousComputation(c)),
-                includeSynchronousComputation ? synchronousComputation : null,
-                cacheResult: true);
+                includeSynchronousComputation ? synchronousComputation : null);
 
             var thrownException = Assert.Throws<OperationCanceledException>(() =>
                 {
@@ -66,7 +65,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void SynchronousRequestShouldCacheValueWithAsynchronousComputeFunction()
         {
-            var lazy = new AsyncLazy<object>(c => Task.FromResult(new object()), cacheResult: true);
+            var lazy = new AsyncLazy<object>(c => Task.FromResult(new object()));
 
             var firstRequestResult = lazy.GetValue(CancellationToken.None);
             var secondRequestResult = lazy.GetValue(CancellationToken.None);
@@ -92,8 +91,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 };
 
             var lazy = producerAsync
-                ? new AsyncLazy<object>(asynchronousComputeFunction, cacheResult: true)
-                : new AsyncLazy<object>(asynchronousComputeFunction, synchronousComputeFunction, cacheResult: true);
+                ? new AsyncLazy<object>(asynchronousComputeFunction)
+                : new AsyncLazy<object>(asynchronousComputeFunction, synchronousComputeFunction);
 
             var actual = consumerAsync
                 ? await Assert.ThrowsAsync<ArgumentException>(async () => await lazy.GetValueAsync(CancellationToken.None))

@@ -26,13 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             => new CSharpBlockStructureService(languageServices.LanguageServices.SolutionServices);
     }
 
-    internal class CSharpBlockStructureService : BlockStructureServiceWithProviders
+    internal class CSharpBlockStructureService(SolutionServices services) : BlockStructureServiceWithProviders(services)
     {
-        public CSharpBlockStructureService(SolutionServices services)
-            : base(services)
-        {
-        }
-
         protected override ImmutableArray<BlockStructureProvider> GetBuiltInProviders()
         {
             return ImmutableArray.Create<BlockStructureProvider>(
