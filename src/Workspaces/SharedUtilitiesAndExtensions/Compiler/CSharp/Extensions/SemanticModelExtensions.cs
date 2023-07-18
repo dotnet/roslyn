@@ -451,15 +451,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return null;
         }
 
-        public static INamedTypeSymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, BaseTypeDeclarationSyntax declarationSyntax, CancellationToken cancellationToken)
+        public static INamedTypeSymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, BaseTypeDeclarationSyntax declaration, CancellationToken cancellationToken)
         {
-            return semanticModel.GetDeclaredSymbol(declarationSyntax, cancellationToken)
+            return semanticModel.GetDeclaredSymbol(declaration, cancellationToken)
                 ?? throw new InvalidOperationException();
         }
 
-        public static IMethodSymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, ConstructorDeclarationSyntax declarationSyntax, CancellationToken cancellationToken)
+        public static IMethodSymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, ConstructorDeclarationSyntax declaration, CancellationToken cancellationToken)
         {
-            return semanticModel.GetDeclaredSymbol(declarationSyntax, cancellationToken)
+            return semanticModel.GetDeclaredSymbol(declaration, cancellationToken)
+                ?? throw new InvalidOperationException();
+        }
+
+        public static IParameterSymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, ParameterSyntax parameter, CancellationToken cancellationToken)
+        {
+            return semanticModel.GetDeclaredSymbol(parameter, cancellationToken)
                 ?? throw new InvalidOperationException();
         }
     }

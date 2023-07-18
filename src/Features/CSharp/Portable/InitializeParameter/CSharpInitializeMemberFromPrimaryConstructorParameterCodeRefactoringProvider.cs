@@ -50,8 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 return;
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var compilation = semanticModel.Compilation;
-            var parameter = (IParameterSymbol)semanticModel.GetRequiredDeclaredSymbol(selectedParameter, cancellationToken);
+            var parameter = semanticModel.GetRequiredDeclaredSymbol(selectedParameter, cancellationToken);
             if (parameter?.Name is null or "")
                 return;
 
@@ -60,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
             // See if we're already assigning this parameter to a field/property in this type. If so, there's nothing
             // more for us to do.
+            var compilation = semanticModel.Compilation;
             var (initializerValue, _) = TryFindFieldOrPropertyInitializerValue(compilation, parameter, cancellationToken);
             if (initializerValue != null)
                 return;
