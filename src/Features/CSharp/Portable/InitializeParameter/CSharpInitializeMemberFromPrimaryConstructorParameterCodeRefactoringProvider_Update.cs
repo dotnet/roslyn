@@ -201,6 +201,7 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
         var solution = project.Solution;
 
         var solutionEditor = new SolutionEditor(solution);
+        var initializer = EqualsValueClause(IdentifierName(parameter.Name.EscapeIdentifier()));
 
         // We're assigning the parameter to a field/prop.  Convert all existing references to this primary constructor
         // parameter (within this type) to refer to the field/prop now instead.
@@ -223,7 +224,8 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
                         propertyDeclaration,
                         newPropertyDeclaration.WithoutTrailingTrivia()
                             .WithSemicolonToken(Token(SyntaxKind.SemicolonToken).WithTrailingTrivia(newPropertyDeclaration.GetTrailingTrivia()))
-                            .WithInitializer(EqualsValueClause(IdentifierName(parameter.Name.EscapeIdentifier()))));
+                            .WithInitializer(initializer));
+                    break;
                 }
             }
         }
@@ -237,7 +239,7 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
                     var editor = await solutionEditor.GetDocumentEditorAsync(editingDocument.Id, cancellationToken).ConfigureAwait(false);
                     editor.ReplaceNode(
                         variableDeclarator,
-                        variableDeclarator.WithInitializer(EqualsValueClause(IdentifierName(parameter.Name.EscapeIdentifier()))));
+                        variableDeclarator.WithInitializer(initializer));
                     break;
                 }
             }
