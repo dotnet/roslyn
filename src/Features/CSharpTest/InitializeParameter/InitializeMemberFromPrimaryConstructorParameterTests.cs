@@ -316,36 +316,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 """);
         }
 
-        //[Fact]
-        //public async Task TestInsertionLocation3()
-        //{
-        //    await TestInRegularAndScript1Async(
-        //        """
-        //        class C
-        //        {
-        //            private string s;
-
-        //            public C([||]string s)
-        //            {
-        //                if (true) { } 
-        //            }
-        //        }
-        //        """,
-        //        """
-        //        class C
-        //        {
-        //            private string s;
-
-        //            public C(string s)
-        //            {
-        //                if (true) { }
-
-        //                this.s = s;
-        //            }
-        //        }
-        //        """);
-        //}
-
         [Fact]
         public async Task TestNotInMethod()
         {
@@ -361,64 +331,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 }
                 """);
         }
-
-        //[Fact]
-        //public async Task TestInsertionLocation4()
-        //{
-        //    await TestInRegularAndScript1Async(
-        //        """
-        //        class C
-        //        {
-        //            private string s;
-        //            private string t;
-
-        //            public C(string s, [||]string t)
-        //                => this.s = s;   
-        //        }
-        //        """,
-        //        """
-        //        class C
-        //        {
-        //            private string s;
-        //            private string t;
-
-        //            public C(string s, string t)
-        //            {
-        //                this.s = s;
-        //                this.t = t;
-        //            }
-        //        }
-        //        """);
-        //}
-
-        //[Fact]
-        //public async Task TestInsertionLocation5()
-        //{
-        //    await TestInRegularAndScript1Async(
-        //        """
-        //        class C
-        //        {
-        //            private string s;
-        //            private string t;
-
-        //            public C([||]string s, string t)
-        //                => this.t = t;   
-        //        }
-        //        """,
-        //        """
-        //        class C
-        //        {
-        //            private string s;
-        //            private string t;
-
-        //            public C(string s, string t)
-        //            {
-        //                this.s = s;
-        //                this.t = t;
-        //            }
-        //        }
-        //        """);
-        //}
 
         [Fact]
         public async Task TestInsertionLocation6()
