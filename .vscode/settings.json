@@ -3,6 +3,6 @@
   "files.insertFinalNewline": true,
   "files.trimFinalNewlines": true,
   "omnisharp.enableEditorConfigSupport": true,
-  "omnisharp.enableImportCompletion": true,
-  "omnisharp.enableRoslynAnalyzers": true
+  "omnisharp.enableRoslynAnalyzers": true,
+  "dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true
 }
