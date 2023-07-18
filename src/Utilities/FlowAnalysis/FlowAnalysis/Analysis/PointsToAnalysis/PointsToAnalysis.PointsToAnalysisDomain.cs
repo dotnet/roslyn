@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         private sealed class PointsToAnalysisDomain : PredicatedAnalysisDataDomain<PointsToAnalysisData, PointsToAbstractValue>
         {
             public PointsToAnalysisDomain(DefaultPointsToValueGenerator defaultPointsToValueGenerator)
-                : base(new CorePointsToAnalysisDataDomain(defaultPointsToValueGenerator, PointsToAbstractValueDomainInstance))
+                : base(new CorePointsToAnalysisDataDomain(defaultPointsToValueGenerator, ValueDomainInstance))
             {
             }
 

@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Debug.Assert(EqualsIgnoringInstanceLocation(analysisEntityToMerge));
             Debug.Assert(!InstanceLocation.Equals(analysisEntityToMerge.InstanceLocation));
 
-            var mergedInstanceLocation = PointsToAnalysis.PointsToAnalysis.PointsToAbstractValueDomainInstance.Merge(InstanceLocation, analysisEntityToMerge.InstanceLocation);
+            var mergedInstanceLocation = PointsToAnalysis.PointsToAnalysis.ValueDomainInstance.Merge(InstanceLocation, analysisEntityToMerge.InstanceLocation);
             return new AnalysisEntity(Symbol, Indices, InstanceReferenceOperationSyntax, CaptureId, mergedInstanceLocation, Type, Parent, IsThisOrMeInstance);
         }
 
@@ -203,6 +203,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         };
 
         public bool IsLValueFlowCaptureEntity => CaptureId.HasValue && CaptureId.Value.IsLValueFlowCapture;
+
+        internal AnalysisEntity WithIndices(ImmutableArray<AbstractIndex> indices)
+            => new(Symbol, indices, InstanceReferenceOperationSyntax, CaptureId, InstanceLocation, Type, Parent, IsThisOrMeInstance);
 
         public bool EqualsIgnoringInstanceLocation(AnalysisEntity? other)
         {

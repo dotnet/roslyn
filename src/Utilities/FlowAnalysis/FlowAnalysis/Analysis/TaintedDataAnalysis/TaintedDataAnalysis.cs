@@ -16,6 +16,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
     internal partial class TaintedDataAnalysis : ForwardDataFlowAnalysis<TaintedDataAnalysisData, TaintedDataAnalysisContext, TaintedDataAnalysisResult, TaintedDataBlockAnalysisResult, TaintedDataAbstractValue>
     {
+        internal static readonly AbstractValueDomain<TaintedDataAbstractValue> ValueDomainInstance = TaintedDataAbstractValueDomain.Default;
+
         private TaintedDataAnalysis(TaintedDataAnalysisDomain analysisDomain, TaintedDataOperationVisitor operationVisitor)
             : base(analysisDomain, operationVisitor)
         {
@@ -94,7 +96,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             }
 
             TaintedDataAnalysisContext analysisContext = TaintedDataAnalysisContext.Create(
-                TaintedDataAbstractValueDomain.Default,
+                ValueDomainInstance,
                 wellKnownTypeProvider,
                 cfg,
                 containingMethod,

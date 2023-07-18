@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
@@ -58,6 +59,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public virtual bool HasAnyAbstractValue => CoreAnalysisData.Count > 0 || HasPredicatedData;
 
+        protected abstract AbstractValueDomain<TValue> ValueDomain { get; }
         public abstract AnalysisEntityBasedPredicateAnalysisData<TValue> Clone();
         public abstract AnalysisEntityBasedPredicateAnalysisData<TValue> WithMergedData(AnalysisEntityBasedPredicateAnalysisData<TValue> data, MapAbstractDomain<AnalysisEntity, TValue> coreDataAnalysisDomain);
         public abstract int Compare(AnalysisEntityBasedPredicateAnalysisData<TValue> other, MapAbstractDomain<AnalysisEntity, TValue> coreDataAnalysisDomain);
@@ -100,6 +102,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             CoreAnalysisData[key] = value;
+
+            ClearOverlappingAnalysisDataForIndexedEntity(key, value);
         }
 
         public void RemoveEntries(AnalysisEntity key)
@@ -158,6 +162,46 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         }
 
         public void AddTrackedEntities(HashSet<AnalysisEntity> builder) => builder.UnionWith(CoreAnalysisData.Keys);
+
+        private void ClearOverlappingAnalysisDataForIndexedEntity(AnalysisEntity analysisEntity, TValue value)
+        {
+            if (!analysisEntity.Indices.Any(index => !index.IsConstant()))
+            {
+                return;
+            }
+
+            foreach (var entity in CoreAnalysisData.Keys)
+            {
+                if (entity.Indices.Length != analysisEntity.Indices.Length ||
+                    entity == analysisEntity)
+                {
+                    continue;
+                }
+
+                var canOverlap = true;
+                for (var i = 0; i < entity.Indices.Length; i++)
+                {
+                    if (entity.Indices[i].IsConstant() &&
+                        analysisEntity.Indices[i].IsConstant() &&
+                        !entity.Indices[i].Equals(analysisEntity.Indices[i]))
+                    {
+                        canOverlap = false;
+                        break;
+                    }
+                }
+
+                if (canOverlap &&
+                    entity.WithIndices(analysisEntity.Indices).Equals(analysisEntity) &&
+                    CoreAnalysisData.TryGetValue(entity, out var existingValue))
+                {
+                    var mergedValue = ValueDomain.Merge(value, existingValue);
+                    if (!existingValue!.Equals(mergedValue))
+                    {
+                        SetAbstractValue(entity, mergedValue);
+                    }
+                }
+            }
+        }
 
         protected override void Dispose(bool disposing)
         {

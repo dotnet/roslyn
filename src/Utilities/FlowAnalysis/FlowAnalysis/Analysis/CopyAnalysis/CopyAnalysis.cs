@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
     /// </summary>
     public partial class CopyAnalysis : ForwardDataFlowAnalysis<CopyAnalysisData, CopyAnalysisContext, CopyAnalysisResult, CopyBlockAnalysisResult, CopyAbstractValue>
     {
+        internal static readonly AbstractValueDomain<CopyAbstractValue> ValueDomainInstance = CopyAbstractValueDomain.Default;
+
         private CopyAnalysis(CopyDataFlowOperationVisitor operationVisitor)
             : base(operationVisitor.AnalysisDomain, operationVisitor)
         {
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                     wellKnownTypeProvider, pointsToAnalysisKind, interproceduralAnalysisConfig,
                     interproceduralAnalysisPredicate, pessimisticAnalysis, performCopyAnalysis: false, exceptionPathsAnalysis) :
                 null;
-            var analysisContext = CopyAnalysisContext.Create(CopyAbstractValueDomain.Default, wellKnownTypeProvider,
+            var analysisContext = CopyAnalysisContext.Create(ValueDomainInstance, wellKnownTypeProvider,
                 cfg, owningSymbol, analyzerOptions, interproceduralAnalysisConfig, pessimisticAnalysis, exceptionPathsAnalysis, pointsToAnalysisResult,
                 TryGetOrComputeResultForAnalysisContext, interproceduralAnalysisPredicate);
             return TryGetOrComputeResultForAnalysisContext(analysisContext);
