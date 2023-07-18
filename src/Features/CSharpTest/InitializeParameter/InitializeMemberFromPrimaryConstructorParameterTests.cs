@@ -1977,6 +1977,50 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36998")]
+        public async Task TestInitializeProperty_DifferentFile4()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document>
+                public partial class Goo(string [||]x, string y, string z)
+                {
+                }
+                        </Document>
+                        <Document>
+                using System;
+                public partial class Goo
+                {
+                    public string Y { get; } = y;
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """,
+                """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document>
+                public partial class Goo(string x, string y, string z)
+                {
+                }
+                        </Document>
+                        <Document>
+                using System;
+                public partial class Goo
+                {
+                    public string X { get; } = x;
+                    public string Y { get; } = y;
+                    public string Z { get; } = z;
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """, index: 2);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36998")]
         public async Task TestInitializeField_DifferentFile1()
         {
             await TestInRegularAndScriptAsync(
