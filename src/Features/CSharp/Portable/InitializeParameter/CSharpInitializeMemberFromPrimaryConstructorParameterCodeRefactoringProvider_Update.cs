@@ -114,16 +114,13 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             {
                 var namedType = parameter.ContainingType;
                 var documents = namedType.DeclaringSyntaxReferences
-                    .Select(r => solution.GetDocument(r.SyntaxTree))
-                    .WhereNotNull()
+                    .Select(r => solution.GetRequiredDocument(r.SyntaxTree))
                     .ToImmutableHashSet();
 
                 var references = await SymbolFinder.FindReferencesAsync(parameter, solution, documents, cancellationToken).ConfigureAwait(false);
                 foreach (var group in references.SelectMany(r => r.Locations.Where(loc => !loc.IsImplicit).GroupBy(loc => loc.Document)))
                 {
-                    var editingDocument = group.Key;
-                    var editor = await solutionEditor.GetDocumentEditorAsync(editingDocument.Id, cancellationToken).ConfigureAwait(false);
-
+                    var editor = await solutionEditor.GetDocumentEditorAsync(group.Key.Id, cancellationToken).ConfigureAwait(false);
                     foreach (var location in group)
                     {
                         var node = location.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);

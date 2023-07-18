@@ -2080,5 +2080,57 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 }
                 """, index: 1, parameters: new TestParameters(options: options.FieldNamesAreCamelCaseWithUnderscorePrefix));
         }
+
+        [Fact]
+        public async Task TestInitializeIntoFieldInDifferentPart()
+        {
+            await TestInRegularAndScript1Async(
+                """
+                partial class C([||]string s)
+                {
+                }
+
+                partial class C
+                {
+                    private string s;
+                }
+                """,
+                """
+                partial class C(string s)
+                {
+                }
+                
+                partial class C
+                {
+                    private string s = s;
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestInitializeIntoPropertyInDifferentPart()
+        {
+            await TestInRegularAndScript1Async(
+                """
+                partial class C([||]string s)
+                {
+                }
+
+                partial class C
+                {
+                    private string S { get; }
+                }
+                """,
+                """
+                partial class C(string s)
+                {
+                }
+                
+                partial class C
+                {
+                    private string S { get; } = s;
+                }
+                """);
+        }
     }
 }
