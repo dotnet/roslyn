@@ -36,8 +36,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 .AddExcludedPartTypes(typeof(IDiagnosticService), typeof(IDiagnosticAnalyzerService))
                 .AddParts(typeof(MockDiagnosticService), typeof(MockDiagnosticAnalyzerService));
 
-        [WpfTheory, CombinatorialData]
-        public async Task Test_TagSourceDiffer(bool pull)
+        [WpfFact]
+        public async Task Test_TagSourceDiffer()
         {
             var analyzer = new Analyzer();
             var analyzerMap = new Dictionary<string, ImmutableArray<DiagnosticAnalyzer>>
@@ -46,7 +46,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             };
 
             using var workspace = TestWorkspace.CreateCSharp(new string[] { "class A { }", "class E { }" }, parseOptions: CSharpParseOptions.Default);
-            workspace.GlobalOptions.SetGlobalOption(DiagnosticTaggingOptionsStorage.PullDiagnosticTagging, pull);
 
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace, analyzerMap);
 
@@ -74,11 +73,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Assert.True(spans.First().Span.Contains(new Span(0, 1)));
         }
 
-        [WpfTheory, CombinatorialData]
-        public async Task MultipleTaggersAndDispose(bool pull)
+        [WpfFact]
+        public async Task MultipleTaggersAndDispose()
         {
             using var workspace = TestWorkspace.CreateCSharp(new string[] { "class A {" }, parseOptions: CSharpParseOptions.Default);
-            workspace.GlobalOptions.SetGlobalOption(DiagnosticTaggingOptionsStorage.PullDiagnosticTagging, pull);
 
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace);
 
@@ -98,11 +96,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Assert.False(spans.IsEmpty());
         }
 
-        [WpfTheory, CombinatorialData]
-        public async Task TaggerProviderCreatedAfterInitialDiagnosticsReported(bool pull)
+        [WpfFact]
+        public async Task TaggerProviderCreatedAfterInitialDiagnosticsReported()
         {
             using var workspace = TestWorkspace.CreateCSharp(new string[] { "class C {" }, parseOptions: CSharpParseOptions.Default);
-            workspace.GlobalOptions.SetGlobalOption(DiagnosticTaggingOptionsStorage.PullDiagnosticTagging, pull);
 
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace, analyzerMap: null, createTaggerProvider: false);
             // First, make sure all diagnostics have been reported.

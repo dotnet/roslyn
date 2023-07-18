@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
@@ -267,7 +268,10 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 registrationService.Register(workspace)
 
                 Dim diagnosticProvider = GetDiagnosticProvider(workspace)
-                Dim actualDiagnostics = diagnosticProvider.GetCachedDiagnosticsAsync(workspace).Result
+                Dim actualDiagnostics = diagnosticProvider.GetCachedDiagnosticsAsync(workspace, projectId:=Nothing, documentId:=Nothing,
+                                                                                     includeSuppressedDiagnostics:=False,
+                                                                                     includeNonLocalDocumentDiagnostics:=True,
+                                                                                     CancellationToken.None).Result
 
                 registrationService.Unregister(workspace)
 

@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Threading;
@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
@@ -24,59 +23,46 @@ namespace Microsoft.CodeAnalysis.NavigateTo
     /// rehydrate everything needed quickly on either the host or remote side.
     /// </summary>
     [DataContract]
-    internal readonly struct RoslynNavigateToItem
+    internal readonly struct RoslynNavigateToItem(
+        bool isStale,
+        DocumentId documentId,
+        ImmutableArray<ProjectId> additionalMatchingProjects,
+        DeclaredSymbolInfo declaredSymbolInfo,
+        string kind,
+        NavigateToMatchKind matchKind,
+        bool isCaseSensitive,
+        ImmutableArray<TextSpan> nameMatchSpans,
+        ImmutableArray<PatternMatch> matches)
     {
         [DataMember(Order = 0)]
-        public readonly bool IsStale;
+        public readonly bool IsStale = isStale;
 
         [DataMember(Order = 1)]
-        public readonly DocumentId DocumentId;
+        public readonly DocumentId DocumentId = documentId;
 
         [DataMember(Order = 2)]
-        public readonly ImmutableArray<ProjectId> AdditionalMatchingProjects;
+        public readonly ImmutableArray<ProjectId> AdditionalMatchingProjects = additionalMatchingProjects;
 
         [DataMember(Order = 3)]
-        public readonly DeclaredSymbolInfo DeclaredSymbolInfo;
+        public readonly DeclaredSymbolInfo DeclaredSymbolInfo = declaredSymbolInfo;
 
         /// <summary>
         /// Will be one of the values from <see cref="NavigateToItemKind"/>.
         /// </summary>
         [DataMember(Order = 4)]
-        public readonly string Kind;
+        public readonly string Kind = kind;
 
         [DataMember(Order = 5)]
-        public readonly NavigateToMatchKind MatchKind;
+        public readonly NavigateToMatchKind MatchKind = matchKind;
 
         [DataMember(Order = 6)]
-        public readonly bool IsCaseSensitive;
+        public readonly bool IsCaseSensitive = isCaseSensitive;
 
         [DataMember(Order = 7)]
-        public readonly ImmutableArray<TextSpan> NameMatchSpans;
+        public readonly ImmutableArray<TextSpan> NameMatchSpans = nameMatchSpans;
 
         [DataMember(Order = 8)]
-        public readonly ImmutableArray<PatternMatch> Matches;
-
-        public RoslynNavigateToItem(
-            bool isStale,
-            DocumentId documentId,
-            ImmutableArray<ProjectId> additionalMatchingProjects,
-            DeclaredSymbolInfo declaredSymbolInfo,
-            string kind,
-            NavigateToMatchKind matchKind,
-            bool isCaseSensitive,
-            ImmutableArray<TextSpan> nameMatchSpans,
-            ImmutableArray<PatternMatch> matches)
-        {
-            IsStale = isStale;
-            DocumentId = documentId;
-            AdditionalMatchingProjects = additionalMatchingProjects;
-            DeclaredSymbolInfo = declaredSymbolInfo;
-            Kind = kind;
-            MatchKind = matchKind;
-            IsCaseSensitive = isCaseSensitive;
-            NameMatchSpans = nameMatchSpans;
-            Matches = matches;
-        }
+        public readonly ImmutableArray<PatternMatch> Matches = matches;
 
         public async Task<INavigateToSearchResult?> TryCreateSearchResultAsync(
             Solution solution, Document? activeDocument, CancellationToken cancellationToken)
@@ -107,12 +93,12 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             /// <summary>
             /// The <see cref="Document"/> that <see cref="_item"/> is contained within.
             /// </summary>
-            private readonly Document _itemDocument;
+            private readonly INavigableItem.NavigableDocument _itemDocument;
 
             /// <summary>
             /// The document the user was editing when they invoked the navigate-to operation.
             /// </summary>
-            private readonly Document? _activeDocument;
+            private readonly (DocumentId id, IReadOnlyList<string> folders)? _activeDocument;
 
             private readonly string _additionalInformation;
             private readonly Lazy<string> _secondarySort;
@@ -123,33 +109,35 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 Document? activeDocument)
             {
                 _item = item;
-                _itemDocument = itemDocument;
-                _activeDocument = activeDocument;
-                _additionalInformation = ComputeAdditionalInformation();
+                _itemDocument = INavigableItem.NavigableDocument.FromDocument(itemDocument);
+                if (activeDocument is not null)
+                    _activeDocument = (activeDocument.Id, activeDocument.Folders);
+
+                _additionalInformation = ComputeAdditionalInformation(in item, itemDocument);
                 _secondarySort = new Lazy<string>(ComputeSecondarySort);
             }
 
-            private string ComputeAdditionalInformation()
+            private static string ComputeAdditionalInformation(in RoslynNavigateToItem item, Document itemDocument)
             {
                 // For partial types, state what file they're in so the user can disambiguate the results.
-                var combinedProjectName = ComputeCombinedProjectName();
-                return (_item.DeclaredSymbolInfo.IsPartial, IsNonNestedNamedType()) switch
+                var combinedProjectName = ComputeCombinedProjectName(in item, itemDocument);
+                return (item.DeclaredSymbolInfo.IsPartial, IsNonNestedNamedType(in item)) switch
                 {
-                    (true, true) => string.Format(FeaturesResources._0_dash_1, _itemDocument.Name, combinedProjectName),
-                    (true, false) => string.Format(FeaturesResources.in_0_1_2, _item.DeclaredSymbolInfo.ContainerDisplayName, _itemDocument.Name, combinedProjectName),
+                    (true, true) => string.Format(FeaturesResources._0_dash_1, itemDocument.Name, combinedProjectName),
+                    (true, false) => string.Format(FeaturesResources.in_0_1_2, item.DeclaredSymbolInfo.ContainerDisplayName, itemDocument.Name, combinedProjectName),
                     (false, true) => string.Format(FeaturesResources.project_0, combinedProjectName),
-                    (false, false) => string.Format(FeaturesResources.in_0_project_1, _item.DeclaredSymbolInfo.ContainerDisplayName, combinedProjectName),
+                    (false, false) => string.Format(FeaturesResources.in_0_project_1, item.DeclaredSymbolInfo.ContainerDisplayName, combinedProjectName),
                 };
             }
 
-            private string ComputeCombinedProjectName()
+            private static string ComputeCombinedProjectName(in RoslynNavigateToItem item, Document itemDocument)
             {
                 // If there aren't any additional matches in other projects, we don't need to merge anything.
-                if (_item.AdditionalMatchingProjects.Length > 0)
+                if (item.AdditionalMatchingProjects.Length > 0)
                 {
                     // First get the simple project name and flavor for the actual project we got a hit in.  If we can't
                     // figure this out, we can't create a merged name.
-                    var firstProject = _itemDocument.Project;
+                    var firstProject = itemDocument.Project;
                     var (firstProjectName, firstProjectFlavor) = firstProject.State.NameAndFlavor;
 
                     if (firstProjectName != null)
@@ -162,7 +150,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                         // Now, do the same for the other projects where we had a match. As above, if we can't figure out the
                         // simple name/flavor, or if the simple project name doesn't match the simple project name we started
                         // with then we can't merge these.
-                        foreach (var additionalProjectId in _item.AdditionalMatchingProjects)
+                        foreach (var additionalProjectId in item.AdditionalMatchingProjects)
                         {
                             var additionalProject = solution.GetRequiredProject(additionalProjectId);
                             var (projectName, projectFlavor) = additionalProject.State.NameAndFlavor;
@@ -178,17 +166,17 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 }
 
                 // Couldn't compute a merged project name (or only had one project).  Just return the name of hte project itself.
-                return _itemDocument.Project.Name;
+                return itemDocument.Project.Name;
             }
 
             string INavigateToSearchResult.AdditionalInformation => _additionalInformation;
 
-            private bool IsNonNestedNamedType()
-                => !_item.DeclaredSymbolInfo.IsNestedType && IsNamedType();
+            private static bool IsNonNestedNamedType(in RoslynNavigateToItem item)
+                => !item.DeclaredSymbolInfo.IsNestedType && IsNamedType(in item);
 
-            private bool IsNamedType()
+            private static bool IsNamedType(in RoslynNavigateToItem item)
             {
-                switch (_item.DeclaredSymbolInfo.Kind)
+                switch (item.DeclaredSymbolInfo.Kind)
                 {
                     case DeclaredSymbolInfoKind.Class:
                     case DeclaredSymbolInfoKind.Record:
@@ -243,14 +231,14 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 int ComputeFolderDistance()
                 {
                     // No need to compute anything if there is no active document.  Consider all documents equal.
-                    if (_activeDocument == null)
+                    if (_activeDocument is not { } activeDocument)
                         return 0;
 
                     // The result was in the active document, this get highest priority.
-                    if (_activeDocument == _itemDocument)
+                    if (activeDocument.id == _itemDocument.Id)
                         return 0;
 
-                    var activeFolders = _activeDocument.Folders;
+                    var activeFolders = activeDocument.folders;
                     var itemFolders = _itemDocument.Folders;
 
                     // see how many folder they have in common.
@@ -263,21 +251,21 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     // Add one more to the result.  This way if they share all the same folders that we still return
                     // '1', indicating that this close to, but not as good a match as an exact file match.
                     return activeDiff + itemDiff + 1;
-                }
 
-                int GetCommonFolderCount()
-                {
-                    var activeFolders = _activeDocument.Folders;
-                    var itemFolders = _itemDocument.Folders;
-
-                    var maxCommon = Math.Min(activeFolders.Count, itemFolders.Count);
-                    for (var i = 0; i < maxCommon; i++)
+                    int GetCommonFolderCount()
                     {
-                        if (activeFolders[i] != itemFolders[i])
-                            return i;
-                    }
+                        var activeFolders = activeDocument.folders;
+                        var itemFolders = _itemDocument.Folders;
 
-                    return maxCommon;
+                        var maxCommon = Math.Min(activeFolders.Count, itemFolders.Count);
+                        for (var i = 0; i < maxCommon; i++)
+                        {
+                            if (activeFolders[i] != itemFolders[i])
+                                return i;
+                        }
+
+                        return maxCommon;
+                    }
                 }
             }
 
@@ -353,7 +341,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             /// </summary>
             bool INavigableItem.IsImplicitlyDeclared => false;
 
-            Document INavigableItem.Document => _itemDocument;
+            INavigableItem.NavigableDocument INavigableItem.Document => _itemDocument;
 
             TextSpan INavigableItem.SourceSpan => _item.DeclaredSymbolInfo.Span;
 

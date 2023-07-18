@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             // but, this text is most likely already loaded since producer of this diagnostic (Document/ProjectDiagnosticAnalyzers)
                             // should have loaded it to produce the diagnostic at the first place. once loaded, it should stay in memory until
                             // project cache goes away. when text is already there, await should return right away.
-                            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                             if (location.SourceSpan.End > text.Length)
                             {
                                 // Disallow diagnostics with locations outside this project.

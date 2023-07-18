@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             var comp = CreateCompilation(
                 sources,
                 references,
-                parseOptions: TestOptions.Regular9,
+                parseOptions: TestOptions.RegularPreview,
                 options: options ?? (expectedOutput is null ? TestOptions.UnsafeReleaseDll : TestOptions.UnsafeReleaseExe),
                 targetFramework: targetFramework);
 
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 
         private static CSharpCompilation CreateCompilationWithFunctionPointers(CSharpTestSource source, IEnumerable<MetadataReference>? references = null, CSharpCompilationOptions? options = null, TargetFramework? targetFramework = null)
         {
-            return CreateCompilation(source, references: references, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9, targetFramework: targetFramework ?? TargetFramework.Net50);
+            return CreateCompilation(source, references: references, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview, targetFramework: targetFramework ?? TargetFramework.Net50);
         }
 
         private static CSharpCompilation CreateCompilationWithFunctionPointers(CSharpTestSource source, bool includeUnmanagedCallersOnly, CSharpCompilationOptions? options = null)
@@ -53,12 +53,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             var references = includeUnmanagedCallersOnly
                 ? TargetFrameworkUtil.GetReferences(TargetFramework.Net50)
                 : TargetFrameworkUtil.GetReferencesWithout(TargetFramework.Net50, "System.Runtime.InteropServices.dll");
-            return CreateCompilation(source, references: references, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Empty);
+            return CreateCompilation(source, references: references, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Empty);
         }
 
         private CompilationVerifier CompileAndVerifyFunctionPointersWithIl(string source, string ilStub, Action<ModuleSymbol>? symbolValidator = null, string? expectedOutput = null)
         {
-            var comp = CreateCompilationWithIL(source, ilStub, parseOptions: TestOptions.Regular9, options: expectedOutput is null ? TestOptions.UnsafeReleaseDll : TestOptions.UnsafeReleaseExe);
+            var comp = CreateCompilationWithIL(source, ilStub, parseOptions: TestOptions.RegularPreview, options: expectedOutput is null ? TestOptions.UnsafeReleaseDll : TestOptions.UnsafeReleaseExe);
             return CompileAndVerify(comp, expectedOutput: expectedOutput, symbolValidator: symbolValidator, verify: Verification.Skipped);
         }
 
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             var references = includeUnmanagedCallersOnly
                 ? TargetFrameworkUtil.GetReferences(TargetFramework.Net50)
                 : TargetFrameworkUtil.GetReferencesWithout(TargetFramework.Net50, "System.Runtime.InteropServices.dll");
-            return CreateCompilationWithIL(source, ilStub, references: references, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Empty);
+            return CreateCompilationWithIL(source, ilStub, references: references, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Empty);
         }
 
         [Theory]
@@ -680,7 +680,7 @@ public class C
 }
 ";
 
-            var compilation = CreateCompilationWithIL(source: "", ilSource, parseOptions: TestOptions.Regular9);
+            var compilation = CreateCompilationWithIL(source: "", ilSource, parseOptions: TestOptions.RegularPreview);
             var testClass = compilation.GetTypeByMetadataName("Test1")!;
 
             var m = testClass.GetMethod("M");
@@ -2466,6 +2466,7 @@ Returned From Function 2");
 }");
         }
 
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68208")]
         [Fact]
         public void Typeof()
         {
@@ -2479,7 +2480,7 @@ class C
         Console.WriteLine(t.ToString());
     }
 }
-", expectedOutput: "System.IntPtr");
+", expectedOutput: ExecutionConditionUtil.IsCoreClr ? "System.Void()" : "System.IntPtr");
 
             verifier.VerifyIL("C.Main()", expectedIL: @"
 {
@@ -2582,7 +2583,7 @@ using System;
 public unsafe class C
 {
     public delegate*<I1> M() => throw null;
-}", references: new[] { nopiaReference }, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll).EmitToImageReference();
+}", references: new[] { nopiaReference }, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll).EmitToImageReference();
 
             CompileAndVerifyFunctionPointers(@"
 unsafe class C2
@@ -2619,7 +2620,7 @@ using System.Runtime.CompilerServices;
 internal class B
 {
     internal unsafe delegate*<A> M() => throw null;
-}", references: new[] { aRef }, assemblyName: "B", parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll).EmitToImageReference();
+}", references: new[] { aRef }, assemblyName: "B", parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll).EmitToImageReference();
 
             var cComp = CreateCompilation(@"
 internal class C
@@ -2628,7 +2629,7 @@ internal class C
     {
         b.M()();
     }
-}", references: new[] { aRef, bRef }, assemblyName: "C", parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
+}", references: new[] { aRef, bRef }, assemblyName: "C", parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll);
 
             cComp.VerifyDiagnostics(
                     // (6,9): error CS0122: 'B.M()' is inaccessible due to its protection level
@@ -2649,7 +2650,7 @@ using System.Runtime.CompilerServices;
 internal class B
 {
     internal unsafe delegate*<A> M() => throw null;
-}", references: new[] { aRef }, assemblyName: "B", parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll).EmitToImageReference();
+}", references: new[] { aRef }, assemblyName: "B", parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll).EmitToImageReference();
 
             var cComp = CreateCompilation(@"
 internal class C
@@ -2658,7 +2659,7 @@ internal class C
     {
         b.M()();
     }
-}", references: new[] { aRef, bRef }, assemblyName: "C", parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
+}", references: new[] { aRef, bRef }, assemblyName: "C", parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll);
 
             cComp.VerifyDiagnostics();
         }
@@ -5015,7 +5016,7 @@ static unsafe class C
         Span<delegate*<int, int>> p = stackalloc delegate*<int, int>[1];
     }
 }
-", options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9);
+", options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
 
             comp.VerifyDiagnostics(
                 // (7,14): error CS0306: The type 'delegate*<int, int>' may not be used as a type argument
@@ -7547,7 +7548,7 @@ unsafe class C
     }
 }
 ";
-            var allInCoreLib = CreateEmptyCompilation(source1 + source2, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute(), options: TestOptions.UnsafeReleaseDll);
+            var allInCoreLib = CreateEmptyCompilation(source1 + source2, parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute(), options: TestOptions.UnsafeReleaseDll);
             allInCoreLib.VerifyDiagnostics(
                 // (23,29): error CS8891: Type 'CallConvTest' must be public to be used as a calling convention.
                 //         delegate* unmanaged[Test]<void> ptr = null;
@@ -7567,7 +7568,7 @@ unsafe class C
             var coreLib = CreateEmptyCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             coreLib.VerifyDiagnostics();
 
-            var comp1 = CreateEmptyCompilation(source2, references: new[] { coreLib.EmitToImageReference() }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute(), options: TestOptions.UnsafeReleaseDll);
+            var comp1 = CreateEmptyCompilation(source2, references: new[] { coreLib.EmitToImageReference() }, parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute(), options: TestOptions.UnsafeReleaseDll);
             comp1.VerifyDiagnostics(
                 // (7,29): error CS8891: Type 'CallConvTest' must be public to be used as a calling convention.
                 //         delegate* unmanaged[Test]<void> ptr = null;
@@ -7616,7 +7617,7 @@ unsafe class C
     }
 }
 ";
-            var allInCoreLib = CreateEmptyCompilation(source1 + source2, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute(), options: TestOptions.UnsafeReleaseDll);
+            var allInCoreLib = CreateEmptyCompilation(source1 + source2, parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute(), options: TestOptions.UnsafeReleaseDll);
             allInCoreLib.VerifyDiagnostics(
                 // (23,29): error CS8890: Type 'CallConvTest' is not defined.
                 //         delegate* unmanaged[Test]<void> ptr = null;
@@ -7636,7 +7637,7 @@ unsafe class C
             var coreLib = CreateEmptyCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             coreLib.VerifyDiagnostics();
 
-            var comp1 = CreateEmptyCompilation(source2, references: new[] { coreLib.EmitToImageReference() }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute(), options: TestOptions.UnsafeReleaseDll);
+            var comp1 = CreateEmptyCompilation(source2, references: new[] { coreLib.EmitToImageReference() }, parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute(), options: TestOptions.UnsafeReleaseDll);
             comp1.VerifyDiagnostics(
                 // (7,29): error CS8890: Type 'CallConvTest' is not defined.
                 //         delegate* unmanaged[Test]<void> ptr = null;
@@ -11463,6 +11464,9 @@ class C<T> {}
                 """;
 
             CreateCompilation(source).VerifyEmitDiagnostics(
+                // (11,4): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [A(default(B<delegate*<void>[]>.E))]
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "default(B<delegate*<void>[]>.E)").WithLocation(11, 4),
                 // (11,14): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // [A(default(B<delegate*<void>[]>.E))]
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(11, 14));
@@ -11512,6 +11516,9 @@ class C<T> {}
                 """;
 
             CreateCompilation(source).VerifyEmitDiagnostics(
+                // (11,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [A<object>(default(B<delegate*<void>[]>.E))]
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "default(B<delegate*<void>[]>.E)").WithLocation(11, 12),
                 // (11,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // [A<object>(default(B<delegate*<void>[]>.E))]
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(11, 22));
@@ -11582,7 +11589,7 @@ class C<T> {}
                 }
 
                 [A(default)]
-                class C { }
+                unsafe class C { }
                 """;
 
             // https://github.com/dotnet/roslyn/issues/66187 tracks enabling runtime reflection support for this scenario.
@@ -11608,7 +11615,7 @@ class C<T> {}
                 }
 
                 [A(default)]
-                class C { }
+                unsafe class C { }
                 """;
 
             // https://github.com/dotnet/roslyn/issues/66187 tracks enabling runtime reflection support for this scenario.
@@ -11619,6 +11626,31 @@ class C<T> {}
                 Assert.Empty(attr.ConstructorArguments);
             });
             verifier.VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_TypedDefault_Enum_Implicit_ConstructorArgument_WithoutUnsafeContext([CombinatorialValues("class", "struct")] string kind)
+        {
+            var source = $$"""
+                class A : System.Attribute
+                {
+                    public unsafe A(B<delegate*<void>[]>.E e) { }
+                }
+
+                {{kind}} B<T>
+                {
+                    public enum E { }
+                }
+
+                [A(default)]
+                class C { }
+                """;
+
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (11,4): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [A(default)]
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "default").WithLocation(11, 4)
+                );
         }
 
         [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
@@ -11958,6 +11990,12 @@ class C<T> {}
                 """;
 
             CreateCompilation(source).VerifyEmitDiagnostics(
+                // (12,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [A<object>(B<delegate*<void>[]>.C)]
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "B<delegate*<void>[]>").WithLocation(12, 12),
+                // (12,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [A<object>(B<delegate*<void>[]>.C)]
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "B<delegate*<void>[]>.C").WithLocation(12, 12),
                 // (12,14): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // [A<object>(B<delegate*<void>[]>.C)]
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(12, 14));

@@ -12,7 +12,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServer
     <LspBuildOnlyDiagnostics(
         "BC31091", ' ERRID.ERR_TypeRefResolutionError3,
         "BC35000", ' ERRID.ERR_MissingRuntimeHelper,
-        "BC36597" ' ERRID.ERR_CannotGotoNonScopeBlocksWithClosure
+        "BC36597", ' ERRID.ERR_CannotGotoNonScopeBlocksWithClosure
+        "BC37327"  ' ERRID.ERR_SymbolDefinedInAssembly
     )>
     Friend NotInheritable Class VisualBasicLspBuildOnlyDiagnostics
         Implements ILspBuildOnlyDiagnostics

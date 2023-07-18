@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         return null;
                     }
 
-                    return await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    return await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 }
             }, cancellationToken);
         }

@@ -9,9 +9,9 @@ using Microsoft.CodeAnalysis.NamingStyles;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
-    internal class MutableNamingStyle
+    internal class MutableNamingStyle(NamingStyle namingStyle)
     {
-        public NamingStyle NamingStyle { get; private set; }
+        public NamingStyle NamingStyle { get; private set; } = namingStyle;
 
         public Guid ID => NamingStyle.ID;
 
@@ -49,9 +49,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             : this(new NamingStyle(Guid.NewGuid()))
         {
         }
-
-        public MutableNamingStyle(NamingStyle namingStyle)
-            => NamingStyle = namingStyle;
 
         internal MutableNamingStyle Clone()
             => new(NamingStyle);

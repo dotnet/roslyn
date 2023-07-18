@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// then those values will write back as false/true.
     /// </summary>
     [DataContract]
-    internal sealed partial class CodeStyleOption2<T> : ICodeStyleOption2, IEquatable<CodeStyleOption2<T>?>
+    internal sealed partial class CodeStyleOption2<T>(T value, NotificationOption2 notification) : ICodeStyleOption2, IEquatable<CodeStyleOption2<T>?>
     {
         public static readonly CodeStyleOption2<T> Default = new(default!, NotificationOption2.Silent);
 
@@ -88,16 +88,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         private const string XmlAttribute_DiagnosticSeverity = "DiagnosticSeverity";
 
         [DataMember(Order = 0)]
-        public T Value { get; }
+        public T Value { get; } = value;
 
         [DataMember(Order = 1)]
-        public NotificationOption2 Notification { get; }
-
-        public CodeStyleOption2(T value, NotificationOption2 notification)
-        {
-            Value = value;
-            Notification = notification;
-        }
+        public NotificationOption2 Notification { get; } = notification;
 
         object? ICodeStyleOption.Value => this.Value;
         ICodeStyleOption ICodeStyleOption.WithValue(object value) => WithValue((T)value);

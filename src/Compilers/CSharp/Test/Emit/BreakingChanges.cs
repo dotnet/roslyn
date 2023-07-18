@@ -1627,7 +1627,34 @@ class Test
                 // As in dev11.
                 // NOTE: The spec will likely be updated to make this illegal.
                 var comp = CreateCompilation(source, new[] { libRef }, TestOptions.ReleaseExe);
-                CompileAndVerify(comp, expectedOutput: "3");
+                var verifier = CompileAndVerify(comp, expectedOutput: "3");
+
+                verifier.VerifyIL("Test.Goo<T>()", @"
+{
+  // Code size       72 (0x48)
+  .maxstack  3
+  IL_0000:  newobj     ""Wrapper<T>..ctor()""
+  IL_0005:  dup
+  IL_0006:  callvirt   ""T Wrapper<T>.Item.get""
+  IL_000b:  box        ""T""
+  IL_0010:  ldc.i4.1
+  IL_0011:  box        ""int""
+  IL_0016:  callvirt   ""void IAdd.Add(object)""
+  IL_001b:  dup
+  IL_001c:  callvirt   ""T Wrapper<T>.Item.get""
+  IL_0021:  box        ""T""
+  IL_0026:  ldc.i4.2
+  IL_0027:  box        ""int""
+  IL_002c:  callvirt   ""void IAdd.Add(object)""
+  IL_0031:  dup
+  IL_0032:  callvirt   ""T Wrapper<T>.Item.get""
+  IL_0037:  box        ""T""
+  IL_003c:  ldc.i4.3
+  IL_003d:  box        ""int""
+  IL_0042:  callvirt   ""void IAdd.Add(object)""
+  IL_0047:  ret
+}
+");
             }
 
             {

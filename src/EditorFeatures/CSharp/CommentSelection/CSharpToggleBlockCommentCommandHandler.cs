@@ -26,19 +26,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
     [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [Name(PredefinedCommandHandlerNames.ToggleBlockComment)]
-    internal sealed class CSharpToggleBlockCommentCommandHandler :
-        ToggleBlockCommentCommandHandler
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class CSharpToggleBlockCommentCommandHandler(
+        ITextUndoHistoryRegistry undoHistoryRegistry,
+        IEditorOperationsFactoryService editorOperationsFactoryService,
+        ITextStructureNavigatorSelectorService navigatorSelectorService,
+        EditorOptionsService editorOptionsService) :
+        ToggleBlockCommentCommandHandler(undoHistoryRegistry, editorOperationsFactoryService, navigatorSelectorService, editorOptionsService)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpToggleBlockCommentCommandHandler(
-            ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService,
-            ITextStructureNavigatorSelectorService navigatorSelectorService,
-            EditorOptionsService editorOptionsService)
-            : base(undoHistoryRegistry, editorOperationsFactoryService, navigatorSelectorService, editorOptionsService)
-        {
-        }
 
         /// <summary>
         /// Retrieves block comments near the selection in the document.

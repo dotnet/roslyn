@@ -378,6 +378,12 @@ Friend Class MockNamedTypeSymbol
     Friend NotOverridable Overrides Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
         Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
     End Function
+
+    Friend Overrides ReadOnly Property HasAnyDeclaredRequiredMembers As Boolean
+        Get
+            Return False
+        End Get
+    End Property
 End Class
 
 Friend Class MockMethodSymbol
@@ -637,6 +643,12 @@ Friend Class MockMethodSymbol
     Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
         Throw ExceptionUtilities.Unreachable
     End Function
+
+    Friend Overrides ReadOnly Property HasSetsRequiredMembers As Boolean
+        Get
+            Return False
+        End Get
+    End Property
 End Class
 
 Friend Class MockModuleSymbol
@@ -809,6 +821,10 @@ Friend Class MockAssemblySymbol
     End Sub
 
     Friend Overrides Function GetInternalsVisibleToPublicKeys(simpleName As String) As IEnumerable(Of ImmutableArray(Of Byte))
+        Throw New NotImplementedException()
+    End Function
+
+    Friend Overrides Function GetInternalsVisibleToAssemblyNames() As IEnumerable(Of String)
         Throw New NotImplementedException()
     End Function
 

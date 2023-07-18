@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveInKeyword
         }
 
         [Fact]
-        public async Task TestDontRemoveInKeyword()
+        public async Task TestDoNotRemoveInKeyword()
         {
             await TestMissingInRegularAndScriptAsync(
                 """

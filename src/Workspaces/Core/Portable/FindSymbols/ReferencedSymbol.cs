@@ -55,15 +55,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal TestAccessor GetTestAccessor()
             => new(this);
 
-        internal readonly struct TestAccessor
+        internal readonly struct TestAccessor(ReferencedSymbol referencedSymbol)
         {
-            private readonly ReferencedSymbol _referencedSymbol;
-
-            public TestAccessor(ReferencedSymbol referencedSymbol)
-                => _referencedSymbol = referencedSymbol;
-
             internal string GetDebuggerDisplay()
-                => _referencedSymbol.GetDebuggerDisplay();
+                => referencedSymbol.GetDebuggerDisplay();
         }
     }
 }

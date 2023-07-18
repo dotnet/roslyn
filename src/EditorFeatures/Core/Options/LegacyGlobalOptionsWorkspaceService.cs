@@ -15,9 +15,11 @@ namespace Microsoft.CodeAnalysis.Options
     /// Enables legacy APIs to access global options from workspace.
     /// </summary>
     [ExportWorkspaceService(typeof(ILegacyGlobalOptionsWorkspaceService)), Shared]
-    internal sealed class LegacyGlobalOptionsWorkspaceService : ILegacyGlobalOptionsWorkspaceService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class LegacyGlobalOptionsWorkspaceService(IGlobalOptionService globalOptions) : ILegacyGlobalOptionsWorkspaceService
     {
-        private readonly IGlobalOptionService _globalOptions;
+        private readonly IGlobalOptionService _globalOptions = globalOptions;
 
         private static readonly Option2<bool> s_generateOverridesOption = new(
             "dotnet_generate_overrides_for_all_members", defaultValue: true);
@@ -33,13 +35,6 @@ namespace Microsoft.CodeAnalysis.Options
         internal static readonly PerLanguageOption2<bool> s_addNullChecks = new(
             "dotnet_generate_constructor_parameter_null_checks",
             defaultValue: false);
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public LegacyGlobalOptionsWorkspaceService(IGlobalOptionService globalOptions)
-        {
-            _globalOptions = globalOptions;
-        }
 
         public bool GenerateOverrides
         {

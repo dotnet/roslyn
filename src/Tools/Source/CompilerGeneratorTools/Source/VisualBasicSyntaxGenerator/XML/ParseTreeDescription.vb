@@ -196,16 +196,18 @@ Public Class ParseTree
 
         If typeString.StartsWith("@", StringComparison.Ordinal) Then
             Dim nodeTypeString = typeString.Substring(1)
-            If Not NodeStructures.ContainsKey(nodeTypeString) Then
+            Dim nodeStructure As ParseNodeStructure = Nothing
+            If Not NodeStructures.TryGetValue(nodeTypeString, nodeStructure) Then
                 ReportError(referencingNode, "Unknown structure '@{0}'", nodeTypeString)
                 Return Nothing
             End If
 
-            Return NodeStructures(nodeTypeString).GetAllKinds()
+            Return nodeStructure.GetAllKinds()
         End If
 
-        If Aliases.ContainsKey(typeString) Then
-            Return ParseNodeKind(Aliases(typeString).AliasKinds, referencingNode)
+        Dim nodeKindAlias As ParseNodeKindAlias = Nothing
+        If Aliases.TryGetValue(typeString, nodeKindAlias) Then
+            Return ParseNodeKind(nodeKindAlias.AliasKinds, referencingNode)
         End If
 
         Return ParseOneNodeKind(typeString, referencingNode)
@@ -259,11 +261,12 @@ Public Class ParseNodeStructure
             If String.IsNullOrEmpty(ParentStructureId) Then
                 Return Nothing
             Else
-                If Not ParseTree.NodeStructures.ContainsKey(ParentStructureId) Then
+                Dim nodeStructure As ParseNodeStructure = Nothing
+                If Not ParseTree.NodeStructures.TryGetValue(ParentStructureId, nodeStructure) Then
                     ParseTree.ReportError(Element, "Unknown parent structure '{0}' for node-structure '{1}'", ParentStructureId, Name)
                     Return Nothing
                 End If
-                Return ParseTree.NodeStructures(ParentStructureId)
+                Return nodeStructure
             End If
         End Get
     End Property
@@ -377,11 +380,12 @@ Public Class ParseNodeKind
             If String.IsNullOrEmpty(StructureId) Then
                 Return Nothing
             Else
-                If Not ParseTree.NodeStructures.ContainsKey(StructureId) Then
+                Dim parseNodeStructure As ParseNodeStructure = Nothing
+                If Not ParseTree.NodeStructures.TryGetValue(StructureId, parseNodeStructure) Then
                     ParseTree.ReportError(Element, "Unknown structure '{0}' for node-kind '{1}'", StructureId, Name)
                     Return Nothing
                 End If
-                Return ParseTree.NodeStructures(StructureId)
+                Return parseNodeStructure
             End If
         End Get
     End Property

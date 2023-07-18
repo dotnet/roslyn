@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             Assert.Equal(0, analyzerTelemetry.SymbolActionsCount);
         }
 
-        [Fact]
+        [Fact, Obsolete(message: "IsDiagnosticAnalyzerSuppressed is an obsolete public API")]
         public void TestIsDiagnosticAnalyzerSuppressedWithExceptionInSupportedDiagnostics()
         {
             // Verify IsDiagnosticAnalyzerSuppressed does not throw an exception when 'onAnalyzerException' is null.

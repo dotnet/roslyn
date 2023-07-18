@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -20,18 +21,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableHashSet<LabelSymbol> _reachableLabels;
         private ImmutableArray<BoundDecisionDagNode> _topologicallySortedNodes;
 
-        internal static ImmutableArray<BoundDecisionDagNode> Successors(BoundDecisionDagNode node)
+        internal static void AddSuccessors(ref TemporaryArray<BoundDecisionDagNode> builder, BoundDecisionDagNode node)
         {
             switch (node)
             {
                 case BoundEvaluationDecisionDagNode p:
-                    return ImmutableArray.Create(p.Next);
+                    builder.Add(p.Next);
+                    return;
                 case BoundTestDecisionDagNode p:
-                    return ImmutableArray.Create(p.WhenFalse, p.WhenTrue);
+                    builder.Add(p.WhenFalse);
+                    builder.Add(p.WhenTrue);
+                    return;
                 case BoundLeafDecisionDagNode d:
-                    return ImmutableArray<BoundDecisionDagNode>.Empty;
+                    return;
                 case BoundWhenDecisionDagNode w:
-                    return (w.WhenFalse != null) ? ImmutableArray.Create(w.WhenTrue, w.WhenFalse) : ImmutableArray.Create(w.WhenTrue);
+                    builder.Add(w.WhenTrue);
+                    builder.AddIfNotNull(w.WhenFalse);
+                    return;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind);
             }
@@ -69,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_topologicallySortedNodes.IsDefault)
                 {
                     // We use an iterative topological sort to avoid overflowing the compiler's runtime stack for a large switch statement.
-                    bool wasAcyclic = TopologicalSort.TryIterativeSort<BoundDecisionDagNode>(SpecializedCollections.SingletonEnumerable(this.RootNode), Successors, out _topologicallySortedNodes);
+                    bool wasAcyclic = TopologicalSort.TryIterativeSort(this.RootNode, AddSuccessors, out _topologicallySortedNodes);
 
                     // Since these nodes were constructed by an isomorphic mapping from a known acyclic graph, it cannot be cyclic
                     Debug.Assert(wasAcyclic);

@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_descriptor);
 
-        public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
+        public bool IsHighPriority => false;
 
         public override int Priority => 80; // Default = 50
 

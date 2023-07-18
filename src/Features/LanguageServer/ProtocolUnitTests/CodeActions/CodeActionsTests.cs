@@ -5,23 +5,14 @@
 #nullable disable
 
 using System;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.AddImport;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -47,7 +38,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         {|caret:|}int i = 1;
     }
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, initializationOptions: new InitializationOptions() { ClientCapabilities = new VSInternalClientCapabilities { SupportsVisualStudioExtensions = true } });
 
             var caretLocation = testLspServer.GetLocations("caret").Single();
             var expected = CreateCodeAction(
@@ -143,6 +134,76 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             var addImport = results.FirstOrDefault(r => r.Title.Contains($"using System.Threading.Tasks"));
             Assert.Equal(1, addImport.Diagnostics.Length);
             Assert.Equal(AddImportDiagnosticIds.CS0103, addImport.Diagnostics.Single().Code.Value);
+        }
+
+        [WpfTheory, CombinatorialData]
+        public async Task TestNoSuppressionFixerInStandardLSP(bool mutatingLspWorkspace)
+        {
+            var markup = @"
+class ABC
+{
+    private static async void {|caret:XYZ|}()
+    {
+    }
+}";
+
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+
+            var caret = testLspServer.GetLocations("caret").Single();
+            var codeActionParams = new LSP.CodeActionParams
+            {
+                TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+                Range = caret.Range,
+                Context = new LSP.CodeActionContext
+                {
+                    Diagnostics = new[]
+                    {
+                        new LSP.Diagnostic
+                        {
+                            // async method lack of await.
+                            Code = "CS1998"
+                        }
+                    }
+                }
+            };
+
+            var results = await RunGetCodeActionsAsync(testLspServer, codeActionParams);
+            Assert.Single(results);
+            Assert.Equal("Make method synchronous", results[0].Title);
+        }
+
+        [WpfTheory, CombinatorialData]
+        public async Task TestStandardLspNestedCodeAction(bool mutatingLspWorkspace)
+        {
+            var markup = @"
+class ABC
+{
+    private void XYZ()
+    {
+        var a = {|caret:A()|};
+    }
+
+    private int A() => 1;
+}";
+
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+
+            var caret = testLspServer.GetLocations("caret").Single();
+            var codeActionParams = new LSP.CodeActionParams
+            {
+                TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+                Range = caret.Range,
+                Context = new LSP.CodeActionContext
+                {
+                }
+            };
+
+            var results = await RunGetCodeActionsAsync(testLspServer, codeActionParams);
+            var resultsTitles = results.Select(r => r.Title).ToArray();
+            // Inline method refactoring provide nested code actions.
+            // Make sure it is correctly displayed.
+            Assert.True(resultsTitles.Contains("Inline 'A()' -> Inline 'A()'"));
+            Assert.True(resultsTitles.Contains("Inline 'A()' -> Inline and keep 'A()'"));
         }
 
         private static async Task<LSP.VSInternalCodeAction[]> RunGetCodeActionsAsync(

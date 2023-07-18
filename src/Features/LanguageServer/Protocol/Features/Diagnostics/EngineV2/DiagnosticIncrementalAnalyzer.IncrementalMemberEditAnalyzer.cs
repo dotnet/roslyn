@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             public async Task<ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>>> ComputeDiagnosticsAsync(
                 DocumentAnalysisExecutor executor,
-                ImmutableArray<StateSet> stateSets,
+                ImmutableArray<AnalyzerWithState> analyzersWithState,
                 VersionStamp version,
                 Func<DiagnosticAnalyzer, DocumentAnalysisExecutor, CancellationToken, Task<ImmutableArray<DiagnosticData>>> computeAnalyzerDiagnosticsAsync,
                 Func<DocumentAnalysisExecutor, CancellationToken, Task<ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>>>> computeDiagnosticsNonIncrementallyAsync,
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 Debug.Assert(!analysisScope.Span.HasValue);
 
                 // Ensure that only the analyzers that support incremental span-based analysis are provided.
-                Debug.Assert(stateSets.All(stateSet => stateSet.Analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis()));
+                Debug.Assert(analyzersWithState.All(stateSet => stateSet.Analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis()));
 
                 var document = (Document)analysisScope.TextDocument;
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -75,29 +75,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     var oldDocumentVersion = await GetDiagnosticVersionAsync(oldDocument.Project, cancellationToken).ConfigureAwait(false);
 
-                    using var _1 = ArrayBuilder<(DiagnosticAnalyzer, DocumentAnalysisData)>.GetInstance(out var spanBasedAnalyzers);
-                    using var _2 = ArrayBuilder<(DiagnosticAnalyzer, DocumentAnalysisData)>.GetInstance(out var documentBasedAnalyzers);
-                    (DiagnosticAnalyzer analyzer, DocumentAnalysisData existingData, bool spanBased)? compilerAnalyzerData = null;
-                    foreach (var stateSet in stateSets)
+                    using var _1 = ArrayBuilder<AnalyzerWithState>.GetInstance(out var spanBasedAnalyzers);
+                    using var _2 = ArrayBuilder<AnalyzerWithState>.GetInstance(out var documentBasedAnalyzers);
+                    (AnalyzerWithState analyzerWithState, bool spanBased)? compilerAnalyzerData = null;
+                    foreach (var analyzerWithState in analyzersWithState)
                     {
                         // Check if we have existing cached diagnostics for this analyzer whose version matches the
                         // old document version. If so, we can perform span based incremental analysis for the changed member.
                         // Otherwise, we have to perform entire document analysis.
-                        var state = stateSet.GetOrCreateActiveFileState(document.Id);
-                        var existingData = state.GetAnalysisData(analysisScope.Kind);
+                        var state = analyzerWithState.State;
+                        var existingData = analyzerWithState.ExistingData;
                         if (oldDocumentVersion == existingData.Version)
                         {
-                            if (!compilerAnalyzerData.HasValue && stateSet.Analyzer.IsCompilerAnalyzer())
-                                compilerAnalyzerData = (stateSet.Analyzer, existingData, spanBased: true);
+                            if (!compilerAnalyzerData.HasValue && analyzerWithState.Analyzer.IsCompilerAnalyzer())
+                                compilerAnalyzerData = (analyzerWithState, spanBased: true);
                             else
-                                spanBasedAnalyzers.Add((stateSet.Analyzer, existingData));
+                                spanBasedAnalyzers.Add(analyzerWithState);
                         }
                         else
                         {
-                            if (!compilerAnalyzerData.HasValue && stateSet.Analyzer.IsCompilerAnalyzer())
-                                compilerAnalyzerData = (stateSet.Analyzer, DocumentAnalysisData.Empty, spanBased: false);
+                            var analyzerWithStateAndEmptyData = new AnalyzerWithState(analyzerWithState.Analyzer, analyzerWithState.State, DocumentAnalysisData.Empty);
+                            if (!compilerAnalyzerData.HasValue && analyzerWithState.Analyzer.IsCompilerAnalyzer())
+                                compilerAnalyzerData = (analyzerWithStateAndEmptyData, spanBased: false);
                             else
-                                documentBasedAnalyzers.Add((stateSet.Analyzer, DocumentAnalysisData.Empty));
+                                documentBasedAnalyzers.Add(analyzerWithStateAndEmptyData);
                         }
                     }
 
@@ -126,47 +127,47 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 async Task ExecuteCompilerAnalyzerAsync(
-                    (DiagnosticAnalyzer analyzer, DocumentAnalysisData existingData, bool spanBased)? compilerAnalyzerData,
+                    (AnalyzerWithState analyzerWithState, bool spanBased)? compilerAnalyzerData,
                     ImmutableArray<TextSpan> oldMemberSpans,
                     PooledDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> builder)
                 {
                     if (!compilerAnalyzerData.HasValue)
                         return;
 
-                    var (analyzer, existingData, spanBased) = compilerAnalyzerData.Value;
+                    var (analyzerWithState, spanBased) = compilerAnalyzerData.Value;
                     var span = spanBased ? changedMember.FullSpan : (TextSpan?)null;
                     executor = executor.With(analysisScope.WithSpan(span));
-                    var analyzerAndExistingData = SpecializedCollections.SingletonEnumerable((analyzer, existingData));
-                    await ExecuteAnalyzersAsync(executor, analyzerAndExistingData, oldMemberSpans, builder).ConfigureAwait(false);
+                    using var _ = ArrayBuilder<AnalyzerWithState>.GetInstance(1, analyzerWithState, out var analyzersWithState);
+                    await ExecuteAnalyzersAsync(executor, analyzersWithState, oldMemberSpans, builder).ConfigureAwait(false);
                 }
 
                 async Task ExecuteSpanBasedAnalyzersAsync(
-                    ArrayBuilder<(DiagnosticAnalyzer, DocumentAnalysisData)> analyzersAndExistingData,
+                    ArrayBuilder<AnalyzerWithState> analyzersWithState,
                     ImmutableArray<TextSpan> oldMemberSpans,
                     PooledDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> builder)
                 {
-                    if (analyzersAndExistingData.Count == 0)
+                    if (analyzersWithState.Count == 0)
                         return;
 
                     executor = executor.With(analysisScope.WithSpan(changedMember.FullSpan));
-                    await ExecuteAnalyzersAsync(executor, analyzersAndExistingData, oldMemberSpans, builder).ConfigureAwait(false);
+                    await ExecuteAnalyzersAsync(executor, analyzersWithState, oldMemberSpans, builder).ConfigureAwait(false);
                 }
 
                 async Task ExecuteDocumentBasedAnalyzersAsync(
-                    ArrayBuilder<(DiagnosticAnalyzer, DocumentAnalysisData)> analyzersAndExistingData,
+                    ArrayBuilder<AnalyzerWithState> analyzersWithState,
                     ImmutableArray<TextSpan> oldMemberSpans,
                     PooledDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> builder)
                 {
-                    if (analyzersAndExistingData.Count == 0)
+                    if (analyzersWithState.Count == 0)
                         return;
 
                     executor = executor.With(analysisScope.WithSpan(null));
-                    await ExecuteAnalyzersAsync(executor, analyzersAndExistingData, oldMemberSpans, builder).ConfigureAwait(false);
+                    await ExecuteAnalyzersAsync(executor, analyzersWithState, oldMemberSpans, builder).ConfigureAwait(false);
                 }
 
                 async Task ExecuteAnalyzersAsync(
                     DocumentAnalysisExecutor executor,
-                    IEnumerable<(DiagnosticAnalyzer, DocumentAnalysisData)> analyzersAndExistingData,
+                    ArrayBuilder<AnalyzerWithState> analyzersWithState,
                     ImmutableArray<TextSpan> oldMemberSpans,
                     PooledDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> builder)
                 {
@@ -175,9 +176,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     Debug.Assert(changedMember != null);
                     Debug.Assert(analysisScope.Kind == AnalysisKind.Semantic);
 
-                    foreach (var (analyzer, existingData) in analyzersAndExistingData)
+                    foreach (var analyzerWithState in analyzersWithState)
                     {
-                        var diagnostics = await computeAnalyzerDiagnosticsAsync(analyzer, executor, cancellationToken).ConfigureAwait(false);
+                        var diagnostics = await computeAnalyzerDiagnosticsAsync(analyzerWithState.Analyzer, executor, cancellationToken).ConfigureAwait(false);
 
                         // If we computed the diagnostics just for a span, then we are performing incremental analysis.
                         // We need to compute the full document diagnostics by re-using diagnostics outside the changed
@@ -187,12 +188,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             Debug.Assert(analysisScope.Span.Value == changedMember.FullSpan);
 
                             diagnostics = await GetUpdatedDiagnosticsForMemberEditAsync(
-                                diagnostics, existingData, analyzer,
+                                diagnostics, analyzerWithState.ExistingData, analyzerWithState.Analyzer,
                                 executor, changedMember, changedMemberId,
                                 oldMemberSpans, computeAnalyzerDiagnosticsAsync, cancellationToken).ConfigureAwait(false);
                         }
 
-                        builder.Add(analyzer, diagnostics);
+                        builder.Add(analyzerWithState.Analyzer, diagnostics);
                     }
                 }
             }
@@ -381,8 +382,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     DiagnosticDataLocation UpdateLocation(DiagnosticDataLocation location)
                     {
                         var diagnosticSpan = location.UnmappedFileSpan.GetClampedTextSpan(text);
-                        var start = Math.Min(Math.Max(diagnosticSpan.Start + delta, 0), tree.Length);
-                        var newSpan = new TextSpan(start, start >= tree.Length ? 0 : diagnosticSpan.Length);
+                        var start = Math.Max(diagnosticSpan.Start + delta, 0);
+                        var end = start + diagnosticSpan.Length;
+                        if (start >= tree.Length)
+                            start = tree.Length - 1;
+                        if (end >= tree.Length)
+                            end = tree.Length - 1;
+                        var newSpan = new TextSpan(start, end - start);
                         return location.WithSpan(newSpan, tree);
                     }
                 }

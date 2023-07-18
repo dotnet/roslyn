@@ -16,9 +16,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
-using Moq;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -49,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
                 buffer.CurrentSnapshot, new SnapshotPoint(buffer.CurrentSnapshot, position));
             await producer.GetTestAccessor().ProduceTagsAsync(context);
 
-            return context.tagSpans;
+            return context.TagSpans;
         }
 
         [WpfFact]

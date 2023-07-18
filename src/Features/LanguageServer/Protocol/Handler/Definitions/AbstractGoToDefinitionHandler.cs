@@ -59,7 +59,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     }
 
                     var location = await ProtocolConversions.TextSpanToLocationAsync(
-                        definition.Document, definition.SourceSpan, definition.IsStale, cancellationToken).ConfigureAwait(false);
+                        await definition.Document.GetRequiredDocumentAsync(document.Project.Solution, cancellationToken).ConfigureAwait(false),
+                        definition.SourceSpan,
+                        definition.IsStale,
+                        cancellationToken).ConfigureAwait(false);
                     locations.AddIfNotNull(location);
                 }
             }

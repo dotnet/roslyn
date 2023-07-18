@@ -19,24 +19,18 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// SearchScope used for searching *only* the source symbols contained within a project/compilation.
         /// i.e. symbols from metadata will not be searched.
         /// </summary>
-        private class SourceSymbolsProjectSearchScope : ProjectSearchScope
+        private class SourceSymbolsProjectSearchScope(
+            AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
+            ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol?>> projectToAssembly,
+            Project project, bool ignoreCase) : ProjectSearchScope(provider, project, ignoreCase)
         {
-            private readonly ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol?>> _projectToAssembly;
-
-            public SourceSymbolsProjectSearchScope(
-                AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
-                ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol?>> projectToAssembly,
-                Project project, bool ignoreCase, CancellationToken cancellationToken)
-                : base(provider, project, ignoreCase, cancellationToken)
-            {
-                _projectToAssembly = projectToAssembly;
-            }
+            private readonly ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol?>> _projectToAssembly = projectToAssembly;
 
             protected override async Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(
-                SymbolFilter filter, SearchQuery searchQuery)
+                SymbolFilter filter, SearchQuery searchQuery, CancellationToken cancellationToken)
             {
                 var service = _project.Solution.Services.GetRequiredService<ISymbolTreeInfoCacheService>();
-                var info = await service.TryGetPotentiallyStaleSourceSymbolTreeInfoAsync(_project, CancellationToken).ConfigureAwait(false);
+                var info = await service.TryGetPotentiallyStaleSourceSymbolTreeInfoAsync(_project, cancellationToken).ConfigureAwait(false);
                 if (info == null)
                 {
                     // Looks like there was nothing in the cache.  Return no results for now.
@@ -49,7 +43,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 var lazyAssembly = _projectToAssembly.GetOrAdd(_project, CreateLazyAssembly);
 
                 var declarations = await info.FindAsync(
-                    searchQuery, lazyAssembly, filter, CancellationToken).ConfigureAwait(false);
+                    searchQuery, lazyAssembly, filter, cancellationToken).ConfigureAwait(false);
 
                 return declarations;
 
@@ -58,7 +52,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                            {
                                var compilation = await project.GetRequiredCompilationAsync(c).ConfigureAwait(false);
                                return compilation.Assembly;
-                           }, cacheResult: true);
+                           });
             }
         }
     }

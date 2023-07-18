@@ -4,31 +4,24 @@
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
-    internal readonly struct LineColumn
+    internal readonly struct LineColumn(int line, int column, bool whitespaceOnly)
     {
         public static LineColumn Default = new(line: 0, column: 0, whitespaceOnly: true);
 
         /// <summary>
         /// absolute line number from first token
         /// </summary>
-        public readonly int Line;
+        public readonly int Line = line;
 
         /// <summary>
         /// absolute column from beginning of a line
         /// </summary>
-        public readonly int Column;
+        public readonly int Column = column;
 
         /// <summary>
         /// there is only whitespace on this line
         /// </summary>
-        public readonly bool WhitespaceOnly;
-
-        public LineColumn(int line, int column, bool whitespaceOnly)
-        {
-            Line = line;
-            Column = column;
-            WhitespaceOnly = whitespaceOnly;
-        }
+        public readonly bool WhitespaceOnly = whitespaceOnly;
 
         public LineColumn With(LineColumnDelta delta)
         {

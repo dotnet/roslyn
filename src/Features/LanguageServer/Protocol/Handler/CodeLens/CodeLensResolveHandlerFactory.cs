@@ -19,8 +19,7 @@ internal sealed class CodeLensResolveHandlerFactory : ILspServiceFactory
 
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
-        var completionListCache = lspServices.GetRequiredService<CodeLensCache>();
-        return new CodeLensResolveHandler(completionListCache);
+        return new CodeLensResolveHandler();
     }
 }
 

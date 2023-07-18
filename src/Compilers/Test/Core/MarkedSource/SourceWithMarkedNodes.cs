@@ -149,12 +149,16 @@ namespace Roslyn.Test.Utilities
 
             return new Func<SyntaxNode, SyntaxNode>(node1 =>
             {
-                if (map1.TryGetValue(node1, out var mark) && map0.TryGetValue(mark, out var result))
+                if (map1.TryGetValue(node1, out var mark))
                 {
-                    return result;
+                    if (map0.TryGetValue(mark, out var result))
+                    {
+                        return result;
+                    }
+
+                    unmappedNodes?.Add(node1);
                 }
 
-                unmappedNodes?.Add(node1);
                 return null;
             });
         }

@@ -13,13 +13,10 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.AddMissingImports
 {
-    internal abstract class AbstractAddMissingImportsRefactoringProvider : CodeRefactoringProvider
+    internal abstract class AbstractAddMissingImportsRefactoringProvider(IPasteTrackingService? pasteTrackingService) : CodeRefactoringProvider
     {
-        private readonly IPasteTrackingService? _pasteTrackingService;
+        private readonly IPasteTrackingService? _pasteTrackingService = pasteTrackingService;
         protected abstract string CodeActionTitle { get; }
-
-        public AbstractAddMissingImportsRefactoringProvider(IPasteTrackingService? pasteTrackingService)
-            => _pasteTrackingService = pasteTrackingService;
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -30,7 +27,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 
             var (document, _, cancellationToken) = context;
             // Currently this refactoring requires the SourceTextContainer to have a pasted text span.
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             if (!_pasteTrackingService.TryGetPastedTextSpan(sourceText.Container, out var textSpan))
             {
                 return;

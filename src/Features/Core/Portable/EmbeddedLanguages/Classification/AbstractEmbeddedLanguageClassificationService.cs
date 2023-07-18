@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -35,14 +36,14 @@ namespace Microsoft.CodeAnalysis.Classification
         }
 
         public async Task AddEmbeddedLanguageClassificationsAsync(
-            Document document, TextSpan textSpan, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+            Document document, TextSpan textSpan, ClassificationOptions options, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             AddEmbeddedLanguageClassifications(document.Project, semanticModel, textSpan, options, result, cancellationToken);
         }
 
         public void AddEmbeddedLanguageClassifications(
-            Project? project, SemanticModel semanticModel, TextSpan textSpan, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+            Project? project, SemanticModel semanticModel, TextSpan textSpan, ClassificationOptions options, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             if (project is null)
                 return;
@@ -52,33 +53,22 @@ namespace Microsoft.CodeAnalysis.Classification
             worker.VisitTokens(root);
         }
 
-        private readonly ref struct Worker
+        private readonly ref struct Worker(
+            AbstractEmbeddedLanguageClassificationService service,
+            Project project,
+            SemanticModel semanticModel,
+            TextSpan textSpan,
+            ClassificationOptions options,
+            SegmentedList<ClassifiedSpan> result,
+            CancellationToken cancellationToken)
         {
-            private readonly AbstractEmbeddedLanguageClassificationService _owner;
-            private readonly Project _project;
-            private readonly SemanticModel _semanticModel;
-            private readonly TextSpan _textSpan;
-            private readonly ClassificationOptions _options;
-            private readonly ArrayBuilder<ClassifiedSpan> _result;
-            private readonly CancellationToken _cancellationToken;
-
-            public Worker(
-                AbstractEmbeddedLanguageClassificationService service,
-                Project project,
-                SemanticModel semanticModel,
-                TextSpan textSpan,
-                ClassificationOptions options,
-                ArrayBuilder<ClassifiedSpan> result,
-                CancellationToken cancellationToken)
-            {
-                _owner = service;
-                _project = project;
-                _semanticModel = semanticModel;
-                _textSpan = textSpan;
-                _options = options;
-                _result = result;
-                _cancellationToken = cancellationToken;
-            }
+            private readonly AbstractEmbeddedLanguageClassificationService _owner = service;
+            private readonly Project _project = project;
+            private readonly SemanticModel _semanticModel = semanticModel;
+            private readonly TextSpan _textSpan = textSpan;
+            private readonly ClassificationOptions _options = options;
+            private readonly SegmentedList<ClassifiedSpan> _result = result;
+            private readonly CancellationToken _cancellationToken = cancellationToken;
 
             public void VisitTokens(SyntaxNode node)
             {

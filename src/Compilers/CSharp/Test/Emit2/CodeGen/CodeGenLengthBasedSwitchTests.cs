@@ -77,7 +77,7 @@ public class C
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
         var verifier = CompileAndVerify(comp, expectedOutput: "RAN");
-        verifier.VerifyMemberInIL(PrivateImplementationDetails.SynthesizedStringHashFunctionName, expected: false);
+        verifier.VerifyMemberInIL(PrivateImplementationDetails.SynthesizedStringHashFunctionName + "(string)", expected: false);
         verifier.VerifyIL("C.M", """
 {
   // Code size      584 (0x248)
@@ -267,7 +267,7 @@ public class C
         comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDisableLengthBasedSwitch());
         comp.VerifyDiagnostics();
         verifier = CompileAndVerify(comp, expectedOutput: "RAN");
-        verifier.VerifyMemberInIL(PrivateImplementationDetails.SynthesizedStringHashFunctionName, expected: true);
+        verifier.VerifyMemberInIL(PrivateImplementationDetails.SynthesizedStringHashFunctionName + "(string)", expected: true);
         verifier.VerifyIL("C.M", """
  {
   // Code size      786 (0x312)
@@ -275,7 +275,7 @@ public class C
   .locals init (string V_0,
                 uint V_1)
   IL_0000:  ldarg.0
-  IL_0001:  call       "ComputeStringHash"
+  IL_0001:  call       "ComputeStringHash(string)"
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
   IL_0008:  ldc.i4     0x62366ffa
@@ -572,7 +572,7 @@ public class C
         comp.VerifyDiagnostics();
         var verifier = CompileAndVerify(comp, expectedOutput: "RAN", verify: Verification.Skipped);
         var indexer = useReadonly ? $$"""ref readonly char {{keyType}}.this[int].get""" : $$"""ref char {{keyType}}.this[int].get""";
-        verifier.VerifyMemberInIL(PrivateImplementationDetails.SynthesizedStringHashFunctionName, expected: false);
+        verifier.VerifyMemberInIL(PrivateImplementationDetails.SynthesizedStringHashFunctionName + "(string)", expected: false);
         verifier.VerifyIL("C.M", $$"""
 {
   // Code size      648 (0x288)
@@ -776,7 +776,7 @@ public class C
         comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview.WithDisableLengthBasedSwitch());
         comp.VerifyDiagnostics();
         verifier = CompileAndVerify(comp, expectedOutput: "RAN");
-        var helper = useReadonly ? "ComputeReadOnlySpanHash" : "ComputeSpanHash";
+        var helper = useReadonly ? "ComputeReadOnlySpanHash(System.ReadOnlySpan<char>)" : "ComputeSpanHash(System.Span<char>)";
         verifier.VerifyMemberInIL(helper, expected: true);
         verifier.VerifyIL("C.M", $$"""
 {
@@ -1108,7 +1108,7 @@ public class C
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
         var verifier = CompileAndVerify(comp, expectedOutput: "RAN");
-        verifier.VerifyMemberInIL(PrivateImplementationDetails.SynthesizedStringHashFunctionName, expected: false);
+        verifier.VerifyMemberInIL(PrivateImplementationDetails.SynthesizedStringHashFunctionName + "(string)", expected: false);
         verifier.VerifyIL("C.M", """
 {
   // Code size      272 (0x110)
@@ -1214,7 +1214,7 @@ public class C
         comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDisableLengthBasedSwitch());
         comp.VerifyDiagnostics();
         verifier = CompileAndVerify(comp, expectedOutput: "RAN");
-        verifier.VerifyMemberInIL(PrivateImplementationDetails.SynthesizedStringHashFunctionName, expected: true);
+        verifier.VerifyMemberInIL(PrivateImplementationDetails.SynthesizedStringHashFunctionName + "(string)", expected: true);
         verifier.VerifyIL("C.M", """
 {
   // Code size      335 (0x14f)
@@ -1228,7 +1228,7 @@ public class C
   IL_0007:  ldloc.1
   IL_0008:  brfalse    IL_0147
   IL_000d:  ldloc.1
-  IL_000e:  call       "ComputeStringHash"
+  IL_000e:  call       "ComputeStringHash(string)"
   IL_0013:  stloc.2
   IL_0014:  ldloc.2
   IL_0015:  ldc.i4     0x749bcf08
@@ -1389,7 +1389,7 @@ public class C
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
         var verifier = CompileAndVerify(comp, expectedOutput: "RAN");
-        verifier.VerifyMemberInIL(PrivateImplementationDetails.SynthesizedStringHashFunctionName, expected: false);
+        verifier.VerifyMemberInIL(PrivateImplementationDetails.SynthesizedStringHashFunctionName + "(string)", expected: false);
         verifier.VerifyIL("C.M", """
 {
   // Code size      310 (0x136)
@@ -1571,7 +1571,7 @@ public class C
         comp.VerifyEmitDiagnostics();
 
         var verifier = CompileAndVerify(comp);
-        verifier.VerifyMemberInIL(PrivateImplementationDetails.SynthesizedStringHashFunctionName, expected: false);
+        verifier.VerifyMemberInIL(PrivateImplementationDetails.SynthesizedStringHashFunctionName + "(string)", expected: false);
         verifier.VerifyIL("C.M", """
 {
   // Code size      178 (0xb2)
@@ -2060,7 +2060,7 @@ public class C
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
         var verifier = CompileAndVerify(comp, expectedOutput: "RAN");
-        verifier.VerifyMemberInIL(PrivateImplementationDetails.SynthesizedStringHashFunctionName, expected: false);
+        verifier.VerifyMemberInIL(PrivateImplementationDetails.SynthesizedStringHashFunctionName + "(string)", expected: false);
         verifier.VerifyIL("C.M", """
 {
   // Code size      288 (0x120)
@@ -2172,7 +2172,7 @@ public class C
         comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDisableLengthBasedSwitch());
         comp.VerifyDiagnostics();
         verifier = CompileAndVerify(comp, expectedOutput: "RAN");
-        verifier.VerifyMemberInIL(PrivateImplementationDetails.SynthesizedStringHashFunctionName, expected: true);
+        verifier.VerifyMemberInIL(PrivateImplementationDetails.SynthesizedStringHashFunctionName + "(string)", expected: true);
         verifier.VerifyIL("C.M", """
 {
   // Code size      357 (0x165)
@@ -2186,7 +2186,7 @@ public class C
   IL_0007:  ldloc.1
   IL_0008:  brfalse    IL_0110
   IL_000d:  ldloc.1
-  IL_000e:  call       "ComputeStringHash"
+  IL_000e:  call       "ComputeStringHash(string)"
   IL_0013:  stloc.2
   IL_0014:  ldloc.2
   IL_0015:  ldc.i4     0x749bcf08
@@ -2612,7 +2612,7 @@ public class C
   .maxstack  2
   .locals init (uint V_0)
   IL_0000:  ldarg.0
-  IL_0001:  call       "ComputeStringHash"
+  IL_0001:  call       "ComputeStringHash(string)"
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  ldc.i4     0xad238cee
@@ -2917,7 +2917,7 @@ public class C
   .locals init (string V_0,
                 uint V_1)
   IL_0000:  ldarg.0
-  IL_0001:  call       "ComputeStringHash"
+  IL_0001:  call       "ComputeStringHash(string)"
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
   IL_0008:  ldc.i4     0x87f05176
@@ -4132,7 +4132,7 @@ public class C
   .maxstack  2
   .locals init (uint V_0)
   IL_0000:  ldarg.0
-  IL_0001:  call       "ComputeStringHash"
+  IL_0001:  call       "ComputeStringHash(string)"
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  ldc.i4     0x93254270
@@ -7510,7 +7510,7 @@ public class C
   .locals init (string V_0,
                 uint V_1)
   IL_0000:  ldarg.0
-  IL_0001:  call       "ComputeStringHash"
+  IL_0001:  call       "ComputeStringHash(string)"
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
   IL_0008:  ldc.i4     0x77c08b8d
@@ -8933,7 +8933,7 @@ public class C
   .locals init (string V_0,
                 uint V_1)
   IL_0000:  ldarg.0
-  IL_0001:  call       "ComputeStringHash"
+  IL_0001:  call       "ComputeStringHash(string)"
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
   IL_0008:  ldc.i4     0x8979e177
@@ -9330,7 +9330,7 @@ public class C
   .locals init (string V_0,
                 uint V_1)
   IL_0000:  ldarg.0
-  IL_0001:  call       "ComputeStringHash"
+  IL_0001:  call       "ComputeStringHash(string)"
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
   IL_0008:  ldc.i4     0x2607050f
@@ -10091,7 +10091,7 @@ public class C
   .locals init (string V_0,
                 uint V_1)
   IL_0000:  ldarg.0
-  IL_0001:  call       "ComputeStringHash"
+  IL_0001:  call       "ComputeStringHash(string)"
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
   IL_0008:  ldc.i4     0x6ccaf138
@@ -11391,7 +11391,7 @@ public class C
   .maxstack  2
   .locals init (uint V_0)
   IL_0000:  ldarg.0
-  IL_0001:  call       "ComputeStringHash"
+  IL_0001:  call       "ComputeStringHash(string)"
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  ldc.i4     0xb508d68f
@@ -12396,7 +12396,7 @@ public class C
   .locals init (string V_0,
                 uint V_1)
   IL_0000:  ldarg.0
-  IL_0001:  call       "ComputeStringHash"
+  IL_0001:  call       "ComputeStringHash(string)"
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
   IL_0008:  ldc.i4     0x76692b6a
@@ -12857,7 +12857,7 @@ public class C
   .locals init (string V_0,
                 uint V_1)
   IL_0000:  ldarg.0
-  IL_0001:  call       "ComputeStringHash"
+  IL_0001:  call       "ComputeStringHash(string)"
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
   IL_0008:  ldc.i4     0x62fa988f
@@ -13334,7 +13334,7 @@ public class C
   .locals init (string V_0,
                 uint V_1)
   IL_0000:  ldarg.0
-  IL_0001:  call       "ComputeStringHash"
+  IL_0001:  call       "ComputeStringHash(string)"
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
   IL_0008:  ldc.i4     0x5ef81c51
@@ -13769,7 +13769,7 @@ public class C
   .locals init (string V_0,
                 uint V_1)
   IL_0000:  ldarg.0
-  IL_0001:  call       "ComputeStringHash"
+  IL_0001:  call       "ComputeStringHash(string)"
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
   IL_0008:  ldc.i4     0x4569f715

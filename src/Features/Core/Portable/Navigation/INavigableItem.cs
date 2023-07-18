@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Navigation
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Navigation
         /// </summary>
         bool IsImplicitlyDeclared { get; }
 
-        Document Document { get; }
+        NavigableDocument Document { get; }
         TextSpan SourceSpan { get; }
 
         /// <summary>
@@ -45,5 +47,50 @@ namespace Microsoft.CodeAnalysis.Navigation
         bool IsStale { get; }
 
         ImmutableArray<INavigableItem> ChildItems { get; }
+
+        public record NavigableDocument(NavigableProject Project, string Name, string? FilePath, IReadOnlyList<string> Folders, DocumentId Id, bool IsSourceGeneratedDocument, Workspace Workspace)
+        {
+            public static NavigableDocument FromDocument(Document document)
+                => new(
+                    NavigableProject.FromProject(document.Project),
+                    document.Name,
+                    document.FilePath,
+                    document.Folders,
+                    document.Id,
+                    IsSourceGeneratedDocument: document is SourceGeneratedDocument,
+                    document.Project.Solution.Workspace);
+
+            /// <summary>
+            /// Get the <see cref="CodeAnalysis.Document"/> within <paramref name="solution"/> which is referenced by
+            /// this navigable item. The document is required to exist within the solution, e.g. a case where the
+            /// navigable item was constructed during a Find Symbols operation on the same solution instance.
+            /// </summary>
+            internal ValueTask<Document> GetRequiredDocumentAsync(Solution solution, CancellationToken cancellationToken)
+                => solution.GetRequiredDocumentAsync(Id, includeSourceGenerated: IsSourceGeneratedDocument, cancellationToken);
+
+            /// <summary>
+            /// Get the <see cref="SourceText"/> of the <see cref="CodeAnalysis.Document"/> within
+            /// <paramref name="solution"/> which is referenced by this navigable item. The document is required to
+            /// exist within the solution, e.g. a case where the navigable item was constructed during a Find Symbols
+            /// operation on the same solution instance.
+            /// </summary>
+            internal async ValueTask<SourceText> GetTextAsync(Solution solution, CancellationToken cancellationToken)
+            {
+                var document = await GetRequiredDocumentAsync(solution, cancellationToken).ConfigureAwait(false);
+                return await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            internal SourceText? TryGetTextSynchronously(Solution solution, CancellationToken cancellationToken)
+            {
+                var document = solution.GetDocument(Id);
+                return document?.GetTextSynchronously(cancellationToken);
+            }
+        }
+
+        public record struct NavigableProject(string Name, ProjectId Id)
+        {
+            public static NavigableProject FromProject(Project project)
+                => new(project.Name, project.Id);
+        }
     }
 }
