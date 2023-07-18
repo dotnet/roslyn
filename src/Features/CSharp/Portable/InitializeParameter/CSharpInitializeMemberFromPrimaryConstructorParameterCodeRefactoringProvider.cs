@@ -75,9 +75,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
 
             var (fieldOrProperty, isThrowNotImplementedProperty) = TryFindMatchingUninitializedFieldOrPropertySymbol();
-            var refactorings = fieldOrProperty != null
-                ? HandleExistingFieldOrProperty()
-                : HandleNoExistingFieldOrProperty();
+            var refactorings = fieldOrProperty == null
+                ? HandleNoExistingFieldOrProperty()
+                : HandleExistingFieldOrProperty();
 
             context.RegisterRefactorings(refactorings, context.Span);
             return;
@@ -103,10 +103,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                         // We found members in our type with that name.  If it's a writable field that we could assign
                         // this parameter to, and it's not already been assigned to, then this field is a good candidate
                         // for us to hook up to.
-                        if (memberWithName is IFieldSymbol field &&
-                            !field.IsConst &&
-                            InitializeParameterHelpers.IsImplicitConversion(compilation, source: parameter.Type, destination: field.Type) &&
-                            field.DeclaringSyntaxReferences is [var syntaxRef1, ..] &&
+                        if (memberWithName is IFieldSymbol { IsConst: false, DeclaringSyntaxReferences: [var syntaxRef1, ..] } field &&
+                            IsImplicitConversion(compilation, source: parameter.Type, destination: field.Type) &&
                             syntaxRef1.GetSyntax(cancellationToken) is VariableDeclaratorSyntax { Initializer: null })
                         {
                             return (field, isThrowNotImplementedProperty: false);
@@ -114,9 +112,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
                         // If it's a writable property that we could assign this parameter to, and it's not already been
                         // assigned to, then this property is a good candidate for us to hook up to.
-                        if (memberWithName is IPropertySymbol property &&
-                            InitializeParameterHelpers.IsImplicitConversion(compilation, source: parameter.Type, destination: property.Type) &&
-                            property.DeclaringSyntaxReferences is [var syntaxRef2, ..] &&
+                        if (memberWithName is IPropertySymbol { DeclaringSyntaxReferences: [var syntaxRef2, ..] } property &&
+                            IsImplicitConversion(compilation, source: parameter.Type, destination: property.Type) &&
                             syntaxRef2.GetSyntax(cancellationToken) is PropertyDeclarationSyntax { Initializer: null })
                         {
                             // We also allow assigning into a property of the form `=> throw new
@@ -153,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             {
                 // Didn't find a field/prop that this parameter could be assigned to.
                 // Offer to create new one and assign to that.
-                using var _ = ArrayBuilder<CodeAction>.GetInstance(out var allActions);
+                using var allActions = TemporaryArray<CodeAction>.Empty;
 
                 // Check if the surrounding parameters are assigned to another field in this class.  If so, offer to
                 // make this parameter into a field as well.  Otherwise, default to generating a property
@@ -186,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                     }
                 }
 
-                return allActions.ToImmutable();
+                return allActions.ToImmutableAndClear();
             }
 
             ISymbol? TryFindSiblingFieldOrProperty()
