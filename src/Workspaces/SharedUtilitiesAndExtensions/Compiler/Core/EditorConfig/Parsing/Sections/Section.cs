@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditorConfig.Parsing
 {
-    internal sealed class Section : IEquatable<Section>
+    internal sealed record class Section
     {
         public string? FilePath { get; init; }
         public bool IsGlobal { get; init; }
@@ -166,16 +166,6 @@ namespace Microsoft.CodeAnalysis.EditorConfig.Parsing
                 return relativePath;
             }
         }
-
-        public static bool operator !=(Section left, Section right)
-            => !(left == right);
-
-        public static bool operator ==(Section left, Section right)
-            => ReferenceEquals(left, right) ||
-               (left is not null && left.Equals(right));
-
-        public override bool Equals(object? obj)
-            => Equals(obj as Section);
 
         public bool Equals(Section? other)
             => ReferenceEquals(this, other) ||
