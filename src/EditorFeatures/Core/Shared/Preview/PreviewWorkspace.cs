@@ -14,8 +14,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
 {
     internal class PreviewWorkspace : Workspace
     {
-        private ISolutionCrawlerRegistrationService? _registrationService;
-
         public PreviewWorkspace()
         : base(MefHostServices.DefaultHost, WorkspaceKind.Preview)
         {
@@ -29,19 +27,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
         public PreviewWorkspace(Solution solution)
             : base(solution.Workspace.Services.HostServices, WorkspaceKind.Preview)
         {
-            var oldSolution = this.CurrentSolution;
-            var newSolution = this.SetCurrentSolution(solution);
+            var (oldSolution, newSolution) = this.SetCurrentSolutionEx(solution);
 
             this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
         }
 
-        public void EnableDiagnostic()
+        public void EnableSolutionCrawler()
         {
-            _registrationService = this.Services.GetService<ISolutionCrawlerRegistrationService>();
-            if (_registrationService != null)
-            {
-                _registrationService.Register(this);
-            }
+            Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Register(this);
         }
 
         public override bool CanApplyChange(ApplyChangesKind feature)
@@ -114,13 +107,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
         {
             base.Dispose(finalize);
 
-            if (_registrationService != null)
-            {
-                _registrationService.Unregister(this);
-                _registrationService = null;
-            }
-
-            this.ClearSolution();
+            Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Unregister(this);
+            ClearSolution();
         }
     }
 }

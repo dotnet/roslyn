@@ -7,7 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -18,18 +18,11 @@ namespace Microsoft.CodeAnalysis.InlineHints
 {
     internal abstract class AbstractInlineParameterNameHintsService : IInlineParameterNameHintsService
     {
-        private readonly IGlobalOptionService _globalOptions;
-
         protected enum HintKind
         {
             Literal,
             ObjectCreation,
             Other
-        }
-
-        public AbstractInlineParameterNameHintsService(IGlobalOptionService globalOptions)
-        {
-            _globalOptions = globalOptions;
         }
 
         protected abstract void AddAllParameterNameHintLocations(
@@ -42,10 +35,14 @@ namespace Microsoft.CodeAnalysis.InlineHints
         protected abstract bool IsIndexer(SyntaxNode node, IParameterSymbol parameter);
         protected abstract string GetReplacementText(string parameterName);
 
-        public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, InlineParameterHintsOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(
+            Document document,
+            TextSpan textSpan,
+            InlineParameterHintsOptions options,
+            SymbolDescriptionOptions displayOptions,
+            bool displayAllOverride,
+            CancellationToken cancellationToken)
         {
-            var displayAllOverride = _globalOptions.GetOption(InlineHintsGlobalStateOption.DisplayAllOverride);
-
             var enabledForParameters = displayAllOverride || options.EnabledForParameters;
             if (!enabledForParameters)
                 return ImmutableArray<InlineHint>.Empty;
@@ -105,10 +102,18 @@ namespace Microsoft.CodeAnalysis.InlineHints
                     {
                         var inlineHintText = GetReplacementText(parameter.Name);
                         var textSpan = new TextSpan(position, 0);
+
+                        TextChange? replacementTextChange = null;
+                        if (!parameter.IsParams)
+                        {
+                            replacementTextChange = new TextChange(textSpan, inlineHintText);
+                        }
+
                         result.Add(new InlineHint(
                             textSpan,
                             ImmutableArray.Create(new TaggedText(TextTags.Text, parameter.Name + ": ")),
-                            new TextChange(textSpan, inlineHintText),
+                            replacementTextChange,
+                            ranking: InlineHintsConstants.ParameterRanking,
                             InlineHintHelpers.GetDescriptionFunction(position, parameter.GetSymbolKey(cancellationToken: cancellationToken), displayOptions)));
                     }
                 }
@@ -218,8 +223,8 @@ namespace Microsoft.CodeAnalysis.InlineHints
             // Methods like `SetColor(color: "y")` `FromResult(result: "x")` `Enable/DisablePolling(bool)` don't need
             // parameter names to improve clarity.  The parameter is clear from the context of the method name.
 
-            // First, this only applies to methods (as we're looking at the method name itself) so filter down to those.
-            if (parameter is not { ContainingSymbol: IMethodSymbol { MethodKind: MethodKind.Ordinary } method })
+            // First, this only applies to methods/local functions (as we're looking at the method name itself) so filter down to those.
+            if (parameter is not { ContainingSymbol: IMethodSymbol { MethodKind: MethodKind.Ordinary or MethodKind.LocalFunction } method })
                 return false;
 
             // We only care when dealing with the first parameter.  Note: we don't have to worry parameter reordering

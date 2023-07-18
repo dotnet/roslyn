@@ -11,8 +11,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.Interactive;
-using Microsoft.VisualStudio.Editor.Interactive;
+using Microsoft.CodeAnalysis.Interactive;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Microsoft.VisualStudio.InteractiveWindow.Shell;
 using Microsoft.VisualStudio.Shell;
@@ -104,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
                     InteractiveHostPlatform.Desktop64 => " (.NET Framework " + ServicesVSResources.Bitness64 + ")",
                     InteractiveHostPlatform.Desktop32 => " (.NET Framework " + ServicesVSResources.Bitness32 + ")",
                     InteractiveHostPlatform.Core => " (.NET Core)",
-                    _ => throw ExceptionUtilities.Unreachable
+                    _ => throw ExceptionUtilities.Unreachable()
                 };
             }
 

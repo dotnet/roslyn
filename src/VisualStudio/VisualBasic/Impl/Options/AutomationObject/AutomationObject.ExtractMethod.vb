@@ -8,19 +8,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Partial Public Class AutomationObject
         Public Property ExtractMethod_AllowBestEffort As Boolean
             Get
-                Return GetBooleanOption(ExtractMethodPresentationOptions.AllowBestEffort)
+                Return GetBooleanOption(ExtractMethodPresentationOptionsStorage.AllowBestEffort)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(ExtractMethodPresentationOptions.AllowBestEffort, value)
+                SetBooleanOption(ExtractMethodPresentationOptionsStorage.AllowBestEffort, value)
             End Set
         End Property
 
         Public Property ExtractMethod_DoNotPutOutOrRefOnStruct As Boolean
             Get
-                Return GetBooleanOption(ExtractMethodOptions.Metadata.DontPutOutOrRefOnStruct)
+                Return GetBooleanOption(ExtractMethodOptionsStorage.DoNotPutOutOrRefOnStruct)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(ExtractMethodOptions.Metadata.DontPutOutOrRefOnStruct, value)
+                SetBooleanOption(ExtractMethodOptionsStorage.DoNotPutOutOrRefOnStruct, value)
             End Set
         End Property
     End Class

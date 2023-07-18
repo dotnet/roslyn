@@ -9,11 +9,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.Recommendations
 {
     public static class Recommender
     {
+        [Obsolete("Use GetRecommendedSymbolsAtPositionAsync(Document, ...)")]
         public static IEnumerable<ISymbol> GetRecommendedSymbolsAtPosition(
             SemanticModel semanticModel,
             int position,
@@ -22,13 +24,14 @@ namespace Microsoft.CodeAnalysis.Recommendations
             CancellationToken cancellationToken = default)
         {
             var solution = workspace.CurrentSolution;
-            options ??= solution.Options;
             var document = solution.GetRequiredDocument(semanticModel.SyntaxTree);
+            var context = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
+
             var languageRecommender = document.GetRequiredLanguageService<IRecommendationService>();
-            return languageRecommender.GetRecommendedSymbolsAtPosition(document, semanticModel, position, RecommendationServiceOptions.From(options, document.Project.Language), cancellationToken).NamedSymbols;
+            return languageRecommender.GetRecommendedSymbolsInContext(context, GetOptions(options, document.Project), cancellationToken).NamedSymbols;
         }
 
-        [Obsolete("Use GetRecommendedSymbolsAtPosition")]
+        [Obsolete("Use GetRecommendedSymbolsAtPositionAsync(Document, ...)")]
         public static Task<IEnumerable<ISymbol>> GetRecommendedSymbolsAtPositionAsync(
              SemanticModel semanticModel,
              int position,
@@ -38,5 +41,31 @@ namespace Microsoft.CodeAnalysis.Recommendations
         {
             return Task.FromResult(GetRecommendedSymbolsAtPosition(semanticModel, position, workspace, options, cancellationToken));
         }
+
+        public static async Task<ImmutableArray<ISymbol>> GetRecommendedSymbolsAtPositionAsync(
+            Document document,
+            int position,
+            OptionSet? options = null,
+            CancellationToken cancellationToken = default)
+        {
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var context = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
+            var languageRecommender = document.GetRequiredLanguageService<IRecommendationService>();
+            return languageRecommender.GetRecommendedSymbolsInContext(context, GetOptions(options, document.Project), cancellationToken).NamedSymbols;
+        }
+
+#pragma warning disable RS0030 // Do not used banned APIs: RecommendationOptions
+        private static RecommendationServiceOptions GetOptions(OptionSet? options, Project project)
+        {
+            options ??= project.Solution.Options;
+            var language = project.Language;
+
+            return new RecommendationServiceOptions()
+            {
+                HideAdvancedMembers = options.GetOption(RecommendationOptions.HideAdvancedMembers, language),
+                FilterOutOfScopeLocals = options.GetOption(RecommendationOptions.FilterOutOfScopeLocals, language),
+            };
+        }
+#pragma warning restore
     }
 }

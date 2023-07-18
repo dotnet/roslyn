@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.SyncNamespaces
@@ -11,8 +12,9 @@ Imports Microsoft.CodeAnalysis.SyncNamespaces
 Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
 
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.SyncNamespaces)>
     Public Class SyncNamespacesServiceTests
-        <Fact, Trait(Traits.Feature, Traits.Features.SyncNamespaces)>
+        <Fact>
         Public Async Function SingleProject_MatchingNamespace_NoChanges() As Task
             Dim test =
 <Workspace>
@@ -39,7 +41,7 @@ namespace Test.Namespace.App
                 Dim document = project.Documents.Single()
 
                 Dim syncService = project.GetLanguageService(Of ISyncNamespacesService)()
-                Dim newSolution = Await syncService.SyncNamespacesAsync(ImmutableArray.Create(project), CancellationToken.None)
+                Dim newSolution = Await syncService.SyncNamespacesAsync(ImmutableArray.Create(project), CodeActionOptions.DefaultProvider, CancellationToken.None)
 
                 Dim solutionChanges = workspace.CurrentSolution.GetChanges(newSolution)
 
@@ -47,7 +49,7 @@ namespace Test.Namespace.App
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SyncNamespaces)>
+        <Fact>
         Public Async Function SingleProject_MismatchedNamespace_HasChanges() As Task
             Dim test =
 <Workspace>
@@ -75,7 +77,7 @@ namespace Test
                 Dim document = project.Documents.Single()
 
                 Dim syncService = project.GetLanguageService(Of ISyncNamespacesService)()
-                Dim newSolution = Await syncService.SyncNamespacesAsync(projects, CancellationToken.None)
+                Dim newSolution = Await syncService.SyncNamespacesAsync(projects, CodeActionOptions.DefaultProvider, CancellationToken.None)
 
                 Dim solutionChanges = workspace.CurrentSolution.GetChanges(newSolution)
                 Dim projectChanges = solutionChanges.GetProjectChanges().Single()
@@ -90,7 +92,7 @@ namespace Test
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SyncNamespaces)>
+        <Fact>
         Public Async Function MultipleProjects_MatchingNamespaces_NoChanges() As Task
             Dim test =
 <Workspace>
@@ -132,7 +134,7 @@ namespace Test2.Namespace.App
                 Dim project = projects(0)
 
                 Dim syncService = project.GetLanguageService(Of ISyncNamespacesService)()
-                Dim newSolution = Await syncService.SyncNamespacesAsync(projects, CancellationToken.None)
+                Dim newSolution = Await syncService.SyncNamespacesAsync(projects, CodeActionOptions.DefaultProvider, CancellationToken.None)
 
                 Dim solutionChanges = workspace.CurrentSolution.GetChanges(newSolution)
 
@@ -140,7 +142,7 @@ namespace Test2.Namespace.App
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SyncNamespaces)>
+        <Fact>
         Public Async Function MultipleProjects_OneMismatchedNamespace_HasChanges() As Task
             Dim test =
 <Workspace>
@@ -186,7 +188,7 @@ namespace Test2.Namespace.App
                 Dim document = project.Documents.Single()
 
                 Dim syncService = project.GetLanguageService(Of ISyncNamespacesService)()
-                Dim newSolution = Await syncService.SyncNamespacesAsync(projects, CancellationToken.None)
+                Dim newSolution = Await syncService.SyncNamespacesAsync(projects, CodeActionOptions.DefaultProvider, CancellationToken.None)
 
                 Dim solutionChanges = workspace.CurrentSolution.GetChanges(newSolution)
                 Dim projectChanges = solutionChanges.GetProjectChanges().Single()
@@ -201,7 +203,7 @@ namespace Test2.Namespace.App
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SyncNamespaces)>
+        <Fact>
         Public Async Function MultipleProjects_MultipleMismatchedNamespaces_HasChanges() As Task
             Dim test =
 <Workspace>
@@ -251,7 +253,7 @@ namespace Test2.Namespace
                 Dim document2 = project2.Documents.Single()
 
                 Dim syncService = project.GetLanguageService(Of ISyncNamespacesService)()
-                Dim newSolution = Await syncService.SyncNamespacesAsync(projects, CancellationToken.None)
+                Dim newSolution = Await syncService.SyncNamespacesAsync(projects, CodeActionOptions.DefaultProvider, CancellationToken.None)
 
                 Dim solutionChanges = workspace.CurrentSolution.GetChanges(newSolution)
                 Dim projectChanges = solutionChanges.GetProjectChanges().ToImmutableArray()

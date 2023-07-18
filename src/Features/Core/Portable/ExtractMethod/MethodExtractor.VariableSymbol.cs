@@ -77,13 +77,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
         }
 
-        protected abstract class NotMovableVariableSymbol : VariableSymbol
+        protected abstract class NotMovableVariableSymbol(Compilation compilation, ITypeSymbol type) : VariableSymbol(compilation, type)
         {
-            public NotMovableVariableSymbol(Compilation compilation, ITypeSymbol type)
-                : base(compilation, type)
-            {
-            }
-
             public override bool GetUseSaferDeclarationBehavior(CancellationToken cancellationToken)
             {
                 // decl never get moved
@@ -91,9 +86,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
 
             public override SyntaxToken GetOriginalIdentifierToken(CancellationToken cancellationToken)
-                => throw ExceptionUtilities.Unreachable;
+                => default;
 
-            public override SyntaxAnnotation IdentifierTokenAnnotation => throw ExceptionUtilities.Unreachable;
+            public override SyntaxAnnotation IdentifierTokenAnnotation => throw ExceptionUtilities.Unreachable();
 
             public override void AddIdentifierTokenAnnotationPair(
                 List<Tuple<SyntaxToken, SyntaxAnnotation>> annotations, CancellationToken cancellationToken)
@@ -181,7 +176,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
         protected class LocalVariableSymbol<T> : VariableSymbol, IComparable<LocalVariableSymbol<T>> where T : SyntaxNode
         {
-            private readonly SyntaxAnnotation _annotation;
+            private readonly SyntaxAnnotation _annotation = new();
             private readonly ILocalSymbol _localSymbol;
             private readonly HashSet<int> _nonNoisySet;
 
@@ -191,7 +186,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 Contract.ThrowIfNull(localSymbol);
                 Contract.ThrowIfNull(nonNoisySet);
 
-                _annotation = new SyntaxAnnotation();
                 _localSymbol = localSymbol;
                 _nonNoisySet = nonNoisySet;
             }

@@ -15,24 +15,18 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 {
     internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefactoringProvider
     {
-        private class FieldDelegatingCodeAction : CodeAction
+        private sealed class FieldDelegatingCodeAction(
+            AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
+            Document document,
+            State state,
+            bool addNullChecks,
+            CleanCodeGenerationOptionsProvider fallbackOptions) : CodeAction
         {
-            private readonly AbstractGenerateConstructorFromMembersCodeRefactoringProvider _service;
-            private readonly Document _document;
-            private readonly State _state;
-            private readonly bool _addNullChecks;
-
-            public FieldDelegatingCodeAction(
-                AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
-                Document document,
-                State state,
-                bool addNullChecks)
-            {
-                _service = service;
-                _document = document;
-                _state = state;
-                _addNullChecks = addNullChecks;
-            }
+            private readonly AbstractGenerateConstructorFromMembersCodeRefactoringProvider _service = service;
+            private readonly Document _document = document;
+            private readonly State _state = state;
+            private readonly bool _addNullChecks = addNullChecks;
+            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
@@ -46,18 +40,18 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 for (var i = 0; i < _state.Parameters.Length; i++)
                     parameterToExistingFieldMap[_state.Parameters[i].Name] = _state.SelectedMembers[i];
 
-                var factory = _document.GetLanguageService<SyntaxGenerator>();
+                var factory = _document.GetRequiredLanguageService<SyntaxGenerator>();
 
                 var semanticModel = await _document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var syntaxTree = semanticModel.SyntaxTree;
-                var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var preferThrowExpression = _service.PrefersThrowExpression(options);
+                var preferThrowExpression = await _service.PrefersThrowExpressionAsync(_document, _fallbackOptions, cancellationToken).ConfigureAwait(false);
 
                 var members = factory.CreateMemberDelegatingConstructor(
                     semanticModel,
                     _state.ContainingType.Name,
                     _state.ContainingType,
                     _state.Parameters,
+                    _state.Accessibility,
                     parameterToExistingFieldMap.ToImmutable(),
                     parameterToNewMemberMap: null,
                     addNullChecks: _addNullChecks,
@@ -74,12 +68,14 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     : null;
 
                 var result = await CodeGenerator.AddMemberDeclarationsAsync(
-                    _document.Project.Solution,
+                    new CodeGenerationSolutionContext(
+                        _document.Project.Solution,
+                        new CodeGenerationContext(
+                            contextLocation: syntaxTree.GetLocation(_state.TextSpan),
+                            afterThisLocation: afterThisLocation),
+                        _fallbackOptions),
                     _state.ContainingType,
                     members,
-                    new CodeGenerationContext(
-                        contextLocation: syntaxTree.GetLocation(_state.TextSpan),
-                        afterThisLocation: afterThisLocation),
                     cancellationToken).ConfigureAwait(false);
 
                 return await AddNavigationAnnotationAsync(result, cancellationToken).ConfigureAwait(false);

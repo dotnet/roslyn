@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract bool WeakIdentityPropertiesEquivalent(AssemblyIdentity identity1, AssemblyIdentity identity2);
 
         [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-        protected struct ResolvedReference
+        protected readonly struct ResolvedReference
         {
             private readonly MetadataImageKind _kind;
             private readonly int _index;
@@ -935,6 +935,11 @@ namespace Microsoft.CodeAnalysis
             {
                 AssemblyIdentity definition = definitions[i].Identity;
 
+                if (!AssemblyIdentityComparer.SimpleNameComparer.Equals(reference.Name, definition.Name))
+                {
+                    continue;
+                }
+
                 switch (assemblyIdentityComparer.Compare(reference, definition))
                 {
                     case AssemblyIdentityComparer.ComparisonResult.NotEquivalent:
@@ -966,7 +971,7 @@ namespace Microsoft.CodeAnalysis
                         continue;
 
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                 }
             }
 

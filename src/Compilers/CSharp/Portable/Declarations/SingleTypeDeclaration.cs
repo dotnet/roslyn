@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
@@ -22,11 +23,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly ImmutableArray<SingleTypeDeclaration> _children;
 
         /// <summary>
+        /// Stored as a <see cref="StrongBox{T}"/> so that we can point weak-references at this instance and attempt to
+        /// reuse it across edits if the original hasn't been GC'ed.
+        /// </summary>
+        private readonly StrongBox<ImmutableSegmentedHashSet<string>> _memberNames;
+
+        /// <summary>
         /// Any special attributes we may be referencing directly as an attribute on this type or
         /// through a using alias in the file. For example
         /// <c>using X = System.Runtime.CompilerServices.TypeForwardedToAttribute</c> or
         /// <c>[TypeForwardedToAttribute]</c>.  Can be used to avoid having to go back to source
-        /// to retrieve attributes whtn there is no chance they would bind to attribute of interest.
+        /// to retrieve attributes when there is no chance they would bind to attribute of interest.
         /// </summary>
         public QuickAttributes QuickAttributes { get; }
 
@@ -56,6 +63,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             HasReturnWithExpression = 1 << 8,
 
             IsSimpleProgram = 1 << 9,
+
+            HasRequiredMembers = 1 << 10,
+
+            HasPrimaryConstructor = 1 << 11,
         }
 
         internal SingleTypeDeclaration(
@@ -66,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeDeclarationFlags declFlags,
             SyntaxReference syntaxReference,
             SourceLocation nameLocation,
-            ImmutableSegmentedDictionary<string, VoidResult> memberNames,
+            StrongBox<ImmutableSegmentedHashSet<string>> memberNames,
             ImmutableArray<SingleTypeDeclaration> children,
             ImmutableArray<Diagnostic> diagnostics,
             QuickAttributes quickAttributes)
@@ -77,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _kind = kind;
             _arity = (ushort)arity;
             _modifiers = modifiers;
-            MemberNames = memberNames;
+            _memberNames = memberNames;
             _children = children;
             _flags = declFlags;
             QuickAttributes = quickAttributes;
@@ -115,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public ImmutableSegmentedDictionary<string, VoidResult> MemberNames { get; }
+        public StrongBox<ImmutableSegmentedHashSet<string>> MemberNames => _memberNames;
 
         public bool AnyMemberHasExtensionMethodSyntax
         {
@@ -189,6 +200,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public bool HasRequiredMembers => (_flags & TypeDeclarationFlags.HasRequiredMembers) != 0;
+
+        public bool HasPrimaryConstructor => (_flags & TypeDeclarationFlags.HasPrimaryConstructor) != 0;
+
         protected override ImmutableArray<SingleNamespaceOrTypeDeclaration> GetNamespaceOrTypeDeclarationChildren()
         {
             return StaticCast<SingleNamespaceOrTypeDeclaration>.From(_children);
@@ -204,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // identity that is used when collecting all declarations 
         // of same type across multiple containers
-        internal struct TypeDeclarationIdentity : IEquatable<TypeDeclarationIdentity>
+        internal readonly struct TypeDeclarationIdentity : IEquatable<TypeDeclarationIdentity>
         {
             private readonly SingleTypeDeclaration _decl;
 
@@ -234,6 +249,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (thisDecl._kind != otherDecl._kind) ||
                     (thisDecl.name != otherDecl.name))
                 {
+                    return false;
+                }
+
+                if ((object)thisDecl.SyntaxReference.SyntaxTree != otherDecl.SyntaxReference.SyntaxTree
+                    && ((thisDecl.Modifiers & DeclarationModifiers.File) != 0
+                        || (otherDecl.Modifiers & DeclarationModifiers.File) != 0))
+                {
+                    // declarations of 'file' types are only the same type if they are in the same file
                     return false;
                 }
 

@@ -7,7 +7,6 @@ Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
-Imports Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Options
@@ -122,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         End Function
 
         Public Sub ExecuteCommand(args As ReturnKeyCommandArgs, nextHandler As Action, context As CommandExecutionContext) Implements IChainedCommandHandler(Of ReturnKeyCommandArgs).ExecuteCommand
-            If Not _globalOptions.GetOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic) Then
+            If Not _globalOptions.GetOption(LineCommitOptionsStorage.PrettyListing, LanguageNames.VisualBasic) Then
                 nextHandler()
                 Return
             End If
@@ -234,15 +233,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 ' Do the paste in the same transaction as the commit/format
                 nextHandler()
 
-                If Not _globalOptions.GetOption(FormattingOptionsMetadata.FormatOnPaste, LanguageNames.VisualBasic) Then
+                If Not _globalOptions.GetOption(FormattingOptionsStorage.FormatOnPaste, LanguageNames.VisualBasic) Then
                     transaction.Complete()
                     Return
                 End If
 
                 Dim document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges()
                 If document IsNot Nothing Then
-                    Dim formattingRuleService = document.Project.Solution.Workspace.Services.GetService(Of IHostDependentFormattingRuleFactoryService)()
-                    If formattingRuleService.ShouldNotFormatOrCommitOnPaste(document) Then
+                    Dim formattingRuleService = document.Project.Solution.Services.GetService(Of IHostDependentFormattingRuleFactoryService)()
+                    If formattingRuleService.ShouldNotFormatOrCommitOnPaste(document.Id) Then
                         transaction.Complete()
                         Return
                     End If
@@ -266,7 +265,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         End Function
 
         Public Sub ExecuteCommand(args As SaveCommandArgs, nextHandler As Action, context As CommandExecutionContext) Implements IChainedCommandHandler(Of SaveCommandArgs).ExecuteCommand
-            If _globalOptions.GetOption(InternalFeatureOnOffOptions.FormatOnSave) Then
+            If _globalOptions.GetOption(FormattingOptionsStorage.FormatOnSave) Then
                 Using context.OperationContext.AddScope(allowCancellation:=True, VBEditorResources.Formatting_Document)
                     Using transaction = _textUndoHistoryRegistry.GetHistory(args.TextView.TextBuffer).CreateTransaction(VBEditorResources.Format_on_Save)
                         _bufferManagerFactory.CreateForBuffer(args.SubjectBuffer).CommitDirty(isExplicitFormat:=False, cancellationToken:=context.OperationContext.UserCancellationToken)

@@ -5,7 +5,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -14,13 +14,9 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 {
     internal static partial class ValueTracker
     {
-        private class FindReferencesProgress : IStreamingFindReferencesProgress, IStreamingProgressTracker
+        private class FindReferencesProgress(OperationCollector valueTrackingProgressCollector) : IStreamingFindReferencesProgress, IStreamingProgressTracker
         {
-            private readonly OperationCollector _operationCollector;
-            public FindReferencesProgress(OperationCollector valueTrackingProgressCollector)
-            {
-                _operationCollector = valueTrackingProgressCollector;
-            }
+            private readonly OperationCollector _operationCollector = valueTrackingProgressCollector;
 
             public IStreamingProgressTracker ProgressTracker => this;
 

@@ -3,9 +3,8 @@ parameters:
   dependsOn: ''
 
   # Optional: A defined YAML pool - https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=vsts&tabs=schema#pool
-  pool:
-    vmImage: 'windows-2019'
-
+  pool: ''
+    
   CeapexPat: $(dn-bot-ceapex-package-r) # PAT for the loc AzDO instance https://dev.azure.com/ceapex
   GithubPat: $(BotAccount-dotnet-bot-repo-PAT)
 
@@ -15,6 +14,7 @@ parameters:
   ReusePr: true
   UseLfLineEndings: true
   UseCheckedInLocProjectJson: false
+  SkipLocProjectJsonGeneration: false
   LanguageSet: VS_Main_Languages
   LclSource: lclFilesInRepo
   LclPackageId: ''
@@ -23,15 +23,14 @@ parameters:
   MirrorRepo: ''
   MirrorBranch: main
   condition: ''
+  JobNameSuffix: ''
 
 jobs:
-- job: OneLocBuild
+- job: OneLocBuild${{ parameters.JobNameSuffix }}
   
   dependsOn: ${{ parameters.dependsOn }}
 
-  displayName: OneLocBuild
-
-  pool: ${{ parameters.pool }}
+  displayName: OneLocBuild${{ parameters.JobNameSuffix }}
 
   variables:
     - group: OneLocBuildVariables # Contains the CeapexPat and GithubPat
@@ -42,15 +41,29 @@ jobs:
     - ${{ if eq(parameters.UseCheckedInLocProjectJson, 'true') }}:
       - name: _GenerateLocProjectArguments
         value: ${{ variables._GenerateLocProjectArguments }} -UseCheckedInLocProjectJson
-      
+    - template: /eng/common/templates/variables/pool-providers.yml
+
+  ${{ if ne(parameters.pool, '') }}:
+    pool: ${{ parameters.pool }}
+  ${{ if eq(parameters.pool, '') }}:
+    pool:
+      # We don't use the collection uri here because it might vary (.visualstudio.com vs. dev.azure.com)
+      ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
+        name: VSEngSS-MicroBuild2022-1ES
+        demands: Cmd
+      # If it's not devdiv, it's dnceng
+      ${{ if ne(variables['System.TeamProject'], 'DevDiv') }}:
+        name: $(DncEngInternalBuildPool)
+        demands: ImageOverride -equals windows.vs2019.amd64
 
   steps:
-    - task: Powershell@2
-      inputs:
-        filePath: $(Build.SourcesDirectory)/eng/common/generate-locproject.ps1
-        arguments: $(_GenerateLocProjectArguments)
-      displayName: Generate LocProject.json
-      condition: ${{ parameters.condition }}
+    - ${{ if ne(parameters.SkipLocProjectJsonGeneration, 'true') }}:
+      - task: Powershell@2
+        inputs:
+          filePath: $(Build.SourcesDirectory)/eng/common/generate-locproject.ps1
+          arguments: $(_GenerateLocProjectArguments)
+        displayName: Generate LocProject.json
+        condition: ${{ parameters.condition }}
 
     - task: OneLocBuild@2
       displayName: OneLocBuild
@@ -62,8 +75,8 @@ jobs:
         lclSource: ${{ parameters.LclSource }}
         lclPackageId: ${{ parameters.LclPackageId }}
         isCreatePrSelected: ${{ parameters.CreatePr }}
+        isAutoCompletePrSelected: ${{ parameters.AutoCompletePr }}
         ${{ if eq(parameters.CreatePr, true) }}:
-          isAutoCompletePrSelected: ${{ parameters.AutoCompletePr }}
           isUseLfLineEndingsSelected: ${{ parameters.UseLfLineEndings }}
           ${{ if eq(parameters.RepoType, 'gitHub') }}:
             isShouldReusePrSelected: ${{ parameters.ReusePr }}

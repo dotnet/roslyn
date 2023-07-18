@@ -10,7 +10,7 @@ extern_alias_directive
   ;
 
 using_directive
-  : 'global'? 'using' ('static' | name_equals)? name ';'
+  : 'global'? 'using' ('static' | ('unsafe'? name_equals))? type ';'
   ;
 
 name_equals
@@ -20,6 +20,18 @@ name_equals
 identifier_name
   : 'global'
   | identifier_token
+  ;
+
+attribute_list
+  : '[' attribute_target_specifier? attribute (',' attribute)* ']'
+  ;
+
+attribute_target_specifier
+  : syntax_token ':'
+  ;
+
+attribute
+  : name attribute_argument_list?
   ;
 
 name
@@ -47,18 +59,6 @@ type_argument_list
 
 qualified_name
   : name '.' simple_name
-  ;
-
-attribute_list
-  : '[' attribute_target_specifier? attribute (',' attribute)* ']'
-  ;
-
-attribute_target_specifier
-  : syntax_token ':'
-  ;
-
-attribute
-  : name attribute_argument_list?
   ;
 
 attribute_argument_list
@@ -99,6 +99,7 @@ modifier
   | 'async'
   | 'const'
   | 'extern'
+  | 'file'
   | 'fixed'
   | 'internal'
   | 'new'
@@ -109,6 +110,8 @@ modifier
   | 'public'
   | 'readonly'
   | 'ref'
+  | 'required'
+  | 'scoped'
   | 'sealed'
   | 'static'
   | 'unsafe'
@@ -157,7 +160,7 @@ parameter_list
   ;
 
 parameter
-  : attribute_list* modifier* type? (identifier_token | '__arglist') '!!'? equals_value_clause?
+  : attribute_list* modifier* type? (identifier_token | '__arglist') equals_value_clause?
   ;
 
 constructor_initializer
@@ -177,7 +180,7 @@ arrow_expression_clause
   ;
 
 conversion_operator_declaration
-  : attribute_list* modifier* ('implicit' | 'explicit') explicit_interface_specifier? 'operator' type parameter_list (block | (arrow_expression_clause ';'))
+  : attribute_list* modifier* ('implicit' | 'explicit') explicit_interface_specifier? 'operator' 'checked'? type parameter_list (block | (arrow_expression_clause ';'))
   ;
 
 explicit_interface_specifier
@@ -229,7 +232,7 @@ type_constraint
   ;
 
 operator_declaration
-  : attribute_list* modifier* type explicit_interface_specifier? 'operator' ('+' | '-' | '!' | '~' | '++' | '--' | '*' | '/' | '%' | '<<' | '>>' | '|' | '&' | '^' | '==' | '!=' | '<' | '<=' | '>' | '>=' | 'false' | 'true' | 'is') parameter_list (block | (arrow_expression_clause ';'))
+  : attribute_list* modifier* type explicit_interface_specifier? 'operator' 'checked'? ('+' | '-' | '!' | '~' | '++' | '--' | '*' | '/' | '%' | '<<' | '>>' | '>>>' | '|' | '&' | '^' | '==' | '!=' | '<' | '<=' | '>' | '>=' | 'false' | 'true' | 'is') parameter_list (block | (arrow_expression_clause ';'))
   ;
 
 base_namespace_declaration
@@ -281,7 +284,7 @@ base_type_declaration
   ;
 
 enum_declaration
-  : attribute_list* modifier* 'enum' identifier_token base_list? '{' (enum_member_declaration (',' enum_member_declaration)* ','?)? '}' ';'?
+  : attribute_list* modifier* 'enum' identifier_token base_list? '{'? (enum_member_declaration (',' enum_member_declaration)* ','?)? '}'? ';'?
   ;
 
 base_list
@@ -313,11 +316,11 @@ type_declaration
   ;
 
 class_declaration
-  : attribute_list* modifier* 'class' identifier_token type_parameter_list? base_list? type_parameter_constraint_clause* '{' member_declaration* '}' ';'?
+  : attribute_list* modifier* 'class' identifier_token type_parameter_list? parameter_list? base_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
   ;
 
 interface_declaration
-  : attribute_list* modifier* 'interface' identifier_token type_parameter_list? base_list? type_parameter_constraint_clause* '{' member_declaration* '}' ';'?
+  : attribute_list* modifier* 'interface' identifier_token type_parameter_list? parameter_list? base_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
   ;
 
 record_declaration
@@ -325,7 +328,7 @@ record_declaration
   ;
 
 struct_declaration
-  : attribute_list* modifier* 'struct' identifier_token type_parameter_list? base_list? type_parameter_constraint_clause* '{' member_declaration* '}' ';'?
+  : attribute_list* modifier* 'struct' identifier_token type_parameter_list? parameter_list? base_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
   ;
 
 delegate_declaration
@@ -349,6 +352,7 @@ type
   | pointer_type
   | predefined_type
   | ref_type
+  | scoped_type
   | tuple_type
   ;
 
@@ -418,6 +422,10 @@ predefined_type
 
 ref_type
   : 'ref' 'readonly'? type
+  ;
+
+scoped_type
+  : 'scoped' type
   ;
 
 tuple_type
@@ -719,6 +727,7 @@ expression
   | binary_expression
   | cast_expression
   | checked_expression
+  | collection_expression
   | conditional_access_expression
   | conditional_expression
   | declaration_expression
@@ -795,7 +804,7 @@ initializer_expression
   ;
 
 assignment_expression
-  : expression ('=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '^=' | '|=' | '<<=' | '>>=' | '??=') expression
+  : expression ('=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '^=' | '|=' | '<<=' | '>>=' | '>>>=' | '??=') expression
   ;
 
 await_expression
@@ -816,7 +825,7 @@ object_creation_expression
   ;
 
 binary_expression
-  : expression ('+' | '-' | '*' | '/' | '%' | '<<' | '>>' | '||' | '&&' | '|' | '&' | '^' | '==' | '!=' | '<' | '<=' | '>' | '>=' | 'is' | 'as' | '??') expression
+  : expression ('+' | '-' | '*' | '/' | '%' | '<<' | '>>' | '>>>' | '||' | '&&' | '|' | '&' | '^' | '==' | '!=' | '<' | '<=' | '>' | '>=' | 'is' | 'as' | '??') expression
   ;
 
 cast_expression
@@ -826,6 +835,23 @@ cast_expression
 checked_expression
   : 'checked' '(' expression ')'
   | 'unchecked' '(' expression ')'
+  ;
+
+collection_expression
+  : '[' (collection_element (',' collection_element)* ','?)? ']'
+  ;
+
+collection_element
+  : expression_element
+  | spread_element
+  ;
+
+expression_element
+  : expression
+  ;
+
+spread_element
+  : '..' expression
   ;
 
 conditional_access_expression
@@ -880,6 +906,8 @@ this_expression
 interpolated_string_expression
   : '$"' interpolated_string_content* '"'
   | '$@"' interpolated_string_content* '"'
+  | interpolated_multi_line_raw_string_start_token interpolated_string_content* interpolated_raw_string_end_token
+  | interpolated_single_line_raw_string_start_token interpolated_string_content* interpolated_raw_string_end_token
   ;
 
 interpolated_string_content
@@ -918,8 +946,13 @@ literal_expression
   | 'null'
   | 'true'
   | character_literal_token
+  | multi_line_raw_string_literal_token
   | numeric_literal_token
+  | single_line_raw_string_literal_token
   | string_literal_token
+  | utf_8_multi_line_raw_string_literal_token
+  | utf_8_single_line_raw_string_literal_token
+  | utf_8_string_literal_token
   ;
 
 make_ref_expression
@@ -1124,8 +1157,8 @@ member_cref
   ;
 
 conversion_operator_member_cref
-  : 'explicit' 'operator' type cref_parameter_list?
-  | 'implicit' 'operator' type cref_parameter_list?
+  : 'explicit' 'operator' 'checked'? type cref_parameter_list?
+  | 'implicit' 'operator' 'checked'? type cref_parameter_list?
   ;
 
 cref_parameter_list
@@ -1151,7 +1184,7 @@ name_member_cref
   ;
 
 operator_member_cref
-  : 'operator' ('+' | '-' | '!' | '~' | '++' | '--' | '*' | '/' | '%' | '<<' | '>>' | '|' | '&' | '^' | '==' | '!=' | '<' | '<=' | '>' | '>=' | 'false' | 'true') cref_parameter_list?
+  : 'operator' 'checked'? ('+' | '-' | '!' | '~' | '++' | '--' | '*' | '/' | '%' | '<<' | '>>' | '>>>' | '|' | '&' | '^' | '==' | '!=' | '<' | '<=' | '>' | '>=' | 'false' | 'true') cref_parameter_list?
   ;
 
 qualified_cref
@@ -1347,11 +1380,31 @@ identifier_token
   : /* see lexical specification */
   ;
 
+interpolated_multi_line_raw_string_start_token
+  : /* see lexical specification */
+  ;
+
+interpolated_raw_string_end_token
+  : /* see lexical specification */
+  ;
+
+interpolated_single_line_raw_string_start_token
+  : /* see lexical specification */
+  ;
+
 interpolated_string_text_token
   : /* see lexical specification */
   ;
 
+multi_line_raw_string_literal_token
+  : /* see lexical specification */
+  ;
+
 numeric_literal_token
+  : /* see lexical specification */
+  ;
+
+single_line_raw_string_literal_token
   : /* see lexical specification */
   ;
 
@@ -1360,6 +1413,18 @@ string_literal_token
   ;
 
 syntax_token
+  : /* see lexical specification */
+  ;
+
+utf_8_multi_line_raw_string_literal_token
+  : /* see lexical specification */
+  ;
+
+utf_8_single_line_raw_string_literal_token
+  : /* see lexical specification */
+  ;
+
+utf_8_string_literal_token
   : /* see lexical specification */
   ;
 

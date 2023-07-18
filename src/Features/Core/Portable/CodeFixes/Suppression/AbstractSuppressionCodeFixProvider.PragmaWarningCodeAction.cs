@@ -53,8 +53,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             public PragmaWarningCodeAction CloneForFixMultipleContext()
                 => new(_suppressionTargetInfo, _document, _options, _diagnostic, Fixer, forFixMultipleContext: true);
 
-            protected override string DiagnosticIdForEquivalenceKey =>
-                _forFixMultipleContext ? string.Empty : _diagnostic.Id;
+            protected override string DiagnosticIdForEquivalenceKey
+                => _forFixMultipleContext ? string.Empty : _diagnostic.Id;
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
                 => await GetChangedDocumentAsync(includeStartTokenChange: true, includeEndTokenChange: true, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             public SyntaxToken EndToken_TestOnly => _suppressionTargetInfo.EndToken;
 
             private SyntaxNode FormatNode(SyntaxNode node, CancellationToken cancellationToken)
-                => Formatter.Format(node, _document.Project.Solution.Workspace.Services, _options, cancellationToken);
+                => Formatter.Format(node, _document.Project.Solution.Services, _options, cancellationToken);
         }
     }
 }

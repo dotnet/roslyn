@@ -10,32 +10,27 @@ using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PdbSourceDocument
 {
     [Export(typeof(IPdbFileLocatorService)), Shared]
-    internal sealed class PdbFileLocatorService : IPdbFileLocatorService
+    [method: ImportingConstructor]
+    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code")]
+    internal sealed class PdbFileLocatorService(
+        [Import(AllowDefault = true)] ISourceLinkService? sourceLinkService,
+        [Import(AllowDefault = true)] IPdbSourceDocumentLogger? logger) : IPdbFileLocatorService
     {
         private const int SymbolLocatorTimeout = 2000;
 
-        private readonly ISourceLinkService? _sourceLinkService;
-        private readonly IPdbSourceDocumentLogger? _logger;
+        private readonly ISourceLinkService? _sourceLinkService = sourceLinkService;
+        private readonly IPdbSourceDocumentLogger? _logger = logger;
 
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code")]
-        public PdbFileLocatorService(
-            [Import(AllowDefault = true)] ISourceLinkService? sourceLinkService,
-            [Import(AllowDefault = true)] IPdbSourceDocumentLogger? logger)
+        public async Task<DocumentDebugInfoReader?> GetDocumentDebugInfoReaderAsync(string dllPath, bool useDefaultSymbolServers, TelemetryMessage telemetry, CancellationToken cancellationToken)
         {
-            _sourceLinkService = sourceLinkService;
-            _logger = logger;
-        }
-
-        public async Task<DocumentDebugInfoReader?> GetDocumentDebugInfoReaderAsync(string dllPath, TelemetryMessage telemetry, CancellationToken cancellationToken)
-        {
-            var dllStream = IOUtilities.PerformIO(() => File.OpenRead(dllPath));
+            var dllStream = IOUtilities.PerformIO(() => ReadFileIfExists(dllPath));
             if (dllStream is null)
                 return null;
 
@@ -45,7 +40,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             try
             {
                 // Try to load the pdb file from disk, or embedded
-                if (peReader.TryOpenAssociatedPortablePdb(dllPath, pdbPath => File.OpenRead(pdbPath), out var pdbReaderProvider, out var pdbFilePath))
+                if (peReader.TryOpenAssociatedPortablePdb(dllPath, ReadFileIfExists, out var pdbReaderProvider, out var pdbFilePath))
                 {
                     Contract.ThrowIfNull(pdbReaderProvider);
 
@@ -73,7 +68,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     {
                         var delay = Task.Delay(SymbolLocatorTimeout, cancellationToken);
                         // Call the debugger to find the PDB from a symbol server etc.
-                        var pdbResultTask = _sourceLinkService.GetPdbFilePathAsync(dllPath, peReader, cancellationToken);
+                        var pdbResultTask = _sourceLinkService.GetPdbFilePathAsync(dllPath, peReader, useDefaultSymbolServers, cancellationToken);
 
                         var winner = await Task.WhenAny(pdbResultTask, delay).ConfigureAwait(false);
 
@@ -126,6 +121,14 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             }
 
             return result;
+
+            static FileStream? ReadFileIfExists(string fileName)
+            {
+                if (File.Exists(fileName))
+                    return File.OpenRead(fileName);
+
+                return null;
+            }
         }
     }
 }

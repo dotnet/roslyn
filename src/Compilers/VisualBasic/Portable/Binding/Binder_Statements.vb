@@ -1239,9 +1239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ReportDiagnostic(diagnostics, errSyntax, ERRID.ERR_ConstAsNonConstant)
                     Else
                         Dim bag = symbol.GetConstantValueDiagnostics(Me)
-                        If bag IsNot Nothing Then
-                            diagnostics.AddRange(bag, allowMismatchInDependencyAccumulation:=True)
-                        End If
+                        diagnostics.AddRange(bag, allowMismatchInDependencyAccumulation:=True)
                     End If
                 End If
             End If
@@ -1574,7 +1572,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return type
         End Function
 
-
         ''' <summary>
         ''' Infer the type of a variable declared with an initializing expression.
         ''' </summary>
@@ -1711,7 +1708,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return defaultType
         End Function
-
 
         'TODO: override in MethodBodySemanticModel similarly to BindVariableDeclaration.
         Friend Overridable Function BindCatchVariableDeclaration(name As IdentifierNameSyntax,
@@ -4871,7 +4867,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                        isSynthesizedAsyncCatchAll:=False)
         End Function
 
-
         Private Function BindExitStatement(node As ExitStatementSyntax, diagnostics As BindingDiagnosticBag) As BoundStatement
             Dim targetLabel As LabelSymbol = GetExitLabel(node.Kind)
 
@@ -5191,7 +5186,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If Not exceptionType.IsOrDerivedFromWellKnownClass(WellKnownType.System_Exception, Compilation, useSiteInfo) Then
                         hasError = True
-                        ReportDiagnostic(diagnostics, node, ERRID.ERR_CantThrowNonException, exceptionType)
+                        ReportDiagnostic(diagnostics, node, ERRID.ERR_CantThrowNonException)
                     End If
 
                     diagnostics.Add(node, useSiteInfo)

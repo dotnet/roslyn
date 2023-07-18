@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// each async method builder type. This avoids having to inspect the return style of the current async method
     /// to pick the right async method builder member during async rewriting.
     /// </summary>
-    internal struct AsyncMethodBuilderMemberCollection
+    internal readonly struct AsyncMethodBuilderMemberCollection
     {
         /// <summary>
         /// The builder's constructed type.

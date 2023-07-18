@@ -5,7 +5,6 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
@@ -17,17 +16,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // get all the preceding trivia from the 'from' node, not counting the leading
             // indentation trivia is has.
             var finalTrivia = from.GetLeadingTrivia().ToList();
-            while (finalTrivia.Count > 0 && finalTrivia.Last().Kind() == SyntaxKind.WhitespaceTrivia)
-            {
+            while (finalTrivia is [.., (kind: SyntaxKind.WhitespaceTrivia)])
                 finalTrivia.RemoveAt(finalTrivia.Count - 1);
-            }
 
             // Also, add on the trailing trivia if there are trailing comments.
             var hasTrailingComments = from.GetTrailingTrivia().Any(t => t.IsRegularComment());
             if (hasTrailingComments)
-            {
                 finalTrivia.AddRange(from.GetTrailingTrivia());
-            }
 
             // Merge this trivia with the existing trivia on the node.  Format in case
             // we added comments and need them indented properly.

@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -47,7 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to will jump there. After the expression is evaluated, we need to jump to different
             // labels depending on the `when` node we came from. To achieve that, each `when` node
             // gets an identifier and sets a local before jumping into the shared `when` expression.
-            private int _nextWhenNodeIdentifier = 0;
             internal LocalSymbol? _whenNodeIdentifierLocal;
 #nullable disable
 
@@ -141,14 +141,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public override BoundNode Visit(BoundNode node)
                 {
                     // A constant expression cannot mutate anything
-                    if (node is BoundExpression { ConstantValue: { } })
+                    if (node is BoundExpression { ConstantValueOpt: { } })
                         return null;
 
                     // Stop visiting once we determine something might get assigned
                     return this._mightAssignSomething ? null : base.Visit(node);
                 }
 
-                public override BoundNode VisitCall(BoundCall node)
+                protected override void VisitArguments(BoundCall node)
                 {
                     bool mightMutate =
                         // might be a call to a local function that assigns something
@@ -161,8 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (mightMutate)
                         _mightAssignSomething = true;
                     else
-                        base.VisitCall(node);
-                    return null;
+                        base.VisitArguments(node);
                 }
 
                 private static bool MethodMayMutateReceiver(BoundExpression receiver, MethodSymbol method)
@@ -349,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var mightAssignWalker = new WhenClauseMightAssignPatternVariableWalker();
                 bool canShareTemps =
                     !decisionDag.TopologicallySortedNodes
-                    .Any(node => node is BoundWhenDecisionDagNode w && mightAssignWalker.MightAssignSomething(w.WhenExpression));
+                    .Any(static (node, mightAssignWalker) => node is BoundWhenDecisionDagNode w && mightAssignWalker.MightAssignSomething(w.WhenExpression), mightAssignWalker);
 
                 if (canShareTemps)
                 {
@@ -535,6 +534,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return false;
                         if (!t1.Input.Equals(t2.Input))
                             return false;
+
+                        if (t1.Input.Type.SpecialType is SpecialType.System_Double or SpecialType.System_Single)
+                        {
+                            // The optimization (using balanced switch dispatch) breaks the semantics of NaN
+                            return false;
+                        }
+
                         return true;
                     }
                 }
@@ -737,19 +743,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 LabelSymbol defaultLabel = node.Otherwise;
 
-                if (input.Type.IsValidV6SwitchGoverningType())
+                if (input.Type.IsValidV6SwitchGoverningType() || input.Type.IsSpanOrReadOnlySpanChar())
                 {
                     // If we are emitting a hash table based string switch,
                     // we need to generate a helper method for computing
                     // string hash value in <PrivateImplementationDetails> class.
-                    MethodSymbol stringEquality = null;
-                    if (input.Type.SpecialType == SpecialType.System_String)
+
+                    bool isStringInput = input.Type.SpecialType == SpecialType.System_String;
+                    bool isSpanInput = input.Type.IsSpanChar();
+                    bool isReadOnlySpanInput = input.Type.IsReadOnlySpanChar();
+                    LengthBasedStringSwitchData lengthBasedDispatchOpt = null;
+                    if (isStringInput || isSpanInput || isReadOnlySpanInput)
                     {
-                        EnsureStringHashFunction(node.Cases.Length, node.Syntax);
-                        stringEquality = _localRewriter.UnsafeGetSpecialTypeMethod(node.Syntax, SpecialMember.System_String__op_Equality);
+                        var stringPatternInput = isStringInput ? StringPatternInput.String : (isSpanInput ? StringPatternInput.SpanChar : StringPatternInput.ReadOnlySpanChar);
+
+                        if (!this._localRewriter._compilation.FeatureDisableLengthBasedSwitch &&
+                            LengthBasedStringSwitchData.Create(node.Cases) is var lengthBasedDispatch &&
+                            lengthBasedDispatch.ShouldGenerateLengthBasedSwitch(node.Cases.Length) &&
+                            hasLengthBasedDispatchRequiredMembers(stringPatternInput))
+                        {
+                            lengthBasedDispatchOpt = lengthBasedDispatch;
+                        }
+                        else
+                        {
+                            EnsureStringHashFunction(node.Cases.Length, node.Syntax, stringPatternInput);
+                        }
+
+                        if (isStringInput)
+                        {
+                            // Report required missing member diagnostic
+                            _localRewriter.TryGetSpecialTypeMethod(node.Syntax, SpecialMember.System_String__op_Equality, out _);
+                        }
                     }
 
-                    var dispatch = new BoundSwitchDispatch(node.Syntax, input, node.Cases, defaultLabel, stringEquality);
+                    var dispatch = new BoundSwitchDispatch(node.Syntax, input, node.Cases, defaultLabel, lengthBasedDispatchOpt);
                     _loweredDecisionDag.Add(dispatch);
                 }
                 else if (input.Type.IsNativeIntegerType)
@@ -775,7 +802,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             throw ExceptionUtilities.UnexpectedValue(input.Type);
                     }
 
-                    var dispatch = new BoundSwitchDispatch(node.Syntax, input, cases, defaultLabel, equalityMethod: null);
+                    var dispatch = new BoundSwitchDispatch(node.Syntax, input, cases, defaultLabel, lengthBasedStringSwitchDataOpt: null);
                     _loweredDecisionDag.Add(dispatch);
                 }
                 else
@@ -815,6 +842,47 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
+
+                return;
+
+                bool hasLengthBasedDispatchRequiredMembers(StringPatternInput stringPatternInput)
+                {
+                    var compilation = _localRewriter._compilation;
+                    var lengthMember = stringPatternInput switch
+                    {
+                        StringPatternInput.String => compilation.GetSpecialTypeMember(SpecialMember.System_String__Length),
+                        StringPatternInput.SpanChar => compilation.GetWellKnownTypeMember(WellKnownMember.System_Span_T__get_Length),
+                        StringPatternInput.ReadOnlySpanChar => compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__get_Length),
+                        _ => throw ExceptionUtilities.UnexpectedValue(stringPatternInput),
+                    };
+
+                    if ((object)lengthMember == null || lengthMember.HasUseSiteError)
+                    {
+                        return false;
+                    }
+
+                    var charsMember = stringPatternInput switch
+                    {
+                        StringPatternInput.String => compilation.GetSpecialTypeMember(SpecialMember.System_String__Chars),
+                        StringPatternInput.SpanChar => compilation.GetWellKnownTypeMember(WellKnownMember.System_Span_T__get_Item),
+                        StringPatternInput.ReadOnlySpanChar => compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__get_Item),
+                        _ => throw ExceptionUtilities.UnexpectedValue(stringPatternInput),
+                    };
+
+                    if ((object)charsMember == null || charsMember.HasUseSiteError)
+                    {
+                        return false;
+                    }
+
+                    return true;
+                }
+            }
+
+            private enum StringPatternInput
+            {
+                String,
+                SpanChar,
+                ReadOnlySpanChar,
             }
 
             /// <summary>
@@ -822,7 +890,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// we need to generate a new helper method for computing string hash value.
             /// Creates the method if needed.
             /// </summary>
-            private void EnsureStringHashFunction(int labelsCount, SyntaxNode syntaxNode)
+            private void EnsureStringHashFunction(int labelsCount, SyntaxNode syntaxNode, StringPatternInput stringPatternInput)
             {
                 var module = _localRewriter.EmitModule;
                 if (module == null)
@@ -852,29 +920,55 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If we have already generated the helper, possibly for another switch
                 // or on another thread, we don't need to regenerate it.
                 var privateImplClass = module.GetPrivateImplClass(syntaxNode, _localRewriter._diagnostics.DiagnosticBag);
-                if (privateImplClass.GetMethod(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedStringHashFunctionName) != null)
+                if (privateImplClass.GetMethod(stringPatternInput switch
+                {
+                    StringPatternInput.String => CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedStringHashFunctionName,
+                    StringPatternInput.SpanChar => CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedReadOnlySpanHashFunctionName,
+                    StringPatternInput.ReadOnlySpanChar => CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedSpanHashFunctionName,
+                    _ => throw ExceptionUtilities.UnexpectedValue(stringPatternInput),
+                }) != null)
                 {
                     return;
                 }
 
                 // cannot emit hash method if have no access to Chars.
-                var charsMember = _localRewriter._compilation.GetSpecialTypeMember(SpecialMember.System_String__Chars);
+                var charsMember = stringPatternInput switch
+                {
+                    StringPatternInput.String => _localRewriter._compilation.GetSpecialTypeMember(SpecialMember.System_String__Chars),
+                    StringPatternInput.SpanChar => _localRewriter._compilation.GetWellKnownTypeMember(WellKnownMember.System_Span_T__get_Item),
+                    StringPatternInput.ReadOnlySpanChar => _localRewriter._compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__get_Item),
+                    _ => throw ExceptionUtilities.UnexpectedValue(stringPatternInput),
+                };
                 if ((object)charsMember == null || charsMember.HasUseSiteError)
                 {
                     return;
                 }
 
                 TypeSymbol returnType = _factory.SpecialType(SpecialType.System_UInt32);
-                TypeSymbol paramType = _factory.SpecialType(SpecialType.System_String);
+                TypeSymbol paramType = stringPatternInput switch
+                {
+                    StringPatternInput.String => _factory.SpecialType(SpecialType.System_String),
+                    StringPatternInput.SpanChar => _factory.WellKnownType(WellKnownType.System_Span_T)
+                        .Construct(_factory.SpecialType(SpecialType.System_Char)),
+                    StringPatternInput.ReadOnlySpanChar => _factory.WellKnownType(WellKnownType.System_ReadOnlySpan_T)
+                        .Construct(_factory.SpecialType(SpecialType.System_Char)),
+                    _ => throw ExceptionUtilities.UnexpectedValue(stringPatternInput),
+                };
 
-                var method = new SynthesizedStringSwitchHashMethod(module.SourceModule, privateImplClass, returnType, paramType);
+                SynthesizedGlobalMethodSymbol method = stringPatternInput switch
+                {
+                    StringPatternInput.String => new SynthesizedStringSwitchHashMethod(module.SourceModule, privateImplClass, returnType, paramType),
+                    StringPatternInput.SpanChar => new SynthesizedSpanSwitchHashMethod(module.SourceModule, privateImplClass, returnType, paramType, isReadOnlySpan: false),
+                    StringPatternInput.ReadOnlySpanChar => new SynthesizedSpanSwitchHashMethod(module.SourceModule, privateImplClass, returnType, paramType, isReadOnlySpan: true),
+                    _ => throw ExceptionUtilities.UnexpectedValue(stringPatternInput),
+                };
                 privateImplClass.TryAddSynthesizedMethod(method.GetCciAdapter());
             }
 
 #nullable enable
             private void LowerWhenClauses(ImmutableArray<BoundDecisionDagNode> sortedNodes)
             {
-                if (!sortedNodes.Any(n => n.Kind == BoundKind.WhenDecisionDagNode)) return;
+                if (!sortedNodes.Any(static n => n.Kind == BoundKind.WhenDecisionDagNode)) return;
 
                 // The way the DAG is prepared, it is possible for different `BoundWhenDecisionDagNode` nodes to
                 // share the same `WhenExpression` (same `BoundExpression` instance).
@@ -902,6 +996,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //   }
                 //   switch on whenNodeIdentifierLocal with dispatches to whenFalse labels
 
+                int nextWhenNodeIdentifier = 0;
                 // Prepared maps for `when` nodes and expressions
                 var whenExpressionMap = PooledDictionary<BoundExpression, (LabelSymbol LabelToWhenExpression, ArrayBuilder<BoundWhenDecisionDagNode> WhenNodes)>.GetInstance();
                 var whenNodeMap = PooledDictionary<BoundWhenDecisionDagNode, (LabelSymbol LabelToWhenExpression, int WhenNodeIdentifier)>.GetInstance();
@@ -910,7 +1005,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (node is BoundWhenDecisionDagNode whenNode)
                     {
                         var whenExpression = whenNode.WhenExpression;
-                        if (whenExpression is not null && whenExpression.ConstantValue != ConstantValue.True)
+                        if (whenExpression is not null && whenExpression.ConstantValueOpt != ConstantValue.True)
                         {
                             LabelSymbol labelToWhenExpression;
                             if (whenExpressionMap.TryGetValue(whenExpression, out var whenExpressionInfo))
@@ -926,7 +1021,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 whenExpressionMap.Add(whenExpression, (labelToWhenExpression, list));
                             }
 
-                            whenNodeMap.Add(whenNode, (labelToWhenExpression, _nextWhenNodeIdentifier++));
+                            whenNodeMap.Add(whenNode, (labelToWhenExpression, nextWhenNodeIdentifier++));
                         }
                     }
                 }
@@ -1032,7 +1127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Only add instrumentation (such as a sequence point) if the node is not compiler-generated.
                     if (GenerateInstrumentation && !whenExpression.WasCompilerGenerated)
                     {
-                        conditionalGoto = _localRewriter._instrumenter.InstrumentSwitchWhenClauseConditionalGotoBody(whenExpression, conditionalGoto);
+                        conditionalGoto = _localRewriter.Instrumenter.InstrumentSwitchWhenClauseConditionalGotoBody(whenExpression, conditionalGoto);
                     }
 
                     sectionBuilder.Add(conditionalGoto);
@@ -1062,7 +1157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var whenFalse = whenClause.WhenFalse;
                     var trueLabel = GetDagNodeLabel(whenTrue);
-                    if (whenClause.WhenExpression != null && whenClause.WhenExpression.ConstantValue != ConstantValue.True)
+                    if (whenClause.WhenExpression != null && whenClause.WhenExpression.ConstantValueOpt != ConstantValue.True)
                     {
                         addConditionalGoto(whenClause.WhenExpression, whenClause.Syntax, trueLabel, sectionBuilder);
 
@@ -1106,19 +1201,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case BoundEvaluationDecisionDagNode evaluationNode:
                         {
-                            var e = evaluationNode.Evaluation;
-                            if (e is not BoundDagAssignmentEvaluation)
-                            {
-                                BoundExpression sideEffect = LowerEvaluation(e);
-                                Debug.Assert(sideEffect != null);
-                                _loweredDecisionDag.Add(_factory.ExpressionStatement(sideEffect));
+                            BoundExpression sideEffect = LowerEvaluation(evaluationNode.Evaluation);
+                            Debug.Assert(sideEffect != null);
+                            _loweredDecisionDag.Add(_factory.ExpressionStatement(sideEffect));
 
-                                // We add a hidden sequence point after the evaluation's side-effect, which may be a call out
-                                // to user code such as `Deconstruct` or a property get, to permit edit-and-continue to
-                                // synchronize on changes.
-                                if (GenerateInstrumentation)
-                                    _loweredDecisionDag.Add(_factory.HiddenSequencePoint());
-                            }
+                            // We add a hidden sequence point after the evaluation's side-effect, which may be a call out
+                            // to user code such as `Deconstruct` or a property get, to permit edit-and-continue to
+                            // synchronize on changes.
+                            if (GenerateInstrumentation)
+                                _loweredDecisionDag.Add(_factory.HiddenSequencePoint());
 
                             if (nextNode != evaluationNode.Next)
                             {

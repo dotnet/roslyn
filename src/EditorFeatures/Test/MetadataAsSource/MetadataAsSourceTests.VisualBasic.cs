@@ -15,9 +15,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 {
     public partial class MetadataAsSourceTests
     {
+        [Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public class VisualBasic : AbstractMetadataAsSourceTests
         {
-            [Theory, CombinatorialData, WorkItem(530123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530123"), Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+            [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530123")]
             public async Task TestGenerateTypeInModule(bool signaturesOnly)
             {
                 var metadataSource = @"
@@ -67,10 +68,32 @@ internal sealed class M
                 await GenerateAndVerifySourceAsync(metadataSource, "M+D", LanguageNames.VisualBasic, expected, signaturesOnly: signaturesOnly);
             }
 
+            [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/60253")]
+            public async Task TestReferenceAssembly(bool signaturesOnly)
+            {
+                var metadataSource = @"
+<Assembly: System.Runtime.CompilerServices.ReferenceAssembly>
+Module M
+    Public Class D
+    End Class
+End Module";
+
+                var expected = $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Friend Module M
+    Public Class [|D|]
+        Public Sub New()
+    End Class
+End Module";
+
+                await GenerateAndVerifySourceAsync(metadataSource, "M+D", LanguageNames.VisualBasic, expected, signaturesOnly: signaturesOnly);
+            }
+
             // This test depends on the version of mscorlib used by the TestWorkspace and may 
             // change in the future
-            [WorkItem(530526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530526")]
-            [Theory, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+            [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530526")]
             [InlineData(false, Skip = "https://github.com/dotnet/roslyn/issues/52415")]
             [InlineData(true)]
             public async Task BracketedIdentifierSimplificationTest(bool signaturesOnly)
@@ -209,7 +232,7 @@ namespace System
                 await context.GenerateAndVerifySourceAsync("System.ObsoleteAttribute", expected, signaturesOnly: signaturesOnly);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+            [Fact]
             public void ExtractXMLFromDocComment()
             {
                 var docCommentText = @"''' <summary>
@@ -225,7 +248,7 @@ namespace System
                 Assert.Equal(expectedXMLFragment, extractedXMLFragment);
             }
 
-            [Theory, CombinatorialData, WorkItem(26605, "https://github.com/dotnet/roslyn/issues/26605")]
+            [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/26605")]
             public async Task TestValueTuple(bool signaturesOnly)
             {
                 using var context = TestContext.Create(LanguageNames.VisualBasic);

@@ -7,10 +7,11 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
 
     <UseExportProvider>
+    <Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
     Public Class CSharpCodeDefinitionWindowTests
         Inherits AbstractCodeDefinitionWindowTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
+        <Fact>
         Public Async Function ClassFromDefinition() As Task
             Const code As String = "
 class $$[|C|]
@@ -20,7 +21,7 @@ class $$[|C|]
             Await VerifyContextLocationAsync(code, "class C")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
+        <Fact>
         Public Async Function ClassFromReference() As Task
             Const code As String = "
 class [|C|]
@@ -34,7 +35,7 @@ class [|C|]
             Await VerifyContextLocationAsync(code, "class C")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
+        <Fact>
         Public Async Function MethodFromDefinition() As Task
             Const code As String = "
 class C
@@ -47,7 +48,7 @@ class C
             Await VerifyContextLocationAsync(code, "void C.M()")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
+        <Fact>
         Public Async Function MethodFromReference() As Task
             Const code As String = "
 class C
@@ -61,7 +62,7 @@ class C
             Await VerifyContextLocationAsync(code, "void C.M()")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
+        <Fact>
         Public Async Function ReducedGenericExtensionMethod() As Task
             Const code As String = "
 using System.Collections.Generic;
@@ -82,7 +83,7 @@ class C
             Await VerifyContextLocationAsync(code, "static void Ex.M<T>(List<T>)")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
+        <Fact>
         Public Async Function ToMetadataAsSource() As Task
             Const code As String = "
 class C

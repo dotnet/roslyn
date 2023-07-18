@@ -11,10 +11,6 @@
               "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
             },
             {
-              "filename": "/Microsoft.CodeAnalysis.CSharp.dll",
-              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
-            },
-            {
               "filename": "/Microsoft.CodeAnalysis.EditorFeatures.Text.dll",
               "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
             },
@@ -40,10 +36,6 @@
             },
             {
               "filename": "/Microsoft.CodeAnalysis.EditorFeatures.dll",
-              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
-            },
-            {
-              "filename": "/Microsoft.CodeAnalysis.CSharp.Features.dll",
               "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
             },
             {
@@ -182,7 +174,7 @@
             },
             {
               "filename": "/Microsoft.CodeAnalysis.CSharp.EditorFeatures.dll",
-              "testCases":[ "VSPE.OptProfTests.vs_asl_cs_scenario", "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs", "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Typing", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug" ]
+              "testCases":[ "VSPE.OptProfTests.vs_asl_cs_scenario", "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Typing", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug" ]
             },
             {
               "filename": "/Microsoft.CodeAnalysis.Features.dll",
@@ -217,6 +209,31 @@
               "testCases":[ "VSPE.OptProfTests.vs_asl_cs_scenario", "VSPE.OptProfTests.vs_perf_DesignTime_solution_loadclose_cs_picasso", "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs", "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Typing", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug" ]
             }
           ]
+        },
+        {
+          "container": "XamlOptProf",
+          "filteredTestCases": [
+            {
+              "filename": "/Microsoft.CodeAnalysis.dll",
+              "testCases":[ "Microsoft.Test.Performance.XamlOptProfCreateTests.UwpCreateProject_SurfaceIsolated" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.CSharp.dll",
+              "testCases":[ "Microsoft.Test.Performance.XamlOptProfCreateTests.UwpCreateProject_SurfaceIsolated" ]
+            },
+            {
+              "filename": "/Microsoft.VisualStudio.LanguageServices.dll",
+              "testCases":[ "Microsoft.Test.Performance.XamlOptProfCreateTests.UwpCreateProject_SurfaceIsolated" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.Features.dll",
+              "testCases":[ "Microsoft.Test.Performance.XamlOptProfCreateTests.UwpCreateProject_SurfaceIsolated" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.Workspaces.dll",
+              "testCases":[ "Microsoft.Test.Performance.XamlOptProfCreateTests.UwpCreateProject_SurfaceIsolated" ]
+            }
+          ]
         }
       ]
     },
@@ -247,7 +264,7 @@
       ]
     },
     {
-      "name": "Microsoft.CodeAnalysis.Compilers.vsix",
+      "name": "Microsoft.CodeAnalysis.Compilers.x64.vsix",
       "tests": [
         {
           "container": "TeamEng",

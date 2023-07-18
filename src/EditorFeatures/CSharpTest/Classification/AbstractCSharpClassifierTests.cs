@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         protected static TestWorkspace CreateWorkspace(string code, ParseOptions options, TestHost testHost)
         {
             var composition = EditorTestCompositions.EditorFeatures.WithTestHostParts(testHost);
-            return TestWorkspace.CreateCSharp(code, parseOptions: options, composition: composition);
+            return TestWorkspace.CreateCSharp(code, parseOptions: options, composition: composition, isMarkup: false);
         }
 
         protected override async Task DefaultTestAsync(string code, string allCode, TestHost testHost, FormattedClassification[] expected)
@@ -27,28 +27,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
             await TestAsync(code, allCode, testHost, parseOptions: Options.Script, expected);
         }
 
-        protected override string WrapInClass(string className, string code) =>
-$@"class {className} {{
+        protected override string WrapInClass(string className, string code)
+=> $@"class {className} {{
     {code}
 }}";
 
-        protected override string WrapInExpression(string code) =>
-$@"class C {{
+        protected override string WrapInExpression(string code)
+=> $@"class C {{
     void M() {{
         var q =
             {code}
     }}
 }}";
 
-        protected override string WrapInMethod(string className, string methodName, string code) =>
-$@"class {className} {{
+        protected override string WrapInMethod(string className, string methodName, string code)
+=> $@"class {className} {{
     void {methodName}() {{
         {code}
     }}
 }}";
 
-        protected override string WrapInNamespace(string code) =>
-$@"namespace N {{
+        protected override string WrapInNamespace(string code)
+=> $@"namespace N {{
     {code}
 }}";
     }

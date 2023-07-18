@@ -25,16 +25,16 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 
         /// <summary>
         /// create anchor indentation region around start and end token
-        /// start token will act as anchor token and right after anchor token to end of end token will become anchor region
+        /// right after anchor token to end of end token will become anchor region
         /// </summary>
-        public static AnchorIndentationOperation CreateAnchorIndentationOperation(SyntaxToken startToken, SyntaxToken endToken)
-            => CreateAnchorIndentationOperation(startToken, startToken, endToken, TextSpan.FromBounds(startToken.Span.End, endToken.Span.End));
+        public static AnchorIndentationOperation CreateAnchorIndentationOperation(SyntaxToken anchorToken, SyntaxToken endToken)
+            => CreateAnchorIndentationOperation(anchorToken, endToken, TextSpan.FromBounds(anchorToken.Span.End, endToken.Span.End));
 
         /// <summary>
         /// create anchor indentation region more explicitly by providing all necessary information.
         /// </summary>
-        public static AnchorIndentationOperation CreateAnchorIndentationOperation(SyntaxToken anchorToken, SyntaxToken startToken, SyntaxToken endToken, TextSpan textSpan)
-            => new(anchorToken, startToken, endToken, textSpan);
+        public static AnchorIndentationOperation CreateAnchorIndentationOperation(SyntaxToken anchorToken, SyntaxToken endToken, TextSpan textSpan)
+            => new(anchorToken, endToken, textSpan);
 
         /// <summary>
         /// create suppress region around start and end token

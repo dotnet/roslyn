@@ -16,21 +16,18 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
     [ExportLanguageService(typeof(IFormattingService), InternalLanguageNames.TypeScript), Shared]
-    internal sealed class VSTypeScriptFormattingService : IFormattingService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class VSTypeScriptFormattingService([Import(AllowDefault = true)] IVSTypeScriptFormattingServiceImplementation impl) : IFormattingService
     {
-        private readonly IVSTypeScriptFormattingServiceImplementation _impl;
+        private readonly IVSTypeScriptFormattingServiceImplementation _impl = impl ?? throw new ArgumentNullException(nameof(impl));
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VSTypeScriptFormattingService([Import(AllowDefault = true)] IVSTypeScriptFormattingServiceImplementation impl)
-            => _impl = impl ?? throw new ArgumentNullException(nameof(impl));
-
-        public Task<Document> FormatAsync(Document document, IEnumerable<TextSpan>? spans, OptionSet options, CancellationToken cancellationToken)
+        public Task<Document> FormatAsync(Document document, IEnumerable<TextSpan>? spans, LineFormattingOptions lineFormattingOptions, SyntaxFormattingOptions? syntaxFormattingOptions, CancellationToken cancellationToken)
         {
             var tsOptions = new VSTypeScriptIndentationOptions(
-                UseSpaces: !options.GetOption(FormattingOptions.UseTabs, InternalLanguageNames.TypeScript),
-                TabSize: options.GetOption(FormattingOptions.TabSize, InternalLanguageNames.TypeScript),
-                IndentSize: options.GetOption(FormattingOptions.IndentationSize, InternalLanguageNames.TypeScript));
+                UseSpaces: !lineFormattingOptions.UseTabs,
+                TabSize: lineFormattingOptions.TabSize,
+                IndentSize: lineFormattingOptions.IndentationSize);
 
             return _impl.FormatAsync(document, spans, tsOptions, cancellationToken);
         }

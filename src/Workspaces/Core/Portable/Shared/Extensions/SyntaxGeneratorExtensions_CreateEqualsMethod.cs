@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             SyntaxAnnotation statementAnnotation)
         {
             var statements = CreateIEquatableEqualsMethodStatements(
-                factory, generatorInternal, semanticModel.Compilation, containingType, symbols);
+                factory, generatorInternal, semanticModel.Compilation, semanticModel.SyntaxTree.Options, containingType, symbols);
             statements = statements.SelectAsArray(s => s.WithAdditionalAnnotations(statementAnnotation));
 
             var methodSymbol = constructedEquatableType
@@ -175,11 +176,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 statements.Add(localDeclaration);
 
-                // Ensure that the parameter we got was not null (which also ensures the 'as' test
-                // succeeded):
-                //
-                //      myType != null
-                expressions.Add(factory.ReferenceNotEqualsExpression(localNameExpression, factory.NullLiteralExpression()));
+                // Ensure that the parameter we got was not null (which also ensures the 'as' test succeeded):
+                AddReferenceNotNullCheck(factory, compilation, parseOptions, localNameExpression, expressions);
             }
 
             if (!containingType.IsValueType && HasExistingBaseEqualsMethod(containingType))
@@ -265,6 +263,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             SyntaxGenerator factory,
             SyntaxGeneratorInternal generatorInternal,
             Compilation compilation,
+            ParseOptions parseOptions,
             INamedTypeSymbol containingType,
             ImmutableArray<ISymbol> members)
         {
@@ -279,9 +278,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (!containingType.IsValueType)
             {
                 // It's not a value type. Ensure that the parameter we got was not null.
-                //
-                //      other != null
-                expressions.Add(factory.ReferenceNotEqualsExpression(otherNameExpression, factory.NullLiteralExpression()));
+
+                // if we support patterns, we can do `x is not null`
+                AddReferenceNotNullCheck(factory, compilation, parseOptions, otherNameExpression, expressions);
+
                 if (HasExistingBaseEqualsMethod(containingType))
                 {
                     // If we're overriding something that also provided an overridden 'Equals',
@@ -309,25 +309,73 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return statements.ToImmutableAndFree();
         }
 
-        public static string GetLocalName(this ITypeSymbol containingType)
+        private static void AddReferenceNotNullCheck(
+            SyntaxGenerator factory, Compilation compilation, ParseOptions parseOptions, SyntaxNode otherNameExpression, ArrayBuilder<SyntaxNode> expressions)
         {
-            var name = containingType.Name;
-            if (name.Length > 0)
+            var nullLiteral = factory.NullLiteralExpression();
+            if (compilation.Language == LanguageNames.VisualBasic)
             {
-                using var parts = TemporaryArray<TextSpan>.Empty;
-                StringBreaker.AddWordParts(name, ref parts.AsRef());
-                for (var i = parts.Count - 1; i >= 0; i--)
+                // VB supports `x is not nothing` as an idiomatic null check.
+                expressions.Add(factory.ReferenceNotEqualsExpression(otherNameExpression, nullLiteral));
+                return;
+            }
+
+            var generator = factory.SyntaxGeneratorInternal;
+            if (generator.SyntaxFacts.SupportsNotPattern(parseOptions))
+            {
+                // If we support not patterns then we can do "obj is not null && ..."
+                expressions.Add(
+                    generator.IsPatternExpression(otherNameExpression,
+                        generator.NotPattern(
+                            generator.ConstantPattern(nullLiteral))));
+            }
+            else if (generator.SupportsPatterns(parseOptions))
+            {
+                // if we support patterns then we can do `!(obj is null)`
+                expressions.Add(
+                    factory.LogicalNotExpression(
+                        generator.IsPatternExpression(otherNameExpression,
+                            generator.ConstantPattern(nullLiteral))));
+            }
+            else
+            {
+                // Otherwise, emit a call to ReferenceEquals(x, null) as the best way to do a null check
+                // without potentially going through an overloaded operator (now or in the future).
+                expressions.Add(
+                    factory.LogicalNotExpression(
+                        factory.InvocationExpression(
+                            factory.IdentifierName(nameof(ReferenceEquals)),
+                            otherNameExpression,
+                            nullLiteral)));
+            }
+        }
+
+#nullable enable
+
+        [return: NotNullIfNotNull(nameof(fallback))]
+        public static string? GetLocalName(this ITypeSymbol containingType, string? fallback = "v")
+        {
+            // Don't want to do things like `String string`.  That's not idiomatic in .net.
+            if (!containingType.IsSpecialType())
+            {
+                var name = containingType.Name;
+                if (name.Length > 0)
                 {
-                    var p = parts[i];
-                    if (p.Length > 0 && char.IsLetter(name[p.Start]))
+                    using var parts = TemporaryArray<TextSpan>.Empty;
+                    StringBreaker.AddWordParts(name, ref parts.AsRef());
+                    for (var i = parts.Count - 1; i >= 0; i--)
                     {
-                        return name.Substring(p.Start, p.Length).ToCamelCase();
+                        var p = parts[i];
+                        if (p.Length > 0 && char.IsLetter(name[p.Start]))
+                            return name.Substring(p.Start, p.Length).ToCamelCase();
                     }
                 }
             }
 
-            return "v";
+            return fallback;
         }
+
+#nullable restore
 
         private static bool ImplementsIEquatable(ITypeSymbol memberType, INamedTypeSymbol iequatableType)
         {

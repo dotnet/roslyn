@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -26,11 +27,51 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Parameter:
                     return ((BoundParameter)node).ParameterSymbol.RefKind;
 
+                case BoundKind.FieldAccess:
+                    return ((BoundFieldAccess)node).FieldSymbol.RefKind;
+
                 case BoundKind.Call:
                     return ((BoundCall)node).Method.RefKind;
 
                 case BoundKind.PropertyAccess:
                     return ((BoundPropertyAccess)node).PropertySymbol.RefKind;
+
+                case BoundKind.IndexerAccess:
+                    return ((BoundIndexerAccess)node).Indexer.RefKind;
+
+                case BoundKind.ImplicitIndexerAccess:
+                    return ((BoundImplicitIndexerAccess)node).IndexerOrSliceAccess.GetRefKind();
+
+                case BoundKind.InlineArrayAccess:
+                    {
+                        var elementAccess = (BoundInlineArrayAccess)node;
+
+                        if (!elementAccess.IsValue)
+                        {
+                            switch (elementAccess.GetItemOrSliceHelper)
+                            {
+                                case WellKnownMember.System_Span_T__get_Item:
+                                    return RefKind.Ref;
+                                case WellKnownMember.System_ReadOnlySpan_T__get_Item:
+                                    return RefKind.RefReadOnly;
+                            }
+                        }
+
+                        return RefKind.None;
+                    }
+
+                case BoundKind.ObjectInitializerMember:
+                    var member = (BoundObjectInitializerMember)node;
+                    if (member.HasErrors)
+                        return RefKind.None;
+
+                    return member.MemberSymbol switch
+                    {
+                        FieldSymbol f => f.RefKind,
+                        PropertySymbol f => f.RefKind,
+                        EventSymbol => RefKind.None,
+                        var s => throw ExceptionUtilities.UnexpectedValue(s?.Kind)
+                    };
 
                 default:
                     return RefKind.None;
@@ -39,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static bool IsLiteralNull(this BoundExpression node)
         {
-            return node is { Kind: BoundKind.Literal, ConstantValue: { Discriminator: ConstantValueTypeDiscriminator.Null } };
+            return node is { Kind: BoundKind.Literal, ConstantValueOpt: { Discriminator: ConstantValueTypeDiscriminator.Null } };
         }
 
         public static bool IsLiteralDefault(this BoundExpression node)
@@ -70,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            var constValue = node.ConstantValue;
+            var constValue = node.ConstantValueOpt;
             if (constValue != null)
             {
                 return constValue.IsDefaultValue;
@@ -122,28 +163,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static bool MethodGroupReceiverIsDynamic(this BoundMethodGroup node)
         {
             return node.InstanceOpt != null && node.InstanceOpt.HasDynamicType();
-        }
-
-        public static bool HasExpressionSymbols(this BoundExpression node)
-        {
-            switch (node.Kind)
-            {
-                case BoundKind.Call:
-                case BoundKind.Local:
-                case BoundKind.FieldAccess:
-                case BoundKind.PropertyAccess:
-                case BoundKind.IndexerAccess:
-                case BoundKind.EventAccess:
-                case BoundKind.MethodGroup:
-                case BoundKind.ObjectCreationExpression:
-                case BoundKind.TypeExpression:
-                case BoundKind.NamespaceExpression:
-                    return true;
-                case BoundKind.BadExpression:
-                    return ((BoundBadExpression)node).Symbols.Length > 0;
-                default:
-                    return false;
-            }
         }
 
         public static void GetExpressionSymbols(this BoundExpression node, ArrayBuilder<Symbol> symbols, BoundNode parent, Binder binder)
@@ -244,6 +263,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol? receiverType = expressionOpt.Type;
             return receiverType is NamedTypeSymbol { Kind: SymbolKind.NamedType, IsComImport: true };
+        }
+
+        internal static bool IsDiscardExpression(this BoundExpression expr)
+        {
+            return expr switch
+            {
+                BoundDiscardExpression => true,
+                OutDeconstructVarPendingInference { IsDiscardExpression: true } => true,
+                BoundDeconstructValuePlaceholder { IsDiscardExpression: true } => true,
+                _ => false
+            };
         }
     }
 }

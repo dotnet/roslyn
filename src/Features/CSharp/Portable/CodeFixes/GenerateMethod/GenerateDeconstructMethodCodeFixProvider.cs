@@ -11,7 +11,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -54,11 +53,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateDeconstructMethod
             var token = root.FindToken(span.Start);
 
             var deconstruction = token.GetAncestors<SyntaxNode>()
-                .FirstOrDefault(n => n.IsKind(SyntaxKind.SimpleAssignmentExpression, SyntaxKind.ForEachVariableStatement));
+                .FirstOrDefault(n => n.Kind() is SyntaxKind.SimpleAssignmentExpression or SyntaxKind.ForEachVariableStatement or SyntaxKind.PositionalPatternClause);
 
             if (deconstruction is null)
             {
-                Debug.Fail("The diagnostic can only be produced in context of a deconstruction-assignment or deconstruction-foreach");
+                Debug.Fail("The diagnostic can only be produced in context of a deconstruction-assignment, deconstruction-foreach or deconstruction-positionalpattern");
                 return;
             }
 
@@ -66,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateDeconstructMethod
 
             DeconstructionInfo info;
             ITypeSymbol type;
-            ExpressionSyntax target;
+            SyntaxNode target;
             switch (deconstruction)
             {
                 case ForEachVariableStatementSyntax @foreach:
@@ -79,8 +78,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateDeconstructMethod
                     type = model.GetTypeInfo(assignment.Right).Type;
                     target = assignment.Left;
                     break;
+                case PositionalPatternClauseSyntax positionalPattern:
+                    info = default;
+                    type = model.GetTypeInfo(deconstruction.Parent).Type;
+                    target = deconstruction;
+                    break;
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
             }
 
             if (type?.Kind != SymbolKind.NamedType)
@@ -94,8 +98,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateDeconstructMethod
                 return;
             }
 
+            // Checking that Subpatterns of deconstruction are ConstantPatternSyntax because for override of TryMakeParameters in CSharpGenerateDeconstructMethodService
+            // Subpatterns are cast to ConstantPatternSyntax for use of GenerateNameForExpression and GetTypeInfo
+            if (deconstruction is PositionalPatternClauseSyntax positionalPatternClause && positionalPatternClause.Subpatterns.Any(p => p.Pattern is not ConstantPatternSyntax))
+            {
+                return;
+            }
+
             var service = document.GetLanguageService<IGenerateDeconstructMemberService>();
-            var codeActions = await service.GenerateDeconstructMethodAsync(document, target, (INamedTypeSymbol)type, cancellationToken).ConfigureAwait(false);
+            var codeActions = await service.GenerateDeconstructMethodAsync(document, target, (INamedTypeSymbol)type, context.Options, cancellationToken).ConfigureAwait(false);
 
             Debug.Assert(!codeActions.IsDefault);
             context.RegisterFixes(codeActions, context.Diagnostics);

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Roslyn.Utilities;
@@ -20,11 +20,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var cancellationToken = context.CancellationToken;
             var originatingDocument = context.Document;
             var position = context.Position;
-
-            var semanticModel = await originatingDocument.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-            var service = originatingDocument.GetRequiredLanguageService<ISyntaxContextService>();
             var solution = originatingDocument.Project.Solution;
-            var syntaxContext = service.CreateContext(originatingDocument, semanticModel, position, cancellationToken);
+            var syntaxContext = await context.GetSyntaxContextWithExistingSpeculativeModelAsync(originatingDocument, cancellationToken).ConfigureAwait(false);
             if (!syntaxContext.IsPreProcessorExpressionContext)
                 return;
 

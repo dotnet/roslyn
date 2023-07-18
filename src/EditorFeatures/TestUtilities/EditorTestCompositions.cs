@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities.Notification;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Fakes;
 using Microsoft.CodeAnalysis.UnitTests.Remote;
@@ -47,10 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(VisualStudio.Language.Intellisense.AsyncCompletion.IAsyncCompletionBroker).Assembly,
 
                 // Microsoft.VisualStudio.CoreUtility
-                typeof(VisualStudio.Utilities.IFeatureServiceFactory).Assembly,
-
-                // Microsoft.VisualStudio.Text.Internal
-                typeof(VisualStudio.Text.Utilities.IExperimentationServiceInternal).Assembly)
+                typeof(VisualStudio.Utilities.IFeatureServiceFactory).Assembly)
             .AddParts(
                 typeof(TestSerializerService.Factory),
                 typeof(TestExportJoinableTaskContext),
@@ -59,12 +57,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(TestObscuringTipManager));         // TODO: https://devdiv.visualstudio.com/DevDiv/_workitems?id=544569
 
         public static readonly TestComposition EditorFeatures = FeaturesTestCompositions.Features
+            .AddParts(typeof(TestGlobalOperationNotificationService))
             .Add(Editor)
             .AddAssemblies(
                 typeof(TextEditorResources).Assembly,
                 typeof(EditorFeaturesResources).Assembly,
                 typeof(CSharp.CSharpEditorResources).Assembly,
-                typeof(VisualBasic.VBEditorResources).Assembly);
+                typeof(VisualBasic.VBEditorResources).Assembly,
+                typeof(LanguageServerResources).Assembly);
 
         public static readonly TestComposition EditorFeaturesWpf = EditorFeatures
             .AddAssemblies(
@@ -76,11 +76,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             .AddParts(
                 typeof(TestInteractiveWindowEditorFactoryService));
 
-        public static readonly TestComposition LanguageServerProtocol = EditorFeatures
-            .AddAssemblies(
-                typeof(LanguageServerResources).Assembly);
+        public static readonly TestComposition LanguageServerProtocol = FeaturesTestCompositions.Features
+            .AddAssemblies(typeof(LanguageServerResources).Assembly);
 
-        public static readonly TestComposition LanguageServerProtocolWpf = EditorFeaturesWpf
-            .AddAssemblies(LanguageServerProtocol.Assemblies);
+        public static readonly TestComposition LanguageServerProtocolEditorFeatures = EditorFeatures
+            .AddAssemblies(typeof(LanguageServerResources).Assembly);
     }
 }

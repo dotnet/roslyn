@@ -2,39 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 using System.Threading;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Internal.Log
 {
     /// <summary>
     /// Implementation of <see cref="ILogger"/> that produce timing debug output. 
     /// </summary>
-    internal sealed class TraceLogger : ILogger
+    internal sealed class TraceLogger(Func<FunctionId, bool>? isEnabledPredicate) : ILogger
     {
-        public static readonly TraceLogger Instance = new();
-
-        private readonly Func<FunctionId, bool> _isEnabledPredicate;
-
-        public TraceLogger()
-            : this((Func<FunctionId, bool>)null)
-        {
-        }
-
-        public TraceLogger(IGlobalOptionService optionService)
-            : this(Logger.GetLoggingChecker(optionService))
-        {
-        }
-
-        public TraceLogger(Func<FunctionId, bool> isEnabledPredicate)
-            => _isEnabledPredicate = isEnabledPredicate;
+        public static readonly TraceLogger Instance = new(isEnabledPredicate: null);
 
         public bool IsEnabled(FunctionId functionId)
-            => _isEnabledPredicate == null || _isEnabledPredicate(functionId);
+            => isEnabledPredicate == null || isEnabledPredicate(functionId);
 
         public void Log(FunctionId functionId, LogMessage logMessage)
             => Trace.WriteLine(string.Format("[{0}] {1} - {2}", Environment.CurrentManagedThreadId, functionId.ToString(), logMessage.GetMessage()));

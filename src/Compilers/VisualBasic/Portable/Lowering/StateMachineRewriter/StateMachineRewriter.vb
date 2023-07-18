@@ -14,8 +14,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
     ''' </summary>
     ''' <typeparam name="TProxy">
-    ''' Type used by State Machine rewriter to represent symbol proxy. Lambda rewriter as 
-    ''' well as iterator rewriter use simplified form of proxy as they only capture 
+    ''' Type used by State Machine rewriter to represent symbol proxy. Lambda rewriter as
+    ''' well as iterator rewriter use simplified form of proxy as they only capture
     ''' locals as r-values in fields, async rewriter uses a different structure as a proxy
     ''' because it has to capture l-values on stack as well
     ''' </typeparam>
@@ -28,16 +28,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected ReadOnly StateMachineType As SynthesizedContainer
         Protected ReadOnly SlotAllocatorOpt As VariableSlotAllocator
         Protected ReadOnly SynthesizedLocalOrdinals As SynthesizedLocalOrdinalsDispenser
+        Protected ReadOnly StateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo)
 
         Protected StateField As FieldSymbol
         Protected nonReusableLocalProxies As Dictionary(Of Symbol, TProxy)
         Protected nextFreeHoistedLocalSlot As Integer
-        Protected hoistedVariables As IReadOnlySet(Of Symbol)
+        Protected hoistedVariables As Roslyn.Utilities.IReadOnlySet(Of Symbol)
         Protected InitialParameters As Dictionary(Of Symbol, TProxy)
 
         Protected Sub New(body As BoundStatement,
                           method As MethodSymbol,
                           stateMachineType As StateMachineTypeSymbol,
+                          stateMachineStateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo),
                           slotAllocatorOpt As VariableSlotAllocator,
                           compilationState As TypeCompilationState,
                           diagnostics As BindingDiagnosticBag)
@@ -55,6 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me.SlotAllocatorOpt = slotAllocatorOpt
             Me.Diagnostics = diagnostics
             Me.SynthesizedLocalOrdinals = New SynthesizedLocalOrdinalsDispenser()
+            Me.StateDebugInfoBuilder = stateMachineStateDebugInfoBuilder
             Me.nonReusableLocalProxies = New Dictionary(Of Symbol, TProxy)()
 
             Me.F = New SyntheticBoundNodeFactory(method, method, method.ContainingType, body.Syntax, compilationState, diagnostics)
@@ -194,7 +197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim proxy As TProxy = Nothing
             If Me.nonReusableLocalProxies.TryGetValue(parameter, proxy) Then
-                ' This proxy may have already be added while processing 
+                ' This proxy may have already be added while processing
                 ' previous ByRef local
                 Return proxy
             End If
@@ -265,7 +268,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim proxy As TProxy = Nothing
             If nonReusableLocalProxies.TryGetValue(local, proxy) Then
-                ' This proxy may have already be added while processing 
+                ' This proxy may have already be added while processing
                 ' previous ByRef local
                 Return proxy
             End If
@@ -339,9 +342,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Select Case local.SynthesizedKind
                 Case SynthesizedLocalKind.LambdaDisplayClass
-                    proxyName = GeneratedNameConstants.StateMachineHoistedUserVariablePrefix & GeneratedNameConstants.ClosureVariablePrefix & "$" & slotIndex
+                    proxyName = GeneratedNameConstants.StateMachineHoistedUserVariableOrDisplayClassPrefix & GeneratedNameConstants.ClosureVariablePrefix & "$" & slotIndex
                 Case SynthesizedLocalKind.UserDefined
-                    proxyName = GeneratedNameConstants.StateMachineHoistedUserVariablePrefix & local.Name & "$" & slotIndex
+                    proxyName = GeneratedNameConstants.StateMachineHoistedUserVariableOrDisplayClassPrefix & local.Name & "$" & slotIndex
                 Case SynthesizedLocalKind.With
                     proxyName = GeneratedNameConstants.HoistedWithLocalPrefix & slotIndex
                 Case Else
@@ -354,7 +357,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' If any required special/well-known type/member is not found or has use-site errors
         ''' we should not continue with transformation because it may have unwanted consequences;
-        ''' e.g. we do return Nothing if well-known member symbol is not found. This method should 
+        ''' e.g. we do return Nothing if well-known member symbol is not found. This method should
         ''' check all required symbols and return False if any of them are missing or have use-site errors.
         ''' We will also return True if signature is definitely bad - contains parameters that are ByRef or have error types
         ''' </summary>

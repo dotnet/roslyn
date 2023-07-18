@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
+using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.PdbSourceDocument;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -36,7 +37,7 @@ public class C
                 var sourceLinkService = new TestSourceLinkService(pdbFilePath: pdbFilePath);
                 var service = new PdbFileLocatorService(sourceLinkService, logger: null);
 
-                using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), new TelemetryMessage(CancellationToken.None), CancellationToken.None);
+                using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), useDefaultSymbolServers: false, new TelemetryMessage(CancellationToken.None), CancellationToken.None);
 
                 Assert.NotNull(result);
             });
@@ -66,7 +67,7 @@ public class C
                 var sourceLinkService = new TestSourceLinkService(pdbFilePath);
                 var service = new PdbFileLocatorService(sourceLinkService, logger: null);
 
-                using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), new TelemetryMessage(CancellationToken.None), CancellationToken.None);
+                using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), useDefaultSymbolServers: false, new TelemetryMessage(CancellationToken.None), CancellationToken.None);
 
                 Assert.Null(result);
             });
@@ -94,7 +95,7 @@ public class C
                 var sourceLinkService = new TestSourceLinkService(pdbFilePath: null);
                 var service = new PdbFileLocatorService(sourceLinkService, logger: null);
 
-                using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), new TelemetryMessage(CancellationToken.None), CancellationToken.None);
+                using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), useDefaultSymbolServers: false, new TelemetryMessage(CancellationToken.None), CancellationToken.None);
 
                 Assert.Null(result);
             });

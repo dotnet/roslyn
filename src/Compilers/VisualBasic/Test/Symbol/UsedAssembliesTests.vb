@@ -26,7 +26,8 @@ End Interface
     </compilation>
 
             Dim comp1 = CreateEmptyCompilation(source)
-            CompileAndVerify(comp1)
+            ' ILVerify: Failed to load type 'System.String' from assembly ...
+            CompileAndVerify(comp1, verify:=Verification.FailsILVerify)
 
             Assert.Empty(comp1.GetUsedAssemblyReferences())
 
@@ -48,7 +49,7 @@ End Interface
     </compilation>
 
             Dim comp1 = CreateEmptyCompilation(source)
-            CompileAndVerify(comp1)
+            CompileAndVerify(comp1, verify:=Verification.FailsILVerify)
 
             Dim source2 =
     <compilation>
@@ -235,7 +236,7 @@ End Interface
     </compilation>
 
             Dim comp1 = CreateEmptyCompilation(source)
-            CompileAndVerify(comp1)
+            CompileAndVerify(comp1, verify:=Verification.FailsILVerify)
 
             Dim source2 =
     <compilation>
@@ -1699,7 +1700,6 @@ End Class
 
             VerifyUsedAssemblyReferences(Of PEAssemblySymbol)(source2, comp1ImageRef)
             VerifyUsedAssemblyReferences(Of SourceAssemblySymbol)(source2, comp1Ref)
-
 
             Dim source3 =
 "
@@ -3479,7 +3479,6 @@ End Class
                     Dim comp3 As Compilation = CreateCompilation(source, references:=references, parseOptions:=TestOptions.Regular.WithDocumentationMode(DocumentationMode.Parse))
                     AssertUsedAssemblyReferences(comp3, references)
                 End Sub
-
 
             verifyCrefReferences(comp0Ref, comp1Ref,
 "

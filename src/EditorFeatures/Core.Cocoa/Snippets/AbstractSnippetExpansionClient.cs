@@ -8,10 +8,13 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -23,12 +26,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 {
-    internal abstract class AbstractSnippetExpansionClient : ForegroundThreadAffinitizedObject, IExpansionClient
+    internal abstract class AbstractSnippetExpansionClient : IExpansionClient
     {
         protected readonly IExpansionServiceProvider ExpansionServiceProvider;
         protected readonly IContentType LanguageServiceGuid;
         protected readonly ITextView TextView;
         protected readonly ITextBuffer SubjectBuffer;
+        public readonly EditorOptionsService EditorOptionsService;
 
         protected bool _indentCaretOnCommit;
         protected int _indentDepth;
@@ -36,13 +40,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         public IExpansionSession? ExpansionSession { get; private set; }
 
-        public AbstractSnippetExpansionClient(IThreadingContext threadingContext, IContentType languageServiceGuid, ITextView textView, ITextBuffer subjectBuffer, IExpansionServiceProvider expansionServiceProvider)
-            : base(threadingContext)
+        public AbstractSnippetExpansionClient(
+            IContentType languageServiceGuid,
+            ITextView textView,
+            ITextBuffer subjectBuffer,
+            IExpansionServiceProvider expansionServiceProvider,
+            EditorOptionsService editorOptionsService)
         {
-            this.LanguageServiceGuid = languageServiceGuid;
-            this.TextView = textView;
-            this.SubjectBuffer = subjectBuffer;
-            this.ExpansionServiceProvider = expansionServiceProvider;
+            LanguageServiceGuid = languageServiceGuid;
+            TextView = textView;
+            SubjectBuffer = subjectBuffer;
+            ExpansionServiceProvider = expansionServiceProvider;
+            EditorOptionsService = editorOptionsService;
         }
 
         public abstract IExpansionFunction? GetExpansionFunction(XElement xmlFunctionNode, string fieldName);
@@ -90,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
             var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(SubjectBuffer.CurrentSnapshot, snippetTrackingSpan.GetSpan(SubjectBuffer.CurrentSnapshot));
 
-            SubjectBuffer.CurrentSnapshot.FormatAndApplyToBuffer(formattingSpan, CancellationToken.None);
+            SubjectBuffer.FormatAndApplyToBuffer(formattingSpan, EditorOptionsService, CancellationToken.None);
 
             if (isFullSnippetFormat)
             {
@@ -144,8 +153,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                     var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                     if (document != null)
                     {
-                        var documentOptions = document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-                        _indentDepth = lineText.GetColumnFromLineOffset(lineText.Length, documentOptions.GetOption(FormattingOptions.TabSize));
+                        var lineFormattingOptions = SubjectBuffer.GetLineFormattingOptions(EditorOptionsService, explicitFormat: false);
+                        _indentDepth = lineText.GetColumnFromLineOffset(lineText.Length, lineFormattingOptions.TabSize);
                     }
                     else
                     {
@@ -367,7 +376,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return false;
             }
 
-            snippetFunctionName = xmlFunctionNode.Value.Substring(0, xmlFunctionNode.Value.IndexOf('('));
+            snippetFunctionName = xmlFunctionNode.Value[..xmlFunctionNode.Value.IndexOf('(')];
 
             var paramStart = xmlFunctionNode.Value.IndexOf('(') + 1;
             var paramLength = xmlFunctionNode.Value.LastIndexOf(')') - xmlFunctionNode.Value.IndexOf('(') - 1;

@@ -548,10 +548,8 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
         private static string TrimCrefPrefix(string value)
         {
-            if (value.Length >= 2 && value[1] == ':')
-            {
+            if (value is [_, ':', ..])
                 value = value[2..];
-            }
 
             return value;
         }

@@ -11,6 +11,7 @@ using System.Linq;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -127,12 +128,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             RefKind returnRefKind = default,
             TypeSymbol returnType = null,
             bool isFunctionPointerResolution = false,
+            bool isExtensionMethodResolution = false,
             in CallingConventionInfo callingConventionInfo = default)
         {
             MethodOrPropertyOverloadResolution(
                 methods, typeArguments, receiver, arguments, result,
                 isMethodGroupConversion, allowRefOmittedArguments, ref useSiteInfo, inferWithDynamic,
-                allowUnexpandedForm, returnRefKind, returnType, isFunctionPointerResolution, in callingConventionInfo);
+                allowUnexpandedForm, returnRefKind, returnType, isFunctionPointerResolution: isFunctionPointerResolution,
+                isExtensionMethodResolution: isExtensionMethodResolution, in callingConventionInfo);
         }
 
         // Perform overload resolution on the given property group, with the given arguments and
@@ -167,16 +170,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             RefKind returnRefKind = default,
             TypeSymbol returnType = null,
             bool isFunctionPointerResolution = false,
+            bool isExtensionMethodResolution = false,
             in CallingConventionInfo callingConventionInfo = default)
             where TMember : Symbol
         {
             var results = result.ResultsBuilder;
 
+            // No need to check for overridden or hidden methods if the members were
+            // resolved as extension methods and the extension methods are defined in
+            // types derived from System.Object.
+            bool checkOverriddenOrHidden = !(isExtensionMethodResolution &&
+                members.All(static m => m.ContainingSymbol is NamedTypeSymbol { BaseTypeNoUseSiteDiagnostics.SpecialType: SpecialType.System_Object }));
+
             // First, attempt overload resolution not getting complete results.
             PerformMemberOverloadResolution(
                 results, members, typeArguments, receiver, arguments, completeResults: false, isMethodGroupConversion,
                 returnRefKind, returnType, allowRefOmittedArguments, isFunctionPointerResolution, callingConventionInfo,
-                ref useSiteInfo, inferWithDynamic, allowUnexpandedForm);
+                ref useSiteInfo, inferWithDynamic: inferWithDynamic, allowUnexpandedForm: allowUnexpandedForm, checkOverriddenOrHidden: checkOverriddenOrHidden);
 
             if (!OverloadResolutionResultIsValid(results, arguments.HasDynamicArgument))
             {
@@ -186,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     results, members, typeArguments, receiver, arguments,
                     completeResults: true, isMethodGroupConversion, returnRefKind, returnType,
                     allowRefOmittedArguments, isFunctionPointerResolution, callingConventionInfo,
-                    ref useSiteInfo, allowUnexpandedForm: allowUnexpandedForm);
+                    ref useSiteInfo, inferWithDynamic: false, allowUnexpandedForm: allowUnexpandedForm, checkOverriddenOrHidden: checkOverriddenOrHidden);
             }
         }
 
@@ -238,8 +248,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isFunctionPointerResolution,
             in CallingConventionInfo callingConventionInfo,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
-            bool inferWithDynamic = false,
-            bool allowUnexpandedForm = true)
+            bool inferWithDynamic,
+            bool allowUnexpandedForm,
+            bool checkOverriddenOrHidden)
             where TMember : Symbol
         {
             // SPEC: The binding-time processing of a method invocation of the form M(A), where M is a 
@@ -255,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // overriding or hiding member is not in a subtype of the type containing the
             // (potentially) overridden or hidden member.
             Dictionary<NamedTypeSymbol, ArrayBuilder<TMember>> containingTypeMapOpt = null;
-            if (members.Count > 50) // TODO: fine-tune this value
+            if (checkOverriddenOrHidden && members.Count > 50) // TODO: fine-tune this value
             {
                 containingTypeMapOpt = PartitionMembersByContainingType(members);
             }
@@ -264,9 +275,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < members.Count; i++)
             {
                 AddMemberToCandidateSet(
-                    members[i], results, members, typeArguments, receiver, arguments, completeResults,
-                    isMethodGroupConversion, allowRefOmittedArguments, containingTypeMapOpt, inferWithDynamic: inferWithDynamic,
-                    useSiteInfo: ref useSiteInfo, allowUnexpandedForm: allowUnexpandedForm);
+                    members[i],
+                    results,
+                    members,
+                    typeArguments,
+                    arguments,
+                    completeResults,
+                    isMethodGroupConversion,
+                    allowRefOmittedArguments,
+                    containingTypeMapOpt,
+                    inferWithDynamic: inferWithDynamic,
+                    useSiteInfo: ref useSiteInfo,
+                    allowUnexpandedForm: allowUnexpandedForm,
+                    checkOverriddenOrHidden: checkOverriddenOrHidden);
             }
 
             // CONSIDER: use containingTypeMapOpt for RemoveLessDerivedMembers?
@@ -278,7 +299,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             RemoveInaccessibleTypeArguments(results, ref useSiteInfo);
 
             // SPEC: The set of candidate methods is reduced to contain only methods from the most derived types.
-            RemoveLessDerivedMembers(results, ref useSiteInfo);
+            if (checkOverriddenOrHidden)
+            {
+                RemoveLessDerivedMembers(results, ref useSiteInfo);
+            }
 
             if (Compilation.LanguageVersion.AllowImprovedOverloadCandidates())
             {
@@ -334,14 +358,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 overloadResolutionResult.ResultsBuilder,
                 funcPtrBuilder,
                 typeArgumentsBuilder,
-                receiverOpt: null,
                 analyzedArguments,
                 completeResults: true,
                 isMethodGroupConversion: false,
                 allowRefOmittedArguments: false,
                 containingTypeMapOpt: null,
                 inferWithDynamic: false,
-                ref useSiteInfo,
+                useSiteInfo: ref useSiteInfo,
                 allowUnexpandedForm: true);
 
             ReportUseSiteInfo(overloadResolutionResult.ResultsBuilder, ref useSiteInfo);
@@ -808,7 +831,6 @@ outerDefault:
             ArrayBuilder<MemberResolutionResult<TMember>> results,
             ArrayBuilder<TMember> members,
             ArrayBuilder<TypeWithAnnotations> typeArguments,
-            BoundExpression receiverOpt,
             AnalyzedArguments arguments,
             bool completeResults,
             bool isMethodGroupConversion,
@@ -816,9 +838,12 @@ outerDefault:
             Dictionary<NamedTypeSymbol, ArrayBuilder<TMember>> containingTypeMapOpt,
             bool inferWithDynamic,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
-            bool allowUnexpandedForm)
+            bool allowUnexpandedForm,
+            bool checkOverriddenOrHidden = true)
             where TMember : Symbol
         {
+            Debug.Assert(checkOverriddenOrHidden || containingTypeMapOpt is null);
+
             // SPEC VIOLATION:
             //
             // The specification states that the method group that resulted from member lookup has
@@ -848,47 +873,50 @@ outerDefault:
             // clever in filtering out methods from less-derived classes later, but we'll cross that
             // bridge when we come to it.
 
-            if (members.Count < 2)
+            if (checkOverriddenOrHidden)
             {
-                // No hiding or overriding possible.
-            }
-            else if (containingTypeMapOpt == null)
-            {
-                if (MemberGroupContainsMoreDerivedOverride(members, member, checkOverrideContainingType: true, ref useSiteInfo))
+                if (members.Count < 2)
                 {
-                    // Don't even add it to the result set.  We'll add only the most-overriding members.
-                    return;
+                    // No hiding or overriding possible.
                 }
-
-                if (MemberGroupHidesByName(members, member, ref useSiteInfo))
+                else if (containingTypeMapOpt == null)
                 {
-                    return;
-                }
-            }
-            else if (containingTypeMapOpt.Count == 1)
-            {
-                // No hiding or overriding since all members are in the same type.
-            }
-            else
-            {
-                // NOTE: only check for overriding/hiding in subtypes of f.ContainingType.
-                NamedTypeSymbol memberContainingType = member.ContainingType;
-                foreach (var pair in containingTypeMapOpt)
-                {
-                    NamedTypeSymbol otherType = pair.Key;
-                    if (otherType.IsDerivedFrom(memberContainingType, TypeCompareKind.ConsiderEverything, useSiteInfo: ref useSiteInfo))
+                    if (MemberGroupContainsMoreDerivedOverride(members, member, checkOverrideContainingType: true, ref useSiteInfo))
                     {
-                        ArrayBuilder<TMember> others = pair.Value;
+                        // Don't even add it to the result set.  We'll add only the most-overriding members.
+                        return;
+                    }
 
-                        if (MemberGroupContainsMoreDerivedOverride(others, member, checkOverrideContainingType: false, ref useSiteInfo))
+                    if (MemberGroupHidesByName(members, member, ref useSiteInfo))
+                    {
+                        return;
+                    }
+                }
+                else if (containingTypeMapOpt.Count == 1)
+                {
+                    // No hiding or overriding since all members are in the same type.
+                }
+                else
+                {
+                    // NOTE: only check for overriding/hiding in subtypes of f.ContainingType.
+                    NamedTypeSymbol memberContainingType = member.ContainingType;
+                    foreach (var pair in containingTypeMapOpt)
+                    {
+                        NamedTypeSymbol otherType = pair.Key;
+                        if (otherType.IsDerivedFrom(memberContainingType, TypeCompareKind.ConsiderEverything, useSiteInfo: ref useSiteInfo))
                         {
-                            // Don't even add it to the result set.  We'll add only the most-overriding members.
-                            return;
-                        }
+                            ArrayBuilder<TMember> others = pair.Value;
 
-                        if (MemberGroupHidesByName(others, member, ref useSiteInfo))
-                        {
-                            return;
+                            if (MemberGroupContainsMoreDerivedOverride(others, member, checkOverrideContainingType: false, ref useSiteInfo))
+                            {
+                                // Don't even add it to the result set.  We'll add only the most-overriding members.
+                                return;
+                            }
+
+                            if (MemberGroupHidesByName(others, member, ref useSiteInfo))
+                            {
+                                return;
+                            }
                         }
                     }
                 }
@@ -1267,7 +1295,7 @@ outerDefault:
                 // work necessary to eliminate methods on base types of Mammal when we eliminated
                 // methods on base types of Cat.
 
-                if (IsLessDerivedThanAny(result.LeastOverriddenMember.ContainingType, results, ref useSiteInfo))
+                if (IsLessDerivedThanAny(index: f, result.LeastOverriddenMember.ContainingType, results, ref useSiteInfo))
                 {
                     results[f] = result.WithResult(MemberAnalysisResult.LessDerived());
                 }
@@ -1275,11 +1303,16 @@ outerDefault:
         }
 
         // Is this type a base type of any valid method on the list?
-        private static bool IsLessDerivedThanAny<TMember>(TypeSymbol type, ArrayBuilder<MemberResolutionResult<TMember>> results, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private static bool IsLessDerivedThanAny<TMember>(int index, TypeSymbol type, ArrayBuilder<MemberResolutionResult<TMember>> results, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             where TMember : Symbol
         {
             for (int f = 0; f < results.Count; ++f)
             {
+                if (f == index)
+                {
+                    continue;
+                }
+
                 var result = results[f];
 
                 if (!result.Result.IsValid)
@@ -1634,7 +1667,7 @@ outerDefault:
         /// <summary>
         /// Returns the parameter type (considering params).
         /// </summary>
-        private TypeSymbol GetParameterType(ParameterSymbol parameter, MemberAnalysisResult result)
+        private static TypeSymbol GetParameterType(ParameterSymbol parameter, MemberAnalysisResult result)
         {
             var type = parameter.Type;
             if (result.Kind == MemberResolutionKind.ApplicableInExpandedForm &&
@@ -2037,35 +2070,35 @@ outerDefault:
             // NB: OriginalDefinition, not ConstructedFrom.  Substitutions into containing symbols
             // must also be ignored for this tie-breaker.
 
-            var uninst1 = ArrayBuilder<TypeSymbol>.GetInstance();
-            var uninst2 = ArrayBuilder<TypeSymbol>.GetInstance();
-            var m1Original = m1.LeastOverriddenMember.OriginalDefinition.GetParameters();
-            var m2Original = m2.LeastOverriddenMember.OriginalDefinition.GetParameters();
-            for (i = 0; i < arguments.Count; ++i)
+            using (var uninst1 = TemporaryArray<TypeSymbol>.Empty)
+            using (var uninst2 = TemporaryArray<TypeSymbol>.Empty)
             {
-                // If these are both applicable varargs methods and we're looking at the __arglist argument
-                // then clearly neither of them is going to be better in this argument.
-                if (arguments[i].Kind == BoundKind.ArgListOperator)
+                var m1Original = m1.LeastOverriddenMember.OriginalDefinition.GetParameters();
+                var m2Original = m2.LeastOverriddenMember.OriginalDefinition.GetParameters();
+                for (i = 0; i < arguments.Count; ++i)
                 {
-                    Debug.Assert(i == arguments.Count - 1);
-                    Debug.Assert(m1.Member.GetIsVararg() && m2.Member.GetIsVararg());
-                    continue;
+                    // If these are both applicable varargs methods and we're looking at the __arglist argument
+                    // then clearly neither of them is going to be better in this argument.
+                    if (arguments[i].Kind == BoundKind.ArgListOperator)
+                    {
+                        Debug.Assert(i == arguments.Count - 1);
+                        Debug.Assert(m1.Member.GetIsVararg() && m2.Member.GetIsVararg());
+                        continue;
+                    }
+
+                    var parameter1 = GetParameter(i, m1.Result, m1Original);
+                    uninst1.Add(GetParameterType(parameter1, m1.Result));
+
+                    var parameter2 = GetParameter(i, m2.Result, m2Original);
+                    uninst2.Add(GetParameterType(parameter2, m2.Result));
                 }
 
-                var parameter1 = GetParameter(i, m1.Result, m1Original);
-                uninst1.Add(GetParameterType(parameter1, m1.Result));
+                result = MoreSpecificType(ref uninst1.AsRef(), ref uninst2.AsRef(), ref useSiteInfo);
 
-                var parameter2 = GetParameter(i, m2.Result, m2Original);
-                uninst2.Add(GetParameterType(parameter2, m2.Result));
-            }
-
-            result = MoreSpecificType(uninst1, uninst2, ref useSiteInfo);
-            uninst1.Free();
-            uninst2.Free();
-
-            if (result != BetterResult.Neither)
-            {
-                return result;
+                if (result != BetterResult.Neither)
+                {
+                    return result;
+                }
             }
 
             // UNDONE: Otherwise if one member is a non-lifted operator and the other is a lifted
@@ -2123,7 +2156,7 @@ outerDefault:
                 return false;
             }
 
-            return conversionsOpt.Any(c => c.Kind == ConversionKind.FunctionType);
+            return conversionsOpt.Any(static c => c.Kind == ConversionKind.FunctionType);
         }
 
         private static BetterResult PreferValOverInOrRefInterpolatedHandlerParameters<TMember>(
@@ -2223,7 +2256,7 @@ outerDefault:
             }
         }
 
-        private static BetterResult MoreSpecificType(ArrayBuilder<TypeSymbol> t1, ArrayBuilder<TypeSymbol> t2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private static BetterResult MoreSpecificType(ref TemporaryArray<TypeSymbol> t1, ref TemporaryArray<TypeSymbol> t2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(t1.Count == t2.Count);
 
@@ -2332,15 +2365,13 @@ outerDefault:
             // Task equivalents) have the same OriginalDefinition but we don't have a Compilation
             // here for NormalizeTaskTypes.
 
-            var allTypeArgs1 = ArrayBuilder<TypeSymbol>.GetInstance();
-            var allTypeArgs2 = ArrayBuilder<TypeSymbol>.GetInstance();
-            n1.GetAllTypeArguments(allTypeArgs1, ref useSiteInfo);
-            n2.GetAllTypeArguments(allTypeArgs2, ref useSiteInfo);
+            using var allTypeArgs1 = TemporaryArray<TypeSymbol>.Empty;
+            using var allTypeArgs2 = TemporaryArray<TypeSymbol>.Empty;
+            n1.GetAllTypeArguments(ref allTypeArgs1.AsRef(), ref useSiteInfo);
+            n2.GetAllTypeArguments(ref allTypeArgs2.AsRef(), ref useSiteInfo);
 
-            var result = MoreSpecificType(allTypeArgs1, allTypeArgs2, ref useSiteInfo);
+            var result = MoreSpecificType(ref allTypeArgs1.AsRef(), ref allTypeArgs2.AsRef(), ref useSiteInfo);
 
-            allTypeArgs1.Free();
-            allTypeArgs2.Free();
             return result;
         }
 
@@ -2450,7 +2481,7 @@ outerDefault:
             // choice after we received customer reports of problems in the space.
             // https://github.com/dotnet/roslyn/issues/55345
             if (_binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureImprovedInterpolatedStrings) &&
-                node is BoundUnconvertedInterpolatedString { ConstantValueOpt: null } or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true, ConstantValue: null })
+                node is BoundUnconvertedInterpolatedString { ConstantValueOpt: null } or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true, ConstantValueOpt: null })
             {
                 switch ((conv1.Kind, conv2.Kind))
                 {
@@ -2673,7 +2704,7 @@ outerDefault:
 
             protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
@@ -2691,6 +2722,7 @@ outerDefault:
 
         private const int BetterConversionTargetRecursionLimit = 100;
 
+#if DEBUG
         private BetterResult BetterConversionTarget(
             TypeSymbol type1,
             TypeSymbol type2,
@@ -2699,6 +2731,7 @@ outerDefault:
             bool okToDowngradeToNeither;
             return BetterConversionTargetCore(null, type1, default(Conversion), type2, default(Conversion), ref useSiteInfo, out okToDowngradeToNeither, BetterConversionTargetRecursionLimit);
         }
+#endif
 
         private BetterResult BetterConversionTargetCore(
             TypeSymbol type1,
@@ -3033,7 +3066,7 @@ outerDefault:
                 case SpecialType.System_Int16:
                 case SpecialType.System_Int32:
                 case SpecialType.System_Int64:
-                case SpecialType.System_IntPtr:
+                case SpecialType.System_IntPtr when type.IsNativeIntegerType:
                     return true;
 
                 default:
@@ -3054,7 +3087,7 @@ outerDefault:
                 case SpecialType.System_UInt16:
                 case SpecialType.System_UInt32:
                 case SpecialType.System_UInt64:
-                case SpecialType.System_UIntPtr:
+                case SpecialType.System_UIntPtr when type.IsNativeIntegerType:
                     return true;
 
                 default:
@@ -3082,7 +3115,7 @@ outerDefault:
             parameterRefKinds = effectiveParameters.ParameterRefKinds;
         }
 
-        private struct EffectiveParameters
+        private readonly struct EffectiveParameters
         {
             internal readonly ImmutableArray<TypeWithAnnotations> ParameterTypes;
             internal readonly ImmutableArray<RefKind> ParameterRefKinds;
@@ -3572,13 +3605,14 @@ outerDefault:
 
             if (arguments.IsExtensionMethodInvocation)
             {
-                var inferredFromFirstArgument = MethodTypeInferrer.InferTypeArgumentsFromFirstArgument(
+                var canInfer = MethodTypeInferrer.CanInferTypeArgumentsFromFirstArgument(
                     _binder.Compilation,
                     _binder.Conversions,
                     method,
                     args,
-                    useSiteInfo: ref useSiteInfo);
-                if (inferredFromFirstArgument.IsDefault)
+                    useSiteInfo: ref useSiteInfo,
+                    out _);
+                if (!canInfer)
                 {
                     hasTypeArgumentsInferredFromFunctionType = false;
                     error = MemberAnalysisResult.TypeInferenceExtensionInstanceArgumentFailed();

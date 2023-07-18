@@ -4,16 +4,18 @@
 
 Imports System.Text
 Imports System.Windows
-Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Interactive
 Imports Microsoft.VisualStudio.InteractiveWindow
+Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.Interactive)>
     Public Class InteractivePasteCommandhandlerTests
         Private Const ClipboardLineBasedCutCopyTag As String = "VisualStudioEditorOperationsLineCutCopyClipboardTag"
         Private Const BoxSelectionCutCopyTag As String = "MSDEVColumnSelect"
@@ -25,7 +27,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
         End Function
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub PasteCommandWithInteractiveFormat()
             Using workspace = TestWorkspace.Create(
                     <Workspace>
@@ -60,7 +61,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub PasteCommandWithOutInteractiveFormat()
             Using workspace = TestWorkspace.Create(
                     <Workspace>
@@ -97,7 +97,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub PasteCommandWithInteractiveFormatAsLineCopy()
             Using workspace = TestWorkspace.Create(
                     <Workspace>
@@ -109,6 +108,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
 
                 Dim textView = workspace.Documents.Single().GetTextView()
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(textView)
+
+                textView.Options.GlobalOptions.SetOptionValue(DefaultOptions.IndentStyleId, IndentingStyle.Smart)
 
                 editorOperations.InsertText("line1")
                 editorOperations.InsertNewLine()
@@ -136,7 +137,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub PasteCommandWithInteractiveFormatAsBoxCopy()
             Using workspace = TestWorkspace.Create(
                     <Workspace>
@@ -148,6 +148,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
 
                 Dim textView = workspace.Documents.Single().GetTextView()
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(textView)
+                textView.Options.GlobalOptions.SetOptionValue(DefaultOptions.IndentStyleId, IndentingStyle.Smart)
 
                 editorOperations.InsertText("line1")
                 editorOperations.InsertNewLine()
@@ -180,7 +181,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub PasteCommandWithInteractiveFormatAsBoxCopyOnBlankLine()
             Using workspace = TestWorkspace.Create(
                     <Workspace>
@@ -192,6 +192,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
 
                 Dim textView = workspace.Documents.Single().GetTextView()
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(textView)
+                textView.Options.GlobalOptions.SetOptionValue(DefaultOptions.IndentStyleId, IndentingStyle.Smart)
 
                 editorOperations.InsertNewLine()
                 editorOperations.InsertText("line1")

@@ -2,10 +2,11 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.OrderModifiers
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
@@ -16,9 +17,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
         Public Sub New()
             MyBase.New(VisualBasicSyntaxFacts.Instance,
                        VisualBasicCodeStyleOptions.PreferredModifierOrder,
-                       VisualBasicOrderModifiersHelper.Instance,
-                       LanguageNames.VisualBasic)
+                       VisualBasicOrderModifiersHelper.Instance)
         End Sub
+
+        Protected Overrides Function GetPreferredOrderStyle(context As SyntaxTreeAnalysisContext) As CodeStyleOption2(Of String)
+            Return context.GetVisualBasicAnalyzerOptions().PreferredModifierOrder
+        End Function
 
         Protected Overrides Sub Recurse(
             context As SyntaxTreeAnalysisContext,
@@ -27,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
             root As SyntaxNode)
 
             For Each child In root.ChildNodesAndTokens()
-                If child.IsNode Then
+                If child.IsNode And context.ShouldAnalyzeSpan(child.Span) Then
                     Dim declarationStatement = TryCast(child.AsNode(), DeclarationStatementSyntax)
                     If declarationStatement IsNot Nothing Then
                         If ShouldCheck(declarationStatement) Then

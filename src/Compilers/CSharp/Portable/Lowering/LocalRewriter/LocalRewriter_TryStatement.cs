@@ -77,12 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitCatchBlock(BoundCatchBlock node)
         {
-            if (node.ExceptionFilterOpt == null)
-            {
-                return base.VisitCatchBlock(node);
-            }
-
-            if (node.ExceptionFilterOpt.ConstantValue?.BooleanValue == false)
+            if (node.ExceptionFilterOpt?.ConstantValueOpt?.BooleanValue == false)
             {
                 return null;
             }
@@ -94,11 +89,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(rewrittenBody is { });
             TypeSymbol? rewrittenExceptionTypeOpt = this.VisitType(node.ExceptionTypeOpt);
 
-            // EnC: We need to insert a hidden sequence point to handle function remapping in case 
-            // the containing method is edited while methods invoked in the condition are being executed.
-            if (rewrittenFilter != null && !node.WasCompilerGenerated && this.Instrument)
+            if (Instrument)
             {
-                rewrittenFilter = _instrumenter.InstrumentCatchClauseFilter(node, rewrittenFilter, _factory);
+                Instrumenter.InstrumentCatchBlock(
+                    node,
+                    ref rewrittenExceptionSourceOpt,
+                    ref rewrittenFilterPrologue,
+                    ref rewrittenFilter,
+                    ref rewrittenBody,
+                    ref rewrittenExceptionTypeOpt,
+                    _factory);
             }
 
             return node.Update(

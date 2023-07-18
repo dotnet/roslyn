@@ -295,7 +295,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         // for debugging
+#pragma warning disable IDE0051 // Remove unused private members
         private SyntaxNodeOrToken[] Nodes
+#pragma warning restore IDE0051 // Remove unused private members
         {
             get
             {

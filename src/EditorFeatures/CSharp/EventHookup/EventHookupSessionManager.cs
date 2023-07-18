@@ -12,17 +12,27 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 {
     [Export]
-    internal sealed partial class EventHookupSessionManager : ForegroundThreadAffinitizedObject
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed partial class EventHookupSessionManager(
+        IThreadingContext threadingContext,
+        IToolTipService toolTipService,
+        IGlobalOptionService globalOptions)
     {
-        private readonly IToolTipService _toolTipService;
+        public readonly IThreadingContext ThreadingContext = threadingContext;
+        private readonly IToolTipService _toolTipService = toolTipService;
+        private readonly IGlobalOptionService _globalOptions = globalOptions;
+
         private IToolTipPresenter _toolTipPresenter;
 
         internal EventHookupSession CurrentSession { get; set; }
@@ -30,17 +40,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
         // For test purposes only!
         internal ClassifiedTextElement[] TEST_MostRecentToolTipContent { get; set; }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public EventHookupSessionManager(IThreadingContext threadingContext, IToolTipService toolTipService)
-            : base(threadingContext)
-        {
-            _toolTipService = toolTipService;
-        }
-
         internal void EventHookupFoundInSession(EventHookupSession analyzedSession)
         {
-            AssertIsForeground();
+            ThreadingContext.ThrowIfNotOnUIThread();
 
             var caretPoint = analyzedSession.TextView.GetCaretPoint(analyzedSession.SubjectBuffer);
 
@@ -109,12 +111,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             IAsynchronousOperationListener asyncListener,
             Mutex testSessionHookupMutex)
         {
-            CurrentSession = new EventHookupSession(this, eventHookupCommandHandler, textView, subjectBuffer, asyncListener, testSessionHookupMutex);
+            CurrentSession = new EventHookupSession(this, eventHookupCommandHandler, textView, subjectBuffer, asyncListener, _globalOptions, testSessionHookupMutex);
         }
 
         internal void CancelAndDismissExistingSessions()
         {
-            AssertIsForeground();
+            ThreadingContext.ThrowIfNotOnUIThread();
 
             if (CurrentSession != null)
             {
@@ -137,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
         /// </summary>
         private void TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
         {
-            AssertIsForeground();
+            ThreadingContext.ThrowIfNotOnUIThread();
 
             foreach (var change in e.Changes)
             {
@@ -154,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
         /// </summary>
         private void Caret_PositionChanged(object sender, EventArgs e)
         {
-            AssertIsForeground();
+            ThreadingContext.ThrowIfNotOnUIThread();
 
             if (CurrentSession == null)
             {

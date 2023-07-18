@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.ConvertLinq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -51,30 +51,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
         protected override Task<QueryExpressionSyntax> FindNodeToRefactorAsync(CodeRefactoringContext context)
             => context.TryGetRelevantNodeAsync<QueryExpressionSyntax>();
 
-        private sealed class Converter
+        private sealed class Converter(SemanticModel semanticModel, ISemanticFactsService semanticFacts, QueryExpressionSyntax source, CancellationToken cancellationToken)
         {
-            private readonly SemanticModel _semanticModel;
-            private readonly ISemanticFactsService _semanticFacts;
-            private readonly CancellationToken _cancellationToken;
-            private readonly QueryExpressionSyntax _source;
-            private readonly List<string> _introducedLocalNames;
-
-            public Converter(SemanticModel semanticModel, ISemanticFactsService semanticFacts, QueryExpressionSyntax source, CancellationToken cancellationToken)
-            {
-                _semanticModel = semanticModel;
-                _semanticFacts = semanticFacts;
-                _source = source;
-                _introducedLocalNames = new List<string>();
-                _cancellationToken = cancellationToken;
-            }
+            private readonly SemanticModel _semanticModel = semanticModel;
+            private readonly ISemanticFactsService _semanticFacts = semanticFacts;
+            private readonly CancellationToken _cancellationToken = cancellationToken;
+            private readonly QueryExpressionSyntax _source = source;
+            private readonly List<string> _introducedLocalNames = new();
 
             public bool TryConvert(out DocumentUpdateInfo documentUpdateInfo)
             {
                 // Do not try refactoring queries with comments or conditional compilation in them.
                 // We can consider supporting queries with comments in the future.
-                if (_source.DescendantTrivia().Any(trivia => trivia.MatchesKind(
-                        SyntaxKind.SingleLineCommentTrivia,
-                        SyntaxKind.MultiLineCommentTrivia,
+                if (_source.DescendantTrivia().Any(trivia => trivia is (kind:
+                        SyntaxKind.SingleLineCommentTrivia or
+                        SyntaxKind.MultiLineCommentTrivia or
                         SyntaxKind.MultiLineDocumentationCommentTrivia) ||
                     _source.ContainsDirectives))
                 {
@@ -96,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 // https://github.com/dotnet/roslyn/issues/25639
                 if ((TryConvertInternal(queryExpressionProcessingInfo, out documentUpdateInfo) ||
                     TryReplaceWithLocalFunction(queryExpressionProcessingInfo, out documentUpdateInfo)) &&  // second attempt: at least to a local function
-                    !_semanticModel.GetDiagnostics(_source.Span, _cancellationToken).Any(diagnostic => diagnostic.DefaultSeverity == DiagnosticSeverity.Error))
+                    !_semanticModel.GetDiagnostics(_source.Span, _cancellationToken).Any(static diagnostic => diagnostic.DefaultSeverity == DiagnosticSeverity.Error))
                 {
                     if (!documentUpdateInfo.Source.IsParentKind(SyntaxKind.Block) &&
                         documentUpdateInfo.Destinations.Length > 1)
@@ -466,7 +457,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 {
                     case SyntaxKind.EqualsValueClause:
                         // Avoid for(int i = (from x in a select x).Count(); i < 10; i++)
-                        if (invocationParent.IsParentKind(SyntaxKind.VariableDeclarator, SyntaxKind.VariableDeclaration, SyntaxKind.LocalDeclarationStatement) &&
+                        if (invocationParent?.Parent.Kind() is
+                                SyntaxKind.VariableDeclarator or
+                                SyntaxKind.VariableDeclaration or
+                                SyntaxKind.LocalDeclarationStatement &&
                             // Avoid int i = (from x in a select x).Count(), j = i;
                             ((VariableDeclarationSyntax)invocationParent.Parent.Parent).Variables.Count == 1)
                         {
@@ -608,7 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
 
             private SyntaxToken GetFreeSymbolNameAndMarkUsed(string prefix)
             {
-                var freeToken = _semanticFacts.GenerateUniqueName(_semanticModel, _source, containerOpt: null, baseName: prefix, _introducedLocalNames, _cancellationToken);
+                var freeToken = _semanticFacts.GenerateUniqueName(_semanticModel, _source, container: null, baseName: prefix, _introducedLocalNames, _cancellationToken);
                 _introducedLocalNames.Add(freeToken.ValueText);
                 return freeToken;
             }
@@ -635,7 +629,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                         if (_semanticFacts.GenerateUniqueName(
                                 _semanticModel,
                                 location: forEachStatement.Statement,
-                                containerOpt: forEachStatement.Statement,
+                                container: forEachStatement.Statement,
                                 baseName: identifierName,
                                 usedNames: Enumerable.Empty<string>(),
                                 _cancellationToken).ValueText != identifierName)

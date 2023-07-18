@@ -7,11 +7,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -19,6 +17,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.Completion)]
     public class TypeImportCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
         internal override Type GetCompletionProviderType()
@@ -27,49 +26,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         public TypeImportCompletionProviderTests()
         {
             ShowImportCompletionItemsOptionValue = true;
-            IsExpandedCompletion = true;
+            ForceExpandedCompletionIndexCreation = true;
         }
 
-        #region "Option tests"
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task OptionSetToNull_ExpEnabled()
-        {
-            TypeImportCompletionFeatureFlag = true;
-
-            ShowImportCompletionItemsOptionValue = null;
-
-            var markup = @"
-class Bar
-{
-     $$
-}";
-
-            await VerifyAnyItemExistsAsync(markup);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task OptionSetToNull_ExpDisabled()
-        {
-            ShowImportCompletionItemsOptionValue = null;
-            IsExpandedCompletion = false;
-            var markup = @"
-class Bar
-{
-     $$
-}";
-
-            await VerifyNoItemsExistAsync(markup);
-        }
-
+        [InlineData(null)]
         [InlineData(true)]
         [InlineData(false)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task OptionSetToFalse(bool isExperimentEnabled)
+        [Theory]
+        public async Task OptionSetToTrue(bool? optionValue)
         {
-            TypeImportCompletionFeatureFlag = isExperimentEnabled;
-            ShowImportCompletionItemsOptionValue = false;
-            IsExpandedCompletion = false;
+            ShowImportCompletionItemsOptionValue = optionValue;
 
             var markup = @"
 class Bar
@@ -77,27 +43,15 @@ class Bar
      $$
 }";
 
-            await VerifyNoItemsExistAsync(markup);
+            if (!optionValue.HasValue || optionValue.Value)
+            {
+                await VerifyAnyItemExistsAsync(markup);
+            }
+            else
+            {
+                await VerifyNoItemsExistAsync(markup);
+            }
         }
-
-        [InlineData(true)]
-        [InlineData(false)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task OptionSetToTrue(bool isExperimentEnabled)
-        {
-            TypeImportCompletionFeatureFlag = isExperimentEnabled;
-            ShowImportCompletionItemsOptionValue = true;
-
-            var markup = @"
-class Bar
-{
-     $$
-}";
-
-            await VerifyAnyItemExistsAsync(markup);
-        }
-
-        #endregion
 
         #region "CompletionItem tests"
 
@@ -106,7 +60,7 @@ class Bar
         [InlineData("struct", (int)Glyph.StructurePublic)]
         [InlineData("enum", (int)Glyph.EnumPublic)]
         [InlineData("interface", (int)Glyph.InterfacePublic)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task Show_TopLevel_NoImport_InProject(string typeKind, int glyph)
         {
             var file1 = $@"
@@ -135,7 +89,7 @@ namespace Baz
         [InlineData("struct", (int)Glyph.StructurePublic)]
         [InlineData("enum", (int)Glyph.EnumPublic)]
         [InlineData("interface", (int)Glyph.InterfacePublic)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task Show_TopLevelStatement_NoImport_InProject(string typeKind, int glyph)
         {
             var file1 = $@"
@@ -159,7 +113,7 @@ $$
         [InlineData("struct")]
         [InlineData("enum")]
         [InlineData("interface")]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task DoNotShow_TopLevel_SameNamespace_InProject(string typeKind)
         {
             var file1 = $@"
@@ -186,7 +140,7 @@ namespace Foo
         [InlineData("record", (int)Glyph.ClassPublic)]
         [InlineData("struct", (int)Glyph.StructurePublic)]
         [InlineData("interface", (int)Glyph.InterfacePublic)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task Show_TopLevel_MutipleOverrides_NoImport_InProject(string typeKind, int glyph)
         {
             var file1 = $@"
@@ -220,7 +174,7 @@ namespace Baz
         [InlineData("struct")]
         [InlineData("enum")]
         [InlineData("interface")]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task DoNotShow_NestedType_NoImport_InProject(string typeKind)
         {
             var file1 = $@"
@@ -250,7 +204,7 @@ namespace Baz
         [InlineData("struct")]
         [InlineData("enum")]
         [InlineData("interface")]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task DoNotShow_TopLevel_WithImport_InProject(string typeKind)
         {
             var file1 = $@"
@@ -274,9 +228,7 @@ namespace Baz
             await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "Foo");
         }
 
-        [InlineData(true)]
-        [InlineData(false)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory, CombinatorialData]
         public async Task Show_TopLevel_Public_NoImport_InReference(bool isProjectReference)
         {
             var file1 = $@"
@@ -301,9 +253,7 @@ namespace Baz
             await VerifyTypeImportItemExistsAsync(markup, "Bar2", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo");
         }
 
-        [InlineData(true)]
-        [InlineData(false)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory, CombinatorialData]
         public async Task DoNotShow_TopLevel_Public_WithImport_InReference(bool isProjectReference)
         {
             var file1 = $@"
@@ -329,9 +279,7 @@ namespace Baz
             await VerifyTypeImportItemIsAbsentAsync(markup, "Bar2", inlineDescription: "Foo");
         }
 
-        [InlineData(true)]
-        [InlineData(false)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory, CombinatorialData]
         public async Task DoNotShow_TopLevel_Internal_NoImport_InReference(bool isProjectReference)
         {
             var file1 = $@"
@@ -356,9 +304,7 @@ namespace Baz
             await VerifyTypeImportItemIsAbsentAsync(markup, "Bar2", inlineDescription: "Foo");
         }
 
-        [InlineData(true)]
-        [InlineData(false)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory, CombinatorialData]
         public async Task TopLevel_OverloadsWithMixedAccessibility_Internal_NoImport_InReference1(bool isProjectReference)
         {
             var file1 = $@"
@@ -383,9 +329,7 @@ namespace Baz
             await VerifyTypeImportItemExistsAsync(markup, "Bar", displayTextSuffix: "<>", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo");
         }
 
-        [InlineData(true)]
-        [InlineData(false)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory, CombinatorialData]
         public async Task DoNotShow_TopLevel_OverloadsWithMixedAccessibility_Internal_WithImport_InReference1(bool isProjectReference)
         {
             var file1 = $@"
@@ -411,9 +355,7 @@ namespace Baz
             await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", displayTextSuffix: "<>", inlineDescription: "Foo");
         }
 
-        [InlineData(true)]
-        [InlineData(false)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory, CombinatorialData]
         public async Task TopLevel_OverloadsWithMixedAccessibility_InternalWithIVT_NoImport_InReference1(bool isProjectReference)
         {
             var file1 = $@"     
@@ -440,9 +382,7 @@ namespace Baz
             await VerifyTypeImportItemExistsAsync(markup, "Bar", displayTextSuffix: "<>", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo");
         }
 
-        [InlineData(true)]
-        [InlineData(false)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory, CombinatorialData]
         public async Task DoNotShow_TopLevel_OverloadsWithMixedAccessibility_InternalWithIVT_WithImport_InReference1(bool isProjectReference)
         {
             var file1 = $@"     
@@ -470,9 +410,7 @@ namespace Baz
             await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", displayTextSuffix: "<>", inlineDescription: "Foo");
         }
 
-        [InlineData(true)]
-        [InlineData(false)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory, CombinatorialData]
         public async Task TopLevel_OverloadsWithMixedAccessibility_Internal_NoImport_InReference2(bool isProjectReference)
         {
             var file1 = $@"
@@ -500,9 +438,7 @@ namespace Baz
             await VerifyTypeImportItemExistsAsync(markup, "Bar", displayTextSuffix: "<>", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo");
         }
 
-        [InlineData(true)]
-        [InlineData(false)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory, CombinatorialData]
         public async Task DoNotShow_TopLevel_OverloadsWithMixedAccessibility_Internal_SameNamespace_InReference2(bool isProjectReference)
         {
             var file1 = $@"
@@ -530,9 +466,7 @@ namespace Foo.Baz
             await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", displayTextSuffix: "<>", inlineDescription: "Foo");
         }
 
-        [InlineData(true)]
-        [InlineData(false)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory, CombinatorialData]
         public async Task TopLevel_OverloadsWithMixedAccessibility_InternalWithIVT_NoImport_InReference2(bool isProjectReference)
         {
             var file1 = $@"   
@@ -562,9 +496,7 @@ namespace Baz
             await VerifyTypeImportItemExistsAsync(markup, "Bar", displayTextSuffix: "<>", glyph: (int)Glyph.ClassInternal, inlineDescription: "Foo");
         }
 
-        [InlineData(true)]
-        [InlineData(false)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory, CombinatorialData]
         public async Task Show_TopLevel_Internal_WithIVT_NoImport_InReference(bool isProjectReference)
         {
             var file1 = $@"
@@ -587,7 +519,7 @@ namespace Baz
             await VerifyTypeImportItemExistsAsync(markup, "Bar", glyph: (int)Glyph.ClassInternal, inlineDescription: "Foo");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task Show_TopLevel_NoImport_InVBReference()
         {
             var file1 = $@"
@@ -607,7 +539,7 @@ namespace Baz
             await VerifyTypeImportItemExistsAsync(markup, "Barr", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo.Bar");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task VB_MixedCapitalization_Test()
         {
             var file1 = $@"
@@ -636,7 +568,7 @@ namespace Baz
             await VerifyTypeImportItemIsAbsentAsync(markup, "Foo", inlineDescription: "na");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task VB_MixedCapitalization_WithImport_Test()
         {
             var file1 = $@"
@@ -666,7 +598,7 @@ namespace Baz
             await VerifyTypeImportItemIsAbsentAsync(markup, "Foo", inlineDescription: "na");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task DoNotShow_TopLevel_Internal_NoImport_InVBReference()
         {
             var file1 = $@"
@@ -686,7 +618,7 @@ namespace Baz
             await VerifyTypeImportItemIsAbsentAsync(markup, "Barr", inlineDescription: "Foo.Bar");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task DoNotShow_TopLevel_WithImport_InVBReference()
         {
             var file1 = $@"
@@ -707,9 +639,7 @@ namespace Baz
             await VerifyTypeImportItemIsAbsentAsync(markup, "Barr", inlineDescription: "Foo.Bar");
         }
 
-        [InlineData(true)]
-        [InlineData(false)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory, CombinatorialData]
         public async Task TypesWithIdenticalNameButDifferentNamespaces(bool isProjectReference)
         {
             var file1 = $@"
@@ -744,9 +674,7 @@ namespace NS
             await VerifyTypeImportItemExistsAsync(markup, "Bar", displayTextSuffix: "<>", glyph: (int)Glyph.ClassPublic, inlineDescription: "Baz");
         }
 
-        [InlineData(true)]
-        [InlineData(false)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory, CombinatorialData]
         public async Task TestNoCompletionItemWhenThereIsAlias(bool isProjectReference)
         {
             var file1 = @"
@@ -796,9 +724,7 @@ namespace Foo1
             await VerifyTypeImportItemIsAbsentAsync(markup, "Foo7", "Foo1.Foo2.Foo3");
         }
 
-        [InlineData(true)]
-        [InlineData(false)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory, CombinatorialData]
         public async Task TestAttributesAlias(bool isProjectReference)
         {
             var file1 = @"
@@ -831,9 +757,7 @@ namespace Foo
             await VerifyTypeImportItemIsAbsentAsync(markup, "BarAttributeDifferentEnding", "Foo");
         }
 
-        [InlineData(true)]
-        [InlineData(false)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory, CombinatorialData]
         public async Task TestGenericsAliasHasNoEffect(bool isProjectReference)
         {
             var file1 = @"
@@ -879,7 +803,7 @@ namespace Foo1
 
         [InlineData(SourceCodeKind.Regular)]
         [InlineData(SourceCodeKind.Script)]
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfTheory]
         public async Task Commit_NoImport_InProject(SourceCodeKind kind)
         {
             var file1 = $@"
@@ -914,7 +838,7 @@ namespace Baz
 
         [InlineData(SourceCodeKind.Regular)]
         [InlineData(SourceCodeKind.Script)]
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfTheory]
         public async Task Commit_TopLevelStatement_NoImport_InProject(SourceCodeKind kind)
         {
             var file1 = $@"
@@ -937,7 +861,7 @@ Bar$$
 
         [InlineData(SourceCodeKind.Regular)]
         [InlineData(SourceCodeKind.Script)]
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfTheory]
         public async Task Commit_TopLevelStatement_UnrelatedImport_InProject(SourceCodeKind kind)
         {
             var file1 = $@"
@@ -964,7 +888,7 @@ Bar$$
 
         [InlineData(SourceCodeKind.Regular)]
         [InlineData(SourceCodeKind.Script)]
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfTheory]
         public async Task Commit_NoImport_InVBReference(SourceCodeKind kind)
         {
             var file1 = $@"
@@ -996,7 +920,7 @@ namespace Baz
 
         [InlineData(SourceCodeKind.Regular)]
         [InlineData(SourceCodeKind.Script)]
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfTheory]
         public async Task Commit_NoImport_InPEReference(SourceCodeKind kind)
         {
             var markup = $@"<Workspace>
@@ -1021,7 +945,7 @@ class Bar
 
         #endregion
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task DoNotShow_TopLevel_Public_NoImport_InNonGlobalAliasedMetadataReference()
         {
             var file1 = $@"
@@ -1042,7 +966,7 @@ namespace Baz
             await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "Foo");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task Show_TopLevel_Public_NoImport_InGlobalAliasedMetadataReference()
         {
             var file1 = $@"
@@ -1063,7 +987,7 @@ namespace Baz
             await VerifyTypeImportItemExistsAsync(markup, "Bar", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task DoNotShow_TopLevel_Public_NoImport_InNonGlobalAliasedProjectReference()
         {
             var file1 = $@"
@@ -1084,7 +1008,7 @@ namespace Baz
             await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "Foo");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ShorterTypeNameShouldShowBeforeLongerTypeName()
         {
             var file1 = $@"
@@ -1105,11 +1029,11 @@ namespace Baz
 }";
             var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
             var completionList = await GetCompletionListAsync(markup).ConfigureAwait(false);
-            AssertRelativeOrder(new List<string>() { "SomeType", "SomeTypeWithLongerName" }, completionList.Items);
+            AssertRelativeOrder(new List<string>() { "SomeType", "SomeTypeWithLongerName" }, completionList.ItemsList.ToImmutableArray());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")]
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
         public async Task AttributeTypeInAttributeNameContext()
         {
             var file1 = @"
@@ -1136,8 +1060,8 @@ namespace Test
 
         [InlineData(SourceCodeKind.Regular)]
         [InlineData(SourceCodeKind.Script)]
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")]
+        [WpfTheory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
         public async Task CommitAttributeTypeInAttributeNameContext(SourceCodeKind kind)
         {
             var file1 = @"
@@ -1166,8 +1090,8 @@ namespace Test
             await VerifyCustomCommitProviderAsync(markup, "My", expectedCodeAfterCommit, sourceCodeKind: kind);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")]
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
         public async Task AttributeTypeInNonAttributeNameContext()
         {
             var file1 = @"
@@ -1196,8 +1120,8 @@ namespace Test
 
         [InlineData(SourceCodeKind.Regular)]
         [InlineData(SourceCodeKind.Script)]
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")]
+        [WpfTheory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
         public async Task CommitAttributeTypeInNonAttributeNameContext(SourceCodeKind kind)
         {
             var file1 = @"
@@ -1229,8 +1153,8 @@ namespace Test
             await VerifyCustomCommitProviderAsync(markup, "MyAttribute", expectedCodeAfterCommit, sourceCodeKind: kind);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")]
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
         public async Task AttributeTypeWithoutSuffixInAttributeNameContext()
         {
             // attribute suffix isn't capitalized
@@ -1256,8 +1180,8 @@ namespace Test
 
         [InlineData(SourceCodeKind.Regular)]
         [InlineData(SourceCodeKind.Script)]
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")]
+        [WpfTheory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
         public async Task CommitAttributeTypeWithoutSuffixInAttributeNameContext(SourceCodeKind kind)
         {
             // attribute suffix isn't capitalized
@@ -1287,8 +1211,8 @@ namespace Test
             await VerifyCustomCommitProviderAsync(markup, "Myattribute", expectedCodeAfterCommit, sourceCodeKind: kind);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")]
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
         public async Task AttributeTypeWithoutSuffixInNonAttributeNameContext()
         {
             // attribute suffix isn't capitalized
@@ -1316,8 +1240,8 @@ namespace Test
 
         [InlineData(SourceCodeKind.Regular)]
         [InlineData(SourceCodeKind.Script)]
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")]
+        [WpfTheory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
         public async Task CommitAttributeTypeWithoutSuffixInNonAttributeNameContext(SourceCodeKind kind)
         {
             // attribute suffix isn't capitalized
@@ -1350,8 +1274,8 @@ namespace Test
             await VerifyCustomCommitProviderAsync(markup, "Myattribute", expectedCodeAfterCommit, sourceCodeKind: kind);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")]
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
         public async Task VBAttributeTypeWithoutSuffixInAttributeNameContext()
         {
             var file1 = @"
@@ -1381,8 +1305,8 @@ namespace Test
 
         [InlineData(SourceCodeKind.Regular)]
         [InlineData(SourceCodeKind.Script)]
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(37038, "https://github.com/dotnet/roslyn/issues/37038")]
+        [WpfTheory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/37038")]
         public async Task CommitTypeInUsingStaticContextShouldUseFullyQualifiedName(SourceCodeKind kind)
         {
             var file1 = @"
@@ -1403,8 +1327,8 @@ using static Foo.MyClass$$";
 
         [InlineData(SourceCodeKind.Regular)]
         [InlineData(SourceCodeKind.Script)]
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(37038, "https://github.com/dotnet/roslyn/issues/37038")]
+        [WpfTheory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/37038")]
         public async Task CommitGenericTypeParameterInUsingAliasContextShouldUseFullyQualifiedName(SourceCodeKind kind)
         {
             var file1 = @"
@@ -1425,8 +1349,8 @@ using CollectionOfStringBuilders = System.Collections.Generic.List<Foo.MyClass$$
 
         [InlineData(SourceCodeKind.Regular)]
         [InlineData(SourceCodeKind.Script)]
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(37038, "https://github.com/dotnet/roslyn/issues/37038")]
+        [WpfTheory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/37038")]
         public async Task CommitGenericTypeParameterInUsingAliasContextShouldUseFullyQualifiedName2(SourceCodeKind kind)
         {
             var file1 = @"
@@ -1453,9 +1377,8 @@ namespace Foo
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Completion)]
         [Trait(Traits.Feature, Traits.Features.Interactive)]
-        [WorkItem(39027, "https://github.com/dotnet/roslyn/issues/39027")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39027")]
         public async Task TriggerCompletionInSubsequentSubmission()
         {
             var markup = @"
@@ -1469,10 +1392,10 @@ namespace Foo
                 </Workspace> ";
 
             var completionList = await GetCompletionListAsync(markup, workspaceKind: WorkspaceKind.Interactive).ConfigureAwait(false);
-            Assert.NotEmpty(completionList.Items);
+            Assert.NotEmpty(completionList.ItemsList);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ShouldNotTriggerInsideTrivia()
         {
             var file1 = $@"
@@ -1507,9 +1430,7 @@ namespace Baz
             }
         }
 
-        [InlineData(true)]
-        [InlineData(false)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory, CombinatorialData]
         public async Task TestBrowsableAwaysFromReferences(bool isProjectReference)
         {
             var srcDoc = @"
@@ -1543,9 +1464,7 @@ namespace Foo
                     inlineDescription: "Foo");
         }
 
-        [InlineData(true)]
-        [InlineData(false)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory, CombinatorialData]
         public async Task TestBrowsableNeverFromReferences(bool isProjectReference)
         {
             var srcDoc = @"
@@ -1593,7 +1512,7 @@ namespace Foo
         [InlineData(true, false)]
         [InlineData(false, true)]
         [InlineData(false, false)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task TestBrowsableAdvancedFromReferences(bool isProjectReference, bool hideAdvancedMembers)
         {
             HideAdvancedMembers = hideAdvancedMembers;
@@ -1639,7 +1558,7 @@ namespace Foo
             }
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         [InlineData('.')]
         [InlineData(';')]
         public async Task TestCommitWithCustomizedCommitCharForParameterlessConstructor(char commitChar)
@@ -1686,7 +1605,7 @@ namespace BB
             await VerifyProviderCommitAsync(markup, "C", expected, commitChar: commitChar, sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         [InlineData('.')]
         [InlineData(';')]
         public async Task TestCommitWithCustomizedCommitCharUnderNonObjectCreationContext(char commitChar)
@@ -1733,8 +1652,8 @@ namespace BB
 
         [InlineData(SourceCodeKind.Regular)]
         [InlineData(SourceCodeKind.Script)]
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(54493, "https://github.com/dotnet/roslyn/issues/54493")]
+        [WpfTheory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/54493")]
         public async Task CommitInLocalFunctionContext(SourceCodeKind kind)
         {
             var markup = @"
@@ -1774,6 +1693,146 @@ namespace Test
 }";
 
             await VerifyProviderCommitAsync(markup, "MyClass", expectedCodeAfterCommit, commitChar: null, sourceCodeKind: kind);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58473")]
+        public async Task TestGlobalUsingsInSdkAutoGeneratedFile()
+        {
+            var source = @"
+using System;
+$$";
+
+            var globalUsings = @"
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.IO;
+global using global::System.Linq;
+global using global::System.Net.Http;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+";
+
+            var markup = CreateMarkupForSingleProject(source, globalUsings, LanguageNames.CSharp, referencedFileName: "ProjectName.GlobalUsings.g.cs");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Task", inlineDescription: "System.Threading.Tasks");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Console", inlineDescription: "System");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58473")]
+        public async Task TestGlobalUsingsInSameFile()
+        {
+            var source = @"
+global using global::System;
+global using global::System.Threading.Tasks;
+
+$$";
+
+            var markup = CreateMarkupForSingleProject(source, "", LanguageNames.CSharp);
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Console", inlineDescription: "System");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Task", inlineDescription: "System.Threading.Tasks");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58473")]
+        public async Task TestGlobalUsingsInUserDocument()
+        {
+            var source = @"
+$$";
+
+            var globalUsings = @"
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.IO;
+global using global::System.Linq;
+global using global::System.Net.Http;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+";
+
+            var markup = CreateMarkupForSingleProject(source, globalUsings, LanguageNames.CSharp, referencedFileName: "GlobalUsings.cs");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Task", inlineDescription: "System.Threading.Tasks");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Console", inlineDescription: "System");
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData(true)]
+        [InlineData(false)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/65339")]
+        public async Task TestFileScopedType(bool? isProjectReference)
+        {
+            var srcDoc = @"
+class Program
+{
+    void M()
+    {
+        $$goo
+    }
+}";
+
+            var refDoc = @"
+namespace Foo
+{
+    file class Goo
+    {
+    }
+}";
+
+            string markup;
+            if (isProjectReference.HasValue)
+            {
+                markup = isProjectReference switch
+                {
+                    true => CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                    false => CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp)
+                };
+            }
+            else
+            {
+                markup = CreateMarkupForSingleProject(srcDoc, refDoc, LanguageNames.CSharp);
+            }
+            await VerifyTypeImportItemIsAbsentAsync(
+                    markup,
+                    "Goo",
+                    inlineDescription: "Foo");
+        }
+
+        [Fact]
+        public async Task TestEnumBaseList1()
+        {
+            var source = """
+                enum E : $$
+                """;
+
+            await VerifyTypeImportItemExistsAsync(source, "Byte", glyph: (int)Glyph.StructurePublic, inlineDescription: "System");
+            await VerifyTypeImportItemExistsAsync(source, "SByte", glyph: (int)Glyph.StructurePublic, inlineDescription: "System");
+            await VerifyTypeImportItemExistsAsync(source, "Int16", glyph: (int)Glyph.StructurePublic, inlineDescription: "System");
+            await VerifyTypeImportItemExistsAsync(source, "UInt16", glyph: (int)Glyph.StructurePublic, inlineDescription: "System");
+            await VerifyTypeImportItemExistsAsync(source, "Int32", glyph: (int)Glyph.StructurePublic, inlineDescription: "System");
+            await VerifyTypeImportItemExistsAsync(source, "UInt32", glyph: (int)Glyph.StructurePublic, inlineDescription: "System");
+            await VerifyTypeImportItemExistsAsync(source, "Int64", glyph: (int)Glyph.StructurePublic, inlineDescription: "System");
+            await VerifyTypeImportItemExistsAsync(source, "UInt64", glyph: (int)Glyph.StructurePublic, inlineDescription: "System");
+
+            // Verify that other things from `System` namespace are not present
+            await VerifyTypeImportItemIsAbsentAsync(source, "Console", inlineDescription: "System");
+            await VerifyTypeImportItemIsAbsentAsync(source, "Action", inlineDescription: "System");
+            await VerifyTypeImportItemIsAbsentAsync(source, "DateTime", inlineDescription: "System");
+
+            // Verify that things from other namespaces are not present
+            await VerifyTypeImportItemIsAbsentAsync(source, "IEnumerable", inlineDescription: "System.Collections");
+            await VerifyTypeImportItemIsAbsentAsync(source, "Task", inlineDescription: "System.Threading.Tasks");
+            await VerifyTypeImportItemIsAbsentAsync(source, "AssemblyName", inlineDescription: "System.Reflection");
+        }
+
+        [Fact]
+        public async Task TestEnumBaseList2()
+        {
+            var source = """
+                using System;
+
+                enum E : $$
+                """;
+
+            // Everything valid is already in the scope
+            await VerifyNoItemsExistAsync(source);
         }
 
         private Task VerifyTypeImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null, CompletionItemFlags? flags = null)

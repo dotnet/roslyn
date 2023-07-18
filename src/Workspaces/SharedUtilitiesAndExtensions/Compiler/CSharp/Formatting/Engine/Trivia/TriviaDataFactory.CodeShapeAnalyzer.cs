@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 _touchedNoisyCharacterOnCurrentLine = false;
             }
 
-            private bool UseIndentation
+            private readonly bool UseIndentation
             {
                 get { return _lastLineBreakIndex >= 0; }
             }
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return true;
                 }
 
-                _indentation += text.ConvertTabToSpace(_options.GetOption(FormattingOptions2.TabSize), _indentation, text.Length);
+                _indentation += text.ConvertTabToSpace(_options.TabSize, _indentation, text.Length);
 
                 return false;
             }
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 _lastLineBreakIndex = currentIndex;
             }
 
-            private bool OnComment(SyntaxTrivia trivia)
+            private readonly bool OnComment(SyntaxTrivia trivia)
             {
                 if (!trivia.IsRegularOrDocComment())
                 {
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
                 // go deep down for single line documentation comment
                 if (trivia.IsSingleLineDocComment() &&
-                    ShouldFormatSingleLineDocumentationComment(_indentation, _options.GetOption(FormattingOptions2.TabSize), trivia))
+                    ShouldFormatSingleLineDocumentationComment(_indentation, _options.TabSize, trivia))
                 {
                     return true;
                 }
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return false;
                 }
 
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             private bool OnRegion(SyntaxTrivia trivia, int currentIndex)

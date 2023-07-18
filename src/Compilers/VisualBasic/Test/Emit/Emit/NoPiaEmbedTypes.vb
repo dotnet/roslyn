@@ -1533,7 +1533,8 @@ End Interface
 ]]></file>
                            </compilation>
             Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
-            Dim verifier = CompileAndVerify(compilation0, verify:=Verification.Fails)
+            ' PEVerify: Error: Method cannot be both generic and defined on an imported type.
+            Dim verifier = CompileAndVerify(compilation0, verify:=Verification.FailsPEVerify)
             AssertTheseDiagnostics(verifier, (<errors/>))
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
                                                            DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
@@ -1603,13 +1604,13 @@ End Interface
                 sources1,
                 options:=TestOptions.DebugDll,
                 references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True), SystemCoreRef})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, verify:=Verification.Fails)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, verify:=Verification.FailsPEVerify)
             AssertTheseDiagnostics(verifier, (<errors/>))
             compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
                 options:=TestOptions.DebugDll,
                 references:={compilation0.EmitToImageReference(embedInteropTypes:=True), SystemCoreRef})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, verify:=Verification.Fails)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, verify:=Verification.FailsPEVerify)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
 
@@ -3607,7 +3608,7 @@ BC31539: Cannot find the interop type that matches the embedded type 'I1'. Are y
 
             Dim assembly = compilation1.SourceModule.GetReferencedAssemblySymbols()(1)
             Dim [module] = assembly.Modules(0)
-            Assert.IsType(Of MissingMetadataTypeSymbol.TopLevel)([module].LookupTopLevelMetadataType(fullName))
+            Assert.Null([module].LookupTopLevelMetadataType(fullName))
             Assert.Null(assembly.GetTypeByMetadataName(fullName.FullName))
 
             Dim compilation2 = CreateCompilationWithMscorlib40AndReferences(
@@ -3620,7 +3621,7 @@ BC31539: Cannot find the interop type that matches the embedded type 'I1'. Are y
             [module] = assembly.Modules(0)
             Assert.IsType(Of NoPiaMissingCanonicalTypeSymbol)(DirectCast([module], PEModuleSymbol).LookupTopLevelMetadataType(fullName, isNoPiaLocalType))
             Assert.True(isNoPiaLocalType)
-            Assert.IsType(Of MissingMetadataTypeSymbol.TopLevel)([module].LookupTopLevelMetadataType(fullName))
+            Assert.Null([module].LookupTopLevelMetadataType(fullName))
             Assert.Null(assembly.GetTypeByMetadataName(fullName.FullName))
 
             Dim compilation3 = CreateCompilationWithMscorlib40AndReferences(
@@ -3630,7 +3631,7 @@ BC31539: Cannot find the interop type that matches the embedded type 'I1'. Are y
 
             assembly = compilation3.SourceModule.GetReferencedAssemblySymbols()(1)
             [module] = assembly.Modules(0)
-            Assert.IsType(Of MissingMetadataTypeSymbol.TopLevel)([module].LookupTopLevelMetadataType(fullName))
+            Assert.Null([module].LookupTopLevelMetadataType(fullName))
             Assert.Null(assembly.GetTypeByMetadataName(fullName.FullName))
 
             Dim compilation4 = CreateCompilationWithMscorlib40AndReferences(
@@ -3642,7 +3643,7 @@ BC31539: Cannot find the interop type that matches the embedded type 'I1'. Are y
             [module] = assembly.Modules(0)
             Assert.IsType(Of NoPiaMissingCanonicalTypeSymbol)(DirectCast([module], PEModuleSymbol).LookupTopLevelMetadataType(fullName, isNoPiaLocalType))
             Assert.True(isNoPiaLocalType)
-            Assert.IsType(Of MissingMetadataTypeSymbol.TopLevel)([module].LookupTopLevelMetadataType(fullName))
+            Assert.Null([module].LookupTopLevelMetadataType(fullName))
             Assert.Null(assembly.GetTypeByMetadataName(fullName.FullName))
         End Sub
 
@@ -3711,12 +3712,12 @@ BC31539: Cannot find the interop type that matches the embedded type 'I1'. Are y
             Dim compilation3 = CreateCompilationWithMscorlib40AndReferences(
                 consumer,
                 references:={New VisualBasicCompilationReference(piaCompilation2)})
-            CompileAndVerify(compilation3, verify:=Verification.Fails)
+            CompileAndVerify(compilation3, verify:=Verification.FailsPEVerify)
 
             Dim compilation4 = CreateCompilationWithMscorlib40AndReferences(
                 consumer,
                 references:={MetadataReference.CreateFromImage(piaCompilation2.EmitToArray())})
-            CompileAndVerify(compilation4, verify:=Verification.Fails)
+            CompileAndVerify(compilation4, verify:=Verification.FailsPEVerify)
         End Sub
 
         <Fact()>
@@ -4128,15 +4129,17 @@ BC36924: Type 'List(Of I1)' cannot be used across assembly boundaries because it
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2)
 
+            ' PEVerify: [ : C::M][mdToken=0x6000002][offset 0x00000001] Unable to resolve token.
             Dim compilation3 = CreateCompilationWithMscorlib40AndReferences(
                 consumer,
                 references:={New VisualBasicCompilationReference(piaCompilation2)})
-            CompileAndVerify(compilation3, verify:=Verification.Fails)
+            CompileAndVerify(compilation3, verify:=Verification.FailsPEVerify)
 
+            ' PEVerify: [ : C::M][mdToken=0x6000002][offset 0x00000001] Unable to resolve token.
             Dim compilation4 = CreateCompilationWithMscorlib40AndReferences(
                 consumer,
                 references:={MetadataReference.CreateFromImage(piaCompilation2.EmitToArray())})
-            CompileAndVerify(compilation4, verify:=Verification.Fails)
+            CompileAndVerify(compilation4, verify:=Verification.FailsPEVerify)
         End Sub
 
         <Fact(), WorkItem(673546, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673546")>
@@ -4340,7 +4343,6 @@ BC35000: Requested operation is not available because the runtime library functi
                                                 End Sub).VerifyDiagnostics()
         End Sub
 
-
         <Fact, WorkItem(8088, "https://github.com/dotnet/roslyn/issues/8088")>
         Public Sub ParametersWithoutNames()
             Dim sources =
@@ -4366,7 +4368,6 @@ End Class
                                                                                 GetReference(display:="ParametersWithoutNames.dll", embedInteropTypes:=True)
                                                                          },
                                                                          options:=TestOptions.ReleaseDll)
-
 
             AssertParametersWithoutNames(compilation.GlobalNamespace.GetMember(Of NamedTypeSymbol)("I1").GetMember(Of MethodSymbol)("M1").Parameters, False)
 

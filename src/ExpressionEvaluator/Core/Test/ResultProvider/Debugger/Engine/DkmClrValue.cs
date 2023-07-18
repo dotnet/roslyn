@@ -229,7 +229,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 
             var rawValue = RawValue;
             Debug.Assert(rawValue != null || this.Type.GetLmrType().IsVoid(), "In our mock system, this should only happen for void.");
-            return rawValue == null ? null : rawValue.ToString();
+            return rawValue?.ToString();
         }
 
         /// <remarks>
@@ -683,9 +683,9 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 
             var typeArgs = enumerableType.GenericArguments;
             Debug.Assert(typeArgs.Count <= 1);
-            var proxyTypeName = (typeArgs.Count == 0) ?
-                "System.Linq.SystemCore_EnumerableDebugView" :
-                "System.Linq.SystemCore_EnumerableDebugView`1";
+            var proxyTypeName = (typeArgs.Count == 0)
+                ? "System.Linq.SystemCore_EnumerableDebugView"
+                : "System.Linq.SystemCore_EnumerableDebugView`1";
             DkmClrType proxyType;
             try
             {

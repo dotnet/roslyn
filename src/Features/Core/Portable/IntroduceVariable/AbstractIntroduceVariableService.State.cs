@@ -8,9 +8,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -19,9 +20,10 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 {
     internal partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax, TNameSyntax>
     {
-        private partial class State
+        private sealed partial class State(TService service, SemanticDocument document, CodeCleanupOptions options)
         {
-            public SemanticDocument Document { get; }
+            public SemanticDocument Document { get; } = document;
+            public CodeCleanupOptions Options { get; } = options;
             public TExpressionSyntax Expression { get; private set; }
 
             public bool InAttributeContext { get; private set; }
@@ -36,21 +38,16 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             public bool IsConstant { get; private set; }
 
             private SemanticMap _semanticMap;
-            private readonly TService _service;
-
-            public State(TService service, SemanticDocument document)
-            {
-                _service = service;
-                Document = document;
-            }
+            private readonly TService _service = service;
 
             public static async Task<State> GenerateAsync(
                 TService service,
                 SemanticDocument document,
+                CodeCleanupOptions options,
                 TextSpan textSpan,
                 CancellationToken cancellationToken)
             {
-                var state = new State(service, document);
+                var state = new State(service, document, options);
                 if (!await state.TryInitializeAsync(document, textSpan, cancellationToken).ConfigureAwait(false))
                 {
                     return null;
@@ -72,6 +69,11 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
                 // Don't introduce constant for another constant. Doesn't apply to sub-expression of constant.
                 if (IsInitializerOfConstant(document, Expression))
+                    return false;
+
+                // Too noisy to offer introduce-local on `this/me`.
+                var syntaxFacts = document.Document.GetRequiredLanguageService<ISyntaxFactsService>();
+                if (syntaxFacts.IsThisExpression(Expression))
                     return false;
 
                 var expressionType = Document.SemanticModel.GetTypeInfo(Expression, cancellationToken).Type;
@@ -262,7 +264,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 //
                 // In essence, this says "i can be replaced with an expression as long as I'm not being
                 // written to".
-                var semanticFacts = Document.Project.LanguageServices.GetService<ISemanticFactsService>();
+                var semanticFacts = Document.Project.Services.GetService<ISemanticFactsService>();
                 return semanticFacts.CanReplaceWithRValue(Document.SemanticModel, Expression, cancellationToken);
             }
 

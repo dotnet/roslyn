@@ -20,12 +20,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         /// <summary>
         /// Batch fixer for pragma suppress code action.
         /// </summary>
-        internal sealed class PragmaWarningBatchFixAllProvider : AbstractSuppressionBatchFixAllProvider
+        internal sealed class PragmaWarningBatchFixAllProvider(AbstractSuppressionCodeFixProvider suppressionFixProvider) : AbstractSuppressionBatchFixAllProvider
         {
-            private readonly AbstractSuppressionCodeFixProvider _suppressionFixProvider;
-
-            public PragmaWarningBatchFixAllProvider(AbstractSuppressionCodeFixProvider suppressionFixProvider)
-                => _suppressionFixProvider = suppressionFixProvider;
+            private readonly AbstractSuppressionCodeFixProvider _suppressionFixProvider = suppressionFixProvider;
 
             protected override async Task AddDocumentFixesAsync(
                 Document document, ImmutableArray<Diagnostic> diagnostics,
@@ -39,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 {
                     var span = diagnostic.Location.SourceSpan;
                     var pragmaSuppressions = await _suppressionFixProvider.GetPragmaSuppressionsAsync(
-                        document, span, SpecializedCollections.SingletonEnumerable(diagnostic), cancellationToken).ConfigureAwait(false);
+                        document, span, SpecializedCollections.SingletonEnumerable(diagnostic), fixAllState.CodeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
                     var pragmaSuppression = pragmaSuppressions.SingleOrDefault();
                     if (pragmaSuppression != null)
                     {

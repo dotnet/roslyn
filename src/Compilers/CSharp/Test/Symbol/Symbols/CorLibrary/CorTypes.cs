@@ -56,6 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
 
             var knownMissingTypes = new HashSet<int>()
             {
+                (int)SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute
             };
 
             for (int i = 1; i <= (int)SpecialType.Count; i++)
@@ -108,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
                 }
             }
 
-            Assert.Equal(count + knownMissingTypes.Count, (int)SpecialType.Count);
+            Assert.Equal((int)SpecialType.Count, count + knownMissingTypes.Count);
             Assert.Equal(knownMissingTypes.Any(), msCorLibRef.KeepLookingForDeclaredSpecialTypes);
         }
 

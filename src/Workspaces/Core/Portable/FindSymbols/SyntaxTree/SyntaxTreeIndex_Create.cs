@@ -7,12 +7,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Net.WebSockets;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -20,12 +19,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal interface IDeclaredSymbolInfoFactoryService : ILanguageService
-    {
-        // `rootNamespace` is required for VB projects that has non-global namespace as root namespace,
-        // otherwise we would not be able to get correct data from syntax.
-        void AddDeclaredSymbolInfos(Document document, SyntaxNode root, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, Dictionary<string, ArrayBuilder<int>> extensionMethodInfo, CancellationToken cancellationToken);
-    }
 
     internal sealed partial class SyntaxTreeIndex
     {
@@ -44,22 +37,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// this string table.  The table will have already served its purpose at that point and 
         /// doesn't need to be kept around further.
         /// </summary>
-        private static readonly ConditionalWeakTable<Project, StringTable> s_projectStringTable = new();
-
-        private static async Task<SyntaxTreeIndex> CreateIndexAsync(
-            Document document, Checksum checksum, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfFalse(document.SupportsSyntaxTree);
-
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            return CreateIndex(document, root, checksum, cancellationToken);
-        }
+        private static readonly ConditionalWeakTable<ProjectState, StringTable> s_projectStringTable = new();
 
         private static SyntaxTreeIndex CreateIndex(
-            Document document, SyntaxNode root, Checksum checksum, CancellationToken cancellationToken)
+            ProjectState project, SyntaxNode root, Checksum checksum, CancellationToken _)
         {
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var infoFactory = document.GetRequiredLanguageService<IDeclaredSymbolInfoFactoryService>();
+            var syntaxFacts = project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
             var ignoreCase = !syntaxFacts.IsCaseSensitive;
             var isCaseSensitive = !ignoreCase;
 
@@ -68,8 +51,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var stringLiterals = StringLiteralHashSetPool.Allocate();
             var longLiterals = LongLiteralHashSetPool.Allocate();
 
-            using var _1 = ArrayBuilder<DeclaredSymbolInfo>.GetInstance(out var declaredSymbolInfos);
-            using var _2 = PooledDictionary<string, ArrayBuilder<int>>.GetInstance(out var extensionMethodInfo);
             HashSet<(string alias, string name, int arity)>? globalAliasInfo = null;
 
             try
@@ -88,6 +69,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var containsImplicitObjectCreation = false;
                 var containsGlobalSuppressMessageAttribute = false;
                 var containsConversion = false;
+                var containsGlobalKeyword = false;
+                var containsCollectionInitializer = false;
 
                 var predefinedTypes = (int)PredefinedType.None;
                 var predefinedOperators = (int)PredefinedOperator.None;
@@ -105,8 +88,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             containsLockStatement = containsLockStatement || syntaxFacts.IsLockStatement(node);
                             containsUsingStatement = containsUsingStatement || syntaxFacts.IsUsingStatement(node);
                             containsQueryExpression = containsQueryExpression || syntaxFacts.IsQueryExpression(node);
-                            containsElementAccess = containsElementAccess || syntaxFacts.IsElementAccessExpression(node);
-                            containsIndexerMemberCref = containsIndexerMemberCref || syntaxFacts.IsIndexerMemberCRef(node);
+                            containsElementAccess = containsElementAccess || (syntaxFacts.IsElementAccessExpression(node) || syntaxFacts.IsImplicitElementAccess(node));
+                            containsIndexerMemberCref = containsIndexerMemberCref || syntaxFacts.IsIndexerMemberCref(node);
 
                             containsDeconstruction = containsDeconstruction || syntaxFacts.IsDeconstructionAssignment(node)
                                 || syntaxFacts.IsDeconstructionForEachStatement(node);
@@ -117,6 +100,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             containsImplicitObjectCreation = containsImplicitObjectCreation || syntaxFacts.IsImplicitObjectCreationExpression(node);
                             containsGlobalSuppressMessageAttribute = containsGlobalSuppressMessageAttribute || IsGlobalSuppressMessageAttribute(syntaxFacts, node);
                             containsConversion = containsConversion || syntaxFacts.IsConversionExpression(node);
+                            containsCollectionInitializer = containsCollectionInitializer || syntaxFacts.IsObjectCollectionInitializer(node);
 
                             TryAddGlobalAliasInfo(syntaxFacts, ref globalAliasInfo, node);
                         }
@@ -126,17 +110,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                             containsThisConstructorInitializer = containsThisConstructorInitializer || syntaxFacts.IsThisConstructorInitializer(token);
                             containsBaseConstructorInitializer = containsBaseConstructorInitializer || syntaxFacts.IsBaseConstructorInitializer(token);
+                            containsGlobalKeyword = containsGlobalKeyword || syntaxFacts.IsGlobalNamespaceKeyword(token);
 
-                            if (syntaxFacts.IsIdentifier(token) ||
-                                syntaxFacts.IsGlobalNamespaceKeyword(token))
+                            if (syntaxFacts.IsIdentifier(token))
                             {
                                 var valueText = token.ValueText;
 
                                 identifiers.Add(valueText);
                                 if (valueText.Length != token.Width())
-                                {
                                     escapedIdentifiers.Add(valueText);
-                                }
                             }
 
                             if (syntaxFacts.TryGetPredefinedType(token, out var predefinedType))
@@ -180,9 +162,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             }
                         }
                     }
-
-                    infoFactory.AddDeclaredSymbolInfos(
-                        document, root, declaredSymbolInfos, extensionMethodInfo, cancellationToken);
                 }
 
                 return new SyntaxTreeIndex(
@@ -193,27 +172,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         new BloomFilter(FalsePositiveProbability, isCaseSensitive, identifiers),
                         new BloomFilter(FalsePositiveProbability, isCaseSensitive, escapedIdentifiers)),
                     new ContextInfo(
-                            predefinedTypes,
-                            predefinedOperators,
-                            containsForEachStatement,
-                            containsLockStatement,
-                            containsUsingStatement,
-                            containsQueryExpression,
-                            containsThisConstructorInitializer,
-                            containsBaseConstructorInitializer,
-                            containsElementAccess,
-                            containsIndexerMemberCref,
-                            containsDeconstruction,
-                            containsAwait,
-                            containsTupleExpressionOrTupleType,
-                            containsImplicitObjectCreation,
-                            containsGlobalSuppressMessageAttribute,
-                            containsConversion),
-                    new DeclarationInfo(declaredSymbolInfos.ToImmutable()),
-                    new ExtensionMethodInfo(
-                        extensionMethodInfo.ToImmutableDictionary(
-                            static kvp => kvp.Key,
-                            static kvp => kvp.Value.ToImmutable())),
+                        predefinedTypes,
+                        predefinedOperators,
+                        containsForEachStatement,
+                        containsLockStatement,
+                        containsUsingStatement,
+                        containsQueryExpression,
+                        containsThisConstructorInitializer,
+                        containsBaseConstructorInitializer,
+                        containsElementAccess,
+                        containsIndexerMemberCref,
+                        containsDeconstruction,
+                        containsAwait,
+                        containsTupleExpressionOrTupleType,
+                        containsImplicitObjectCreation,
+                        containsGlobalSuppressMessageAttribute,
+                        containsConversion,
+                        containsGlobalKeyword,
+                        containsCollectionInitializer),
                     globalAliasInfo);
             }
             finally
@@ -221,9 +197,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 Free(ignoreCase, identifiers, escapedIdentifiers);
                 StringLiteralHashSetPool.ClearAndFree(stringLiterals);
                 LongLiteralHashSetPool.ClearAndFree(longLiterals);
-
-                foreach (var (_, builder) in extensionMethodInfo)
-                    builder.Free();
             }
         }
 
@@ -278,7 +251,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        public static StringTable GetStringTable(Project project)
+        public static StringTable GetStringTable(ProjectState project)
             => s_projectStringTable.GetValue(project, static _ => StringTable.GetInstance());
 
         private static void GetIdentifierSet(bool ignoreCase, out HashSet<string> identifiers, out HashSet<string> escapedIdentifiers)

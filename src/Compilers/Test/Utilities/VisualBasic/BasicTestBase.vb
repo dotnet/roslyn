@@ -27,6 +27,7 @@ Public MustInherit Class BasicTestBase
     Friend Shadows Function CompileAndVerify(
         source As XElement,
         expectedOutput As XCData,
+        Optional trimOutput As Boolean = True,
         Optional expectedReturnCode As Integer? = Nothing,
         Optional args As String() = Nothing,
         Optional references As MetadataReference() = Nothing,
@@ -38,12 +39,13 @@ Public MustInherit Class BasicTestBase
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
         Optional emitOptions As EmitOptions = Nothing,
-        Optional verify As Verification = Verification.Passes
+        Optional verify As Verification = Nothing
     ) As CompilationVerifier
 
         Return CompileAndVerify(
             source,
             XCDataToString(expectedOutput),
+            trimOutput,
             expectedReturnCode,
             args,
             references,
@@ -67,10 +69,11 @@ Public MustInherit Class BasicTestBase
         Optional symbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional expectedOutput As String = Nothing,
+        Optional trimOutput As Boolean = True,
         Optional expectedReturnCode As Integer? = Nothing,
         Optional args As String() = Nothing,
         Optional emitOptions As EmitOptions = Nothing,
-        Optional verify As Verification = Verification.Passes) As CompilationVerifier
+        Optional verify As Verification = Nothing) As CompilationVerifier
 
         Return MyBase.CompileAndVerifyCommon(
             compilation,
@@ -81,6 +84,7 @@ Public MustInherit Class BasicTestBase
             Translate(symbolValidator),
             expectedSignatures,
             expectedOutput,
+            trimOutput,
             expectedReturnCode,
             args,
             emitOptions,
@@ -90,6 +94,7 @@ Public MustInherit Class BasicTestBase
     Friend Shadows Function CompileAndVerify(
         compilation As Compilation,
         expectedOutput As XCData,
+        Optional trimOutput As Boolean = True,
         Optional args As String() = Nothing,
         Optional manifestResources As IEnumerable(Of ResourceDescription) = Nothing,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
@@ -98,7 +103,7 @@ Public MustInherit Class BasicTestBase
         Optional symbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional emitOptions As EmitOptions = Nothing,
-        Optional verify As Verification = Verification.Passes) As CompilationVerifier
+        Optional verify As Verification = Nothing) As CompilationVerifier
 
         Return CompileAndVerify(
             compilation,
@@ -109,6 +114,7 @@ Public MustInherit Class BasicTestBase
             symbolValidator,
             expectedSignatures,
             XCDataToString(expectedOutput),
+            trimOutput,
             Nothing,
             args,
             emitOptions,
@@ -118,6 +124,7 @@ Public MustInherit Class BasicTestBase
     Friend Shadows Function CompileAndVerify(
         source As XElement,
         Optional expectedOutput As String = Nothing,
+        Optional trimOutput As Boolean = True,
         Optional expectedReturnCode As Integer? = Nothing,
         Optional args As String() = Nothing,
         Optional references As MetadataReference() = Nothing,
@@ -129,7 +136,7 @@ Public MustInherit Class BasicTestBase
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
         Optional emitOptions As EmitOptions = Nothing,
-        Optional verify As Verification = Verification.Passes,
+        Optional verify As Verification = Nothing,
         Optional useLatestFramework As Boolean = False
     ) As CompilationVerifier
 
@@ -139,6 +146,7 @@ Public MustInherit Class BasicTestBase
         Return Me.CompileAndVerify(source,
                                    allReferences,
                                    expectedOutput,
+                                   trimOutput,
                                    expectedReturnCode,
                                    args,
                                    dependencies,
@@ -157,6 +165,7 @@ Public MustInherit Class BasicTestBase
         source As XElement,
         allReferences As IEnumerable(Of MetadataReference),
         Optional expectedOutput As String = Nothing,
+        Optional trimOutput As Boolean = True,
         Optional expectedReturnCode As Integer? = Nothing,
         Optional args As String() = Nothing,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
@@ -167,7 +176,7 @@ Public MustInherit Class BasicTestBase
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
         Optional emitOptions As EmitOptions = Nothing,
-        Optional verify As Verification = Verification.Passes
+        Optional verify As Verification = Nothing
     ) As CompilationVerifier
 
         If options Is Nothing Then
@@ -187,6 +196,7 @@ Public MustInherit Class BasicTestBase
             Translate(symbolValidator),
             expectedSignatures,
             expectedOutput,
+            trimOutput,
             expectedReturnCode,
             args,
             emitOptions,
@@ -197,6 +207,7 @@ Public MustInherit Class BasicTestBase
         source As XElement,
         allReferences As IEnumerable(Of MetadataReference),
         Optional expectedOutput As String = Nothing,
+        Optional trimOutput As Boolean = True,
         Optional expectedReturnCode As Integer? = Nothing,
         Optional args As String() = Nothing,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
@@ -206,12 +217,13 @@ Public MustInherit Class BasicTestBase
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
-        Optional verify As Verification = Verification.Passes
+        Optional verify As Verification = Nothing
     ) As CompilationVerifier
         Return Me.CompileAndVerify(
             source,
             allReferences,
             If(OSVersion.IsWin8, expectedOutput, Nothing),
+            trimOutput,
             If(OSVersion.IsWin8, expectedReturnCode, Nothing),
             args,
             dependencies,
@@ -227,6 +239,7 @@ Public MustInherit Class BasicTestBase
     Friend Shadows Function CompileAndVerifyOnWin8Only(
         source As XElement,
         expectedOutput As XCData,
+        Optional trimOutput As Boolean = True,
         Optional expectedReturnCode As Integer? = Nothing,
         Optional args As String() = Nothing,
         Optional allReferences() As MetadataReference = Nothing,
@@ -237,12 +250,13 @@ Public MustInherit Class BasicTestBase
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
-        Optional verify As Verification = Verification.Passes
+        Optional verify As Verification = Nothing
     ) As CompilationVerifier
         Return CompileAndVerifyOnWin8Only(
             source,
             allReferences,
             XCDataToString(expectedOutput),
+            trimOutput,
             expectedReturnCode,
             args,
             dependencies,
@@ -266,7 +280,7 @@ Public MustInherit Class BasicTestBase
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
-        Optional verify As Verification = Verification.Passes,
+        Optional verify As Verification = Nothing,
         Optional useLatestFramework As Boolean = False
     ) As CompilationVerifier
         Return CompileAndVerify(
@@ -288,6 +302,7 @@ Public MustInherit Class BasicTestBase
         source As BasicTestSource,
         Optional references As IEnumerable(Of MetadataReference) = Nothing,
         Optional expectedOutput As String = Nothing,
+        Optional trimOutput As Boolean = True,
         Optional expectedReturnCode As Integer? = Nothing,
         Optional args As String() = Nothing,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
@@ -299,7 +314,7 @@ Public MustInherit Class BasicTestBase
         Optional parseOptions As VisualBasicParseOptions = Nothing,
         Optional emitOptions As EmitOptions = Nothing,
         Optional assemblyName As String = Nothing,
-        Optional verify As Verification = Verification.Passes,
+        Optional verify As Verification = Nothing,
         Optional targetFramework As TargetFramework = TargetFramework.StandardAndVBRuntime
     ) As CompilationVerifier
 
@@ -317,6 +332,7 @@ Public MustInherit Class BasicTestBase
             Translate(symbolValidator),
             expectedSignatures,
             expectedOutput,
+            trimOutput,
             expectedReturnCode,
             args,
             emitOptions,
@@ -369,7 +385,6 @@ Public MustInherit Class BasicTestBase
         If compilationVerifier IsNot Nothing Then
             compilationVerifier(compilation)
         End If
-
 
         Return CompileAndVerify(compilation, expectedOutput:=expectedOutput)
     End Function
@@ -893,7 +908,6 @@ Public MustInherit Class BasicTestBase
         Dim compilation = CreateEmptyCompilation({syntaxTree}, references:=references, options:=If(compilationOptions, TestOptions.ReleaseDll))
         VerifyFlowGraphAndDiagnosticsForTest(Of TSyntaxNode)(compilation, expectedFlowGraph, expectedDiagnostics, which)
     End Sub
-
 
     Public Shared Function GetAssertTheseDiagnosticsString(allDiagnostics As ImmutableArray(Of Diagnostic), suppressInfos As Boolean) As String
         Return DumpAllDiagnostics(allDiagnostics, suppressInfos)

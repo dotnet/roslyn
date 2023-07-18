@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override IEnumerable<Cci.SecurityAttribute> GetSecurityInformation()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal sealed override ImmutableArray<string> GetAppliedConditionalSymbols()
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private static CSharpSyntaxNode DummySyntax()
@@ -306,6 +306,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 type: method.ReturnType)
             { WasCompilerGenerated = true };
         }
+
+        protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
+
+        internal sealed override bool HasUnscopedRefAttribute => false;
+
+        internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
 
         /// <summary> A synthesized entrypoint that forwards all calls to an async Main Method </summary>
         internal sealed class AsyncForwardEntryPoint : SynthesizedEntryPointSymbol
@@ -390,7 +396,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             new BoundReturnStatement(
                                 syntax: syntax,
                                 refKind: RefKind.None,
-                                expressionOpt: null
+                                expressionOpt: null,
+                                @checked: false
                             )
                             { WasCompilerGenerated = true }
                         )
@@ -407,7 +414,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             new BoundReturnStatement(
                                 syntax: syntax,
                                 refKind: RefKind.None,
-                                expressionOpt: _getAwaiterGetResultCall
+                                expressionOpt: _getAwaiterGetResultCall,
+                                @checked: false
                             )
                         )
                     )
@@ -449,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Creates a new top-level binder that just contains the global imports for the compilation.
                 // The imports are required if a consumer of the scripting API is using a Task implementation 
                 // that uses extension methods.
-                Binder binder = WithUsingNamespacesAndTypesBinder.Create(compilation.GlobalImports, next: new BuckStopsHereBinder(compilation), withImportChainEntry: true);
+                Binder binder = WithUsingNamespacesAndTypesBinder.Create(compilation.GlobalImports, next: new BuckStopsHereBinder(compilation, null), withImportChainEntry: true);
                 binder = new InContainerBinder(compilation.GlobalNamespace, binder);
 
                 var ctor = _containingType.GetScriptConstructor();
@@ -499,7 +507,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         new BoundReturnStatement(
                             syntax,
                             RefKind.None,
-                            null)
+                            null,
+                            @checked: false)
                         { WasCompilerGenerated = true }))
                 { WasCompilerGenerated = true };
             }
@@ -588,7 +597,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var returnStatement = new BoundReturnStatement(
                     syntax,
                     RefKind.None,
-                    initializeResult)
+                    initializeResult,
+                    @checked: false)
                 { WasCompilerGenerated = true };
 
                 return new BoundBlock(syntax,

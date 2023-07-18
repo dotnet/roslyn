@@ -418,7 +418,8 @@ namespace Microsoft.CodeAnalysis
             return DiagnosticFormatter.Instance.Format(this, CultureInfo.CurrentUICulture);
         }
 
-        public abstract override bool Equals(object? obj);
+        public sealed override bool Equals(object? obj)
+            => obj is Diagnostic diagnostic && Equals(diagnostic);
 
         public abstract override int GetHashCode();
 

@@ -427,6 +427,8 @@ public class Test
     public readonly struct S1{}
 }";
 
+            // PEVerify: The module  was expected to contain an assembly manifest.
+            // ILVerify: The format of a DLL or executable being loaded is invalid
             CompileAndVerify(code, verify: Verification.Fails, references: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
@@ -481,7 +483,7 @@ class Test
 }
 ";
 
-            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(text, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), verify: Verification.Passes, symbolValidator: module =>
             {
                 Assert.Null(module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName));
             });
@@ -592,7 +594,6 @@ class User
         p.Method(p.Property);
     }
 }";
-
 
             var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
 

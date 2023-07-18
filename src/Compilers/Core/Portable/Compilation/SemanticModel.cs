@@ -75,19 +75,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns></returns>
         public IOperation? GetOperation(SyntaxNode node, CancellationToken cancellationToken = default(CancellationToken))
         {
-            try
-            {
-                return GetOperationCore(node, cancellationToken);
-            }
-#pragma warning disable CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete; tracked by https://github.com/dotnet/roslyn/issues/58375
-            catch (Exception e) when (FatalError.ReportIfNonFatalAndCatchUnlessCanceled(e, cancellationToken))
-#pragma warning restore CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete
-            {
-                // Log a Non-fatal-watson and then ignore the crash in the attempt of getting operation
-                Debug.Assert(false, "\n" + e.ToString());
-            }
-
-            return null;
+            return GetOperationCore(node, cancellationToken);
         }
 
         protected abstract IOperation? GetOperationCore(SyntaxNode node, CancellationToken cancellationToken);
@@ -282,10 +270,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// If this is a non-speculative member semantic model, then returns the containing semantic model for the entire tree.
+        /// If this is an instance of semantic model that cannot be exposed to external consumers, then returns the containing public semantic model.
         /// Otherwise, returns this instance of the semantic model.
         /// </summary>
-        internal abstract SemanticModel ContainingModelOrSelf
+        internal abstract SemanticModel ContainingPublicModelOrSelf
         {
             get;
         }
@@ -410,9 +398,14 @@ namespace Microsoft.CodeAnalysis
         protected abstract ISymbol? GetDeclaredSymbolCore(SyntaxNode declaration, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
-        /// Gets the symbol associated with a declaration syntax node. Unlike <see cref="GetDeclaredSymbolForNode(SyntaxNode, CancellationToken)"/>,
-        /// this method returns all symbols declared by a given declaration syntax node. Specifically, in the case of field declaration syntax nodes,
-        /// which can declare multiple symbols, this method returns all declared symbols.
+        /// Gets the symbols associated with a declaration syntax node. Unlike <see cref="GetDeclaredSymbolForNode(SyntaxNode, CancellationToken)"/>,
+        /// this method returns all symbols declared by a given declaration syntax node. Specifically:
+        /// <list type="number">
+        /// <item>in the case of field declaration syntax nodes, which can declare multiple symbols, this method returns
+        /// all declared symbols.</item>
+        /// <item>in the case of type declarations with a primary constructor, both the <see cref="INamedTypeSymbol"/>
+        /// for the type, and the <see cref="IMethodSymbol"/> for the primary contructor will be returned.</item>
+        /// </list>
         /// </summary>
         /// <param name="declaration">A syntax node that is a declaration. This can be any type
         /// derived from MemberDeclarationSyntax, TypeDeclarationSyntax, EnumDeclarationSyntax,
@@ -426,9 +419,14 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets the symbol associated with a declaration syntax node. Unlike <see cref="GetDeclaredSymbolForNode(SyntaxNode, CancellationToken)"/>,
-        /// this method returns all symbols declared by a given declaration syntax node. Specifically, in the case of field declaration syntax nodes,
-        /// which can declare multiple symbols, this method returns all declared symbols.
+        /// Gets the symbols associated with a declaration syntax node. Unlike <see cref="GetDeclaredSymbolForNode(SyntaxNode, CancellationToken)"/>,
+        /// this method returns all symbols declared by a given declaration syntax node. Specifically:
+        /// <list type="number">
+        /// <item>in the case of field declaration syntax nodes, which can declare multiple symbols, this method returns
+        /// all declared symbols.</item>
+        /// <item>in the case of type declarations with a primary constructor, both the <see cref="INamedTypeSymbol"/>
+        /// for the type, and the <see cref="IMethodSymbol"/> for the primary contructor will be returned.</item>
+        /// </list>
         /// </summary>
         /// <param name="declaration">A syntax node that is a declaration. This can be any type
         /// derived from MemberDeclarationSyntax, TypeDeclarationSyntax, EnumDeclarationSyntax,
@@ -784,6 +782,16 @@ namespace Microsoft.CodeAnalysis
         /// that the position is considered inside of.
         /// </summary>
         protected abstract ISymbol? GetEnclosingSymbolCore(int position, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Given a position in the SyntaxTree for this SemanticModel returns the <see cref="IImportScope"/>s at that
+        /// point.  Scopes are ordered from closest to the passed in <paramref name="position"/> to the furthest. See
+        /// <see cref="IImportScope"/> for a deeper description of what information is available for each scope.
+        /// </summary>
+        public ImmutableArray<IImportScope> GetImportScopes(int position, CancellationToken cancellationToken = default)
+            => GetImportScopesCore(position, cancellationToken);
+
+        private protected abstract ImmutableArray<IImportScope> GetImportScopesCore(int position, CancellationToken cancellationToken);
 
         /// <summary>
         /// Determines if the symbol is accessible from the specified location.

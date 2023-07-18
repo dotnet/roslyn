@@ -558,18 +558,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Return False
         End Function
-
-        Private Shared Function RequiresExplicitOverride([event] As EventSymbol) As Boolean
-            If [event].OverriddenEvent IsNot Nothing Then
-                For Each inaccessibleOverride In [event].OverriddenOrHiddenMembers.InaccessibleMembers
-                    If inaccessibleOverride.IsOverridable OrElse inaccessibleOverride.IsMustOverride OrElse inaccessibleOverride.IsOverrides Then
-                        Return True
-                    End If
-                Next
-            End If
-
-            Return False
-        End Function
     End Class
 
     ''' <summary>
@@ -949,7 +937,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Const significantDifferences As SymbolComparisonResults = SymbolComparisonResults.AllMismatches And
                                                                       Not SymbolComparisonResults.MismatchesForConflictingMethods
 
-
             Dim nonConflicting As ArrayBuilder(Of TSymbol) = ArrayBuilder(Of TSymbol).GetInstance()
 
             For Each sym In members
@@ -984,7 +971,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             nonConflicting.Free()
         End Sub
 
-
         ' Check an accessor with respect to its overridden accessor and report any diagnostics
         Friend Shared Sub CheckOverridePropertyAccessor(overridingAccessor As MethodSymbol,
                                                         overriddenAccessor As MethodSymbol,
@@ -1014,7 +1000,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                overridingMember As Symbol,
                                                overriddenMember As Symbol,
                                                diagnostics As BindingDiagnosticBag)
-            diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(id, overridingMember, overriddenMember),
+            diagnostics.Add(New VBDiagnostic(New BadSymbolDiagnostic(overriddenMember, id, overridingMember, overriddenMember),
                                             overridingMember.Locations(0)))
         End Sub
 
@@ -1028,7 +1014,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return overridden.DeclaredAccessibility = overriding.DeclaredAccessibility
             End If
         End Function
-
 
     End Class
 End Namespace

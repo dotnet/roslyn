@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Roslyn.Utilities;
 
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 PreferBracesPreference.None => $"false{notificationString}",
                 PreferBracesPreference.WhenMultiline => $"when_multiline{notificationString}",
                 PreferBracesPreference.Always => $"true{notificationString}",
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
         }
     }

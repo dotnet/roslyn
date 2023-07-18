@@ -12,6 +12,7 @@ Imports System.Security.Cryptography
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -118,7 +119,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return _compilation
             End Get
         End Property
-
 
         Public Overrides ReadOnly Property IsInteractive As Boolean
             Get
@@ -903,6 +903,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return If(result IsNot Nothing, result.Keys, SpecializedCollections.EmptyEnumerable(Of ImmutableArray(Of Byte))())
         End Function
 
+        Friend Overrides Function GetInternalsVisibleToAssemblyNames() As IEnumerable(Of String)
+            EnsureAttributesAreBound()
+
+            If _lazyInternalsVisibleToMap Is Nothing Then
+                Return SpecializedCollections.EmptyEnumerable(Of String)()
+            End If
+
+            Return _lazyInternalsVisibleToMap.Keys
+        End Function
+
         Friend ReadOnly Property DeclaresTheObjectClass As Boolean
             Get
                 If Me.CorLibrary IsNot Me Then
@@ -1133,7 +1143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             For i = 0 To argCount - 1
                 Dim arg As Integer = attrData.GetConstructorArgument(Of Integer)(i, SpecialType.System_Int32)
                 If arg < 0 Then
-                    diagnostics.Add(ERRID.ERR_BadAttribute1, If(nodeOpt IsNot Nothing, nodeOpt.ArgumentList.Arguments(i).GetLocation(), NoLocation.Singleton), attrData.AttributeClass)
+                    diagnostics.Add(ERRID.ERR_BadAttribute1, VisualBasicAttributeData.GetArgumentLocation(nodeOpt, i), attrData.AttributeClass)
                 End If
             Next
         End Sub
@@ -1461,8 +1471,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-            MyBase.AddSynthesizedAttributes(compilationState, attributes)
+        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
             Debug.Assert(_lazyEmitExtensionAttribute <> ThreeState.Unknown)
             Debug.Assert(_lazySourceAttributesBag.IsSealed)
@@ -1752,7 +1762,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                 emittedName = MetadataTypeName.FromFullName(matchedName, emittedName.UseCLSCompliantNameArityEncoding, emittedName.ForcedArity)
                             End If
 
-                            Return forwardedToAssemblies.FirstSymbol.LookupTopLevelMetadataTypeWithCycleDetection(emittedName, visitedAssemblies, digThroughForwardedTypes:=True)
+                            Return forwardedToAssemblies.FirstSymbol.LookupDeclaredOrForwardedTopLevelMetadataType(emittedName, visitedAssemblies)
                         End If
                     End If
                 Next

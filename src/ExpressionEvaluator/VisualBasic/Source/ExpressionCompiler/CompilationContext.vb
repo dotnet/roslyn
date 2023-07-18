@@ -488,7 +488,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         Private Shared Function BindExpression(binder As Binder, syntax As ExpressionSyntax, diagnostics As DiagnosticBag, <Out> ByRef resultProperties As ResultProperties) As BoundStatement
-            Dim bindingDiagnostics = New BindingDiagnosticBag(diagnostics)
+            Dim bindingDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
             Dim expression = binder.BindExpression(syntax, bindingDiagnostics)
 
             Dim flags = DkmClrCompilationResultFlags.None
@@ -510,6 +510,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 expression = binder.MakeRValue(expression, bindingDiagnostics)
             End If
 
+            diagnostics.AddRange(bindingDiagnostics.DiagnosticBag)
+            bindingDiagnostics.Free()
+
             Select Case expression.Type.SpecialType
                 Case SpecialType.System_Void
                     Debug.Assert(expression.ConstantValueOpt Is Nothing)
@@ -524,7 +527,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         Private Shared Function IsAssignableExpression(binder As Binder, expression As BoundExpression) As Boolean
-            Dim diagnostics = New BindingDiagnosticBag(DiagnosticBag.GetInstance())
+            Dim diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
             Dim value = binder.ReclassifyAsValue(expression, diagnostics)
             Dim result = False
             If Binder.IsValidAssignmentTarget(value) AndAlso Not diagnostics.HasAnyErrors() Then
@@ -555,7 +558,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Private Shared Function BindStatement(binder As Binder, syntax As StatementSyntax, diagnostics As DiagnosticBag, <Out> ByRef resultProperties As ResultProperties) As BoundStatement
             resultProperties = New ResultProperties(DkmClrCompilationResultFlags.PotentialSideEffect Or DkmClrCompilationResultFlags.ReadOnlyResult)
-            Return binder.BindStatement(syntax, New BindingDiagnosticBag(diagnostics)).MakeCompilerGenerated()
+            Dim builder = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
+            Dim result = binder.BindStatement(syntax, builder).MakeCompilerGenerated()
+            diagnostics.AddRange(builder.DiagnosticBag)
+            builder.Free()
+            Return result
         End Function
 
         Private Shared Function CreateBinderChain(
@@ -789,14 +796,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         End If
 
                         ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
-                        aliases([alias]) = New AliasAndImportsClausePosition(aliasSymbol, position, ImmutableArray(Of AssemblySymbol).Empty)
+                        aliases([alias]) = New AliasAndImportsClausePosition(aliasSymbol, position, syntaxReference:=Nothing, ImmutableArray(Of AssemblySymbol).Empty)
                     Else
                         If importsBuilder Is Nothing Then
                             importsBuilder = ArrayBuilder(Of NamespaceOrTypeAndImportsClausePosition).GetInstance()
                         End If
 
                         ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
-                        importsBuilder.Add(New NamespaceOrTypeAndImportsClausePosition(typeSymbol, position, ImmutableArray(Of AssemblySymbol).Empty))
+                        importsBuilder.Add(New NamespaceOrTypeAndImportsClausePosition(typeSymbol, position, syntaxReference:=Nothing, ImmutableArray(Of AssemblySymbol).Empty))
                     End If
 
                 ' Dev12 treats the current namespace the same as any other namespace (see ProcedureContext::LoadImportsAndDefaultNamespaceNormal).
@@ -826,7 +833,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         End If
 
                         ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
-                        importsBuilder.Add(New NamespaceOrTypeAndImportsClausePosition(namespaceOrTypeSymbol, position, ImmutableArray(Of AssemblySymbol).Empty))
+                        importsBuilder.Add(New NamespaceOrTypeAndImportsClausePosition(namespaceOrTypeSymbol, position, syntaxReference:=Nothing, ImmutableArray(Of AssemblySymbol).Empty))
                     Else
                         Dim aliasSymbol As New AliasSymbol(importBinder.Compilation, importBinder.ContainingNamespaceOrType, [alias], namespaceOrTypeSymbol, NoLocation.Singleton)
 
@@ -835,7 +842,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         End If
 
                         ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
-                        aliases([alias]) = New AliasAndImportsClausePosition(aliasSymbol, position, ImmutableArray(Of AssemblySymbol).Empty)
+                        aliases([alias]) = New AliasAndImportsClausePosition(aliasSymbol, position, syntaxReference:=Nothing, ImmutableArray(Of AssemblySymbol).Empty)
                     End If
 
                 Case ImportTargetKind.NamespaceOrType ' Aliased namespace or type (native PDB only)
@@ -858,7 +865,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     End If
 
                     ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
-                    aliases([alias]) = New AliasAndImportsClausePosition(aliasSymbol, position, ImmutableArray(Of AssemblySymbol).Empty)
+                    aliases([alias]) = New AliasAndImportsClausePosition(aliasSymbol, position, syntaxReference:=Nothing, ImmutableArray(Of AssemblySymbol).Empty)
 
                 Case ImportTargetKind.XmlNamespace
                     If xmlImports Is Nothing Then
@@ -866,7 +873,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     End If
 
                     ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
-                    xmlImports(importRecord.Alias) = New XmlNamespaceAndImportsClausePosition(importRecord.TargetString, position)
+                    xmlImports(importRecord.Alias) = New XmlNamespaceAndImportsClausePosition(importRecord.TargetString, position, syntaxReference:=Nothing)
                 Case ImportTargetKind.DefaultNamespace
                     ' Processed ahead of time so that it can be incorporated into the compilation before
                     ' constructing the binder chain.
@@ -903,29 +910,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Next
 
             Return fileLevel
-        End Function
-
-        Private Shared Function SelectAndInitializeCollection(Of T)(
-            scope As VBImportScopeKind,
-            ByRef projectLevelCollection As T,
-            ByRef fileLevelCollection As T,
-            initializeCollection As Func(Of T)) As T
-
-            If scope = VBImportScopeKind.Project Then
-                If projectLevelCollection Is Nothing Then
-                    projectLevelCollection = initializeCollection()
-                End If
-
-                Return projectLevelCollection
-            Else
-                Debug.Assert(scope = VBImportScopeKind.File OrElse scope = VBImportScopeKind.Unspecified)
-
-                If fileLevelCollection Is Nothing Then
-                    fileLevelCollection = initializeCollection()
-                End If
-
-                Return fileLevelCollection
-            End If
         End Function
 
         ''' <summary>
@@ -1167,7 +1151,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private Shared Function IsDisplayClassInstanceFieldName(name As String) As Boolean
             Debug.Assert(name IsNot Nothing) ' Verified by caller.
             Return name.StartsWith(GeneratedNameConstants.HoistedSpecialVariablePrefix & GeneratedNameConstants.ClosureVariablePrefix, StringComparison.Ordinal) OrElse
-                name.StartsWith(GeneratedNameConstants.StateMachineHoistedUserVariablePrefix & GeneratedNameConstants.ClosureVariablePrefix, StringComparison.Ordinal) OrElse
+                name.StartsWith(GeneratedNameConstants.StateMachineHoistedUserVariableOrDisplayClassPrefix & GeneratedNameConstants.ClosureVariablePrefix, StringComparison.Ordinal) OrElse
                 name.StartsWith(GeneratedNameConstants.HoistedSpecialVariablePrefix & GeneratedNameConstants.DisplayClassPrefix, StringComparison.Ordinal) ' Async lambda case
         End Function
 
@@ -1270,7 +1254,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     Debug.Assert(Not field.IsShared)
                     variableKind = DisplayClassVariableKind.Local
                     variableName = fieldName.Substring(GeneratedNameConstants.HoistedSpecialVariablePrefix.Length)
-                ElseIf GeneratedNameParser.TryParseStateMachineHoistedUserVariableName(fieldName, hoistedLocalName, hoistedLocalSlotIndex) Then
+                ElseIf GeneratedNameParser.TryParseStateMachineHoistedUserVariableOrDisplayClassName(fieldName, hoistedLocalName, hoistedLocalSlotIndex) Then
                     Debug.Assert(Not field.IsShared)
 
                     If Not inScopeHoistedLocalSlots.Contains(hoistedLocalSlotIndex) Then
@@ -1304,10 +1288,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     variableKind = DisplayClassVariableKind.Parameter
                 End If
 
-                If displayClassVariablesBuilder.ContainsKey(variableName) Then
+                Dim displayClassVariable As DisplayClassVariable = Nothing
+                If displayClassVariablesBuilder.TryGetValue(variableName, displayClassVariable) Then
                     ' Only expecting duplicates for async state machine
                     ' fields (that should be at the top-level).
-                    Debug.Assert(displayClassVariablesBuilder(variableName).DisplayClassFields.Count() = 1)
+                    Debug.Assert(displayClassVariable.DisplayClassFields.Count() = 1)
 
                     If Not instance.Fields.Any() Then
                         ' Prefer parameters over locals.

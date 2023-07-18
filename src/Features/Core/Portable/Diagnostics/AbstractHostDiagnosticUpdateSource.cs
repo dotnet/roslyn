@@ -37,7 +37,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, ProjectId? projectId)
         {
             // check whether we are reporting project specific diagnostic or workspace wide diagnostic
-            var project = (projectId != null) ? Workspace.CurrentSolution.GetProject(projectId) : null;
+            var solution = Workspace.CurrentSolution;
+            var project = projectId != null ? solution.GetProject(projectId) : null;
 
             // check whether project the diagnostic belong to still exist
             if (projectId != null && project == null)
@@ -47,11 +48,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return;
             }
 
-            var diagnosticData = (project != null) ?
-                DiagnosticData.Create(diagnostic, project) :
-                DiagnosticData.Create(diagnostic, Workspace.Options);
-
-            ReportAnalyzerDiagnostic(analyzer, diagnosticData, project);
+            ReportAnalyzerDiagnostic(analyzer, DiagnosticData.Create(solution, diagnostic, project), project);
         }
 
         public void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, DiagnosticData diagnosticData, Project? project)
@@ -149,12 +146,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal TestAccessor GetTestAccessor()
             => new(this);
 
-        internal readonly struct TestAccessor
+        internal readonly struct TestAccessor(AbstractHostDiagnosticUpdateSource abstractHostDiagnosticUpdateSource)
         {
-            private readonly AbstractHostDiagnosticUpdateSource _abstractHostDiagnosticUpdateSource;
-
-            public TestAccessor(AbstractHostDiagnosticUpdateSource abstractHostDiagnosticUpdateSource)
-                => _abstractHostDiagnosticUpdateSource = abstractHostDiagnosticUpdateSource;
+            private readonly AbstractHostDiagnosticUpdateSource _abstractHostDiagnosticUpdateSource = abstractHostDiagnosticUpdateSource;
 
             internal ImmutableArray<DiagnosticData> GetReportedDiagnostics()
                 => _abstractHostDiagnosticUpdateSource._analyzerHostDiagnosticsMap.Values.Flatten().ToImmutableArray();
@@ -170,16 +164,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private sealed class HostArgsId : AnalyzerUpdateArgsId
+        private sealed class HostArgsId(AbstractHostDiagnosticUpdateSource source, DiagnosticAnalyzer analyzer, ProjectId? projectId) : AnalyzerUpdateArgsId(analyzer)
         {
-            private readonly AbstractHostDiagnosticUpdateSource _source;
-            private readonly ProjectId? _projectId;
-
-            public HostArgsId(AbstractHostDiagnosticUpdateSource source, DiagnosticAnalyzer analyzer, ProjectId? projectId) : base(analyzer)
-            {
-                _source = source;
-                _projectId = projectId;
-            }
+            private readonly AbstractHostDiagnosticUpdateSource _source = source;
+            private readonly ProjectId? _projectId = projectId;
 
             public override bool Equals(object? obj)
             {

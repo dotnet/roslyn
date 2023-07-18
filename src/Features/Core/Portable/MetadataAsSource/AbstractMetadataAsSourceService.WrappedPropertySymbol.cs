@@ -11,15 +11,9 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
     internal partial class AbstractMetadataAsSourceService
     {
-        private class WrappedPropertySymbol : AbstractWrappedSymbol, IPropertySymbol
+        private class WrappedPropertySymbol(IPropertySymbol propertySymbol, bool canImplementImplicitly, IDocumentationCommentFormattingService docCommentFormattingService) : AbstractWrappedSymbol(propertySymbol, canImplementImplicitly, docCommentFormattingService), IPropertySymbol
         {
-            private readonly IPropertySymbol _symbol;
-
-            public WrappedPropertySymbol(IPropertySymbol propertySymbol, bool canImplementImplicitly, IDocumentationCommentFormattingService docCommentFormattingService)
-                : base(propertySymbol, canImplementImplicitly, docCommentFormattingService)
-            {
-                _symbol = propertySymbol;
-            }
+            private readonly IPropertySymbol _symbol = propertySymbol;
 
             public ImmutableArray<IPropertySymbol> ExplicitInterfaceImplementations
             {
@@ -40,6 +34,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public bool IsWithEvents => _symbol.IsWithEvents;
 
             public bool IsWriteOnly => _symbol.IsWriteOnly;
+
+            public bool IsRequired => _symbol.IsRequired;
 
             public bool ReturnsByRef => _symbol.ReturnsByRef;
 

@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 private readonly Registration _registration;
                 private readonly ProjectProcessor _processor;
 
-                private readonly NonReentrantLock _workGate;
-                private readonly Dictionary<DocumentId, Data> _pendingWork;
+                private readonly NonReentrantLock _workGate = new();
+                private readonly Dictionary<DocumentId, Data> _pendingWork = new();
 
                 public SemanticChangeProcessor(
                     IAsynchronousOperationListener listener,
@@ -52,9 +52,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     _processor = new ProjectProcessor(listener, registration, documentWorkerProcessor, projectBackOffTimeSpan, cancellationToken);
 
-                    _workGate = new NonReentrantLock();
-                    _pendingWork = new Dictionary<DocumentId, Data>();
-
                     Start();
 
                     // Register a clean-up task to ensure pending work items are flushed from the queue if they will
@@ -66,13 +63,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         TaskScheduler.Default);
                 }
 
-                public override Task AsyncProcessorTask
+                protected override void OnPaused()
                 {
-                    get
-                    {
-                        return Task.WhenAll(base.AsyncProcessorTask, _processor.AsyncProcessorTask);
-                    }
                 }
+
+                public override Task AsyncProcessorTask
+                    => Task.WhenAll(base.AsyncProcessorTask, _processor.AsyncProcessorTask);
 
                 protected override Task WaitAsync(CancellationToken cancellationToken)
                     => _gate.WaitAsync(cancellationToken);
@@ -304,33 +300,18 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     var graph = solution.GetProjectDependencyGraph();
 
-                    if (solution.Options.GetOption(InternalSolutionCrawlerOptions.DirectDependencyPropagationOnly))
-                    {
-                        return graph.GetProjectsThatDirectlyDependOnThisProject(projectId).Concat(projectId);
-                    }
-
-                    // re-analyzing all transitive dependencies is very expensive. by default we will only
-                    // re-analyze direct dependency for now. and consider flipping the default only if we must.
-                    return graph.GetProjectsThatTransitivelyDependOnThisProject(projectId).Concat(projectId);
+                    // Reanalyze direct dependencies only as reanalyzing all transitive dependencies is very expensive.
+                    return graph.GetProjectsThatDirectlyDependOnThisProject(projectId).Concat(projectId);
                 }
 
-                private readonly struct Data
+                private readonly struct Data(Project project, DocumentId documentId, Document? document, SyntaxPath? changedMember, IAsyncToken asyncToken)
                 {
-                    private readonly DocumentId _documentId;
-                    private readonly Document? _document;
+                    private readonly DocumentId _documentId = documentId;
+                    private readonly Document? _document = document;
 
-                    public readonly Project Project;
-                    public readonly SyntaxPath? ChangedMember;
-                    public readonly IAsyncToken AsyncToken;
-
-                    public Data(Project project, DocumentId documentId, Document? document, SyntaxPath? changedMember, IAsyncToken asyncToken)
-                    {
-                        _documentId = documentId;
-                        _document = document;
-                        Project = project;
-                        ChangedMember = changedMember;
-                        AsyncToken = asyncToken;
-                    }
+                    public readonly Project Project = project;
+                    public readonly SyntaxPath? ChangedMember = changedMember;
+                    public readonly IAsyncToken AsyncToken = asyncToken;
 
                     public Document GetRequiredDocument()
                         => WorkCoordinator.GetRequiredDocument(Project, _documentId, _document);
@@ -345,8 +326,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     private readonly Registration _registration;
                     private readonly IncrementalAnalyzerProcessor _processor;
 
-                    private readonly NonReentrantLock _workGate;
-                    private readonly Dictionary<ProjectId, Data> _pendingWork;
+                    private readonly NonReentrantLock _workGate = new();
+                    private readonly Dictionary<ProjectId, Data> _pendingWork = new();
 
                     public ProjectProcessor(
                         IAsynchronousOperationListener listener,
@@ -361,9 +342,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         _gate = new SemaphoreSlim(initialCount: 0);
 
-                        _workGate = new NonReentrantLock();
-                        _pendingWork = new Dictionary<ProjectId, Data>();
-
                         Start();
 
                         // Register a clean-up task to ensure pending work items are flushed from the queue if they will
@@ -373,6 +351,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             CancellationToken.None,
                             TaskContinuationOptions.ExecuteSynchronously,
                             TaskScheduler.Default);
+                    }
+
+                    protected override void OnPaused()
+                    {
                     }
 
                     public void Enqueue(ProjectId projectId, bool needDependencyTracking = false)
@@ -453,18 +435,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             await EnqueueWorkItemAsync(project, documentId, document: null).ConfigureAwait(false);
                     }
 
-                    private readonly struct Data
+                    private readonly struct Data(ProjectId projectId, bool needDependencyTracking, IAsyncToken asyncToken)
                     {
-                        public readonly IAsyncToken AsyncToken;
-                        public readonly ProjectId ProjectId;
-                        public readonly bool NeedDependencyTracking;
-
-                        public Data(ProjectId projectId, bool needDependencyTracking, IAsyncToken asyncToken)
-                        {
-                            AsyncToken = asyncToken;
-                            ProjectId = projectId;
-                            NeedDependencyTracking = needDependencyTracking;
-                        }
+                        public readonly IAsyncToken AsyncToken = asyncToken;
+                        public readonly ProjectId ProjectId = projectId;
+                        public readonly bool NeedDependencyTracking = needDependencyTracking;
                     }
                 }
             }

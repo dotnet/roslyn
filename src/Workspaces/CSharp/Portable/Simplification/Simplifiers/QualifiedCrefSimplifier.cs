@@ -8,7 +8,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 
@@ -27,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
         public override bool TrySimplify(
             QualifiedCrefSyntax crefSyntax,
             SemanticModel semanticModel,
-            OptionSet optionSet,
+            CSharpSimplifierOptions options,
             out CrefSyntax replacementNode,
             out TextSpan issueSpan,
             CancellationToken cancellationToken)
@@ -38,8 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             var memberCref = crefSyntax.Member;
 
             // Currently we are dealing with only the NameMemberCrefs
-            if (SimplificationHelpers.PreferPredefinedTypeKeywordInMemberAccess(optionSet, semanticModel.Language) &&
-                memberCref.IsKind(SyntaxKind.NameMemberCref, out NameMemberCrefSyntax nameMemberCref))
+            if (options.PreferPredefinedTypeKeywordInMemberAccess.Value &&
+                memberCref is NameMemberCrefSyntax nameMemberCref)
             {
                 var symbolInfo = semanticModel.GetSymbolInfo(nameMemberCref.Name, cancellationToken);
                 var symbol = symbolInfo.Symbol;
@@ -50,11 +49,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 // 1. Check for Predefined Types
                 if (symbol is INamedTypeSymbol namedSymbol)
                 {
-                    var keywordKind = GetPredefinedKeywordKind(namedSymbol.SpecialType);
-
-                    if (keywordKind != SyntaxKind.None)
+                    var keywordToken = TryGetPredefinedKeywordToken(semanticModel, namedSymbol.SpecialType);
+                    if (keywordToken != null)
                     {
-                        replacementNode = CreateReplacement(crefSyntax, keywordKind);
+                        replacementNode = TypeCref(CreatePredefinedTypeSyntax(crefSyntax, keywordToken.Value))
+                            .WithAdditionalAnnotations(new SyntaxAnnotation(nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)));
                         replacementNode = crefSyntax.CopyAnnotationsTo(replacementNode);
 
                         // we want to show the whole name expression as unnecessary
@@ -68,13 +67,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return CanSimplifyWithReplacement(
                 crefSyntax, semanticModel, memberCref,
                 out replacementNode, out issueSpan, cancellationToken);
-        }
-
-        private static TypeCrefSyntax CreateReplacement(QualifiedCrefSyntax crefSyntax, SyntaxKind keywordKind)
-        {
-            var annotation = new SyntaxAnnotation(nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess));
-            var token = Token(crefSyntax.GetLeadingTrivia(), keywordKind, crefSyntax.GetTrailingTrivia());
-            return TypeCref(PredefinedType(token)).WithAdditionalAnnotations(annotation);
         }
 
         public static bool CanSimplifyWithReplacement(

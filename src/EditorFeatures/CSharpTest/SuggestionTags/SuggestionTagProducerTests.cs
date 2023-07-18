@@ -10,7 +10,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.UseObjectInitializer;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -23,9 +22,10 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SuggestionTags
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.SuggestionTags), Trait(Traits.Feature, Traits.Features.Tagging)]
     public class SuggestionTagProducerTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SuggestionTags)]
+        [WpfFact]
         public async Task SuggestionTagTest1()
         {
             var (spans, selection) = await GetTagSpansAndSelectionAsync(
@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SuggestionTags
         private static async Task<(ImmutableArray<ITagSpan<IErrorTag>> spans, TextSpan selection)> GetTagSpansAndSelectionAsync(string content)
         {
             using var workspace = TestWorkspace.CreateCSharp(content);
+
             var analyzerMap = new Dictionary<string, ImmutableArray<DiagnosticAnalyzer>>()
             {
                 { LanguageNames.CSharp, ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpUseObjectInitializerDiagnosticAnalyzer()) }

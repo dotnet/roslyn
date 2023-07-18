@@ -665,7 +665,8 @@ BC30652: Reference required to assembly 'mincorlib, Version=0.0.0.0, Culture=neu
             Dim compilation5 = CreateEmptyCompilationWithReferences(source2, options:=TestOptions.ReleaseDll, references:={compilation1.ToMetadataReference()})
 
             compilation5.VerifyEmitDiagnostics()
-            CompileAndVerify(compilation5)
+            ' ILVerify: no corlib
+            CompileAndVerify(compilation5, verify:=Verification.FailsILVerify)
 
             Assert.Equal(TypeKind.Struct, compilation5.GetTypeByMetadataName("A").TypeKind)
             Assert.Equal(TypeKind.Enum, compilation5.GetTypeByMetadataName("B").TypeKind)

@@ -17,17 +17,13 @@ namespace Microsoft.CodeAnalysis.Serialization
     /// <summary>
     /// collection which children is checksum.
     /// </summary>
-    internal class ChecksumCollection : ChecksumWithChildren, IEnumerable<Checksum>
+    internal class ChecksumCollection(ImmutableArray<object> checksums) : ChecksumWithChildren(checksums), IReadOnlyCollection<Checksum>
     {
-        public ChecksumCollection(Checksum[] checksums) : this((object[])checksums)
+        public ChecksumCollection(ImmutableArray<Checksum> checksums) : this(checksums.CastArray<object>())
         {
         }
 
-        public ChecksumCollection(object[] checksums) : base(checksums)
-        {
-        }
-
-        public int Count => Children.Count;
+        public int Count => Children.Length;
         public Checksum this[int index] => (Checksum)Children[index];
 
         public IEnumerator<Checksum> GetEnumerator()
@@ -62,9 +58,9 @@ namespace Microsoft.CodeAnalysis.Serialization
             Dictionary<Checksum, object> result,
             CancellationToken cancellationToken)
         {
-            Contract.ThrowIfFalse(values.Count == checksums.Children.Count);
+            Contract.ThrowIfFalse(values.Count == checksums.Children.Length);
 
-            for (var i = 0; i < checksums.Children.Count; i++)
+            for (var i = 0; i < checksums.Children.Length; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 

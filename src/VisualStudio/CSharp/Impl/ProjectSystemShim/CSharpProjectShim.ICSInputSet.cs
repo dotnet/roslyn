@@ -45,19 +45,19 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             // Some projects like web projects give us just a filename; those aren't really useful (they're just filler) so we'll ignore them for purposes of tracking the path
             if (PathUtilities.IsAbsolute(filename))
             {
-                VisualStudioProject.CompilationOutputAssemblyFilePath = filename;
+                ProjectSystemProject.CompilationOutputAssemblyFilePath = filename;
             }
 
             if (filename != null)
             {
-                VisualStudioProject.AssemblyName = Path.GetFileNameWithoutExtension(filename);
+                ProjectSystemProject.AssemblyName = Path.GetFileNameWithoutExtension(filename);
             }
 
             RefreshBinOutputPath();
         }
 
         public void SetOutputFileType(OutputFileType fileType)
-            => VisualStudioProjectOptionsProcessor.SetOutputFileType(fileType);
+            => ProjectSystemProjectOptionsProcessor.SetOutputFileType(fileType);
 
         public void SetImageBase(uint imageBase)
         {
@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         }
 
         public void SetMainClass(string fullyQualifiedClassName)
-            => VisualStudioProjectOptionsProcessor.SetMainTypeName(fullyQualifiedClassName);
+            => ProjectSystemProjectOptionsProcessor.SetMainTypeName(fullyQualifiedClassName);
 
         public void SetWin32Icon(string iconFileName)
         {

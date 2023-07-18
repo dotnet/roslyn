@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
@@ -34,7 +33,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             var methodHandle = GetDeltaRelativeMethodDefinitionHandle(reader, methodToken);
 
-            // TODO: only null in DTEE case where we looking for default namesapace
+            // TODO: only null in DTEE case where we looking for default namespace
             if (symbolProvider != null)
             {
                 ReadLocalScopeInformation(
@@ -62,7 +61,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 reuseSpan = ILSpan.MaxValue;
             }
 
-            ReadMethodCustomDebugInformation(reader, methodHandle, out var hoistedLocalScopes, out var defaultNamespace);
+            ReadMethodCustomDebugInformation(reader, methodHandle, out var hoistedLocalScopes, out var defaultNamespace, out bool isPrimaryConstructor);
+
+            var documentHandle = reader.GetMethodDebugInformation(methodHandle).Document;
+            string? documentName = null;
+            if (!documentHandle.IsNil)
+            {
+                var document = reader.GetDocument(documentHandle);
+                documentName = reader.GetString(document.Name);
+            }
 
             return new MethodDebugInfo<TTypeSymbol, TLocalSymbol>(
                 hoistedLocalScopes,
@@ -73,7 +80,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 defaultNamespace,
                 localVariableNames,
                 localConstants,
-                reuseSpan);
+                reuseSpan,
+                documentName,
+                isPrimaryConstructor: isPrimaryConstructor);
         }
 
         /// <summary>
@@ -235,7 +244,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         }
 
         /// <summary>
-        /// Read UTF8 string with null terminator.
+        /// Read UTF-8 string with null terminator.
         /// </summary>
         private static string ReadUtf8String(ref BlobReader reader)
         {
@@ -377,16 +386,19 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             MetadataReader reader,
             MethodDefinitionHandle methodHandle,
             out ImmutableArray<HoistedLocalScopeRecord> hoistedLocalScopes,
-            out string defaultNamespace)
+            out string defaultNamespace,
+            out bool isPrimaryConstructor)
         {
-            hoistedLocalScopes = TryGetCustomDebugInformation(reader, methodHandle, PortableCustomDebugInfoKinds.StateMachineHoistedLocalScopes, out var info) ?
-                DecodeHoistedLocalScopes(reader.GetBlobReader(info.Value)) :
-                ImmutableArray<HoistedLocalScopeRecord>.Empty;
+            hoistedLocalScopes = TryGetCustomDebugInformation(reader, methodHandle, PortableCustomDebugInfoKinds.StateMachineHoistedLocalScopes, out var info)
+                ? DecodeHoistedLocalScopes(reader.GetBlobReader(info.Value))
+                : ImmutableArray<HoistedLocalScopeRecord>.Empty;
 
             // TODO: consider looking this up once per module (not for every method)
-            defaultNamespace = TryGetCustomDebugInformation(reader, EntityHandle.ModuleDefinition, PortableCustomDebugInfoKinds.DefaultNamespace, out info) ?
-                DecodeDefaultNamespace(reader.GetBlobReader(info.Value)) :
-                "";
+            defaultNamespace = TryGetCustomDebugInformation(reader, EntityHandle.ModuleDefinition, PortableCustomDebugInfoKinds.DefaultNamespace, out info)
+                ? DecodeDefaultNamespace(reader.GetBlobReader(info.Value))
+                : "";
+
+            isPrimaryConstructor = TryGetCustomDebugInformation(reader, methodHandle, PortableCustomDebugInfoKinds.PrimaryConstructorInformationBlob, out _);
         }
 
         /// <exception cref="BadImageFormatException">Invalid data format.</exception>

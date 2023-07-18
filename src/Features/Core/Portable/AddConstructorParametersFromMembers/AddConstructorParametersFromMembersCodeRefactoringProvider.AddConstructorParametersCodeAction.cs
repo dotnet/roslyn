@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -19,53 +19,49 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 {
     internal partial class AddConstructorParametersFromMembersCodeRefactoringProvider
     {
-        private class AddConstructorParametersCodeAction : CodeAction
+        private class AddConstructorParametersCodeAction(
+            Document document,
+            CodeGenerationContextInfo info,
+            ConstructorCandidate constructorCandidate,
+            ISymbol containingType,
+            ImmutableArray<IParameterSymbol> missingParameters,
+            bool useSubMenuName) : CodeAction
         {
-            private readonly Document _document;
-            private readonly ConstructorCandidate _constructorCandidate;
-            private readonly ISymbol _containingType;
-            private readonly ImmutableArray<IParameterSymbol> _missingParameters;
+            private readonly Document _document = document;
+            private readonly CodeGenerationContextInfo _info = info;
+            private readonly ConstructorCandidate _constructorCandidate = constructorCandidate;
+            private readonly ISymbol _containingType = containingType;
+            private readonly ImmutableArray<IParameterSymbol> _missingParameters = missingParameters;
 
             /// <summary>
             /// If there is more than one constructor, the suggested actions will be split into two sub menus,
             /// one for regular parameters and one for optional. This boolean is used by the Title property
             /// to determine if the code action should be given the complete title or the sub menu title
             /// </summary>
-            private readonly bool _useSubMenuName;
+            private readonly bool _useSubMenuName = useSubMenuName;
 
-            public AddConstructorParametersCodeAction(
-                Document document,
-                ConstructorCandidate constructorCandidate,
-                ISymbol containingType,
-                ImmutableArray<IParameterSymbol> missingParameters,
-                bool useSubMenuName)
+            protected override Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
             {
-                _document = document;
-                _constructorCandidate = constructorCandidate;
-                _containingType = containingType;
-                _missingParameters = missingParameters;
-                _useSubMenuName = useSubMenuName;
-            }
-
-            protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
-            {
-                var services = _document.Project.Solution.Workspace.Services;
+                var services = _document.Project.Solution.Services;
                 var declarationService = _document.GetRequiredLanguageService<ISymbolDeclarationService>();
                 var constructor = declarationService.GetDeclarations(
                     _constructorCandidate.Constructor).Select(r => r.GetSyntax(cancellationToken)).First();
 
                 var codeGenerator = _document.GetRequiredLanguageService<ICodeGenerationService>();
-                var options = await CodeGenerationOptions.FromDocumentAsync(CodeGenerationContext.Default, _document, cancellationToken).ConfigureAwait(false);
 
                 var newConstructor = constructor;
-                newConstructor = codeGenerator.AddParameters(newConstructor, _missingParameters, options, cancellationToken);
-                newConstructor = codeGenerator.AddStatements(newConstructor, CreateAssignStatements(_constructorCandidate), options, cancellationToken)
+                newConstructor = codeGenerator.AddParameters(newConstructor, _missingParameters, _info, cancellationToken);
+                newConstructor = codeGenerator.AddStatements(newConstructor, CreateAssignStatements(_constructorCandidate), _info, cancellationToken)
                                                       .WithAdditionalAnnotations(Formatter.Annotation);
 
                 var syntaxTree = constructor.SyntaxTree;
                 var newRoot = syntaxTree.GetRoot(cancellationToken).ReplaceNode(constructor, newConstructor);
 
-                return _document.WithSyntaxRoot(newRoot);
+                // Make sure we get the document that contains the constructor we just updated
+                var constructorDocument = _document.Project.GetDocument(syntaxTree);
+                Contract.ThrowIfNull(constructorDocument);
+
+                return Task.FromResult<Solution?>(constructorDocument.WithSyntaxRoot(newRoot).Project.Solution);
             }
 
             private IEnumerable<SyntaxNode> CreateAssignStatements(ConstructorCandidate constructorCandidate)
@@ -92,7 +88,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 
                     if (_useSubMenuName)
                     {
-                        return string.Format(FeaturesResources.Add_to_0, signature);
+                        return string.Format(CodeFixesResources.Add_to_0, signature);
                     }
                     else
                     {

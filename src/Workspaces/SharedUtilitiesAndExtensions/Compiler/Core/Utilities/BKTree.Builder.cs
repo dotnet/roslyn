@@ -9,13 +9,12 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Utilities;
 
 namespace Roslyn.Utilities
 {
-    internal partial class BKTree
+    internal readonly partial struct BKTree
     {
-        private class Builder
+        private readonly struct Builder
         {
             // The number of edges we pre-allocate space for for each node in _compactEdges.
             //
@@ -92,11 +91,11 @@ namespace Roslyn.Utilities
             private readonly Edge[] _compactEdges;
             private readonly BuilderNode[] _builderNodes;
 
-            public Builder(IEnumerable<ReadOnlyMemory<char>> values)
+            public Builder(IEnumerable<string> values)
             {
                 // TODO(cyrusn): Properly handle unicode normalization here.
-                var distinctValues = values.Where(v => v.Length > 0).Distinct(StringSliceComparer.OrdinalIgnoreCase).ToArray();
-                var charCount = values.Sum(v => v.Length);
+                var distinctValues = values.Where(v => v.Length > 0).Distinct(CaseInsensitiveComparison.Comparer).ToArray();
+                var charCount = distinctValues.Sum(v => v.Length);
 
                 _concatenatedLowerCaseWords = new char[charCount];
                 _wordSpans = new TextSpan[distinctValues.Length];
@@ -107,7 +106,7 @@ namespace Roslyn.Utilities
                     var value = distinctValues[i];
                     _wordSpans[i] = new TextSpan(characterIndex, value.Length);
 
-                    foreach (var ch in value.Span)
+                    foreach (var ch in value)
                     {
                         _concatenatedLowerCaseWords[characterIndex] = CaseInsensitiveComparison.ToLower(ch);
                         characterIndex++;
@@ -284,14 +283,11 @@ namespace Roslyn.Utilities
                 return false;
             }
 
-            private struct BuilderNode
+            private struct BuilderNode(TextSpan characterSpan)
             {
-                public readonly TextSpan CharacterSpan;
+                public readonly TextSpan CharacterSpan = characterSpan;
                 public int EdgeCount;
                 public Dictionary<int, int>? SpilloverEdges;
-
-                public BuilderNode(TextSpan characterSpan) : this()
-                    => this.CharacterSpan = characterSpan;
             }
         }
     }

@@ -5,11 +5,11 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -24,120 +24,153 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public static Uri GetURI(this TextDocument document)
         {
             Contract.ThrowIfNull(document.FilePath);
-            return ProtocolConversions.GetUriFromFilePath(document.FilePath);
+            return document is SourceGeneratedDocument
+                ? ProtocolConversions.GetUriFromPartialFilePath(document.FilePath)
+                : ProtocolConversions.GetUriFromFilePath(document.FilePath);
+        }
+
+        /// <summary>
+        /// Generate the Uri of a document by replace the name in file path using the document's name.
+        /// Used to generate the correct Uri when rename a document, because calling <seealso cref="Document.WithName(string)"/> doesn't update the file path.
+        /// </summary>
+        public static Uri GetUriForRenamedDocument(this TextDocument document)
+        {
+            Contract.ThrowIfNull(document.FilePath);
+            Contract.ThrowIfNull(document.Name);
+            Contract.ThrowIfTrue(document is SourceGeneratedDocument);
+            var directoryName = Path.GetDirectoryName(document.FilePath);
+
+            Contract.ThrowIfNull(directoryName);
+            var path = Path.Combine(directoryName, document.Name);
+            return ProtocolConversions.GetUriFromFilePath(path);
+        }
+
+        /// <summary>
+        /// Generate the Uri of a document based on the name and the project path of the document.
+        /// </summary>
+        public static Uri GetUriFromProjectPath(this TextDocument document)
+        {
+            Contract.ThrowIfNull(document.Name);
+            Contract.ThrowIfNull(document.Project.FilePath);
+            var directoryName = Path.GetDirectoryName(document.Project.FilePath);
+            Contract.ThrowIfNull(directoryName);
+
+            var path = Path.Combine(directoryName, document.Name);
+            return ProtocolConversions.GetUriFromFilePath(path);
         }
 
         public static Uri? TryGetURI(this TextDocument document, RequestContext? context = null)
             => ProtocolConversions.TryGetUriFromFilePath(document.FilePath, context);
 
         public static ImmutableArray<Document> GetDocuments(this Solution solution, Uri documentUri)
-            => GetDocuments(solution, documentUri, clientName: null, logger: null);
-
-        public static ImmutableArray<Document> GetDocuments(this Solution solution, Uri documentUri, string? clientName)
-            => GetDocuments(solution, documentUri, clientName, logger: null);
-
-        public static ImmutableArray<Document> GetDocuments(this Solution solution, Uri documentUri, string? clientName, ILspLogger? logger)
         {
             var documentIds = GetDocumentIds(solution, documentUri);
 
-            var documents = documentIds.SelectAsArray(id => solution.GetRequiredDocument(id));
-
-            return FilterDocumentsByClientName(documents, clientName, logger);
+            // We don't call GetRequiredDocument here as the id could be referring to an additional document.
+            var documents = documentIds.Select(solution.GetDocument).WhereNotNull().ToImmutableArray();
+            return documents;
         }
 
         public static ImmutableArray<DocumentId> GetDocumentIds(this Solution solution, Uri documentUri)
         {
-            // TODO: we need to normalize this. but for now, we check both absolute and local path
-            //       right now, based on who calls this, solution might has "/" or "\\" as directory
-            //       separator
-            var documentIds = solution.GetDocumentIdsWithFilePath(documentUri.AbsolutePath);
+            // This logic needs to be cleaned up when we support URIs as a first class concept.
+            // For now we do our best to handle as many cases as we can.
+            // Tracking issue - https://github.com/dotnet/roslyn/issues/68083
 
-            if (!documentIds.Any())
+            // If the uri is a file then use the simplified absolute or local path.
+            // In other cases (e.g. git files) use the full uri string. This ensures documents
+            // with the same local path (e.g. git://someFilePath and file://someFilePath) are differentiated.
+            if (documentUri.IsFile)
             {
-                documentIds = solution.GetDocumentIdsWithFilePath(documentUri.LocalPath);
+                var fileDocumentIds = solution.GetDocumentIdsWithFilePath(documentUri.AbsolutePath);
+                if (fileDocumentIds.Any())
+                    return fileDocumentIds;
+
+                fileDocumentIds = solution.GetDocumentIdsWithFilePath(documentUri.LocalPath);
+                return fileDocumentIds;
             }
-
-            return documentIds;
-        }
-
-        private static ImmutableArray<Document> FilterDocumentsByClientName(ImmutableArray<Document> documents, string? clientName, ILspLogger? logger)
-        {
-            // If we don't have a client name, then we're done filtering
-            if (clientName == null)
+            else
             {
-                return documents;
+                var documentIds = solution.GetDocumentIdsWithFilePath(documentUri.OriginalString);
+                return documentIds;
             }
-
-            // We have a client name, so we need to filter to only documents that match that name
-            return documents.WhereAsArray(document =>
-            {
-                var documentPropertiesService = document.Services.GetService<DocumentPropertiesService>();
-
-                // When a client name is specified, only return documents that have a matching client name.
-                // Allows the razor lsp server to return results only for razor documents.
-                // This workaround should be removed when https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1106064/
-                // is fixed (so that the razor language server is only asked about razor buffers).
-                var documentClientName = documentPropertiesService?.DiagnosticsLspClientName;
-                var clientNameMatch = Equals(documentClientName, clientName);
-                if (!clientNameMatch && logger is not null)
-                {
-                    logger.TraceInformation($"Found matching document but it's client name '{documentClientName}' is not a match.");
-                }
-
-                return clientNameMatch;
-            });
         }
 
         public static Document? GetDocument(this Solution solution, TextDocumentIdentifier documentIdentifier)
-            => solution.GetDocument(documentIdentifier, clientName: null);
-
-        public static Document? GetDocument(this Solution solution, TextDocumentIdentifier documentIdentifier, string? clientName)
         {
-            var documents = solution.GetDocuments(documentIdentifier.Uri, clientName, logger: null);
-            if (documents.Length == 0)
-            {
-                return null;
-            }
-
-            return documents.FindDocumentInProjectContext(documentIdentifier);
+            var documents = solution.GetDocuments(documentIdentifier.Uri);
+            return documents.Length == 0
+                ? null
+                : documents.FindDocumentInProjectContext(documentIdentifier, (sln, id) => sln.GetRequiredDocument(id));
         }
 
-        public static Document FindDocumentInProjectContext(this ImmutableArray<Document> documents, TextDocumentIdentifier documentIdentifier)
+        private static T FindItemInProjectContext<T>(
+            ImmutableArray<T> items,
+            TextDocumentIdentifier itemIdentifier,
+            Func<T, ProjectId> projectIdGetter,
+            Func<T> defaultGetter)
         {
-            if (documents.Length > 1)
+            if (items.Length > 1)
             {
                 // We have more than one document; try to find the one that matches the right context
-                if (documentIdentifier is VSTextDocumentIdentifier vsDocumentIdentifier && vsDocumentIdentifier.ProjectContext != null)
+                if (itemIdentifier is VSTextDocumentIdentifier vsDocumentIdentifier && vsDocumentIdentifier.ProjectContext != null)
                 {
                     var projectId = ProtocolConversions.ProjectContextToProjectId(vsDocumentIdentifier.ProjectContext);
-                    var matchingDocument = documents.FirstOrDefault(d => d.Project.Id == projectId);
+                    var matchingItem = items.FirstOrDefault(d => projectIdGetter(d) == projectId);
 
-                    if (matchingDocument != null)
+                    if (matchingItem != null)
                     {
-                        return matchingDocument;
+                        return matchingItem;
                     }
                 }
                 else
                 {
-                    // We were not passed a project context.  This can happen when the LSP powered NavBar is not enabled.
-                    // This branch should be removed when we're using the LSP based navbar in all scenarios.
-
-                    var solution = documents.First().Project.Solution;
-                    // Lookup which of the linked documents is currently active in the workspace.
-                    var documentIdInCurrentContext = solution.Workspace.GetDocumentIdInCurrentContext(documents.First().Id);
-                    return solution.GetRequiredDocument(documentIdInCurrentContext);
+                    return defaultGetter();
                 }
             }
 
-            // We either have only one document or have multiple, but none of them  matched our context. In the
+            // We either have only one item or have multiple, but none of them  matched our context. In the
             // latter case, we'll just return the first one arbitrarily since this might just be some temporary mis-sync
             // of client and server state.
-            return documents[0];
+            return items[0];
+        }
+
+        public static T FindDocumentInProjectContext<T>(this ImmutableArray<T> documents, TextDocumentIdentifier documentIdentifier, Func<Solution, DocumentId, T> documentGetter) where T : TextDocument
+        {
+            return FindItemInProjectContext(documents, documentIdentifier, projectIdGetter: (item) => item.Project.Id, defaultGetter: () =>
+            {
+                // We were not passed a project context.  This can happen when the LSP powered NavBar is not enabled.
+                // This branch should be removed when we're using the LSP based navbar in all scenarios.
+
+                var solution = documents.First().Project.Solution;
+                // Lookup which of the linked documents is currently active in the workspace.
+                var documentIdInCurrentContext = solution.Workspace.GetDocumentIdInCurrentContext(documents.First().Id);
+                return documentGetter(solution, documentIdInCurrentContext);
+            });
+        }
+
+        public static Project? GetProject(this Solution solution, TextDocumentIdentifier projectIdentifier)
+        {
+            var projects = solution.Projects.Where(project => project.FilePath == projectIdentifier.Uri.LocalPath).ToImmutableArray();
+            return !projects.Any()
+                ? null
+                : FindItemInProjectContext(projects, projectIdentifier, projectIdGetter: (item) => item.Id, defaultGetter: () => projects[0]);
+        }
+
+        public static TextDocument? GetAdditionalDocument(this Solution solution, TextDocumentIdentifier documentIdentifier)
+        {
+            var documentIds = GetDocumentIds(solution, documentIdentifier.Uri);
+
+            // We don't call GetRequiredAdditionalDocument as the id could be referring to a regular document.
+            var additionalDocuments = documentIds.Select(solution.GetAdditionalDocument).WhereNotNull().ToImmutableArray();
+            return !additionalDocuments.Any()
+                ? null
+                : additionalDocuments.FindDocumentInProjectContext(documentIdentifier, (sln, id) => sln.GetRequiredAdditionalDocument(id));
         }
 
         public static async Task<int> GetPositionFromLinePositionAsync(this TextDocument document, LinePosition linePosition, CancellationToken cancellationToken)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             return text.Lines.GetPosition(linePosition);
         }
 
@@ -190,14 +223,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public static ClassifiedTextElement GetClassifiedText(this DefinitionItem definition)
             => new ClassifiedTextElement(definition.DisplayParts.Select(part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text)));
-
-        public static bool IsRazorDocument(this Document document)
-        {
-            // Only razor docs have an ISpanMappingService, so we can use the presence of that to determine if this doc
-            // belongs to them.
-            var spanMapper = document.Services.GetService<ISpanMappingService>();
-            return spanMapper != null;
-        }
 
         private static bool TryGetVSCompletionListSetting(ClientCapabilities clientCapabilities, [NotNullWhen(returnValue: true)] out VSInternalCompletionListSetting? completionListSetting)
         {

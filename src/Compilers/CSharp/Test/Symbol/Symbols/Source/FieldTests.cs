@@ -300,7 +300,7 @@ class A
                 Diagnostic(ErrorCode.ERR_ConstValueRequired, "{").WithLocation(5, 46),
                 // (5,46): error CS1003: Syntax error, ',' expected
                 //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(5, 46),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(5, 46),
                 // (5,48): error CS1002: ; expected
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(5, 48),
@@ -368,7 +368,7 @@ class A
                 Diagnostic(ErrorCode.ERR_ConstValueRequired, "{").WithLocation(5, 46),
                 // (5,46): error CS1003: Syntax error, ',' expected
                 //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(5, 46),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(5, 46),
                 // (5,48): error CS1002: ; expected
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(5, 48),
@@ -562,6 +562,27 @@ struct S
 {
     private static string s1 = $"""";
     private static readonly string s2 = $"""";
+}
+");
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnreferencedRawInterpolatedStringConstants()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    private static string s1 = $"""""" """""";
+    private static readonly string s2 = $"""""" """""";
+    private string s3 = $"""""" """""";
+    private readonly string s4 = $"""""" """""";
+}
+struct S
+{
+    private static string s1 = $"""""" """""";
+    private static readonly string s2 = $"""""" """""";
 }
 ");
 

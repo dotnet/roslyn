@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             [CallerFilePath] string callerPath = null,
             [CallerLineNumber] int callerLine = 0,
             CSharpParseOptions parseOptions = null,
-            Verification verify = Verification.Passes)
+            Verification verify = default)
         {
             references = references ?? new[] { SystemCoreRef, CSharpRef };
 
@@ -5058,7 +5058,6 @@ class C
             CompileAndVerifyWithCSharp(source: source, expectedOutput: output);
         }
 
-
         [Fact]
         public void BooleanOperation_NestedOperators2()
         {
@@ -9603,7 +9602,7 @@ public class C
   IL_0066:  callvirt   ""void <>A{00000004}<System.Runtime.CompilerServices.CallSite, int, object>.Invoke(System.Runtime.CompilerServices.CallSite, ref int, object)""
   IL_006b:  ret
 }
-");
+", verify: Verification.FailsILVerify); // ILVerify doesn't support TypedReference
         }
 
         [Fact]
@@ -15488,7 +15487,7 @@ class C
         public int Length = 123;
     }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "321 123", references: new[] { CSharpRef });
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "321 123", references: new[] { CSharpRef });
         }
 
         [Fact]
@@ -15510,7 +15509,7 @@ class Program
     }
 }";
             VerifyTypeIL(
-                CompileAndVerify(source, expectedOutput: "True", references: new[] { CSharpRef }),
+                CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "True", references: new[] { CSharpRef }),
                 "Program",
                 @"
 .class private auto ansi beforefieldinit Program
@@ -15613,7 +15612,7 @@ class Program
     }
 }";
             VerifyTypeIL(
-                CompileAndVerify(source, expectedOutput: "True", references: new[] { CSharpRef }),
+                CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "True", references: new[] { CSharpRef }),
                 "Program",
                 @"
 .class private auto ansi beforefieldinit Program
@@ -15739,7 +15738,7 @@ class Program
     }
 }";
             VerifyTypeIL(
-                CompileAndVerify(source, expectedOutput: "True", references: new[] { CSharpRef }),
+                CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "True", references: new[] { CSharpRef }),
                 "Program",
                 @"
 .class private auto ansi beforefieldinit Program
@@ -15850,7 +15849,7 @@ class Program
     }
 }";
             VerifyTypeIL(
-                CompileAndVerify(source, expectedOutput: "True", references: new[] { CSharpRef }),
+                CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "True", references: new[] { CSharpRef }),
                 "Program",
                 @"
 .class private auto ansi beforefieldinit Program
@@ -15967,7 +15966,7 @@ class Class<T1>
     }
 }";
             VerifyTypeIL(
-                CompileAndVerify(source, expectedOutput: "True", references: new[] { CSharpRef }),
+                CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "True", references: new[] { CSharpRef }),
                 "Class`1",
                 @"
 .class private auto ansi beforefieldinit Class`1<T1>

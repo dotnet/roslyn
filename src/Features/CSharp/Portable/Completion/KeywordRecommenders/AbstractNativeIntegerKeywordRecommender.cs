@@ -15,10 +15,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         private static bool IsValidContext(CSharpSyntaxContext context)
         {
+            if (context.IsTaskLikeTypeContext ||
+                context.IsGenericConstraintContext)
+            {
+                return false;
+            }
+
             if (context.IsStatementContext ||
                 context.IsGlobalStatementContext ||
                 context.IsPossibleTupleContext ||
                 context.IsAtStartOfPattern ||
+                context.IsUsingAliasTypeContext ||
                 (context.IsTypeContext && !context.IsEnumBaseListContext))
             {
                 return true;

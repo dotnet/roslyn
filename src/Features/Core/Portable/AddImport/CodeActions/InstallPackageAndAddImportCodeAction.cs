@@ -28,12 +28,16 @@ namespace Microsoft.CodeAnalysis.AddImport
             /// </summary>
             private readonly InstallPackageDirectlyCodeActionOperation _installOperation;
 
+            /// <summary>
+            /// This code action only works by installing a package.  As such, it requires a non document change (and is
+            /// thus restricted in which hosts it can run).
+            /// </summary>
             public InstallPackageAndAddImportCodeAction(
                 Document originalDocument,
                 AddImportFixData fixData,
                 string title,
                 InstallPackageDirectlyCodeActionOperation installOperation)
-                : base(originalDocument, fixData)
+                : base(originalDocument, fixData, RequiresNonDocumentChangeTags)
             {
                 Contract.ThrowIfFalse(fixData.Kind == AddImportFixKind.PackageSymbol);
                 Title = title;
@@ -50,10 +54,11 @@ namespace Microsoft.CodeAnalysis.AddImport
             {
                 // Make a SolutionChangeAction.  This way we can let it generate the diff
                 // preview appropriately.
-                var solutionChangeAction = new SolutionChangeAction("", c => GetUpdatedSolutionAsync(c), "");
+                var solutionChangeAction = SolutionChangeAction.Create("", GetUpdatedSolutionAsync, "");
 
                 using var _ = ArrayBuilder<CodeActionOperation>.GetInstance(out var result);
-                result.AddRange(await solutionChangeAction.GetPreviewOperationsAsync(cancellationToken).ConfigureAwait(false));
+                result.AddRange(await solutionChangeAction.GetPreviewOperationsAsync(
+                    this.OriginalDocument.Project.Solution, cancellationToken).ConfigureAwait(false));
                 result.Add(_installOperation);
                 return result.ToImmutable();
             }
@@ -82,8 +87,8 @@ namespace Microsoft.CodeAnalysis.AddImport
             {
                 var updatedDocument = await GetUpdatedDocumentAsync(cancellationToken).ConfigureAwait(false);
 
-                var oldText = await OriginalDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var newText = await updatedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var oldText = await OriginalDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                var newText = await updatedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                 return ImmutableArray.Create<CodeActionOperation>(
                     new InstallPackageAndAddImportOperation(
@@ -91,29 +96,22 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
         }
 
-        private class InstallPackageAndAddImportOperation : CodeActionOperation
+        private class InstallPackageAndAddImportOperation(
+            DocumentId changedDocumentId,
+            SourceText oldText,
+            SourceText newText,
+            InstallPackageDirectlyCodeActionOperation item2) : CodeActionOperation
         {
-            private readonly DocumentId _changedDocumentId;
-            private readonly SourceText _oldText;
-            private readonly SourceText _newText;
-            private readonly InstallPackageDirectlyCodeActionOperation _installPackageOperation;
-
-            public InstallPackageAndAddImportOperation(
-                DocumentId changedDocumentId,
-                SourceText oldText,
-                SourceText newText,
-                InstallPackageDirectlyCodeActionOperation item2)
-            {
-                _changedDocumentId = changedDocumentId;
-                _oldText = oldText;
-                _newText = newText;
-                _installPackageOperation = item2;
-            }
+            private readonly DocumentId _changedDocumentId = changedDocumentId;
+            private readonly SourceText _oldText = oldText;
+            private readonly SourceText _newText = newText;
+            private readonly InstallPackageDirectlyCodeActionOperation _installPackageOperation = item2;
 
             internal override bool ApplyDuringTests => _installPackageOperation.ApplyDuringTests;
             public override string Title => _installPackageOperation.Title;
 
-            internal override async Task<bool> TryApplyAsync(Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
+            internal override async Task<bool> TryApplyAsync(
+                Workspace workspace, Solution originalSolution, IProgressTracker progressTracker, CancellationToken cancellationToken)
             {
                 var newSolution = workspace.CurrentSolution.WithDocumentText(
                     _changedDocumentId, _newText);
@@ -121,7 +119,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 // First make the changes to add the import to the document.
                 if (workspace.TryApplyChanges(newSolution, progressTracker))
                 {
-                    if (await _installPackageOperation.TryApplyAsync(workspace, progressTracker, cancellationToken).ConfigureAwait(true))
+                    if (await _installPackageOperation.TryApplyAsync(workspace, originalSolution, progressTracker, cancellationToken).ConfigureAwait(true))
                     {
                         return true;
                     }

@@ -9,32 +9,27 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
 {
     internal abstract partial class StringSplitter
     {
-        private sealed class InterpolatedStringSplitter : StringSplitter
+        private sealed class InterpolatedStringSplitter(
+            ParsedDocument document,
+            int position,
+            InterpolatedStringExpressionSyntax interpolatedStringExpression,
+            IndentationOptions indentationOptions,
+            CancellationToken cancellationToken) : StringSplitter(document, position, indentationOptions, cancellationToken)
         {
-            private readonly InterpolatedStringExpressionSyntax _interpolatedStringExpression;
-
-            public InterpolatedStringSplitter(
-                Document document, int position,
-                SyntaxNode root, SourceText sourceText,
-                InterpolatedStringExpressionSyntax interpolatedStringExpression,
-                bool useTabs, int tabSize, FormattingOptions.IndentStyle indentStyle,
-                CancellationToken cancellationToken)
-                : base(document, position, root, sourceText, useTabs, tabSize, indentStyle, cancellationToken)
-            {
-                _interpolatedStringExpression = interpolatedStringExpression;
-            }
+            private readonly InterpolatedStringExpressionSyntax _interpolatedStringExpression = interpolatedStringExpression;
 
             protected override SyntaxNode GetNodeToReplace() => _interpolatedStringExpression;
 
-            // Don't offer on $@"" strings.  They support newlines directly in their content.
+            // Don't offer on $@"" strings and raw string literals.  They support newlines directly in their content.
             protected override bool CheckToken()
-                => _interpolatedStringExpression.StringStartToken.Kind() != SyntaxKind.InterpolatedVerbatimStringStartToken;
+                => _interpolatedStringExpression.StringStartToken.Kind() == SyntaxKind.InterpolatedStringStartToken;
 
             protected override BinaryExpressionSyntax CreateSplitString()
             {
@@ -83,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
 
             private InterpolatedStringTextSyntax CreateInterpolatedStringText(int start, int end)
             {
-                var content = SourceText.ToString(TextSpan.FromBounds(start, end));
+                var content = Document.Text.ToString(TextSpan.FromBounds(start, end));
                 return SyntaxFactory.InterpolatedStringText(
                     SyntaxFactory.Token(
                         leading: default,

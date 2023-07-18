@@ -21,6 +21,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     [Shared]
     internal sealed class EditAndContinueDiagnosticUpdateSource : IDiagnosticUpdateSource
     {
+        private int _diagnosticsVersion;
+        private bool _previouslyHadDiagnostics;
+
+        /// <summary>
+        /// Represents an increasing integer version of diagnostics from Edit and Continue, which increments
+        /// when diagnostics might have changed even if there is no associated document changes (eg a restart
+        /// of an app during Hot Reload)
+        /// </summary>
+        public int Version => _diagnosticsVersion;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public EditAndContinueDiagnosticUpdateSource(IDiagnosticUpdateSourceRegistrationService registrationService)
@@ -47,15 +57,40 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Clears all diagnostics reported thru this source.
         /// We do not track the particular reported diagnostics here since we can just clear all of them at once.
         /// </summary>
-        public void ClearDiagnostics()
-            => DiagnosticsCleared?.Invoke(this, EventArgs.Empty);
+        public void ClearDiagnostics(bool isSessionEnding = false)
+        {
+            // If ClearDiagnostics is called and there weren't any diagnostics previously, then there is no point incrementing
+            // our version number and potentially invalidating caches unnecessarily.
+            // If the debug session is ending, however, we want to always increment otherwise we can get stuck. eg if the user
+            // makes a rude edit during a debug session, but doesn't apply the changes, the rude edit will be raised without
+            // this class knowing about it, and then if the debug session is stopped, we have no knowledge of any diagnostics here
+            // so don't bump our version number, but the document checksum also doesn't change, so we get stuck with the rude edit.
+            if (isSessionEnding || _previouslyHadDiagnostics)
+            {
+                _previouslyHadDiagnostics = false;
+                _diagnosticsVersion++;
+            }
+
+            DiagnosticsCleared?.Invoke(this, EventArgs.Empty);
+        }
 
         /// <summary>
         /// Reports given set of project or solution level diagnostics. 
         /// </summary>
-        public void ReportDiagnostics(Workspace workspace, Solution solution, ImmutableArray<DiagnosticData> diagnostics)
+        public void ReportDiagnostics(Workspace workspace, Solution solution, ImmutableArray<DiagnosticData> diagnostics, ImmutableArray<(DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> rudeEdits)
         {
             RoslynDebug.Assert(solution != null);
+
+            // Even though we only report diagnostics, and not rude edits, we still need to
+            // ensure that the presence of rude edits are considered when we decide to update
+            // our version number.
+            // The array inside rudeEdits won't ever be empty for a given document so we can just
+            // check the outer array.
+            if (diagnostics.Any() || rudeEdits.Any())
+            {
+                _previouslyHadDiagnostics = true;
+                _diagnosticsVersion++;
+            }
 
             var updateEvent = DiagnosticsUpdated;
             if (updateEvent == null)
@@ -69,7 +104,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             if (documentDiagnostics.Length > 0)
             {
-                foreach (var (documentId, diagnosticData) in documentDiagnostics.ToDictionary(data => data.DocumentId!))
+                foreach (var (documentId, diagnosticData) in documentDiagnostics.GroupBy(static data => data.DocumentId!))
                 {
                     var diagnosticGroupId = (this, documentId);
 
@@ -79,13 +114,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         solution,
                         documentId.ProjectId,
                         documentId: documentId,
-                        diagnostics: diagnosticData));
+                        diagnostics: diagnosticData.ToImmutableArray()));
                 }
             }
 
             if (projectDiagnostics.Length > 0)
             {
-                foreach (var (projectId, diagnosticData) in projectDiagnostics.ToDictionary(data => data.ProjectId!))
+                foreach (var (projectId, diagnosticData) in projectDiagnostics.GroupBy(static data => data.ProjectId!))
                 {
                     var diagnosticGroupId = (this, projectId);
 
@@ -95,7 +130,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         solution,
                         projectId,
                         documentId: null,
-                        diagnostics: diagnosticData));
+                        diagnostics: diagnosticData.ToImmutableArray()));
                 }
             }
 

@@ -6,7 +6,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.LanguageServices
+namespace Microsoft.CodeAnalysis.LanguageService
 {
     internal partial class AbstractSymbolDisplayService
     {
@@ -29,16 +29,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 if (firstSymbol.IsAnonymousDelegateType())
                     directStructuralTypes = directStructuralTypes.Except(new[] { (INamedTypeSymbol)firstSymbol });
 
-                var info = _structuralTypeDisplayService.GetTypeDisplayInfo(
+                var info = LanguageServices.GetRequiredService<IStructuralTypeDisplayService>().GetTypeDisplayInfo(
                     firstSymbol, directStructuralTypes.ToImmutableArrayOrEmpty(), _semanticModel, _position);
 
                 if (info.TypesParts.Count > 0)
-                {
                     AddToGroup(SymbolDescriptionGroups.StructuralTypes, info.TypesParts);
 
-                    foreach (var (group, parts) in _groupMap.ToArray())
-                        _groupMap[group] = info.ReplaceStructuralTypes(parts, _semanticModel, _position);
-                }
+                foreach (var (group, parts) in _groupMap.ToArray())
+                    _groupMap[group] = info.ReplaceStructuralTypes(parts, _semanticModel, _position);
             }
         }
     }

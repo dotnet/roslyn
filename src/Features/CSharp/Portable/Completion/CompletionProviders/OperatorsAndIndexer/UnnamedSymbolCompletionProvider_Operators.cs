@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 (WellKnownMemberNames.ExclusiveOrOperatorName, OperatorPosition.Infix),
                 (WellKnownMemberNames.LeftShiftOperatorName, OperatorPosition.Infix),
                 (WellKnownMemberNames.RightShiftOperatorName, OperatorPosition.Infix),
+                (WellKnownMemberNames.UnsignedRightShiftOperatorName, OperatorPosition.Infix),
                 (WellKnownMemberNames.OnesComplementOperatorName, OperatorPosition.Prefix));
 
         /// <summary>
@@ -112,7 +113,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 symbols: operators.ToImmutableArray(),
                 rules: s_operatorRules,
                 contextPosition: context.Position,
-                properties: OperatorProperties.Add(OperatorName, opName)));
+                properties: OperatorProperties.Add(OperatorName, opName),
+                isComplexTextEdit: true));
         }
 
         private static string GetOperatorText(string opName)
@@ -137,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var (dotLikeToken, expressionStart) = GetDotAndExpressionStart(root, position, cancellationToken);
 
                 // Place the new operator before the expression, and delete the dot.
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var replacement = item.DisplayText + text.ToString(TextSpan.FromBounds(expressionStart, dotLikeToken.SpanStart));
                 var fullTextChange = new TextChange(
                     TextSpan.FromBounds(

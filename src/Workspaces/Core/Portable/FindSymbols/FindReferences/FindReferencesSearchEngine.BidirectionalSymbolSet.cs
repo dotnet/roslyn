@@ -27,12 +27,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             /// add a new symbol to it we'll continue to cascade in both directions looking for more.
             /// </summary>
             private readonly MetadataUnifyingSymbolHashSet _allSymbols = new();
+            private readonly bool _includeImplementationsThroughDerivedTypes;
 
-            public BidirectionalSymbolSet(FindReferencesSearchEngine engine, HashSet<ISymbol> initialSymbols, HashSet<ISymbol> upSymbols)
+            public BidirectionalSymbolSet(
+                FindReferencesSearchEngine engine,
+                MetadataUnifyingSymbolHashSet initialSymbols,
+                MetadataUnifyingSymbolHashSet upSymbols,
+                bool includeImplementationsThroughDerivedTypes)
                 : base(engine)
             {
                 _allSymbols.AddRange(initialSymbols);
                 _allSymbols.AddRange(upSymbols);
+                _includeImplementationsThroughDerivedTypes = includeImplementationsThroughDerivedTypes;
             }
 
             public override ImmutableArray<ISymbol> GetAllSymbols()
@@ -54,7 +60,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // new symbols in this project.  As long as we keep finding symbols, we'll keep searching from them
                     // in both directions.
                     await AddDownSymbolsAsync(this.Engine, current, _allSymbols, workQueue, projects, cancellationToken).ConfigureAwait(false);
-                    await AddUpSymbolsAsync(this.Engine, current, _allSymbols, workQueue, projects, cancellationToken).ConfigureAwait(false);
+                    await AddUpSymbolsAsync(this.Engine, current, _allSymbols, workQueue, projects, _includeImplementationsThroughDerivedTypes, cancellationToken).ConfigureAwait(false);
                 }
             }
         }

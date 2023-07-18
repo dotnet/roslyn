@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -146,7 +147,8 @@ static class E
     public static void Target(this C that) { Console.WriteLine(""FAIL""); }
 }
 ";
-        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: VerifyNoCacheContainersIn("C"));
+        // ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 14 }
+        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: VerifyNoCacheContainersIn("C"), verify: Verification.FailsILVerify);
         verifier.VerifyIL("C.Main", @"
 {
   // Code size       37 (0x25)
@@ -188,7 +190,8 @@ static class E
     public static void Target(this C that) { Console.WriteLine(""FAIL""); }
 }
 ";
-        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: VerifyNoCacheContainersIn("C"));
+        // ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 14 }
+        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: VerifyNoCacheContainersIn("C"), verify: Verification.FailsILVerify);
         verifier.VerifyIL("C.Main", @"
 {
   // Code size       37 (0x25)
@@ -249,7 +252,7 @@ static class E
     }
 
     [Fact]
-    public void Not_InExpressionLamba0()
+    public void Not_InExpressionLambda0()
     {
         var source = @"
 using System;
@@ -326,7 +329,7 @@ class C
     }
 
     [Fact]
-    public void Not_InExpressionLamba1()
+    public void Not_InExpressionLambda1()
     {
         var source = @"
 using System;
@@ -5617,7 +5620,7 @@ class C
         return 0;
     }
 }";
-        var comp = CompileAndVerify(source, parseOptions: TestOptions.RegularNext);
+        var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular11);
         comp.VerifyDiagnostics();
         comp.VerifyIL("C.Main", @"
 {
@@ -5700,7 +5703,7 @@ class D
     }
 }
 ";
-        var verifier = CompileAndVerifyWithWinRt(source, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseWinMD);
+        var verifier = CompileAndVerifyWithWinRt(source, parseOptions: TestOptions.Regular11, options: TestOptions.ReleaseWinMD);
 
         verifier.VerifyIL("D.InstanceAdd", @"
 {
@@ -5817,7 +5820,7 @@ class C
     }
 }
 ";
-        var verifier = CompileAndVerifyWithWinRt(source, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseWinMD);
+        var verifier = CompileAndVerifyWithWinRt(source, parseOptions: TestOptions.Regular11, options: TestOptions.ReleaseWinMD);
 
         verifier.VerifyIL("C.InstanceAssign", @"
 {
@@ -5898,7 +5901,7 @@ partial class Test
 }
 ";
 
-        CompileAndVerify(text, parseOptions: TestOptions.RegularNext, expectedOutput: PASS).VerifyIL("Test.Main", @"
+        CompileAndVerify(text, parseOptions: TestOptions.Regular11, expectedOutput: PASS).VerifyIL("Test.Main", @"
 {
   // Code size       64 (0x40)
   .maxstack  2
@@ -5957,7 +5960,7 @@ public class C
     }
     static void TestMethod() => Console.WriteLine(""In TestMethod"");
 }
-", parseOptions: TestOptions.RegularNext, expectedOutput: @"
+", parseOptions: TestOptions.Regular11, expectedOutput: @"
 In TestMethod
 In TestMethod
 ").VerifyIL("C.Main()", @"
@@ -6022,7 +6025,7 @@ class Program
     static void Report(Delegate d) => Console.WriteLine($""{d.GetType().Namespace}.{d.GetType().Name}"");
 }";
 
-        var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11, options: TestOptions.DebugExe);
         comp.VerifyDiagnostics();
 
         var verifier = CompileAndVerify(comp, expectedOutput:

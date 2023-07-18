@@ -553,7 +553,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     x.UISideVisualizerAssemblyName == y.UISideVisualizerAssemblyName &&
                     x.UISideVisualizerAssemblyLocation == y.UISideVisualizerAssemblyLocation &&
                     x.DebuggeeSideVisualizerTypeName == y.DebuggeeSideVisualizerTypeName &&
-                    x.DebuggeeSideVisualizerAssemblyName == y.DebuggeeSideVisualizerAssemblyName);
+                    x.DebuggeeSideVisualizerAssemblyName == y.DebuggeeSideVisualizerAssemblyName &&
+                    x.ExtensionPartId == y.ExtensionPartId);
             }
 
             int IEqualityComparer<DkmCustomUIVisualizerInfo>.GetHashCode(DkmCustomUIVisualizerInfo obj)

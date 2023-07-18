@@ -84,12 +84,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (string?)_store[nameof(ErrorReport)]; }
         }
 
-        public string? GeneratedFilesOutputPath
-        {
-            set { _store[nameof(GeneratedFilesOutputPath)] = value; }
-            get { return (string?)_store[nameof(GeneratedFilesOutputPath)]; }
-        }
-
         public bool GenerateFullPaths
         {
             set { _store[nameof(GenerateFullPaths)] = value; }
@@ -203,13 +197,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Fills the provided CommandLineBuilderExtension with those switches and other information that can go into a response file.
         /// </summary>
-        protected internal override void AddResponseFileCommands(CommandLineBuilderExtension commandLine)
+        protected override void AddResponseFileCommands(CommandLineBuilderExtension commandLine)
         {
             commandLine.AppendSwitchIfNotNull("/lib:", AdditionalLibPaths, ",");
             commandLine.AppendPlusOrMinusSwitch("/unsafe", _store, nameof(AllowUnsafeBlocks));
             commandLine.AppendPlusOrMinusSwitch("/checked", _store, nameof(CheckForOverflowUnderflow));
             commandLine.AppendSwitchWithSplitting("/nowarn:", DisabledWarnings, ",", ';', ',');
-            commandLine.AppendSwitchIfNotNull("/generatedfilesout:", GeneratedFilesOutputPath);
             commandLine.AppendWhenTrue("/fullpaths", _store, nameof(GenerateFullPaths));
             commandLine.AppendSwitchIfNotNull("/moduleassemblyname:", ModuleAssemblyName);
             commandLine.AppendSwitchIfNotNull("/pdb:", PdbFile);
@@ -317,7 +310,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 // See if there was an "Alias" attribute on the reference.
                 string aliasString = reference.GetMetadata("Aliases");
-
 
                 string switchName = "/reference:";
                 if (!isInteractive)
@@ -467,7 +459,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         ///     thing for csc.exe, the IDE compiler cannot support it.  In this situation
         ///     the return value will also be false.
         /// </summary>
-        /// <owner>RGoel</owner>
         private bool InitializeHostCompiler(ICscHostObject cscHostObject)
         {
             bool success;
@@ -667,7 +658,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         ///     NoActionReturnSuccess           Host compiler was already up-to-date, and we're done.
         ///     NoActionReturnFailure           Bad parameters were passed into the task.
         /// </summary>
-        /// <owner>RGoel</owner>
         protected override HostObjectInitializationStatus InitializeHostObject()
         {
             if (HostObject != null)
@@ -754,7 +744,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// This method will get called during Execute() if a host object has been passed into the Csc
         /// task.  Returns true if the compilation succeeded, otherwise false.  
         /// </summary>
-        /// <owner>RGoel</owner>
         protected override bool CallHostObjectToExecute()
         {
             Debug.Assert(HostObject != null, "We should not be here if the host object has not been set.");

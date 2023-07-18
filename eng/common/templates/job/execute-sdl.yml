@@ -29,20 +29,12 @@ parameters:
   # Optional: download a list of pipeline artifacts. 'downloadArtifacts' controls build artifacts,
   # not pipeline artifacts, so doesn't affect the use of this parameter.
   pipelineArtifactNames: []
-  # Optional: location and ID of the AzDO build that the build/pipeline artifacts should be
-  # downloaded from. By default, uses runtime expressions to decide based on the variables set by
-  # the 'setupMaestroVars' dependency. Overriding this parameter is necessary if SDL tasks are
-  # running without Maestro++/BAR involved, or to download artifacts from a specific existing build
-  # to iterate quickly on SDL changes.
-  AzDOProjectName: $[ dependencies.setupMaestroVars.outputs['setReleaseVars.AzDOProjectName'] ]
-  AzDOPipelineId: $[ dependencies.setupMaestroVars.outputs['setReleaseVars.AzDOPipelineId'] ]
-  AzDOBuildId: $[ dependencies.setupMaestroVars.outputs['setReleaseVars.AzDOBuildId'] ]
 
 jobs:
 - job: Run_SDL
   dependsOn: ${{ parameters.dependsOn }}
   displayName: Run SDL tool
-  condition: eq( ${{ parameters.enable }}, 'true')
+  condition: and(succeededOrFailed(), eq( ${{ parameters.enable }}, 'true'))
   variables:
     - group: DotNet-VSTS-Bot
     - name: AzDOProjectName
@@ -54,11 +46,23 @@ jobs:
     - template: /eng/common/templates/variables/sdl-variables.yml
     - name: GuardianVersion
       value: ${{ coalesce(parameters.overrideGuardianVersion, '$(DefaultGuardianVersion)') }}
+    - template: /eng/common/templates/variables/pool-providers.yml
   pool:
-    vmImage: windows-2019
+    # We don't use the collection uri here because it might vary (.visualstudio.com vs. dev.azure.com)
+    ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
+      name: VSEngSS-MicroBuild2022-1ES
+      demands: Cmd
+    # If it's not devdiv, it's dnceng
+    ${{ if ne(variables['System.TeamProject'], 'DevDiv') }}:
+      name: $(DncEngInternalBuildPool)
+      demands: ImageOverride -equals windows.vs2019.amd64
   steps:
   - checkout: self
     clean: true
+
+  # If the template caller didn't provide an AzDO parameter, set them all up as Maestro vars.
+  - ${{ if not(and(parameters.AzDOProjectName, parameters.AzDOPipelineId, parameters.AzDOBuildId)) }}:
+    - template: /eng/common/templates/post-build/setup-maestro-vars.yml
 
   - ${{ if ne(parameters.downloadArtifacts, 'false')}}:
     - ${{ if ne(parameters.artifactNames, '') }}:

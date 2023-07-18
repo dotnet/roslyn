@@ -357,6 +357,9 @@ namespace Microsoft.DiaSymReader
 
         private unsafe void DefineLocalConstantImpl(ISymUnmanagedWriter5 symWriter, string name, object value, int constantSignatureToken)
         {
+#if NET6_0_OR_GREATER
+            Debug.Assert(OperatingSystem.IsWindows());
+#endif
             VariantStructure variant = new VariantStructure();
 #pragma warning disable CS0618 // Type or member is obsolete
             Marshal.GetNativeVariantForObject(value, new IntPtr(&variant));
@@ -371,7 +374,7 @@ namespace Microsoft.DiaSymReader
             int encodedLength;
 
             // ISymUnmanagedWriter2 doesn't handle unicode strings with unmatched unicode surrogates.
-            // We use the .NET UTF8 encoder to replace unmatched unicode surrogates with unicode replacement character.
+            // We use the .NET UTF-8 encoder to replace unmatched unicode surrogates with unicode replacement character.
 
             if (!IsValidUnicodeString(value))
             {
@@ -737,7 +740,7 @@ namespace Microsoft.DiaSymReader
             //     DWORD dwSig;                 // "RSDS"
             //     GUID guidSig;                // GUID
             //     DWORD age;                   // age
-            //     char szPDB[0];               // zero-terminated UTF8 file name passed to the writer
+            //     char szPDB[0];               // zero-terminated UTF-8 file name passed to the writer
             // };
             const int GuidSize = 16;
             var guidBytes = new byte[GuidSize];

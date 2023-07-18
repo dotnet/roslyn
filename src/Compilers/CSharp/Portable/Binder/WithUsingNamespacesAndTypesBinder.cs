@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        protected override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
+        internal override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
         {
             // If we are looking only for labels we do not need to search through the imports.
             if ((options & LookupOptions.LabelsOnly) == 0)
@@ -224,9 +224,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return null;
         }
-
-        internal override uint LocalScopeDepth => Binder.ExternalScope;
-
 
         internal override ImportChain? ImportChain
         {

@@ -62,5 +62,30 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             removedItem = default;
             return false;
         }
+
+        public static int IndexOf<T>(this IList<T> list, Func<T, bool> predicate)
+        {
+            Contract.ThrowIfNull(list);
+            Contract.ThrowIfNull(predicate);
+
+            for (var i = 0; i < list.Count; i++)
+            {
+                if (predicate(list[i]))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        public static void AddRangeWhere<T>(this List<T> list, List<T> collection, Func<T, bool> predicate)
+        {
+            foreach (var element in collection)
+            {
+                if (predicate(element))
+                    list.Add(element);
+            }
+        }
     }
 }

@@ -9,7 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
@@ -21,13 +21,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         /// Editor that takes a type in a scope and creates a scope beside it. For example, if the type is contained within a namespace 
         /// it will evaluate if the namespace scope needs to be closed and reopened to create a new scope. 
         /// </summary>
-        private class MoveTypeNamespaceScopeEditor : Editor
+        private class MoveTypeNamespaceScopeEditor(TService service, State state, string fileName, CancellationToken cancellationToken) : Editor(service, state, fileName, cancellationToken)
         {
-            public MoveTypeNamespaceScopeEditor(TService service, State state, string fileName, CancellationToken cancellationToken)
-                : base(service, state, fileName, cancellationToken)
-            {
-            }
-
             public override async Task<Solution> GetModifiedSolutionAsync()
             {
                 var node = State.TypeNode;

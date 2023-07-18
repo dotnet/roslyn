@@ -22,8 +22,24 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         {
         }
 
-        protected override bool TryMatchPattern(IConditionalOperation ifOperation, ISymbol containingSymbol)
-            => UseConditionalExpressionForAssignmentHelpers.TryMatchPattern(
-                GetSyntaxFacts(), ifOperation, out _, out _, out _, out _);
+        protected sealed override CodeStyleOption2<bool> GetStylePreference(OperationAnalysisContext context)
+            => context.GetAnalyzerOptions().PreferConditionalExpressionOverAssignment;
+
+        protected override (bool matched, bool canSimplify) TryMatchPattern(IConditionalOperation ifOperation, ISymbol containingSymbol)
+        {
+            if (!UseConditionalExpressionForAssignmentHelpers.TryMatchPattern(
+                    GetSyntaxFacts(), ifOperation, out var isRef, out var trueStatement, out var falseStatement, out var trueAssignment, out var falseAssignment))
+            {
+                return default;
+            }
+
+            var canSimplify = UseConditionalExpressionHelpers.CanSimplify(
+                trueAssignment?.Value ?? trueStatement,
+                falseAssignment?.Value ?? falseStatement,
+                isRef,
+                out _);
+
+            return (matched: true, canSimplify);
+        }
     }
 }

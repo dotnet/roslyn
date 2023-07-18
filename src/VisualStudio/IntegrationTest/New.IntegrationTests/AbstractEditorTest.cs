@@ -4,9 +4,11 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
+using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests
 {
@@ -14,6 +16,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
     {
         private readonly string? _solutionName;
         private readonly string? _projectTemplate;
+        private readonly string? _templateGroupId;
 
         protected AbstractEditorTest()
         {
@@ -24,10 +27,11 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
         }
 
-        protected AbstractEditorTest(string solutionName, string projectTemplate)
+        protected AbstractEditorTest(string solutionName, string projectTemplate, string? templateGroupId = null)
         {
             _solutionName = solutionName;
             _projectTemplate = projectTemplate;
+            _templateGroupId = templateGroupId;
         }
 
         protected abstract string LanguageName { get; }
@@ -41,7 +45,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
                 RoslynDebug.AssertNotNull(_projectTemplate);
 
                 await TestServices.SolutionExplorer.CreateSolutionAsync(_solutionName, HangMitigatingCancellationToken);
-                await TestServices.SolutionExplorer.AddProjectAsync(ProjectName, _projectTemplate, LanguageName, HangMitigatingCancellationToken);
+                await TestServices.SolutionExplorer.AddProjectAsync(ProjectName, _projectTemplate, _templateGroupId, LanguageName, HangMitigatingCancellationToken);
                 await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(ProjectName, HangMitigatingCancellationToken);
 
                 // Winforms and XAML do not open text files on creation
@@ -49,7 +53,8 @@ namespace Roslyn.VisualStudio.IntegrationTests
                 if (_projectTemplate is not WellKnownProjectTemplates.WinFormsApplication and
                     not WellKnownProjectTemplates.WpfApplication and
                     not WellKnownProjectTemplates.CSharpNetCoreClassLibrary and
-                    not WellKnownProjectTemplates.VisualBasicNetCoreClassLibrary)
+                    not WellKnownProjectTemplates.VisualBasicNetCoreClassLibrary and
+                    not WellKnownProjectTemplates.Blazor)
                 {
                     await ClearEditorAsync(HangMitigatingCancellationToken);
                 }
@@ -61,7 +66,9 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected async Task SetUpEditorAsync(string markupCode, CancellationToken cancellationToken)
         {
-            MarkupTestFile.GetPosition(markupCode, out var code, out int caretPosition);
+            MarkupTestFile.GetPositionAndSpans(markupCode, out var code, out int? caretPosition, out var spans);
+
+            Assert.True(caretPosition.HasValue || spans.ContainsKey("selection"), "Must specify either a caret position ($$) or at least one selection span ({|selection:|})");
 
             await TestServices.Editor.DismissCompletionSessionsAsync(cancellationToken);
             await TestServices.Editor.DismissLightBulbSessionAsync(cancellationToken);
@@ -72,7 +79,16 @@ namespace Roslyn.VisualStudio.IntegrationTests
             try
             {
                 await TestServices.Editor.SetTextAsync(code, cancellationToken);
-                await TestServices.Editor.MoveCaretAsync(caretPosition, cancellationToken);
+
+                if (caretPosition.HasValue)
+                {
+                    await TestServices.Editor.MoveCaretAsync(caretPosition.Value, cancellationToken);
+                }
+                else
+                {
+                    await TestServices.Editor.SetMultiSelectionAsync(spans["selection"], cancellationToken);
+                }
+
                 await TestServices.Editor.ActivateAsync(cancellationToken);
             }
             finally

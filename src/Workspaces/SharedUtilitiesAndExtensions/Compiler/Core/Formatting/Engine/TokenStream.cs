@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 // get indentation from last line of the text
                 onMultipleLines = true;
-                length = text.GetTextColumn(_options.GetOption(FormattingOptions2.TabSize), initialColumn: 0);
+                length = text.GetTextColumn(_options.TabSize, initialColumn: 0);
                 return;
             }
 
@@ -335,8 +335,8 @@ namespace Microsoft.CodeAnalysis.Formatting
             if (text.ContainsTab())
             {
                 // do expansive calculation
-                var initialColumn = _treeData.GetOriginalColumn(_options.GetOption(FormattingOptions2.TabSize), token);
-                length = text.ConvertTabToSpace(_options.GetOption(FormattingOptions2.TabSize), initialColumn, text.Length);
+                var initialColumn = _treeData.GetOriginalColumn(_options.TabSize, token);
+                length = text.ConvertTabToSpace(_options.TabSize, initialColumn, text.Length);
                 return;
             }
 
@@ -550,13 +550,8 @@ namespace Microsoft.CodeAnalysis.Formatting
             return -1;
         }
 
-        public IEnumerable<(int index, SyntaxToken currentToken, SyntaxToken nextToken)> TokenIterator
-        {
-            get
-            {
-                return new Iterator(_tokens);
-            }
-        }
+        public Iterator TokenIterator
+            => new(_tokens);
 
         private sealed class TokenOrderComparer : IComparer<SyntaxToken>
         {

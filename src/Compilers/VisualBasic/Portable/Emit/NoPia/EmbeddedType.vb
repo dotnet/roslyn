@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer
 
 #If Not DEBUG Then
 Imports NamedTypeSymbolAdapter = Microsoft.CodeAnalysis.VisualBasic.Symbols.NamedTypeSymbol
@@ -187,7 +188,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
         End Property
 
         Protected Overrides Function GetCustomAttributesToEmit(moduleBuilder As PEModuleBuilder) As IEnumerable(Of VisualBasicAttributeData)
-            Return UnderlyingNamedType.AdaptedNamedTypeSymbol.GetCustomAttributesToEmit(moduleBuilder.CompilationState)
+            Return UnderlyingNamedType.AdaptedNamedTypeSymbol.GetCustomAttributesToEmit(moduleBuilder)
         End Function
 
         Protected Overrides Function CreateTypeIdentifierAttribute(hasGuid As Boolean, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As VisualBasicAttributeData
@@ -207,7 +208,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
                 ' This is an interface with no GuidAttribute, or some other type, so we will generate the
                 ' TypeIdentifier with name and scope parameters.
 
-                ' Look for a GUID attribute attached to type's containing assembly. If we find one, we'll use it; 
+                ' Look for a GUID attribute attached to type's containing assembly. If we find one, we'll use it;
                 ' otherwise, we expect that we will have reported an error (ERRID_PIAHasNoAssemblyGuid1) about this assembly, since
                 ' you can't /link against an assembly which lacks a GuidAttribute.
 

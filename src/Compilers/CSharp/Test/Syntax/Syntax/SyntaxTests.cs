@@ -7,6 +7,7 @@
 using System;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(SyntaxFactory.IsCompleteSubmission(SyntaxFactory.ParseSyntaxTree(code, options: TestOptions.Script)));
         }
 
-        private static void AssertCompleteSubmission(string code, bool isComplete = true)
+        private static void AssertCompleteSubmission(string code)
         {
             Assert.True(SyntaxFactory.IsCompleteSubmission(SyntaxFactory.ParseSyntaxTree(code, options: TestOptions.Script)));
         }
@@ -195,6 +196,85 @@ void goo()
         public void TestIsReservedTupleElementName(string elementName, bool isReserved)
         {
             Assert.Equal(isReserved, SyntaxFacts.IsReservedTupleElementName(elementName));
+        }
+
+        [Theory]
+        [InlineData(SyntaxKind.StringLiteralToken)]
+        [InlineData(SyntaxKind.SingleLineRawStringLiteralToken)]
+        [InlineData(SyntaxKind.MultiLineRawStringLiteralToken)]
+        [InlineData(SyntaxKind.CharacterLiteralToken)]
+        [InlineData(SyntaxKind.NumericLiteralToken)]
+        [InlineData(SyntaxKind.XmlTextLiteralToken)]
+        [InlineData(SyntaxKind.XmlTextLiteralNewLineToken)]
+        [InlineData(SyntaxKind.XmlEntityLiteralToken)]
+        public void TestIsLiteral(SyntaxKind kind)
+        {
+            Assert.True(SyntaxFacts.IsLiteral(kind));
+        }
+
+        [Theory]
+        [InlineData(SyntaxKind.StringLiteralToken)]
+        [InlineData(SyntaxKind.SingleLineRawStringLiteralToken)]
+        [InlineData(SyntaxKind.MultiLineRawStringLiteralToken)]
+        [InlineData(SyntaxKind.CharacterLiteralToken)]
+        [InlineData(SyntaxKind.NumericLiteralToken)]
+        [InlineData(SyntaxKind.XmlTextLiteralToken)]
+        [InlineData(SyntaxKind.XmlTextLiteralNewLineToken)]
+        [InlineData(SyntaxKind.XmlEntityLiteralToken)]
+        public void TestIsAnyToken(SyntaxKind kind)
+        {
+            Assert.True(SyntaxFacts.IsAnyToken(kind));
+        }
+
+        [Theory]
+        [InlineData(SyntaxKind.StringLiteralToken, SyntaxKind.StringLiteralExpression)]
+        [InlineData(SyntaxKind.SingleLineRawStringLiteralToken, SyntaxKind.StringLiteralExpression)]
+        [InlineData(SyntaxKind.MultiLineRawStringLiteralToken, SyntaxKind.StringLiteralExpression)]
+        [InlineData(SyntaxKind.CharacterLiteralToken, SyntaxKind.CharacterLiteralExpression)]
+        [InlineData(SyntaxKind.NumericLiteralToken, SyntaxKind.NumericLiteralExpression)]
+        [InlineData(SyntaxKind.NullKeyword, SyntaxKind.NullLiteralExpression)]
+        [InlineData(SyntaxKind.TrueKeyword, SyntaxKind.TrueLiteralExpression)]
+        [InlineData(SyntaxKind.FalseKeyword, SyntaxKind.FalseLiteralExpression)]
+        [InlineData(SyntaxKind.ArgListKeyword, SyntaxKind.ArgListExpression)]
+        public void TestGetLiteralExpression(SyntaxKind tokenKind, SyntaxKind expressionKind)
+        {
+            Assert.Equal(expressionKind, SyntaxFacts.GetLiteralExpression(tokenKind));
+        }
+
+        [Fact]
+        public void Punctuation()
+        {
+            foreach (var kind in SyntaxFacts.GetPunctuationKinds())
+            {
+                Assert.True(SyntaxFacts.IsPunctuation(kind));
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67485")]
+        public void IsAttributeTargetSpecifier()
+        {
+            foreach (var kind in (SyntaxKind[])Enum.GetValues(typeof(SyntaxKind)))
+            {
+                switch (kind)
+                {
+                    case SyntaxKind.AssemblyKeyword:
+                    case SyntaxKind.ModuleKeyword:
+                    case SyntaxKind.EventKeyword:
+                    case SyntaxKind.FieldKeyword:
+                    case SyntaxKind.MethodKeyword:
+                    case SyntaxKind.ParamKeyword:
+                    case SyntaxKind.PropertyKeyword:
+                    case SyntaxKind.ReturnKeyword:
+                    case SyntaxKind.TypeKeyword:
+                    case SyntaxKind.TypeVarKeyword:
+                        Assert.True(SyntaxFacts.IsAttributeTargetSpecifier(kind), $$"""IsAttributeTargetSpecific({{kind}}) should be true""");
+                        break;
+
+                    default:
+                        Assert.False(SyntaxFacts.IsAttributeTargetSpecifier(kind), $$"""IsAttributeTargetSpecific({{kind}}) should be false""");
+                        break;
+                }
+            }
         }
     }
 }

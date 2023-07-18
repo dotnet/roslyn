@@ -103,6 +103,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return TypeKind.Class; }
             }
 
+            internal override bool HasDeclaredRequiredMembers => false;
+
             public override ImmutableArray<Symbol> GetMembers()
             {
                 return _members;

@@ -7,7 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -81,9 +81,7 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
                 {
                     var parameters = whereMethodSymbol.Parameters;
 
-                    if (parameters.Length == 2 &&
-                        parameters.Last().Type is INamedTypeSymbol systemFunc &&
-                        systemFunc.Arity == 2)
+                    if (parameters is [_, { Type: INamedTypeSymbol { Arity: 2 } }])
                     {
                         // This is the where overload that does not take and index (i.e. Where(source, Func<T, bool>) vs Where(source, Func<T, int, bool>))
                         whereMethod = whereMethodSymbol;
@@ -162,7 +160,7 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
                 => whereMethod.Equals(invocation.TargetMethod.ReducedFrom ?? invocation.TargetMethod.OriginalDefinition, SymbolEqualityComparer.Default);
 
             bool IsInvocationNonEnumerableReturningLinqMethod(IInvocationOperation invocation)
-                => linqMethods.Any(m => m.Equals(invocation.TargetMethod.ReducedFrom ?? invocation.TargetMethod.OriginalDefinition, SymbolEqualityComparer.Default));
+                => linqMethods.Any(static (m, invocation) => m.Equals(invocation.TargetMethod.ReducedFrom ?? invocation.TargetMethod.OriginalDefinition, SymbolEqualityComparer.Default), invocation);
 
             INamedTypeSymbol? TryGetSymbolOfMemberAccess(IInvocationOperation invocation)
             {

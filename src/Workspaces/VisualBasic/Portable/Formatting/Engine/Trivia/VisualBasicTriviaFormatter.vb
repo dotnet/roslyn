@@ -54,14 +54,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Protected Overrides Function CreateEndOfLine() As SyntaxTrivia
             If _newLine = Nothing Then
-                Dim text = Me.Context.Options.GetOption(FormattingOptions2.NewLine)
-                _newLine = SyntaxFactory.EndOfLine(text)
+                _newLine = SyntaxFactory.EndOfLine(Context.Options.NewLine)
             End If
 
             Return _newLine
         End Function
 
-        Protected Overrides Function GetLineColumnRuleBetween(trivia1 As SyntaxTrivia, existingWhitespaceBetween As LineColumnDelta, implicitLineBreak As Boolean, trivia2 As SyntaxTrivia) As LineColumnRule
+        Protected Overrides Function GetLineColumnRuleBetween(trivia1 As SyntaxTrivia, existingWhitespaceBetween As LineColumnDelta, implicitLineBreak As Boolean, trivia2 As SyntaxTrivia, cancellationToken As CancellationToken) As LineColumnRule
 
             ' line continuation
             If trivia2.Kind = SyntaxKind.LineContinuationTrivia Then
@@ -285,9 +284,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 forceIndentation:=True,
                 indentation:=indentation,
                 indentationDelta:=0,
-                useTab:=Me.Options.GetOption(FormattingOptions2.UseTabs),
-                tabSize:=Me.Options.GetOption(FormattingOptions2.TabSize),
-                newLine:=Me.Options.GetOption(FormattingOptions2.NewLine))
+                useTab:=Options.UseTabs,
+                tabSize:=Options.TabSize,
+                newLine:=Options.NewLine)
 
             If text = singlelineDocComments Then
                 Return trivia

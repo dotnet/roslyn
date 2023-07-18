@@ -255,7 +255,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim analyzedArguments = BindAttributeArguments(attributeTypeForBinding, argumentListOpt, diagnostics)
             Dim boundArguments As ImmutableArray(Of BoundExpression) = analyzedArguments.positionalArguments
             Dim boundNamedArguments As ImmutableArray(Of BoundExpression) = analyzedArguments.namedArguments
-
+            Dim defaultArguments As BitVector = Nothing
             If Not attributeTypeForBinding.IsErrorType() Then
 
                 ' Filter out inaccessible constructors 
@@ -347,14 +347,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             End If
                         Next
 
+                        CheckRequiredMembersInObjectInitializer(methodSym, methodSym.ContainingType, boundNamedArguments, node.Name, diagnostics)
+
                         If Not errorsReported Then
                             ' There should not be any used temporaries or copy back expressions because arguments must
                             ' be constants and they cannot be passed byref. 
                             Dim argumentInfo As (Arguments As ImmutableArray(Of BoundExpression), DefaultArguments As BitVector) = PassArguments(node.Name, methodResult, boundArguments, diagnostics)
-                            ' We don't do anything with the default parameter info currently, as we don't expose IOperations for
-                            ' Attributes. If that changes, we can add this info to the BoundAttribute node.
                             boundArguments = argumentInfo.Arguments
-
+                            defaultArguments = argumentInfo.DefaultArguments
                             Debug.Assert(Not boundArguments.Any(Function(a) a.Kind = BoundKind.ByRefArgumentWithCopyBack))
 
                             If methodSym.DeclaredAccessibility <> Accessibility.Public Then
@@ -369,9 +369,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             End If
 
-            Return New BoundAttribute(node, methodSym, boundArguments, boundNamedArguments, resultKind, type, hasErrors:=resultKind <> LookupResultKind.Good)
+            Return New BoundAttribute(node, methodSym, boundArguments, defaultArguments, boundNamedArguments, resultKind, type, hasErrors:=resultKind <> LookupResultKind.Good)
         End Function
-
 
         ' Given a list of arguments, create arrays of the bound arguments and pairs of names and expression syntax. Attribute arguments are bound but
         ' named arguments are not yet bound. Assumption is that the parser enforces that named arguments come after arguments.
@@ -482,10 +481,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             End If
 
                             If Not IsAccessible(setMethod, useSiteInfo) Then
-                                ReportDiagnostic(diagnostics, identifierName, ERRID.ERR_InaccessibleMember3,
+                                ReportDiagnostic(diagnostics, identifierName, New BadSymbolDiagnostic(propertySym,
+                                                   ERRID.ERR_InaccessibleMember3,
                                                    propertySym.ContainingSymbol,
                                                    propertySym,
-                                                   AccessCheck.GetAccessibilityForErrorMessage(setMethod, Me.Compilation.Assembly))
+                                                   AccessCheck.GetAccessibilityForErrorMessage(setMethod, Me.Compilation.Assembly)))
                                 hasErrors = True
                             End If
 
@@ -794,7 +794,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                    Not _binder.IsValidTypeForAttributeArgument(conv.Operand.Type) Then
 
                                     If Not conv.HasErrors Then
-                                        ReportDiagnostic(diagBag, conv.Operand.Syntax, ERRID.ERR_RequiredAttributeConstConversion2, conv.Operand.Type, conv.Type)
+                                        ' BC30934: Conversion from '{0}' to '{1}' cannot occur in a constant expression used as an argument to an attribute.
+                                        ReportDiagnostic(diagBag, conv.Operand.Syntax, ERRID.ERR_RequiredAttributeConstConversion2, If(conv.Operand.Type, _binder.Compilation.GetSpecialType(SpecialType.System_Object)), conv.Type)
                                     End If
                                     Return CreateErrorTypedConstant(node.Type)
                                 Else
@@ -912,7 +913,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Structure
 #End Region
-
 
     End Class
 

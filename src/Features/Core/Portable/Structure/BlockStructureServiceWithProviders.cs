@@ -8,21 +8,20 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Structure
 {
     internal abstract class BlockStructureServiceWithProviders : BlockStructureService
     {
-        private readonly Workspace _workspace;
+        private readonly SolutionServices _services;
         private readonly ImmutableArray<BlockStructureProvider> _providers;
 
-        protected BlockStructureServiceWithProviders(Workspace workspace)
+        protected BlockStructureServiceWithProviders(SolutionServices services)
         {
-            _workspace = workspace;
+            _services = services;
             _providers = GetBuiltInProviders().Concat(GetImportedProviders());
         }
 
@@ -36,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Structure
         private ImmutableArray<BlockStructureProvider> GetImportedProviders()
         {
             var language = Language;
-            var mefExporter = (IMefHostExportProvider)_workspace.Services.HostServices;
+            var mefExporter = _services.ExportProvider;
 
             var providers = mefExporter.GetExports<BlockStructureProvider, LanguageMetadata>()
                                        .Where(lz => lz.Metadata.Language == language)
@@ -51,17 +50,7 @@ namespace Microsoft.CodeAnalysis.Structure
             CancellationToken cancellationToken)
         {
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var context = CreateContext(syntaxTree, options, cancellationToken);
-
-            return GetBlockStructure(context, _providers);
-        }
-
-        public BlockStructure GetBlockStructure(
-            SyntaxTree syntaxTree,
-            in BlockStructureOptions options,
-            CancellationToken cancellationToken)
-        {
-            var context = CreateContext(syntaxTree, options, cancellationToken);
+            using var context = CreateContext(syntaxTree, options, cancellationToken);
             return GetBlockStructure(context, _providers);
         }
 
@@ -74,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Structure
         }
 
         private static BlockStructure GetBlockStructure(
-            BlockStructureContext context,
+            in BlockStructureContext context,
             ImmutableArray<BlockStructureProvider> providers)
         {
             foreach (var provider in providers)
@@ -83,16 +72,13 @@ namespace Microsoft.CodeAnalysis.Structure
             return CreateBlockStructure(context);
         }
 
-        private static BlockStructure CreateBlockStructure(BlockStructureContext context)
+        private static BlockStructure CreateBlockStructure(in BlockStructureContext context)
         {
-            using var _ = ArrayBuilder<BlockSpan>.GetInstance(out var updatedSpans);
+            using var _ = ArrayBuilder<BlockSpan>.GetInstance(context.Spans.Count, out var updatedSpans);
             foreach (var span in context.Spans)
-            {
-                var updatedSpan = UpdateBlockSpan(span, context.Options);
-                updatedSpans.Add(updatedSpan);
-            }
+                updatedSpans.Add(UpdateBlockSpan(span, context.Options));
 
-            return new BlockStructure(updatedSpans.ToImmutable());
+            return new BlockStructure(updatedSpans.ToImmutableAndClear());
         }
 
         private static BlockSpan UpdateBlockSpan(BlockSpan blockSpan, in BlockStructureOptions options)

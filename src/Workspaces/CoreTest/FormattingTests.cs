@@ -5,9 +5,11 @@
 #nullable disable
 
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.VisualBasic.Formatting;
 using Roslyn.Test.Utilities;
 using Xunit;
 using CS = Microsoft.CodeAnalysis.CSharp;
@@ -16,9 +18,10 @@ using VB = Microsoft.CodeAnalysis.VisualBasic;
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.Formatting)]
     public partial class FormattingTests : TestBase
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public void TestCSharpFormatting()
         {
             var text = @"public class C{public int X;}";
@@ -27,7 +30,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             AssertFormatCSharp(expectedFormattedText, text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public void TestCSharpDefaultRules()
         {
             using var workspace = new AdhocWorkspace();
@@ -35,11 +38,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var service = workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService<ISyntaxFormattingService>();
             var rules = service.GetDefaultFormattingRules();
 
-            Assert.NotNull(rules);
             Assert.NotEmpty(rules);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public void TestVisualBasicFormatting()
         {
             var text = @"
@@ -56,35 +58,33 @@ End Class
             AssertFormatVB(expectedFormattedText, text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public void TestVisualBasicDefaultFormattingRules()
         {
             using var workspace = new AdhocWorkspace();
             var service = workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetService<ISyntaxFormattingService>();
             var rules = service.GetDefaultFormattingRules();
 
-            Assert.NotNull(rules);
             Assert.NotEmpty(rules);
         }
 
         private static void AssertFormatCSharp(string expected, string input)
         {
             var tree = CS.SyntaxFactory.ParseSyntaxTree(input);
-            AssertFormat(expected, tree);
+            AssertFormat(expected, tree, CSharpSyntaxFormattingOptions.Default);
         }
 
         private static void AssertFormatVB(string expected, string input)
         {
             var tree = VB.SyntaxFactory.ParseSyntaxTree(input);
-            AssertFormat(expected, tree);
+            AssertFormat(expected, tree, VisualBasicSyntaxFormattingOptions.Default);
         }
 
-        private static void AssertFormat(string expected, SyntaxTree tree)
+        private static void AssertFormat(string expected, SyntaxTree tree, SyntaxFormattingOptions options)
         {
             using var workspace = new AdhocWorkspace();
 
-            var options = SyntaxFormattingOptions.Default;
-            var formattedRoot = Formatter.Format(tree.GetRoot(), workspace.Services, options, CancellationToken.None);
+            var formattedRoot = Formatter.Format(tree.GetRoot(), workspace.Services.SolutionServices, options, CancellationToken.None);
             var actualFormattedText = formattedRoot.ToFullString();
 
             Assert.Equal(expected, actualFormattedText);

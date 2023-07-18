@@ -7,6 +7,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Tags;
@@ -25,18 +26,12 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// light bulb and we say "(from ProjectXXX)" to make it clear that this will do more than
         /// just add a using/import.
         /// </summary>
-        private partial class ProjectSymbolReference : SymbolReference
+        private partial class ProjectSymbolReference(
+            AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
+            SymbolResult<INamespaceOrTypeSymbol> symbolResult,
+            Project project) : SymbolReference(provider, symbolResult)
         {
-            private readonly Project _project;
-
-            public ProjectSymbolReference(
-                AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
-                SymbolResult<INamespaceOrTypeSymbol> symbolResult,
-                Project project)
-                : base(provider, symbolResult)
-            {
-                _project = project;
-            }
+            private readonly Project _project = project;
 
             protected override ImmutableArray<string> GetTags(Document document)
             {
@@ -87,10 +82,10 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             protected override (string description, bool hasExistingImport) GetDescription(
-                Document document, CodeGenerationPreferences preferences, SyntaxNode node,
+                Document document, CodeCleanupOptions options, SyntaxNode node,
                 SemanticModel semanticModel, CancellationToken cancellationToken)
             {
-                var (description, hasExistingImport) = base.GetDescription(document, preferences, node, semanticModel, cancellationToken);
+                var (description, hasExistingImport) = base.GetDescription(document, options, node, semanticModel, cancellationToken);
                 if (description == null)
                 {
                     return (null, false);

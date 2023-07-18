@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -39,6 +40,31 @@ namespace Roslyn.Test.Utilities.TestGenerators
 
         public void Initialize(GeneratorInitializationContext context)
         {
+        }
+    }
+
+    /// <summary>
+    /// A generator that produces diagnostics against existng source trees, rather than generating new content.
+    /// </summary>
+    internal class DiagnosticProducingGenerator : ISourceGenerator
+    {
+        public static readonly DiagnosticDescriptor Descriptor =
+            new DiagnosticDescriptor(nameof(DiagnosticProducingGenerator), "Diagnostic Title", "Diagnostic Format", "Test", DiagnosticSeverity.Error, isEnabledByDefault: true);
+
+        private readonly Func<GeneratorExecutionContext, Location> _produceLocation;
+
+        public DiagnosticProducingGenerator(Func<GeneratorExecutionContext, Location> produceLocation)
+        {
+            _produceLocation = produceLocation;
+        }
+
+        public void Initialize(GeneratorInitializationContext context)
+        {
+        }
+
+        public void Execute(GeneratorExecutionContext context)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(Descriptor, _produceLocation(context)));
         }
     }
 
@@ -94,6 +120,12 @@ namespace Roslyn.Test.Utilities.TestGenerators
 
         public override SourceText GetText(CancellationToken cancellationToken = default) => _content;
 
+        internal class BinaryText : InMemoryAdditionalText
+        {
+            public BinaryText(string path) : base(path, string.Empty) { }
+
+            public override SourceText GetText(CancellationToken cancellationToken = default) => throw new InvalidDataException("Binary content not supported");
+        }
     }
 
     internal sealed class PipelineCallbackGenerator : IIncrementalGenerator

@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
 {
@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
             : base(IDEDiagnosticIds.ConsecutiveStatementPlacementDiagnosticId,
                    EnforceOnBuildValues.ConsecutiveStatementPlacement,
                    CodeStyleOptions2.AllowStatementImmediatelyAfterBlock,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(
                        nameof(AnalyzersResources.Blank_line_required_between_block_and_subsequent_statement), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
@@ -39,13 +38,11 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
 
         private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
         {
-            var cancellationToken = context.CancellationToken;
-            var tree = context.Tree;
-            var option = context.GetOption(CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, tree.Options.Language);
+            var option = context.GetAnalyzerOptions().AllowStatementImmediatelyAfterBlock;
             if (option.Value)
                 return;
 
-            Recurse(context, option.Notification.Severity, tree.GetRoot(cancellationToken), cancellationToken);
+            Recurse(context, option.Notification.Severity, context.GetAnalysisRoot(findInTrivia: false), context.CancellationToken);
         }
 
         private void Recurse(SyntaxTreeAnalysisContext context, ReportDiagnostic severity, SyntaxNode node, CancellationToken cancellationToken)
@@ -58,6 +55,9 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
 
             foreach (var child in node.ChildNodesAndTokens())
             {
+                if (!context.ShouldAnalyzeSpan(child.FullSpan))
+                    continue;
+
                 if (child.IsNode)
                     Recurse(context, severity, child.AsNode()!, cancellationToken);
             }

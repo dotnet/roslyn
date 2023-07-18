@@ -8,6 +8,7 @@ Imports System.Runtime.InteropServices
 Imports EnvDTE
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -25,6 +26,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
         Public ReadOnly Composition As TestComposition = VisualStudioTestCompositions.LanguageServices.AddParts(
             GetType(MockServiceProvider),
+            GetType(StubVsServiceExporter(Of )),
+            GetType(StubVsServiceExporter(Of ,)),
             GetType(MockVisualStudioWorkspace),
             GetType(ProjectCodeModelFactory))
 
@@ -64,7 +67,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 Dim state = New CodeModelState(
                     threadingContext,
                     workspace.ExportProvider.GetExportedValue(Of MockServiceProvider),
-                    project.LanguageServices,
+                    project.Services,
                     visualStudioWorkspace,
                     workspace.ExportProvider.GetExportedValue(Of ProjectCodeModelFactory))
 
@@ -84,7 +87,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
                 Dim root = New ComHandle(Of EnvDTE.CodeModel, RootCodeModel)(RootCodeModel.Create(state, Nothing, project.Id))
 
-                result = New CodeModelTestState(workspace, state.Workspace, root, firstFileCodeModel.Value, state.CodeModelService)
+                result = New CodeModelTestState(workspace, state.Workspace, root, firstFileCodeModel, state.CodeModelService)
             Finally
                 If result Is Nothing Then
                     workspace.Dispose()

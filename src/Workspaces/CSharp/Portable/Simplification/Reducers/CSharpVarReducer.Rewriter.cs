@@ -31,13 +31,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 }
 
                 // Definitely do not simplify us if we were told to not simplify.
-                if (typeSyntax.HasAnnotation(SimplificationHelpers.DontSimplifyAnnotation))
+                if (typeSyntax.HasAnnotation(SimplificationHelpers.DoNotSimplifyAnnotation))
                 {
                     return typeSyntax;
                 }
 
                 var typeStyle = CSharpUseImplicitTypeHelper.Instance.AnalyzeTypeName(
-                    typeSyntax, this.SemanticModel, this.OptionSet, this.CancellationToken);
+                    typeSyntax, this.SemanticModel, this.Options, this.CancellationToken);
 
                 if (!typeStyle.IsStylePreferred || !typeStyle.CanConvert())
                 {

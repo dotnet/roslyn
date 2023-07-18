@@ -11,14 +11,19 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Hover
 {
     public class HoverTests : AbstractLanguageServerProtocolTests
     {
-        [Fact]
-        public async Task TestGetHoverAsync()
+        public HoverTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestGetHoverAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -32,7 +37,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Hover
     {
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
             var expectedLocation = testLspServer.GetLocations("caret").Single();
 
             var results = await RunGetHoverAsync(testLspServer, expectedLocation).ConfigureAwait(false);
@@ -40,8 +45,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Hover
             VerifyVSContent(results, $"string A.Method(int i)|A great method|{FeaturesResources.Returns_colon}|  |a string");
         }
 
-        [Fact]
-        public async Task TestGetHoverAsync_WithExceptions()
+        [Theory, CombinatorialData]
+        public async Task TestGetHoverAsync_WithExceptions(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -56,15 +61,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Hover
     {
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
             var expectedLocation = testLspServer.GetLocations("caret").Single();
 
             var results = await RunGetHoverAsync(testLspServer, expectedLocation).ConfigureAwait(false);
             VerifyVSContent(results, $"string A.Method(int i)|A great method|{FeaturesResources.Exceptions_colon}|  System.NullReferenceException");
         }
 
-        [Fact]
-        public async Task TestGetHoverAsync_WithRemarks()
+        [Theory, CombinatorialData]
+        public async Task TestGetHoverAsync_WithRemarks(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -79,15 +84,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Hover
     {
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
             var expectedLocation = testLspServer.GetLocations("caret").Single();
 
             var results = await RunGetHoverAsync(testLspServer, expectedLocation).ConfigureAwait(false);
             VerifyVSContent(results, "string A.Method(int i)|A great method|Remarks are cool too.");
         }
 
-        [Fact]
-        public async Task TestGetHoverAsync_WithList()
+        [Theory, CombinatorialData]
+        public async Task TestGetHoverAsync_WithList(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -107,15 +112,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Hover
     {
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
             var expectedLocation = testLspServer.GetLocations("caret").Single();
 
             var results = await RunGetHoverAsync(testLspServer, expectedLocation).ConfigureAwait(false);
             VerifyVSContent(results, "string A.Method(int i)|A great method|• |Item 1.|• |Item 2.");
         }
 
-        [Fact]
-        public async Task TestGetHoverAsync_InvalidLocation()
+        [Theory, CombinatorialData]
+        public async Task TestGetHoverAsync_InvalidLocation(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -130,7 +135,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Hover
         {|caret:|}
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var results = await RunGetHoverAsync(testLspServer, testLspServer.GetLocations("caret").Single()).ConfigureAwait(false);
             Assert.Null(results);
@@ -139,8 +144,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Hover
         // Test that if we pass a project context along to hover, the right context is chosen. We are using hover
         // as a general proxy to test that our context tracking works in all cases, although there's nothing specific
         // about hover that needs to be different here compared to any other feature.
-        [Fact]
-        public async Task TestGetHoverWithProjectContexts()
+        [Theory, CombinatorialData]
+        public async Task TestGetHoverWithProjectContexts(bool mutatingLspWorkspace)
         {
             var source = @"
 using System;
@@ -179,7 +184,7 @@ $@"<Workspace>
     </Project>
 </Workspace>";
 
-            using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml);
+            await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, mutatingLspWorkspace, initializationOptions: new InitializationOptions { ClientCapabilities = CapabilitiesWithVSExtensions });
             var location = testLspServer.GetLocations("caret").Single();
 
             foreach (var project in testLspServer.GetCurrentSolution().Projects)
@@ -191,8 +196,8 @@ $@"<Workspace>
             }
         }
 
-        [Fact]
-        public async Task TestGetHoverAsync_UsingMarkupContent()
+        [Theory, CombinatorialData]
+        public async Task TestGetHoverAsync_UsingMarkupContent(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -229,7 +234,11 @@ $@"<Workspace>
     {
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            var clientCapabilities = new LSP.ClientCapabilities
+            {
+                TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new LSP.HoverSetting { ContentFormat = new LSP.MarkupKind[] { LSP.MarkupKind.Markdown } } }
+            };
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
             var expectedLocation = testLspServer.GetLocations("caret").Single();
 
             var expectedMarkdown = @$"```csharp
@@ -257,16 +266,12 @@ Remarks&nbsp;are&nbsp;cool&nbsp;too\.
 
             var results = await RunGetHoverAsync(
                 testLspServer,
-                expectedLocation,
-                clientCapabilities: new LSP.ClientCapabilities
-                {
-                    TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new LSP.HoverSetting { ContentFormat = new LSP.MarkupKind[] { LSP.MarkupKind.Markdown } } }
-                }).ConfigureAwait(false);
-            Assert.Equal(expectedMarkdown, results.Contents.Third.Value);
+                expectedLocation).ConfigureAwait(false);
+            Assert.Equal(expectedMarkdown, results.Contents.Value.Fourth.Value);
         }
 
-        [Fact]
-        public async Task TestGetHoverAsync_WithoutMarkdownClientSupport()
+        [Theory, CombinatorialData]
+        public async Task TestGetHoverAsync_WithoutMarkdownClientSupport(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -303,7 +308,7 @@ Remarks&nbsp;are&nbsp;cool&nbsp;too\.
     {
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var expectedLocation = testLspServer.GetLocations("caret").Single();
 
             var expectedText = @$"void A.AMethod(int i)
@@ -328,13 +333,12 @@ Remarks are cool too.
 
             var results = await RunGetHoverAsync(
                 testLspServer,
-                expectedLocation,
-                clientCapabilities: new LSP.ClientCapabilities()).ConfigureAwait(false);
-            Assert.Equal(expectedText, results.Contents.Third.Value);
+                expectedLocation).ConfigureAwait(false);
+            Assert.Equal(expectedText, results.Contents.Value.Fourth.Value);
         }
 
-        [Fact]
-        public async Task TestGetHoverAsync_UsingMarkupContentProperlyEscapes()
+        [Theory, CombinatorialData]
+        public async Task TestGetHoverAsync_UsingMarkupContentProperlyEscapes(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -360,7 +364,11 @@ Remarks are cool too.
     {
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            var clientCapabilities = new LSP.ClientCapabilities
+            {
+                TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new LSP.HoverSetting { ContentFormat = new LSP.MarkupKind[] { LSP.MarkupKind.Markdown } } }
+            };
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
             var expectedLocation = testLspServer.GetLocations("caret").Single();
 
             var expectedMarkdown = @"```csharp
@@ -379,26 +387,20 @@ _italic\_&nbsp;\*\*text\*\*_
 
             var results = await RunGetHoverAsync(
                 testLspServer,
-                expectedLocation,
-                clientCapabilities: new LSP.ClientCapabilities
-                {
-                    TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new LSP.HoverSetting { ContentFormat = new LSP.MarkupKind[] { LSP.MarkupKind.Markdown } } }
-                }).ConfigureAwait(false);
-            Assert.Equal(expectedMarkdown, results.Contents.Third.Value);
+                expectedLocation).ConfigureAwait(false);
+            Assert.Equal(expectedMarkdown, results.Contents.Value.Fourth.Value);
         }
 
         private static async Task<LSP.Hover> RunGetHoverAsync(
             TestLspServer testLspServer,
             LSP.Location caret,
-            ProjectId projectContext = null,
-            LSP.ClientCapabilities clientCapabilities = null)
+            ProjectId projectContext = null)
         {
-            clientCapabilities ??= new LSP.VSInternalClientCapabilities { SupportsVisualStudioExtensions = true };
             return await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Hover>(LSP.Methods.TextDocumentHoverName,
-                CreateTextDocumentPositionParams(caret, projectContext), clientCapabilities, null, CancellationToken.None);
+                CreateTextDocumentPositionParams(caret, projectContext), CancellationToken.None);
         }
 
-        private void VerifyVSContent(LSP.Hover hover, string expectedContent)
+        private static void VerifyVSContent(LSP.Hover hover, string expectedContent)
         {
             var vsHover = Assert.IsType<LSP.VSInternalHover>(hover);
             var containerElement = (ContainerElement)vsHover.RawContent;
@@ -409,7 +411,7 @@ _italic\_&nbsp;\*\*text\*\*_
             Assert.Equal(expectedContent, content);
         }
 
-        private void GetClassifiedTextElements(ContainerElement container, ArrayBuilder<ClassifiedTextElement> classifiedTextElements)
+        private static void GetClassifiedTextElements(ContainerElement container, ArrayBuilder<ClassifiedTextElement> classifiedTextElements)
         {
             foreach (var element in container.Elements)
             {

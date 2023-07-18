@@ -10,11 +10,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -39,18 +41,21 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
         }
 
 #if CODE_STYLE
-        private static ISyntaxFormattingService GetSyntaxFormattingService()
-            => CSharpSyntaxFormattingService.Instance;
+        private static ISyntaxFormatting GetSyntaxFormatting()
+            => CSharpSyntaxFormatting.Instance;
 #endif
 
-        protected override IUnnecessaryImportsProvider UnnecessaryImportsProvider
+        protected override IUnnecessaryImportsProvider<UsingDirectiveSyntax> UnnecessaryImportsProvider
             => CSharpUnnecessaryImportsProvider.Instance;
 
         public override async Task<Document> RemoveUnnecessaryImportsAsync(
             Document document,
-            Func<SyntaxNode, bool> predicate,
+            Func<SyntaxNode, bool>? predicate,
+            SyntaxFormattingOptions? formattingOptions,
             CancellationToken cancellationToken)
         {
+            Contract.ThrowIfNull(formattingOptions);
+
             predicate ??= Functions<SyntaxNode>.True;
             using (Logger.LogBlock(FunctionId.Refactoring_RemoveUnnecessaryImports_CSharp, cancellationToken))
             {
@@ -64,26 +69,23 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                 var oldRoot = (CompilationUnitSyntax)root;
-                var newRoot = (CompilationUnitSyntax)new Rewriter(document, unnecessaryImports, cancellationToken).Visit(oldRoot);
+                var newRoot = (CompilationUnitSyntax)new Rewriter(unnecessaryImports, cancellationToken).Visit(oldRoot);
 
                 cancellationToken.ThrowIfCancellationRequested();
 #if CODE_STYLE
-                var provider = GetSyntaxFormattingService();
-                var optionSet = document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(oldRoot.SyntaxTree);
-                var options = SyntaxFormattingOptions.Create(optionSet);
+                var provider = GetSyntaxFormatting();
 #else
-                var provider = document.Project.Solution.Workspace.Services;
-                var options = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+                var provider = document.Project.Solution.Services;
 #endif
                 var spans = new List<TextSpan>();
                 AddFormattingSpans(newRoot, spans, cancellationToken);
-                var formattedRoot = Formatter.Format(newRoot, spans, provider, options, rules: null, cancellationToken);
+                var formattedRoot = Formatter.Format(newRoot, spans, provider, formattingOptions, rules: null, cancellationToken);
 
                 return document.WithSyntaxRoot(formattedRoot);
             }
         }
 
-        private void AddFormattingSpans(
+        private static void AddFormattingSpans(
             CompilationUnitSyntax compilationUnit,
             List<TextSpan> spans,
             CancellationToken cancellationToken)
@@ -95,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                 AddFormattingSpans(@namespace, spans, cancellationToken);
         }
 
-        private void AddFormattingSpans(
+        private static void AddFormattingSpans(
             BaseNamespaceDeclarationSyntax namespaceMember,
             List<TextSpan> spans,
             CancellationToken cancellationToken)

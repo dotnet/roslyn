@@ -12,9 +12,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SpellCheck
@@ -39,6 +39,9 @@ namespace Microsoft.CodeAnalysis.SpellCheck
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var document = context.Document;
+            if (!document.CanApplyChange())
+                return;
+
             var span = context.Span;
             var cancellationToken = context.CancellationToken;
 
@@ -113,33 +116,30 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             // -    It's very unlikely the user would ever misspell a snippet, then use spell-checking to fix it, 
             //      then try to invoke the snippet.
             // -    We believe spell-check should only compare what you have typed to what symbol would be offered here.
-            var options = CompletionOptions.From(document.Project.Solution.Options, document.Project.Language) with
+            var options = CompletionOptions.Default with
             {
+                HideAdvancedMembers = context.Options.GetOptions(document.Project.Services).HideAdvancedMembers,
                 SnippetsBehavior = SnippetsRule.NeverInclude,
                 ShowItemsFromUnimportedNamespaces = false,
-                IsExpandedCompletion = false,
-                TargetTypedCompletionFilter = false
+                TargetTypedCompletionFilter = false,
+                ExpandedCompletionBehavior = ExpandedCompletionMode.NonExpandedItemsOnly
             };
 
-            var (completionList, _) = await service.GetCompletionsInternalAsync(
-                document, nameToken.SpanStart, options, cancellationToken: cancellationToken).ConfigureAwait(false);
-            if (completionList == null)
+            var passThroughOptions = document.Project.Solution.Options;
+
+            var completionList = await service.GetCompletionsAsync(
+                document, nameToken.SpanStart, options, passThroughOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
+            if (completionList.ItemsList.IsEmpty())
             {
                 return;
             }
 
             var nameText = nameToken.ValueText;
-            var similarityChecker = WordSimilarityChecker.Allocate(nameText, substringsAreSimilar: true);
-            try
-            {
-                await CheckItemsAsync(
-                    context, nameToken, isGeneric,
-                    completionList, similarityChecker).ConfigureAwait(false);
-            }
-            finally
-            {
-                similarityChecker.Free();
-            }
+            using var similarityChecker = new WordSimilarityChecker(nameText, substringsAreSimilar: true);
+
+            await CheckItemsAsync(
+                context, nameToken, isGeneric,
+                completionList, similarityChecker).ConfigureAwait(false);
         }
 
         private async Task CheckItemsAsync(
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             var onlyConsiderGenerics = isGeneric;
             var results = new MultiDictionary<double, string>();
 
-            foreach (var item in completionList.Items)
+            foreach (var item in completionList.ItemsList)
             {
                 if (onlyConsiderGenerics && !IsGeneric(item))
                 {
@@ -181,8 +181,13 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             {
                 // Wrap the spell checking actions into a single top level suggestion
                 // so as to not clutter the list.
-                context.RegisterCodeFix(new MyCodeAction(
-                    string.Format(FeaturesResources.Fix_typo_0, nameText), codeActions), context.Diagnostics);
+                context.RegisterCodeFix(
+                    CodeAction.Create(
+                        string.Format(FeaturesResources.Fix_typo_0, nameText),
+                        codeActions,
+                        isInlinable: true,
+                        CodeActionPriority.Low),
+                    context.Diagnostics);
             }
             else
             {
@@ -203,12 +208,13 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                 : text;
         }
 
-        private SpellCheckCodeAction CreateCodeAction(SyntaxToken nameToken, string oldName, string newName, Document document)
+        private CodeAction CreateCodeAction(SyntaxToken nameToken, string oldName, string newName, Document document)
         {
-            return new SpellCheckCodeAction(
+            return CodeAction.Create(
                 string.Format(FeaturesResources.Change_0_to_1, oldName, newName),
                 c => UpdateAsync(document, nameToken, newName, c),
-                equivalenceKey: newName);
+                equivalenceKey: newName,
+                CodeActionPriority.Low);
         }
 
         private async Task<Document> UpdateAsync(Document document, SyntaxToken nameToken, string newName, CancellationToken cancellationToken)
@@ -217,22 +223,6 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             var newRoot = root.ReplaceToken(nameToken, CreateIdentifier(nameToken, newName));
 
             return document.WithSyntaxRoot(newRoot);
-        }
-
-        private class SpellCheckCodeAction : CodeAction.DocumentChangeAction
-        {
-            public SpellCheckCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
-                : base(title, createChangedDocument, equivalenceKey)
-            {
-            }
-        }
-
-        private class MyCodeAction : CodeAction.CodeActionWithNestedActions
-        {
-            public MyCodeAction(string title, ImmutableArray<CodeAction> nestedActions)
-                : base(title, nestedActions, isInlinable: true)
-            {
-            }
         }
     }
 }

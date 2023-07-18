@@ -47,9 +47,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 RudeEditKind.SwitchBetweenLambdaAndLocalFunction,
                 RudeEditKind.InsertMethodWithExplicitInterfaceSpecifier,
                 RudeEditKind.NotSupportedByRuntime,
-                RudeEditKind.MakeMethodAsync,
-                RudeEditKind.MakeMethodIterator,
-                RudeEditKind.ChangeImplicitMainReturnType
+                RudeEditKind.MakeMethodAsyncNotSupportedByRuntime,
+                RudeEditKind.MakeMethodIteratorNotSupportedByRuntime,
+                RudeEditKind.ChangeImplicitMainReturnType,
+                RudeEditKind.UpdatingStateMachineMethodNotSupportedByRuntime
             };
 
             var arg2 = new HashSet<RudeEditKind>()
@@ -63,13 +64,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 RudeEditKind.ChangingStateMachineShape,
                 RudeEditKind.InternalError,
                 RudeEditKind.MemberBodyInternalError,
-                RudeEditKind.ChangingNonCustomAttribute
+                RudeEditKind.ChangingNonCustomAttribute,
             };
 
             var arg3 = new HashSet<RudeEditKind>()
             {
                 RudeEditKind.InsertLambdaWithMultiScopeCapture,
                 RudeEditKind.DeleteLambdaWithMultiScopeCapture,
+                RudeEditKind.ChangingNamespace,
             };
 
             var allKinds = Enum.GetValues(typeof(RudeEditKind)).Cast<RudeEditKind>();

@@ -6,7 +6,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
@@ -26,17 +25,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 
         public static async Task<UnitTestingRemoteHostClient?> TryGetClientAsync(HostWorkspaceServices services, UnitTestingServiceDescriptorsWrapper serviceDescriptors, UnitTestingRemoteServiceCallbackDispatcherRegistry callbackDispatchers, CancellationToken cancellationToken = default)
         {
-            var client = await RemoteHostClient.TryGetClientAsync(services, cancellationToken).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(services.SolutionServices, cancellationToken).ConfigureAwait(false);
             if (client is null)
                 return null;
 
             return new UnitTestingRemoteHostClient((ServiceHubRemoteHostClient)client, serviceDescriptors, callbackDispatchers);
-        }
-
-        public static bool IsServiceHubProcessCoreClr(HostWorkspaceServices services)
-        {
-            var optionServices = services.GetRequiredService<IOptionService>();
-            return optionServices.GetOption(RemoteHostOptions.OOPCoreClrFeatureFlag);
         }
 
         public UnitTestingRemoteServiceConnectionWrapper<TService> CreateConnection<TService>(object? callbackTarget) where TService : class

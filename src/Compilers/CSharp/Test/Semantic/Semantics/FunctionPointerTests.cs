@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class FunctionPointerTests : CompilingTestBase
     {
-        private CSharpCompilation CreateCompilationWithFunctionPointers(string source, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null, TargetFramework? targetFramework = null)
+        private static CSharpCompilation CreateCompilationWithFunctionPointers(string source, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null, TargetFramework? targetFramework = null)
         {
-            return CreateCompilation(source, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: parseOptions ?? TestOptions.Regular9, targetFramework: targetFramework ?? TargetFramework.Standard);
+            return CreateCompilation(source, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: parseOptions, targetFramework: targetFramework ?? TargetFramework.Standard);
         }
 
         private CompilationVerifier CompileAndVerifyFunctionPointers(CSharpCompilation compilation, string? expectedOutput = null)
@@ -27,33 +27,131 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void LangVersion()
+        {
+            var src = """
+                #pragma warning disable 169 // Unused field
+                unsafe class C
+                {
+                    delegate*<void> f;
+                }
+                """;
+
+            var comp = CreateCompilationWithFunctionPointers(src, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (4,5): error CS8400: Feature 'function pointers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //     delegate*<void> f;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "delegate").WithArguments("function pointers", "9.0").WithLocation(4, 5)
+            );
+
+            comp = CreateCompilationWithFunctionPointers(src, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void UsingAliasTest()
         {
-            var comp = CreateCompilationWithFunctionPointers(@"
-using s = delegate*<void>;");
+            var src = @"
+using s = delegate*<void>;";
 
+            var comp = CreateCompilationWithFunctionPointers(src, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
-                // (2,26): error CS8805: Program using top-level statements must be an executable.
+                // (2,11): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // using s = delegate*<void>;
-                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, ";").WithLocation(2, 26),
-                // (2,1): hidden CS8019: Unnecessary using directive.
-                // using s = delegate*<void>;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using s = ").WithLocation(2, 1),
-                // (2,11): error CS1041: Identifier expected; 'delegate' is a keyword
-                // using s = delegate*<void>;
-                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "delegate").WithArguments("", "delegate").WithLocation(2, 11),
-                // (2,25): error CS0116: A namespace cannot directly contain members such as fields or methods
-                // using s = delegate*<void>;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, ">").WithLocation(2, 25),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate*<void>").WithArguments("using type alias").WithLocation(2, 11),
                 // (2,7): warning CS8981: The type name 's' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 // using s = delegate*<void>;
                 Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "s").WithArguments("s").WithLocation(2, 7),
-
-                // See same-named test in TopLevelStatementsParsingTests, there is a single top-level statement in the tree and it is an empty statement.
-                // (2,26): error CS8937: At least one top-level statement must be non-empty.
+                // (2,1): hidden CS8019: Unnecessary using directive.
                 // using s = delegate*<void>;
-                Diagnostic(ErrorCode.ERR_SimpleProgramIsEmpty, ";").WithLocation(2, 26)
-            );
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using s = delegate*<void>;").WithLocation(2, 1));
+
+            comp = CreateCompilationWithFunctionPointers(src, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(
+                // (2,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // using s = delegate*<void>;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(2, 11),
+                // (2,7): warning CS8981: The type name 's' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // using s = delegate*<void>;
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "s").WithArguments("s").WithLocation(2, 7),
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using s = delegate*<void>;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using s = delegate*<void>;").WithLocation(2, 1));
+        }
+
+        [Fact]
+        public void UsingAliasTest_UnsafeModifier()
+        {
+            var src = @"
+using unsafe S = delegate*<void>;";
+
+            var comp = CreateCompilationWithFunctionPointers(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11);
+
+            comp.VerifyDiagnostics(
+                // (2,7): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // using unsafe S = delegate*<void>;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(2, 7),
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using unsafe S = delegate*<void>;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe S = delegate*<void>;").WithLocation(2, 1));
+
+            comp = CreateCompilationWithFunctionPointers(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext);
+
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using unsafe S = delegate*<void>;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe S = delegate*<void>;").WithLocation(2, 1));
+
+            comp = CreateCompilationWithFunctionPointers(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using unsafe S = delegate*<void>;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe S = delegate*<void>;").WithLocation(2, 1));
+        }
+
+        [Fact]
+        public void UsingAliasTest_TypeArgument()
+        {
+            var src = @"
+using S = System.Collections.Generic.List<delegate*<void>[]>;";
+
+            var comp = CreateCompilationWithFunctionPointers(src, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using S = System.Collections.Generic.List<delegate*<void>[]>;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using S = System.Collections.Generic.List<delegate*<void>[]>;").WithLocation(2, 1));
+
+            comp = CreateCompilationWithFunctionPointers(src, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using S = System.Collections.Generic.List<delegate*<void>[]>;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using S = System.Collections.Generic.List<delegate*<void>[]>;").WithLocation(2, 1),
+                // (2,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // using S = System.Collections.Generic.List<delegate*<void>[]>;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(2, 43));
+        }
+
+        [Fact]
+        public void UsingAliasTest_TypeArgument_UnsafeModifier()
+        {
+            var src = @"
+using unsafe S = System.Collections.Generic.List<delegate*<void>[]>;";
+
+            var comp = CreateCompilationWithFunctionPointers(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics(
+                // (2,7): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // using unsafe S = System.Collections.Generic.List<delegate*<void>[]>;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(2, 7),
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using unsafe S = System.Collections.Generic.List<delegate*<void>[]>;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe S = System.Collections.Generic.List<delegate*<void>[]>;").WithLocation(2, 1));
+
+            comp = CreateCompilationWithFunctionPointers(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using unsafe S = System.Collections.Generic.List<delegate*<void>[]>;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe S = System.Collections.Generic.List<delegate*<void>[]>;").WithLocation(2, 1));
         }
 
         [Fact]
@@ -469,7 +567,7 @@ struct S {}");
         }
 
         [Fact]
-        public void UserDefinedConversion()
+        public void UserDefinedConversion_01()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
 unsafe class C
@@ -511,6 +609,192 @@ unsafe class C
                 var classifiedConversion = comp.ClassifyConversion(typeInfo.Type!, typeInfo.ConvertedType!);
                 Assert.Equal(conversion, classifiedConversion);
             }
+        }
+
+        [Fact, WorkItem(57994, "https://github.com/dotnet/roslyn/issues/57994")]
+        public void UserDefinedConversion_02()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe readonly struct S
+{
+    public static implicit operator delegate*<void*, void>(S _) => null;
+    void M()
+    {
+        // S -> delegate*<void*, void> -> delegate*<int*, void>
+        /*<bind>*/_ = (delegate*<int*, void>)new S()/*</bind>*/;
+    }
+}");
+
+            var verifier = CompileAndVerifyFunctionPointers(comp);
+            verifier.VerifyIL("S.M", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  1
+  .locals init (S V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloc.0
+  IL_0009:  call       ""delegate*<void*, void> S.op_Implicit(S)""
+  IL_000e:  pop
+  IL_000f:  ret
+}
+");
+
+            VerifyOperationTreeForTest<AssignmentExpressionSyntax>(comp, @"
+ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: delegate*<System.Int32*, System.Void>) (Syntax: '_ = (delega ... id>)new S()')
+  Left:
+    IDiscardOperation (Symbol: delegate*<System.Int32*, System.Void> _) (OperationKind.Discard, Type: delegate*<System.Int32*, System.Void>) (Syntax: '_')
+  Right:
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<System.Int32*, System.Void>, IsImplicit) (Syntax: '(delegate*< ... id>)new S()')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand:
+        IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: delegate*<System.Void*, System.Void> S.op_Implicit(S _)) (OperationKind.Conversion, Type: delegate*<System.Void*, System.Void>, IsImplicit) (Syntax: '(delegate*< ... id>)new S()')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: delegate*<System.Void*, System.Void> S.op_Implicit(S _))
+          Operand:
+            IObjectCreationOperation (Constructor: S..ctor()) (OperationKind.ObjectCreation, Type: S) (Syntax: 'new S()')
+              Arguments(0)
+              Initializer:
+                null
+");
+        }
+
+        [Fact, WorkItem(57994, "https://github.com/dotnet/roslyn/issues/57994")]
+        public void UserDefinedConversion_03()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe readonly struct S
+{
+    public static explicit operator delegate*<void*, void>(S _) => null;
+    void M()
+    {
+        // S -> delegate*<void*, void> -> delegate*<int*, void>
+        /*<bind>*/_ = (delegate*<int*, void>)new S()/*</bind>*/;
+    }
+}");
+
+            var verifier = CompileAndVerifyFunctionPointers(comp);
+            verifier.VerifyIL("S.M", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  1
+  .locals init (S V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloc.0
+  IL_0009:  call       ""delegate*<void*, void> S.op_Explicit(S)""
+  IL_000e:  pop
+  IL_000f:  ret
+}
+");
+
+            VerifyOperationTreeForTest<AssignmentExpressionSyntax>(comp, @"
+ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: delegate*<System.Int32*, System.Void>) (Syntax: '_ = (delega ... id>)new S()')
+  Left:
+    IDiscardOperation (Symbol: delegate*<System.Int32*, System.Void> _) (OperationKind.Discard, Type: delegate*<System.Int32*, System.Void>) (Syntax: '_')
+  Right:
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<System.Int32*, System.Void>, IsImplicit) (Syntax: '(delegate*< ... id>)new S()')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand:
+        IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: delegate*<System.Void*, System.Void> S.op_Explicit(S _)) (OperationKind.Conversion, Type: delegate*<System.Void*, System.Void>, IsImplicit) (Syntax: '(delegate*< ... id>)new S()')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: delegate*<System.Void*, System.Void> S.op_Explicit(S _))
+          Operand:
+            IObjectCreationOperation (Constructor: S..ctor()) (OperationKind.ObjectCreation, Type: S) (Syntax: 'new S()')
+              Arguments(0)
+              Initializer:
+                null
+");
+        }
+
+        [Fact, WorkItem(57994, "https://github.com/dotnet/roslyn/issues/57994")]
+        public void UserDefinedConversion_04()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe readonly struct S
+{
+    public static implicit operator delegate*<void*, void>(S _) => null;
+    void M()
+    {
+        // S -> delegate*<void*, void> -> delegate*<int*, void>
+        /*<bind>*/delegate*<int*, void> _ = new S()/*</bind>*/;
+    }
+}");
+
+            var verifier = CompileAndVerifyFunctionPointers(comp);
+            verifier.VerifyIL("S.M", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  1
+  .locals init (delegate*<int*, void> V_0, //_
+                S V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloc.1
+  IL_0009:  call       ""delegate*<void*, void> S.op_Implicit(S)""
+  IL_000e:  stloc.0
+  IL_000f:  ret
+}
+");
+
+            VerifyOperationTreeForTest<VariableDeclarationSyntax>(comp, @"
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'delegate*<i ... _ = new S()')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: delegate*<System.Int32*, System.Void> _) (OperationKind.VariableDeclarator, Type: null) (Syntax: '_ = new S()')
+        Initializer:
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new S()')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<System.Int32*, System.Void>, IsImplicit) (Syntax: 'new S()')
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              Operand:
+                IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: delegate*<System.Void*, System.Void> S.op_Implicit(S _)) (OperationKind.Conversion, Type: delegate*<System.Void*, System.Void>, IsImplicit) (Syntax: 'new S()')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: delegate*<System.Void*, System.Void> S.op_Implicit(S _))
+                  Operand:
+                    IObjectCreationOperation (Constructor: S..ctor()) (OperationKind.ObjectCreation, Type: S) (Syntax: 'new S()')
+                      Arguments(0)
+                      Initializer:
+                        null
+  Initializer:
+    null
+");
+        }
+
+        [Fact, WorkItem(57994, "https://github.com/dotnet/roslyn/issues/57994")]
+        public void UserDefinedConversion_05()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe readonly struct S
+{
+    public static explicit operator delegate*<void*, void>(S _) => null;
+    void M()
+    {
+        // S -> delegate*<void*, void> -> delegate*<int*, void>
+        /*<bind>*/delegate*<int*, void> _ = new S()/*</bind>*/;
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (8,45): error CS0266: Cannot implicitly convert type 'S' to 'delegate*<int*, void>'. An explicit conversion exists (are you missing a cast?)
+                //         /*<bind>*/delegate*<int*, void> _ = new S()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new S()").WithArguments("S", "delegate*<int*, void>").WithLocation(8, 45)
+            );
+
+            VerifyOperationTreeForTest<VariableDeclarationSyntax>(comp, @"
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'delegate*<i ... _ = new S()')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: delegate*<System.Int32*, System.Void> _) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: '_ = new S()')
+        Initializer:
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new S()')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<System.Int32*, System.Void>, IsInvalid, IsImplicit) (Syntax: 'new S()')
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              Operand:
+                IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: delegate*<System.Void*, System.Void> S.op_Explicit(S _)) (OperationKind.Conversion, Type: delegate*<System.Void*, System.Void>, IsInvalid, IsImplicit) (Syntax: 'new S()')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: delegate*<System.Void*, System.Void> S.op_Explicit(S _))
+                  Operand:
+                    IObjectCreationOperation (Constructor: S..ctor()) (OperationKind.ObjectCreation, Type: S, IsInvalid) (Syntax: 'new S()')
+                      Arguments(0)
+                      Initializer:
+                        null
+  Initializer:
+    null
+");
         }
 
         [Fact]
@@ -2646,6 +2930,7 @@ unsafe
         [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
         public void FunctionPointerInference_ExactInferenceThroughArray_RefKindMatch()
         {
+            // ILVerify: Unexpected type on the stack. ImportCalli not implemented
             var verifier = CompileAndVerify(@"
 unsafe
 {
@@ -2659,7 +2944,7 @@ unsafe
         System.Console.Write(t);
     }
 }
-", expectedOutput: "11", options: TestOptions.UnsafeReleaseExe, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped);
+", expectedOutput: "11", options: TestOptions.UnsafeReleaseExe, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.FailsILVerify : Verification.Skipped);
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
@@ -3120,8 +3405,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'pt
             comp.VerifyDiagnostics(
                 // (7,9): error CS8370: Feature 'function pointers' is not available in C# 7.3. Please use language version 9.0 or greater.
                 //         delegate*<void> ptr = null;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "delegate*<void>").WithArguments("function pointers", "9.0").WithLocation(7, 9)
-            );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "delegate").WithArguments("function pointers", "9.0").WithLocation(7, 9));
         }
 
         [Fact]
@@ -3377,9 +3661,9 @@ class E<T> where T : struct {}
                 // (6,27): error CS0722: 'S': static types cannot be used as return types
                 //     void M1(delegate*<C*, S> ptr) {}
                 Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "S").WithArguments("S").WithLocation(6, 27),
-                // (6,30): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                // (6,30): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
                 //     void M1(delegate*<C*, S> ptr) {}
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "ptr").WithArguments("C").WithLocation(6, 30),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "ptr").WithArguments("C").WithLocation(6, 30),
                 // (8,32): error CS8377: The type 'T' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'D<T>'
                 //     void M3<T>(delegate*<D<T>> ptr) {}
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "ptr").WithArguments("D<T>", "T", "T").WithLocation(8, 32),
@@ -3635,7 +3919,7 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_TypeExpected, "__arglist").WithLocation(4, 64),
                 // (4,64): error CS1003: Syntax error, ',' expected
                 //     static void M(delegate*<string, int, void> ptr1, delegate*<__arglist, void> ptr2)
-                Diagnostic(ErrorCode.ERR_SyntaxError, "__arglist").WithArguments(",", "__arglist").WithLocation(4, 64),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "__arglist").WithArguments(",").WithLocation(4, 64),
                 // (6,14): error CS1503: Argument 1: cannot convert from '__arglist' to 'string'
                 //         ptr1(__arglist(string.Empty, 1), 1);
                 Diagnostic(ErrorCode.ERR_BadArgType, "__arglist(string.Empty, 1)").WithArguments("1", "__arglist", "string").WithLocation(6, 14),
@@ -3804,7 +4088,7 @@ unsafe class C
             comp.VerifyDiagnostics(
                 // (6,38): error CS1003: Syntax error, ',' expected
                 //         delegate*<void> ptr = new () => {};
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(6, 38),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(6, 38),
                 // (6,41): error CS1002: ; expected
                 //         delegate*<void> ptr = new () => {};
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(6, 41),
@@ -3849,6 +4133,24 @@ public class C
                 // (6,13): error CS8904: A function pointer cannot be called with named arguments.
                 //         ptr(arg0: "a", arg1: 1);
                 Diagnostic(ErrorCode.ERR_FunctionPointersCannotBeCalledWithNamedArguments, "arg0").WithLocation(6, 13)
+            );
+        }
+
+        [Fact, WorkItem(53973, "https://github.com/dotnet/roslyn/issues/53973")]
+        public void FunctionPointerNullable()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+public class C
+{
+    
+    public unsafe void M(delegate*<void>? f) {
+    }
+}
+");
+            comp.VerifyDiagnostics(
+                // (5,43): error CS0306: The type 'delegate*<void>' may not be used as a type argument
+                //     public unsafe void M(delegate*<void>? f) {
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "f").WithArguments("delegate*<void>").WithLocation(5, 43)
             );
         }
     }

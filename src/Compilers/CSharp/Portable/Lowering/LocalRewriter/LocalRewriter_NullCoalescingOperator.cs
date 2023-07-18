@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                return new BoundNullCoalescingOperator(syntax, rewrittenLeft, rewrittenRight, leftPlaceholder, leftConversion, resultKind, rewrittenResultType);
+                return new BoundNullCoalescingOperator(syntax, rewrittenLeft, rewrittenRight, leftPlaceholder, leftConversion, resultKind, @checked: false, rewrittenResultType);
             }
 
             var isUnconstrainedTypeParameter = rewrittenLeft.Type is { IsReferenceType: false, IsValueType: false };
@@ -72,9 +72,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return rewrittenRight;
                 }
 
-                if (rewrittenLeft.ConstantValue != null)
+                if (rewrittenLeft.ConstantValueOpt != null)
                 {
-                    Debug.Assert(!rewrittenLeft.ConstantValue.IsNull);
+                    Debug.Assert(!rewrittenLeft.ConstantValueOpt.IsNull);
 
                     return GetConvertedLeftForNullCoalescingOperator(rewrittenLeft, leftPlaceholder, leftConversion, rewrittenResultType);
                 }
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 rewrittenLeft = ApplyConversionIfNotIdentity(leftConversion, leftPlaceholder, rewrittenLeft);
 
-                return new BoundNullCoalescingOperator(syntax, rewrittenLeft, rewrittenRight, leftPlaceholder: null, leftConversion: null, resultKind, rewrittenResultType);
+                return new BoundNullCoalescingOperator(syntax, rewrittenLeft, rewrittenRight, leftPlaceholder: null, leftConversion: null, resultKind, @checked: false, rewrittenResultType);
             }
 
             if (BoundNode.GetConversion(leftConversion, leftPlaceholder) is { IsIdentity: true } or { Kind: ConversionKind.ExplicitNullable })
@@ -125,6 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             whenNotNull: notNullAccess,
                             whenNullOpt: whenNullOpt,
                             id: conditionalAccess.Id,
+                            forceCopyOfNullableValueType: conditionalAccess.ForceCopyOfNullableValueType,
                             type: rewrittenResultType
                         );
                     }
@@ -166,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenType: rewrittenResultType,
                 isRef: false);
 
-            Debug.Assert(conditionalExpression.ConstantValue == null); // we shouldn't have hit this else case otherwise
+            Debug.Assert(conditionalExpression.ConstantValueOpt == null); // we shouldn't have hit this else case otherwise
             Debug.Assert(conditionalExpression.Type!.Equals(rewrittenResultType, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
             return new BoundSequence(
@@ -237,7 +238,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // before performing the leftConversion.
             // See comments in Binder.BindNullCoalescingOperator referring to GetConvertedLeftForNullCoalescingOperator for more details.
 
-            if (!TypeSymbol.Equals(rewrittenLeftType, rewrittenResultType, TypeCompareKind.ConsiderEverything2) && rewrittenLeftType.IsNullableType())
+            var conversionTakesNullableType = leftPlaceholder?.Type?.IsNullableType() == true;
+
+            if (!TypeSymbol.Equals(rewrittenLeftType, rewrittenResultType, TypeCompareKind.ConsiderEverything2)
+                && rewrittenLeftType.IsNullableType()
+                && !conversionTakesNullableType)
             {
                 TypeSymbol strippedLeftType = rewrittenLeftType.GetNullableUnderlyingType();
                 MethodSymbol getValueOrDefault = UnsafeGetNullableMethod(rewrittenLeft.Syntax, rewrittenLeftType, SpecialMember.System_Nullable_T_GetValueOrDefault);

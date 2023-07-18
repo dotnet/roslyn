@@ -11,64 +11,44 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename
 {
-    internal class RenameRewriterParameters
+    internal class RenameRewriterParameters(
+        RenameAnnotation renamedSymbolDeclarationAnnotation,
+        Document document,
+        SemanticModel semanticModel,
+        SyntaxNode syntaxRoot,
+        string replacementText,
+        string originalText,
+        ImmutableArray<string> possibleNameConflicts,
+        ImmutableDictionary<TextSpan, RenameLocation> renameLocations,
+        ImmutableDictionary<TextSpan, ImmutableSortedSet<TextSpan>?> stringAndCommentTextSpans,
+        ImmutableHashSet<TextSpan> conflictLocationSpans,
+        Solution originalSolution,
+        ISymbol renameSymbol,
+        bool replacementTextValid,
+        RenamedSpansTracker renameSpansTracker,
+        bool isRenamingInStrings,
+        bool isRenamingInComments,
+        AnnotationTable<RenameAnnotation> renameAnnotations,
+        CancellationToken cancellationToken)
     {
-        internal readonly CancellationToken CancellationToken;
-        internal readonly ISet<TextSpan> ConflictLocationSpans;
-        internal readonly RenameOptionSet OptionSet;
-        internal readonly Solution OriginalSolution;
-        internal readonly SyntaxTree OriginalSyntaxTree;
-        internal readonly string OriginalText;
-        internal readonly ICollection<string> PossibleNameConflicts;
-        internal readonly RenameAnnotation RenamedSymbolDeclarationAnnotation;
-        internal readonly Dictionary<TextSpan, RenameLocation> RenameLocations;
-        internal readonly RenamedSpansTracker RenameSpansTracker;
-        internal readonly ISymbol RenameSymbol;
-        internal readonly string ReplacementText;
-        internal readonly bool ReplacementTextValid;
-        internal readonly ImmutableDictionary<TextSpan, ImmutableSortedSet<TextSpan>?> StringAndCommentTextSpans;
-        internal readonly SyntaxNode SyntaxRoot;
-        internal readonly Document Document;
-        internal readonly SemanticModel SemanticModel;
-        internal readonly AnnotationTable<RenameAnnotation> RenameAnnotations;
-
-        public RenameRewriterParameters(
-            RenameAnnotation renamedSymbolDeclarationAnnotation,
-            Document document,
-            SemanticModel semanticModel,
-            SyntaxNode syntaxRoot,
-            string replacementText,
-            string originalText,
-            ICollection<string> possibleNameConflicts,
-            Dictionary<TextSpan, RenameLocation> renameLocations,
-            ImmutableDictionary<TextSpan, ImmutableSortedSet<TextSpan>?> stringAndCommentTextSpans,
-            ISet<TextSpan> conflictLocationSpans,
-            Solution originalSolution,
-            ISymbol renameSymbol,
-            bool replacementTextValid,
-            RenamedSpansTracker renameSpansTracker,
-            RenameOptionSet optionSet,
-            AnnotationTable<RenameAnnotation> renameAnnotations,
-            CancellationToken cancellationToken)
-        {
-            this.RenamedSymbolDeclarationAnnotation = renamedSymbolDeclarationAnnotation;
-            this.Document = document;
-            this.SemanticModel = semanticModel;
-            this.SyntaxRoot = syntaxRoot;
-            this.OriginalSyntaxTree = semanticModel.SyntaxTree;
-            this.ReplacementText = replacementText;
-            this.OriginalText = originalText;
-            this.PossibleNameConflicts = possibleNameConflicts;
-            this.RenameLocations = renameLocations;
-            this.StringAndCommentTextSpans = stringAndCommentTextSpans;
-            this.ConflictLocationSpans = conflictLocationSpans;
-            this.OriginalSolution = originalSolution;
-            this.RenameSymbol = renameSymbol;
-            this.ReplacementTextValid = replacementTextValid;
-            this.CancellationToken = cancellationToken;
-            this.RenameSpansTracker = renameSpansTracker;
-            this.OptionSet = optionSet;
-            this.RenameAnnotations = renameAnnotations;
-        }
+        internal readonly CancellationToken CancellationToken = cancellationToken;
+        internal readonly ImmutableHashSet<TextSpan> ConflictLocationSpans = conflictLocationSpans;
+        internal readonly bool IsRenamingInStrings = isRenamingInStrings;
+        internal readonly bool IsRenamingInComments = isRenamingInComments;
+        internal readonly Solution OriginalSolution = originalSolution;
+        internal readonly SyntaxTree OriginalSyntaxTree = semanticModel.SyntaxTree;
+        internal readonly string OriginalText = originalText;
+        internal readonly ImmutableArray<string> PossibleNameConflicts = possibleNameConflicts;
+        internal readonly RenameAnnotation RenamedSymbolDeclarationAnnotation = renamedSymbolDeclarationAnnotation;
+        internal readonly ImmutableDictionary<TextSpan, RenameLocation> RenameLocations = renameLocations;
+        internal readonly RenamedSpansTracker RenameSpansTracker = renameSpansTracker;
+        internal readonly ISymbol RenameSymbol = renameSymbol;
+        internal readonly string ReplacementText = replacementText;
+        internal readonly bool ReplacementTextValid = replacementTextValid;
+        internal readonly ImmutableDictionary<TextSpan, ImmutableSortedSet<TextSpan>?> StringAndCommentTextSpans = stringAndCommentTextSpans;
+        internal readonly SyntaxNode SyntaxRoot = syntaxRoot;
+        internal readonly Document Document = document;
+        internal readonly SemanticModel SemanticModel = semanticModel;
+        internal readonly AnnotationTable<RenameAnnotation> RenameAnnotations = renameAnnotations;
     }
 }

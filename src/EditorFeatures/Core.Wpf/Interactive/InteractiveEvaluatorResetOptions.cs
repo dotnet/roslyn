@@ -5,7 +5,7 @@
 extern alias InteractiveHost;
 using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
 
-namespace Microsoft.CodeAnalysis.Editor.Interactive
+namespace Microsoft.CodeAnalysis.Interactive
 {
     internal sealed class InteractiveEvaluatorResetOptions
     {

@@ -381,29 +381,11 @@
   <data name="The_token_is_not_contained_in_the_workspace" xml:space="preserve">
     <value>The token is not contained in the workspace.</value>
   </data>
-  <data name="You_must_rename_an_identifier" xml:space="preserve">
-    <value>You must rename an identifier.</value>
-  </data>
-  <data name="You_cannot_rename_this_element" xml:space="preserve">
-    <value>You cannot rename this element.</value>
-  </data>
   <data name="You_cannot_rename_this_element_because_it_is_contained_in_a_read_only_file" xml:space="preserve">
     <value>You cannot rename this element because it is contained in a read-only file.</value>
   </data>
   <data name="You_cannot_rename_this_element_because_it_is_in_a_location_that_cannot_be_navigated_to" xml:space="preserve">
     <value>You cannot rename this element because it is in a location that cannot be navigated to.</value>
-  </data>
-  <data name="Please_resolve_errors_in_your_code_before_renaming_this_element" xml:space="preserve">
-    <value>Please resolve errors in your code before renaming this element.</value>
-  </data>
-  <data name="You_cannot_rename_operators" xml:space="preserve">
-    <value>You cannot rename operators.</value>
-  </data>
-  <data name="You_cannot_rename_elements_that_are_defined_in_metadata" xml:space="preserve">
-    <value>You cannot rename elements that are defined in metadata.</value>
-  </data>
-  <data name="You_cannot_rename_elements_from_previous_submissions" xml:space="preserve">
-    <value>You cannot rename elements from previous submissions.</value>
   </data>
   <data name="Navigation_Bars" xml:space="preserve">
     <value>Navigation Bars</value>
@@ -533,9 +515,6 @@
   </data>
   <data name="Automatic_Pair_Completion_End_Point_Marker_Color" xml:space="preserve">
     <value>Automatic Pair Completion End Point Marker Color</value>
-  </data>
-  <data name="Renaming_anonymous_type_members_is_not_yet_supported" xml:space="preserve">
-    <value>Renaming anonymous type members is not yet supported.</value>
   </data>
   <data name="Engine_must_be_attached_to_an_Interactive_Window" xml:space="preserve">
     <value>Engine must be attached to an Interactive Window.</value>
@@ -724,9 +703,6 @@ Do you want to proceed?</value>
   <data name="Go_To_Base" xml:space="preserve">
     <value>Go To Base</value>
   </data>
-  <data name="The_symbol_has_no_implementations" xml:space="preserve">
-    <value>The symbol has no implementations.</value>
-  </data>
   <data name="New_name_colon_0" xml:space="preserve">
     <value>New name: {0}</value>
   </data>
@@ -741,12 +717,6 @@ Do you want to proceed?</value>
   </data>
   <data name="Suggestion_ellipses" xml:space="preserve">
     <value>Suggestion ellipses (…)</value>
-  </data>
-  <data name="_0_references" xml:space="preserve">
-    <value>'{0}' references</value>
-  </data>
-  <data name="_0_implementations" xml:space="preserve">
-    <value>'{0}' implementations</value>
   </data>
   <data name="_0_declarations" xml:space="preserve">
     <value>'{0}' declarations</value>
@@ -886,12 +856,6 @@ Do you want to proceed?</value>
   <data name="Waiting_for_background_work_to_finish" xml:space="preserve">
     <value>Waiting for background work to finish...</value>
   </data>
-  <data name="The_symbol_has_no_base" xml:space="preserve">
-    <value>The symbol has no base.</value>
-  </data>
-  <data name="_0_bases" xml:space="preserve">
-    <value>'{0}' bases</value>
-  </data>
   <data name="Rename_symbols_file" xml:space="preserve">
     <value>Rename symbol's _file</value>
     <comment>Indicates that the file a symbol is defined in will also be renamed</comment>
@@ -941,9 +905,6 @@ Do you want to proceed?</value>
   </data>
   <data name="Get_help_for_0" xml:space="preserve">
     <value>Get help for '{0}'</value>
-  </data>
-  <data name="Get_help_for_0_from_Bing" xml:space="preserve">
-    <value>Get help for '{0}' from Bing</value>
   </data>
   <data name="Gathering_Suggestions_0" xml:space="preserve">
     <value>Gathering Suggestions - '{0}'</value>
@@ -1050,5 +1011,48 @@ Do you want to proceed?</value>
   </data>
   <data name="The_results_may_be_incomplete_due_to_the_solution_still_loading_projects" xml:space="preserve">
     <value>The results may be incomplete due to the solution still loading projects.</value>
+  </data>
+  <data name="JSON_in_string_literal_Property_Name" xml:space="preserve">
+    <value>JSON in string literal - Property Name</value>
+  </data>
+  <data name="JSON_in_string_literal_Array" xml:space="preserve">
+    <value>JSON in string literal - Array</value>
+  </data>
+  <data name="JSON_in_string_literal_Comment" xml:space="preserve">
+    <value>JSON in string literal - Comment</value>
+  </data>
+  <data name="JSON_in_string_literal_Keyword" xml:space="preserve">
+    <value>JSON in string literal - Keyword</value>
+  </data>
+  <data name="JSON_in_string_literal_Number" xml:space="preserve">
+    <value>JSON in string literal - Number</value>
+  </data>
+  <data name="JSON_in_string_literal_Object" xml:space="preserve">
+    <value>JSON in string literal - Object</value>
+  </data>
+  <data name="JSON_in_string_literal_Operator" xml:space="preserve">
+    <value>JSON in string literal - Operator</value>
+  </data>
+  <data name="JSON_in_string_literal_Punctuation" xml:space="preserve">
+    <value>JSON in string literal - Punctuation</value>
+  </data>
+  <data name="JSON_in_string_literal_String" xml:space="preserve">
+    <value>JSON in string literal - String</value>
+  </data>
+  <data name="JSON_in_string_literal_Text" xml:space="preserve">
+    <value>JSON in string literal - Text</value>
+  </data>
+  <data name="JSON_in_string_literal_Constructor_Name" xml:space="preserve">
+    <value>JSON in string literal - Constructor Name</value>
+  </data>
+  <data name="_0_Esc_to_cancel" xml:space="preserve">
+    <value>{0} (Esc to cancel)</value>
+    <comment>Placeholder represents an operating that is happening.  Parenthesized expression indicates how you can cancel it.</comment>
+  </data>
+  <data name="Computing_Encapsulate_Field_information" xml:space="preserve">
+    <value>Computing 'Encapsulate Field' information</value>
+  </data>
+  <data name="Rename_operation_could_not_complete_due_to_external_change_to_workspace" xml:space="preserve">
+    <value>Rename operation could not complete due to external change to workspace</value>
   </data>
 </root>

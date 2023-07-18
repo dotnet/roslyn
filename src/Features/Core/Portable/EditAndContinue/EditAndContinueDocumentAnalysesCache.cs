@@ -22,18 +22,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     /// The work is triggered by an incremental analyzer on idle or explicitly when "continue" operation is executed.
     /// Contains analyses of the latest observed document versions.
     /// </summary>
-    internal sealed class EditAndContinueDocumentAnalysesCache
+    internal sealed class EditAndContinueDocumentAnalysesCache(AsyncLazy<ActiveStatementsMap> baseActiveStatements, AsyncLazy<EditAndContinueCapabilities> capabilities)
     {
         private readonly object _guard = new();
         private readonly Dictionary<DocumentId, (AsyncLazy<DocumentAnalysisResults> results, Project baseProject, Document document, ImmutableArray<LinePositionSpan> activeStatementSpans)> _analyses = new();
-        private readonly AsyncLazy<ActiveStatementsMap> _baseActiveStatements;
-        private readonly AsyncLazy<EditAndContinueCapabilities> _capabilities;
-
-        public EditAndContinueDocumentAnalysesCache(AsyncLazy<ActiveStatementsMap> baseActiveStatements, AsyncLazy<EditAndContinueCapabilities> capabilities)
-        {
-            _baseActiveStatements = baseActiveStatements;
-            _capabilities = capabilities;
-        }
+        private readonly AsyncLazy<ActiveStatementsMap> _baseActiveStatements = baseActiveStatements;
+        private readonly AsyncLazy<EditAndContinueCapabilities> _capabilities = capabilities;
 
         public async ValueTask<ImmutableArray<DocumentAnalysisResults>> GetDocumentAnalysesAsync(
             CommittedSolution oldSolution,
@@ -55,7 +49,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -96,7 +90,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -135,7 +129,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             using var _2 = ArrayBuilder<LinePositionSpan>.GetInstance(out var activeStatementSpansBuilder);
 
             var baseActiveStatements = await _baseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            var analyzer = newDocument.Project.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+            var analyzer = newDocument.Project.Services.GetRequiredService<IEditAndContinueAnalyzer>();
             var oldActiveStatements = await baseActiveStatements.GetOldActiveStatementsAsync(analyzer, oldDocument, cancellationToken).ConfigureAwait(false);
 
             foreach (var oldActiveStatement in oldActiveStatements)
@@ -175,7 +169,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // Also check the base project snapshot since the analysis uses semantic information from the base project as well.
             // 
             // It would be possible to reuse analysis results of documents whose content does not change in between two solution snapshots.
-            // However, we'd need rather sophisticated caching logic. The smantic analysis gathers information from other documents when
+            // However, we'd need rather sophisticated caching logic. The semantic analysis gathers information from other documents when
             // calculating results for a specific document. In some cases it's easy to record the set of documents the analysis depends on.
             // For example, when analyzing a partial class we can record all documents its declaration spans. However, in other cases the analysis
             // checks for absence of a top-level type symbol. Adding a symbol to any document thus invalidates such analysis. It'd be possible
@@ -188,20 +182,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return analysis.results;
             }
 
-            var lazyResults = new AsyncLazy<DocumentAnalysisResults>(
+            var lazyResults = AsyncLazy.Create(
                 asynchronousComputeFunction: async cancellationToken =>
                 {
                     try
                     {
-                        var analyzer = document.Project.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+                        var analyzer = document.Project.Services.GetRequiredService<IEditAndContinueAnalyzer>();
                         return await analyzer.AnalyzeDocumentAsync(baseProject, _baseActiveStatements, document, activeStatementSpans, _capabilities, cancellationToken).ConfigureAwait(false);
                     }
                     catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                     {
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                     }
-                },
-                cacheResult: true);
+                });
 
             // Previous results for this document id are discarded as they are no longer relevant.
             // The only relevant analysis is for the latest base and document snapshots.

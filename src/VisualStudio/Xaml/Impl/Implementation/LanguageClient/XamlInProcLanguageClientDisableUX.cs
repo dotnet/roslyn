@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient;
@@ -35,23 +36,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
         public XamlInProcLanguageClientDisableUX(
-            XamlRequestDispatcherFactory xamlDispatcherFactory,
+            XamlLspServiceProvider lspServiceProvider,
             IGlobalOptionService globalOptions,
-            IDiagnosticService diagnosticService,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-            ILspLoggerFactory lspLoggerFactory,
-            IThreadingContext threadingContext)
-            : base(xamlDispatcherFactory, globalOptions, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, diagnosticsClientName: null)
+            ILspServiceLoggerFactory lspLoggerFactory,
+            IThreadingContext threadingContext,
+            ExportProvider exportProvider)
+            : base(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider)
         {
         }
 
         protected override ImmutableArray<string> SupportedLanguages => ImmutableArray.Create(StringConstants.XamlLanguageName);
-
-        /// <summary>
-        /// Gets the name of the language client (displayed in yellow bars).
-        /// </summary>
-        public override string Name => "XAML Language Server Client for LiveShare and Codespaces";
 
         public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
@@ -68,5 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         /// Failures are catastrophic as liveshare guests will not have language features without this server.
         /// </summary>
         public override bool ShowNotificationOnInitializeFailed => true;
+
+        public override WellKnownLspServerKinds ServerKind => WellKnownLspServerKinds.XamlLspServerDisableUX;
     }
 }

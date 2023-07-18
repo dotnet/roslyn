@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -20,24 +21,29 @@ namespace Microsoft.CodeAnalysis.Remote
                 => new RemoteSemanticClassificationService(arguments);
         }
 
-        public ValueTask<SerializableClassifiedSpans> GetSemanticClassificationsAsync(
-            PinnedSolutionInfo solutionInfo,
+        public ValueTask<SerializableClassifiedSpans> GetClassificationsAsync(
+            Checksum solutionChecksum,
             DocumentId documentId,
             TextSpan span,
+            ClassificationType type,
             ClassificationOptions options,
-            StorageDatabase database,
             bool isFullyLoaded,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                 var document = solution.GetDocument(documentId) ?? await solution.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
                 Contract.ThrowIfNull(document);
 
-                using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var temp);
-                await AbstractClassificationService.AddSemanticClassificationsInCurrentProcessAsync(
-                    document, span, options, temp, cancellationToken).ConfigureAwait(false);
+                if (options.ForceFrozenPartialSemanticsForCrossProcessOperations)
+                {
+                    // Frozen partial semantics is not automatically passed to OOP, so enable it explicitly when desired
+                    document = document.WithFrozenPartialSemantics(cancellationToken);
+                }
+
+                using var _ = Classifier.GetPooledList(out var temp);
+                await AbstractClassificationService.AddClassificationsInCurrentProcessAsync(
+                    document, span, type, options, temp, cancellationToken).ConfigureAwait(false);
 
                 if (isFullyLoaded)
                 {
@@ -47,10 +53,10 @@ namespace Microsoft.CodeAnalysis.Remote
                         _cachedData.Clear();
 
                     // Enqueue this document into our work queue to fully classify and cache.
-                    _workQueue.AddWork((document, options, database));
+                    _workQueue.AddWork((document, type, options));
                 }
 
-                return SerializableClassifiedSpans.Dehydrate(temp.ToImmutable());
+                return SerializableClassifiedSpans.Dehydrate(temp.ToImmutableArray());
             }, cancellationToken);
         }
     }

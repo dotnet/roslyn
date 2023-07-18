@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Diagnostics.VisualBasic
     Friend Class VisualBasicCompilerDiagnosticAnalyzer
         Inherits CompilerDiagnosticAnalyzer
 
-        Friend Overrides ReadOnly Property MessageProvider As CommonMessageProvider
+        Protected Overrides ReadOnly Property MessageProvider As CommonMessageProvider
             Get
                 Return CodeAnalysis.VisualBasic.MessageProvider.Instance
             End Get
@@ -24,14 +24,11 @@ Namespace Microsoft.CodeAnalysis.Diagnostics.VisualBasic
             Dim builder = ImmutableArray.CreateBuilder(Of Integer)
             For Each errorCode As Integer In errorCodes
 
-                ' these errors are not supported by live analysis
-                If errorCode = ERRID.ERR_TypeRefResolutionError3 OrElse
-                   errorCode = ERRID.ERR_MissingRuntimeHelper OrElse
-                   errorCode = ERRID.ERR_CannotGotoNonScopeBlocksWithClosure Then
-                    Continue For
-                End If
+                ' Compiler diagnostic analyzer does not support build-only diagnostics.
+                If Not ErrorFacts.IsBuildOnlyDiagnostic(DirectCast(errorCode, ERRID)) AndAlso
+                    errorCode > ERRID.ERR_None AndAlso
+                    errorCode < ERRID.WRN_NextAvailable Then
 
-                If errorCode > ERRID.ERR_None AndAlso errorCode < ERRID.WRN_NextAvailable Then
                     builder.Add(errorCode)
                 End If
             Next

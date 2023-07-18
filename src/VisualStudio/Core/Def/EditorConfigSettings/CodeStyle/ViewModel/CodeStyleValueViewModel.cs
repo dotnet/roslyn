@@ -12,16 +12,13 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle
 
         private string? _selectedValue;
 
-        public string[] Values => _setting.GetValues();
+        public string[] Values => _setting.GetValueDescriptions();
 
         public string SelectedValue
         {
             get
             {
-                if (_selectedValue is null)
-                {
-                    _selectedValue = _setting.GetCurrentValue();
-                }
+                _selectedValue ??= _setting.GetCurrentValueDescription();
 
                 return _selectedValue;
             }

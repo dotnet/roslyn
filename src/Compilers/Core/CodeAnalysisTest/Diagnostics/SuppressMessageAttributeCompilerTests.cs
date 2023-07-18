@@ -11,10 +11,12 @@ using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
+using Microsoft.CodeAnalysis.VisualBasic.UnitTests;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -55,7 +57,7 @@ namespace System.Diagnostics.CodeAnalysis
 }";
             var compRef = CSharpCompilation.Create("unconditionalsuppress",
                 options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
-                syntaxTrees: new[] { CSharpSyntaxTree.ParseText(unconditionalSuppressMessageDef) },
+                syntaxTrees: new[] { CSharpTestSource.Parse(unconditionalSuppressMessageDef) },
                 references: new[] { TestBase.MscorlibRef }).EmitToImageReference();
 
             return ImmutableArray.Create(TestBase.MscorlibRef, compRef, TestBase.ValueTupleRef);
@@ -69,8 +71,8 @@ namespace System.Diagnostics.CodeAnalysis
             var references = s_references.Value;
 
             var syntaxTree = language == LanguageNames.CSharp ?
-                CSharpSyntaxTree.ParseText(source, path: fileName) :
-                VisualBasicSyntaxTree.ParseText(source, path: fileName);
+                CSharpTestSource.Parse(source, path: fileName) :
+                BasicTestSource.Parse(source, path: fileName);
 
             if (language == LanguageNames.CSharp)
             {
@@ -154,13 +156,16 @@ public class C2
         public async Task AnalyzerExceptionFromSupportedDiagnosticsCall()
         {
             var exception = new Exception();
+            const string AnalyzerName = "Microsoft.CodeAnalysis.UnitTests.Diagnostics.SuppressMessageAttributeTests+ThrowExceptionFromSupportedDiagnostics";
 
             var diagnostic = Diagnostic("AD0001", null)
                 .WithArguments(
-                    "Microsoft.CodeAnalysis.UnitTests.Diagnostics.SuppressMessageAttributeTests+ThrowExceptionFromSupportedDiagnostics",
+                    AnalyzerName,
                     "System.Exception",
                     exception.Message,
-                    (IFormattable)$@"{new LazyToString(() => exception.ToString().Substring(0, exception.ToString().IndexOf("---")))}-----")
+                    (IFormattable)$@"{new LazyToString(() =>
+                        exception.ToString().Substring(0, exception.ToString().IndexOf("---")) + "-----" + Environment.NewLine + Environment.NewLine +
+                        string.Format(CodeAnalysisResources.CompilerAnalyzerThrowsDescription, AnalyzerName, exception.ToString() + Environment.NewLine + "-----" + Environment.NewLine))}")
                 .WithLocation(1, 1);
 
             await VerifyCSharpAsync("public class C { }",

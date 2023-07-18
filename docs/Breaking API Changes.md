@@ -53,3 +53,38 @@ PR: https://github.com/dotnet/roslyn/pull/11536
 
 The constructors of Microsoft.CodeAnalysis.Completion and Microsoft.CodeAnalysis.Completion.CompletionServiceWithProviders are now internal.
 Roslyn does not support implementing completion for arbitrary languages.
+
+# Version 4.2.0
+
+### Can no longer inherit from QuickInfoService
+
+The constructors of Microsoft.CodeAnalysis.QuickInfoService are now internal.
+Roslyn does not support implementing completion for arbitrary languages.
+
+### `Microsoft.CodeAnalysis.CodeStyle.NotificationOption` is now immutable
+
+All property setters now throw an exception.
+
+# Version 4.4.0
+
+`Workspace.OnWorkspaceFailed` is no longer called when an error occurs while reading source file content from disk.
+
+The `Workspace` and `DocumentId` parameters of `TextLoader.LoadTextAndVersionAsync(Workspace, DocumentId, CancellationToken)` are deprecated.
+The method now receives `null` `Workspace` and `DocumentId`.
+
+# Version 4.5.0
+
+`SymbolDisplayFormat.CSharpErrorMessageFormat` and `CSharpShortErrorMessageFormat` now include parameter names by default if used on a standalone `IParameterSymbol`.
+For example, parameter `p` in `void M(ref int p)` was previously formatted as `"ref int"` and now it is formatted as `"ref int p"`.
+
+# Version 4.7.0
+
+### `SymbolDisplayFormat` includes parameter name when invoked on `IParameterSymbol`
+
+All `SymbolDisplayFormat`s (predefined and user-created) now include parameter names by default if used on a standalone `IParameterSymbol` for consistency with predefined formats (see the breaking change for version 4.5.0 above).
+
+### Changed `IncrementalStepRunReason` when a modified input produced a new output
+
+`IncrementalGeneratorRunStep.Outputs` previously contained `IncrementalStepRunReason.Modified` as `Reason`
+when the input to the step was modified in a way that produced a new output.
+Now the reason will be reported more accurately as `IncrementalStepRunReason.New`.

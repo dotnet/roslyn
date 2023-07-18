@@ -131,8 +131,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
                 // reference assemblies should be fine here, we only need the metadata of references.
                 var reference = _parentCompilation.GetMetadataReference(assembly);
                 Log(CSharpEditorResources.Load_from_0, reference.Display);
-                return TryResolve(reference, PEStreamOptions.PrefetchMetadata)
-                    ?? new PEFile(reference.Display, PEStreamOptions.PrefetchMetadata);
+
+                var result = TryResolve(reference, PEStreamOptions.PrefetchMetadata);
+                if (result is not null)
+                {
+                    return result;
+                }
+
+                if (File.Exists(reference.Display))
+                {
+                    return new PEFile(reference.Display, PEStreamOptions.PrefetchMetadata);
+                }
+
+                return null;
             }
         }
 

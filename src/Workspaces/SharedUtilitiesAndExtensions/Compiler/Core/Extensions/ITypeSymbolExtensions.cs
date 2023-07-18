@@ -9,10 +9,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -20,8 +17,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class ITypeSymbolExtensions
     {
-        public const string DefaultParameterName = "p";
-        private const string DefaultBuiltInParameterName = "v";
+        public const string DefaultParameterName = "value";
 
         public static bool IsIntegralType([NotNullWhen(returnValue: true)] this ITypeSymbol? type)
             => type?.SpecialType.IsIntegralType() == true;
@@ -64,12 +60,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             => symbol?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
 
         public static bool IsNonNullableValueType([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
-        {
-            if (symbol?.IsValueType != true)
-                return false;
-
-            return !symbol.IsNullable();
-        }
+            => symbol is { IsValueType: true } && !symbol.IsNullable();
 
         public static bool IsNullable(
             [NotNullWhen(true)] this ITypeSymbol? symbol,
@@ -224,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             this ITypeSymbol type, ITypeSymbol interfaceType)
         {
             var originalInterfaceType = interfaceType.OriginalDefinition;
-            return type.AllInterfaces.Any(t => SymbolEquivalenceComparer.Instance.Equals(t.OriginalDefinition, originalInterfaceType));
+            return type.AllInterfaces.Any(static (t, originalInterfaceType) => SymbolEquivalenceComparer.Instance.Equals(t.OriginalDefinition, originalInterfaceType), originalInterfaceType);
         }
 
         public static bool Implements(
@@ -259,7 +250,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 && symbol.ContainingNamespace.ContainingNamespace?.IsGlobalNamespace == true;
         }
 
-        public static bool IsUnexpressibleTypeParameterConstraint(this ITypeSymbol typeSymbol)
+        public static bool IsUnexpressibleTypeParameterConstraint(
+            this ITypeSymbol typeSymbol, bool allowDelegateAndEnumConstraints = false)
         {
             if (typeSymbol.IsSealed || typeSymbol.IsValueType)
             {
@@ -275,12 +267,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             switch (typeSymbol.SpecialType)
             {
-                case SpecialType.System_Array:
+                case SpecialType.System_Array or SpecialType.System_ValueType:
+                    return true;
+
                 case SpecialType.System_Delegate:
                 case SpecialType.System_MulticastDelegate:
                 case SpecialType.System_Enum:
-                case SpecialType.System_ValueType:
-                    return true;
+                    return !allowDelegateAndEnumConstraints;
             }
 
             return false;
@@ -317,13 +310,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool ContainsAnonymousType([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
         {
-            switch (symbol)
+            return symbol switch
             {
-                case IArrayTypeSymbol a: return ContainsAnonymousType(a.ElementType);
-                case IPointerTypeSymbol p: return ContainsAnonymousType(p.PointedAtType);
-                case INamedTypeSymbol n: return ContainsAnonymousType(n);
-                default: return false;
-            }
+                IArrayTypeSymbol a => ContainsAnonymousType(a.ElementType),
+                IPointerTypeSymbol p => ContainsAnonymousType(p.PointedAtType),
+                INamedTypeSymbol n => ContainsAnonymousType(n),
+                _ => false,
+            };
         }
 
         private static bool ContainsAnonymousType(INamedTypeSymbol type)
@@ -368,11 +361,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return DefaultParameterName;
             }
 
-            if (type.IsSpecialType() || type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
-            {
-                return DefaultBuiltInParameterName;
-            }
-
             var shortName = type.GetShortName();
             return shortName.Length == 0
                 ? DefaultParameterName
@@ -413,7 +401,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool CanSupportCollectionInitializer(this ITypeSymbol typeSymbol, ISymbol within)
         {
             return
-                typeSymbol.AllInterfaces.Any(i => i.SpecialType == SpecialType.System_Collections_IEnumerable) &&
+                typeSymbol.AllInterfaces.Any(static i => i.SpecialType == SpecialType.System_Collections_IEnumerable) &&
                 typeSymbol.GetBaseTypesAndThis()
                     .Union(typeSymbol.GetOriginalInterfacesAndTheirBaseInterfaces())
                     .SelectAccessibleMembers<IMethodSymbol>(WellKnownMemberNames.CollectionInitializerAddMethodName, within ?? typeSymbol)
@@ -555,9 +543,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // SPEC: if the element type of the first is
             // SPEC: more specific than the element type of the second.
 
-            if (t1 is IArrayTypeSymbol)
+            if (t1 is IArrayTypeSymbol arr1)
             {
-                var arr1 = (IArrayTypeSymbol)t1;
                 var arr2 = (IArrayTypeSymbol)t2;
 
                 // We should not have gotten here unless there were identity conversions
@@ -647,11 +634,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool? IsMutableValueType(this ITypeSymbol type)
         {
-            if (type.IsNullable())
+            if (type.IsNullable(out var underlyingType))
             {
                 // Nullable<T> can only be mutable if T is mutable. This case ensures types like 'int?' are treated as
                 // immutable.
-                type = type.GetTypeArguments()[0];
+                type = underlyingType;
             }
 
             switch (type.SpecialType)
@@ -732,7 +719,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static ITypeSymbol WithNullableAnnotationFrom(this ITypeSymbol type, ITypeSymbol symbolForNullableAnnotation)
             => type.WithNullableAnnotation(symbolForNullableAnnotation.NullableAnnotation);
 
-        [return: NotNullIfNotNull(parameterName: "symbol")]
+        [return: NotNullIfNotNull(parameterName: nameof(symbol))]
         public static ITypeSymbol? RemoveNullableIfPresent(this ITypeSymbol? symbol)
         {
             if (symbol.IsNullable())

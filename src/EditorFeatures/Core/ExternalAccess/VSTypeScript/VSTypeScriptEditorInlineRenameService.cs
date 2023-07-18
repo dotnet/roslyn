@@ -15,33 +15,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
     [Shared]
     [ExportLanguageService(typeof(IEditorInlineRenameService), InternalLanguageNames.TypeScript)]
-    internal sealed class VSTypeScriptEditorInlineRenameService : IEditorInlineRenameService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class VSTypeScriptEditorInlineRenameService(
+        [Import(AllowDefault = true)] Lazy<VSTypeScriptEditorInlineRenameServiceImplementation>? service) : IEditorInlineRenameService
     {
-        [Obsolete]
-        private readonly Lazy<IVSTypeScriptEditorInlineRenameService>? _legacyService;
-
-        private readonly Lazy<VSTypeScriptEditorInlineRenameServiceImplementation>? _service;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VSTypeScriptEditorInlineRenameService(
-            [Import(AllowDefault = true)] Lazy<IVSTypeScriptEditorInlineRenameService>? legacyService,
-            [Import(AllowDefault = true)] Lazy<VSTypeScriptEditorInlineRenameServiceImplementation>? service)
-        {
-            _service = service;
-            _legacyService = legacyService;
-        }
+        private readonly Lazy<VSTypeScriptEditorInlineRenameServiceImplementation>? _service = service;
 
         public async Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)
         {
-#pragma warning disable CS0612 // Type or member is obsolete
-            if (_legacyService != null)
-            {
-                var info = await _legacyService.Value.GetRenameInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
-                return (info != null) ? new VSTypeScriptInlineRenameInfoLegacyWrapper(info) : AbstractEditorInlineRenameService.DefaultFailureInfo;
-            }
-#pragma warning restore
-
             if (_service != null)
             {
                 return await _service.Value.GetRenameInfoAsync(document, position, cancellationToken).ConfigureAwait(false);

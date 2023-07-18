@@ -58,11 +58,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         RefKind IParameterSymbol.RefKind => _underlying.RefKind;
 
+        ScopedKind IParameterSymbol.ScopedKind => _underlying.EffectiveScope;
+
         bool IParameterSymbol.IsDiscard => _underlying.IsDiscard;
 
         bool IParameterSymbol.IsParams => _underlying.IsParams;
-
-        bool IParameterSymbol.IsNullChecked => _underlying.IsNullChecked;
 
         bool IParameterSymbol.IsOptional => _underlying.IsOptional;
 
@@ -84,6 +84,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         protected override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
         {
             return visitor.VisitParameter(this);
+        }
+
+        protected override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitParameter(this, argument);
         }
 
         #endregion

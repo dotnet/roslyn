@@ -5,12 +5,10 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.StackTraceExplorer;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.StackTraceExplorer;
 
-namespace Microsoft.CodeAnalysis.Remote.Services.StackTraceExplorer
+namespace Microsoft.CodeAnalysis.Remote
 {
     internal sealed class RemoteStackTraceExplorerService : BrokeredServiceBase, IRemoteStackTraceExplorerService
     {
@@ -24,11 +22,10 @@ namespace Microsoft.CodeAnalysis.Remote.Services.StackTraceExplorer
         {
         }
 
-        public ValueTask<SerializableDefinitionItem?> TryFindDefinitionAsync(PinnedSolutionInfo solutionInfo, string frameString, StackFrameSymbolPart symbolPart, CancellationToken cancellationToken)
+        public ValueTask<SerializableDefinitionItem?> TryFindDefinitionAsync(Checksum solutionChecksum, string frameString, StackFrameSymbolPart symbolPart, CancellationToken cancellationToken)
         {
-            return RunServiceAsync<SerializableDefinitionItem?>(async cancellationToken =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                 var result = await StackTraceAnalyzer.AnalyzeAsync(frameString, cancellationToken).ConfigureAwait(false);
                 if (result.ParsedFrames.Length != 1 || result.ParsedFrames[0] is not ParsedStackFrame parsedFrame)
                 {
@@ -38,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Remote.Services.StackTraceExplorer
                 var definition = await StackTraceExplorerUtilities.GetDefinitionAsync(solution, parsedFrame.Root, symbolPart, cancellationToken).ConfigureAwait(false);
                 if (definition is null)
                 {
-                    return null;
+                    return (SerializableDefinitionItem?)null;
                 }
 
                 return SerializableDefinitionItem.Dehydrate(id: 0, definition);

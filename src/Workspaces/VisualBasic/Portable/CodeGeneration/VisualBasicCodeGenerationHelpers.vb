@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 accessibility As Accessibility,
                 tokens As ArrayBuilder(Of SyntaxToken),
                 destination As CodeGenerationDestination,
-                options As CodeGenerationOptions,
+                options As CodeGenerationContextInfo,
                 nonStructureAccessibility As Accessibility)
             If Not options.Context.GenerateDefaultAccessibility Then
                 If destination = CodeGenerationDestination.StructType AndAlso accessibility = Accessibility.Public Then
@@ -127,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Public Function Insert(Of TDeclaration As SyntaxNode)(
             declarationList As SyntaxList(Of TDeclaration),
             declaration As TDeclaration,
-            options As CodeGenerationOptions,
+            options As CodeGenerationContextInfo,
             availableIndices As IList(Of Boolean),
             Optional after As Func(Of SyntaxList(Of TDeclaration), TDeclaration) = Nothing,
             Optional before As Func(Of SyntaxList(Of TDeclaration), TDeclaration) = Nothing) As SyntaxList(Of TDeclaration)
@@ -176,7 +176,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Public Function ConditionallyAddDocumentationCommentTo(Of TSyntaxNode As SyntaxNode)(
             node As TSyntaxNode,
             symbol As ISymbol,
-            options As CodeGenerationOptions,
+            options As CodeGenerationContextInfo,
             Optional cancellationToken As CancellationToken = Nothing) As TSyntaxNode
 
             If Not options.Context.GenerateDocumentationComments OrElse node.GetLeadingTrivia().Any(Function(t) t.IsKind(SyntaxKind.DocumentationCommentTrivia)) Then
@@ -195,7 +195,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         ''' Try use the existing syntax node and generate a new syntax node for the given <param name="symbol"/>.
         ''' Note: the returned syntax node might be modified, which means its parent information might be missing.
         ''' </summary>
-        Public Function GetReuseableSyntaxNodeForSymbol(Of T As SyntaxNode)(symbol As ISymbol, options As CodeGenerationOptions) As T
+        Public Function GetReuseableSyntaxNodeForSymbol(Of T As SyntaxNode)(symbol As ISymbol, options As CodeGenerationContextInfo) As T
             ThrowIfNull(symbol)
 
             If options.Context.ReuseSyntax AndAlso symbol.DeclaringSyntaxReferences.Length = 1 Then

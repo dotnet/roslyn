@@ -74,8 +74,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
                     return;
                 }
 
-                context.RegisterRefactoring(new MyCodeAction(
-                    c => ReverseForStatementAsync(document, forStatement, c)));
+                context.RegisterRefactoring(
+                    CodeAction.Create(
+                        CSharpFeaturesResources.Reverse_for_statement,
+                        c => ReverseForStatementAsync(document, forStatement, c),
+                        nameof(CSharpFeaturesResources.Reverse_for_statement)));
             }
         }
 
@@ -255,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
             => expr.WalkDownParentheses() is IdentifierNameSyntax identifier &&
                identifier.Identifier.ValueText == variable.Identifier.ValueText;
 
-        private async Task<Document> ReverseForStatementAsync(
+        private static async Task<Document> ReverseForStatementAsync(
             Document document, ForStatementSyntax forStatement, CancellationToken cancellationToken)
         {
             var variable = forStatement.Declaration!.Variables[0];
@@ -264,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace.Services);
+            var editor = new SyntaxEditor(root, document.Project.Solution.Services);
             var generator = editor.Generator;
             if (MatchesIncrementPattern(
                     variable, condition, after,
@@ -299,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
             return document.WithSyntaxRoot(editor.GetChangedRoot());
         }
 
-        private ExpressionSyntax Reduce(ExpressionSyntax expr)
+        private static ExpressionSyntax Reduce(ExpressionSyntax expr)
         {
             expr = expr.WalkDownParentheses();
 
@@ -391,14 +394,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
 
             var newOpToken = SyntaxFactory.Token(newKind).WithTriviaFrom(opToken);
             return after.ReplaceToken(opToken, newOpToken);
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpFeaturesResources.Reverse_for_statement, createChangedDocument, nameof(CSharpFeaturesResources.Reverse_for_statement))
-            {
-            }
         }
     }
 }

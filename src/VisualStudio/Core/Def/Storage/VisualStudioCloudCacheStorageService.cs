@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Storage.CloudCache;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.RpcContracts.Caching;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Roslyn.Utilities;
 
@@ -23,28 +22,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
         [ExportWorkspaceServiceFactory(typeof(ICloudCacheStorageService), ServiceLayer.Host), Shared]
         internal class ServiceFactory : IWorkspaceServiceFactory
         {
-            private readonly IAsyncServiceProvider _serviceProvider;
+            private readonly IVsService<IBrokeredServiceContainer> _brokeredServiceContainer;
 
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public ServiceFactory(SVsServiceProvider serviceProvider)
-                => _serviceProvider = (IAsyncServiceProvider)serviceProvider;
+            public ServiceFactory(IVsService<SVsBrokeredServiceContainer, IBrokeredServiceContainer> brokeredServiceContainer)
+            {
+                _brokeredServiceContainer = brokeredServiceContainer;
+            }
 
             public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-                => new VisualStudioCloudCacheStorageService(_serviceProvider, workspaceServices.GetRequiredService<IPersistentStorageConfiguration>());
+                => new VisualStudioCloudCacheStorageService(_brokeredServiceContainer, workspaceServices.GetRequiredService<IPersistentStorageConfiguration>());
         }
 
-        private readonly IAsyncServiceProvider _serviceProvider;
+        private readonly IVsService<IBrokeredServiceContainer> _brokeredServiceContainer;
 
-        public VisualStudioCloudCacheStorageService(IAsyncServiceProvider serviceProvider, IPersistentStorageConfiguration configuration)
+        public VisualStudioCloudCacheStorageService(IVsService<IBrokeredServiceContainer> brokeredServiceContainer, IPersistentStorageConfiguration configuration)
             : base(configuration)
         {
-            _serviceProvider = serviceProvider;
+            _brokeredServiceContainer = brokeredServiceContainer;
         }
 
         protected sealed override async ValueTask<ICacheService> CreateCacheServiceAsync(string solutionFolder, CancellationToken cancellationToken)
         {
-            var serviceContainer = await _serviceProvider.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>().ConfigureAwait(false);
+            var serviceContainer = await _brokeredServiceContainer.GetValueAsync(cancellationToken).ConfigureAwait(false);
             var serviceBroker = serviceContainer.GetFullAccessServiceBroker();
 
 #pragma warning disable ISB001 // Dispose of proxies

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -164,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.GetEnumUnderlyingType() ?? type;
         }
 
-        public static bool IsNativeIntegerOrNullableNativeIntegerType(this TypeSymbol? type)
+        public static bool IsNativeIntegerOrNullableThereof(this TypeSymbol? type)
         {
             return type?.StrippedType().IsNativeIntegerType == true;
         }
@@ -474,6 +475,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return false;
+        }
+
+        internal static bool IsErrorTypeOrRefLikeType(this TypeSymbol type)
+        {
+            return type.IsErrorType() || type.IsRefLikeType;
         }
 
         private static readonly string[] s_expressionsNamespaceName = { "Expressions", "Linq", MetadataHelpers.SystemString, "" };
@@ -904,7 +910,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static bool IsAsRestrictive(NamedTypeSymbol s1, Symbol sym2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        internal static bool IsAsRestrictive(this Symbol s1, Symbol sym2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Accessibility acc1 = s1.DeclaredAccessibility;
 
@@ -1149,15 +1155,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static readonly Func<TypeSymbol, object?, bool, bool> s_containsDynamicPredicate = (type, unused1, unused2) => type.TypeKind == TypeKind.Dynamic;
 
-        internal static bool ContainsNativeInteger(this TypeSymbol type)
+        internal static bool ContainsNativeIntegerWrapperType(this TypeSymbol type)
         {
-            var result = type.VisitType((type, unused1, unused2) => type.IsNativeIntegerType, (object?)null, canDigThroughNullable: true);
+            var result = type.VisitType((type, unused1, unused2) => type.IsNativeIntegerWrapperType, (object?)null, canDigThroughNullable: true);
             return result is object;
         }
 
-        internal static bool ContainsNativeInteger(this TypeWithAnnotations type)
+        internal static bool ContainsNativeIntegerWrapperType(this TypeWithAnnotations type)
         {
-            return type.Type?.ContainsNativeInteger() == true;
+            return type.Type?.ContainsNativeIntegerWrapperType() == true;
         }
 
         internal static bool ContainsErrorType(this TypeSymbol type)
@@ -1183,6 +1189,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static bool ContainsFunctionPointer(this TypeSymbol type) =>
             type.VisitType((TypeSymbol t, object? _, bool _) => t.IsFunctionPointer(), null) is object;
+
+        internal static bool ContainsPointer(this TypeSymbol type) =>
+            type.VisitType((TypeSymbol t, object? _, bool _) => t.TypeKind is TypeKind.Pointer or TypeKind.FunctionPointer, null) is object;
 
         /// <summary>
         /// Guess the non-error type that the given type was intended to represent.
@@ -1265,6 +1274,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
+        internal static bool IsSpanChar(this TypeSymbol type)
+        {
+            return type is NamedTypeSymbol
+            {
+                ContainingNamespace: { Name: "System", ContainingNamespace: { IsGlobalNamespace: true } },
+                MetadataName: "Span`1",
+                TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: { Length: 1 } arguments,
+            }
+            && arguments[0].SpecialType == SpecialType.System_Char;
+        }
+
+        internal static bool IsReadOnlySpanChar(this TypeSymbol type)
+        {
+            return type is NamedTypeSymbol
+            {
+                ContainingNamespace: { Name: "System", ContainingNamespace: { IsGlobalNamespace: true } },
+                MetadataName: "ReadOnlySpan`1",
+                TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: { Length: 1 } arguments,
+            }
+            && arguments[0].SpecialType == SpecialType.System_Char;
+        }
+
+        internal static bool IsSpanOrReadOnlySpanChar(this TypeSymbol type)
+        {
+            return type is NamedTypeSymbol
+            {
+                ContainingNamespace: { Name: "System", ContainingNamespace: { IsGlobalNamespace: true } },
+                MetadataName: "ReadOnlySpan`1" or "Span`1",
+                TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: { Length: 1 } arguments,
+            }
+            && arguments[0].SpecialType == SpecialType.System_Char;
+        }
+
 #pragma warning disable CA1200 // Avoid using cref tags with a prefix
         /// <summary>
         /// Returns true if the type is one of the restricted types, namely: <see cref="T:System.TypedReference"/>, 
@@ -1322,6 +1364,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type is SourceNamedTypeSymbol { IsPartial: true };
         }
 
+        public static bool HasFileLocalTypes(this TypeSymbol type)
+        {
+            var foundType = type.VisitType(predicate: (type, _, _) => type is NamedTypeSymbol { IsFileLocal: true }, arg: (object?)null);
+            return foundType is not null;
+        }
+
+        internal static string? GetFileLocalTypeMetadataNamePrefix(this NamedTypeSymbol type)
+        {
+            if (type.AssociatedFileIdentifier is not FileIdentifier identifier)
+            {
+                return null;
+            }
+            return GeneratedNames.MakeFileTypeMetadataNamePrefix(identifier.DisplayFilePath, identifier.FilePathChecksumOpt);
+        }
+
         public static bool IsPointerType(this TypeSymbol type)
         {
             return type is PointerTypeSymbol;
@@ -1375,27 +1432,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return checkedTypes.Add(type);
-        }
-
-        internal static bool IsUnsafe(this TypeSymbol type)
-        {
-            while (true)
-            {
-                switch (type.TypeKind)
-                {
-                    case TypeKind.Pointer:
-                    case TypeKind.FunctionPointer:
-                        return true;
-                    case TypeKind.Array:
-                        type = ((ArrayTypeSymbol)type).ElementType;
-                        break;
-                    default:
-                        // NOTE: we could consider a generic type with unsafe type arguments to be unsafe,
-                        // but that's already an error, so there's no reason to report it.  Also, this
-                        // matches Type::isUnsafe in Dev10.
-                        return false;
-                }
-            }
         }
 
         internal static bool IsVoidPointer(this TypeSymbol type)
@@ -1947,7 +1983,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     addIfNotNull(builder, compilation.SynthesizeTupleNamesAttribute(type.Type));
                 }
-                if (type.Type.ContainsNativeInteger())
+                if (compilation.ShouldEmitNativeIntegerAttributes(type.Type))
                 {
                     addIfNotNull(builder, moduleBuilder.SynthesizeNativeIntegerAttribute(declaringSymbol, type.Type));
                 }
@@ -2002,15 +2038,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static bool IsCompilerServicesTopLevelType(this TypeSymbol typeSymbol)
             => typeSymbol.ContainingType is null && IsContainedInNamespace(typeSymbol, "System", "Runtime", "CompilerServices");
 
-        private static bool IsContainedInNamespace(this TypeSymbol typeSymbol, string outerNS, string midNS, string innerNS)
+        internal static bool IsWellKnownSetsRequiredMembersAttribute(this TypeSymbol type)
+            => type.Name == "SetsRequiredMembersAttribute" && type.IsWellKnownDiagnosticsCodeAnalysisTopLevelType();
+
+        internal static bool IsWellKnownINumberBaseType(this TypeSymbol type)
         {
-            var innerNamespace = typeSymbol.ContainingNamespace;
-            if (innerNamespace?.Name != innerNS)
+            type = type.OriginalDefinition;
+            return type is NamedTypeSymbol { Name: "INumberBase", IsInterface: true, Arity: 1, ContainingType: null } &&
+                   IsContainedInNamespace(type, "System", "Numerics");
+        }
+
+        private static bool IsWellKnownDiagnosticsCodeAnalysisTopLevelType(this TypeSymbol typeSymbol)
+            => typeSymbol.ContainingType is null && IsContainedInNamespace(typeSymbol, "System", "Diagnostics", "CodeAnalysis");
+
+        private static bool IsContainedInNamespace(this TypeSymbol typeSymbol, string outerNS, string midNS, string? innerNS = null)
+        {
+            NamespaceSymbol? midNamespace;
+
+            if (innerNS != null)
             {
-                return false;
+                var innerNamespace = typeSymbol.ContainingNamespace;
+                if (innerNamespace?.Name != innerNS)
+                {
+                    return false;
+                }
+                midNamespace = innerNamespace.ContainingNamespace;
+            }
+            else
+            {
+                midNamespace = typeSymbol.ContainingNamespace;
             }
 
-            var midNamespace = innerNamespace.ContainingNamespace;
             if (midNamespace?.Name != midNS)
             {
                 return false;
@@ -2078,6 +2136,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 default: return -1;
             }
+        }
+
+        internal static bool IsDisplayClassType(this TypeSymbol type)
+        {
+            if (type.Kind == SymbolKind.NamedType)
+            {
+                switch (GeneratedNameParser.GetKind(type.Name))
+                {
+                    case GeneratedNameKind.LambdaDisplayClass:
+                    case GeneratedNameKind.StateMachineType:
+                        return true;
+                }
+            }
+
+            return false;
         }
     }
 }

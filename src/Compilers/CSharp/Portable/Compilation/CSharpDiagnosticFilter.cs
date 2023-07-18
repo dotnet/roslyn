@@ -80,7 +80,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CSharp.MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_ALinkWarn),
                     ErrorFacts.GetWarningLevel(ErrorCode.WRN_ALinkWarn),
                     d.Location,
-                    d.Category,
                     warningLevelOption,
                     nullableOption,
                     generalDiagnosticOption,
@@ -96,7 +95,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     d.Id,
                     d.WarningLevel,
                     d.Location,
-                    d.Category,
                     warningLevelOption,
                     nullableOption,
                     generalDiagnosticOption,
@@ -134,7 +132,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             string id,
             int diagnosticWarningLevel,
             Location location,
-            string category,
             int warningLevelOption,
             NullableContextOptions nullableOption,
             ReportDiagnostic generalDiagnosticOption,
@@ -159,7 +156,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Syntax.NullableContextState.State.Disabled => false,
                     Syntax.NullableContextState.State.ExplicitlyRestored => nullableOption.WarningsEnabled(),
                     Syntax.NullableContextState.State.Unknown =>
-                        tree?.IsGeneratedCode(syntaxTreeOptions, cancellationToken) != true && nullableOption.WarningsEnabled(),
+                        // IsGeneratedCode may be slow, check the option first:
+                        nullableOption.WarningsEnabled() && tree?.IsGeneratedCode(syntaxTreeOptions, cancellationToken) != true,
                     null => nullableOption.WarningsEnabled(),
                     _ => throw ExceptionUtilities.UnexpectedValue(warningsState)
                 };

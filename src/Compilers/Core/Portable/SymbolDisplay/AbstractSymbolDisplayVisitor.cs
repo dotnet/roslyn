@@ -89,6 +89,12 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
         protected void AddNonNullConstantValue(ITypeSymbol type, object constantValue, bool preferNumericValueOrExpandedFlagsForEnum = false)
         {
             Debug.Assert(constantValue != null);
+
+            if (ITypeSymbolHelpers.IsNullableType(type))
+            {
+                type = ITypeSymbolHelpers.GetNullableUnderlyingType(type);
+            }
+
             if (type.TypeKind == TypeKind.Enum)
             {
                 AddEnumConstantValue((INamedTypeSymbol)type, constantValue, preferNumericValueOrExpandedFlagsForEnum);

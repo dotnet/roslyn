@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports System.Collections.Concurrent
 Imports System.Threading
+Imports ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer
 
 #If Not DEBUG Then
 Imports SymbolAdapter = Microsoft.CodeAnalysis.VisualBasic.Symbol
@@ -161,10 +162,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
         Friend Overrides Sub ReportIndirectReferencesToLinkedAssemblies(assembly As AssemblySymbol, diagnostics As DiagnosticBag)
             Debug.Assert(IsFrozen)
 
-            ' We are emitting an assembly, A, which /references some assembly, B, and 
+            ' We are emitting an assembly, A, which /references some assembly, B, and
             ' /links some other assembly, C, so that it can use C's types (by embedding them)
             ' without having an assemblyref to C itself.
-            ' We can say that A has an indirect reference to each assembly that B references. 
+            ' We can say that A has an indirect reference to each assembly that B references.
             ' In this function, we are looking for the situation where B has an assemblyref to C,
             ' thus giving A an indirect reference to C. If so, we will report a warning.
 

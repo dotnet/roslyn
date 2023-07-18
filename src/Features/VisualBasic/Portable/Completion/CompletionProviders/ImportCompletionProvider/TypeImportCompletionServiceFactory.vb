@@ -3,9 +3,10 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
-Imports Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
+Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     <ExportLanguageServiceFactory(GetType(ITypeImportCompletionService), LanguageNames.VisualBasic), [Shared]>
@@ -18,14 +19,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Sub
 
         Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return New BasicTypeImportCompletionService(languageServices.WorkspaceServices.Workspace)
+            Return New BasicTypeImportCompletionService(languageServices.LanguageServices.SolutionServices)
         End Function
 
         Private Class BasicTypeImportCompletionService
             Inherits AbstractTypeImportCompletionService
 
-            Public Sub New(workspace As Workspace)
-                MyBase.New(workspace)
+            Public Sub New(services As SolutionServices)
+                MyBase.New(services)
             End Sub
 
             Protected Overrides ReadOnly Property GenericTypeSuffix As String

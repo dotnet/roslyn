@@ -48,7 +48,7 @@ public struct EventDescriptor
 
                     // Get System.Security.Permissions.HostProtection
                     var emittedName = MetadataTypeName.FromNamespaceAndTypeName("System.Security.Permissions", "HostProtectionAttribute");
-                    NamedTypeSymbol hostProtectionAttr = sourceAssembly.CorLibrary.LookupTopLevelMetadataType(ref emittedName, true);
+                    NamedTypeSymbol hostProtectionAttr = sourceAssembly.CorLibrary.LookupDeclaredTopLevelMetadataType(ref emittedName);
                     Assert.NotNull(hostProtectionAttr);
 
                     // Verify type security attributes
@@ -184,7 +184,7 @@ namespace N
 }";
             var compilation = CreateCompilationWithMscorlib40(source);
             compilation.VerifyDiagnostics(
-                // (9,6): error CS7036: There is no argument given that corresponds to the required formal parameter 'action' of 'System.Security.Permissions.PrincipalPermissionAttribute.PrincipalPermissionAttribute(System.Security.Permissions.SecurityAction)'
+                // (9,6): error CS7036: There is no argument given that corresponds to the required parameter 'action' of 'System.Security.Permissions.PrincipalPermissionAttribute.PrincipalPermissionAttribute(System.Security.Permissions.SecurityAction)'
                 //     [PrincipalPermission()]                         // Invalid attribute constructor
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "PrincipalPermission()").WithArguments("action", "System.Security.Permissions.PrincipalPermissionAttribute.PrincipalPermissionAttribute(System.Security.Permissions.SecurityAction)").WithLocation(9, 6),
                 // (6,26): error CS7049: Security attribute 'PrincipalPermission' has an invalid SecurityAction value '(SecurityAction)0'
@@ -237,7 +237,7 @@ namespace N
                 // (14,26): error CS7049: Security attribute 'MySecurityAttribute' has an invalid SecurityAction value '(SecurityAction)(-1)'
                 //     [MySecurityAttribute((SecurityAction)(-1))]     // Invalid attribute argument
                 Diagnostic(ErrorCode.ERR_SecurityAttributeInvalidAction, "(SecurityAction)(-1)").WithArguments("MySecurityAttribute", "(SecurityAction)(-1)").WithLocation(14, 26),
-                // (15,6): error CS7036: There is no argument given that corresponds to the required formal parameter 'action' of 'MySecurityAttribute.MySecurityAttribute(System.Security.Permissions.SecurityAction)'
+                // (15,6): error CS7036: There is no argument given that corresponds to the required parameter 'action' of 'MySecurityAttribute.MySecurityAttribute(System.Security.Permissions.SecurityAction)'
                 //     [MySecurityAttribute()]                         // Invalid attribute constructor
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "MySecurityAttribute()").WithArguments("action", "MySecurityAttribute.MySecurityAttribute(System.Security.Permissions.SecurityAction)").WithLocation(15, 6),
                 // (18,10): error CS0592: Attribute 'MySecurityAttribute' is not valid on this declaration type. It is only valid on 'assembly, class, struct, constructor, method' declarations.
@@ -579,6 +579,8 @@ namespace System
     public class AttributeUsageAttribute : Attribute
     {
         public AttributeUsageAttribute(AttributeTargets targets) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
     }
 
     [AttributeUsage(AttributeTargets.All)]

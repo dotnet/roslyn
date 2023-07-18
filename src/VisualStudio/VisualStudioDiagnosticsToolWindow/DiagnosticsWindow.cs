@@ -2,22 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Runtime.InteropServices;
 using System.Windows.Controls;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell;
 using Roslyn.Hosting.Diagnostics.PerfMargin;
-using Roslyn.VisualStudio.DiagnosticsWindow.Telemetry;
+using Roslyn.Utilities;
 
 namespace Roslyn.VisualStudio.DiagnosticsWindow
 {
     [Guid("b2da68d7-fd1c-491a-a9a0-24f597b9f56c")]
-    public class DiagnosticsWindow : ToolWindowPane
+    public sealed class DiagnosticsWindow : ToolWindowPane
     {
+        public VisualStudioWorkspace? Workspace { get; private set; }
+
         /// <summary>
         /// Standard constructor for the tool window.
         /// </summary>
@@ -49,6 +48,12 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
                 Content = new TelemetryPanel()
             };
 
+            var workspacePanel = new TabItem()
+            {
+                Header = "Workspace",
+                Content = new WorkspacePanel(this)
+            };
+
             var tabControl = new TabControl
             {
                 TabStripPlacement = Dock.Bottom
@@ -56,8 +61,15 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
 
             tabControl.Items.Add(perfMarginPanel);
             tabControl.Items.Add(telemetryPanel);
+            tabControl.Items.Add(workspacePanel);
 
-            base.Content = tabControl;
+            Content = tabControl;
+        }
+
+        public void Initialize(VisualStudioWorkspace workspace)
+        {
+            Contract.ThrowIfFalse(Workspace == null);
+            Workspace = workspace;
         }
     }
 }

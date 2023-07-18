@@ -14,40 +14,29 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ImplementType;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ImplementAbstractClass
 {
-    internal sealed class ImplementAbstractClassData
+    internal sealed class ImplementAbstractClassData(
+        Document document, ImplementTypeGenerationOptions options, SyntaxNode classNode, SyntaxToken classIdentifier,
+        INamedTypeSymbol classType, INamedTypeSymbol abstractClassType,
+        ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers)
     {
-        private readonly Document _document;
-        private readonly ImplementTypeOptions _options;
-        private readonly SyntaxNode _classNode;
-        private readonly SyntaxToken _classIdentifier;
-        private readonly ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> _unimplementedMembers;
+        private readonly Document _document = document;
+        private readonly ImplementTypeGenerationOptions _options = options;
+        private readonly SyntaxNode _classNode = classNode;
+        private readonly SyntaxToken _classIdentifier = classIdentifier;
+        private readonly ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> _unimplementedMembers = unimplementedMembers;
 
-        public readonly INamedTypeSymbol ClassType;
-        public readonly INamedTypeSymbol AbstractClassType;
-
-        public ImplementAbstractClassData(
-            Document document, ImplementTypeOptions options, SyntaxNode classNode, SyntaxToken classIdentifier,
-            INamedTypeSymbol classType, INamedTypeSymbol abstractClassType,
-            ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers)
-        {
-            _document = document;
-            _options = options;
-            _classNode = classNode;
-            _classIdentifier = classIdentifier;
-            ClassType = classType;
-            AbstractClassType = abstractClassType;
-            _unimplementedMembers = unimplementedMembers;
-        }
+        public readonly INamedTypeSymbol ClassType = classType;
+        public readonly INamedTypeSymbol AbstractClassType = abstractClassType;
 
         public static async Task<ImplementAbstractClassData?> TryGetDataAsync(
-            Document document, SyntaxNode classNode, SyntaxToken classIdentifier, ImplementTypeOptions options, CancellationToken cancellationToken)
+            Document document, SyntaxNode classNode, SyntaxToken classIdentifier, ImplementTypeGenerationOptions options, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             if (semanticModel.GetDeclaredSymbol(classNode, cancellationToken) is not INamedTypeSymbol classType)
@@ -77,7 +66,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
         }
 
         public static async Task<Document?> TryImplementAbstractClassAsync(
-            Document document, SyntaxNode classNode, SyntaxToken classIdentifier, ImplementTypeOptions options, CancellationToken cancellationToken)
+            Document document, SyntaxNode classNode, SyntaxToken classIdentifier, ImplementTypeGenerationOptions options, CancellationToken cancellationToken)
         {
             var data = await TryGetDataAsync(document, classNode, classIdentifier, options, cancellationToken).ConfigureAwait(false);
             if (data == null)
@@ -90,8 +79,8 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             ISymbol? throughMember, bool? canDelegateAllMembers, CancellationToken cancellationToken)
         {
             var compilation = await _document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var memberDefinitions = GenerateMembers(compilation, throughMember, _options.PropertyGenerationBehavior, cancellationToken);
-            var groupMembers = _options.InsertionBehavior == ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
+            var memberDefinitions = GenerateMembers(compilation, throughMember, _options.ImplementTypeOptions.PropertyGenerationBehavior, cancellationToken);
+            var groupMembers = _options.ImplementTypeOptions.InsertionBehavior == ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
 
             // If we're implementing through one of our members, but we can't delegate all members
             // through it, then give an error message on the class decl letting the user know.
@@ -110,13 +99,12 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 autoInsertionLocation: groupMembers,
                 sortMembers: groupMembers);
 
-            var codeGenerator = _document.GetRequiredLanguageService<ICodeGenerationService>();
-            var options = await CodeGenerationOptions.FromDocumentAsync(context, _document, cancellationToken).ConfigureAwait(false);
+            var info = await _document.GetCodeGenerationInfoAsync(context, _options.FallbackOptions, cancellationToken).ConfigureAwait(false);
 
-            var updatedClassNode = codeGenerator.AddMembers(
+            var updatedClassNode = info.Service.AddMembers(
                 classNodeToAddMembersTo,
                 memberDefinitions,
-                options,
+                info,
                 cancellationToken);
 
             var root = await _document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -155,7 +143,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             Compilation compilation, ISymbol member, ISymbol? throughMember, bool addUnsafe,
             ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
         {
-            var modifiers = new DeclarationModifiers(isOverride: true, isUnsafe: addUnsafe);
+            var modifiers = new DeclarationModifiers(isOverride: true, isUnsafe: addUnsafe, isRequired: member.IsRequired());
             var accessibility = member.ComputeResultantAccessibility(ClassType);
 
             // only call through one of members for this symbol if we can actually access the symbol

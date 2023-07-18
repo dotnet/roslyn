@@ -349,7 +349,7 @@ ISwitchExpressionOperation (1 arms, IsExhaustive: True) (OperationKind.SwitchExp
             var expectedDiagnostics = new[] {
                 // file.cs(7,43): error CS1003: Syntax error, '=>' expected
                 //         y = /*<bind>*/x switch { _ /*=>*/ 5 }/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "5").WithArguments("=>", "").WithLocation(7, 43)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "5").WithArguments("=>").WithLocation(7, 43)
             };
             VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -1405,10 +1405,10 @@ public sealed class MyClass
 }
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(9,18): error CS0150: A constant value is expected
+                // (9,18): error CS9133: A constant value of type 'int' is expected
                 //                 (a ? input1 : input2) => true
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "a ? input1 : input2").WithLocation(9, 18)
-                };
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "a ? input1 : input2").WithArguments("int").WithLocation(9, 18)
+            };
             string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)

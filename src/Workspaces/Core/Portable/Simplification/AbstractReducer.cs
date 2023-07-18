@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Simplification
@@ -19,6 +18,6 @@ namespace Microsoft.CodeAnalysis.Simplification
         public IReductionRewriter GetOrCreateRewriter()
             => _pool.Allocate();
 
-        public virtual bool IsApplicable(OptionSet optionSet) => true;
+        public abstract bool IsApplicable(SimplifierOptions options);
     }
 }

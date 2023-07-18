@@ -2,13 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -19,18 +17,21 @@ namespace Microsoft.CodeAnalysis.AddImport
     {
         private const int MaxResults = 5;
 
-        private readonly IPackageInstallerService _packageInstallerService;
-        private readonly ISymbolSearchService _symbolSearchService;
+        private readonly IPackageInstallerService? _packageInstallerService;
+        private readonly ISymbolSearchService? _symbolSearchService;
 
         /// <summary>
         /// Values for these parameters can be provided (during testing) for mocking purposes.
         /// </summary> 
         protected AbstractAddImportCodeFixProvider(
-            IPackageInstallerService packageInstallerService = null,
-            ISymbolSearchService symbolSearchService = null)
+            IPackageInstallerService? packageInstallerService = null,
+            ISymbolSearchService? symbolSearchService = null)
         {
             _packageInstallerService = packageInstallerService;
             _symbolSearchService = symbolSearchService;
+
+            // Backdoor that allows this provider to use the high-priority bucket.
+            this.CustomTags = this.CustomTags.Add(CodeAction.CanBeHighPriorityTag);
         }
 
         /// <summary>
@@ -38,10 +39,10 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// 'smart tag' feature in VS prior to us even having 'light bulbs'.  We want them to be computed
         /// first, ahead of everything else, and the main results should show up at the top of the list.
         /// </summary>
-        private protected override CodeActionRequestPriority ComputeRequestPriority()
+        protected override CodeActionRequestPriority ComputeRequestPriority()
             => CodeActionRequestPriority.High;
 
-        public sealed override FixAllProvider GetFixAllProvider()
+        public sealed override FixAllProvider? GetFixAllProvider()
         {
             // Currently Fix All is not supported for this provider
             // https://github.com/dotnet/roslyn/issues/34457
@@ -55,27 +56,35 @@ namespace Microsoft.CodeAnalysis.AddImport
             var cancellationToken = context.CancellationToken;
             var diagnostics = context.Diagnostics;
 
-            var addImportService = document.GetLanguageService<IAddImportFeatureService>();
+            var addImportService = document.GetRequiredLanguageService<IAddImportFeatureService>();
+            var services = document.Project.Solution.Services;
 
-            var solution = document.Project.Solution;
+            var codeActionOptions = context.Options.GetOptions(document.Project.Services);
+            var searchOptions = codeActionOptions.SearchOptions;
 
-            var searchNuGetPackages = solution.Options.GetOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages, document.Project.Language);
+            var symbolSearchService = _symbolSearchService ?? services.GetRequiredService<ISymbolSearchService>();
 
-            var options = new AddImportOptions(
-                context.Options.SearchReferenceAssemblies,
-                context.Options.HideAdvancedMembers);
+            var installerService = searchOptions.SearchNuGetPackages ?
+                _packageInstallerService ?? services.GetService<IPackageInstallerService>() : null;
 
-            var symbolSearchService = options.SearchReferenceAssemblies || searchNuGetPackages
-                ? _symbolSearchService ?? solution.Workspace.Services.GetService<ISymbolSearchService>()
-                : null;
-
-            var installerService = GetPackageInstallerService(document);
-            var packageSources = searchNuGetPackages && symbolSearchService != null && installerService?.IsEnabled(document.Project.Id) == true
+            var packageSources = installerService?.IsEnabled(document.Project.Id) == true
                 ? installerService.TryGetPackageSources()
                 : ImmutableArray<PackageSource>.Empty;
 
+            if (packageSources.IsEmpty)
+            {
+                searchOptions = searchOptions with { SearchNuGetPackages = false };
+            }
+
+            var cleanupOptions = await document.GetCodeCleanupOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
+
+            var addImportOptions = new AddImportOptions(
+                searchOptions,
+                cleanupOptions,
+                codeActionOptions.HideAdvancedMembers);
+
             var fixesForDiagnostic = await addImportService.GetFixesForDiagnosticsAsync(
-                document, span, diagnostics, MaxResults, symbolSearchService, options, packageSources, cancellationToken).ConfigureAwait(false);
+                document, span, diagnostics, MaxResults, symbolSearchService, addImportOptions, packageSources, cancellationToken).ConfigureAwait(false);
 
             foreach (var (diagnostic, fixes) in fixesForDiagnostic)
             {
@@ -84,8 +93,5 @@ namespace Microsoft.CodeAnalysis.AddImport
                 context.RegisterFixes(codeActions, diagnostic);
             }
         }
-
-        private IPackageInstallerService GetPackageInstallerService(Document document)
-            => _packageInstallerService ?? document.Project.Solution.Workspace.Services.GetService<IPackageInstallerService>();
     }
 }

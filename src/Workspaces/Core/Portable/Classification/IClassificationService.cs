@@ -5,6 +5,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -24,13 +25,13 @@ namespace Microsoft.CodeAnalysis.Classification
         /// (i.e. identifiers being classified as keywords).  These incorrect results will be patched
         /// up when the lexical results are superseded by the calls to AddSyntacticClassifications.
         /// </summary>
-        void AddLexicalClassifications(SourceText text, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken);
+        void AddLexicalClassifications(SourceText text, TextSpan textSpan, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken);
 
         /// <inheritdoc cref="AddSyntacticClassificationsAsync"/>
         /// <remarks>This method is optional and only should be implemented by languages that support
         /// syntax.  If the language does not support syntax, callers should use
         /// <see cref="AddSyntacticClassificationsAsync"/> instead.</remarks>
-        void AddSyntacticClassifications(Workspace workspace, SyntaxNode root, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken);
+        void AddSyntacticClassifications(SolutionServices services, SyntaxNode root, TextSpan textSpan, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken);
 
         /// <summary>
         /// Produce the classifications for the span of text specified.  The syntax of the document 
@@ -38,21 +39,31 @@ namespace Microsoft.CodeAnalysis.Classification
         /// be used to determine if a piece of text that looks like a keyword should actually be
         /// considered an identifier in its current context.
         /// </summary>
-        Task AddSyntacticClassificationsAsync(Document document, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken);
+        Task AddSyntacticClassificationsAsync(Document document, TextSpan textSpan, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Produce the classifications for the span of text specified.  Semantics of the language
-        /// can be used to provide richer information for constructs where syntax is insufficient.
-        /// For example, semantic information can be used to determine if an identifier should be
-        /// classified as a type, structure, or something else entirely. 
+        /// Produce the classifications for the span of text specified.  Semantics of the language can be used to
+        /// provide richer information for constructs where syntax is insufficient. For example, semantic information
+        /// can be used to determine if an identifier should be classified as a type, structure, or something else
+        /// entirely.
         /// </summary>
-        Task AddSemanticClassificationsAsync(Document document, TextSpan textSpan, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken);
+        /// <remarks>
+        /// This will not include classifications for embedded language constructs in string literals.  For that use
+        /// <see cref="AddEmbeddedLanguageClassificationsAsync"/>.
+        /// </remarks>
+        Task AddSemanticClassificationsAsync(Document document, TextSpan textSpan, ClassificationOptions options, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Produce the classifications for embedded language string literals (e.g. Regex/Json strings) in the span of
+        /// text specified.
+        /// </summary>
+        Task AddEmbeddedLanguageClassificationsAsync(Document document, TextSpan textSpan, ClassificationOptions options, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken);
 
         /// <summary>
         /// Adjust a classification from a previous version of text accordingly based on the current
         /// text.  For example, if a piece of text was classified as an identifier in a previous version,
         /// but a character was added that would make it into a keyword, then indicate that here.
-        /// 
+        ///
         /// This allows the classified to quickly fix up old classifications as the user types.  These
         /// adjustments are allowed to be incorrect as they will be superseded by calls to get the
         /// syntactic and semantic classifications for this version later.
@@ -84,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Classification
         /// syntax.  If the language does not support syntax, callers should use
         /// <see cref="ComputeSyntacticChangeRangeAsync"/> instead.</remarks>
         TextChangeRange? ComputeSyntacticChangeRange(
-            Workspace workspace, SyntaxNode oldRoot, SyntaxNode newRoot,
+            SolutionServices workspace, SyntaxNode oldRoot, SyntaxNode newRoot,
             TimeSpan timeout, CancellationToken cancellationToken);
     }
 }

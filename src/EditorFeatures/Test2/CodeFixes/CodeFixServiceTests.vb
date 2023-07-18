@@ -22,6 +22,7 @@ Imports Roslyn.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
 
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.Diagnostics)>
     Public Class CodeFixServiceTests
 
         Private Shared ReadOnly s_compositionWithMockDiagnosticUpdateSourceRegistrationService As TestComposition = EditorTestCompositions.EditorFeatures _
@@ -34,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
             Return New AnalyzerFileReference(fullPath, _assemblyLoader)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact>
         Public Async Function TestProjectCodeFix() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -52,7 +53,6 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
                 Dim project = workspace.CurrentSolution.Projects(0)
-                Dim options = CodeActionOptionsFactory.GetCodeActionOptions(project, isBlocking:=False)
 
                 Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
                 Dim diagnosticService = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.GetService(Of IDiagnosticAnalyzerService)())
@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 ' Verify available diagnostics
                 Dim document = project.Documents.Single()
                 Dim diagnostics = Await diagnosticService.GetDiagnosticsForSpanAsync(document,
-                    (Await document.GetSyntaxRootAsync()).FullSpan)
+                    range:=(Await document.GetSyntaxRootAsync()).FullSpan, CancellationToken.None)
 
                 Assert.Equal(1, diagnostics.Count())
 
@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Dim fixes = Await codefixService.GetFixesAsync(
                     document,
                     (Await document.GetSyntaxRootAsync()).FullSpan,
-                    options,
+                    CodeActionOptions.DefaultProvider,
                     CancellationToken.None)
 
                 Assert.Equal(0, fixes.Count())
@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 fixes = Await codefixService.GetFixesAsync(
                     document,
                     (Await document.GetSyntaxRootAsync()).FullSpan,
-                    options,
+                    CodeActionOptions.DefaultProvider,
                     CancellationToken.None)
                 Assert.Equal(1, fixes.Count())
 
@@ -103,14 +103,14 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 fixes = Await codefixService.GetFixesAsync(
                     document,
                     (Await document.GetSyntaxRootAsync()).FullSpan,
-                    options,
+                    CodeActionOptions.DefaultProvider,
                     CancellationToken.None)
 
                 Assert.Equal(0, fixes.Count())
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact>
         Public Async Function TestDifferentLanguageProjectCodeFix() As Task
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -129,7 +129,6 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
                 Dim project = workspace.CurrentSolution.Projects(0)
-                Dim options = CodeActionOptionsFactory.GetCodeActionOptions(project, isBlocking:=False)
 
                 Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
                 Dim diagnosticService = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.GetService(Of IDiagnosticAnalyzerService)())
@@ -146,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 ' Verify available diagnostics
                 Dim document = project.Documents.Single()
                 Dim diagnostics = Await diagnosticService.GetDiagnosticsForSpanAsync(document,
-                    (Await document.GetSyntaxRootAsync()).FullSpan)
+                    range:=(Await document.GetSyntaxRootAsync()).FullSpan, CancellationToken.None)
 
                 Assert.Equal(1, diagnostics.Count())
 
@@ -154,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Dim fixes = Await codefixService.GetFixesAsync(
                     document,
                     (Await document.GetSyntaxRootAsync()).FullSpan,
-                    options,
+                    CodeActionOptions.DefaultProvider,
                     CancellationToken.None)
 
                 Assert.Equal(0, fixes.Count())
@@ -170,7 +169,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 fixes = Await codefixService.GetFixesAsync(
                     document,
                     (Await document.GetSyntaxRootAsync()).FullSpan,
-                    options,
+                    CodeActionOptions.DefaultProvider,
                     CancellationToken.None)
 
                 Assert.Equal(0, fixes.Count())

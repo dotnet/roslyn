@@ -43,13 +43,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TLocalState initialState = this.State.Clone();
 
-            var reachableLabels = node.DecisionDag.ReachableLabels;
+            var reachableLabels = node.ReachabilityDecisionDag.ReachableLabels;
             foreach (var section in node.SwitchSections)
             {
                 foreach (var label in section.SwitchLabels)
                 {
                     if (reachableLabels.Contains(label.Label) || label.HasErrors ||
-                        label == node.DefaultLabel && node.Expression.ConstantValue == null && IsTraditionalSwitch(node))
+                        label == node.DefaultLabel && node.Expression.ConstantValueOpt == null && IsTraditionalSwitch(node))
                     {
                         SetState(initialState.Clone());
                     }
@@ -71,8 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             TLocalState afterSwitchState = UnreachableState();
-            if (node.DecisionDag.ReachableLabels.Contains(node.BreakLabel) ||
-                (node.DefaultLabel == null && node.Expression.ConstantValue == null && IsTraditionalSwitch(node)))
+            if (node.ReachabilityDecisionDag.ReachableLabels.Contains(node.BreakLabel) ||
+                (node.DefaultLabel == null && node.Expression.ConstantValueOpt == null && IsTraditionalSwitch(node)))
             {
                 Join(ref afterSwitchState, ref initialState);
             }
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitRvalue(node.Expression);
             var dispatchState = this.State;
             var endState = UnreachableState();
-            var reachableLabels = node.DecisionDag.ReachableLabels;
+            var reachableLabels = node.ReachabilityDecisionDag.ReachableLabels;
             foreach (var arm in node.SwitchArms)
             {
                 SetState(dispatchState.Clone());

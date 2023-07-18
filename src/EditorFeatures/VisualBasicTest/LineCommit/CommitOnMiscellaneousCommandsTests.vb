@@ -2,9 +2,9 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 
@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        <WorkItem(14391, "https://github.com/dotnet/roslyn/issues/14391")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14391")>
         Public Sub TestCommitLineWithTupleType()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -59,10 +59,9 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(1944, "https://github.com/dotnet/roslyn/issues/1944")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/1944")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Sub TestDontCommitOnMultiLinePasteWithPrettyListingOff()
+        Public Sub TestDoNotCommitOnMultiLinePasteWithPrettyListingOff()
             Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -73,7 +72,7 @@ End Class
 
                 Dim workspace = testData.Workspace
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
-                globalOptions.SetGlobalOption(New OptionKey(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic), False)
+                globalOptions.SetGlobalOption(LineCommitOptionsStorage.PrettyListing, LanguageNames.VisualBasic, False)
 
                 testData.CommandHandler.ExecuteCommand(New PasteCommandArgs(testData.View, testData.Buffer),
                                                        Sub() testData.EditorOperations.InsertText("Class Program" & vbCrLf & "    Sub M(abc As Integer)" & vbCrLf & "        Dim a  = 7" & vbCrLf & "    End Sub" & vbCrLf & "End Class"),
@@ -84,7 +83,7 @@ End Class
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        <WorkItem(545493, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545493")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545493")>
         Public Sub TestNoCommitOnSingleLinePaste()
             Using testData = CommitTestData.Create(<Workspace>
                                                        <Project Language="Visual Basic" CommonReferences="true">
@@ -116,9 +115,9 @@ End Class
             End Using
         End Sub
 
-        <WpfFact, WorkItem(1944, "https://github.com/dotnet/roslyn/issues/1944")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/1944")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Sub TestDontCommitOnSavePrettyListingOff()
+        Public Sub TestDoNotCommitOnSavePrettyListingOff()
             Using testData = CommitTestData.Create(<Workspace>
                                                        <Project Language="Visual Basic" CommonReferences="true">
                                                            <Document>
@@ -132,7 +131,7 @@ End Class
                                                    </Workspace>)
                 Dim workspace = testData.Workspace
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
-                globalOptions.SetGlobalOption(New OptionKey(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic), False)
+                globalOptions.SetGlobalOption(LineCommitOptionsStorage.PrettyListing, LanguageNames.VisualBasic, False)
 
                 testData.Buffer.Insert(57, "    ")
                 testData.CommandHandler.ExecuteCommand(New SaveCommandArgs(testData.View, testData.Buffer), Sub() Exit Sub, TestCommandExecutionContext.Create())
@@ -142,7 +141,7 @@ End Class
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
-        <WorkItem(545493, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545493")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545493")>
         Public Sub TestPerformAddMissingTokenOnFormatDocument()
             Using testData = CommitTestData.Create(<Workspace>
                                                        <Project Language="Visual Basic" CommonReferences="true">
@@ -165,7 +164,7 @@ End Module
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
-        <WorkItem(867153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867153")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867153")>
         Public Sub TestFormatDocumentWithPrettyListingDisabled()
             Using testData = CommitTestData.Create(<Workspace>
                                                        <Project Language="Visual Basic" CommonReferences="true">
@@ -181,7 +180,7 @@ End Module
                 ' Turn off pretty listing
                 Dim workspace = testData.Workspace
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
-                globalOptions.SetGlobalOption(New OptionKey(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic), False)
+                globalOptions.SetGlobalOption(LineCommitOptionsStorage.PrettyListing, LanguageNames.VisualBasic, False)
 
                 testData.CommandHandler.ExecuteCommand(New FormatDocumentCommandArgs(testData.View, testData.Buffer), Sub() Exit Sub, TestCommandExecutionContext.Create())
                 Assert.Equal("    Sub Main()", testData.Buffer.CurrentSnapshot.GetLineFromLineNumber(1).GetText())

@@ -14,14 +14,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// A symbol set used when the find refs caller does not want cascading.  This is a trivial impl that basically
         /// just wraps the initial symbol provided and doesn't need to do anything beyond that.
         /// </summary>
-        private sealed class NonCascadingSymbolSet : SymbolSet
+        private sealed class NonCascadingSymbolSet(FindReferencesSearchEngine engine, MetadataUnifyingSymbolHashSet searchSymbols) : SymbolSet(engine)
         {
-            private readonly ImmutableArray<ISymbol> _symbols;
-
-            public NonCascadingSymbolSet(FindReferencesSearchEngine engine, ISymbol searchSymbol) : base(engine)
-            {
-                _symbols = ImmutableArray.Create(searchSymbol);
-            }
+            private readonly ImmutableArray<ISymbol> _symbols = searchSymbols.ToImmutableArray();
 
             public override ImmutableArray<ISymbol> GetAllSymbols()
                 => _symbols;

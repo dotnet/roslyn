@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -24,10 +22,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private NoOpStreamingFindReferencesProgress()
         {
         }
-
-#pragma warning disable IDE0060 // Remove unused parameter
-        public static Task ReportProgressAsync(int current, int maximum) => Task.CompletedTask;
-#pragma warning restore IDE0060 // Remove unused parameter
 
         public ValueTask OnCompletedAsync(CancellationToken cancellationToken) => default;
         public ValueTask OnStartedAsync(CancellationToken cancellationToken) => default;

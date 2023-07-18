@@ -65,6 +65,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     graph = ControlFlowGraph.Create(parameterInitializerOperation);
                     break;
 
+                case IAttributeOperation attributeOperation:
+                    graph = ControlFlowGraph.Create(attributeOperation);
+                    break;
+
                 default:
                     return default;
             }
@@ -310,7 +314,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                     validateBranch(block, nextBranch);
                 }
-
 
                 if (currentRegion.LastBlockOrdinal == block.Ordinal && i != blocks.Length - 1)
                 {
@@ -1140,6 +1143,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                         return true;
                                     }
                                     break;
+                                case CSharp.SyntaxKind.CollectionExpression:
+                                    if (((CSharp.Syntax.CollectionExpressionSyntax)syntax).Elements.Any())
+                                    {
+                                        return true;
+                                    }
+                                    break;
                             }
 
                             if (syntax.Parent is CSharp.Syntax.WithExpressionSyntax withExpr
@@ -1928,6 +1937,7 @@ endRegion:
                 case OperationKind.Stop:
                 case OperationKind.RaiseEvent:
                 case OperationKind.Literal:
+                case OperationKind.Utf8String:
                 case OperationKind.Conversion:
                 case OperationKind.Invocation:
                 case OperationKind.ArrayElementReference:
@@ -1996,6 +2006,8 @@ endRegion:
                 case OperationKind.SlicePattern:
                 case OperationKind.ListPattern:
                 case OperationKind.ImplicitIndexerReference:
+                case OperationKind.Attribute:
+                case OperationKind.InlineArrayAccess:
                     return true;
             }
 

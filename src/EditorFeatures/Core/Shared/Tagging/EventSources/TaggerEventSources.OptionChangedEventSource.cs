@@ -9,37 +9,26 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
     internal partial class TaggerEventSources
     {
-        private class OptionChangedEventSource : AbstractWorkspaceTrackingTaggerEventSource
+        private sealed class GlobalOptionChangedEventSource(IGlobalOptionService globalOptions, IOption2 globalOption) : AbstractTaggerEventSource
         {
-            private readonly IOption _option;
-            private IOptionService? _optionService;
+            private readonly IOption2 _globalOption = globalOption;
+            private readonly IGlobalOptionService _globalOptions = globalOptions;
 
-            public OptionChangedEventSource(ITextBuffer subjectBuffer, IOption option) : base(subjectBuffer)
-                => _option = option;
-
-            protected override void ConnectToWorkspace(Workspace workspace)
+            public override void Connect()
             {
-                _optionService = workspace.Services.GetService<IOptionService>();
-                if (_optionService != null)
-                {
-                    _optionService.OptionChanged += OnOptionChanged;
-                }
+                _globalOptions.AddOptionChangedHandler(this, OnGlobalOptionChanged);
             }
 
-            protected override void DisconnectFromWorkspace(Workspace workspace)
+            public override void Disconnect()
             {
-                if (_optionService != null)
-                {
-                    _optionService.OptionChanged -= OnOptionChanged;
-                    _optionService = null;
-                }
+                _globalOptions.RemoveOptionChangedHandler(this, OnGlobalOptionChanged);
             }
 
-            private void OnOptionChanged(object? sender, OptionChangedEventArgs e)
+            private void OnGlobalOptionChanged(object? sender, OptionChangedEventArgs e)
             {
-                if (e.Option == _option)
+                if (e.Option == _globalOption)
                 {
-                    this.RaiseChanged();
+                    RaiseChanged();
                 }
             }
         }

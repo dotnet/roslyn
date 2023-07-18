@@ -4,18 +4,23 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Extensibility.Testing;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
+using Roslyn.VisualStudio.IntegrationTests.InProcess;
+using WindowsInput.Native;
 using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
@@ -159,10 +164,10 @@ class C
 
             await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.CodeActionAsync("Delegate invocation can be simplified.", applyFix: true, ensureExpectedItemsAreOrdered: true, blockUntilComplete: true, cancellationToken: HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.CodeActionAsync("Simplify delegate invocation", applyFix: true, ensureExpectedItemsAreOrdered: true, blockUntilComplete: true, cancellationToken: HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("temp2", 0, 0, extendSelection: false, selectBlock: false, HangMitigatingCancellationToken);
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.CodeActionAsync("Delegate invocation can be simplified.", applyFix: true, ensureExpectedItemsAreOrdered: true, blockUntilComplete: true, cancellationToken: HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.CodeActionAsync("Simplify delegate invocation", applyFix: true, ensureExpectedItemsAreOrdered: true, blockUntilComplete: true, cancellationToken: HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync("First?.", cancellationToken: HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync("Second?.", cancellationToken: HangMitigatingCancellationToken);
         }
@@ -170,8 +175,8 @@ class C
         [IdeFact]
         [Trait(Traits.Feature, Traits.Features.EditorConfig)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        [WorkItem(15003, "https://github.com/dotnet/roslyn/issues/15003")]
-        [WorkItem(19089, "https://github.com/dotnet/roslyn/issues/19089")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15003")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19089")]
         public async Task ApplyEditorConfigAndFixAllOccurrences()
         {
             var markup = @"
@@ -223,7 +228,7 @@ class C
                 new[]
                 {
                     FeatureAttribute.Workspace,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles
                 },
@@ -242,14 +247,14 @@ csharp_style_expression_bodied_properties = true:warning
                 new[]
                 {
                     FeatureAttribute.Workspace,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles
                 },
                 HangMitigatingCancellationToken);
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CodeActionAsync(
-                "Use expression body for properties",
+                "Use expression body for property",
                 applyFix: true,
                 fixAllScope: FixAllScope.Project,
                 cancellationToken: HangMitigatingCancellationToken);
@@ -269,14 +274,14 @@ csharp_style_expression_bodied_properties = true:warning
                 new[]
                 {
                     FeatureAttribute.Workspace,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles
                 },
                 HangMitigatingCancellationToken);
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CodeActionAsync(
-                "Use block body for properties",
+                "Use block body for property",
                 applyFix: true,
                 fixAllScope: FixAllScope.Project,
                 cancellationToken: HangMitigatingCancellationToken);
@@ -324,7 +329,7 @@ class C
         [InlineData(FixAllScope.Project)]
         [InlineData(FixAllScope.Solution)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        [WorkItem(33507, "https://github.com/dotnet/roslyn/issues/33507")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/33507")]
         public async Task FixAllOccurrencesIgnoresGeneratedCode(FixAllScope scope)
         {
             var markup = @"
@@ -411,7 +416,7 @@ class D
         [InlineData(FixAllScope.Project)]
         [InlineData(FixAllScope.Solution)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        [WorkItem(33507, "https://github.com/dotnet/roslyn/issues/33507")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/33507")]
         public async Task FixAllOccurrencesTriggeredFromGeneratedCode(FixAllScope scope)
         {
             var markup = @"// <auto-generated/>
@@ -492,7 +497,7 @@ public class Program
 
 public class P2 { }", HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendAsync(VirtualKey.Backspace, VirtualKey.Backspace, "Stream");
+            await TestServices.Input.SendAsync(new InputKey[] { VirtualKeyCode.BACK, VirtualKeyCode.BACK, "Stream" }, HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
                 new[]
                 {
@@ -500,7 +505,8 @@ public class P2 { }", HangMitigatingCancellationToken);
                     FeatureAttribute.EventHookup,
                     FeatureAttribute.Rename,
                     FeatureAttribute.RenameTracking,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.InlineRenameFlyout,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles,
                 },
@@ -521,7 +527,7 @@ public class P2 { }", HangMitigatingCancellationToken);
                     "Generate nested class 'Stream'",
                     "Generate new type...",
                     "Remove unused variable",
-                    "Suppress or Configure issues",
+                    "Suppress or configure issues",
                     "Suppress CS0168",
                     "in Source",
                     "Configure CS0168 severity",
@@ -538,7 +544,7 @@ public class P2 { }", HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync("using System.IO;", cancellationToken: HangMitigatingCancellationToken);
         }
 
-        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/57423"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GFUFuzzyMatchAfterRenameTrackingAndAfterGenerateType()
         {
             await SetUpEditorAsync(@"
@@ -557,8 +563,7 @@ namespace NS
         }
     }
 }", HangMitigatingCancellationToken);
-            await TestServices.Input.SendAsync(VirtualKey.Backspace, VirtualKey.Backspace,
-                "Foober");
+            await TestServices.Input.SendAsync(new InputKey[] { VirtualKeyCode.BACK, VirtualKeyCode.BACK, "Foober" }, HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
                 new[]
                 {
@@ -566,7 +571,8 @@ namespace NS
                     FeatureAttribute.EventHookup,
                     FeatureAttribute.Rename,
                     FeatureAttribute.RenameTracking,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.InlineRenameFlyout,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles,
                 },
@@ -581,7 +587,7 @@ namespace NS
                 "Generate nested class 'Foober'",
                 "Generate new type...",
                 "Goober - using N;",
-                "Suppress or Configure issues",
+                "Suppress or configure issues",
                 "Suppress CS0168",
                 "in Source",
                 "Configure CS0168 severity",
@@ -623,7 +629,7 @@ class Program
                 "Introduce local constant for all occurrences of '2'",
                 "Extract method",
                 generateImplicitTitle,
-                "Suppress or Configure issues",
+                "Suppress or configure issues",
                 "Suppress CS0612",
                 "in Source",
                 "Configure CS0612 severity",
@@ -706,7 +712,7 @@ public class Program
                 "Introduce local",
                     "Introduce local for 'new Program()'",
                     "Introduce local for all occurrences of 'new Program()'",
-                "Suppress or Configure issues",
+                "Suppress or configure issues",
                     "Configure IDE0008 code style",
                         "csharp__style__var__elsewhere",
                             "true",
@@ -754,7 +760,7 @@ public class Program
         }
 
         [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-        [WorkItem(46784, "https://github.com/dotnet/roslyn/issues/46784")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/46784")]
         public async Task ConfigureSeverity()
         {
             var markup = @"
@@ -772,7 +778,7 @@ class C
                 new[]
                 {
                     FeatureAttribute.Workspace,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles,
                 },
@@ -792,7 +798,7 @@ class C
                 var expectedItems = new[]
                 {
                     "Remove unused variable",
-                    "Suppress or Configure issues",
+                    "Suppress or configure issues",
                         "Suppress CS0168",
                             "in Source",
                         "Configure CS0168 severity",
@@ -809,7 +815,7 @@ class C
                 new[]
                 {
                     FeatureAttribute.Workspace,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles,
                 },
@@ -834,7 +840,7 @@ class C
         }
 
         [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-        [WorkItem(46784, "https://github.com/dotnet/roslyn/issues/46784")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/46784")]
         public async Task ConfigureSeverityWithManualEditsToEditorconfig()
         {
             var markup = @"
@@ -852,7 +858,7 @@ class C
                 new[]
                 {
                     FeatureAttribute.Workspace,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles,
                 },
@@ -865,26 +871,26 @@ class C
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, ".editorconfig", open: true, cancellationToken: HangMitigatingCancellationToken);
             await TestServices.Input.SendAsync(@"
 [*.cs]
-dotnet_diagnostic.CS0168.severity = ");
+dotnet_diagnostic.CS0168.severity = ", HangMitigatingCancellationToken);
 
             // NOTE: Below wait is a critical step in repro-ing the original regression.
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
                 new[]
                 {
                     FeatureAttribute.Workspace,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles,
                 },
                 HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendAsync("error");
+            await TestServices.Input.SendAsync("error", HangMitigatingCancellationToken);
 
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
                 new[]
                 {
                     FeatureAttribute.Workspace,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles,
                 },
@@ -905,6 +911,585 @@ dotnet_diagnostic.CS0168.severity = ");
                 AssertEx.EqualOrDiff(
                     string.Join(Environment.NewLine, expectedContents),
                     string.Join(Environment.NewLine, actualContents));
+            }
+        }
+
+        [IdeFact]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        public async Task TestFixAllOccurrences_CodeFix_ContainingMember()
+        {
+            var markup = @"
+class Program1
+{
+    static void Main()
+    {
+        $$if (true) if (true) return;
+
+        if (false) if (false) return;
+    }
+
+    void OtherMethod()
+    {
+        if (true) if (true) return;
+    }
+}
+
+class OtherType
+{
+    void OtherMethod()
+    {
+        if (true) if (true) return;
+    }
+}";
+            var expectedText = @"
+class Program1
+{
+    static void Main()
+    {
+        if (true)
+        {
+            if (true)
+            {
+                return;
+            }
+        }
+
+        if (false)
+        {
+            if (false)
+            {
+                return;
+            }
+        }
+    }
+
+    void OtherMethod()
+    {
+        if (true) if (true) return;
+    }
+}
+
+class OtherType
+{
+    void OtherMethod()
+    {
+        if (true) if (true) return;
+    }
+}";
+
+            await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs", HangMitigatingCancellationToken);
+
+            MarkupTestFile.GetSpans(markup, out _, out ImmutableArray<TextSpan> _);
+            await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
+                new[]
+                {
+                    FeatureAttribute.Workspace,
+                    FeatureAttribute.SolutionCrawlerLegacy,
+                    FeatureAttribute.DiagnosticService,
+                    FeatureAttribute.ErrorSquiggles
+                },
+                HangMitigatingCancellationToken);
+
+            await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+
+            await TestServices.EditorVerifier.CodeActionAsync(
+                "Add braces",
+                applyFix: true,
+                fixAllScope: FixAllScope.ContainingMember,
+                cancellationToken: HangMitigatingCancellationToken);
+
+            AssertEx.EqualOrDiff(expectedText, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
+        }
+
+        [IdeFact]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        public async Task TestFixAllOccurrences_CodeFix_ContainingType()
+        {
+            var markup1 = @"
+partial class Program1
+{
+    static void Main()
+    {
+        $$if (true) if (true) return;
+
+        if (false) if (false) return;
+    }
+
+    void M1()
+    {
+        if (true) if (true) return;
+    }
+}
+
+class OtherType1
+{
+    void OtherMethod()
+    {
+        if (true) if (true) return;
+    }
+}
+
+partial class Program1
+{
+    void M2()
+    {
+        if (true) if (true) return;
+    }
+}";
+            var expectedText1 = @"
+partial class Program1
+{
+    static void Main()
+    {
+        if (true)
+        {
+            if (true)
+            {
+                return;
+            }
+        }
+
+        if (false)
+        {
+            if (false)
+            {
+                return;
+            }
+        }
+    }
+
+    void M1()
+    {
+        if (true)
+        {
+            if (true)
+            {
+                return;
+            }
+        }
+    }
+}
+
+class OtherType1
+{
+    void OtherMethod()
+    {
+        if (true) if (true) return;
+    }
+}
+
+partial class Program1
+{
+    void M2()
+    {
+        if (true)
+        {
+            if (true)
+            {
+                return;
+            }
+        }
+    }
+}";
+
+            var markup2 = @"
+partial class Program1
+{
+    void OtherFileMethod()
+    {
+        if (true) if (true) return;
+
+        if (false) if (false) return;
+    }
+}
+
+class OtherType2
+{
+    void OtherMethod()
+    {
+        if (true) if (true) return;
+    }
+}";
+            var expectedText2 = @"
+partial class Program1
+{
+    void OtherFileMethod()
+    {
+        if (true)
+        {
+            if (true)
+            {
+                return;
+            }
+        }
+
+        if (false)
+        {
+            if (false)
+            {
+                return;
+            }
+        }
+    }
+}
+
+class OtherType2
+{
+    void OtherMethod()
+    {
+        if (true) if (true) return;
+    }
+}";
+
+            await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "Class2.cs", markup2, cancellationToken: HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs", HangMitigatingCancellationToken);
+
+            MarkupTestFile.GetSpans(markup1, out _, out ImmutableArray<TextSpan> _);
+            await SetUpEditorAsync(markup1, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
+                new[]
+                {
+                    FeatureAttribute.Workspace,
+                    FeatureAttribute.SolutionCrawlerLegacy,
+                    FeatureAttribute.DiagnosticService,
+                    FeatureAttribute.ErrorSquiggles
+                },
+                HangMitigatingCancellationToken);
+
+            await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+
+            await TestServices.EditorVerifier.CodeActionAsync(
+                "Add braces",
+                applyFix: true,
+                fixAllScope: FixAllScope.ContainingType,
+                cancellationToken: HangMitigatingCancellationToken);
+
+            AssertEx.EqualOrDiff(expectedText1, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
+
+            AssertEx.EqualOrDiff(expectedText2, await TestServices.SolutionExplorer.GetFileContentsAsync(ProjectName, "Class2.cs", HangMitigatingCancellationToken));
+        }
+
+        [IdeFact]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        public async Task TestFixAllOccurrences_CodeRefactoring_ContainingMember()
+        {
+            var markup = @"
+class C1
+{
+    void M()
+    {
+        var singleLine1 = $$""a"";
+        var singleLine2 = @""goo""""bar"";
+    }
+
+    void M2()
+    {
+        var singleLine1 = ""a"";
+        var singleLine2 = @""goo""""bar"";
+    }
+}
+
+class C2
+{
+    void M3()
+    {
+        var singleLine1 = ""a"";
+        var singleLine2 = @""goo""""bar"";
+    }
+}";
+            var expectedText = @"
+class C1
+{
+    void M()
+    {
+        var singleLine1 = """"""a"""""";
+        var singleLine2 = """"""goo""bar"""""";
+    }
+
+    void M2()
+    {
+        var singleLine1 = ""a"";
+        var singleLine2 = @""goo""""bar"";
+    }
+}
+
+class C2
+{
+    void M3()
+    {
+        var singleLine1 = ""a"";
+        var singleLine2 = @""goo""""bar"";
+    }
+}";
+
+            await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs", HangMitigatingCancellationToken);
+
+            MarkupTestFile.GetSpans(markup, out _, out ImmutableArray<TextSpan> _);
+            await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
+                new[]
+                {
+                    FeatureAttribute.Workspace,
+                    FeatureAttribute.SolutionCrawlerLegacy,
+                    FeatureAttribute.DiagnosticService,
+                    FeatureAttribute.ErrorSquiggles
+                },
+                HangMitigatingCancellationToken);
+
+            await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+
+            await TestServices.EditorVerifier.CodeActionAsync(
+                "Convert to raw string",
+                applyFix: true,
+                fixAllScope: FixAllScope.ContainingMember,
+                cancellationToken: HangMitigatingCancellationToken);
+
+            AssertEx.EqualOrDiff(expectedText, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
+        }
+
+        [IdeFact]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        public async Task TestFixAllOccurrences_CodeRefactoring_ContainingType()
+        {
+            var markup1 = @"
+partial class C1
+{
+    void M()
+    {
+        var singleLine1 = $$""a"";
+        var singleLine2 = @""goo""""bar"";
+    }
+
+    void M2()
+    {
+        var singleLine1 = ""a"";
+        var singleLine2 = @""goo""""bar"";
+    }
+}
+
+class C2
+{
+    void M3()
+    {
+        var singleLine1 = ""a"";
+        var singleLine2 = @""goo""""bar"";
+    }
+}
+
+partial class C1
+{
+    void M4()
+    {
+        var singleLine1 = ""a"";
+        var singleLine2 = @""goo""""bar"";
+    }
+}";
+            var expectedText1 = @"
+partial class C1
+{
+    void M()
+    {
+        var singleLine1 = """"""a"""""";
+        var singleLine2 = """"""goo""bar"""""";
+    }
+
+    void M2()
+    {
+        var singleLine1 = """"""a"""""";
+        var singleLine2 = """"""goo""bar"""""";
+    }
+}
+
+class C2
+{
+    void M3()
+    {
+        var singleLine1 = ""a"";
+        var singleLine2 = @""goo""""bar"";
+    }
+}
+
+partial class C1
+{
+    void M4()
+    {
+        var singleLine1 = """"""a"""""";
+        var singleLine2 = """"""goo""bar"""""";
+    }
+}";
+
+            var markup2 = @"
+partial class C1
+{
+    void M5()
+    {
+        var singleLine1 = ""a"";
+        var singleLine2 = @""goo""""bar"";
+    }
+}
+
+class C2
+{
+    void M6()
+    {
+        var singleLine1 = ""a"";
+        var singleLine2 = @""goo""""bar"";
+    }
+}";
+            var expectedText2 = @"
+partial class C1
+{
+    void M5()
+    {
+        var singleLine1 = """"""a"""""";
+        var singleLine2 = """"""goo""bar"""""";
+    }
+}
+
+class C2
+{
+    void M6()
+    {
+        var singleLine1 = ""a"";
+        var singleLine2 = @""goo""""bar"";
+    }
+}";
+
+            await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "Class2.cs", markup2, cancellationToken: HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs", HangMitigatingCancellationToken);
+
+            MarkupTestFile.GetSpans(markup1, out _, out ImmutableArray<TextSpan> _);
+            await SetUpEditorAsync(markup1, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
+                new[]
+                {
+                    FeatureAttribute.Workspace,
+                    FeatureAttribute.SolutionCrawlerLegacy,
+                    FeatureAttribute.DiagnosticService,
+                    FeatureAttribute.ErrorSquiggles
+                },
+                HangMitigatingCancellationToken);
+
+            await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+
+            await TestServices.EditorVerifier.CodeActionAsync(
+                "Convert to raw string",
+                applyFix: true,
+                fixAllScope: FixAllScope.ContainingType,
+                cancellationToken: HangMitigatingCancellationToken);
+
+            AssertEx.EqualOrDiff(expectedText1, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
+
+            AssertEx.EqualOrDiff(expectedText2, await TestServices.SolutionExplorer.GetFileContentsAsync(ProjectName, "Class2.cs", HangMitigatingCancellationToken));
+        }
+
+        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/61334")]
+        public async Task UseExpressionBodyBeforeExtractBaseClass()
+        {
+            await SetUpEditorAsync(@"
+public class Program
+{
+    $$public void M()
+    {
+        System.Console.WriteLine(0);
+    }
+}
+", HangMitigatingCancellationToken);
+
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
+                new[]
+                {
+                    FeatureAttribute.Workspace,
+                    FeatureAttribute.EventHookup,
+                    FeatureAttribute.Rename,
+                    FeatureAttribute.RenameTracking,
+                    FeatureAttribute.InlineRenameFlyout,
+                    FeatureAttribute.SolutionCrawlerLegacy,
+                    FeatureAttribute.DiagnosticService,
+                    FeatureAttribute.ErrorSquiggles,
+                },
+                HangMitigatingCancellationToken);
+
+            // Suspend file change notification during code action application, since spurious file change notifications
+            // can cause silent failure to apply the code action if they occur within this block.
+            await using var fileChangeRestorer = await TestServices.Shell.PauseFileChangesAsync(HangMitigatingCancellationToken);
+
+            await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            var expectedItems = new[]
+            {
+                "Use expression body for method",
+                "Extract base class...",
+            };
+
+            await TestServices.EditorVerifier.CodeActionsAsync(expectedItems, ensureExpectedItemsAreOrdered: true, cancellationToken: HangMitigatingCancellationToken);
+        }
+
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/64567")]
+        public async Task TestNonSourceDocumentRefactoring()
+        {
+            var markup = @"$$# Editorconfig File";
+            var expectedText = @"# Editorconfig File
+# Refactored";
+
+            await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs", HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.AddAnalyzerReferenceAsync(ProjectName, typeof(NonSourceFileRefactoring).Assembly.Location, HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.AddFileAsync(ProjectName, ".editorconfig", contents: "", open: true, HangMitigatingCancellationToken);
+
+            MarkupTestFile.GetSpans(markup, out _, out ImmutableArray<TextSpan> _);
+            await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
+                new[]
+                {
+                    FeatureAttribute.Workspace,
+                    FeatureAttribute.SolutionCrawlerLegacy,
+                    FeatureAttribute.DiagnosticService,
+                    FeatureAttribute.ErrorSquiggles
+                },
+                HangMitigatingCancellationToken);
+
+            await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+
+            await TestServices.EditorVerifier.CodeActionAsync(
+                nameof(NonSourceFileRefactoring),
+                applyFix: true,
+                cancellationToken: HangMitigatingCancellationToken);
+
+            AssertEx.EqualOrDiff(expectedText, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
+        }
+
+        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        public async Task TestRefactoringsAreSortedByPriority()
+        {
+            var codeFormat = @"
+#pragma warning disable IDE0060 // Remove unused parameter
+class C
+{ 
+    public C(int x1, int x2, int x3)
+    {
+    }
+};";
+            for (var i = 1; i <= 3; i++)
+            {
+                var code = codeFormat.Replace($"x{i}", $"$$x{i}");
+                await SetUpEditorAsync(code, HangMitigatingCancellationToken);
+
+                var expectedItems = new[]
+                {
+                    $"Create and assign property 'X{i}'",
+                    $"Create and assign field 'x{i}'",
+                    "Create and assign remaining as properties",
+                    "Create and assign remaining as fields",
+                    "Change signature...",
+                    "Wrap every parameter",
+                    "Align wrapped parameters",
+                    "Indent all parameters",
+                    "Indent wrapped parameters",
+                    "Unwrap and indent all parameters",
+                };
+
+                await TestServices.EditorVerifier.CodeActionsAsync(expectedItems, ensureExpectedItemsAreOrdered: true, cancellationToken: HangMitigatingCancellationToken);
             }
         }
     }

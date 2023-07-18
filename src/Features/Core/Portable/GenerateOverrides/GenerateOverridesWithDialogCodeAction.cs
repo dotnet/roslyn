@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -18,37 +19,33 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
 {
     internal partial class GenerateOverridesCodeRefactoringProvider
     {
-        private class GenerateOverridesWithDialogCodeAction : CodeActionWithOptions
+        private sealed class GenerateOverridesWithDialogCodeAction(
+            GenerateOverridesCodeRefactoringProvider service,
+            Document document,
+            TextSpan textSpan,
+            INamedTypeSymbol containingType,
+            ImmutableArray<ISymbol> viableMembers,
+            CodeAndImportGenerationOptionsProvider fallbackOptions) : CodeActionWithOptions
         {
-            private readonly GenerateOverridesCodeRefactoringProvider _service;
-            private readonly Document _document;
-            private readonly INamedTypeSymbol _containingType;
-            private readonly ImmutableArray<ISymbol> _viableMembers;
-            private readonly TextSpan _textSpan;
-
-            public GenerateOverridesWithDialogCodeAction(
-                GenerateOverridesCodeRefactoringProvider service,
-                Document document,
-                TextSpan textSpan,
-                INamedTypeSymbol containingType,
-                ImmutableArray<ISymbol> viableMembers)
-            {
-                _service = service;
-                _document = document;
-                _containingType = containingType;
-                _viableMembers = viableMembers;
-                _textSpan = textSpan;
-            }
+            private readonly GenerateOverridesCodeRefactoringProvider _service = service;
+            private readonly Document _document = document;
+            private readonly INamedTypeSymbol _containingType = containingType;
+            private readonly ImmutableArray<ISymbol> _viableMembers = viableMembers;
+            private readonly TextSpan _textSpan = textSpan;
+            private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions = fallbackOptions;
 
             public override string Title => FeaturesResources.Generate_overrides;
 
             public override object GetOptions(CancellationToken cancellationToken)
             {
-                var service = _service._pickMembersService_forTestingPurposes ?? _document.Project.Solution.Workspace.Services.GetRequiredService<IPickMembersService>();
-                return service.PickMembers(
+                var services = _document.Project.Solution.Services;
+                var pickMembersService = _service._pickMembersService_forTestingPurposes ?? services.GetRequiredService<IPickMembersService>();
+                var globalOptionService = services.GetService<ILegacyGlobalOptionsWorkspaceService>();
+
+                return pickMembersService.PickMembers(
                     FeaturesResources.Pick_members_to_override,
                     _viableMembers,
-                    selectAll: _document.Project.Solution.Options.GetOption(GenerateOverridesOptions.SelectAll));
+                    selectAll: globalOptionService?.GenerateOverrides ?? true);
             }
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
@@ -73,12 +70,14 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
                 var members = await Task.WhenAll(memberTasks).ConfigureAwait(false);
 
                 var newDocument = await CodeGenerator.AddMemberDeclarationsAsync(
-                    _document.Project.Solution,
+                    new CodeGenerationSolutionContext(
+                        _document.Project.Solution,
+                        new CodeGenerationContext(
+                            afterThisLocation: afterThisLocation,
+                            contextLocation: syntaxTree.GetLocation(_textSpan)),
+                        _fallbackOptions),
                     _containingType,
                     members,
-                    new CodeGenerationContext(
-                        afterThisLocation: afterThisLocation,
-                        contextLocation: syntaxTree.GetLocation(_textSpan)),
                     cancellationToken).ConfigureAwait(false);
 
                 return new CodeActionOperation[]
@@ -97,21 +96,17 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
                     cancellationToken: cancellationToken);
             }
 
-            private class ChangeOptionValueOperation : CodeActionOperation
+            private sealed class ChangeOptionValueOperation(bool selectedAll) : CodeActionOperation
             {
-                private readonly bool _selectedAll;
-
-                public ChangeOptionValueOperation(bool selectedAll)
-                    => _selectedAll = selectedAll;
+                private readonly bool _selectedAll = selectedAll;
 
                 public override void Apply(Workspace workspace, CancellationToken cancellationToken)
                 {
-                    if (workspace.Options.GetOption(GenerateOverridesOptions.SelectAll) == _selectedAll)
-                        return;
-
-                    workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                        workspace.CurrentSolution.Options.WithChangedOption(
-                            GenerateOverridesOptions.SelectAll, _selectedAll)));
+                    var service = workspace.Services.GetService<ILegacyGlobalOptionsWorkspaceService>();
+                    if (service != null)
+                    {
+                        service.GenerateOverrides = _selectedAll;
+                    }
                 }
             }
         }

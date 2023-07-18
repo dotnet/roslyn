@@ -4,7 +4,8 @@
 
 using System;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.LanguageServices;
+using System.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -48,6 +49,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
         {
             public abstract bool CanConvert(IConditionalOperation operation);
             public abstract bool HasUnreachableEndPoint(IOperation operation);
+            public abstract bool CanImplicitlyConvert(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol targetType);
 
             /// <summary>
             /// Holds the expression determined to be used as the target expression of the switch
@@ -56,6 +58,10 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             /// Note that this is initially unset until we find a non-constant expression.
             /// </remarks>
             private SyntaxNode _switchTargetExpression = null!;
+            /// <summary>
+            /// Holds the type of the <see cref="_switchTargetExpression"/>
+            /// </summary>
+            private ITypeSymbol? _switchTargetType = null!;
             private readonly ISyntaxFacts _syntaxFacts;
 
             protected Analyzer(ISyntaxFacts syntaxFacts, Feature features)
@@ -95,20 +101,30 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             //
             private bool ParseIfStatementSequence(ReadOnlySpan<IOperation> operations, ArrayBuilder<AnalyzedSwitchSection> sections, out IOperation? defaultBodyOpt)
             {
-                if (operations.Length > 1 &&
-                    operations[0] is IConditionalOperation { WhenFalse: null } op &&
-                    HasUnreachableEndPoint(op.WhenTrue))
+                var current = 0;
+                while (current < operations.Length &&
+                    operations[current] is IConditionalOperation { WhenFalse: null } op &&
+                    HasUnreachableEndPoint(op.WhenTrue) &&
+                    ParseIfStatement(op, sections, out _))
                 {
-                    if (!ParseIfStatement(op, sections, out defaultBodyOpt))
-                    {
-                        return false;
-                    }
+                    current++;
+                }
 
-                    if (!ParseIfStatementSequence(operations[1..], sections, out defaultBodyOpt))
+                defaultBodyOpt = null;
+                if (current == 0)
+                {
+                    // didn't consume a sequence of if-statements with unreachable ends.  Check for the last case.
+                    return operations.Length > 0 && ParseIfStatement(operations[0], sections, out defaultBodyOpt);
+                }
+                else
+                {
+                    if (current < operations.Length)
                     {
-                        var nextStatement = operations[1];
-                        if (nextStatement is IReturnOperation { ReturnedValue: { } } or
-                            IThrowOperation { Exception: { } })
+                        // consumed a sequence of if-statements with unreachable-ends.  If we end with a normal
+                        // if-statement, we're done.  Otherwise, we end with whatever last return/throw we see.
+                        var nextStatement = operations[current];
+                        if (!ParseIfStatement(nextStatement, sections, out defaultBodyOpt) &&
+                            nextStatement is IReturnOperation { ReturnedValue: not null } or IThrowOperation { Exception: not null })
                         {
                             defaultBodyOpt = nextStatement;
                         }
@@ -116,14 +132,6 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
                     return true;
                 }
-
-                if (operations.Length > 0)
-                {
-                    return ParseIfStatement(operations[0], sections, out defaultBodyOpt);
-                }
-
-                defaultBodyOpt = null;
-                return false;
             }
 
             // Tree to parse:
@@ -239,8 +247,8 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             {
                 return (op.LeftOperand, op.RightOperand) switch
                 {
-                    var (e, v) when IsConstant(v) && CheckTargetExpression(e) => ConstantResult.Right,
-                    var (v, e) when IsConstant(v) && CheckTargetExpression(e) => ConstantResult.Left,
+                    var (e, v) when IsConstant(v) && CheckTargetExpression(e) && CheckConstantType(v) => ConstantResult.Right,
+                    var (v, e) when IsConstant(v) && CheckTargetExpression(e) && CheckConstantType(v) => ConstantResult.Left,
                     _ => ConstantResult.None,
                 };
             }
@@ -433,22 +441,29 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
             private bool CheckTargetExpression(IOperation operation)
             {
-                if (operation is IConversionOperation { IsImplicit: false } op)
-                {
-                    // Unwrap explicit casts because switch will emit those anyways
-                    operation = op.Operand;
-                }
+                operation = operation.WalkDownConversion();
 
                 var expression = operation.Syntax;
                 // If we have not figured the switch expression yet,
                 // we will assume that the first expression is the one.
                 if (_switchTargetExpression is null)
                 {
+                    RoslynDebug.Assert(_switchTargetType is null);
+
                     _switchTargetExpression = expression;
+                    _switchTargetType = operation.Type;
                     return true;
                 }
 
                 return _syntaxFacts.AreEquivalent(expression, _switchTargetExpression);
+            }
+
+            private bool CheckConstantType(IOperation operation)
+            {
+                RoslynDebug.AssertNotNull(operation.SemanticModel);
+                RoslynDebug.AssertNotNull(_switchTargetType);
+
+                return CanImplicitlyConvert(operation.SemanticModel, operation.Syntax, _switchTargetType);
             }
         }
 

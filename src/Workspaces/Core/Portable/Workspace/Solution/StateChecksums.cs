@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
@@ -12,29 +13,23 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization
 {
-    internal sealed class SolutionStateChecksums : ChecksumWithChildren
+    internal sealed class SolutionStateChecksums(ImmutableArray<object> children) : ChecksumWithChildren(children)
     {
         public SolutionStateChecksums(
             Checksum attributesChecksum,
-            Checksum optionsChecksum,
             ChecksumCollection projectChecksums,
             ChecksumCollection analyzerReferenceChecksums,
             Checksum frozenSourceGeneratedDocumentIdentity,
             Checksum frozenSourceGeneratedDocumentText)
-            : this(new object[] { attributesChecksum, optionsChecksum, projectChecksums, analyzerReferenceChecksums, frozenSourceGeneratedDocumentIdentity, frozenSourceGeneratedDocumentText })
-        {
-        }
-
-        public SolutionStateChecksums(object[] children) : base(children)
+            : this(ImmutableArray.Create<object>(attributesChecksum, projectChecksums, analyzerReferenceChecksums, frozenSourceGeneratedDocumentIdentity, frozenSourceGeneratedDocumentText))
         {
         }
 
         public Checksum Attributes => (Checksum)Children[0];
-        public Checksum Options => (Checksum)Children[1];
-        public ChecksumCollection Projects => (ChecksumCollection)Children[2];
-        public ChecksumCollection AnalyzerReferences => (ChecksumCollection)Children[3];
-        public Checksum FrozenSourceGeneratedDocumentIdentity => (Checksum)Children[4];
-        public Checksum FrozenSourceGeneratedDocumentText => (Checksum)Children[5];
+        public ChecksumCollection Projects => (ChecksumCollection)Children[1];
+        public ChecksumCollection AnalyzerReferences => (ChecksumCollection)Children[2];
+        public Checksum FrozenSourceGeneratedDocumentIdentity => (Checksum)Children[3];
+        public Checksum FrozenSourceGeneratedDocumentText => (Checksum)Children[4];
 
         public async Task FindAsync(
             SolutionState state,
@@ -52,9 +47,6 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             if (searchingChecksumsLeft.Remove(Attributes))
                 result[Attributes] = state.SolutionAttributes;
-
-            if (searchingChecksumsLeft.Remove(Options))
-                result[Options] = state.Options;
 
             if (searchingChecksumsLeft.Remove(FrozenSourceGeneratedDocumentIdentity))
             {
@@ -93,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         }
     }
 
-    internal class ProjectStateChecksums : ChecksumWithChildren
+    internal class ProjectStateChecksums(ImmutableArray<object> children) : ChecksumWithChildren(children)
     {
         public ProjectStateChecksums(
             Checksum infoChecksum,
@@ -104,9 +96,9 @@ namespace Microsoft.CodeAnalysis.Serialization
             ChecksumCollection metadataReferenceChecksums,
             ChecksumCollection analyzerReferenceChecksums,
             ChecksumCollection additionalDocumentChecksums,
-            ChecksumCollection analyzerConfigDocumentChecksumCollection)
-            : this(
-                (object)infoChecksum,
+            ChecksumCollection analyzerConfigDocumentChecksums)
+            : this(ImmutableArray.Create<object>(
+                infoChecksum,
                 compilationOptionsChecksum,
                 parseOptionsChecksum,
                 documentChecksums,
@@ -114,11 +106,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                 metadataReferenceChecksums,
                 analyzerReferenceChecksums,
                 additionalDocumentChecksums,
-                analyzerConfigDocumentChecksumCollection)
-        {
-        }
-
-        public ProjectStateChecksums(params object[] children) : base(children)
+                analyzerConfigDocumentChecksums))
         {
         }
 
@@ -211,14 +199,10 @@ namespace Microsoft.CodeAnalysis.Serialization
         }
     }
 
-    internal class DocumentStateChecksums : ChecksumWithChildren
+    internal class DocumentStateChecksums(ImmutableArray<object> children) : ChecksumWithChildren(children)
     {
         public DocumentStateChecksums(Checksum infoChecksum, Checksum textChecksum)
-            : this((object)infoChecksum, textChecksum)
-        {
-        }
-
-        public DocumentStateChecksums(params object[] children) : base(children)
+            : this(ImmutableArray.Create<object>(infoChecksum, textChecksum))
         {
         }
 

@@ -37,6 +37,11 @@
         <target state="translated">修正插入的逐字字串</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fixing_string_literal_after_paste">
+        <source>Fixing string literal after paste</source>
+        <target state="translated">正在修正貼上後的字串常值</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Found_0_assemblies_for_1">
         <source>Found '{0}' assemblies for '{1}':</source>
         <target state="translated">找到 '{0}' 個 '{1}' 的組件:</target>
@@ -60,6 +65,11 @@
       <trans-unit id="Generate_Event_Subscription">
         <source>Generate Event Subscription</source>
         <target state="translated">產生事件訂閱</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Grow_raw_string">
+        <source>Grow raw string</source>
+        <target state="translated">放大原始字串</target>
         <note />
       </trans-unit>
       <trans-unit id="Load_from_0">
@@ -95,6 +105,11 @@
       <trans-unit id="Smart_Indenting">
         <source>Smart Indenting</source>
         <target state="translated">智慧縮排</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Split_raw_string">
+        <source>Split raw string</source>
+        <target state="translated">分割原始字串</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_string">

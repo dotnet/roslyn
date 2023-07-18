@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
@@ -34,13 +33,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
         protected abstract bool IsNameOf(SyntaxNode node);
 
         // High priority as we need to know about unbound identifiers so that we can run add-using to fix them.
-        public CodeActionRequestPriority RequestPriority
-            => CodeActionRequestPriority.High;
+        public bool IsHighPriority
+            => true;
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             => ImmutableArray.Create(DiagnosticDescriptor);
 
-        public bool OpenFileOnly(OptionSet options)
+        public bool OpenFileOnly(SimplifierOptions? options)
             => false;
 
         public override void Initialize(AnalysisContext context)

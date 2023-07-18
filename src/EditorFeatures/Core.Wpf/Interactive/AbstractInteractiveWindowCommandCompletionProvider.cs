@@ -5,11 +5,10 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Interactive;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
 
-namespace Microsoft.CodeAnalysis.Completion.Providers
+namespace Microsoft.CodeAnalysis.Interactive
 {
     /// <summary>
     /// Provides completion items for Interactive Window commands (such as #help, #cls, etc.) at the start of a language buffer.
@@ -26,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var cancellationToken = context.CancellationToken;
 
             // the provider might be invoked in non-interactive context:
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             if (Workspace.TryGetWorkspace(sourceText.Container, out var workspace))
             {
                 if (workspace is InteractiveWindowWorkspace interactiveWorkspace)

@@ -125,20 +125,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        public void SetTargetFileToExisting(string existingFileName)
-        {
-            using (var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout))
-            {
-                JoinableTaskFactory.Run(async () =>
-                {
-                    await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
-                    var dialog = await GetDialogAsync(cancellationTokenSource.Token);
-                    Contract.ThrowIfFalse(await dialog.GetTestAccessor().AddToExistingFileRadioButton.SimulateClickAsync(JoinableTaskFactory));
-                    Contract.ThrowIfFalse(await dialog.GetTestAccessor().AddToExistingFileComboBox.SimulateSelectItemAsync(JoinableTaskFactory, existingFileName, mustExist: false));
-                });
-            }
-        }
-
         public string[] GetNewFileComboBoxItems()
         {
             using (var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout))

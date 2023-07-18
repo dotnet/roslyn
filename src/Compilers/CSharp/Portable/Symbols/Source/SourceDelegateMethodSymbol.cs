@@ -24,12 +24,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeWithAnnotations returnType,
             DelegateDeclarationSyntax syntax,
             MethodKind methodKind,
+            RefKind refKind,
             DeclarationModifiers declarationModifiers)
-            : base(delegateType, syntax.GetReference(), location: syntax.Identifier.GetLocation(), isIterator: false)
+            : base(delegateType, syntax.GetReference(), location: syntax.Identifier.GetLocation(), isIterator: false,
+                   (declarationModifiers, MakeFlags(
+                                                    methodKind, refKind, declarationModifiers, returnType.IsVoidType(), returnsVoidIsSet: true, isExpressionBodied: false,
+                                                    isExtensionMethod: false, isVarArg: false, isNullableAnalysisEnabled: false, isExplicitInterfaceImplementation: false)))
         {
             _returnType = returnType;
-            this.MakeFlags(methodKind, declarationModifiers, _returnType.IsVoidType(), isExtensionMethod: false, isNullableAnalysisEnabled: false);
         }
+
+        internal sealed override ExecutableCodeBinder TryGetBodyBinder(BinderFactory binderFactoryOpt = null, bool ignoreAccessibility = false) => throw ExceptionUtilities.Unreachable();
 
         protected void InitializeParameters(ImmutableArray<ParameterSymbol> parameters)
         {
@@ -43,10 +48,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DelegateDeclarationSyntax syntax,
             BindingDiagnosticBag diagnostics)
         {
-            var compilation = delegateType.DeclaringCompilation;
             Binder binder = delegateType.GetBinder(syntax.ParameterList);
-            RefKind refKind;
-            TypeSyntax returnTypeSyntax = syntax.ReturnType.SkipRef(out refKind);
+            TypeSyntax returnTypeSyntax = syntax.ReturnType;
+            Debug.Assert(returnTypeSyntax is not ScopedTypeSyntax);
+
+            returnTypeSyntax = returnTypeSyntax.SkipScoped(out _).SkipRefInLocalOrReturn(diagnostics, out RefKind refKind);
             var returnType = binder.BindType(returnTypeSyntax, diagnostics);
 
             // reuse types to avoid reporting duplicate errors if missing:
@@ -95,7 +101,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!delegateType.IsNoMoreVisibleThan(invoke.ReturnTypeWithAnnotations, ref useSiteInfo))
             {
                 // Inconsistent accessibility: return type '{1}' is less accessible than delegate '{0}'
-                diagnostics.Add(ErrorCode.ERR_BadVisDelegateReturn, delegateType.Locations[0], delegateType, invoke.ReturnType);
+                diagnostics.Add(ErrorCode.ERR_BadVisDelegateReturn, delegateType.GetFirstLocation(), delegateType, invoke.ReturnType);
+            }
+
+            var delegateTypeIsFile = delegateType.HasFileLocalTypes();
+            if (!delegateTypeIsFile && invoke.ReturnType.HasFileLocalTypes())
+            {
+                diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, delegateType.GetFirstLocation(), invoke.ReturnType, delegateType);
             }
 
             for (int i = 0; i < invoke.Parameters.Length; i++)
@@ -104,29 +116,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!parameterSymbol.TypeWithAnnotations.IsAtLeastAsVisibleAs(delegateType, ref useSiteInfo))
                 {
                     // Inconsistent accessibility: parameter type '{1}' is less accessible than delegate '{0}'
-                    diagnostics.Add(ErrorCode.ERR_BadVisDelegateParam, delegateType.Locations[0], delegateType, parameterSymbol.Type);
+                    diagnostics.Add(ErrorCode.ERR_BadVisDelegateParam, delegateType.GetFirstLocation(), delegateType, parameterSymbol.Type);
                 }
-                var parameterSyntax = syntax.ParameterList.Parameters[i];
-                if (parameterSyntax.ExclamationExclamationToken.Kind() == SyntaxKind.ExclamationExclamationToken)
+                else if (!delegateTypeIsFile && parameterSymbol.Type.HasFileLocalTypes())
                 {
-                    diagnostics.Add(ErrorCode.ERR_MustNullCheckInImplementation, parameterSyntax.Identifier.GetLocation(), parameterSyntax.Identifier.ValueText);
+                    diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, delegateType.GetFirstLocation(), parameterSymbol.Type, delegateType);
                 }
             }
 
-            diagnostics.Add(delegateType.Locations[0], useSiteInfo);
+            diagnostics.Add(delegateType.GetFirstLocation(), useSiteInfo);
         }
 
         protected override void MethodChecks(BindingDiagnosticBag diagnostics)
         {
             // TODO: move more functionality into here, making these symbols more lazy
-        }
-
-        public sealed override bool IsVararg
-        {
-            get
-            {
-                return false;
-            }
         }
 
         public sealed override ImmutableArray<ParameterSymbol> Parameters
@@ -168,11 +171,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool IsExpressionBodied
-        {
-            get { return false; }
-        }
-
         internal override bool GenerateDebugInfo
         {
             get { return false; }
@@ -211,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeWithAnnotations objectType,
                 TypeWithAnnotations intPtrType,
                 DelegateDeclarationSyntax syntax)
-                : base(delegateType, voidType, syntax, MethodKind.Constructor, DeclarationModifiers.Public)
+                : base(delegateType, voidType, syntax, MethodKind.Constructor, RefKind.None, DeclarationModifiers.Public)
             {
                 InitializeParameters(ImmutableArray.Create<ParameterSymbol>(
                     SynthesizedParameterSymbol.Create(this, objectType, 0, RefKind.None, "object"),
@@ -221,11 +219,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override string Name
             {
                 get { return WellKnownMemberNames.InstanceConstructorName; }
-            }
-
-            public override RefKind RefKind
-            {
-                get { return RefKind.None; }
             }
 
             internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetReturnTypeAttributeDeclarations()
@@ -244,11 +237,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // so we will keep them the same.
                 return new LexicalSortKey(this.syntaxReferenceOpt.GetLocation(), this.DeclaringCompilation);
             }
+
+            protected override bool HasSetsRequiredMembersImpl => false;
         }
 
         private sealed class InvokeMethod : SourceDelegateMethodSymbol
         {
-            private readonly RefKind _refKind;
             private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
 
             internal InvokeMethod(
@@ -258,10 +252,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DelegateDeclarationSyntax syntax,
                 Binder binder,
                 BindingDiagnosticBag diagnostics)
-                : base(delegateType, returnType, syntax, MethodKind.DelegateInvoke, DeclarationModifiers.Virtual | DeclarationModifiers.Public)
+                : base(delegateType, returnType, syntax, MethodKind.DelegateInvoke, refKind, DeclarationModifiers.Virtual | DeclarationModifiers.Public)
             {
-                this._refKind = refKind;
-
                 SyntaxToken arglistToken;
                 var parameters = ParameterHelpers.MakeParameters(
                     binder, this, syntax.ParameterList, out arglistToken,
@@ -278,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_IllegalVarArgs, new SourceLocation(arglistToken));
                 }
 
-                if (_refKind == RefKind.RefReadOnly)
+                if (this.RefKind == RefKind.RefReadOnly)
                 {
                     var modifierType = binder.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute, diagnostics, syntax.ReturnType);
                     _refCustomModifiers = ImmutableArray.Create(CSharpCustomModifier.CreateRequired(modifierType));
@@ -288,17 +280,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     _refCustomModifiers = ImmutableArray<CustomModifier>.Empty;
                 }
 
-                InitializeParameters(parameters);
+                InitializeParameters(parameters.Cast<SourceParameterSymbol, ParameterSymbol>());
             }
 
             public override string Name
             {
                 get { return WellKnownMemberNames.DelegateInvokeName; }
-            }
-
-            public override RefKind RefKind
-            {
-                get { return _refKind; }
             }
 
             internal override LexicalSortKey GetLexicalSortKey()
@@ -322,19 +309,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
-                if (_refKind == RefKind.RefReadOnly)
+                if (this.RefKind == RefKind.RefReadOnly)
                 {
                     compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
                 }
 
                 ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
 
-                if (ReturnType.ContainsNativeInteger())
+                if (compilation.ShouldEmitNativeIntegerAttributes(ReturnType))
                 {
                     compilation.EnsureNativeIntegerAttributeExists(diagnostics, location, modifyCompilation: true);
                 }
 
                 ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
+                ParameterHelpers.EnsureScopedRefAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
 
                 if (compilation.ShouldEmitNullableAttributes(this) &&
                     ReturnTypeWithAnnotations.NeedsNullableAttribute())
@@ -356,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeWithAnnotations objectType,
                 TypeWithAnnotations asyncCallbackType,
                 DelegateDeclarationSyntax syntax)
-                : base((SourceNamedTypeSymbol)invoke.ContainingType, iAsyncResultType, syntax, MethodKind.Ordinary, DeclarationModifiers.Virtual | DeclarationModifiers.Public)
+                : base((SourceNamedTypeSymbol)invoke.ContainingType, iAsyncResultType, syntax, MethodKind.Ordinary, RefKind.None, DeclarationModifiers.Virtual | DeclarationModifiers.Public)
             {
                 var parameters = ArrayBuilder<ParameterSymbol>.GetInstance();
                 foreach (SourceParameterSymbol p in invoke.Parameters)
@@ -377,11 +365,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return WellKnownMemberNames.DelegateBeginInvokeName; }
             }
 
-            public override RefKind RefKind
-            {
-                get { return RefKind.None; }
-            }
-
             internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetReturnTypeAttributeDeclarations()
             {
                 // BeginInvoke method doesn't have return type attributes
@@ -399,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 InvokeMethod invoke,
                 TypeWithAnnotations iAsyncResultType,
                 DelegateDeclarationSyntax syntax)
-                : base((SourceNamedTypeSymbol)invoke.ContainingType, invoke.ReturnTypeWithAnnotations, syntax, MethodKind.Ordinary, DeclarationModifiers.Virtual | DeclarationModifiers.Public)
+                : base((SourceNamedTypeSymbol)invoke.ContainingType, invoke.ReturnTypeWithAnnotations, syntax, MethodKind.Ordinary, invoke.RefKind, DeclarationModifiers.Virtual | DeclarationModifiers.Public)
             {
                 _invoke = invoke;
 
@@ -422,8 +405,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             protected override SourceMemberMethodSymbol BoundAttributesSource => _invoke;
 
             public override string Name => WellKnownMemberNames.DelegateEndInvokeName;
-
-            public override RefKind RefKind => _invoke.RefKind;
 
             public override ImmutableArray<CustomModifier> RefCustomModifiers => _invoke.RefCustomModifiers;
         }

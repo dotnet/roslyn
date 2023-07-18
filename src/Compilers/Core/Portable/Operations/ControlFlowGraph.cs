@@ -137,6 +137,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             return CreateCore(initializer, nameof(initializer), cancellationToken);
         }
 
+        /// <summary>
+        /// Creates a <see cref="ControlFlowGraph"/> for the given executable code block <paramref name="attribute"/>.
+        /// </summary>
+        /// <param name="attribute">Root attribute operation, which must have a null parent.</param>
+        /// <param name="cancellationToken">Optional cancellation token.</param>
+        public static ControlFlowGraph Create(Operations.IAttributeOperation attribute, CancellationToken cancellationToken = default)
+        {
+            return CreateCore(attribute, nameof(attribute), cancellationToken);
+        }
 
         /// <summary>
         /// Creates a <see cref="ControlFlowGraph"/> for the given executable code block <paramref name="constructorBody"/>.
@@ -178,21 +187,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 throw new ArgumentException(CodeAnalysisResources.OperationHasNullSemanticModel, argumentNameForException);
             }
 
-            try
-            {
-                ControlFlowGraph controlFlowGraph = ControlFlowGraphBuilder.Create(operation);
-                Debug.Assert(controlFlowGraph.OriginalOperation == operation);
-                return controlFlowGraph;
-            }
-#pragma warning disable CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete; tracked by https://github.com/dotnet/roslyn/issues/58375
-            catch (Exception e) when (FatalError.ReportIfNonFatalAndCatchUnlessCanceled(e, cancellationToken))
-#pragma warning restore CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete
-            {
-                // Log a Non-fatal-watson and then ignore the crash in the attempt of getting flow graph.
-                Debug.Assert(false, "\n" + e.ToString());
-            }
-
-            return null;
+            ControlFlowGraph controlFlowGraph = ControlFlowGraphBuilder.Create(operation);
+            Debug.Assert(controlFlowGraph.OriginalOperation == operation);
+            return controlFlowGraph;
         }
 
         /// <summary>
@@ -236,7 +233,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 throw new ArgumentNullException(nameof(localFunction));
             }
 
-            if (!TryGetLocalFunctionControlFlowGraph(localFunction, cancellationToken, out var controlFlowGraph))
+            if (!TryGetLocalFunctionControlFlowGraph(localFunction, out var controlFlowGraph))
             {
                 throw new ArgumentOutOfRangeException(nameof(localFunction));
             }
@@ -244,7 +241,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             return controlFlowGraph;
         }
 
-        internal bool TryGetLocalFunctionControlFlowGraph(IMethodSymbol localFunction, CancellationToken cancellationToken, [NotNullWhen(true)] out ControlFlowGraph? controlFlowGraph)
+        internal bool TryGetLocalFunctionControlFlowGraph(IMethodSymbol localFunction, [NotNullWhen(true)] out ControlFlowGraph? controlFlowGraph)
         {
             if (!_localFunctionsMap.TryGetValue(localFunction, out (ControlFlowRegion enclosing, ILocalFunctionOperation operation, int ordinal) info))
             {
@@ -285,7 +282,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 throw new ArgumentNullException(nameof(anonymousFunction));
             }
 
-            if (!TryGetAnonymousFunctionControlFlowGraph(anonymousFunction, cancellationToken, out ControlFlowGraph? controlFlowGraph))
+            if (!TryGetAnonymousFunctionControlFlowGraph(anonymousFunction, out ControlFlowGraph? controlFlowGraph))
             {
                 throw new ArgumentOutOfRangeException(nameof(anonymousFunction));
             }
@@ -293,7 +290,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             return controlFlowGraph;
         }
 
-        internal bool TryGetAnonymousFunctionControlFlowGraph(IFlowAnonymousFunctionOperation anonymousFunction, CancellationToken cancellationToken, [NotNullWhen(true)] out ControlFlowGraph? controlFlowGraph)
+        internal bool TryGetAnonymousFunctionControlFlowGraph(IFlowAnonymousFunctionOperation anonymousFunction, [NotNullWhen(true)] out ControlFlowGraph? controlFlowGraph)
         {
             if (!_anonymousFunctionsMap.TryGetValue(anonymousFunction, out (ControlFlowRegion enclosing, int ordinal) info))
             {

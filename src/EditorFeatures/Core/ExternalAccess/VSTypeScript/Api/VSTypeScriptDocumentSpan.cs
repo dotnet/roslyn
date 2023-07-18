@@ -8,15 +8,17 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {
-    internal readonly struct VSTypeScriptDocumentSpan
+    internal readonly struct VSTypeScriptDocumentSpan(Document document, TextSpan sourceSpan)
     {
-        public Document Document { get; }
-        public TextSpan SourceSpan { get; }
+        public Document Document { get; } = document;
+        public TextSpan SourceSpan { get; } = sourceSpan;
 
-        public VSTypeScriptDocumentSpan(Document document, TextSpan sourceSpan)
+        internal VSTypeScriptDocumentSpan(DocumentSpan span)
+            : this(span.Document, span.SourceSpan)
         {
-            Document = document;
-            SourceSpan = sourceSpan;
         }
+
+        internal DocumentSpan ToDocumentSpan()
+            => new(Document, SourceSpan);
     }
 }
