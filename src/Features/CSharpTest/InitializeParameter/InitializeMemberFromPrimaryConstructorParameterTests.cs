@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpInitializeMemberFromPrimaryConstructorParameterCodeRefactoringProvider();
 
-        private readonly NamingStylesTestOptionSets options = new NamingStylesTestOptionSets(LanguageNames.CSharp);
+        private readonly NamingStylesTestOptionSets _options = new(LanguageNames.CSharp);
 
         [Fact]
         public async Task TestInitializeFieldWithSameName()
@@ -760,7 +760,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 {
                     private readonly string _s = s;
                 }
-                """, index: 1, parameters: new TestParameters(options: options.FieldNamesAreCamelCaseWithUnderscorePrefix));
+                """, index: 1, parameters: new TestParameters(options: _options.FieldNamesAreCamelCaseWithUnderscorePrefix));
         }
 
         [Fact]
@@ -777,7 +777,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 {
                     private readonly string _s = t_s;
                 }
-                """, index: 1, parameters: new TestParameters(options: options.FieldNamesAreCamelCaseWithUnderscorePrefix));
+                """, index: 1, parameters: new TestParameters(options: _options.FieldNamesAreCamelCaseWithUnderscorePrefix));
         }
 
         [Fact]
@@ -794,7 +794,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 {
                     private readonly string _s = p_s_End;
                 }
-                """, index: 1, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
+                """, index: 1, parameters: new TestParameters(options: _options.MergeStyles(_options.FieldNamesAreCamelCaseWithUnderscorePrefix, _options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
         [Fact]
@@ -811,7 +811,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 {
                     private readonly string _s = t_p_s_End;
                 }
-                """, index: 1, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
+                """, index: 1, parameters: new TestParameters(options: _options.MergeStyles(_options.FieldNamesAreCamelCaseWithUnderscorePrefix, _options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
         [Fact]
@@ -828,7 +828,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 {
                     private readonly string _s = p_t_s;
                 }
-                """, index: 1, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix)));
+                """, index: 1, parameters: new TestParameters(options: _options.MergeStyles(_options.FieldNamesAreCamelCaseWithUnderscorePrefix, _options.ParameterNamesAreCamelCaseWithPUnderscorePrefix)));
         }
 
         [Fact]
@@ -845,7 +845,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 {
                     public string S { get; } = s;
                 }
-                """, parameters: new TestParameters(options: options.PropertyNamesArePascalCase));
+                """, parameters: new TestParameters(options: _options.PropertyNamesArePascalCase));
         }
 
         [Fact]
@@ -862,7 +862,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 {
                     public string S { get; } = t_s;
                 }
-                """, parameters: new TestParameters(options: options.PropertyNamesArePascalCase));
+                """, parameters: new TestParameters(options: _options.PropertyNamesArePascalCase));
         }
 
         [Fact]
@@ -879,7 +879,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 {
                     public string S { get; } = p_s_End;
                 }
-                """, parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
+                """, parameters: new TestParameters(options: _options.MergeStyles(_options.PropertyNamesArePascalCase, _options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
         [Fact]
@@ -896,7 +896,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 {
                     public string S { get; } = t_p_s_End;
                 }
-                """, parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
+                """, parameters: new TestParameters(options: _options.MergeStyles(_options.PropertyNamesArePascalCase, _options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
         [Fact]
@@ -913,7 +913,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 {
                     public string S { get; } = p_t_s_End;
                 }
-                """, parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
+                """, parameters: new TestParameters(options: _options.MergeStyles(_options.PropertyNamesArePascalCase, _options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
         [Fact]
@@ -931,7 +931,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 {
                     private readonly string _s = s;
                 }
-                """, index: 0, parameters: new TestParameters(options: options.FieldNamesAreCamelCaseWithUnderscorePrefix));
+                """, index: 0, parameters: new TestParameters(options: _options.FieldNamesAreCamelCaseWithUnderscorePrefix));
         }
 
         [Fact]
@@ -949,7 +949,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 {
                     private readonly string _s = t_s;
                 }
-                """, index: 0, parameters: new TestParameters(options: options.FieldNamesAreCamelCaseWithUnderscorePrefix));
+                """, index: 0, parameters: new TestParameters(options: _options.FieldNamesAreCamelCaseWithUnderscorePrefix));
         }
 
         [Fact]
@@ -967,7 +967,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 {
                     private readonly string _s = p_s_End;
                 }
-                """, index: 0, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
+                """, index: 0, parameters: new TestParameters(options: _options.MergeStyles(_options.FieldNamesAreCamelCaseWithUnderscorePrefix, _options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
         [Fact]
@@ -985,7 +985,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 {
                     private readonly string _s = t_p_s_End;
                 }
-                """, index: 0, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
+                """, index: 0, parameters: new TestParameters(options: _options.MergeStyles(_options.FieldNamesAreCamelCaseWithUnderscorePrefix, _options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
         [Fact]
@@ -1003,7 +1003,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 {
                     private readonly string _s = p_t_s_End;
                 }
-                """, index: 0, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
+                """, index: 0, parameters: new TestParameters(options: _options.MergeStyles(_options.FieldNamesAreCamelCaseWithUnderscorePrefix, _options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
         [Fact]
@@ -1021,7 +1021,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 {
                     public string S { get; } = s;
                 }
-                """, parameters: new TestParameters(options: options.PropertyNamesArePascalCase));
+                """, parameters: new TestParameters(options: _options.PropertyNamesArePascalCase));
         }
 
         [Fact]
@@ -1039,7 +1039,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 {
                     public string S { get; } = t_s;
                 }
-                """, parameters: new TestParameters(options: options.PropertyNamesArePascalCase));
+                """, parameters: new TestParameters(options: _options.PropertyNamesArePascalCase));
         }
 
         [Fact]
@@ -1057,7 +1057,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 {
                     public string S { get; } = p_s_End;
                 }
-                """, parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
+                """, parameters: new TestParameters(options: _options.MergeStyles(_options.PropertyNamesArePascalCase, _options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
         [Fact]
@@ -1075,7 +1075,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 {
                     public string S { get; } = t_p_s_End;
                 }
-                """, parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
+                """, parameters: new TestParameters(options: _options.MergeStyles(_options.PropertyNamesArePascalCase, _options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
         [Fact]
@@ -1093,7 +1093,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 {
                     public string S { get; } = p_t_s_End;
                 }
-                """, parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
+                """, parameters: new TestParameters(options: _options.MergeStyles(_options.PropertyNamesArePascalCase, _options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
         [Fact]
@@ -1105,7 +1105,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 {
                     public string S { get; }
                 }
-                """, parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
+                """, parameters: new TestParameters(options: _options.MergeStyles(_options.PropertyNamesArePascalCase, _options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
         [Fact]
@@ -1119,7 +1119,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 class C([|string p__End, string p_test_t|])
                 {
                 }
-                """, parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
+                """, parameters: new TestParameters(options: _options.MergeStyles(_options.PropertyNamesArePascalCase, _options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
         private TestParameters OmitIfDefault_Warning => new TestParameters(options: Option(CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.OmitIfDefault, NotificationOption2.Warning));
@@ -1142,7 +1142,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 {
                     private readonly string? _s = s;
                 }
-                """, index: 1, parameters: new TestParameters(options: options.FieldNamesAreCamelCaseWithUnderscorePrefix));
+                """, index: 1, parameters: new TestParameters(options: _options.FieldNamesAreCamelCaseWithUnderscorePrefix));
         }
 
         [Fact]
@@ -1161,7 +1161,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 {
                     public string? S { get; } = s;
                 }
-                """, parameters: new TestParameters(options: options.PropertyNamesArePascalCase));
+                """, parameters: new TestParameters(options: _options.PropertyNamesArePascalCase));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24526")]
@@ -1793,7 +1793,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                         var v = new C(s: "");
                     }
                 }
-                """, index: 1, parameters: new TestParameters(options: options.FieldNamesAreCamelCaseWithUnderscorePrefix));
+                """, index: 1, parameters: new TestParameters(options: _options.FieldNamesAreCamelCaseWithUnderscorePrefix));
         }
 
         [Fact]
