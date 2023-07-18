@@ -150,10 +150,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
                 var preferredTypeDeclaration = siblingSyntax?.GetAncestorOrThis<TypeDeclarationSyntax>() ?? typeDeclaration;
 
-                var editingDocument = solution.GetRequiredDocument(typeDeclaration.SyntaxTree);
+                var editingDocument = solution.GetRequiredDocument(preferredTypeDeclaration.SyntaxTree);
                 var editor = await solutionEditor.GetDocumentEditorAsync(editingDocument.Id, cancellationToken).ConfigureAwait(false);
                 editor.ReplaceNode(
-                    typeDeclaration,
+                    preferredTypeDeclaration,
                     (currentTypeDecl, _) =>
                     {
                         if (fieldOrProperty is IPropertySymbol property)

@@ -1231,263 +1231,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 """);
         }
 
-        //[Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23308")]
-        //public async Task TestGenerateFieldIfParameterFollowsExistingFieldAssignment_TupleAssignment1()
-        //{
-        //    await TestInRegularAndScript1Async(
-        //        """
-        //        class C
-        //        {
-        //            private readonly string s;
-        //            private readonly string t;
-
-        //            public C(string s, string t, [||]int i)
-        //            {
-        //                (this.s, this.t) = (s, t);
-        //            }
-        //        }
-        //        """,
-        //        """
-        //        class C
-        //        {
-        //            private readonly string s;
-        //            private readonly string t;
-        //            private readonly int i;
-
-        //            public C(string s, string t, int i)
-        //            {
-        //                (this.s, this.t, this.i) = (s, t, i);
-        //            }
-        //        }
-        //        """);
-        //}
-
-        //[Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23308")]
-        //public async Task TestGenerateFieldIfParameterFollowsExistingFieldAssignment_TupleAssignment2()
-        //{
-        //    await TestInRegularAndScript1Async(
-        //        """
-        //        class C
-        //        {
-        //            private readonly string s;
-        //            private readonly string t;
-
-        //            public C(string s, string t, [||]int i) =>
-        //                (this.s, this.t) = (s, t);
-        //        }
-        //        """,
-        //        """
-        //        class C
-        //        {
-        //            private readonly string s;
-        //            private readonly string t;
-        //            private readonly int i;
-
-        //            public C(string s, string t, int i) =>
-        //                (this.s, this.t, this.i) = (s, t, i);
-        //        }
-        //        """);
-        //}
-
-        //[Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23308")]
-        //public async Task TestGenerateFieldIfParameterFollowsExistingFieldAssignment_TupleAssignment3()
-        //{
-        //    await TestInRegularAndScript1Async(
-        //        """
-        //        class C
-        //        {
-        //            private readonly string s;
-        //            private readonly string t;
-
-        //            public C(string s, string t, [||]int i)
-        //            {
-        //                if (s is null) throw new ArgumentNullException();
-        //                (this.s, this.t) = (s, t);
-        //            }
-        //        }
-        //        """,
-        //        """
-        //        class C
-        //        {
-        //            private readonly string s;
-        //            private readonly string t;
-        //            private readonly int i;
-
-        //            public C(string s, string t, int i)
-        //            {
-        //                if (s is null) throw new ArgumentNullException();
-        //                (this.s, this.t, this.i) = (s, t, i);
-        //            }
-        //        }
-        //        """);
-        //}
-
-        //[Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23308")]
-        //public async Task TestGenerateFieldIfParameterPrecedesExistingFieldAssignment_TupleAssignment1()
-        //{
-        //    await TestInRegularAndScript1Async(
-        //        """
-        //        class C
-        //        {
-        //            private readonly string s;
-        //            private readonly string t;
-
-        //            public C([||]int i, string s, string t)
-        //            {
-        //                (this.s, this.t) = (s, t);
-        //            }
-        //        }
-        //        """,
-        //        """
-        //        class C
-        //        {
-        //            private readonly int i;
-        //            private readonly string s;
-        //            private readonly string t;
-
-        //            public C(int i, string s, string t)
-        //            {
-        //                (this.i, this.s, this.t) = (i, s, t);
-        //            }
-        //        }
-        //        """);
-        //}
-
-        //[Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23308")]
-        //public async Task TestGenerateFieldIfParameterPrecedesExistingFieldAssignment_TupleAssignment2()
-        //{
-        //    await TestInRegularAndScript1Async(
-        //        """
-        //        class C
-        //        {
-        //            private readonly string s;
-        //            private readonly string t;
-
-        //            public C([||]int i, string s, string t) =>
-        //                (this.s, this.t) = (s, t);
-        //        }
-        //        """,
-        //        """
-        //        class C
-        //        {
-        //            private readonly int i;
-        //            private readonly string s;
-        //            private readonly string t;
-
-        //            public C(int i, string s, string t) =>
-        //                (this.i, this.s, this.t) = (i, s, t);
-        //        }
-        //        """);
-        //}
-
-        //[Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23308")]
-        //public async Task TestGenerateFieldIfParameterInMiddleOfExistingFieldAssignment_TupleAssignment1()
-        //{
-        //    await TestInRegularAndScript1Async(
-        //        """
-        //        class C
-        //        {
-        //            private readonly string s;
-        //            private readonly string t;
-
-        //            public C(string s, [||]int i, string t)
-        //            {
-        //                (this.s, this.t) = (s, t);
-        //            }
-        //        }
-        //        """,
-        //        """
-        //        class C
-        //        {
-        //            private readonly string s;
-        //            private readonly int i;
-        //            private readonly string t;
-
-        //            public C(string s, int i, string t)
-        //            {
-        //                (this.s, this.i, this.t) = (s, i, t);
-        //            }
-        //        }
-        //        """);
-        //}
-
-        //[Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23308")]
-        //public async Task TestGenerateFieldIfParameterInMiddleOfExistingFieldAssignment_TupleAssignment2()
-        //{
-        //    await TestInRegularAndScript1Async(
-        //        """
-        //        class C
-        //        {
-        //            private readonly string s;
-        //            private readonly string t;
-
-        //            public C(string s, [||]int i, string t) =>
-        //                (this.s, this.t) = (s, t);
-        //        }
-        //        """,
-        //        """
-        //        class C
-        //        {
-        //            private readonly string s;
-        //            private readonly int i;
-        //            private readonly string t;
-
-        //            public C(string s, int i, string t) =>
-        //                (this.s, this.i, this.t) = (s, i, t);
-        //        }
-        //        """);
-        //}
-
-        //[Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23308")]
-        //public async Task TestGeneratePropertyIfParameterFollowsExistingPropertyAssignment_TupleAssignment1()
-        //{
-        //    await TestInRegularAndScript1Async(
-        //        """
-        //        class C
-        //        {
-        //            public string S { get; }
-        //            public string T { get; }
-
-        //            public C(string s, string t, [||]int i)
-        //            {
-        //                (S, T) = (s, t);
-        //            }
-        //        }
-        //        """,
-        //        """
-        //        class C
-        //        {
-        //            public string S { get; }
-        //            public string T { get; }
-        //            public int I { get; }
-
-        //            public C(string s, string t, int i)
-        //            {
-        //                (S, T, I) = (s, t, i);
-        //            }
-        //        }
-        //        """);
-        //}
-
-        //[Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41824")]
-        //public async Task TestMissingInArgList()
-        //{
-        //    await TestMissingInRegularAndScriptAsync(
-        //        """
-        //        class C
-        //        {
-        //            private static void M()
-        //            {
-        //                M2(__arglist(1, 2, 3, 5, 6));
-        //            }
-
-        //            public static void M2([||]__arglist)
-        //            {
-        //            }
-        //        }
-        //        """);
-        //}
-
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35665")]
         public async Task TestGenerateRemainingFields1()
         {
@@ -1648,34 +1391,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 }
                 """, index: 3);
         }
-
-        //[Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53467")]
-        //public async Task TestMissingWhenTypeNotInCompilation()
-        //{
-        //    await TestMissingInRegularAndScriptAsync(
-        //        """
-        //        <Workspace>
-        //            <Project Language="C#" AssemblyName="Assembly1">
-        //                <Document>
-        //        public class Goo
-        //        {
-        //            public Goo(int prop1)
-        //            {
-        //                Prop1 = prop1;
-        //            }
-
-        //            public int Prop1 { get; }
-        //        }
-
-        //        public class Bar : Goo
-        //        {
-        //            public Bar(int prop1, int [||]prop2) : base(prop1) { }
-        //        }
-        //                </Document>
-        //            </Project>
-        //        </Workspace>
-        //        """);
-        //}
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36998")]
         public async Task TestInitializeThrowingProperty1()
@@ -2130,6 +1845,176 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 {
                     private string S { get; } = s;
                 }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36998")]
+        public async Task TestInitializeProperty_DifferentFile1()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document>
+                public partial class Goo(string [||]name)
+                {
+                }
+                        </Document>
+                        <Document>
+                using System;
+                public partial class Goo
+                {
+                    public string Name { get; }
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """,
+                """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document>
+                public partial class Goo(string name)
+                {
+                }
+                        </Document>
+                        <Document>
+                using System;
+                public partial class Goo
+                {
+                    public string Name { get; } = name;
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36998")]
+        public async Task TestInitializeProperty_DifferentFile2()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document>
+                public partial class Goo(string x, string [||]y)
+                {
+                }
+                        </Document>
+                        <Document>
+                using System;
+                public partial class Goo
+                {
+                    public string X { get; } = x;
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """,
+                """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document>
+                public partial class Goo(string x, string y)
+                {
+                }
+                        </Document>
+                        <Document>
+                using System;
+                public partial class Goo
+                {
+                    public string X { get; } = x;
+                    public string Y { get; } = y;
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36998")]
+        public async Task TestInitializeProperty_DifferentFile3()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document>
+                public partial class Goo(string [||]x, string y)
+                {
+                }
+                        </Document>
+                        <Document>
+                using System;
+                public partial class Goo
+                {
+                    public string Y { get; } = y;
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """,
+                """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document>
+                public partial class Goo(string x, string y)
+                {
+                }
+                        </Document>
+                        <Document>
+                using System;
+                public partial class Goo
+                {
+                    public string X { get; } = x;
+                    public string Y { get; } = y;
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36998")]
+        public async Task TestInitializeField_DifferentFile1()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document>
+                public partial class Goo(string [||]name)
+                {
+                }
+                        </Document>
+                        <Document>
+                using System;
+                public partial class Goo
+                {
+                    private readonly string name;
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """,
+                """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document>
+                public partial class Goo(string name)
+                {
+                }
+                        </Document>
+                        <Document>
+                using System;
+                public partial class Goo
+                {
+                    private readonly string name = name;
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
                 """);
         }
     }
