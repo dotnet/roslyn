@@ -46,8 +46,9 @@ internal sealed partial class StringIndentationTaggerProvider : AsynchronousView
         IEditorFormatMapService editorFormatMapService,
         IGlobalOptionService globalOptions,
         [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
+        TaggerThreadCoordinator threadCoordinator,
         IAsynchronousOperationListenerProvider listenerProvider)
-        : base(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.StringIndentation))
+        : base(threadingContext, globalOptions, visibilityTracker, threadCoordinator, listenerProvider.GetListener(FeatureAttribute.StringIndentation))
     {
         _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
     }
