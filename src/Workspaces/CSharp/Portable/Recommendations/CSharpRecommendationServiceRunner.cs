@@ -261,9 +261,9 @@ internal partial class CSharpRecommendationService
                 return symbols.WhereAsArray(s => s.IsNamespace());
             }
 
-            if (_context.TargetToken.IsStaticKeywordInUsingDirective())
+            if (_context.TargetToken.IsStaticKeywordContextInUsingDirective())
             {
-                return symbols.WhereAsArray(s => !s.IsDelegateType() && !s.IsInterfaceType());
+                return symbols.WhereAsArray(s => !s.IsDelegateType());
             }
 
             return symbols;
@@ -362,7 +362,7 @@ internal partial class CSharpRecommendationService
             if (usingDirective != null && usingDirective.Alias == null)
             {
                 return new RecommendedSymbols(usingDirective.StaticKeyword.IsKind(SyntaxKind.StaticKeyword)
-                    ? symbols.WhereAsArray(s => !s.IsDelegateType() && !s.IsInterfaceType())
+                    ? symbols.WhereAsArray(s => !s.IsDelegateType())
                     : symbols.WhereAsArray(s => s.IsNamespace()));
             }
 

@@ -11,17 +11,12 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
 {
     internal abstract partial class AbstractGenerateDefaultConstructorsService<TService>
     {
-        private sealed class GenerateDefaultConstructorCodeAction : AbstractCodeAction
+        private sealed class GenerateDefaultConstructorCodeAction(
+            Document document,
+            State state,
+            IMethodSymbol constructor,
+            CodeAndImportGenerationOptionsProvider fallbackOptions) : AbstractCodeAction(document, state, new[] { constructor }, GetDisplayText(state, constructor), fallbackOptions)
         {
-            public GenerateDefaultConstructorCodeAction(
-                Document document,
-                State state,
-                IMethodSymbol constructor,
-                CodeAndImportGenerationOptionsProvider fallbackOptions)
-                : base(document, state, new[] { constructor }, GetDisplayText(state, constructor), fallbackOptions)
-            {
-            }
-
             private static string GetDisplayText(State state, IMethodSymbol constructor)
             {
                 var parameters = constructor.Parameters.Select(p => p.Name);

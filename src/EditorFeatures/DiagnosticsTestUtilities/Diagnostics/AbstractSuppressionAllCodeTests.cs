@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             private readonly DiagnosticDescriptor _descriptor =
                 new DiagnosticDescriptor("TestId", "Test", "Test", "Test", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-            public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
+            public bool IsHighPriority => false;
 
             public bool OpenFileOnly(SimplifierOptions options) => false;
 

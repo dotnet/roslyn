@@ -36,14 +36,9 @@ internal sealed class CSharpCodeLensMemberFinder : ICodeLensMemberFinder
         return codeLensNodes.ToImmutable();
     }
 
-    private sealed class CSharpCodeLensVisitor : CSharpSyntaxWalker
+    private sealed class CSharpCodeLensVisitor(ArrayBuilder<CodeLensMember> memberBuilder) : CSharpSyntaxWalker
     {
-        private readonly ArrayBuilder<CodeLensMember> _memberBuilder;
-
-        public CSharpCodeLensVisitor(ArrayBuilder<CodeLensMember> memberBuilder)
-        {
-            _memberBuilder = memberBuilder;
-        }
+        private readonly ArrayBuilder<CodeLensMember> _memberBuilder = memberBuilder;
 
         public override void VisitClassDeclaration(ClassDeclarationSyntax node)
         {

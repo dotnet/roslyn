@@ -22,11 +22,16 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 {
     [Export]
-    internal sealed partial class EventHookupSessionManager
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed partial class EventHookupSessionManager(
+        IThreadingContext threadingContext,
+        IToolTipService toolTipService,
+        IGlobalOptionService globalOptions)
     {
-        public readonly IThreadingContext ThreadingContext;
-        private readonly IToolTipService _toolTipService;
-        private readonly IGlobalOptionService _globalOptions;
+        public readonly IThreadingContext ThreadingContext = threadingContext;
+        private readonly IToolTipService _toolTipService = toolTipService;
+        private readonly IGlobalOptionService _globalOptions = globalOptions;
 
         private IToolTipPresenter _toolTipPresenter;
 
@@ -34,18 +39,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
         // For test purposes only!
         internal ClassifiedTextElement[] TEST_MostRecentToolTipContent { get; set; }
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public EventHookupSessionManager(
-            IThreadingContext threadingContext,
-            IToolTipService toolTipService,
-            IGlobalOptionService globalOptions)
-        {
-            ThreadingContext = threadingContext;
-            _toolTipService = toolTipService;
-            _globalOptions = globalOptions;
-        }
 
         internal void EventHookupFoundInSession(EventHookupSession analyzedSession)
         {

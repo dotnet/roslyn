@@ -34,23 +34,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     [TagType(typeof(ActiveStatementTag))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
-    internal partial class ActiveStatementTaggerProvider : AsynchronousTaggerProvider<ITextMarkerTag>
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal partial class ActiveStatementTaggerProvider(
+        IThreadingContext threadingContext,
+        IGlobalOptionService globalOptions,
+        [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
+        TaggerThreadCoordinator threadCoordinator,
+        IAsynchronousOperationListenerProvider listenerProvider) : AsynchronousTaggerProvider<ITextMarkerTag>(
+            threadingContext,
+            globalOptions,
+            visibilityTracker,
+            threadCoordinator,
+            listenerProvider.GetListener(FeatureAttribute.Classification))
     {
         // We want to track text changes so that we can try to only reclassify a method body if
         // all edits were contained within one.
         protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.TrackTextChanges;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ActiveStatementTaggerProvider(
-            IThreadingContext threadingContext,
-            IGlobalOptionService globalOptions,
-            [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
-            TaggerThreadCoordinator threadCoordinator,
-            IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, globalOptions, visibilityTracker, threadCoordinator, listenerProvider.GetListener(FeatureAttribute.Classification))
-        {
-        }
 
         protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
 

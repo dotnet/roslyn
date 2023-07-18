@@ -1114,7 +1114,7 @@
       </trans-unit>
       <trans-unit id="Prefer_primary_constructors">
         <source>Prefer primary constructors</source>
-        <target state="new">Prefer primary constructors</target>
+        <target state="translated">首选主构造函数</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_range_operator">
@@ -1289,7 +1289,7 @@
       </trans-unit>
       <trans-unit id="Run_code_analysis_on_latest_dotnet_requires_restart">
         <source>Run code analysis on latest .NET (requires restart)</source>
-        <target state="new">Run code analysis on latest .NET (requires restart)</target>
+        <target state="translated">在最新 .NET 上运行代码分析(需要重启)</target>
         <note />
       </trans-unit>
       <trans-unit id="Running_code_analysis_for_0">

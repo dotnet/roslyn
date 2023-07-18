@@ -9,13 +9,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     internal partial class ActiveStatementTaggerProvider
     {
-        private sealed class EventSource : AbstractWorkspaceTrackingTaggerEventSource
+        private sealed class EventSource(ITextBuffer subjectBuffer) : AbstractWorkspaceTrackingTaggerEventSource(subjectBuffer)
         {
-            public EventSource(ITextBuffer subjectBuffer)
-                : base(subjectBuffer)
-            {
-            }
-
             protected override void ConnectToWorkspace(Workspace workspace)
             {
                 var trackingService = workspace.Services.GetService<IActiveStatementTrackingService>();

@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
                     else
                     {
-                        return await compilationWithAnalyzers.GetAnalysisResultAsync(documentAnalysisScope.AdditionalFile, documentAnalysisScope.Analyzers, cancellationToken).ConfigureAwait(false);
+                        return await compilationWithAnalyzers.GetAnalysisResultAsync(documentAnalysisScope.AdditionalFile, documentAnalysisScope.Span, documentAnalysisScope.Analyzers, cancellationToken).ConfigureAwait(false);
                     }
 
                 case AnalysisKind.Semantic:

@@ -11,21 +11,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         /// <summary>
         /// Tracks the solution before and after rename.
         /// </summary>
-        private class RenameTrackingSolutionSet
+        private class RenameTrackingSolutionSet(
+            ISymbol symbolToRename,
+            Solution originalSolution,
+            Solution renamedSolution)
         {
-            public ISymbol Symbol { get; }
-            public Solution OriginalSolution { get; }
-            public Solution RenamedSolution { get; }
-
-            public RenameTrackingSolutionSet(
-                ISymbol symbolToRename,
-                Solution originalSolution,
-                Solution renamedSolution)
-            {
-                Symbol = symbolToRename;
-                OriginalSolution = originalSolution;
-                RenamedSolution = renamedSolution;
-            }
+            public ISymbol Symbol { get; } = symbolToRename;
+            public Solution OriginalSolution { get; } = originalSolution;
+            public Solution RenamedSolution { get; } = renamedSolution;
         }
     }
 }

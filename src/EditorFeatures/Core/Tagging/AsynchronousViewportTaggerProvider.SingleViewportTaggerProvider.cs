@@ -26,25 +26,23 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> where T
     /// of the view.  Inherits all behavior of a normal view tagger, except for determining what spans to tag and what
     /// cadence to tag them at.
     /// </summary>
-    private sealed class SingleViewportTaggerProvider : AsynchronousViewTaggerProvider<TTag>
+    private sealed class SingleViewportTaggerProvider(
+        AsynchronousViewportTaggerProvider<TTag> callback,
+        ViewPortToTag viewPortToTag,
+        IThreadingContext threadingContext,
+        IGlobalOptionService globalOptions,
+        ITextBufferVisibilityTracker? visibilityTracker,
+        TaggerThreadCoordinator threadCoordinator,
+        IAsynchronousOperationListener asyncListener) : AsynchronousViewTaggerProvider<TTag>(
+            threadingContext,
+            globalOptions,
+            visibilityTracker,
+            threadCoordinator,
+            asyncListener)
     {
-        private readonly AsynchronousViewportTaggerProvider<TTag> _callback;
+        private readonly AsynchronousViewportTaggerProvider<TTag> _callback = callback;
 
-        private readonly ViewPortToTag _viewPortToTag;
-
-        public SingleViewportTaggerProvider(
-            AsynchronousViewportTaggerProvider<TTag> callback,
-            ViewPortToTag viewPortToTag,
-            IThreadingContext threadingContext,
-            IGlobalOptionService globalOptions,
-            ITextBufferVisibilityTracker? visibilityTracker,
-            TaggerThreadCoordinator threadCoordinator,
-            IAsynchronousOperationListener asyncListener)
-            : base(threadingContext, globalOptions, visibilityTracker, threadCoordinator, asyncListener)
-        {
-            _callback = callback;
-            _viewPortToTag = viewPortToTag;
-        }
+        private readonly ViewPortToTag _viewPortToTag = viewPortToTag;
 
         protected override ImmutableArray<IOption2> Options
             => _callback.Options;

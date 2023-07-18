@@ -26,24 +26,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [ContentType(ContentTypeNames.RoslynContentType)]
     [ContentType(ContentTypeNames.XamlContentType)]
     [TagType(typeof(IErrorTag))]
-    internal sealed partial class DiagnosticsSuggestionTaggerProvider :
-        AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed partial class DiagnosticsSuggestionTaggerProvider(
+        IThreadingContext threadingContext,
+        IDiagnosticService diagnosticService,
+        IDiagnosticAnalyzerService analyzerService,
+        IGlobalOptionService globalOptions,
+        [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
+        TaggerThreadCoordinator threadCoordinator,
+        IAsynchronousOperationListenerProvider listenerProvider)
+        : AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>(
+            threadingContext,
+            diagnosticService,
+            analyzerService,
+            globalOptions,
+            visibilityTracker,
+            threadCoordinator,
+            listenerProvider)
     {
         protected sealed override ImmutableArray<IOption2> Options { get; } = ImmutableArray.Create<IOption2>(DiagnosticsOptionsStorage.Squiggles);
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DiagnosticsSuggestionTaggerProvider(
-            IThreadingContext threadingContext,
-            IDiagnosticService diagnosticService,
-            IDiagnosticAnalyzerService analyzerService,
-            IGlobalOptionService globalOptions,
-            [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
-            TaggerThreadCoordinator threadCoordinator,
-            IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, diagnosticService, analyzerService, globalOptions, visibilityTracker, threadCoordinator, listenerProvider)
-        {
-        }
 
         protected sealed override bool IncludeDiagnostic(DiagnosticData diagnostic)
             => diagnostic.Severity == DiagnosticSeverity.Info;

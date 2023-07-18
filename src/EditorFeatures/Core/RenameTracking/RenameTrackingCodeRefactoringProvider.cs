@@ -27,6 +27,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         {
             _undoHistoryRegistry = undoHistoryRegistry;
             _refactorNotifyServices = refactorNotifyServices;
+
+            // Backdoor that allows this provider to use the high-priority bucket.
+            this.CustomTags = this.CustomTags.Add(CodeAction.CanBeHighPriorityTag);
         }
 
         public override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -47,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         /// change the name of something and pop up the lightbulb without having to wait for the rest to
         /// compute.
         /// </summary>
-        private protected override CodeActionRequestPriority ComputeRequestPriority()
+        protected override CodeActionRequestPriority ComputeRequestPriority()
             => CodeActionRequestPriority.High;
     }
 }

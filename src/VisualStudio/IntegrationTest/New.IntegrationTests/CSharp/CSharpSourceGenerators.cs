@@ -62,6 +62,22 @@ internal static class Program
             Assert.Equal(HelloWorldGenerator.GeneratedEnglishClassName, await TestServices.Editor.GetSelectedTextAsync(HangMitigatingCancellationToken));
         }
 
+        [IdeFact]
+        public async Task GoToDefinitionOpensGeneratedFile_InFolder()
+        {
+            await TestServices.Editor.SetTextAsync($$"""
+                class C
+                {
+                    void M({{HelloWorldGenerator.GeneratedFolderClassName}} x) { }
+                }
+                """, HangMitigatingCancellationToken);
+
+            await TestServices.Editor.PlaceCaretAsync(HelloWorldGenerator.GeneratedFolderClassName, charsOffset: 0, HangMitigatingCancellationToken);
+            await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
+            Assert.Equal($"{HelloWorldGenerator.GeneratedFolderName}/{HelloWorldGenerator.GeneratedFolderClassName}.cs {ServicesVSResources.generated_suffix}", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+            Assert.Equal(HelloWorldGenerator.GeneratedFolderClassName, await TestServices.Editor.GetSelectedTextAsync(HangMitigatingCancellationToken));
+        }
+
         [IdeTheory(Skip = "https://github.com/dotnet/roslyn/issues/64721")]
         [CombinatorialData]
         public async Task FindReferencesForFileWithDefinitionInSourceGeneratedFile(bool invokeFromSourceGeneratedFile)
@@ -154,7 +170,19 @@ internal static class Program
             await TestServices.Workarounds.WaitForNavigationAsync(HangMitigatingCancellationToken);
 
             Assert.Equal($"{HelloWorldGenerator.GeneratedEnglishClassName}.cs [generated]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
-            Assert.Equal("HelloWorld", await TestServices.Editor.GetSelectedTextAsync(HangMitigatingCancellationToken));
+            Assert.Equal(HelloWorldGenerator.GeneratedEnglishClassName, await TestServices.Editor.GetSelectedTextAsync(HangMitigatingCancellationToken));
+        }
+
+        [IdeFact]
+        public async Task InvokeNavigateToForGeneratedFile_InFolder()
+        {
+            await TestServices.Shell.ShowNavigateToDialogAsync(HangMitigatingCancellationToken);
+
+            await TestServices.Input.SendToNavigateToAsync(new InputKey[] { HelloWorldGenerator.GeneratedFolderClassName, VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
+            await TestServices.Workarounds.WaitForNavigationAsync(HangMitigatingCancellationToken);
+
+            Assert.Equal($"{HelloWorldGenerator.GeneratedFolderName}/{HelloWorldGenerator.GeneratedFolderClassName}.cs [generated]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+            Assert.Equal(HelloWorldGenerator.GeneratedFolderClassName, await TestServices.Editor.GetSelectedTextAsync(HangMitigatingCancellationToken));
         }
     }
 }

@@ -20,12 +20,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly int _memberOffset;
 
-        protected SynthesizedRecordOrdinaryMethod(SourceMemberContainerTypeSymbol containingType, string name, bool isReadOnly, bool hasBody, int memberOffset, BindingDiagnosticBag diagnostics)
-            : base(containingType, name, containingType.GetFirstLocation(), (CSharpSyntaxNode)containingType.SyntaxReferences[0].GetSyntax(), MethodKind.Ordinary, RefKind.None,
-                   isIterator: false, isExtensionMethod: false, isReadOnly: isReadOnly, hasAnyBody: hasBody, isExpressionBodied: false, isNullableAnalysisEnabled: false, isVarArg: false, diagnostics)
+        protected SynthesizedRecordOrdinaryMethod(SourceMemberContainerTypeSymbol containingType, string name, int memberOffset, DeclarationModifiers declarationModifiers)
+            : base(containingType, name, containingType.GetFirstLocation(), (CSharpSyntaxNode)containingType.SyntaxReferences[0].GetSyntax(),
+                   isIterator: false,
+                   (declarationModifiers, MakeFlags(
+                                                    MethodKind.Ordinary, RefKind.None, declarationModifiers, returnsVoid: false, returnsVoidIsSet: false,
+                                                    isExpressionBodied: false, isExtensionMethod: false, isNullableAnalysisEnabled: false, isVarArg: false,
+                                                    isExplicitInterfaceImplementation: false)))
         {
             _memberOffset = memberOffset;
         }
+
+        protected override void MethodChecks(BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(Arity == 0);
+            var (returnType, parameters) = MakeParametersAndBindReturnType(diagnostics);
+            MethodChecks(returnType, parameters, diagnostics);
+        }
+
+        protected abstract (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics);
 
         public sealed override bool IsImplicitlyDeclared => true;
 

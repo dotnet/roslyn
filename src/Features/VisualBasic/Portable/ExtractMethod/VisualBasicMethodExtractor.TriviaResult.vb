@@ -88,11 +88,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                               SpecializedCollections.EmptyEnumerable(Of SyntaxTrivia)())
                 End If
 
-                Dim previousTriviaPair = If(triviaMap.ContainsKey(tokenPair.PreviousToken), triviaMap(tokenPair.PreviousToken), Nothing)
-                Dim nextTriviaPair = If(triviaMap.ContainsKey(tokenPair.NextToken), triviaMap(tokenPair.NextToken), Nothing)
+                Dim previousTriviaPair As LeadingTrailingTriviaPair = Nothing
+                Dim trailingTrivia = If(triviaMap.TryGetValue(tokenPair.PreviousToken, previousTriviaPair),
+                                        previousTriviaPair.TrailingTrivia, SpecializedCollections.EmptyEnumerable(Of SyntaxTrivia)())
 
-                Dim trailingTrivia = If(previousTriviaPair.TrailingTrivia, SpecializedCollections.EmptyEnumerable(Of SyntaxTrivia)())
-                Dim leadingTrivia = If(nextTriviaPair.LeadingTrivia, SpecializedCollections.EmptyEnumerable(Of SyntaxTrivia)())
+                Dim nextTriviaPair As LeadingTrailingTriviaPair = Nothing
+                Dim leadingTrivia = If(triviaMap.TryGetValue(tokenPair.NextToken, nextTriviaPair),
+                                       nextTriviaPair.LeadingTrivia, SpecializedCollections.EmptyEnumerable(Of SyntaxTrivia)())
 
                 Dim list = trailingTrivia.Concat(leadingTrivia)
 

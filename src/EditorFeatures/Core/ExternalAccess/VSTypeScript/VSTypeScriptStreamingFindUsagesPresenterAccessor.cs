@@ -12,14 +12,11 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
     [Export(typeof(IVSTypeScriptStreamingFindUsagesPresenterAccessor)), Shared]
-    internal sealed class VSTypeScriptStreamingFindUsagesPresenterAccessor : IVSTypeScriptStreamingFindUsagesPresenterAccessor
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class VSTypeScriptStreamingFindUsagesPresenterAccessor(IStreamingFindUsagesPresenter underlyingObject) : IVSTypeScriptStreamingFindUsagesPresenterAccessor
     {
-        private readonly IStreamingFindUsagesPresenter _underlyingObject;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VSTypeScriptStreamingFindUsagesPresenterAccessor(IStreamingFindUsagesPresenter underlyingObject)
-            => _underlyingObject = underlyingObject;
+        private readonly IStreamingFindUsagesPresenter _underlyingObject = underlyingObject;
 
         public (IVSTypeScriptFindUsagesContext context, CancellationToken cancellationToken) StartSearch(
             string title, bool supportsReferences)

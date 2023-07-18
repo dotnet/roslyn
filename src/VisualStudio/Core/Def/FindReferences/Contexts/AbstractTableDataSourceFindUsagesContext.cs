@@ -158,7 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // To ensure a reasonable experience, we instead add the progress into a queue and
                 // only update the UI a few times a second so as to not overload it.
                 _progressQueue = new AsyncBatchingWorkQueue<(int current, int maximum)>(
-                    TimeSpan.FromMilliseconds(250),
+                    DelayTimeSpan.Short,
                     this.UpdateTableProgressAsync,
                     presenter._asyncListener,
                     CancellationTokenSource.Token);

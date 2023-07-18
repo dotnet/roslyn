@@ -896,11 +896,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         [Fact]
         public void CompilerApiVersionIsSet()
         {
-            XmlReader xmlReader = XmlReader.Create(new StringReader($@"
+            var assembly = typeof(TargetTests).Assembly;
+            var path = Path.Combine(Path.GetDirectoryName(assembly.Location)!, "Microsoft.Managed.Core.targets");
+            XmlReader xmlReader = XmlReader.Create(new StringReader($"""
 <Project>
-    <Import Project=""Microsoft.Managed.Core.targets"" />
+    <Import Project="{path}" />
 </Project>
-"));
+"""));
 
             var instance = CreateProjectInstance(xmlReader);
 
@@ -909,7 +911,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             var compilerApiVersion = Version.Parse(compilerApiVersionString.Substring("roslyn".Length));
 
-            var expectedVersionString = GetType().Assembly.GetCustomAttributes<AssemblyMetadataAttribute>()
+            var expectedVersionString = assembly.GetCustomAttributes<AssemblyMetadataAttribute>()
                 .Single(a => a.Key == "CurrentCompilerApiVersion")
                 .Value ?? string.Empty;
             var expectedVersion = Version.Parse(expectedVersionString);

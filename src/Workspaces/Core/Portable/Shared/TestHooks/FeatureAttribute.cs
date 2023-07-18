@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string CallHierarchy = nameof(CallHierarchy);
         public const string Classification = nameof(Classification);
         public const string CodeDefinitionWindow = nameof(CodeDefinitionWindow);
+        public const string CodeLens = nameof(CodeLens);
         public const string CodeModel = nameof(CodeModel);
         public const string CompletionSet = nameof(CompletionSet);
         public const string DesignerAttributes = nameof(DesignerAttributes);
@@ -46,6 +47,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string NavigateTo = nameof(NavigateTo);
         public const string NavigationBar = nameof(NavigationBar);
         public const string Outlining = nameof(Outlining);
+        public const string OrganizeDocument = nameof(OrganizeDocument);
         public const string PackageInstaller = nameof(PackageInstaller);
         public const string PersistentStorage = nameof(PersistentStorage);
         public const string QuickInfo = nameof(QuickInfo);

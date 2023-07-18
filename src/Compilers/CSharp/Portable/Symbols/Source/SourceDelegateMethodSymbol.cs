@@ -26,12 +26,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             MethodKind methodKind,
             RefKind refKind,
             DeclarationModifiers declarationModifiers)
-            : base(delegateType, syntax.GetReference(), location: syntax.Identifier.GetLocation(), isIterator: false)
+            : base(delegateType, syntax.GetReference(), location: syntax.Identifier.GetLocation(), isIterator: false,
+                   (declarationModifiers, MakeFlags(
+                                                    methodKind, refKind, declarationModifiers, returnType.IsVoidType(), returnsVoidIsSet: true, isExpressionBodied: false,
+                                                    isExtensionMethod: false, isVarArg: false, isNullableAnalysisEnabled: false, isExplicitInterfaceImplementation: false)))
         {
             _returnType = returnType;
-            this.MakeFlags(
-                methodKind, refKind, declarationModifiers, _returnType.IsVoidType(), hasAnyBody: false, isExpressionBodied: false,
-                isExtensionMethod: false, isVarArg: false, isNullableAnalysisEnabled: false);
         }
 
         internal sealed override ExecutableCodeBinder TryGetBodyBinder(BinderFactory binderFactoryOpt = null, bool ignoreAccessibility = false) => throw ExceptionUtilities.Unreachable();

@@ -21,19 +21,22 @@ namespace Microsoft.CodeAnalysis.Classification
     [Export(typeof(IViewTaggerProvider))]
     [TagType(typeof(IClassificationTag))]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    internal partial class EmbeddedLanguageClassificationViewTaggerProvider : AbstractSemanticOrEmbeddedClassificationViewTaggerProvider
+    [method: ImportingConstructor]
+    [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+    internal partial class EmbeddedLanguageClassificationViewTaggerProvider(
+        IThreadingContext threadingContext,
+        ClassificationTypeMap typeMap,
+        IGlobalOptionService globalOptions,
+        [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
+        TaggerThreadCoordinator threadCoordinator,
+        IAsynchronousOperationListenerProvider listenerProvider) : AbstractSemanticOrEmbeddedClassificationViewTaggerProvider(
+            threadingContext,
+            typeMap,
+            globalOptions,
+            visibilityTracker,
+            threadCoordinator,
+            listenerProvider,
+            ClassificationType.EmbeddedLanguage)
     {
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public EmbeddedLanguageClassificationViewTaggerProvider(
-            IThreadingContext threadingContext,
-            ClassificationTypeMap typeMap,
-            IGlobalOptionService globalOptions,
-            [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
-            TaggerThreadCoordinator threadCoordinator,
-            IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, typeMap, globalOptions, visibilityTracker, threadCoordinator, listenerProvider, ClassificationType.EmbeddedLanguage)
-        {
-        }
     }
 }

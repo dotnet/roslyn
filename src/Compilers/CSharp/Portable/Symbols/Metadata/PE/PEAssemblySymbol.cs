@@ -247,6 +247,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return Assembly.GetInternalsVisibleToPublicKeys(simpleName);
         }
 
+        internal override IEnumerable<string> GetInternalsVisibleToAssemblyNames()
+        {
+            return Assembly.GetInternalsVisibleToAssemblyNames();
+        }
+
         internal DocumentationProvider DocumentationProvider
         {
             get
