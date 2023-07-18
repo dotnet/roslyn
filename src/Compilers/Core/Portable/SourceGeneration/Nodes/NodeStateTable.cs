@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis
             {
                 for (int i = 0; i < state.Count; i++)
                 {
-                    pooled.Builder.Append(state.GetState(0).ToString()[0]);
+                    pooled.Builder.Append(state.GetState(i).ToString()[0]);
                 }
                 pooled.Builder.Append(',');
             }
