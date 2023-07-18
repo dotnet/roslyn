@@ -1112,6 +1112,11 @@
         <target state="translated">Namespace- und Ordnerübereinstimmungsstruktur bevorzugen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_primary_constructors">
+        <source>Prefer primary constructors</source>
+        <target state="translated">Primäre Konstruktoren bevorzugen</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_range_operator">
         <source>Prefer range operator</source>
         <target state="translated">Bereichsoperator bevorzugen</target>
@@ -1284,7 +1289,7 @@
       </trans-unit>
       <trans-unit id="Run_code_analysis_on_latest_dotnet_requires_restart">
         <source>Run code analysis on latest .NET (requires restart)</source>
-        <target state="new">Run code analysis on latest .NET (requires restart)</target>
+        <target state="translated">Codeanalyse für die neueste .NET-Version ausführen (Neustart erforderlich)</target>
         <note />
       </trans-unit>
       <trans-unit id="Running_code_analysis_for_0">

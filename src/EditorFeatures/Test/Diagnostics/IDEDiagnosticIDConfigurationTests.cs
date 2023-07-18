@@ -461,6 +461,9 @@ dotnet_diagnostic.IDE0270.severity = %value%
 # IDE0280
 dotnet_diagnostic.IDE0280.severity = %value%
 
+# IDE0290
+dotnet_diagnostic.IDE0290.severity = %value%
+
 # IDE1005
 dotnet_diagnostic.IDE1005.severity = %value%
 
@@ -867,6 +870,7 @@ dotnet_diagnostic.JSON002.severity = %value%
                 ("IDE0260", "csharp_style_pattern_matching_over_as_with_null_check", "true"),
                 ("IDE0270", "dotnet_style_coalesce_expression", "true"),
                 ("IDE0280", null, null),
+                ("IDE0290", "csharp_style_prefer_primary_constructors", "true"),
                 ("IDE1005", "csharp_style_conditional_delegate_call", "true"),
                 ("IDE1006", null, null),
                 ("IDE1007", null, null),

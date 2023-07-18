@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -39,32 +38,23 @@ namespace Microsoft.CodeAnalysis.CodeDefinitionWindow
     [Export(typeof(DefinitionContextTracker))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
-    internal class DefinitionContextTracker : ITextViewConnectionListener
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class DefinitionContextTracker(
+        IMetadataAsSourceFileService metadataAsSourceFileService,
+        ICodeDefinitionWindowService codeDefinitionWindowService,
+        IThreadingContext threadingContext,
+        IGlobalOptionService globalOptions,
+        IAsynchronousOperationListenerProvider listenerProvider) : ITextViewConnectionListener
     {
         private readonly HashSet<ITextView> _subscribedViews = new HashSet<ITextView>();
-        private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
-        private readonly ICodeDefinitionWindowService _codeDefinitionWindowService;
-        private readonly IThreadingContext _threadingContext;
-        private readonly IAsynchronousOperationListener _asyncListener;
-        private readonly IGlobalOptionService _globalOptions;
+        private readonly IMetadataAsSourceFileService _metadataAsSourceFileService = metadataAsSourceFileService;
+        private readonly ICodeDefinitionWindowService _codeDefinitionWindowService = codeDefinitionWindowService;
+        private readonly IThreadingContext _threadingContext = threadingContext;
+        private readonly IAsynchronousOperationListener _asyncListener = listenerProvider.GetListener(FeatureAttribute.CodeDefinitionWindow);
+        private readonly IGlobalOptionService _globalOptions = globalOptions;
 
         private CancellationTokenSource? _currentUpdateCancellationToken;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DefinitionContextTracker(
-            IMetadataAsSourceFileService metadataAsSourceFileService,
-            ICodeDefinitionWindowService codeDefinitionWindowService,
-            IThreadingContext threadingContext,
-            IGlobalOptionService globalOptions,
-            IAsynchronousOperationListenerProvider listenerProvider)
-        {
-            _metadataAsSourceFileService = metadataAsSourceFileService;
-            _codeDefinitionWindowService = codeDefinitionWindowService;
-            _threadingContext = threadingContext;
-            _globalOptions = globalOptions;
-            _asyncListener = listenerProvider.GetListener(FeatureAttribute.CodeDefinitionWindow);
-        }
 
         void ITextViewConnectionListener.SubjectBuffersConnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
         {
@@ -127,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CodeDefinitionWindow
         {
             try
             {
-                await _asyncListener.Delay(TimeSpan.FromMilliseconds(250), cancellationToken).ConfigureAwait(false);
+                await _asyncListener.Delay(DelayTimeSpan.Short, cancellationToken).ConfigureAwait(false);
 
                 // If it's not open, don't do anything, since if we are going to show locations in metadata that might
                 // be expensive. This doesn't cause a functional issue, since opening the window clears whatever was previously there

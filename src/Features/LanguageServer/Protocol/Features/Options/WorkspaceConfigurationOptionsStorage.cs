@@ -16,7 +16,6 @@ internal static class WorkspaceConfigurationOptionsStorage
             EnableOpeningSourceGeneratedFiles: globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspace) ??
                                                globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag),
             DisableSharedSyntaxTrees: globalOptions.GetOption(DisableSharedSyntaxTrees),
-            DeferCreatingRecoverableText: globalOptions.GetOption(DeferCreatingRecoverableText),
             DisableRecoverableText: globalOptions.GetOption(DisableRecoverableText));
 
     public static readonly Option2<StorageDatabase> Database = new(
@@ -27,9 +26,6 @@ internal static class WorkspaceConfigurationOptionsStorage
 
     public static readonly Option2<bool> DisableSharedSyntaxTrees = new(
         "dotnet_disable_shared_syntax_trees", WorkspaceConfigurationOptions.Default.DisableSharedSyntaxTrees);
-
-    public static readonly Option2<bool> DeferCreatingRecoverableText = new(
-        "dotnet_defer_creating_recoverable_text", WorkspaceConfigurationOptions.Default.DeferCreatingRecoverableText);
 
     public static readonly Option2<bool> DisableRecoverableText = new(
         "dotnet_disable_recoverable_text", WorkspaceConfigurationOptions.Default.DisableRecoverableText);

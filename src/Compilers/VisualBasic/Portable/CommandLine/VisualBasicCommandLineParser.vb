@@ -168,6 +168,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim sourceLink As String = Nothing
             Dim ruleSetPath As String = Nothing
             Dim generatedFilesOutputDirectory As String = Nothing
+            Dim reportIvts As Boolean = False
 
             ' Process ruleset files first so that diagnostic severity settings specified on the command line via
             ' /nowarn and /warnaserror can override diagnostic severity settings specified in the ruleset file.
@@ -422,6 +423,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
 
                         libPaths.AddRange(ParseSeparatedPaths(value))
+                        Continue For
+
+                    Case "reportivts", "reportivts+"
+                        If value IsNot Nothing Then
+                            AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "reportivts")
+                            Continue For
+                        End If
+
+                        reportIvts = True
+                        Continue For
+
+                    Case "reportivts-"
+                        If value IsNot Nothing Then
+                            AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "reportivts")
+                            Continue For
+                        End If
+
+                        reportIvts = False
                         Continue For
 
 #If DEBUG Then
@@ -1504,7 +1523,8 @@ lVbRuntimePlus:
                 .ReportAnalyzer = reportAnalyzer,
                 .SkipAnalyzers = skipAnalyzers,
                 .EmbeddedFiles = embeddedFiles.AsImmutable(),
-                .GeneratedFilesOutputDirectory = generatedFilesOutputDirectory
+                .GeneratedFilesOutputDirectory = generatedFilesOutputDirectory,
+                .ReportInternalsVisibleToAttributes = reportIVTs
             }
         End Function
 

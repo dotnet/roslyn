@@ -59,7 +59,7 @@ dim {|Identifier:x|} = {|String:"" goo ""|}")
         <Fact>
         Public Async Function TestString2() As Task
             Await TestAsync("
-dim {|Identifier:x|} = {|String:"" goo |}")
+dim {|Identifier:x|} = "" goo ")
         End Function
 
         <Fact>
@@ -73,9 +73,9 @@ dim {|Identifier:x|} = {|String:""
         <Fact>
         Public Async Function TestString4() As Task
             Await TestAsync("
-dim {|Identifier:x|} = {|String:""
+dim {|Identifier:x|} = ""
     goo
-|}")
+")
         End Function
 
         <Fact>

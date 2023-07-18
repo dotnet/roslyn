@@ -1112,6 +1112,11 @@
         <target state="translated">優先使用命名空間和資料夾相符結構</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_primary_constructors">
+        <source>Prefer primary constructors</source>
+        <target state="translated">偏好使用主要建構函式</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_range_operator">
         <source>Prefer range operator</source>
         <target state="translated">優先使用範圍運算子</target>
@@ -1284,7 +1289,7 @@
       </trans-unit>
       <trans-unit id="Run_code_analysis_on_latest_dotnet_requires_restart">
         <source>Run code analysis on latest .NET (requires restart)</source>
-        <target state="new">Run code analysis on latest .NET (requires restart)</target>
+        <target state="translated">針對最新的 .NET 執行程式碼分析 (需要重新啟動)</target>
         <note />
       </trans-unit>
       <trans-unit id="Running_code_analysis_for_0">

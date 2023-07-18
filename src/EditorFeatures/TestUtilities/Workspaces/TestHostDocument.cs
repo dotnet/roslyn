@@ -138,9 +138,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             _documentServiceProvider = documentServiceProvider;
             _roles = roles.IsDefault ? s_defaultRoles : roles;
 
-            if (spans.ContainsKey(string.Empty))
+            if (spans.TryGetValue(string.Empty, out var textSpans))
             {
-                this.SelectedSpans = spans[string.Empty];
+                this.SelectedSpans = textSpans;
             }
 
             foreach (var namedSpanList in spans.Where(s => s.Key != string.Empty))

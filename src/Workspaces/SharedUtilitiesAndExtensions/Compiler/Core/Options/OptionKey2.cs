@@ -13,7 +13,7 @@ using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
 namespace Microsoft.CodeAnalysis.Options
 {
     [NonDefaultable]
-    internal readonly partial struct OptionKey2 : IEquatable<OptionKey2>
+    internal readonly partial record struct OptionKey2
     {
         public IOption2 Option { get; }
         public string? Language { get; }
@@ -45,27 +45,6 @@ namespace Microsoft.CodeAnalysis.Options
             this.Language = null;
         }
 
-        public override bool Equals(object? obj)
-        {
-            return obj is OptionKey2 key &&
-                   Equals(key);
-        }
-
-        public bool Equals(OptionKey2 other)
-            => Option.Equals(other.Option) && Language == other.Language;
-
-        public override int GetHashCode()
-        {
-            var hash = Option?.GetHashCode() ?? 0;
-
-            if (Language != null)
-            {
-                hash = unchecked((hash * (int)0xA5555529) + Language.GetHashCode());
-            }
-
-            return hash;
-        }
-
         public override string ToString()
         {
             if (Option is null)
@@ -79,11 +58,5 @@ namespace Microsoft.CodeAnalysis.Options
 
             return languageDisplay + Option.ToString();
         }
-
-        public static bool operator ==(OptionKey2 left, OptionKey2 right)
-            => left.Equals(right);
-
-        public static bool operator !=(OptionKey2 left, OptionKey2 right)
-            => !left.Equals(right);
     }
 }

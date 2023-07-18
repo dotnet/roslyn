@@ -254,7 +254,7 @@
       </trans-unit>
       <trans-unit id="Collapse_regions_on_file_open">
         <source>Collapse #regions on file open</source>
-        <target state="translated">Comprimi #regioni all'apertura del file</target>
+        <target state="translated">Comprimi #regions all'apertura del file</target>
         <note />
       </trans-unit>
       <trans-unit id="Collapse_sourcelink_embedded_decompiled_files_on_open">
@@ -1112,6 +1112,11 @@
         <target state="translated">Preferire la struttura di corrispondenza spazio dei nomi e cartella</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_primary_constructors">
+        <source>Prefer primary constructors</source>
+        <target state="translated">Preferisci costruttori primari</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_range_operator">
         <source>Prefer range operator</source>
         <target state="translated">Preferisci operatore di intervallo</target>
@@ -1284,7 +1289,7 @@
       </trans-unit>
       <trans-unit id="Run_code_analysis_on_latest_dotnet_requires_restart">
         <source>Run code analysis on latest .NET (requires restart)</source>
-        <target state="new">Run code analysis on latest .NET (requires restart)</target>
+        <target state="translated">Esegui Code Analysis nella versione più recente di .NET (richiede il riavvio)</target>
         <note />
       </trans-unit>
       <trans-unit id="Running_code_analysis_for_0">

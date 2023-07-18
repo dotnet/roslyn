@@ -1112,6 +1112,11 @@
         <target state="translated">Preferir estructura de coincidencia de espacio de nombres y carpetas</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_primary_constructors">
+        <source>Prefer primary constructors</source>
+        <target state="translated">Preferir constructores principales</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_range_operator">
         <source>Prefer range operator</source>
         <target state="translated">Preferir operador de intervalo</target>
@@ -1284,7 +1289,7 @@
       </trans-unit>
       <trans-unit id="Run_code_analysis_on_latest_dotnet_requires_restart">
         <source>Run code analysis on latest .NET (requires restart)</source>
-        <target state="new">Run code analysis on latest .NET (requires restart)</target>
+        <target state="translated">Ejecutar análisis de código en la versión más reciente de .NET (requiere reiniciar)</target>
         <note />
       </trans-unit>
       <trans-unit id="Running_code_analysis_for_0">

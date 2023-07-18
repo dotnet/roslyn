@@ -1112,6 +1112,11 @@
         <target state="translated">네임스페이스 및 폴더 일치 구조 선호</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_primary_constructors">
+        <source>Prefer primary constructors</source>
+        <target state="translated">기본 생성자 선호</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_range_operator">
         <source>Prefer range operator</source>
         <target state="translated">범위 연산자 선호</target>
@@ -1284,7 +1289,7 @@
       </trans-unit>
       <trans-unit id="Run_code_analysis_on_latest_dotnet_requires_restart">
         <source>Run code analysis on latest .NET (requires restart)</source>
-        <target state="new">Run code analysis on latest .NET (requires restart)</target>
+        <target state="translated">최신 .NET에서 코드 분석 실행(다시 시작 필요)</target>
         <note />
       </trans-unit>
       <trans-unit id="Running_code_analysis_for_0">

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class AnalyzerConfigDocumentState : TextDocumentState
     {
-        private readonly ValueSource<AnalyzerConfig> _analyzerConfigValueSource;
+        private readonly AsyncLazy<AnalyzerConfig> _analyzerConfigValueSource;
 
         private AnalyzerConfigDocumentState(
             SolutionServices solutionServices,
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis
             _analyzerConfigValueSource = CreateAnalyzerConfigValueSource();
         }
 
-        private ValueSource<AnalyzerConfig> CreateAnalyzerConfigValueSource()
+        private AsyncLazy<AnalyzerConfig> CreateAnalyzerConfigValueSource()
         {
             return new AsyncLazy<AnalyzerConfig>(
                 asynchronousComputeFunction: async cancellationToken => AnalyzerConfig.Parse(await GetTextAsync(cancellationToken).ConfigureAwait(false), FilePath),

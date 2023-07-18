@@ -34,7 +34,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
     [ContentType(ContentTypeNames.CSharpContentType)]
     [Name(nameof(ConvertNamespaceCommandHandler))]
     [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
-    internal sealed class ConvertNamespaceCommandHandler : IChainedCommandHandler<TypeCharCommandArgs>
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class ConvertNamespaceCommandHandler(
+        ITextUndoHistoryRegistry textUndoHistoryRegistry,
+        IEditorOperationsFactoryService editorOperationsFactoryService,
+        EditorOptionsService editorOptionsService,
+        IGlobalOptionService globalOptions,
+        IIndentationManagerService indentationManager) : IChainedCommandHandler<TypeCharCommandArgs>
     {
         /// <summary>
         /// Option setting 'use file scoped'.  That way we can call into the helpers
@@ -44,27 +51,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         private static readonly CodeStyleOption2<NamespaceDeclarationPreference> s_fileScopedNamespacePreferenceOption =
             new(NamespaceDeclarationPreference.FileScoped, NotificationOption2.Suggestion);
 
-        private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry;
-        private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
-        private readonly EditorOptionsService _editorOptionsService;
-        private readonly IIndentationManagerService _indentationManager;
-        private readonly IGlobalOptionService _globalOptions;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ConvertNamespaceCommandHandler(
-            ITextUndoHistoryRegistry textUndoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService,
-            EditorOptionsService editorOptionsService,
-            IGlobalOptionService globalOptions,
-            IIndentationManagerService indentationManager)
-        {
-            _textUndoHistoryRegistry = textUndoHistoryRegistry;
-            _editorOperationsFactoryService = editorOperationsFactoryService;
-            _editorOptionsService = editorOptionsService;
-            _globalOptions = globalOptions;
-            _indentationManager = indentationManager;
-        }
+        private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry = textUndoHistoryRegistry;
+        private readonly IEditorOperationsFactoryService _editorOperationsFactoryService = editorOperationsFactoryService;
+        private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
+        private readonly IIndentationManagerService _indentationManager = indentationManager;
+        private readonly IGlobalOptionService _globalOptions = globalOptions;
 
         public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextCommandHandler)
             => nextCommandHandler();

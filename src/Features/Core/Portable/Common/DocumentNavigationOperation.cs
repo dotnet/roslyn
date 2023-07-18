@@ -18,16 +18,10 @@ namespace Microsoft.CodeAnalysis.CodeActions
     /// <see cref="Document"/> using this operation.
     /// </summary>
 #pragma warning restore RS0030 // Do not used banned APIs
-    public class DocumentNavigationOperation : CodeActionOperation
+    public class DocumentNavigationOperation(DocumentId documentId, int position = 0) : CodeActionOperation
     {
-        internal DocumentId DocumentId { get; }
-        internal int Position { get; }
-
-        public DocumentNavigationOperation(DocumentId documentId, int position = 0)
-        {
-            DocumentId = documentId ?? throw new ArgumentNullException(nameof(documentId));
-            Position = position;
-        }
+        internal DocumentId DocumentId { get; } = documentId ?? throw new ArgumentNullException(nameof(documentId));
+        internal int Position { get; } = position;
 
         public override void Apply(Workspace workspace, CancellationToken cancellationToken)
         {
