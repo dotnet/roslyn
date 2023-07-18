@@ -4200,6 +4200,13 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
     [Theory, CombinatorialData]
     public void CrefComparer([CombinatorialValues("ref", "in")] string modifier)
     {
+        var refKind = modifier switch
+        {
+            "ref" => RefKind.Ref,
+            "in" => RefKind.In,
+            _ => throw ExceptionUtilities.UnexpectedValue(modifier)
+        };
+
         var source = $$"""
             /// <summary>
             /// <see cref="M({{modifier}} int)"/>
@@ -4210,9 +4217,46 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                 void M({{modifier}} int x) { }
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(
+        var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(
             // (7,10): error CS0663: 'C' cannot define an overloaded method that differs only on parameter modifiers 'ref' and 'ref readonly'
             //     void M(ref int x) { }
             Diagnostic(ErrorCode.ERR_OverloadRefKind, "M").WithArguments("C", "method", modifier, "ref readonly").WithLocation(7, 10));
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var docComment = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>().Single();
+        var cref = docComment.DescendantNodes().OfType<XmlCrefAttributeSyntax>().Select(attr => attr.Cref).Single();
+        var info = model.GetSymbolInfo(cref);
+        var methodFromCref = info.Symbol as IMethodSymbol;
+        Assert.Equal(refKind, methodFromCref!.Parameters.Single().RefKind);
+        var methodFromClass = comp.GetMembers("C.M").Cast<MethodSymbol>().Single(m => m.Parameters.Single().RefKind == refKind);
+        Assert.Same(methodFromCref, methodFromClass.GetPublicSymbol());
+    }
+
+    [Theory(Skip = "PROTOTYPE: cref parsing of ref readonly doesn't work"), CombinatorialData]
+    public void CrefComparer_RefReadonly([CombinatorialValues("ref", "in")] string modifier)
+    {
+        var source = $$"""
+            /// <summary>
+            /// <see cref="M(ref readonly int)"/>
+            /// </summary>
+            public class C
+            {
+                void M(ref readonly int x) { }
+                void M({{modifier}} int x) { }
+            }
+            """;
+        var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(
+            // (7,10): error CS0663: 'C' cannot define an overloaded method that differs only on parameter modifiers 'ref' and 'ref readonly'
+            //     void M(ref int x) { }
+            Diagnostic(ErrorCode.ERR_OverloadRefKind, "M").WithArguments("C", "method", modifier, "ref readonly").WithLocation(7, 10));
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var docComment = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>().Single();
+        var cref = docComment.DescendantNodes().OfType<XmlCrefAttributeSyntax>().Select(attr => attr.Cref).Single();
+        var info = model.GetSymbolInfo(cref);
+        var methodFromCref = info.Symbol as IMethodSymbol;
+        Assert.Equal(RefKind.RefReadOnly, methodFromCref!.Parameters.Single().RefKind);
+        var methodFromClass = comp.GetMembers("C.M").Cast<MethodSymbol>().Single(m => m.Parameters.Single().RefKind == RefKind.RefReadOnly);
+        Assert.Same(methodFromCref, methodFromClass.GetPublicSymbol());
     }
 }
