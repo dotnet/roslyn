@@ -24790,7 +24790,7 @@ unsafe class C<T, U, V, X, Y, Z> where T : byte*
                             return 1;
                         };
 
-                        Func<bool, int> fn2 = flag =>
+                        Func<bool, (int, int)> fn2 = flag =>
                         {
                             if (flag) return (ERROR, 1);
                             return (1, 2);
@@ -24805,13 +24805,43 @@ unsafe class C<T, U, V, X, Y, Z> where T : byte*
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(7, 30),
                 // (13,31): error CS0103: The name 'ERROR' does not exist in the current context
                 //             if (flag) return (ERROR, 1);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(13, 31),
-                // (14,20): error CS0029: Cannot implicitly convert type '(int, int)' to 'int'
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(13, 31));
+        }
+
+        [Fact]
+        public void BestType_NestedError_LambdaReturns_NoTargetType()
+        {
+            var source = """
+                public class C {
+                    public void M0(bool flag) {
+                        var fn1 = () =>
+                        {
+                            if (flag) return ERROR;
+                            return 1;
+                        };
+
+                        var fn2 = () =>
+                        {
+                            if (flag) return (ERROR, 1);
+                            return (1, 2);
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,30): error CS0103: The name 'ERROR' does not exist in the current context
+                //             if (flag) return ERROR;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(5, 30),
+                // (6,20): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //             return 1;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "1").WithArguments("lambda expression").WithLocation(6, 20),
+                // (11,31): error CS0103: The name 'ERROR' does not exist in the current context
+                //             if (flag) return (ERROR, 1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(11, 31),
+                // (12,20): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
                 //             return (1, 2);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(1, 2)").WithArguments("(int, int)", "int").WithLocation(14, 20),
-                // (14,20): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
-                //             return (1, 2);
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "(1, 2)").WithArguments("lambda expression").WithLocation(14, 20));
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "(1, 2)").WithArguments("lambda expression").WithLocation(12, 20));
         }
     }
 }
