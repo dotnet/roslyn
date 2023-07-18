@@ -95,8 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             var services = solution.Services;
 
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var parseOptions = root.SyntaxTree.Options;
+            var parseOptions = document.DocumentState.ParseOptions;
 
             var solutionEditor = new SolutionEditor(solution);
             var options = await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
