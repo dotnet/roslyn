@@ -1970,6 +1970,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                                       diagnostics);
         }
 
+        internal NamedTypeSymbol EnsureInlineArrayTypeExists(SyntaxNode syntaxNode, SyntheticBoundNodeFactory factory, int arrayLength, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(Compilation.Assembly.RuntimeSupportsInlineArrayTypes);
+
+            string typeName = PrivateImplementationDetails.GetInlineArrayTypeName(arrayLength);
+            var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics);
+            var typeAdapter = privateImplClass.GetType(typeName);
+
+            if (typeAdapter is null)
+            {
+                var attributeConstructor = (MethodSymbol)factory.SpecialMember(SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor);
+                Debug.Assert(attributeConstructor is { });
+
+                var typeSymbol = new SynthesizedInlineArrayTypeSymbol(SourceModule, typeName, arrayLength, attributeConstructor);
+                privateImplClass.TryAddSynthesizedType(typeSymbol.GetCciAdapter());
+                typeAdapter = privateImplClass.GetType(typeName)!;
+            }
+
+            Debug.Assert(typeAdapter.Name == typeName);
+            return (NamedTypeSymbol)typeAdapter.GetInternalSymbol()!;
+        }
+
         internal MethodSymbol EnsureInlineArrayAsReadOnlySpanExists(SyntaxNode syntaxNode, NamedTypeSymbol spanType, NamedTypeSymbol intType, DiagnosticBag diagnostics)
         {
             Debug.Assert(intType.SpecialType == SpecialType.System_Int32);
