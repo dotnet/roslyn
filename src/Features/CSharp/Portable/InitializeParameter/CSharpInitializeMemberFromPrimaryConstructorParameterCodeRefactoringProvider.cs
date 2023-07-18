@@ -76,7 +76,7 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
 
         var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
 
-        var (fieldOrProperty, isThrowNotImplementedProperty) = TryFindMatchingUninitializedFieldOrPropertySymbol();
+        var fieldOrProperty = TryFindMatchingUninitializedFieldOrPropertySymbol();
         var refactorings = fieldOrProperty == null
             ? HandleNoExistingFieldOrProperty()
             : HandleExistingFieldOrProperty();
@@ -84,7 +84,7 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
         context.RegisterRefactorings(refactorings.ToImmutableArray(), context.Span);
         return;
 
-        (ISymbol?, bool isThrowNotImplementedProperty) TryFindMatchingUninitializedFieldOrPropertySymbol()
+        ISymbol? TryFindMatchingUninitializedFieldOrPropertySymbol()
         {
             // Look for a field/property that really looks like it corresponds to this parameter. Use a variety of
             // heuristics around the name/type to see if this is a match.
@@ -108,7 +108,7 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
                         IsImplicitConversion(compilation, source: parameter.Type, destination: field.Type) &&
                         syntaxRef1.GetSyntax(cancellationToken) is VariableDeclaratorSyntax { Initializer: null })
                     {
-                        return (field, isThrowNotImplementedProperty: false);
+                        return field;
                     }
 
                     // If it's a writable property that we could assign this parameter to, and it's not already been
@@ -121,16 +121,16 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
                         // NotImplementedException()`. That way users can easily spit out those methods, but then
                         // convert them to be normal properties with ease.
                         if (IsThrowNotImplementedProperty(compilation, property, cancellationToken))
-                            return (property, isThrowNotImplementedProperty: true);
+                            return property;
 
                         if (property.IsWritableInConstructor())
-                            return (property, isThrowNotImplementedProperty: false);
+                            return property;
                     }
                 }
             }
 
             // Couldn't find any existing member.  Just return nothing so we can offer to create a member for them.
-            return default;
+            return null;
         }
 
         static CodeAction CreateCodeAction(string title, Func<CancellationToken, Task<Solution>> createSolution)
@@ -141,8 +141,7 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
             // Found a field/property that this parameter should be assigned to. Just offer the simple assignment to it.
             yield return CreateCodeAction(
                 string.Format(fieldOrProperty.Kind == SymbolKind.Field ? FeaturesResources.Initialize_field_0 : FeaturesResources.Initialize_property_0, fieldOrProperty.Name),
-                cancellationToken => UpdateExistingMemberAsync(
-                    document, parameter, fieldOrProperty, isThrowNotImplementedProperty, cancellationToken));
+                cancellationToken => UpdateExistingMemberAsync(document, parameter, fieldOrProperty, cancellationToken));
         }
 
         IEnumerable<CodeAction> HandleNoExistingFieldOrProperty()

@@ -198,7 +198,6 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
         Document document,
         IParameterSymbol parameter,
         ISymbol fieldOrProperty,
-        bool isThrowNotImplementedProperty,
         CancellationToken cancellationToken)
     {
         var project = document.Project;
@@ -215,6 +214,9 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
         // We're updating an exiting field/prop.
         if (fieldOrProperty is IPropertySymbol property)
         {
+            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var isThrowNotImplementedProperty = IsThrowNotImplementedProperty(compilation, property, cancellationToken);
+
             foreach (var syntaxRef in property.DeclaringSyntaxReferences)
             {
                 if (syntaxRef.GetSyntax(cancellationToken) is PropertyDeclarationSyntax propertyDeclaration)
