@@ -17742,5 +17742,44 @@ class C1(int p1) : Base1
             comp.VerifyDiagnostics(expected);
             comp.VerifyEmitDiagnostics(expected);
         }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67371")]
+        public void AssignToRefField_01()
+        {
+            var source = @"
+ref struct S1
+{
+    public ref int R1;
+
+    public S1(ref int x)
+    {
+        R1 = ref x;
+    }
+}
+
+ref struct S2
+{
+    public ref int R2;
+
+    public S2([System.Diagnostics.CodeAnalysis.UnscopedRef] ref int x)
+    {
+        R2 = ref x;
+    }
+}
+
+ref struct S3(ref int x)
+{
+    public ref int R3 = ref x;
+}
+
+ref struct S4([System.Diagnostics.CodeAnalysis.UnscopedRef] ref int x)
+{
+    public ref int R4 = ref x;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics();
+        }
     }
 }

@@ -33,27 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static void Analyze(CSharpCompilation compilation, MethodSymbol symbol, ImmutableArray<BoundInitializer> fieldAndPropertyInitializers, BindingDiagnosticBag diagnostics)
-        {
-            var visitor = new RefSafetyAnalysis(
-                compilation,
-                symbol,
-                inUnsafeRegion: InUnsafeMethod(symbol),
-                useUpdatedEscapeRules: symbol.ContainingModule.UseUpdatedEscapeRules,
-                diagnostics);
-            foreach (var initializer in fieldAndPropertyInitializers)
-            {
-                try
-                {
-                    visitor.VisitFieldOrPropertyInitializer(initializer);
-                }
-                catch (CancelledByStackGuardException e)
-                {
-                    e.AddAnError(diagnostics);
-                }
-            }
-        }
-
         private static bool InUnsafeMethod(Symbol symbol)
         {
             if (symbol is SourceMemberMethodSymbol { IsUnsafe: true })
@@ -309,17 +288,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #endif
 
-        private void VisitFieldOrPropertyInitializer(BoundInitializer initializer)
+        public override BoundNode? VisitFieldEqualsValue(BoundFieldEqualsValue node)
         {
-            var fieldEqualsValue = (BoundFieldEqualsValue)initializer;
-            var field = fieldEqualsValue.Field;
-            var value = fieldEqualsValue.Value;
-
-            using var _ = new LocalScope(this, fieldEqualsValue.Locals);
-
-            Visit(value);
-
-            ValidateEscape(value, CallingMethodScope, isByRef: field.RefKind != RefKind.None, _diagnostics);
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override BoundNode? VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
