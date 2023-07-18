@@ -25,14 +25,6 @@ using static SyntaxFactory;
 
 internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParameterCodeRefactoringProvider : CodeRefactoringProvider
 {
-    /// <summary>
-    /// These functions are the workhorses that actually go and handle each parameter (either creating a field/property
-    /// for it, or updates an existing field/property with it).  They are extracted out from the rest as we do not want
-    /// it capturing anything.  Specifically, <see cref="AddSingleMemberAsync"/> is called in a loop from <see
-    /// cref="AddMultipleMembersAsync"/> for each parameter we're processing.  For each, we produce new solution
-    /// snapshots and thus must ensure we're always pointing at the new view of the world, not anything from the
-    /// original view.
-    /// </summary> 
     private static async Task<Solution> AddMultipleMembersAsync(
         Document document,
         TypeDeclarationSyntax typeDeclaration,
@@ -41,8 +33,8 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
         CodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
-        Debug.Assert(parameters.Length >= 2);
-        Debug.Assert(fieldsOrProperties.Length > 0);
+        Debug.Assert(parameters.Length >= 1);
+        Debug.Assert(fieldsOrProperties.Length >= 1);
         Debug.Assert(parameters.Length == fieldsOrProperties.Length);
 
         // Process each param+field/prop in order.  Apply the pair to the document getting the updated document.
@@ -79,72 +71,73 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
         }
 
         return currentSolution;
-    }
 
-    private static async Task<Solution> AddSingleMemberAsync(
-        Document document,
-        TypeDeclarationSyntax typeDeclaration,
-        IParameterSymbol parameter,
-        ISymbol fieldOrProperty,
-        CodeGenerationOptionsProvider fallbackOptions,
-        CancellationToken cancellationToken)
-    {
-        var project = document.Project;
-        var solution = project.Solution;
-        var services = solution.Services;
-
-        var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-        var parseOptions = document.DocumentState.ParseOptions!;
-
-        var solutionEditor = new SolutionEditor(solution);
-        var options = await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
-        var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
-
-        // We're assigning the parameter to a new field/prop .  Convert all existing references to this primary
-        // constructor parameter (within this type) to refer to the field/prop now instead.
-        await UpdateParameterReferencesAsync(
-            solutionEditor, parameter, fieldOrProperty, cancellationToken).ConfigureAwait(false);
-
-        // We're generating a new field/property.  Place into the containing type, ideally before/after a
-        // relevant existing member.
-        var (sibling, siblingSyntax, addContext) = fieldOrProperty switch
+        static async Task<Solution> AddSingleMemberAsync(
+            Document document,
+            TypeDeclarationSyntax typeDeclaration,
+            IParameterSymbol parameter,
+            ISymbol fieldOrProperty,
+            CodeGenerationOptionsProvider fallbackOptions,
+            CancellationToken cancellationToken)
         {
-            IPropertySymbol => GetAddContext<IPropertySymbol>(),
-            IFieldSymbol => GetAddContext<IFieldSymbol>(),
-            _ => throw ExceptionUtilities.UnexpectedValue(fieldOrProperty),
-        };
+            var project = document.Project;
+            var solution = project.Solution;
+            var services = solution.Services;
 
-        var preferredTypeDeclaration = siblingSyntax?.GetAncestorOrThis<TypeDeclarationSyntax>() ?? typeDeclaration;
+            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var parseOptions = document.DocumentState.ParseOptions!;
 
-        var editingDocument = solution.GetRequiredDocument(preferredTypeDeclaration.SyntaxTree);
-        var editor = await solutionEditor.GetDocumentEditorAsync(editingDocument.Id, cancellationToken).ConfigureAwait(false);
-        editor.ReplaceNode(
-            preferredTypeDeclaration,
-            (currentTypeDecl, _) =>
+            var solutionEditor = new SolutionEditor(solution);
+            var options = await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
+
+            // We're assigning the parameter to a new field/prop .  Convert all existing references to this primary
+            // constructor parameter (within this type) to refer to the field/prop now instead.
+            await UpdateParameterReferencesAsync(
+                solutionEditor, parameter, fieldOrProperty, cancellationToken).ConfigureAwait(false);
+
+            // We're generating a new field/property.  Place into the containing type, ideally before/after a
+            // relevant existing member.
+            var (sibling, siblingSyntax, addContext) = fieldOrProperty switch
             {
-                if (fieldOrProperty is IPropertySymbol property)
-                {
-                    return codeGenerator.AddProperty(
-                        currentTypeDecl, property,
-                        codeGenerator.GetInfo(addContext, options, parseOptions),
-                        cancellationToken);
-                }
-                else if (fieldOrProperty is IFieldSymbol field)
-                {
-                    return codeGenerator.AddField(
-                        currentTypeDecl, field,
-                        codeGenerator.GetInfo(addContext, options, parseOptions),
-                        cancellationToken);
-                }
-                else
-                {
-                    throw ExceptionUtilities.Unreachable();
-                }
-            });
+                IPropertySymbol => GetAddContext<IPropertySymbol>(compilation, parameter, cancellationToken),
+                IFieldSymbol => GetAddContext<IFieldSymbol>(compilation, parameter, cancellationToken),
+                _ => throw ExceptionUtilities.UnexpectedValue(fieldOrProperty),
+            };
 
-        return solutionEditor.GetChangedSolution();
+            var preferredTypeDeclaration = siblingSyntax?.GetAncestorOrThis<TypeDeclarationSyntax>() ?? typeDeclaration;
 
-        (ISymbol? symbol, SyntaxNode? syntax, CodeGenerationContext context) GetAddContext<TSymbol>() where TSymbol : class, ISymbol
+            var editingDocument = solution.GetRequiredDocument(preferredTypeDeclaration.SyntaxTree);
+            var editor = await solutionEditor.GetDocumentEditorAsync(editingDocument.Id, cancellationToken).ConfigureAwait(false);
+            editor.ReplaceNode(
+                preferredTypeDeclaration,
+                (currentTypeDecl, _) =>
+                {
+                    if (fieldOrProperty is IPropertySymbol property)
+                    {
+                        return codeGenerator.AddProperty(
+                            currentTypeDecl, property,
+                            codeGenerator.GetInfo(addContext, options, parseOptions),
+                            cancellationToken);
+                    }
+                    else if (fieldOrProperty is IFieldSymbol field)
+                    {
+                        return codeGenerator.AddField(
+                            currentTypeDecl, field,
+                            codeGenerator.GetInfo(addContext, options, parseOptions),
+                            cancellationToken);
+                    }
+                    else
+                    {
+                        throw ExceptionUtilities.Unreachable();
+                    }
+                });
+
+            return solutionEditor.GetChangedSolution();
+        }
+
+        static (ISymbol? symbol, SyntaxNode? syntax, CodeGenerationContext context) GetAddContext<TSymbol>(
+            Compilation compilation, IParameterSymbol parameter, CancellationToken cancellationToken) where TSymbol : class, ISymbol
         {
             foreach (var (sibling, before) in GetSiblingParameters(parameter))
             {
