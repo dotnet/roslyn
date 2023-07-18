@@ -96,7 +96,6 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
             // it as a member in this type.  Note that we have some fallback rules that use the standard conventions
             // around properties /fields so that can still find things even if the user has no naming preferences
             // set.
-
             foreach (var rule in rules)
             {
                 var memberName = rule.NamingStyle.CreateName(parameterWords);
