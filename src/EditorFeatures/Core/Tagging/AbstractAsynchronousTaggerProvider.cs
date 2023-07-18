@@ -160,21 +160,28 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 #endif
         }
 
-        private async Task PerformUIWorkAsync(Func<CancellationToken, Task> work, CancellationToken cancellationToken)
+        private async Task PerformUIWorkAsync<TArgs>(Func<TArgs, CancellationToken, Task> work, TArgs args, CancellationToken cancellationToken)
         {
             if (_threadCoordinator is null)
             {
                 // If we have no thread coordinator then just switch to the UI thread and do the work now.
                 await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                await work(cancellationToken).ConfigureAwait(true);
+                await work(args, cancellationToken).ConfigureAwait(true);
             }
             else
             {
                 // Otherwise, let the coordinator take this and perform it with other UI work to reduce the amount of UI
                 // thread context switching we have to do.
-                await _threadCoordinator.AddUIWorkAsync(work, cancellationToken).ConfigureAwait(true);
+                await _threadCoordinator.AddUIWorkAsync(cancellationToken => work(args, cancellationToken), cancellationToken).ConfigureAwait(true);
             }
         }
+
+        private Task PerformUIWorkAsync(Action<CancellationToken> work, CancellationToken cancellationToken)
+            => PerformUIWorkAsync((_, cancellationToken) =>
+            {
+                work(cancellationToken);
+                return Task.CompletedTask;
+            }, args: 0, cancellationToken);
 
         protected ITagger<T>? CreateTaggerWorker<T>(ITextView? textView, ITextBuffer subjectBuffer) where T : ITag
         {

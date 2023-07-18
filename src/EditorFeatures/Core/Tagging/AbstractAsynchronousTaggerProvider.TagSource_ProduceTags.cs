@@ -180,8 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // to check if their buffer is visible, and all will be trying to determine what portion of the
                 // buffer/view to tag, so this helps reduce that from N messages on the UI thread for N taggers to just 1.
                 await _dataSource.PerformUIWorkAsync(
-                    cancellationToken => RecomputeTagsOnUIThreadAsync(highPriority, cancellationToken),
-                    cancellationToken).ConfigureAwait(false);
+                    RecomputeTagsOnUIThreadAsync, highPriority, cancellationToken).ConfigureAwait(false);
             }
 
             /// <summary>
@@ -251,12 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     // Then switch back to the UI thread to update our state and kick off the work to notify the editor.
                     // Try to coordinate this UI work with any other UI work that is going on with any other tagger so as to 
                     // not oversaturate the UI thread.
-                    await _dataSource.PerformUIWorkAsync(
-                        cancellationToken =>
-                        {
-                            UpdateStateOnUIThread(cancellationToken);
-                            return Task.CompletedTask;
-                        }, cancellationToken).ConfigureAwait(false);
+                    await _dataSource.PerformUIWorkAsync(UpdateStateOnUIThread, cancellationToken).ConfigureAwait(false);
 
                     return;
 
