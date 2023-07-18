@@ -24,16 +24,13 @@ namespace Microsoft.CodeAnalysis.PasteTracking
     // applied. This is important because the PasteTrackingService will dismiss the registered
     // textspan when the textbuffer is changed.
     [Order(Before = PredefinedCommandHandlerNames.FormatDocument)]
-    internal class PasteTrackingPasteCommandHandler : IChainedCommandHandler<PasteCommandArgs>
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class PasteTrackingPasteCommandHandler(PasteTrackingService pasteTrackingService) : IChainedCommandHandler<PasteCommandArgs>
     {
         public string DisplayName => EditorFeaturesResources.Paste_Tracking;
 
-        private readonly PasteTrackingService _pasteTrackingService;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public PasteTrackingPasteCommandHandler(PasteTrackingService pasteTrackingService)
-            => _pasteTrackingService = pasteTrackingService;
+        private readonly PasteTrackingService _pasteTrackingService = pasteTrackingService;
 
         public CommandState GetCommandState(PasteCommandArgs args, Func<CommandState> nextCommandHandler)
             => nextCommandHandler();

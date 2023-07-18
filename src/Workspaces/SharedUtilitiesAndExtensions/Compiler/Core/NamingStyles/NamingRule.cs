@@ -8,17 +8,10 @@ using Microsoft.CodeAnalysis.NamingStyles;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
-    internal readonly struct NamingRule
+    internal readonly struct NamingRule(SymbolSpecification symbolSpecification, NamingStyle namingStyle, ReportDiagnostic enforcementLevel)
     {
-        public readonly SymbolSpecification SymbolSpecification;
-        public readonly NamingStyle NamingStyle;
-        public readonly ReportDiagnostic EnforcementLevel;
-
-        public NamingRule(SymbolSpecification symbolSpecification, NamingStyle namingStyle, ReportDiagnostic enforcementLevel)
-        {
-            SymbolSpecification = symbolSpecification;
-            NamingStyle = namingStyle;
-            EnforcementLevel = enforcementLevel;
-        }
+        public readonly SymbolSpecification SymbolSpecification = symbolSpecification;
+        public readonly NamingStyle NamingStyle = namingStyle;
+        public readonly ReportDiagnostic EnforcementLevel = enforcementLevel;
     }
 }

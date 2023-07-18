@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             // Lazily produce the compilation.  We don't want to incur any costs (especially source generators) if there
             // are no results for this query in this project.
-            var lazyCompilation = new AsyncLazy<Compilation>(project.GetRequiredCompilationAsync, cacheResult: true);
+            var lazyCompilation = AsyncLazy.Create(project.GetRequiredCompilationAsync);
 
             if (project.SupportsCompilation)
             {
@@ -114,12 +114,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     using var _ = ArrayBuilder<ISymbol>.GetInstance(out var buffer);
 
-                    var lazyAssembly = new AsyncLazy<IAssemblySymbol?>(async cancellationToken =>
+                    var lazyAssembly = AsyncLazy.Create(async cancellationToken =>
                     {
                         var compilation = await lazyCompilation.GetValueAsync(cancellationToken).ConfigureAwait(false);
                         var assemblySymbol = compilation.GetAssemblyOrModuleSymbol(peReference) as IAssemblySymbol;
                         return assemblySymbol;
-                    }, cacheResult: true);
+                    });
 
                     await AddMetadataDeclarationsWithNormalQueryAsync(
                         project, lazyAssembly, peReference,

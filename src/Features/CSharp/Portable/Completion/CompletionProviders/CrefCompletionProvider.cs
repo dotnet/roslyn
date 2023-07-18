@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 context.IsExclusive = true;
 
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var span = GetCompletionItemSpan(text, position);
                 var serializedOptions = ImmutableDictionary<string, string>.Empty.Add(HideAdvancedMembers, options.HideAdvancedMembers.ToString());
 
@@ -391,12 +391,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         internal TestAccessor GetTestAccessor()
             => new(this);
 
-        internal readonly struct TestAccessor
+        internal readonly struct TestAccessor(CrefCompletionProvider crefCompletionProvider)
         {
-            private readonly CrefCompletionProvider _crefCompletionProvider;
-
-            public TestAccessor(CrefCompletionProvider crefCompletionProvider)
-                => _crefCompletionProvider = crefCompletionProvider;
+            private readonly CrefCompletionProvider _crefCompletionProvider = crefCompletionProvider;
 
             public void SetSpeculativeNodeCallback(Action<SyntaxNode?> value)
                 => _crefCompletionProvider._testSpeculativeNodeCallback = value;

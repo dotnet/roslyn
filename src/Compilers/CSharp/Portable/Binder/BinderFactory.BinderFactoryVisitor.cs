@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(kind is SymbolKind.Method or SymbolKind.Property or SymbolKind.Event);
 
-                if (container is SourceMemberContainerTypeSymbol { PrimaryConstructor: not null } sourceMemberContainerTypeSymbol)
+                if (container is SourceMemberContainerTypeSymbol { HasPrimaryConstructor: true } sourceMemberContainerTypeSymbol)
                 {
                     foreach (Symbol sym in sourceMemberContainerTypeSymbol.GetMembersToMatchAgainstDeclarationSpan())
                     {
@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (sym.Kind == SymbolKind.Method)
                     {
-                        if (InSpan(sym.Locations[0], this.syntaxTree, memberSpan))
+                        if (InSpan(sym.GetFirstLocation(), this.syntaxTree, memberSpan))
                         {
                             return true;
                         }
@@ -594,7 +594,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var implementation = ((MethodSymbol)sym).PartialImplementationPart;
                         if ((object)implementation != null)
                         {
-                            if (InSpan(implementation.Locations[0], this.syntaxTree, memberSpan))
+                            if (InSpan(implementation.GetFirstLocation(), this.syntaxTree, memberSpan))
                             {
                                 result = implementation;
                                 return true;

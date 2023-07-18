@@ -8,9 +8,9 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.DocumentOutline;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
@@ -95,7 +95,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             static DocumentSymbolDataViewModel ReplaceChildren(DocumentSymbolDataViewModel symbolToUpdate, ImmutableArray<DocumentSymbolDataViewModel> newChildren)
             {
                 var data = symbolToUpdate.Data;
-                var symbolData = new DocumentSymbolData(data.Name, data.SymbolKind, data.Glyph, data.RangeSpan, data.SelectionRangeSpan, ImmutableArray<DocumentSymbolData>.Empty);
+                var symbolData = data with { Children = ImmutableArray<DocumentSymbolData>.Empty };
                 return new DocumentSymbolDataViewModel(symbolData, newChildren);
             }
 
@@ -146,6 +146,62 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             // No search results found
             searchedSymbols = DocumentOutlineViewModel.SearchDocumentSymbolData(model.DocumentSymbolData, "xyz", CancellationToken.None);
             Assert.Equal(0, searchedSymbols.Length);
+        }
+
+        [WpfFact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66012")]
+        public async Task TestEnumOnSingleLine()
+        {
+            var (_, _, items) = await InitializeMocksAndDataModelAndUIItems(
+                """
+                enum Test
+                  { a, b }
+                """);
+
+            Assert.Collection(
+                items,
+                item =>
+                {
+                    Assert.Equal(Glyph.EnumInternal, item.Data.Glyph);
+                    Assert.Equal("Test", item.Data.Name);
+                    Assert.Collection(
+                        item.Children,
+                        item =>
+                        {
+                            Assert.Equal(Glyph.EnumMemberPublic, item.Data.Glyph);
+                            Assert.Equal("a", item.Data.Name);
+                        },
+                        item =>
+                        {
+                            Assert.Equal(Glyph.EnumMemberPublic, item.Data.Glyph);
+                            Assert.Equal("b", item.Data.Name);
+                        });
+                });
+        }
+
+        [WpfFact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66473")]
+        public async Task TestClassOnSingleLine()
+        {
+            var (_, _, items) = await InitializeMocksAndDataModelAndUIItems(
+                """
+                abstract class TypeName { public string PropertyName { get; } = "Value"; }
+                """);
+
+            Assert.Collection(
+                items,
+                item =>
+                {
+                    Assert.Equal(Glyph.ClassInternal, item.Data.Glyph);
+                    Assert.Equal("TypeName", item.Data.Name);
+                    Assert.Collection(
+                        item.Children,
+                        item =>
+                        {
+                            Assert.Equal(Glyph.PropertyPublic, item.Data.Glyph);
+                            Assert.Equal("PropertyName", item.Data.Name);
+                        });
+                });
         }
     }
 }

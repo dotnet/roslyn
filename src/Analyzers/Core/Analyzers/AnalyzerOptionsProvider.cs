@@ -19,26 +19,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 /// <summary>
 /// Provides C# and VB analyzers a convenient access to common editorconfig options with fallback to IDE default values.
 /// </summary>
-internal readonly struct AnalyzerOptionsProvider
+internal readonly struct AnalyzerOptionsProvider(IOptionsReader options, string language, IdeAnalyzerOptions fallbackOptions)
 {
     /// <summary>
     /// Document editorconfig options.
     /// </summary>
-    private readonly IOptionsReader _options;
+    private readonly IOptionsReader _options = options;
 
     /// <summary>
     /// Fallback options - the default options in Code Style layer.
     /// </summary>
-    private readonly IdeAnalyzerOptions _fallbackOptions;
+    private readonly IdeAnalyzerOptions _fallbackOptions = fallbackOptions;
 
-    private readonly string _language;
-
-    public AnalyzerOptionsProvider(IOptionsReader options, string language, IdeAnalyzerOptions fallbackOptions)
-    {
-        _options = options;
-        _language = language;
-        _fallbackOptions = fallbackOptions;
-    }
+    private readonly string _language = language;
 
     public AnalyzerOptionsProvider(IOptionsReader options, string language, AnalyzerOptions fallbackOptions)
         : this(options, language, fallbackOptions.GetIdeOptions())

@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.KeywordHighlighting
             End With
         End Sub
 
-        Private Sub HighlightRelatedStatements(node As SyntaxNode, highlights As List(Of TextSpan))
+        Private Shared Sub HighlightRelatedStatements(node As SyntaxNode, highlights As List(Of TextSpan))
             If node.Kind = SyntaxKind.ExitTryStatement Then
                 highlights.Add(node.Span)
             Else

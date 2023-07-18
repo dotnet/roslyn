@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 // Super simple case.  Only one code action changed this document.  Just use
                 // its final result.
                 var document = orderedDocuments[0].document;
-                var finalText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var finalText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 documentIdToFinalText.TryAdd(document.Id, finalText);
                 return;
             }

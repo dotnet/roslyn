@@ -50,6 +50,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Whether the runtime supports updating the Param table, and hence related edits (eg parameter renames)
         /// </summary>
         UpdateParameters = 1 << 6,
+
+        /// <summary>
+        /// Adding a static or instance method, property or event to an existing type (without backing fields), such that the method and/or the type are generic.
+        /// </summary>
+        GenericAddMethodToExistingType = 1 << 7,
+
+        /// <summary>
+        /// Updating an existing static or instance method, property or event (without backing fields) that is generic and/or contained in a generic type. 
+        /// </summary>
+        GenericUpdateMethod = 1 << 8,
+
+        /// <summary>
+        /// Adding a static or instance field to an existing generic type.
+        /// </summary>
+        GenericAddFieldToExistingType = 1 << 9,
     }
 
     internal static class EditAndContinueCapabilitiesParser
@@ -69,6 +84,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     nameof(EditAndContinueCapabilities.NewTypeDefinition) => EditAndContinueCapabilities.NewTypeDefinition,
                     nameof(EditAndContinueCapabilities.ChangeCustomAttributes) => EditAndContinueCapabilities.ChangeCustomAttributes,
                     nameof(EditAndContinueCapabilities.UpdateParameters) => EditAndContinueCapabilities.UpdateParameters,
+                    nameof(EditAndContinueCapabilities.GenericAddMethodToExistingType) => EditAndContinueCapabilities.GenericAddMethodToExistingType,
+                    nameof(EditAndContinueCapabilities.GenericUpdateMethod) => EditAndContinueCapabilities.GenericUpdateMethod,
+                    nameof(EditAndContinueCapabilities.GenericAddFieldToExistingType) => EditAndContinueCapabilities.GenericAddFieldToExistingType,
 
                     // To make it eaiser for  runtimes to specify more broad capabilities
                     "AddDefinitionToExistingType" => EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddStaticFieldToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType,

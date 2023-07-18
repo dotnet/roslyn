@@ -25,20 +25,14 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode
 {
     [Export(typeof(IIntentSourceProvider)), Shared]
-    internal class IntentSourceProvider : IIntentSourceProvider
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class IntentSourceProvider(
+        [ImportMany] IEnumerable<Lazy<IIntentProvider, IIntentProviderMetadata>> lazyIntentProviders,
+        IGlobalOptionService globalOptions) : IIntentSourceProvider
     {
-        private readonly ImmutableDictionary<(string LanguageName, string IntentName), Lazy<IIntentProvider, IIntentProviderMetadata>> _lazyIntentProviders;
-        private readonly IGlobalOptionService _globalOptions;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public IntentSourceProvider(
-            [ImportMany] IEnumerable<Lazy<IIntentProvider, IIntentProviderMetadata>> lazyIntentProviders,
-            IGlobalOptionService globalOptions)
-        {
-            _lazyIntentProviders = CreateProviderMap(lazyIntentProviders);
-            _globalOptions = globalOptions;
-        }
+        private readonly ImmutableDictionary<(string LanguageName, string IntentName), Lazy<IIntentProvider, IIntentProviderMetadata>> _lazyIntentProviders = CreateProviderMap(lazyIntentProviders);
+        private readonly IGlobalOptionService _globalOptions = globalOptions;
 
         private static ImmutableDictionary<(string LanguageName, string IntentName), Lazy<IIntentProvider, IIntentProviderMetadata>> CreateProviderMap(
             IEnumerable<Lazy<IIntentProvider, IIntentProviderMetadata>> lazyIntentProviders)
@@ -68,7 +62,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode
                 return ImmutableArray<IntentSource>.Empty;
             }
 
-            var currentText = await currentDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var currentText = await currentDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var originalDocument = currentDocument.WithText(currentText.WithChanges(intentRequestContext.PriorTextEdits));
 
             var selectionTextSpan = intentRequestContext.PriorSelection;

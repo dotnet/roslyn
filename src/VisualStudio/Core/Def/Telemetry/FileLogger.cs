@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
             _buffer = new();
             _taskQueue = new(AsynchronousOperationListenerProvider.NullListener, TaskScheduler.Default);
             _enabled = globalOptions.GetOption(VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics);
-            globalOptions.OptionChanged += OptionService_OptionChanged;
+            globalOptions.AddOptionChangedHandler(this, OptionService_OptionChanged);
         }
 
         public FileLogger(IGlobalOptionService optionService)

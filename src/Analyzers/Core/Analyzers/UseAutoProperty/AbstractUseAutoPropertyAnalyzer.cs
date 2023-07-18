@@ -86,19 +86,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             => context.RegisterSymbolStartAction(context =>
             {
                 var namedType = (INamedTypeSymbol)context.Symbol;
-                if (namedType.TypeKind is not TypeKind.Class and not TypeKind.Struct and not TypeKind.Module)
+                if (!ShouldAnalyze(context, namedType))
                     return;
-
-                // Don't bother running on this type unless at least one of its parts has the 'prefer auto props' option
-                // on, and the diagnostic is not suppressed.
-                if (!namedType.DeclaringSyntaxReferences.Select(d => d.SyntaxTree).Distinct().Any(tree =>
-                    {
-                        var preferAutoProps = context.Options.GetAnalyzerOptions(tree).PreferAutoProperties;
-                        return preferAutoProps.Value && preferAutoProps.Notification.Severity != ReportDiagnostic.Suppress;
-                    }))
-                {
-                    return;
-                }
 
                 var fieldNames = _fieldNamesPool.Allocate();
                 var analysisResults = s_analysisResultPool.Allocate();
@@ -140,6 +129,45 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                         s_fieldWriteLocationPool.ClearAndFree(nonConstructorFieldWrites);
                     }
                 });
+
+                static bool ShouldAnalyze(SymbolStartAnalysisContext context, INamedTypeSymbol namedType)
+                {
+                    if (namedType.TypeKind is not TypeKind.Class and not TypeKind.Struct and not TypeKind.Module)
+                        return false;
+
+                    // Don't bother running on this type unless at least one of its parts has the 'prefer auto props' option
+                    // on, and the diagnostic is not suppressed.
+                    if (!namedType.DeclaringSyntaxReferences.Select(d => d.SyntaxTree).Distinct().Any(tree =>
+                    {
+                        var preferAutoProps = context.Options.GetAnalyzerOptions(tree).PreferAutoProperties;
+                        return preferAutoProps.Value && preferAutoProps.Notification.Severity != ReportDiagnostic.Suppress;
+                    }))
+                    {
+                        return false;
+                    }
+
+                    // If we are analyzing a sub-span (lightbulb case), then check if the filter span
+                    // has a field/property declaration where a diagnostic could be reported.
+                    if (context.FilterSpan.HasValue)
+                    {
+                        Contract.ThrowIfNull(context.FilterTree);
+                        var shouldAnalyze = false;
+                        var analysisRoot = context.GetAnalysisRoot(findInTrivia: false);
+                        foreach (var node in analysisRoot.DescendantNodes())
+                        {
+                            if (node is TPropertyDeclaration or TFieldDeclaration && context.ShouldAnalyzeSpan(node.Span, node.SyntaxTree))
+                            {
+                                shouldAnalyze = true;
+                                break;
+                            }
+                        }
+
+                        if (!shouldAnalyze && analysisRoot.FirstAncestorOrSelf<SyntaxNode>(node => node is TPropertyDeclaration or TFieldDeclaration) == null)
+                            return false;
+                    }
+
+                    return true;
+                }
             }, SymbolKind.NamedType);
 
         private void AnalyzePropertyDeclaration(

@@ -24,13 +24,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SourceEventAccessorSymbol(
             SourceEventSymbol @event,
             SyntaxReference syntaxReference,
-            ImmutableArray<Location> locations,
+            Location location,
             EventSymbol explicitlyImplementedEventOpt,
             string aliasQualifierOpt,
             bool isAdder,
             bool isIterator,
-            bool isNullableAnalysisEnabled)
-            : base(@event.containingType, syntaxReference, locations, isIterator)
+            bool isNullableAnalysisEnabled,
+            bool isExpressionBodied)
+            : base(@event.containingType, syntaxReference, location, isIterator,
+                   (@event.Modifiers, MakeFlags(
+                                                isAdder ? MethodKind.EventAdd : MethodKind.EventRemove,
+                                                RefKind.None,
+                                                @event.Modifiers,
+                                                returnsVoid: false, // until we learn otherwise (in LazyMethodChecks).
+                                                returnsVoidIsSet: false,
+                                                isExpressionBodied: isExpressionBodied,
+                                                isExtensionMethod: false,
+                                                isNullableAnalysisEnabled: isNullableAnalysisEnabled,
+                                                isVarArg: false,
+                                                isExplicitInterfaceImplementation: @event.IsExplicitInterfaceImplementation)))
         {
             _event = @event;
 
@@ -51,15 +63,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             _explicitInterfaceImplementations = explicitInterfaceImplementations;
-
-            this.MakeFlags(
-                isAdder ? MethodKind.EventAdd : MethodKind.EventRemove,
-                @event.Modifiers,
-                returnsVoid: false, // until we learn otherwise (in LazyMethodChecks).
-                isExtensionMethod: false,
-                isNullableAnalysisEnabled: isNullableAnalysisEnabled,
-                isMetadataVirtualIgnoringModifiers: @event.IsExplicitInterfaceImplementation && (@event.Modifiers & DeclarationModifiers.Static) == 0);
-
             _name = GetOverriddenAccessorName(@event, isAdder) ?? name;
         }
 
@@ -116,8 +119,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         // EventRegistrationToken add_E(EventDelegate d);
 
-                        // Leave the returns void bit in this.flags false.
                         _lazyReturnType = TypeWithAnnotations.Create(eventTokenType);
+                        this.SetReturnsVoid(returnsVoid: false);
 
                         var parameter = new SynthesizedAccessorValueParameterSymbol(this, _event.TypeWithAnnotations, 0);
                         _lazyParameters = ImmutableArray.Create<ParameterSymbol>(parameter);
@@ -163,11 +166,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override RefKind RefKind
-        {
-            get { return RefKind.None; }
-        }
-
         public sealed override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get
@@ -196,11 +194,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override bool IsVararg
-        {
-            get { return false; }
-        }
-
         public sealed override ImmutableArray<TypeParameterSymbol> TypeParameters
         {
             get { return ImmutableArray<TypeParameterSymbol>.Empty; }
@@ -217,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 Debug.Assert(this.Locations.Length == 1);
-                return this.Locations[0];
+                return this.GetFirstLocation();
             }
         }
 
@@ -245,12 +238,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return null;
-        }
-
-        internal override bool IsExpressionBodied
-        {
-            // Events cannot be expression-bodied
-            get { return false; }
         }
     }
 }

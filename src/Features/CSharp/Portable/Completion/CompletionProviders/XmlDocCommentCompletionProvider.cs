@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return elementName != null;
         }
 
-        private (string? name, SyntaxList<XmlAttributeSyntax> attributes) GetElementNameAndAttributes(SyntaxNode node)
+        private static (string? name, SyntaxList<XmlAttributeSyntax> attributes) GetElementNameAndAttributes(SyntaxNode node)
         {
             XmlNameSyntax? nameSyntax;
             SyntaxList<XmlAttributeSyntax> attributes;
@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var declaredParameters = declarationSymbol.GetParameters();
             if (declarationSymbol is INamedTypeSymbol namedTypeSymbol &&
-                namedTypeSymbol.TryGetRecordPrimaryConstructor(out var primaryConstructor))
+                namedTypeSymbol.TryGetPrimaryConstructor(out var primaryConstructor))
             {
                 declaredParameters = primaryConstructor.Parameters;
             }

@@ -13,20 +13,13 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages
 {
-    internal readonly struct EmbeddedLanguageDetector
+    internal readonly struct EmbeddedLanguageDetector(
+        EmbeddedLanguageInfo info,
+        ImmutableArray<string> languageIdentifiers)
     {
-        private readonly EmbeddedLanguageInfo Info;
-        private readonly HashSet<string> LanguageIdentifiers;
-        private readonly EmbeddedLanguageCommentDetector _commentDetector;
-
-        public EmbeddedLanguageDetector(
-            EmbeddedLanguageInfo info,
-            ImmutableArray<string> languageIdentifiers)
-        {
-            Info = info;
-            LanguageIdentifiers = new HashSet<string>(languageIdentifiers, StringComparer.OrdinalIgnoreCase);
-            _commentDetector = new EmbeddedLanguageCommentDetector(languageIdentifiers);
-        }
+        private readonly EmbeddedLanguageInfo Info = info;
+        private readonly HashSet<string> LanguageIdentifiers = new HashSet<string>(languageIdentifiers, StringComparer.OrdinalIgnoreCase);
+        private readonly EmbeddedLanguageCommentDetector _commentDetector = new EmbeddedLanguageCommentDetector(languageIdentifiers);
 
         /// <summary>
         /// Determines if <paramref name="token"/> is an embedded language token.  If the token is, the specific
@@ -364,7 +357,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
             return true;
         }
 
-        private string? GetNameOfType(SyntaxNode? typeNode, ISyntaxFacts syntaxFacts)
+        private static string? GetNameOfType(SyntaxNode? typeNode, ISyntaxFacts syntaxFacts)
         {
             if (syntaxFacts.IsQualifiedName(typeNode))
             {

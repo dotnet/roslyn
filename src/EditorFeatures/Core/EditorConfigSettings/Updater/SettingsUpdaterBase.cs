@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
             if (analyzerConfigDocument is null)
                 return null;
 
-            var originalText = await analyzerConfigDocument.GetTextAsync(token).ConfigureAwait(false);
+            var originalText = await analyzerConfigDocument.GetValueTextAsync(token).ConfigureAwait(false);
             using (await _guard.DisposableWaitAsync(token).ConfigureAwait(false))
             {
                 var newText = GetNewText(originalText, _queue, token);
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                 return null;
             }
 
-            var originalText = await analyzerConfigDocument!.GetTextAsync(token).ConfigureAwait(false);
+            var originalText = await analyzerConfigDocument!.GetValueTextAsync(token).ConfigureAwait(false);
             return newText.GetTextChanges(originalText);
         }
 

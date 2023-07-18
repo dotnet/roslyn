@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.BraceMatching
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position);
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             if (position < text.Length && this.IsBrace(text[position]))
             {
                 if (token.RawKind == _openBrace.Kind && AllowedForToken(token))

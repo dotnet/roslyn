@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis
             ParseOptions options,
             ITextAndVersionSource textSource,
             LoadTextOptions loadTextOptions,
-            ValueSource<TreeAndVersion> treeSource)
+            AsyncLazy<TreeAndVersion> treeSource)
             : base(languageServices, documentServiceProvider, attributes, options, textSource, loadTextOptions, treeSource)
         {
             Identity = documentIdentity;

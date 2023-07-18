@@ -156,6 +156,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 kind = ObsoleteAttributeKind.Obsolete
             ElseIf VisualBasicAttributeData.IsTargetEarlyAttribute(type, syntax, AttributeDescription.DeprecatedAttribute) Then
                 kind = ObsoleteAttributeKind.Deprecated
+            ElseIf VisualBasicAttributeData.IsTargetEarlyAttribute(type, syntax, AttributeDescription.WindowsExperimentalAttribute) Then
+                kind = ObsoleteAttributeKind.WindowsExperimental
             ElseIf VisualBasicAttributeData.IsTargetEarlyAttribute(type, syntax, AttributeDescription.ExperimentalAttribute) Then
                 kind = ObsoleteAttributeKind.Experimental
             Else
@@ -200,6 +202,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.WRN_AttributeNotSupportedInVB, arguments.AttributeSyntaxOpt.Location, AttributeDescription.SkipLocalsInitAttribute.FullName)
             ElseIf arguments.Attribute.IsTargetAttribute(Me, AttributeDescription.CompilerFeatureRequiredAttribute) Then
                 DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_DoNotUseCompilerFeatureRequired, arguments.AttributeSyntaxOpt.Location)
+            ElseIf arguments.Attribute.IsTargetAttribute(Me, AttributeDescription.RequiredMemberAttribute) Then
+                DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_DoNotUseRequiredMember, arguments.AttributeSyntaxOpt.Location)
             End If
         End Sub
 

@@ -885,7 +885,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             await using (var storage = await GetStorageAsync(solution))
             {
                 var index = await SyntaxTreeIndex.GetRequiredIndexAsync(document, default);
-                await index.SaveAsync(_storageService!, document, default);
+                await index.SaveAsync(document, _storageService!);
 
                 var index2 = await SyntaxTreeIndex.LoadAsync(_storageService!, DocumentKey.ToDocumentKey(document), checksum: null, new StringTable(), default);
                 Assert.NotNull(index2);
@@ -905,7 +905,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             await using (var storage = await GetStorageAsync(solution))
             {
                 var index = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(document, default);
-                await index.SaveAsync(_storageService!, document, default);
+                await index.SaveAsync(document, _storageService!);
 
                 var index2 = await TopLevelSyntaxTreeIndex.LoadAsync(_storageService!, DocumentKey.ToDocumentKey(document), checksum: null, new StringTable(), default);
                 Assert.NotNull(index2);
