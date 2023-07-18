@@ -5700,17 +5700,41 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     static void Main()
                     {
-                        MyCollection<int> c = F1();
-                        c.Report();
+                        MyCollection<string> x = F0();
+                        x.Report();
+                        MyCollection<int> y = F1();
+                        y.Report();
+                        MyCollection<object> z = F2(4, 5);
+                        z.Report();
+                    }
+                    static MyCollection<string> F0()
+                    {
+                        return [];
                     }
                     static MyCollection<int> F1()
                     {
                         return [1, 2, 3];
                     }
+                    static MyCollection<object> F2(int x, object y)
+                    {
+                        return [x, y, null];
+                    }
                 }
                 """;
 
-            var verifier = CompileAndVerify(new[] { sourceB1, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net70, expectedOutput: "[1, 2, 3], ");
+            var verifier = CompileAndVerify(new[] { sourceB1, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net70, expectedOutput: "[], [1, 2, 3], [4, 5, null], ");
+            verifier.VerifyIL("Program.F0",
+                """
+                {
+                  // Code size       17 (0x11)
+                  .maxstack  1
+                  IL_0000:  ldc.i4.0
+                  IL_0001:  newarr     "string"
+                  IL_0006:  newobj     "System.ReadOnlySpan<string>..ctor(string[])"
+                  IL_000b:  call       "MyCollection<string> MyCollectionBuilder.Create<string>(System.ReadOnlySpan<string>)"
+                  IL_0010:  ret
+                }
+                """);
             verifier.VerifyIL("Program.F1",
                 """
                 {
@@ -5720,6 +5744,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0005:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
                   IL_000a:  call       "MyCollection<int> MyCollectionBuilder.Create<int>(System.ReadOnlySpan<int>)"
                   IL_000f:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.F2",
+                """
+                {
+                  // Code size       30 (0x1e)
+                  .maxstack  4
+                  IL_0000:  ldc.i4.3
+                  IL_0001:  newarr     "object"
+                  IL_0006:  dup
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  ldarg.0
+                  IL_0009:  box        "int"
+                  IL_000e:  stelem.ref
+                  IL_000f:  dup
+                  IL_0010:  ldc.i4.1
+                  IL_0011:  ldarg.1
+                  IL_0012:  stelem.ref
+                  IL_0013:  newobj     "System.ReadOnlySpan<object>..ctor(object[])"
+                  IL_0018:  call       "MyCollection<object> MyCollectionBuilder.Create<object>(System.ReadOnlySpan<object>)"
+                  IL_001d:  ret
                 }
                 """);
 
