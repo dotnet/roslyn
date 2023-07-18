@@ -62,12 +62,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case ConstructorDeclarationSyntax ctorDecl:
                         // Implicit constructor initializer:
-                        return new BoundSequencePointWithSpan(ctorDecl, rewritten, createSpanForConstructorInitializer(ctorDecl));
+                        Debug.Assert(ctorDecl.Initializer == null);
+
+                        TextSpan span;
+                        if (ctorDecl.Modifiers.Any(SyntaxKind.StaticKeyword))
+                        {
+                            Debug.Assert(ctorDecl.Body != null);
+
+                            // [SomeAttribute] static MyCtorName(...) [|{|] ... }
+                            var start = ctorDecl.Body.OpenBraceToken.SpanStart;
+                            var end = ctorDecl.Body.OpenBraceToken.Span.End;
+                            span = TextSpan.FromBounds(start, end);
+                        }
+                        else
+                        {
+                            //  [SomeAttribute] [|public MyCtorName(params int[] values)|] { ... }
+                            span = CreateSpan(ctorDecl.Modifiers, ctorDecl.Identifier, ctorDecl.ParameterList.CloseParenToken);
+                        }
+
+                        return new BoundSequencePointWithSpan(ctorDecl, rewritten, span);
 
                     case ConstructorInitializerSyntax ctorInit:
                         // Explicit constructor initializer:
-                        Debug.Assert(ctorInit.Parent is ConstructorDeclarationSyntax);
-                        return new BoundSequencePointWithSpan(ctorInit, rewritten, createSpanForConstructorInitializer((ConstructorDeclarationSyntax)ctorInit.Parent));
+
+                        //  [SomeAttribute] public MyCtorName(params int[] values): [|base()|] { ... }
+                        return new BoundSequencePointWithSpan(ctorInit, rewritten,
+                            TextSpan.FromBounds(ctorInit.ThisOrBaseKeyword.SpanStart, ctorInit.ArgumentList.CloseParenToken.Span.End));
 
                     case TypeDeclarationSyntax typeDecl:
                         // Primary constructor with implicit base initializer:
@@ -93,30 +113,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return AddSequencePoint(rewritten);
-
-            static TextSpan createSpanForConstructorInitializer(ConstructorDeclarationSyntax constructorSyntax)
-            {
-                if (constructorSyntax.Initializer != null)
-                {
-                    //  [SomeAttribute] public MyCtorName(params int[] values): [|base()|] { ... }
-                    var start = constructorSyntax.Initializer.ThisOrBaseKeyword.SpanStart;
-                    var end = constructorSyntax.Initializer.ArgumentList.CloseParenToken.Span.End;
-                    return TextSpan.FromBounds(start, end);
-                }
-
-                if (constructorSyntax.Modifiers.Any(SyntaxKind.StaticKeyword))
-                {
-                    Debug.Assert(constructorSyntax.Body != null);
-
-                    // [SomeAttribute] static MyCtorName(...) [|{|] ... }
-                    var start = constructorSyntax.Body.OpenBraceToken.SpanStart;
-                    var end = constructorSyntax.Body.OpenBraceToken.Span.End;
-                    return TextSpan.FromBounds(start, end);
-                }
-
-                //  [SomeAttribute] [|public MyCtorName(params int[] values)|] { ... }
-                return CreateSpan(constructorSyntax.Modifiers, constructorSyntax.Identifier, constructorSyntax.ParameterList.CloseParenToken);
-            }
         }
 
         public override BoundStatement InstrumentFieldOrPropertyInitializer(BoundStatement original, BoundStatement rewritten)
@@ -415,6 +411,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (original.Syntax is ParameterSyntax parameterSyntax)
             {
+                Debug.Assert(parameterSyntax is { Parent.Parent: RecordDeclarationSyntax });
+
                 // Record property getter sequence point
                 return new BoundSequencePointWithSpan(parameterSyntax, rewritten, CreateSpan(parameterSyntax));
             }
