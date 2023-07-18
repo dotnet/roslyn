@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public bool IsLValueFlowCaptureEntity => CaptureId.HasValue && CaptureId.Value.IsLValueFlowCapture;
 
-        public bool EqualsIgnoringIndices(AnalysisEntity? other)
+        internal bool EqualsIgnoringIndices(AnalysisEntity? other)
         {
             // Perform fast equality checks first.
             if (ReferenceEquals(this, other))
