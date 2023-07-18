@@ -775,7 +775,7 @@ Module Module1
 End Module
 "
 
-            Dim src2 = "<AS:0></AS:0>"
+            Dim src2 = "<AS:0/>"
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
@@ -1854,7 +1854,7 @@ Class C
     Dim <AS:0>a(1)</AS:0>, <AS:1>b(2)</AS:1> = 3
 
     Sub Main
-        Dim <AS:2>c(1)</AS:2>, <AS:3>d(2)</AS:3> = 3</AS:1>
+        Dim <AS:2>c(1)</AS:2>, <AS:3>d(2)</AS:3> = 3
     End Sub
 End Class
 "

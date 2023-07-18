@@ -22,16 +22,19 @@ internal sealed class CSharpLambdaBody(SyntaxNode node) : LambdaBody
     public override OneOrMany<SyntaxNode> RootNodes
         => OneOrMany.Create(node);
 
+    public override SyntaxNode EncompassingAncestor
+        => node;
+
     public override StateMachineInfo GetStateMachineInfo()
         => new(
             IsAsync: SyntaxUtilities.IsAsyncDeclaration(node.Parent!),
             IsIterator: SyntaxUtilities.IsIterator(node),
             HasSuspensionPoints: SyntaxUtilities.GetSuspensionPoints(node).Any());
 
-    public override Match<SyntaxNode> ComputeMatch(DeclarationBody newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>>? knownMatches)
+    public override Match<SyntaxNode>? ComputeSingleRootMatch(DeclarationBody newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>>? knownMatches)
         => CSharpEditAndContinueAnalyzer.ComputeBodyMatch(node, ((CSharpLambdaBody)newBody).Node, knownMatches);
 
-    public override bool TryMatchActiveStatement(DeclarationBody newBody, SyntaxNode oldStatement, int statementPart, [NotNullWhen(true)] out SyntaxNode? newStatement)
+    public override bool TryMatchActiveStatement(DeclarationBody newBody, SyntaxNode oldStatement, ref int statementPart, [NotNullWhen(true)] out SyntaxNode? newStatement)
         => CSharpEditAndContinueAnalyzer.TryMatchActiveStatement(Node, ((CSharpLambdaBody)newBody).Node, oldStatement, out newStatement);
 
     public override LambdaBody? TryGetPartnerLambdaBody(SyntaxNode newLambda)

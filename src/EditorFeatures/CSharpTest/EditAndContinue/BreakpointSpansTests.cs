@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.EditAndContinue;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -87,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
             var expectedEnvelope = expectedSpans.IsEmpty ? default : TextSpan.FromBounds(expectedSpans[0].Start, expectedSpans[^1].End);
             Assert.NotNull(declarationNode);
 
-            var actualEnvelope = SyntaxUtilities.TryGetDeclarationBody(declarationNode)?.Envelope ?? default;
+            var actualEnvelope = SyntaxUtilities.TryGetDeclarationBody(declarationNode, symbol: null)?.Envelope ?? default;
             Assert.Equal(expectedEnvelope, actualEnvelope);
         }
 
@@ -97,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
             var endPosition = root.Span.End;
             for (var p = position; p < endPosition; p++)
             {
-                if (BreakpointSpans.TryGetClosestBreakpointSpan(root, p, out var span) && span.Start > lastSpan.Start)
+                if (BreakpointSpans.TryGetClosestBreakpointSpan(root, p, minLength: 0, out var span) && span.Start > lastSpan.Start)
                 {
                     lastSpan = span;
                     yield return span;

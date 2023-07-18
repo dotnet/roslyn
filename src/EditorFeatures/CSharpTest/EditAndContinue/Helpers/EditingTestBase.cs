@@ -152,7 +152,8 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
             var m1 = MakeMethodBody(src1, kind);
             var m2 = MakeMethodBody(src2, kind);
 
-            var match = m1.ComputeMatch(m2, knownMatches: null);
+            var match = m1.ComputeSingleRootMatch(m2, knownMatches: null);
+            Contract.ThrowIfNull(match);
 
             var stateMachineInfo1 = m1.GetStateMachineInfo();
             var stateMachineInfo2 = m2.GetStateMachineInfo();
@@ -190,7 +191,7 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
 
             if (kind == MethodKind.ConstructorWithParameters)
             {
-                var body = SyntaxUtilities.TryGetDeclarationBody(declaration);
+                var body = SyntaxUtilities.TryGetDeclarationBody(declaration, symbol: null);
                 Contract.ThrowIfNull(body);
                 return body;
             }
@@ -222,11 +223,11 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
         internal static void VerifyPreserveLocalVariables(EditScript<SyntaxNode> edits, bool preserveLocalVariables)
         {
             var oldDeclaration = (MethodDeclarationSyntax)((ClassDeclarationSyntax)((CompilationUnitSyntax)edits.Match.OldRoot).Members[0]).Members[0];
-            var oldBody = SyntaxUtilities.TryGetDeclarationBody(oldDeclaration);
+            var oldBody = SyntaxUtilities.TryGetDeclarationBody(oldDeclaration, symbol: null);
             Contract.ThrowIfNull(oldBody);
 
             var newDeclaration = (MethodDeclarationSyntax)((ClassDeclarationSyntax)((CompilationUnitSyntax)edits.Match.NewRoot).Members[0]).Members[0];
-            var newBody = SyntaxUtilities.TryGetDeclarationBody(newDeclaration);
+            var newBody = SyntaxUtilities.TryGetDeclarationBody(newDeclaration, symbol: null);
             Contract.ThrowIfNull(newBody);
 
             _ = oldBody.ComputeMatch(newBody, knownMatches: null);
