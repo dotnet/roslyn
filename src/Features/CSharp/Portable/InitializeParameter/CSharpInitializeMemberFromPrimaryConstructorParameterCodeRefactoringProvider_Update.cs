@@ -52,14 +52,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             var trackedRoot = root.TrackNodes(typeDeclaration);
             var currentSolution = document.WithSyntaxRoot(trackedRoot).Project.Solution;
 
-            for (var i = 0; i < parameters.Length; i++)
+            foreach (var (parameter, fieldOrProperty) in parameters.Zip(fieldsOrProperties, static (a, b) => (a, b)))
             {
-                var parameter = parameters[i];
-                var fieldOrProperty = fieldsOrProperties[i];
-
                 var currentDocument = currentSolution.GetRequiredDocument(document.Id);
-                var currentSemanticModel = await currentDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var currentCompilation = currentSemanticModel.Compilation;
+                var currentCompilation = await currentDocument.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var currentRoot = await currentDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                 var currentTypeDeclaration = currentRoot.GetCurrentNode(typeDeclaration);
