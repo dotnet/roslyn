@@ -2794,7 +2794,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Unsplit();
 
             // If the LHS has annotations, we perform an additional check for nullable value types
-            CheckDisallowedNullAssignment(resultType, parameterAnnotations, equalsValue.Value.Syntax.Location);
+            CheckDisallowedNullAssignment(resultType, parameterAnnotations, equalsValue.Value.Syntax);
 
             return null;
         }
@@ -2851,7 +2851,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // If the return has annotations, we perform an additional check for nullable value types
-                    CheckDisallowedNullAssignment(returnState, ToInwardAnnotations(returnAnnotations), node.Syntax.Location, boundValueOpt: expr);
+                    CheckDisallowedNullAssignment(returnState, ToInwardAnnotations(returnAnnotations), node.Syntax, boundValueOpt: expr);
                 }
             }
             else
@@ -4774,7 +4774,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         useLegacyWarnings: false,
                         AssignmentKind.Argument,
                         parameter);
-                    CheckDisallowedNullAssignment(resultType, parameterAnnotations, expr.Syntax.Location, operand);
+                    CheckDisallowedNullAssignment(resultType, parameterAnnotations, expr.Syntax, operand);
 
                     LearnFromPostConditions(operand, parameterAnnotations);
                 }
@@ -6745,7 +6745,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             previousArgumentConversionResults: conversionResultsBuilder);
 
                         // If the parameter has annotations, we perform an additional check for nullable value types
-                        if (CheckDisallowedNullAssignment(stateAfterConversion, parameterAnnotations, argumentNoConversion.Syntax.Location))
+                        if (CheckDisallowedNullAssignment(stateAfterConversion, parameterAnnotations, argumentNoConversion.Syntax))
                         {
                             LearnFromNonNullTest(argumentNoConversion, ref State);
                         }
@@ -6767,7 +6767,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // types match, but state would let a null in
                             ReportNullableAssignmentIfNecessary(argumentNoConversion, ApplyLValueAnnotations(parameterType, parameterAnnotations), resultType, useLegacyWarnings: false);
                             // If the parameter has annotations, we perform an additional check for nullable value types
-                            CheckDisallowedNullAssignment(resultType, parameterAnnotations, argumentNoConversion.Syntax.Location);
+                            CheckDisallowedNullAssignment(resultType, parameterAnnotations, argumentNoConversion.Syntax);
                         }
                     }
 
@@ -6784,7 +6784,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Returns <see langword="true"/> if this is an assignment forbidden by DisallowNullAttribute, otherwise <see langword="false"/>.</summary>
-        private bool CheckDisallowedNullAssignment(TypeWithState state, FlowAnalysisAnnotations annotations, Location location, BoundExpression? boundValueOpt = null)
+        private bool CheckDisallowedNullAssignment(TypeWithState state, FlowAnalysisAnnotations annotations, SyntaxNode node, BoundExpression? boundValueOpt = null)
         {
             if (boundValueOpt is { WasCompilerGenerated: true })
             {
@@ -6795,7 +6795,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We do this extra check for types whose non-nullable version cannot be represented
             if (IsDisallowedNullAssignment(state, annotations))
             {
-                ReportDiagnostic(ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment, location);
+                ReportDiagnostic(ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment, node.Location);
                 return true;
             }
 
@@ -6910,7 +6910,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var parameterValue = new BoundParameter(argument.Syntax, parameter);
 
                         // If the argument type has annotations, we perform an additional check for nullable value types
-                        CheckDisallowedNullAssignment(parameterWithState, leftAnnotations, argument.Syntax.Location);
+                        CheckDisallowedNullAssignment(parameterWithState, leftAnnotations, argument.Syntax);
 
                         AdjustSetValue(argument, ref parameterWithState);
                         trackNullableStateForAssignment(parameterValue, lValueType, MakeSlot(argument), parameterWithState, argument.IsSuppressed, parameterAnnotations);
@@ -8704,7 +8704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnosticLocation: operandLocation);
 
             // in the case of a lifted conversion, we assume that the call to the operator occurs only if the argument is not-null
-            if (!isLiftedConversion && CheckDisallowedNullAssignment(operandType, parameterAnnotations, conversionOperand.Syntax.Location))
+            if (!isLiftedConversion && CheckDisallowedNullAssignment(operandType, parameterAnnotations, conversionOperand.Syntax))
             {
                 LearnFromNonNullTest(conversionOperand, ref State);
             }
@@ -9273,7 +9273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // If the LHS has annotations, we perform an additional check for nullable value types
-                CheckDisallowedNullAssignment(rightState, leftAnnotations, right.Syntax.Location);
+                CheckDisallowedNullAssignment(rightState, leftAnnotations, right.Syntax);
 
                 AdjustSetValue(left, ref rightState);
                 TrackNullableStateForAssignment(right, leftLValueType, MakeSlot(left), rightState, MakeSlot(right));
@@ -9610,7 +9610,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // If the LHS has annotations, we perform an additional check for nullable value types
-                    CheckDisallowedNullAssignment(valueType, leftAnnotations, right.Syntax.Location);
+                    CheckDisallowedNullAssignment(valueType, leftAnnotations, right.Syntax);
 
                     int targetSlot = MakeSlot(variable.Expression);
                     AdjustSetValue(variable.Expression, ref valueType);
@@ -9880,7 +9880,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AssignmentKind.Assignment);
 
                 // If the LHS has annotations, we perform an additional check for nullable value types
-                CheckDisallowedNullAssignment(resultType, leftAnnotations, node.Syntax.Location);
+                CheckDisallowedNullAssignment(resultType, leftAnnotations, node.Syntax);
             }
             else
             {
