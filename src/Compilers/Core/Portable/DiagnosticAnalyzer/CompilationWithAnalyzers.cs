@@ -61,9 +61,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// An optional cancellation token which can be used to cancel analysis.
         /// Note: This token is only used if the API invoked to get diagnostics doesn't provide a cancellation token.
         /// </summary>
-        [Obsolete("This CancellationToken is always 'default'", error: false)]
+        [Obsolete("This CancellationToken is always 'None'", error: false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public CancellationToken CancellationToken => default;
+        public CancellationToken CancellationToken => CancellationToken.None;
 
         /// <inheritdoc cref="CompilationWithAnalyzers(Compilation, ImmutableArray{DiagnosticAnalyzer}, AnalyzerOptions?)"/>
         [Obsolete("Use constructor without a cancellation token")]
