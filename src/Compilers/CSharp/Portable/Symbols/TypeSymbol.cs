@@ -1878,7 +1878,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     diagnostics.Add(ErrorCode.WRN_OverridingDifferentRefness, location, implementingParameter, implementedParameter);
                                 },
                                 implementingType,
-                                invokedAsExtensionMethod: false);
+                                invokedAsExtensionMethod: false,
+                                methodGroupConversion: false);
                         }
 
                         if (implementingMethod.HasUnscopedRefAttributeOnMethodOrProperty())

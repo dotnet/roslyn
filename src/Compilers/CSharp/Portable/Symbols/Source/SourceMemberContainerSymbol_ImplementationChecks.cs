@@ -1197,7 +1197,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             diagnostics.Add(ErrorCode.WRN_OverridingDifferentRefness, location, overridingParameter, overriddenParameter);
                         },
                         overridingMemberLocation,
-                        invokedAsExtensionMethod: false);
+                        invokedAsExtensionMethod: false,
+                        methodGroupConversion: false);
                 }
             }
         }
@@ -1503,8 +1504,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BindingDiagnosticBag diagnostics,
             ReportMismatchInParameterType<(ParameterSymbol BaseParameter, TArg Arg)> reportMismatchInParameterType,
             TArg extraArgument,
-            // PROTOTYPE: This argument is expected to be used for method conversion warnings.
-            bool invokedAsExtensionMethod)
+            bool invokedAsExtensionMethod,
+            bool methodGroupConversion)
         {
             Debug.Assert(reportMismatchInParameterType is { });
 
@@ -1522,7 +1523,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var baseParameter = baseParameters[i];
                 var overrideParameter = overrideParameters[i + overrideParameterOffset];
-                if ((baseParameter.RefKind, overrideParameter.RefKind) is (RefKind.RefReadOnlyParameter, RefKind.In) or (RefKind.In, RefKind.RefReadOnlyParameter))
+                if ((baseParameter.RefKind, overrideParameter.RefKind) is (RefKind.RefReadOnlyParameter, RefKind.In) or (RefKind.In, RefKind.RefReadOnlyParameter) ||
+                    (methodGroupConversion && OverloadResolution.IsRefMismatchAcceptableForMethodConversion(baseParameter.RefKind, overrideParameter.RefKind, compilationOpt: null)))
                 {
                     reportMismatchInParameterType(diagnostics, baseMethod, overrideMethod, overrideParameter, topLevel: true, (baseParameter, extraArgument));
                 }
@@ -1638,7 +1640,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             diagnostics.Add(ErrorCode.WRN_HidingDifferentRefness, location, hidingParameter, hiddenParameter);
                         },
                         hidingMemberLocation,
-                        invokedAsExtensionMethod: false);
+                        invokedAsExtensionMethod: false,
+                        methodGroupConversion: false);
                 }
             }
         }
