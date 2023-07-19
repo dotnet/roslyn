@@ -125,5 +125,6 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider : Sy
         }
 
         return CollectionExpression(openBracket, SeparatedList<CollectionElementSyntax>(elements), closeBracket);
+    
     }
 }
