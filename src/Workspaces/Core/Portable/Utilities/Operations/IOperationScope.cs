@@ -12,10 +12,10 @@ namespace Microsoft.CodeAnalysis.Utilities
     /// Represents a single scope of a context of executing potentially long running operation. Scopes allow multiple
     /// components running within an operation to share the same context.
     /// </summary>
-    public interface IOperationScope : IDisposable
+    public interface ILongRunningOperationScope : IDisposable
     {
         /// <summary>
-        /// Gets user readable operation description.
+        /// Gets user readable operation description for this scope.
         /// </summary>
         string Description { get; set; }
 

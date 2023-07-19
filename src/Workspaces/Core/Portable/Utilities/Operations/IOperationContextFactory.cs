@@ -1,86 +1,86 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
+﻿//// Licensed to the .NET Foundation under one or more agreements.
+//// The .NET Foundation licenses this file to you under the MIT license.
+//// See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Composition;
-using System.Threading;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
+//using System;
+//using System.Collections.Generic;
+//using System.Composition;
+//using System.Threading;
+//using Microsoft.CodeAnalysis.Host;
+//using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Utilities
-{
-    /// <summary>
-    /// Factory to create <see cref="IOperationContext"/>s.
-    /// </summary>
-    internal interface IOperationContextFactory : IWorkspaceService
-    {
-        IOperationContext CreateOperationContext(string title, string description, bool allowCancellation, bool showProgress);
-    }
+//namespace Microsoft.CodeAnalysis.Utilities
+//{
+//    /// <summary>
+//    /// Factory to create <see cref="IOperationContext"/>s.
+//    /// </summary>
+//    internal interface IOperationContextFactory : IWorkspaceService
+//    {
+//        IOperationContext CreateOperationContext(string title, string description, bool allowCancellation, bool showProgress);
+//    }
 
-    [ExportWorkspaceService(typeof(IOperationContextFactory)), Shared]
-    internal class DefaultOperationContextFactory : IOperationContextFactory
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DefaultOperationContextFactory()
-        {
-        }
+//    [ExportWorkspaceService(typeof(IOperationContextFactory)), Shared]
+//    internal class DefaultOperationContextFactory : IOperationContextFactory
+//    {
+//        [ImportingConstructor]
+//        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+//        public DefaultOperationContextFactory()
+//        {
+//        }
 
-        public IOperationContext CreateOperationContext(string title, string description, bool allowCancellation, bool showProgress)
-            => DefaultOperationContext.Instance;
+//        public IOperationContext CreateOperationContext(string title, string description, bool allowCancellation, bool showProgress)
+//            => DefaultOperationContext.Instance;
 
-        private class DefaultOperationContext : IOperationContext
-        {
-            public static readonly IOperationContext Instance = new DefaultOperationContext();
+//        private class DefaultOperationContext : IOperationContext
+//        {
+//            public static readonly IOperationContext Instance = new DefaultOperationContext();
 
-            private DefaultOperationContext()
-            {
-            }
+//            private DefaultOperationContext()
+//            {
+//            }
 
-            public CancellationToken CancellationToken { get; }
+//            public CancellationToken CancellationToken { get; }
 
-            public string Description => "";
+//            public string Description => "";
 
-            public IEnumerable<IOperationScope> Scopes => Array.Empty<IOperationScope>();
+//            public IEnumerable<IOperationScope> Scopes => Array.Empty<IOperationScope>();
 
-            public IOperationScope AddScope(string description)
-                => DefaultOperationScope.Instance;
+//            public IOperationScope AddScope(string description)
+//                => DefaultOperationScope.Instance;
 
-            public void Dispose()
-            {
-            }
-        }
+//            public void Dispose()
+//            {
+//            }
+//        }
 
-        private class DefaultOperationScope : IOperationScope
-        {
-            public static readonly IOperationScope Instance = new DefaultOperationScope();
+//        private class DefaultOperationScope : IOperationScope
+//        {
+//            public static readonly IOperationScope Instance = new DefaultOperationScope();
 
-            private DefaultOperationScope()
-            {
-            }
+//            private DefaultOperationScope()
+//            {
+//            }
 
-            public string Description { get => ""; set { } }
+//            public string Description { get => ""; set { } }
 
-            public IProgress<ProgressInfo> Progress => DefaultProgress.Instance;
+//            public IProgress<ProgressInfo> Progress => DefaultProgress.Instance;
 
-            public void Dispose()
-            {
-            }
-        }
+//            public void Dispose()
+//            {
+//            }
+//        }
 
-        private class DefaultProgress : IProgress<ProgressInfo>
-        {
-            public static readonly IProgress<ProgressInfo> Instance = new DefaultProgress();
+//        private class DefaultProgress : IProgress<ProgressInfo>
+//        {
+//            public static readonly IProgress<ProgressInfo> Instance = new DefaultProgress();
 
-            private DefaultProgress()
-            {
-            }
+//            private DefaultProgress()
+//            {
+//            }
 
-            public void Report(ProgressInfo value)
-            {
-            }
-        }
-    }
-}
+//            public void Report(ProgressInfo value)
+//            {
+//            }
+//        }
+//    }
+//}

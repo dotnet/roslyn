@@ -9,15 +9,15 @@ namespace Microsoft.CodeAnalysis.Utilities
     /// <summary>
     /// Wrapper around an IOperationScope to bridge it to an IProgressTracker.
     /// </summary>
-    internal class OperationScopeProgressTracker : IProgressTracker
+    internal class LongRunningOperationScopeProgressTracker : IProgressTracker
     {
-        private readonly IOperationScope _operationScope;
+        private readonly ILongRunningOperationScope _operationScope;
 
         private readonly object _gate = new();
         private int _completedItems;
         private int _totalItems;
 
-        public OperationScopeProgressTracker(IOperationScope operationScope)
+        public LongRunningOperationScopeProgressTracker(ILongRunningOperationScope operationScope)
         {
             _operationScope = operationScope;
         }

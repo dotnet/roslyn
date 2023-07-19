@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -11,25 +10,25 @@ using System.Threading;
 namespace Microsoft.CodeAnalysis.Utilities
 {
     /// <summary>
-    /// Abstract base implementation of the <see cref="IOperationContext"/> interface.
+    /// Abstract base implementation of the <see cref="ILongRunningOperationProgress"/> interface.
     /// </summary>
-    internal abstract class AbstractOperationContext : IOperationContext
+    internal abstract class AbstractLongRunningOperationProgress : ILongRunningOperationProgress
     {
-        private ImmutableList<OperationScope> _scopes;
+        private ImmutableArray<ILongRunningOperationScope> _scopes;
         private readonly string _defaultDescription;
         private int _completedItems;
         private int _totalItems;
 
-        protected AbstractOperationContext(string defaultDescription)
+        protected AbstractLongRunningOperationProgress(string defaultDescription)
         {
             _defaultDescription = defaultDescription ?? throw new ArgumentNullException(nameof(defaultDescription));
-            _scopes = ImmutableList<OperationScope>.Empty;
+            _scopes = ImmutableArray<ILongRunningOperationScope>.Empty;
         }
 
         public abstract CancellationToken CancellationToken { get; }
 
         /// <summary>
-        /// Invoked when new <see cref="IOperationScope"/>s are added, disposed or changed.
+        /// Invoked when new <see cref="ILongRunningOperationScope"/>s are added, disposed or changed.
         /// </summary>
         protected abstract void OnScopeInformationChanged();
 
@@ -39,42 +38,39 @@ namespace Microsoft.CodeAnalysis.Utilities
             {
                 var scopes = _scopes;
 
-                if (scopes.Count == 0)
+                if (scopes.Length == 0)
                     return _defaultDescription;
 
                 // Most common case
-                if (scopes.Count == 1)
+                if (scopes.Length == 1)
                     return scopes[0].Description;
 
                 // Combine descriptions of all current scopes
-                return string.Join(Environment.NewLine, scopes.Select(s => s.Description));
+                return string.Join(Environment.NewLine, scopes.Select(s => s.Description).Where(d => !string.IsNullOrWhiteSpace(d)));
             }
         }
 
         protected int CompletedItems => _completedItems;
         protected int TotalItems => _totalItems;
 
-        public IEnumerable<IOperationScope> Scopes => _scopes;
+        public ImmutableArray<ILongRunningOperationScope> Scopes => _scopes;
 
         /// <summary>
         /// Adds an UI thread operation scope with its own cancellability, description and progress tracker.
         /// The scope is removed from the context on dispose.
         /// </summary>
-        public IOperationScope AddScope(string description)
+        public ILongRunningOperationScope AddScope(string description)
         {
-            var scope = new OperationScope(this, description);
+            var scope = new LongRunningOperationScope(this, description);
 
             while (true)
             {
                 var oldScopes = _scopes;
                 var newScopes = oldScopes.Add(scope);
 
-                var currentScopes = Interlocked.CompareExchange(ref _scopes, newScopes, oldScopes);
-                if (currentScopes == oldScopes)
-                {
-                    // No other thread preempted us, new scopes set successfully
+                var priorValue = ImmutableInterlocked.InterlockedCompareExchange(ref _scopes, newScopes, oldScopes);
+                if (priorValue == oldScopes)
                     break;
-                }
             }
 
             this.OnScopeInformationChanged();
@@ -89,8 +85,9 @@ namespace Microsoft.CodeAnalysis.Utilities
             var scopes = _scopes;
             foreach (var scope in scopes)
             {
-                completed += scope.CompletedItems;
-                total += scope.TotalItems;
+                var scopeImpl = (LongRunningOperationScope)scope;
+                completed += scopeImpl.CompletedItems;
+                total += scopeImpl.TotalItems;
             }
 
             Interlocked.Exchange(ref _completedItems, completed);
@@ -103,35 +100,32 @@ namespace Microsoft.CodeAnalysis.Utilities
         {
         }
 
-        private void OnScopeDisposed(OperationScope scope)
+        private void OnScopeDisposed(LongRunningOperationScope scope)
         {
             while (true)
             {
                 var oldScopes = _scopes;
                 var newScopes = oldScopes.Remove(scope);
 
-                var currentScopes = Interlocked.CompareExchange(ref _scopes, newScopes, oldScopes);
-                if (currentScopes == oldScopes)
-                {
-                    // No other thread preempted us, new scopes set successfully
+                var priorValue = ImmutableInterlocked.InterlockedCompareExchange(ref _scopes, newScopes, oldScopes);
+                if (priorValue == oldScopes)
                     break;
-                }
             }
 
             OnScopeInformationChanged();
         }
 
-        private class OperationScope : IOperationScope, IProgress<ProgressInfo>
+        private class LongRunningOperationScope : ILongRunningOperationScope, IProgress<ProgressInfo>
         {
-            private readonly AbstractOperationContext _context;
+            private readonly AbstractLongRunningOperationProgress _owner;
 
             private string _description = "";
             private int _completedItems;
             private int _totalItems;
 
-            public OperationScope(AbstractOperationContext context, string description)
+            public LongRunningOperationScope(AbstractLongRunningOperationProgress owner, string description)
             {
-                _context = context;
+                _owner = owner;
                 _description = description ?? "";
             }
 
@@ -143,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Utilities
                     if (!string.Equals(_description, value, StringComparison.Ordinal))
                     {
                         _description = value;
-                        _context.OnScopeInformationChanged();
+                        _owner.OnScopeInformationChanged();
                     }
                 }
             }
@@ -155,13 +149,13 @@ namespace Microsoft.CodeAnalysis.Utilities
             public int TotalItems => _totalItems;
 
             public void Dispose()
-                => _context.OnScopeDisposed(this);
+                => _owner.OnScopeDisposed(this);
 
             void IProgress<ProgressInfo>.Report(ProgressInfo progressInfo)
             {
                 Interlocked.Exchange(ref _completedItems, progressInfo.CompletedItems);
                 Interlocked.Exchange(ref _totalItems, progressInfo.TotalItems);
-                _context.OnScopeProgressChanged();
+                _owner.OnScopeProgressChanged();
             }
         }
     }
