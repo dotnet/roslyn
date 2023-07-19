@@ -9,20 +9,13 @@ namespace Microsoft.CodeAnalysis.Utilities
     /// <summary>
     /// Wrapper around an IOperationScope to bridge it to an IProgressTracker.
     /// </summary>
-    internal class LongRunningOperationScopeProgressTracker : IProgressTracker
+    internal sealed class LongRunningOperationScopeProgressTracker(ILongRunningOperationScope operationScope) : IProgressTracker
     {
-        private readonly ILongRunningOperationScope _operationScope;
-
         private readonly object _gate = new();
         private int _completedItems;
         private int _totalItems;
 
-        public LongRunningOperationScopeProgressTracker(ILongRunningOperationScope operationScope)
-        {
-            _operationScope = operationScope;
-        }
-
-        public string? Description { get => _operationScope.Description; set => _operationScope.Description = value ?? ""; }
+        public string? Description { get => operationScope.Description; set => operationScope.Description = value ?? ""; }
 
         public int CompletedItems => _completedItems;
 
@@ -38,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Utilities
                 totalItems = _totalItems;
             }
 
-            _operationScope.Progress.Report(new ProgressInfo(completedItems, totalItems));
+            operationScope.Progress.Report(new ProgressInfo(completedItems, totalItems));
         }
 
         public void ItemCompleted()
@@ -51,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Utilities
                 totalItems = _totalItems;
             }
 
-            _operationScope.Progress.Report(new ProgressInfo(completedItems, totalItems));
+            operationScope.Progress.Report(new ProgressInfo(completedItems, totalItems));
         }
 
         public void Clear()
@@ -62,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Utilities
                 _totalItems = 0;
             }
 
-            _operationScope.Progress.Report(new ProgressInfo(0, 0));
+            operationScope.Progress.Report(new ProgressInfo(0, 0));
         }
     }
 }

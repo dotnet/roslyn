@@ -20,16 +20,23 @@ namespace Microsoft.CodeAnalysis.Utilities
         // </summary>
         // CancellationToken CancellationToken { get; }
 
-        /// <summary>
-        /// Gets user readable operation description, composed of initial context description and descriptions of all
-        /// currently added scopes.
-        /// </summary>
-        string Description { get; }
+        // <summary>
+        // Gets user readable operation description, composed of initial context description and descriptions of all
+        // currently added scopes.
+        // </summary>
+        // string Description { get; }
+
+        // <summary>
+        // Gets current list of <see cref="ILongRunningOperationScope"/>s in this context.
+        // </summary>
+        //ImmutableArray<ILongRunningOperationScope> Scopes { get; }
 
         /// <summary>
-        /// Gets current list of <see cref="ILongRunningOperationScope"/>s in this context.
+        /// The current scope the progress operation is in.  Can be used to update the current <see
+        /// cref="ILongRunningOperationScope.Description"/> or <see cref="ILongRunningOperationScope.Progress"/> of that
+        /// scope.  If a nested scope is desired, it can be obtained with <see cref="AddScope"/>.
         /// </summary>
-        ImmutableArray<ILongRunningOperationScope> Scopes { get; }
+        ILongRunningOperationScope CurrentScope { get; }
 
         /// <summary>
         /// Adds an operation scope with its own description and progress tracker. The scope is removed from the context
