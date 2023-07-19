@@ -81,17 +81,20 @@ class Program
 
             var service = document.GetLanguageService<ISyntaxClassificationService>();
             var classifiers = service.GetDefaultSyntaxClassifiers();
-            var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
+            var extensionManager = document.Project.Solution.Services.GetService<IExtensionManager>();
 
-            var results = ArrayBuilder<ClassifiedSpan>.GetInstance();
+            using var _ = Classifier.GetPooledList(out var results);
 
-            await service.AddSemanticClassificationsAsync(document, span,
+            await service.AddSemanticClassificationsAsync(
+                document,
+                span,
+                ClassificationOptions.Default,
                 extensionManager.CreateNodeExtensionGetter(classifiers, c => c.SyntaxNodeTypes),
                 extensionManager.CreateTokenExtensionGetter(classifiers, c => c.SyntaxTokenKinds),
                 results,
                 CancellationToken.None);
 
-            return results.ToImmutableAndFree();
+            return results.ToImmutableArray();
         }
     }
 }

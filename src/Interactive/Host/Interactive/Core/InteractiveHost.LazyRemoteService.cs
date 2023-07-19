@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             public LazyRemoteService(InteractiveHost host, InteractiveHostOptions options, int instanceId, bool skipInitialization)
             {
-                _lazyInitializedService = new AsyncLazy<InitializedRemoteService>(TryStartAndInitializeProcessAsync, cacheResult: true);
+                _lazyInitializedService = AsyncLazy.Create(TryStartAndInitializeProcessAsync);
                 _cancellationSource = new CancellationTokenSource();
                 InstanceId = instanceId;
                 Options = options;
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             {
                 try
                 {
-                    var remoteService = await TryStartProcessAsync(Options.HostPath, Options.Culture, cancellationToken).ConfigureAwait(false);
+                    var remoteService = await TryStartProcessAsync(Options.HostPath, Options.Culture, Options.UICulture, cancellationToken).ConfigureAwait(false);
                     if (remoteService == null)
                     {
                         return default;
@@ -123,13 +123,18 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                     return new InitializedRemoteService(remoteService, result);
                 }
+#pragma warning disable CA2016 // Forward the 'CancellationToken' parameter to methods
+                // await ExecuteRemoteAsync above does not take cancellationToken
+                // - we don't currently support cancellation of the RPC call,
+                // but JsonRpc.InvokeAsync that we use still claims it may throw OperationCanceledException..
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+#pragma warning restore CA2016
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
-            private async Task<RemoteService?> TryStartProcessAsync(string hostPath, CultureInfo culture, CancellationToken cancellationToken)
+            private async Task<RemoteService?> TryStartProcessAsync(string hostPath, CultureInfo culture, CultureInfo uiCulture, CancellationToken cancellationToken)
             {
                 int currentProcessId = Process.GetCurrentProcess().Id;
                 var pipeName = typeof(InteractiveHost).FullName + Guid.NewGuid();
@@ -138,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 {
                     StartInfo = new ProcessStartInfo(hostPath)
                     {
-                        Arguments = pipeName + " " + currentProcessId,
+                        Arguments = $"{pipeName} {currentProcessId} \"{culture.Name}\" \"{uiCulture.Name}\"",
                         WorkingDirectory = Host._initialWorkingDirectory,
                         CreateNoWindow = true,
                         UseShellExecute = false,
@@ -206,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                     platformInfo = (await jsonRpc.InvokeWithCancellationAsync<InteractiveHostPlatformInfo.Data>(
                         nameof(Service.InitializeAsync),
-                        new object[] { Host._replServiceProviderType.AssemblyQualifiedName, culture.Name },
+                        new object[] { Host._replServiceProviderType.AssemblyQualifiedName },
                         cancellationToken).ConfigureAwait(false)).Deserialize();
                 }
                 catch (Exception e)

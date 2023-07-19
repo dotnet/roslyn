@@ -68,6 +68,11 @@ namespace Roslyn.Utilities
             }
             return true;
         }
+
+        internal static bool ContainsValue<T>(T value) where T : struct, Enum
+        {
+            return Array.IndexOf(GetValues<T>(), value) >= 0;
+        }
 #endif
     }
 }

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             private readonly bool _treatAsElastic;
 
-            public AbstractComplexTrivia(AnalyzerConfigOptions options, TreeData treeInfo, SyntaxToken token1, SyntaxToken token2)
+            public AbstractComplexTrivia(SyntaxFormattingOptions options, TreeData treeInfo, SyntaxToken token1, SyntaxToken token2)
                 : base(options, token1.Language)
             {
                 Contract.ThrowIfNull(treeInfo);
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     return this;
                 }
 
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             public override TriviaData WithLine(
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     }
                 }
 
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             public override TriviaData WithIndentation(

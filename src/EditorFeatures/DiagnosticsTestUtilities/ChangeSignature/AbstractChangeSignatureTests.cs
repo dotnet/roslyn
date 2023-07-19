@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
                     renameSpans: ImmutableArray<TextSpan>.Empty,
                     warningSpans: ImmutableArray<TextSpan>.Empty,
                     navigationSpans: ImmutableArray<TextSpan>.Empty,
-                    parameters: default);
+                    parameters: null);
             }
             else
             {
@@ -197,11 +197,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
         /// </summary>
         /// <param name="signaturePartCounts">A four element array containing [s, m, n, p] as 
         /// described above.</param>
-        public static IEnumerable<object> GetAllSignatureSpecificationsForTheory(int[] signaturePartCounts)
+        public static IEnumerable<object[]> GetAllSignatureSpecificationsForTheory(int[] signaturePartCounts)
         {
             Assert.Equal(4, signaturePartCounts.Length);
-            Assert.True(signaturePartCounts[0] == 0 || signaturePartCounts[0] == 1);
-            Assert.True(signaturePartCounts[3] == 0 || signaturePartCounts[3] == 1);
+            Assert.True(signaturePartCounts[0] is 0 or 1);
+            Assert.True(signaturePartCounts[3] is 0 or 1);
 
             var totalParameters = signaturePartCounts[0] + signaturePartCounts[1] + signaturePartCounts[2] + signaturePartCounts[3];
 

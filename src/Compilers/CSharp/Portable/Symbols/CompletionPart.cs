@@ -49,15 +49,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         SynthesizedExplicitImplementations = 1 << 13,
         StartMemberChecks = 1 << 14,
         FinishMemberChecks = 1 << 15,
-        MembersCompleted = 1 << 16, // this should be the last (highest-value) part
+        MembersCompletedChecksStarted = 1 << 16,
+        MembersCompleted = 1 << 17, // this should be the last (highest-value) part
 
-        All = (1 << 17) - 1,
+        All = (1 << 18) - 1,
 
         // This is the work we can do if ForceComplete is scoped to a particular SyntaxTree.
         NamedTypeSymbolWithLocationAll = Attributes | StartBaseType | FinishBaseType | StartInterfaces | FinishInterfaces | EnumUnderlyingType |
             TypeArguments | TypeParameters | Members | TypeMembers | SynthesizedExplicitImplementations | StartMemberChecks | FinishMemberChecks,
 
-        NamedTypeSymbolAll = NamedTypeSymbolWithLocationAll | MembersCompleted,
+        NamedTypeSymbolAll = NamedTypeSymbolWithLocationAll | MembersCompletedChecksStarted | MembersCompleted,
 
         // For Usings
         StartValidatingImports = 1 << 4,
@@ -97,10 +98,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         FinishPropertyParameters = 1 << 7,
         StartPropertyType = 1 << 8,
         FinishPropertyType = 1 << 9,
-        StartPropertyFinalCompletion = 1 << 10,
-        FinishPropertyFinalCompletion = 1 << 11,
         PropertySymbolAll = Attributes | StartPropertyEnsureSignature | FinishPropertyEnsureSignature | StartPropertyParameters | FinishPropertyParameters |
-                            StartPropertyType | FinishPropertyType | StartPropertyFinalCompletion | FinishPropertyFinalCompletion,
+                            StartPropertyType | FinishPropertyType,
 
         // For alias symbols
         AliasTarget = 1 << 4,

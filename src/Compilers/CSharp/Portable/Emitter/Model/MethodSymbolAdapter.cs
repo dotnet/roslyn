@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(this.IsDefinitionOrDistinct());
 
-            var synthesizedGlobalMethod = AdaptedMethodSymbol as SynthesizedGlobalMethodSymbol;
+            var synthesizedGlobalMethod = AdaptedMethodSymbol.OriginalDefinition as SynthesizedGlobalMethodSymbol;
             if ((object)synthesizedGlobalMethod != null)
             {
                 return synthesizedGlobalMethod.ContainingPrivateImplementationDetailsType;
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
             return moduleBeingBuilt.Translate(containingType,
-                syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                 diagnostics: context.Diagnostics,
                 needDeclaration: AdaptedMethodSymbol.IsDefinition);
         }
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         Cci.ITypeReference Cci.ISignature.GetType(EmitContext context)
         {
             return ((PEModuleBuilder)context.Module).Translate(AdaptedMethodSymbol.ReturnType,
-                syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                 diagnostics: context.Diagnostics);
         }
 
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(arg.CustomModifiers.IsEmpty);
                 yield return moduleBeingBuilt.Translate(arg.Type,
-                                                        syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                                                        syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                                                         diagnostics: context.Diagnostics);
             }
         }
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // NoPia method might come through here.
                 return ((PEModuleBuilder)context.Module).Translate(
                     (MethodSymbol)AdaptedMethodSymbol.OriginalDefinition,
-                    syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                    syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                     diagnostics: context.Diagnostics,
                     needDeclaration: true);
             }
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 CheckDefinitionInvariant();
 
-                var synthesizedGlobalMethod = AdaptedMethodSymbol as SynthesizedGlobalMethodSymbol;
+                var synthesizedGlobalMethod = AdaptedMethodSymbol.OriginalDefinition as SynthesizedGlobalMethodSymbol;
                 if ((object)synthesizedGlobalMethod != null)
                 {
                     return synthesizedGlobalMethod.ContainingPrivateImplementationDetailsType;
@@ -691,7 +691,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (underlyingMethodSymbol is NativeIntegerMethodSymbol)
             {
                 // Emit should use underlying symbol only.
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

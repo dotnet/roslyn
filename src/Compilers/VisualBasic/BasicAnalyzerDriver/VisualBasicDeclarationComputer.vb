@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                     getSymbol As Boolean,
                                                     builder As ArrayBuilder(Of DeclarationInfo),
                                                     cancellationToken As CancellationToken)
-            ComputeDeclarationsCore(model, model.SyntaxTree.GetRoot(),
+            ComputeDeclarationsCore(model, model.SyntaxTree.GetRoot(cancellationToken),
                                     Function(node, level) Not node.Span.OverlapsWith(span) OrElse InvalidLevel(level),
                                     getSymbol, builder, Nothing, cancellationToken)
         End Sub
@@ -33,7 +33,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared Function InvalidLevel(level As Integer?) As Boolean
             Return level.HasValue AndAlso level.Value <= 0
         End Function
-
 
         Private Shared Function DecrementLevel(level As Integer?) As Integer?
             Return If(level.HasValue, level.Value - 1, level)

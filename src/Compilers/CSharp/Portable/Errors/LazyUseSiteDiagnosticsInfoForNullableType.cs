@@ -17,11 +17,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             _possiblyNullableTypeSymbol = possiblyNullableTypeSymbol;
         }
 
+        private LazyUseSiteDiagnosticsInfoForNullableType(LazyUseSiteDiagnosticsInfoForNullableType original, DiagnosticSeverity severity) : base(original, severity)
+        {
+            _languageVersion = original._languageVersion;
+            _possiblyNullableTypeSymbol = original._possiblyNullableTypeSymbol;
+        }
+
+        protected override DiagnosticInfo GetInstanceWithSeverityCore(DiagnosticSeverity severity)
+        {
+            return new LazyUseSiteDiagnosticsInfoForNullableType(this, severity);
+        }
+
         protected override DiagnosticInfo? ResolveInfo()
         {
             if (_possiblyNullableTypeSymbol.IsNullableType())
             {
-                return _possiblyNullableTypeSymbol.Type.OriginalDefinition.GetUseSiteDiagnostic();
+                return _possiblyNullableTypeSymbol.Type.OriginalDefinition.GetUseSiteInfo().DiagnosticInfo;
             }
             return Binder.GetNullableUnconstrainedTypeParameterDiagnosticIfNecessary(_languageVersion, _possiblyNullableTypeSymbol);
         }

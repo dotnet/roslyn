@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
-    <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.AddAccessibilityModifiers), [Shared]>
     Friend Class VisualBasicAddAccessibilityModifiersCodeFixProvider
         Inherits AbstractAddAccessibilityModifiersCodeFixProvider
 

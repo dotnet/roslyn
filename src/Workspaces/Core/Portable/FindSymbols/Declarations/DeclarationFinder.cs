@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -18,32 +17,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal static partial class DeclarationFinder
     {
-        private static Task AddCompilationDeclarationsWithNormalQueryAsync(
-            Project project, SearchQuery query, SymbolFilter filter,
-            ArrayBuilder<ISymbol> list, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfTrue(query.Kind == SearchKind.Custom, "Custom queries are not supported in this API");
-            return AddCompilationDeclarationsWithNormalQueryAsync(
-                project, query, filter, list,
-                startingCompilation: null,
-                startingAssembly: null,
-                cancellationToken: cancellationToken);
-        }
-
-        private static async Task AddCompilationDeclarationsWithNormalQueryAsync(
+        private static async Task AddCompilationSourceDeclarationsWithNormalQueryAsync(
             Project project,
             SearchQuery query,
             SymbolFilter filter,
             ArrayBuilder<ISymbol> list,
-            Compilation startingCompilation,
-            IAssemblySymbol startingAssembly,
             CancellationToken cancellationToken)
         {
+            if (!project.SupportsCompilation)
+                return;
+
             Contract.ThrowIfTrue(query.Kind == SearchKind.Custom, "Custom queries are not supported in this API");
 
             using (Logger.LogBlock(FunctionId.SymbolFinder_Project_AddDeclarationsAsync, cancellationToken))
             {
-                var syntaxFacts = project.LanguageServices.GetService<ISyntaxFactsService>();
+                var syntaxFacts = project.GetRequiredLanguageService<ISyntaxFactsService>();
 
                 // If this is an exact query, we can speed things up by just calling into the
                 // compilation entrypoints that take a string directly.
@@ -54,42 +42,37 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var isExactNameSearch = query.Kind == SearchKind.Exact ||
                     (query.Kind == SearchKind.ExactIgnoreCase && !syntaxFacts.IsCaseSensitive);
 
-                // Note: we first call through the project.  This has an optimization where it will
-                // use the DeclarationOnlyCompilation if we have one, avoiding needing to build the
-                // full compilation if we don't have that.
+                // Do a quick syntactic check first using our cheaply built indices.  That will help us avoid creating
+                // a compilation here if it's not necessary.  In the case of an exact name search we can call a special 
+                // overload that quickly uses the direct bloom-filter identifier maps in the index.  If it's nto an 
+                // exact name search, then we will run the query's predicate over every DeclaredSymbolInfo stored in
+                // the doc.
                 var containsSymbol = isExactNameSearch
-                    ? await project.ContainsSymbolsWithNameAsync(query.Name, filter, cancellationToken).ConfigureAwait(false)
+                    ? await project.ContainsSymbolsWithNameAsync(query.Name!, cancellationToken).ConfigureAwait(false)
                     : await project.ContainsSymbolsWithNameAsync(query.GetPredicate(), filter, cancellationToken).ConfigureAwait(false);
 
                 if (!containsSymbol)
-                {
                     return;
-                }
 
-                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
                 var symbols = isExactNameSearch
-                    ? compilation.GetSymbolsWithName(query.Name, filter, cancellationToken)
+                    ? compilation.GetSymbolsWithName(query.Name!, filter, cancellationToken)
                     : compilation.GetSymbolsWithName(query.GetPredicate(), filter, cancellationToken);
 
                 var symbolsWithName = symbols.ToImmutableArray();
-
-                if (startingCompilation != null && startingAssembly != null && !Equals(compilation.Assembly, startingAssembly))
-                {
-                    // Return symbols from skeleton assembly in this case so that symbols have 
-                    // the same language as startingCompilation.
-                    symbolsWithName = symbolsWithName.Select(s => s.GetSymbolKey(cancellationToken).Resolve(startingCompilation, cancellationToken: cancellationToken).Symbol)
-                                                     .WhereNotNull()
-                                                     .ToImmutableArray();
-                }
 
                 list.AddRange(FilterByCriteria(symbolsWithName, filter));
             }
         }
 
         private static async Task AddMetadataDeclarationsWithNormalQueryAsync(
-            Project project, IAssemblySymbol assembly, PortableExecutableReference referenceOpt,
-            SearchQuery query, SymbolFilter filter, ArrayBuilder<ISymbol> list,
+            Project project,
+            AsyncLazy<IAssemblySymbol?> lazyAssembly,
+            PortableExecutableReference reference,
+            SearchQuery query,
+            SymbolFilter filter,
+            ArrayBuilder<ISymbol> list,
             CancellationToken cancellationToken)
         {
             // All entrypoints to this function are Find functions that are only searching
@@ -98,15 +81,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             using (Logger.LogBlock(FunctionId.SymbolFinder_Assembly_AddDeclarationsAsync, cancellationToken))
             {
-                if (referenceOpt != null)
-                {
-                    var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
-                        project.Solution, referenceOpt, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
+                    project.Solution, reference, checksum: null, cancellationToken).ConfigureAwait(false);
 
-                    var symbols = await info.FindAsync(
-                            query, assembly, filter, cancellationToken).ConfigureAwait(false);
-                    list.AddRange(symbols);
-                }
+                Contract.ThrowIfNull(info);
+
+                var symbols = await info.FindAsync(query, lazyAssembly, filter, cancellationToken).ConfigureAwait(false);
+                list.AddRange(symbols);
             }
         }
 
@@ -138,10 +119,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static bool IsNonTypeMember(ISymbol symbol)
         {
-            return symbol.Kind == SymbolKind.Method ||
-                   symbol.Kind == SymbolKind.Property ||
-                   symbol.Kind == SymbolKind.Event ||
-                   symbol.Kind == SymbolKind.Field;
+            return symbol.Kind is SymbolKind.Method or
+                   SymbolKind.Property or
+                   SymbolKind.Event or
+                   SymbolKind.Field;
         }
 
         private static bool IsOn(SymbolFilter filter, SymbolFilter flag)

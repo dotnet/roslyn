@@ -16,27 +16,6 @@ namespace Microsoft.CodeAnalysis
         private const string VTableGapMethodNamePrefix = "_VtblGap";
 
         /// <summary>
-        /// Returns true if the nested type should be imported. 
-        /// </summary>
-        public static bool ShouldImportNestedType(this PEModule module, TypeDefinitionHandle typeDef)
-        {
-            // Currently, it appears that we must import ALL types, even private ones,
-            // in order to maintain language semantics. This is because a class may implement
-            // private interfaces, and we use the interfaces (even if inaccessible) to determine
-            // conversions. For example:
-            //
-            // public class A: IEnumerable<A.X>
-            // { 
-            //    private class X: ICloneable {}
-            // }
-            //
-            // Code compiling against A can convert A to IEnumerable<ICloneable>. Knowing this requires
-            // importing the type A.X.
-
-            return true;
-        }
-
-        /// <summary>
         /// Returns true if the field should be imported. Visibility
         /// and the value of <paramref name="importOptions"/> are considered
         /// </summary>
@@ -78,7 +57,7 @@ namespace Microsoft.CodeAnalysis
         /// explicit interface implementations. For other methods, visibility and the value of
         /// <paramref name="importOptions"/> are considered.
         /// </summary>
-        public static bool ShouldImportMethod(this PEModule module, MethodDefinitionHandle methodDef, MetadataImportOptions importOptions)
+        public static bool ShouldImportMethod(this PEModule module, TypeDefinitionHandle typeDef, MethodDefinitionHandle methodDef, MetadataImportOptions importOptions)
         {
             try
             {
@@ -87,27 +66,11 @@ namespace Microsoft.CodeAnalysis
                 // If the method is virtual, it must be accessible, although
                 // it may be an explicit (private) interface implementation.
                 // Otherwise, we need to check the accessibility.
-                if ((flags & MethodAttributes.Virtual) == 0)
+                if ((flags & MethodAttributes.Virtual) == 0 && !acceptBasedOnAccessibility(importOptions, flags) &&
+                    ((flags & MethodAttributes.Static) == 0 || !isMethodImpl(typeDef, methodDef)))
                 {
-                    switch (flags & MethodAttributes.MemberAccessMask)
-                    {
-                        case MethodAttributes.Private:
-                        case MethodAttributes.PrivateScope:
-                            if (importOptions != MetadataImportOptions.All)
-                            {
-                                return false;
-                            }
 
-                            break;
-
-                        case MethodAttributes.Assembly:
-                            if (importOptions == MetadataImportOptions.Public)
-                            {
-                                return false;
-                            }
-
-                            break;
-                    }
+                    return false;
                 }
             }
             catch (BadImageFormatException)
@@ -126,6 +89,45 @@ namespace Microsoft.CodeAnalysis
             catch (BadImageFormatException)
             {
                 return true;
+            }
+
+            static bool acceptBasedOnAccessibility(MetadataImportOptions importOptions, MethodAttributes flags)
+            {
+                switch (flags & MethodAttributes.MemberAccessMask)
+                {
+                    case MethodAttributes.Private:
+                    case MethodAttributes.PrivateScope:
+                        if (importOptions != MetadataImportOptions.All)
+                        {
+                            return false;
+                        }
+
+                        break;
+
+                    case MethodAttributes.Assembly:
+                        if (importOptions == MetadataImportOptions.Public)
+                        {
+                            return false;
+                        }
+
+                        break;
+                }
+
+                return true;
+            }
+
+            bool isMethodImpl(TypeDefinitionHandle typeDef, MethodDefinitionHandle methodDef)
+            {
+                foreach (var methodImpl in module.GetMethodImplementationsOrThrow(typeDef))
+                {
+                    module.GetMethodImplPropsOrThrow(methodImpl, out EntityHandle body, out _);
+                    if (body == methodDef)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
             }
         }
 

@@ -135,8 +135,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.NotEqual(default(DebugInformationFormat), format);
             Assert.NotEqual(DebugInformationFormat.Embedded, format);
 
-            string actualPdb = PdbToXmlConverter.DeltaPdbToXml(new ImmutableMemoryStream(diff.PdbDelta), methodTokens);
-            var (actual, expected) = AdjustToPdbFormat(actualPdb, expectedPdb, actualIsPortable: diff.NextGeneration.InitialBaseline.HasPortablePdb, actualIsConverted: false);
+            // Include module custom debug info, specifically compilation options and references.
+            // These shouldn't be emitted in EnC deltas and we want to validate that.
+            string actualPdb = PdbToXmlConverter.DeltaPdbToXml(new ImmutableMemoryStream(diff.PdbDelta), methodTokens, PdbToXmlOptions.IncludeTokens | PdbToXmlOptions.IncludeModuleDebugInfo);
+            var (actual, expected) = AdjustToPdbFormat(actualPdb, expectedPdb, actualIsPortable: diff.NextGeneration.InitialBaseline.HasPortablePdb);
 
             AssertEx.AssertLinesEqual(
                 expected,
@@ -157,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             [CallerLineNumber] int expectedValueSourceLine = 0,
             [CallerFilePath] string expectedValueSourcePath = null)
         {
-            VerifyPdb(compilation, "", expectedPdb, embeddedTexts, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
+            VerifyPdb(compilation, qualifiedMethodName: null, expectedPdb, embeddedTexts, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
         }
 
         public static void VerifyPdb(
@@ -236,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.NotEqual(DebugInformationFormat.Embedded, format);
 
             bool testWindowsPdb = (format == 0 || format == DebugInformationFormat.Pdb) && ExecutionConditionUtil.IsWindows;
-            bool testPortablePdb = format == 0 || format == DebugInformationFormat.PortablePdb;
+            bool testPortablePdb = format is 0 or DebugInformationFormat.PortablePdb;
             bool testConversion = (options & PdbValidationOptions.SkipConversionValidation) == 0;
             var pdbToXmlOptions = options.ToPdbToXmlOptions();
 
@@ -265,6 +267,29 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
+        public static void VerifyPdb(
+            Stream peStream,
+            Stream pdbStream,
+            string expectedPdb,
+            PdbValidationOptions options = PdbValidationOptions.Default,
+            [CallerLineNumber] int expectedValueSourceLine = 0,
+            [CallerFilePath] string expectedValueSourcePath = null)
+        {
+            pdbStream.Position = 0;
+            var isPortable = pdbStream.ReadByte() == 'B' && pdbStream.ReadByte() == 'S' && pdbStream.ReadByte() == 'J' && pdbStream.ReadByte() == 'B';
+
+            VerifyPdbMatchesExpectedXml(
+                peStream,
+                pdbStream,
+                qualifiedMethodName: null,
+                options.ToPdbToXmlOptions(),
+                expectedPdb.ToString(),
+                expectedValueSourceLine,
+                expectedValueSourcePath,
+                expectedIsXmlLiteral: false,
+                isPortable);
+        }
+
         private static void VerifyPdbMatchesExpectedXml(
             Stream peStream,
             Stream pdbStream,
@@ -279,7 +304,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             peStream.Position = 0;
             pdbStream.Position = 0;
             var actualPdb = XElement.Parse(PdbToXmlConverter.ToXml(pdbStream, peStream, pdbToXmlOptions, methodName: qualifiedMethodName)).ToString();
-            var (actual, expected) = AdjustToPdbFormat(actualPdb, expectedPdb, actualIsPortable: isPortable, actualIsConverted: false);
+            var (actual, expected) = AdjustToPdbFormat(actualPdb, expectedPdb, actualIsPortable: isPortable);
 
             AssertEx.AssertLinesEqual(
                 expected,
@@ -320,7 +345,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var actualConverted = AdjustForConversionArtifacts(XElement.Parse(PdbToXmlConverter.ToXml(pdbStreamConverted, peStreamOriginal, pdbToXmlOptions, methodName: qualifiedMethodName)).ToString());
             var adjustedExpected = AdjustForConversionArtifacts(expectedPdb);
 
-            var (actual, expected) = AdjustToPdbFormat(actualConverted, adjustedExpected, actualIsPortable: !originalIsPortable, actualIsConverted: true);
+            var (actual, expected) = AdjustToPdbFormat(actualConverted, adjustedExpected, actualIsPortable: !originalIsPortable);
 
             AssertEx.AssertLinesEqual(
                 expected,
@@ -366,7 +391,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return xml.ToString();
         }
 
-        internal static (string Actual, string Expected) AdjustToPdbFormat(string actualPdb, string expectedPdb, bool actualIsPortable, bool actualIsConverted)
+        internal static (string Actual, string Expected) AdjustToPdbFormat(string actualPdb, string expectedPdb, bool actualIsPortable)
         {
             var actualXml = XElement.Parse(actualPdb);
             var expectedXml = XElement.Parse(expectedPdb);
@@ -452,7 +477,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                  e.Name == "dynamicLocals" ||
                                  e.Name == "using" ||
                                  e.Name == "currentnamespace" ||
-                                 e.Name == "defaultnamespace" ||
+                                 (e.Name == "defaultnamespace" && e.Parent?.Name == "scope") ||
                                  e.Name == "importsforward" ||
                                  e.Name == "xmlnamespace" ||
                                  e.Name == "alias" ||
@@ -619,5 +644,41 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var actualId = new BlobContentId(pdbReader.DebugMetadataHeader.Id);
             Assert.Equal(expectedId, actualId);
         }
+
+        internal static void VerifyPdbLambdasAndClosures(this Compilation compilation, SourceWithMarkedNodes source)
+        {
+            var pdb = GetPdbXml(compilation);
+            var pdbXml = XElement.Parse(pdb);
+
+            // We need to get the method start index from the input source, as its not in the PDB
+            var methodStartTags = source.MarkedSpans.WhereAsArray(s => s.TagName == "M");
+            Assert.True(methodStartTags.Length == 1, "There must be one and only one method start tag per test input.");
+            var methodStart = methodStartTags[0].MatchedSpan.Start;
+
+            // Calculate the expected tags for closures
+            var expectedTags = pdbXml.DescendantsAndSelf("closure").Select((c, i) => new { Tag = $"<C:{i}>", StartIndex = methodStart + int.Parse(c.Attribute("offset").Value) }).ToList();
+
+            // Add the expected tags for lambdas
+            expectedTags.AddRange(pdbXml.DescendantsAndSelf("lambda").Select((c, i) => new { Tag = $"<L:{i}.{int.Parse(c.Attribute("closure").Value)}>", StartIndex = methodStart + int.Parse(c.Attribute("offset").Value) }));
+
+            // Order by start index so they line up nicely
+            expectedTags.Sort((x, y) => x.StartIndex.CompareTo(y.StartIndex));
+
+            // Ensure the tag for the method start is the first element
+            expectedTags.Insert(0, new { Tag = "<M:0>", StartIndex = methodStart });
+
+            // Now reverse the list so we can insert without worrying about offsets
+            expectedTags.Reverse();
+
+            var expected = source.Source;
+
+            foreach (var tag in expectedTags)
+            {
+                expected = expected.Insert(tag.StartIndex, tag.Tag);
+            }
+
+            AssertEx.EqualOrDiff(expected, source.Input);
+        }
     }
 }
+

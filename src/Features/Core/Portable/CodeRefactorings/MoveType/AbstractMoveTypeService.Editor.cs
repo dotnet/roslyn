@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Formatting;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
@@ -17,24 +18,16 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         /// <summary>
         /// An abstract class for different edits performed by the Move Type Code Action.
         /// </summary>
-        private abstract class Editor
+        private abstract class Editor(
+            TService service,
+            State state,
+            string fileName,
+            CancellationToken cancellationToken)
         {
-            public Editor(
-                TService service,
-                State state,
-                string fileName,
-                CancellationToken cancellationToken)
-            {
-                State = state;
-                Service = service;
-                FileName = fileName;
-                CancellationToken = cancellationToken;
-            }
-
-            protected State State { get; }
-            protected TService Service { get; }
-            protected string FileName { get; }
-            protected CancellationToken CancellationToken { get; }
+            protected State State { get; } = state;
+            protected TService Service { get; } = service;
+            protected string FileName { get; } = fileName;
+            protected CancellationToken CancellationToken { get; } = cancellationToken;
             protected SemanticDocument SemanticDocument => State.SemanticDocument;
 
             /// <summary>
@@ -60,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             public static Editor GetEditor(MoveTypeOperationKind operationKind, TService service, State state, string fileName, CancellationToken cancellationToken)
                 => operationKind switch
                 {
-                    MoveTypeOperationKind.MoveType => (Editor)new MoveTypeEditor(service, state, fileName, cancellationToken),
+                    MoveTypeOperationKind.MoveType => new MoveTypeEditor(service, state, fileName, cancellationToken),
                     MoveTypeOperationKind.RenameType => new RenameTypeEditor(service, state, fileName, cancellationToken),
                     MoveTypeOperationKind.RenameFile => new RenameFileEditor(service, state, fileName, cancellationToken),
                     MoveTypeOperationKind.MoveTypeNamespaceScope => new MoveTypeNamespaceScopeEditor(service, state, fileName, cancellationToken),

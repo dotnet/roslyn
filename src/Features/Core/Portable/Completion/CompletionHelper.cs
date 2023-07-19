@@ -3,158 +3,42 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Globalization;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PatternMatching;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Tags;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
-    internal sealed class CompletionHelper
+    internal sealed class CompletionHelper(bool isCaseSensitive)
     {
-        private readonly object _gate = new();
-        private readonly Dictionary<(string pattern, CultureInfo, bool includeMatchedSpans), PatternMatcher> _patternMatcherMap =
-             new();
+        private static CompletionHelper CaseSensitiveInstance { get; } = new CompletionHelper(isCaseSensitive: true);
+        private static CompletionHelper CaseInsensitiveInstance { get; } = new CompletionHelper(isCaseSensitive: false);
 
-        private static readonly CultureInfo EnUSCultureInfo = new("en-US");
-        private readonly bool _isCaseSensitive;
-
-        public CompletionHelper(bool isCaseSensitive)
-            => _isCaseSensitive = isCaseSensitive;
+        private readonly bool _isCaseSensitive = isCaseSensitive;
 
         public static CompletionHelper GetHelper(Document document)
         {
-            return document.Project.Solution.Workspace.Services.GetRequiredService<ICompletionHelperService>()
-                .GetCompletionHelper(document);
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var caseSensitive = syntaxFacts?.IsCaseSensitive ?? true;
+
+            return caseSensitive
+                ? CaseSensitiveInstance
+                : CaseInsensitiveInstance;
         }
 
-        public ImmutableArray<TextSpan> GetHighlightedSpans(
-                string text, string pattern, CultureInfo culture)
+        public int CompareMatchResults(MatchResult matchResult1, MatchResult matchResult2, bool filterTextHasNoUpperCase)
         {
-            var match = GetMatch(text, pattern, includeMatchSpans: true, culture: culture);
-            return match == null ? ImmutableArray<TextSpan>.Empty : match.Value.MatchedSpans;
-        }
+            var item1 = matchResult1.CompletionItem;
+            var match1 = matchResult1.PatternMatch;
 
-        /// <summary>
-        /// Returns true if the completion item matches the pattern so far.  Returns 'true'
-        /// iff the completion item matches and should be included in the filtered completion
-        /// results, or false if it should not be.
-        /// </summary>
-        public bool MatchesPattern(string text, string pattern, CultureInfo culture)
-            => GetMatch(text, pattern, includeMatchSpans: false, culture) != null;
+            var item2 = matchResult2.CompletionItem;
+            var match2 = matchResult2.PatternMatch;
 
-        public PatternMatch? GetMatch(
-            string completionItemText,
-            string pattern,
-            bool includeMatchSpans,
-            CultureInfo culture)
-        {
-            // If the item has a dot in it (i.e. for something like enum completion), then attempt
-            // to match what the user wrote against the last portion of the name.  That way if they
-            // write "Bl" and we have "Blub" and "Color.Black", we'll consider the latter to be a
-            // better match as they'll both be prefix matches, and the latter will have a higher
-            // priority.
-
-            var lastDotIndex = completionItemText.LastIndexOf('.');
-            if (lastDotIndex >= 0)
-            {
-                var afterDotPosition = lastDotIndex + 1;
-                var textAfterLastDot = completionItemText[afterDotPosition..];
-
-                var match = GetMatchWorker(textAfterLastDot, pattern, culture, includeMatchSpans);
-                if (match != null)
-                {
-                    return AdjustMatchedSpans(match.Value, afterDotPosition);
-                }
-            }
-
-            // Didn't have a dot, or the user text didn't match the portion after the dot.
-            // Just do a normal check against the entire completion item.
-            return GetMatchWorker(completionItemText, pattern, culture, includeMatchSpans);
-        }
-
-        private static PatternMatch? AdjustMatchedSpans(PatternMatch value, int offset)
-            => value.MatchedSpans.IsDefaultOrEmpty
-                ? value
-                : value.WithMatchedSpans(value.MatchedSpans.SelectAsArray(s => new TextSpan(s.Start + offset, s.Length)));
-
-        private PatternMatch? GetMatchWorker(
-            string completionItemText, string pattern,
-            CultureInfo culture, bool includeMatchSpans)
-        {
-            var patternMatcher = GetPatternMatcher(pattern, culture, includeMatchSpans);
-            var match = patternMatcher.GetFirstMatch(completionItemText);
-
-            // We still have making checks for language having different to English capitalization,
-            // for example, for Turkish with dotted and dotless i capitalization totally diferent from English.
-            // Now we escaping from the second check for English languages.
-            // Maybe we can escape as well for more similar languages in case if we meet performance issues.
-            if (culture.ThreeLetterWindowsLanguageName.Equals(EnUSCultureInfo.ThreeLetterWindowsLanguageName))
-            {
-                return match;
-            }
-
-            // Keywords in .NET are always in En-US.
-            // Identifiers can be in user language.
-            // Try to get matches for both and return the best of them.
-            patternMatcher = GetPatternMatcher(pattern, EnUSCultureInfo, includeMatchSpans);
-            var enUSCultureMatch = patternMatcher.GetFirstMatch(completionItemText);
-
-            if (match == null)
-            {
-                return enUSCultureMatch;
-            }
-
-            if (enUSCultureMatch == null)
-            {
-                return match;
-            }
-
-            return match.Value.CompareTo(enUSCultureMatch.Value) < 0 ? match.Value : enUSCultureMatch.Value;
-        }
-
-        private PatternMatcher GetPatternMatcher(
-            string pattern, CultureInfo culture, bool includeMatchedSpans,
-            Dictionary<(string, CultureInfo, bool), PatternMatcher> map)
-        {
-            lock (_gate)
-            {
-                var key = (pattern, culture, includeMatchedSpans);
-                if (!map.TryGetValue(key, out var patternMatcher))
-                {
-                    patternMatcher = PatternMatcher.CreatePatternMatcher(
-                        pattern, culture, includeMatchedSpans,
-                        allowFuzzyMatching: false);
-                    map.Add(key, patternMatcher);
-                }
-
-                return patternMatcher;
-            }
-        }
-
-        private PatternMatcher GetPatternMatcher(string pattern, CultureInfo culture, bool includeMatchedSpans)
-            => GetPatternMatcher(pattern, culture, includeMatchedSpans, _patternMatcherMap);
-
-        /// <summary>
-        /// Returns true if item1 is a better completion item than item2 given the provided filter
-        /// text, or false if it is not better.
-        /// </summary>
-        public int CompareItems(CompletionItem item1, CompletionItem item2, string pattern, CultureInfo culture)
-        {
-            var match1 = GetMatch(item1.FilterText, pattern, includeMatchSpans: false, culture);
-            var match2 = GetMatch(item2.FilterText, pattern, includeMatchSpans: false, culture);
-
-            return CompareItems(item1, match1, item2, match2);
-        }
-
-        public int CompareItems(CompletionItem item1, PatternMatch? match1, CompletionItem item2, PatternMatch? match2)
-        {
             if (match1 != null && match2 != null)
             {
-                var result = CompareMatches(match1.Value, match2.Value, item1, item2);
+                var result = CompareItems(match1.Value, match2.Value, item1, item2, _isCaseSensitive, filterTextHasNoUpperCase);
                 if (result != 0)
                 {
                     return result;
@@ -169,10 +53,10 @@ namespace Microsoft.CodeAnalysis.Completion
                 return 1;
             }
 
-            var preselectionDiff = ComparePreselection(item1, item2);
-            if (preselectionDiff != 0)
+            var matchPriorityDiff = CompareSpecialMatchPriorityValues(item1, item2);
+            if (matchPriorityDiff != 0)
             {
-                return preselectionDiff;
+                return matchPriorityDiff;
             }
 
             // Prefer things with a keyword tag, if the filter texts are the same.
@@ -182,18 +66,21 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             return 0;
+
+            static bool IsKeywordItem(CompletionItem item)
+                => item.Tags.Contains(WellKnownTags.Keyword);
+
+            static bool TagsEqual(CompletionItem item1, CompletionItem item2)
+                => System.Linq.ImmutableArrayExtensions.SequenceEqual(item1.Tags, item2.Tags);
         }
 
-        private static bool TagsEqual(CompletionItem item1, CompletionItem item2)
-            => TagsEqual(item1.Tags, item2.Tags);
-
-        private static bool TagsEqual(ImmutableArray<string> tags1, ImmutableArray<string> tags2)
-            => tags1 == tags2 || System.Linq.Enumerable.SequenceEqual(tags1, tags2);
-
-        private static bool IsKeywordItem(CompletionItem item)
-            => item.Tags.Contains(WellKnownTags.Keyword);
-
-        private int CompareMatches(PatternMatch match1, PatternMatch match2, CompletionItem item1, CompletionItem item2)
+        private static int CompareItems(
+            PatternMatch match1,
+            PatternMatch match2,
+            CompletionItem item1,
+            CompletionItem item2,
+            bool isCaseSensitive,
+            bool filterTextHasNoUpperCase)
         {
             // *Almost* always prefer non-expanded item regardless of the pattern matching result.
             // Except when all non-expanded items are worse than prefix matching and there's
@@ -244,17 +131,38 @@ namespace Microsoft.CodeAnalysis.Completion
             // The reason we ignore case is that it's very common for people to type expecting
             // completion to fix up their casing.  i.e. 'false' will be written with the 
             // expectation that it will get fixed by the completion list to 'False'.  
-            var diff = match1.CompareTo(match2, ignoreCase: true);
-            if (diff != 0)
+            var caseInsensitiveComparison = match1.CompareTo(match2, ignoreCase: true);
+            if (caseInsensitiveComparison != 0)
             {
-                return diff;
+                return caseInsensitiveComparison;
             }
 
-            var preselectionDiff = ComparePreselection(item1, item2);
-            if (preselectionDiff != 0)
+            // Now we have two items match in case-insensitive manner,
+            //
+            // 1. if we are in a case-insensitive language, we'd first check if either item has the MatchPriority set to one of
+            // the two special values ("Preselect" and "Deprioritize"). If so and these two items have different MatchPriority,
+            // then we'd select the one of "Preselect", or the one that's not of "Deprioritize". Otherwise we will prefer the one
+            // matches case-sensitively. This is to make sure common items in VB like "True" and "False" are prioritized for selection
+            // when user types "t" and "f" (see https://github.com/dotnet/roslyn/issues/4892)
+            //
+            // 2. or similarly, if the filter text contains only lowercase letters, we want to relax our filtering standard a tiny
+            // bit to account for the sceanrio that users expect completion to fix the casing. This only happens if one of the item's
+            // MatchPriority is "Deprioritize". Otherwise we will always prefer the one matches case-sensitively.
+            // This is to make sure uncommon items like conversion "(short)" are not selected over `Should` when user types `sho`
+            // (see https://github.com/dotnet/roslyn/issues/55546)
+
+            var specialMatchPriorityValuesDiff = 0;
+            if (!isCaseSensitive)
             {
-                return preselectionDiff;
+                specialMatchPriorityValuesDiff = CompareSpecialMatchPriorityValues(item1, item2);
             }
+            else if (filterTextHasNoUpperCase)
+            {
+                specialMatchPriorityValuesDiff = CompareDeprioritization(item1, item2);
+            }
+
+            if (specialMatchPriorityValuesDiff != 0)
+                return specialMatchPriorityValuesDiff;
 
             // At this point we have two items which we're matching in a rather similar fashion.
             // If one is a prefix of the other, prefer the prefix.  i.e. if we have 
@@ -262,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // language, then we prefer the former.
             if (item1.GetEntireDisplayText().Length != item2.GetEntireDisplayText().Length)
             {
-                var comparison = _isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+                var comparison = isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
                 if (item2.GetEntireDisplayText().StartsWith(item1.GetEntireDisplayText(), comparison))
                 {
                     return -1;
@@ -278,10 +186,28 @@ namespace Microsoft.CodeAnalysis.Completion
             return match1.CompareTo(match2, ignoreCase: false);
         }
 
-        // If they both seemed just as good, but they differ on preselection, then
-        // item1 is better if it is preselected, otherwise it is worse.
+        private static int CompareSpecialMatchPriorityValues(CompletionItem item1, CompletionItem item2)
+        {
+            if (item1.Rules.MatchPriority == item2.Rules.MatchPriority)
+                return 0;
+
+            var deprioritizationCompare = CompareDeprioritization(item1, item2);
+            return deprioritizationCompare == 0
+                ? ComparePreselection(item1, item2)
+                : deprioritizationCompare;
+        }
+
+        /// <summary>
+        ///  If 2 items differ on preselection, then item1 is better if it is preselected, otherwise it is worse.
+        /// </summary>
         private static int ComparePreselection(CompletionItem item1, CompletionItem item2)
             => (item1.Rules.MatchPriority != MatchPriority.Preselect).CompareTo(item2.Rules.MatchPriority != MatchPriority.Preselect);
+
+        /// <summary>
+        /// If 2 items differ on depriorization, then item1 is worse if it is depriozritized, otherwise it is better.
+        /// </summary>
+        private static int CompareDeprioritization(CompletionItem item1, CompletionItem item2)
+            => (item1.Rules.MatchPriority == MatchPriority.Deprioritize).CompareTo(item2.Rules.MatchPriority == MatchPriority.Deprioritize);
 
         private static int CompareExpandedItem(CompletionItem item1, PatternMatch match1, CompletionItem item2, PatternMatch match2)
         {
@@ -347,8 +273,5 @@ namespace Microsoft.CodeAnalysis.Completion
                          isItem2Expanded && match2.Kind == PatternMatchKind.Exact && !isItem1Expanded && match1.Kind > PatternMatchKind.Prefix);
             return isItem1Expanded ? -1 : 1;
         }
-
-        public static string ConcatNamespace(string? containingNamespace, string name)
-            => string.IsNullOrEmpty(containingNamespace) ? name : containingNamespace + "." + name;
     }
 }

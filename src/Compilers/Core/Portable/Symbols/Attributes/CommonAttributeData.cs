@@ -255,11 +255,41 @@ namespace Microsoft.CodeAnalysis
                     return DecodeObsoleteAttribute();
                 case ObsoleteAttributeKind.Deprecated:
                     return DecodeDeprecatedAttribute();
+                case ObsoleteAttributeKind.WindowsExperimental:
+                    return DecodeWindowsExperimentalAttribute();
                 case ObsoleteAttributeKind.Experimental:
                     return DecodeExperimentalAttribute();
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }
+        }
+
+        private ObsoleteAttributeData DecodeExperimentalAttribute()
+        {
+            // ExperimentalAttribute(string diagnosticId)
+            Debug.Assert(this.CommonConstructorArguments.Length == 1);
+            string? diagnosticId = this.CommonConstructorArguments[0].ValueInternal as string;
+
+            if (string.IsNullOrWhiteSpace(diagnosticId))
+            {
+                diagnosticId = null;
+            }
+
+            string? urlFormat = null;
+            foreach (var (name, value) in this.CommonNamedArguments)
+            {
+                if (urlFormat is null && name == ObsoleteAttributeData.UrlFormatPropertyName && IsStringProperty(ObsoleteAttributeData.UrlFormatPropertyName))
+                {
+                    urlFormat = value.ValueInternal as string;
+                }
+
+                if (urlFormat is not null)
+                {
+                    break;
+                }
+            }
+
+            return new ObsoleteAttributeData(ObsoleteAttributeKind.Experimental, message: null, isError: false, diagnosticId, urlFormat);
         }
 
         /// <summary>
@@ -317,7 +347,7 @@ namespace Microsoft.CodeAnalysis
         // Ideally we would use an abstract method, but that would require making the method visible to
         // public consumers who inherit from this class, which we don't want to do.
         // Therefore we just make it a 'private protected virtual' method instead.
-        private protected virtual bool IsStringProperty(string memberName) => throw ExceptionUtilities.Unreachable;
+        private protected virtual bool IsStringProperty(string memberName) => throw ExceptionUtilities.Unreachable();
 
         /// <summary>
         /// Decode the arguments to DeprecatedAttribute. DeprecatedAttribute can have 3 or 4 arguments.
@@ -347,11 +377,11 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Decode the arguments to ExperimentalAttribute. ExperimentalAttribute has 0 arguments.
         /// </summary>
-        private ObsoleteAttributeData DecodeExperimentalAttribute()
+        private ObsoleteAttributeData DecodeWindowsExperimentalAttribute()
         {
             // ExperimentalAttribute() 
             Debug.Assert(this.CommonConstructorArguments.Length == 0);
-            return ObsoleteAttributeData.Experimental;
+            return ObsoleteAttributeData.WindowsExperimental;
         }
 
         internal static void DecodeMethodImplAttribute<T, TAttributeSyntaxNode, TAttributeData, TAttributeLocation>(
@@ -390,7 +420,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             MethodImplAttributes codeType = MethodImplAttributes.IL;
-            int position = 1;
+            int position = attribute.CommonConstructorArguments.Length;
             foreach (var namedArg in attribute.CommonNamedArguments)
             {
                 if (namedArg.Key == "MethodCodeType")
@@ -446,7 +476,7 @@ namespace Microsoft.CodeAnalysis
                     break;
             }
 
-            int position = 1;
+            int position = attribute.CommonConstructorArguments.Length;
             foreach (var namedArg in attribute.CommonNamedArguments)
             {
                 switch (namedArg.Key)

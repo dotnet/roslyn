@@ -204,7 +204,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public NotOverridable Overrides ReadOnly Property IsInitOnly As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
         Friend NotOverridable Overrides ReadOnly Property IsMethodKindBasedOnSyntax As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
+        Friend NotOverridable Overrides ReadOnly Property HasSetsRequiredMembers As Boolean
             Get
                 Return False
             End Get

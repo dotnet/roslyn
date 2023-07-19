@@ -13,13 +13,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
     internal partial class TaggerEventSources
     {
-        private class ParseOptionChangedEventSource : AbstractWorkspaceTrackingTaggerEventSource
+        private class ParseOptionChangedEventSource(ITextBuffer subjectBuffer) : AbstractWorkspaceTrackingTaggerEventSource(subjectBuffer)
         {
-            public ParseOptionChangedEventSource(ITextBuffer subjectBuffer, TaggerDelay delay)
-                : base(subjectBuffer, delay)
-            {
-            }
-
             protected override void ConnectToWorkspace(Workspace workspace)
                 => workspace.WorkspaceChanged += OnWorkspaceChanged;
 
@@ -42,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                         {
                             var relatedDocumentIds = e.NewSolution.GetRelatedDocumentIds(documentId);
 
-                            if (relatedDocumentIds.Any(d => d.ProjectId == e.ProjectId))
+                            if (relatedDocumentIds.Any(static (d, e) => d.ProjectId == e.ProjectId, e))
                             {
                                 RaiseChanged();
                             }

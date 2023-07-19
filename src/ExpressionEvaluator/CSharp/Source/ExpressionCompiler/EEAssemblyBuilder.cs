@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
@@ -41,8 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             if (testData != null)
             {
-                this.SetMethodTestData(testData.Methods);
-                testData.Module = this;
+                SetTestData(testData);
             }
         }
 
@@ -65,13 +65,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         }
 
         internal override bool IgnoreAccessibility => true;
+        public override EmitBaseline? PreviousGeneration => null;
+        public override SymbolChanges? EncSymbolChanges => null;
 
         internal override NamedTypeSymbol GetDynamicOperationContextType(NamedTypeSymbol contextType)
         {
             return _getDynamicOperationContextType(contextType);
         }
-
-        public override int CurrentGenerationOrdinal => 0;
 
         internal override VariableSlotAllocator? TryCreateVariableSlotAllocator(MethodSymbol symbol, MethodSymbol topLevelMethod, DiagnosticBag diagnostics)
             => (symbol is EEMethodSymbol method) ? new SlotAllocator(GetLocalDefinitions(method.Locals, diagnostics)) : null;
@@ -173,6 +173,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 return false;
             }
 
+            public override bool TryGetPreviousStateMachineState(SyntaxNode awaitOrYieldSyntax, out StateMachineState state)
+            {
+                state = 0;
+                return false;
+            }
+
+            public override StateMachineState? GetFirstUnusedStateMachineState(bool increasing) => null;
             public override string? PreviousStateMachineTypeName => null;
             public override int PreviousHoistedLocalSlotCount => 0;
             public override int PreviousAwaiterSlotCount => 0;

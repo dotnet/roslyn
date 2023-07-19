@@ -16,20 +16,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
 {
     internal partial class CSharpProximityExpressionsService
     {
-        internal class Worker
+        internal class Worker(SyntaxTree syntaxTree, int position)
         {
-            private readonly SyntaxTree _syntaxTree;
-            private readonly int _position;
+            private readonly SyntaxTree _syntaxTree = syntaxTree;
+            private readonly int _position = position;
 
             private StatementSyntax _parentStatement;
             private SyntaxToken _token;
             private readonly List<string> _expressions = new List<string>();
-
-            public Worker(SyntaxTree syntaxTree, int position)
-            {
-                _syntaxTree = syntaxTree;
-                _position = position;
-            }
 
             internal IList<string> Do(CancellationToken cancellationToken)
             {
@@ -59,8 +53,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
             private void AddValueExpression()
             {
                 // If we're in a setter/adder/remover then add "value".
-                if (_parentStatement.GetAncestorOrThis<AccessorDeclarationSyntax>().IsKind(
-                    SyntaxKind.SetAccessorDeclaration, SyntaxKind.InitAccessorDeclaration, SyntaxKind.AddAccessorDeclaration, SyntaxKind.RemoveAccessorDeclaration))
+                if (_parentStatement.GetAncestorOrThis<AccessorDeclarationSyntax>() is (kind:
+                        SyntaxKind.SetAccessorDeclaration or
+                        SyntaxKind.InitAccessorDeclaration or
+                        SyntaxKind.AddAccessorDeclaration or
+                        SyntaxKind.RemoveAccessorDeclaration))
                 {
                     _expressions.Add("value");
                 }
@@ -70,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
             {
                 // If it's an instance member, then also add "this".
                 var memberDeclaration = _parentStatement.GetAncestorOrThis<MemberDeclarationSyntax>();
-                if (!memberDeclaration.GetModifiers().Any(SyntaxKind.StaticKeyword))
+                if (!memberDeclaration.IsKind(SyntaxKind.GlobalStatement) && !memberDeclaration.GetModifiers().Any(SyntaxKind.StaticKeyword))
                 {
                     _expressions.Add("this");
                 }
@@ -81,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
                 var block = GetImmediatelyContainingBlock();
 
                 // if we're the start of a "catch(Goo e)" clause, then add "e".
-                if (block != null && block.IsParentKind(SyntaxKind.CatchClause, out CatchClauseSyntax catchClause) &&
+                if (block != null && block?.Parent is CatchClauseSyntax catchClause &&
                     catchClause.Declaration != null && catchClause.Declaration.Identifier.Kind() != SyntaxKind.None)
                 {
                     _expressions.Add(catchClause.Declaration.Identifier.ValueText);
@@ -92,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
             {
                 return IsFirstBlockStatement()
                     ? (BlockSyntax)_parentStatement.Parent
-                    : _parentStatement is BlockSyntax && ((BlockSyntax)_parentStatement).OpenBraceToken == _token
+                    : _parentStatement is BlockSyntax block && block.OpenBraceToken == _token
                         ? (BlockSyntax)_parentStatement
                         : null;
             }
@@ -114,10 +111,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
                 // the proximity expressions.
                 var block = GetImmediatelyContainingBlock();
 
-                if (block != null && block.Parent is MemberDeclarationSyntax)
+                if (block != null && block.Parent is MemberDeclarationSyntax memberDeclaration)
                 {
-                    var parameterList = ((MemberDeclarationSyntax)block.Parent).GetParameterList();
+                    var parameterList = memberDeclaration.GetParameterList();
                     AddParameters(parameterList);
+                }
+                else if (block is null
+                    && _parentStatement.Parent is GlobalStatementSyntax { Parent: CompilationUnitSyntax compilationUnit } globalStatement
+                    && compilationUnit.Members.FirstOrDefault() == globalStatement)
+                {
+                    _expressions.Add("args");
                 }
             }
 
@@ -130,9 +133,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
                 if (block != null &&
                     block.Parent is AccessorDeclarationSyntax &&
                     block.Parent.Parent is AccessorListSyntax &&
-                    block.Parent.Parent.Parent is IndexerDeclarationSyntax)
+                    block.Parent.Parent.Parent is IndexerDeclarationSyntax indexerDeclaration)
                 {
-                    var parameterList = ((IndexerDeclarationSyntax)block.Parent.Parent.Parent).ParameterList;
+                    var parameterList = indexerDeclaration.ParameterList;
                     AddParameters(parameterList);
                 }
             }

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     /// <remarks>
     /// Only types explicitly mentioned in "Co-located core types" spec 
-    /// (https://github.com/dotnet/roslyn/blob/master/docs/compilers/Co-located%20core%20types.md)
+    /// (https://github.com/dotnet/roslyn/blob/main/docs/compilers/Co-located%20core%20types.md)
     /// can be in this enum.
     /// The following things should be in sync:
     ///     1) SpecialType enum
@@ -259,8 +259,13 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_PreserveBaseOverridesAttribute = 45,
 
         /// <summary>
+        /// An attribute that is placed on an inline array type.
+        /// </summary>
+        System_Runtime_CompilerServices_InlineArrayAttribute = 46,
+
+        /// <summary>
         /// Count of special types. This is not a count of enum members.
         /// </summary>
-        Count = System_Runtime_CompilerServices_PreserveBaseOverridesAttribute
+        Count = System_Runtime_CompilerServices_InlineArrayAttribute
     }
 }

@@ -82,6 +82,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     {
                         pendingWrites.Free();
                     }
+
                     _pendingWritesMap.Free();
                     _pendingWritesMap = null;
                 }
@@ -187,7 +188,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             {
                 if (_pendingWritesMap.TryGetValue(operation, out var pendingWrites))
                 {
-                    var isUsedCompountAssignment = operation.IsAnyCompoundAssignment() &&
+                    var isUsedCompoundAssignment = operation.IsAnyCompoundAssignment() &&
                         operation.Parent?.Kind != OperationKind.ExpressionStatement;
 
                     foreach (var (symbolOpt, write) in pendingWrites)
@@ -197,7 +198,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                             Debug.Assert(symbolOpt != null);
                             OnWriteReferenceFound(symbolOpt, write, ValueUsageInfo.Write);
 
-                            if (isUsedCompountAssignment)
+                            if (isUsedCompoundAssignment)
                             {
                                 OnReadReferenceFound(symbolOpt);
                             }
@@ -282,7 +283,27 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
             public override void VisitDeclarationPattern(IDeclarationPatternOperation operation)
             {
-                if (operation.DeclaredSymbol != null)
+                if (operation.DeclaredSymbol is not null)
+                {
+                    OnReferenceFound(operation.DeclaredSymbol, operation);
+                }
+            }
+
+            public override void VisitRecursivePattern(IRecursivePatternOperation operation)
+            {
+                base.VisitRecursivePattern(operation);
+
+                if (operation.DeclaredSymbol is not null)
+                {
+                    OnReferenceFound(operation.DeclaredSymbol, operation);
+                }
+            }
+
+            public override void VisitListPattern(IListPatternOperation operation)
+            {
+                base.VisitListPattern(operation);
+
+                if (operation.DeclaredSymbol is not null)
                 {
                     OnReferenceFound(operation.DeclaredSymbol, operation);
                 }
@@ -304,6 +325,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                         {
                             _currentAnalysisData.ResetState();
                         }
+
                         break;
 
                     case MethodKind.LocalFunction:
@@ -422,7 +444,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                             // We don't support lambda target analysis for operation tree
                             // and control flow graph should have replaced 'AnonymousFunction' nodes
                             // with 'FlowAnonymousFunction' nodes.
-                            throw ExceptionUtilities.Unreachable;
+                            throw ExceptionUtilities.Unreachable();
 
                         case OperationKind.FlowAnonymousFunction:
                             _currentAnalysisData.SetLambdaTargetForDelegate(write, (IFlowAnonymousFunctionOperation)currentOperation);
@@ -438,6 +460,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                             {
                                 _currentAnalysisData.SetEmptyInvocationTargetsForDelegate(write);
                             }
+
                             return;
 
                         case OperationKind.LocalReference:
@@ -455,6 +478,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                             {
                                 _currentAnalysisData.SetEmptyInvocationTargetsForDelegate(write);
                             }
+
                             return;
 
                         default:
@@ -528,7 +552,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                             break;
 
                         default:
-                            throw ExceptionUtilities.Unreachable;
+                            throw ExceptionUtilities.Unreachable();
                     }
                 }
             }

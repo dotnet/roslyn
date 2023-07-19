@@ -2,16 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#endif
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
@@ -24,11 +20,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public abstract EnforceOnBuild EnforceOnBuild { get; }
         public abstract ImmutableArray<SyntaxKind> SyntaxKinds { get; }
 
-        public abstract BlockSyntax GetBody(SyntaxNode declaration);
-        public abstract ArrowExpressionClauseSyntax GetExpressionBody(SyntaxNode declaration);
+        public abstract CodeStyleOption2<ExpressionBodyPreference> GetExpressionBodyPreference(CSharpCodeGenerationOptions options);
+        public abstract BlockSyntax? GetBody(SyntaxNode declaration);
+        public abstract ArrowExpressionClauseSyntax? GetExpressionBody(SyntaxNode declaration);
+        public abstract bool IsRelevantDeclarationNode(SyntaxNode node);
 
-        public abstract bool CanOfferUseExpressionBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer);
-        public abstract (bool canOffer, bool fixesError) CanOfferUseBlockBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer);
+        public abstract bool CanOfferUseExpressionBody(CodeStyleOption2<ExpressionBodyPreference> preference, SyntaxNode declaration, bool forAnalyzer);
+        public abstract bool CanOfferUseBlockBody(CodeStyleOption2<ExpressionBodyPreference> preference, SyntaxNode declaration, bool forAnalyzer, out bool fixesError, [NotNullWhen(true)] out ArrowExpressionClauseSyntax? expressionBody);
         public abstract SyntaxNode Update(SemanticModel semanticModel, SyntaxNode declaration, bool useExpressionBody);
 
         public abstract Location GetDiagnosticLocation(SyntaxNode declaration);

@@ -380,7 +380,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ImmutableDictionary<AssemblyIdentity, PortableExecutableReference?>.Empty;
 
                     BoundInputAssembly[] bindingResult = Bind(
-                        compilation,
                         explicitAssemblyData,
                         modules,
                         explicitReferences,
@@ -404,6 +403,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     Dictionary<MetadataReference, int> referencedAssembliesMap, referencedModulesMap;
                     ImmutableArray<ImmutableArray<string>> aliasesOfReferencedAssemblies;
+                    Dictionary<MetadataReference, ImmutableArray<MetadataReference>>? mergedAssemblyReferencesMapOpt;
+
                     BuildReferencedAssembliesAndModulesMaps(
                         bindingResult,
                         references,
@@ -414,7 +415,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         supersedeLowerVersions,
                         out referencedAssembliesMap,
                         out referencedModulesMap,
-                        out aliasesOfReferencedAssemblies);
+                        out aliasesOfReferencedAssemblies,
+                        out mergedAssemblyReferencesMapOpt);
 
                     // Create AssemblySymbols for assemblies that can't use any existing symbols.
                     var newSymbols = new List<int>();
@@ -509,7 +511,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     moduleReferences,
                                     assemblySymbol.SourceModule.GetReferencedAssemblySymbols(),
                                     aliasesOfReferencedAssemblies,
-                                    assemblySymbol.SourceModule.GetUnifiedAssemblies());
+                                    assemblySymbol.SourceModule.GetUnifiedAssemblies(),
+                                    mergedAssemblyReferencesMapOpt);
 
                                 // Make sure that the given compilation holds on this instance of reference manager.
                                 Debug.Assert(ReferenceEquals(compilation._referenceManager, this) || HasCircularReference);

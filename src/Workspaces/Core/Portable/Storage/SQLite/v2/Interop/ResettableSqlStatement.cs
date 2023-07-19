@@ -7,9 +7,10 @@ using System;
 namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
 {
     /// <summary>
-    /// Simple wrapper struct for a <see cref="SqlStatement"/> that helps ensure that the statement
-    /// is always <see cref="SqlStatement.Reset"/> after it is used.
-    /// 
+    /// Simple wrapper struct for a <see cref="SqlStatement"/> that helps ensure that the statement is always has it's
+    /// bindings cleared (<see cref="SqlStatement.ClearBindings"/>) and is <see cref="SqlStatement.Reset"/> after it is
+    /// used.
+    /// <para/>
     /// See https://sqlite.org/c3ref/stmt.html:
     /// The life-cycle of a prepared statement object usually goes like this:
     ///    1) Create the prepared statement object using sqlite3_prepare_v2().
@@ -23,14 +24,17 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
     /// as it will happen to all prepared statemnets when the <see cref="SqlStatement"/> is
     /// <see cref="SqlStatement.Close_OnlyForUseBySqlConnection"/>d.
     /// </summary>
-    internal struct ResettableSqlStatement : IDisposable
+    internal readonly struct ResettableSqlStatement(SqlStatement statement) : IDisposable
     {
-        public readonly SqlStatement Statement;
-
-        public ResettableSqlStatement(SqlStatement statement)
-            => Statement = statement;
+        public readonly SqlStatement Statement = statement;
 
         public void Dispose()
-            => Statement.Reset();
+        {
+            // Clear out any bindings we've made so the statement doesn't hold onto data longer than necessary.
+            Statement.ClearBindings();
+
+            // Reset the statement so it can be run again.
+            Statement.Reset();
+        }
     }
 }

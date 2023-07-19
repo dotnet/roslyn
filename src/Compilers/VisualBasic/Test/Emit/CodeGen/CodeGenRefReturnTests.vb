@@ -2577,6 +2577,443 @@ End Module
             verifier.VerifyDiagnostics()
         End Sub
 
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/68194")>
+        Public Sub With_Method_01()
+            Dim comp1 = CreateCSharpCompilation(
+"public class C<T>
+{
+#pragma warning disable 0649
+    private T _p;
+    public ref T GetP()
+    {
+        return ref _p;
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim o = New C(Of Integer)()
+        o.GetP() += 1
+        With o.GetP()
+            System.Console.Write(.ToString())
+            o.GetP() = 2
+            System.Console.Write(.ToString())
+        End With
+    End Sub
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+            Dim verifier = CompileAndVerify(comp2, expectedOutput:="12")
+            verifier.VerifyIL("M.Main",
+            <![CDATA[
+{
+  // Code size       62 (0x3e)
+  .maxstack  3
+  .locals init (C(Of Integer) V_0, //o
+                Integer& V_1,
+                Integer& V_2) //$W0
+  IL_0000:  nop
+  IL_0001:  newobj     "Sub C(Of Integer)..ctor()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  callvirt   "ByRef Function C(Of Integer).GetP() As Integer"
+  IL_000d:  dup
+  IL_000e:  stloc.1
+  IL_000f:  ldloc.1
+  IL_0010:  ldind.i4
+  IL_0011:  ldc.i4.1
+  IL_0012:  add.ovf
+  IL_0013:  stind.i4
+  IL_0014:  nop
+  IL_0015:  ldloc.0
+  IL_0016:  callvirt   "ByRef Function C(Of Integer).GetP() As Integer"
+  IL_001b:  stloc.2
+  IL_001c:  ldloc.2
+  IL_001d:  call       "Function Integer.ToString() As String"
+  IL_0022:  call       "Sub System.Console.Write(String)"
+  IL_0027:  nop
+  IL_0028:  ldloc.0
+  IL_0029:  callvirt   "ByRef Function C(Of Integer).GetP() As Integer"
+  IL_002e:  ldc.i4.2
+  IL_002f:  stind.i4
+  IL_0030:  ldloc.2
+  IL_0031:  call       "Function Integer.ToString() As String"
+  IL_0036:  call       "Sub System.Console.Write(String)"
+  IL_003b:  nop
+  IL_003c:  nop
+  IL_003d:  ret
+}
+]]>)
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/68194")>
+        Public Sub With_Method_02()
+            Dim comp1 = CreateCSharpCompilation(
+"public class C<T>
+{
+#pragma warning disable 0649
+    private T _p;
+    public ref T GetP()
+    {
+        return ref _p;
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"
+#disable warning BC42356
+
+Module M
+    async Sub Main()
+        Dim o = New C(Of Integer)()
+        With o.GetP()
+        End With
+    End Sub
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugDll)
+            comp2.AssertTheseDiagnostics(
+<expected>
+BC37326: A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.
+        With o.GetP()
+             ~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/68194")>
+        Public Sub With_Method_03()
+            Dim comp1 = CreateCSharpCompilation(
+"public class C<T>
+{
+#pragma warning disable 0649
+    private T _p;
+    public ref T GetP()
+    {
+        return ref _p;
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    iterator Function Main() As System.Collections.IEnumerable
+        Dim o = New C(Of Integer)()
+        With o.GetP()
+        End With
+    End Function
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugDll)
+            comp2.AssertTheseDiagnostics(
+<expected>
+BC37326: A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.
+        With o.GetP()
+             ~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/68194")>
+        Public Sub With_Method_04()
+            Dim comp1 = CreateCSharpCompilation(
+"public class C<T>
+{
+#pragma warning disable 0649
+    private T _p;
+    public ref T GetP()
+    {
+        return ref _p;
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"
+#disable warning BC42356
+
+Module M
+    Sub Main()
+        Dim f = async Sub()
+                    Dim o = New C(Of Integer)()
+                    With o.GetP()
+                    End With
+                End Sub
+    End Sub
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugDll)
+            comp2.AssertTheseDiagnostics(
+<expected>
+BC37326: A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.
+                    With o.GetP()
+                         ~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/68194")>
+        Public Sub With_Method_05()
+            Dim comp1 = CreateCSharpCompilation(
+"public class C<T>
+{
+#pragma warning disable 0649
+    private T _p;
+    public ref T GetP()
+    {
+        return ref _p;
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim f = iterator Function() As System.Collections.IEnumerable
+                    Dim o = New C(Of Integer)()
+                    With o.GetP()
+                    End With
+                End Function
+    End Sub
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugDll)
+            comp2.AssertTheseDiagnostics(
+<expected>
+BC37326: A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.
+                    With o.GetP()
+                         ~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/68194")>
+        Public Sub With_Method_06()
+            Dim comp1 = CreateCSharpCompilation(
+"public class C<T>
+{
+#pragma warning disable 0649
+    private T _p;
+    public ref T GetP()
+    {
+        return ref _p;
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim o = New C(Of Integer)()
+        With o.GetP()
+            Dim f = Sub() System.Console.Write(.ToString())
+        End With
+    End Sub
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugDll)
+
+            comp2.AssertTheseDiagnostics(
+<expected>
+BC37326: A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.
+        With o.GetP()
+             ~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/68194")>
+        Public Sub With_Property_01()
+            Dim comp1 = CreateCSharpCompilation(
+"public class C<T>
+{
+#pragma warning disable 0649
+    private T _p;
+    public ref T P
+    {
+        get { return ref _p; }
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim o = New C(Of Integer)()
+        o.P += 1
+        With o.P
+            System.Console.Write(.ToString())
+            o.P = 2
+            System.Console.Write(.ToString())
+        End With
+    End Sub
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+            Dim verifier = CompileAndVerify(comp2, expectedOutput:="12")
+            verifier.VerifyIL("M.Main",
+            <![CDATA[
+{
+  // Code size       67 (0x43)
+  .maxstack  3
+  .locals init (C(Of Integer) V_0, //o
+                C(Of Integer) V_1,
+                Integer& V_2) //$W0
+  IL_0000:  nop
+  IL_0001:  newobj     "Sub C(Of Integer)..ctor()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  dup
+  IL_0009:  stloc.1
+  IL_000a:  callvirt   "ByRef Function C(Of Integer).get_P() As Integer"
+  IL_000f:  ldloc.1
+  IL_0010:  callvirt   "ByRef Function C(Of Integer).get_P() As Integer"
+  IL_0015:  ldind.i4
+  IL_0016:  ldc.i4.1
+  IL_0017:  add.ovf
+  IL_0018:  stind.i4
+  IL_0019:  nop
+  IL_001a:  ldloc.0
+  IL_001b:  callvirt   "ByRef Function C(Of Integer).get_P() As Integer"
+  IL_0020:  stloc.2
+  IL_0021:  ldloc.2
+  IL_0022:  call       "Function Integer.ToString() As String"
+  IL_0027:  call       "Sub System.Console.Write(String)"
+  IL_002c:  nop
+  IL_002d:  ldloc.0
+  IL_002e:  callvirt   "ByRef Function C(Of Integer).get_P() As Integer"
+  IL_0033:  ldc.i4.2
+  IL_0034:  stind.i4
+  IL_0035:  ldloc.2
+  IL_0036:  call       "Function Integer.ToString() As String"
+  IL_003b:  call       "Sub System.Console.Write(String)"
+  IL_0040:  nop
+  IL_0041:  nop
+  IL_0042:  ret
+}
+]]>)
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/68194")>
+        Public Sub With_Property_02()
+            Dim comp1 = CreateCSharpCompilation(
+"public class C<T>
+{
+#pragma warning disable 0649
+    private T _p;
+    public ref T P
+    {
+        get { return ref _p; }
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim o = New C(Of Integer)()
+        With o.P
+            Dim f = Sub() System.Console.Write(.ToString())
+        End With
+    End Sub
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+
+            comp2.AssertTheseDiagnostics(
+<expected>
+BC37326: A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.
+        With o.P
+             ~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/68194")>
+        Public Sub With_Indexer()
+            Dim comp1 = CreateCSharpCompilation(
+"public class C<T>
+{
+#pragma warning disable 0649
+    private T _p;
+    public ref T this[int i]
+    {
+        get { return ref _p; }
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim o = New C(Of Integer)()
+        o(0) += 1
+        With o(0)
+            System.Console.Write(.ToString())
+            o(0) = 2
+            System.Console.Write(.ToString())
+        End With
+    End Sub
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+            Dim verifier = CompileAndVerify(comp2, expectedOutput:="12")
+            verifier.VerifyIL("M.Main",
+            <![CDATA[
+{
+  // Code size       71 (0x47)
+  .maxstack  3
+  .locals init (C(Of Integer) V_0, //o
+            C(Of Integer) V_1,
+            Integer& V_2) //$W0
+  IL_0000:  nop
+  IL_0001:  newobj     "Sub C(Of Integer)..ctor()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  dup
+  IL_0009:  stloc.1
+  IL_000a:  ldc.i4.0
+  IL_000b:  callvirt   "ByRef Function C(Of Integer).get_Item(Integer) As Integer"
+  IL_0010:  ldloc.1
+  IL_0011:  ldc.i4.0
+  IL_0012:  callvirt   "ByRef Function C(Of Integer).get_Item(Integer) As Integer"
+  IL_0017:  ldind.i4
+  IL_0018:  ldc.i4.1
+  IL_0019:  add.ovf
+  IL_001a:  stind.i4
+  IL_001b:  nop
+  IL_001c:  ldloc.0
+  IL_001d:  ldc.i4.0
+  IL_001e:  callvirt   "ByRef Function C(Of Integer).get_Item(Integer) As Integer"
+  IL_0023:  stloc.2
+  IL_0024:  ldloc.2
+  IL_0025:  call       "Function Integer.ToString() As String"
+  IL_002a:  call       "Sub System.Console.Write(String)"
+  IL_002f:  nop
+  IL_0030:  ldloc.0
+  IL_0031:  ldc.i4.0
+  IL_0032:  callvirt   "ByRef Function C(Of Integer).get_Item(Integer) As Integer"
+  IL_0037:  ldc.i4.2
+  IL_0038:  stind.i4
+  IL_0039:  ldloc.2
+  IL_003a:  call       "Function Integer.ToString() As String"
+  IL_003f:  call       "Sub System.Console.Write(String)"
+  IL_0044:  nop
+  IL_0045:  nop
+  IL_0046:  ret
+}
+]]>)
+            verifier.VerifyDiagnostics()
+        End Sub
+
     End Class
 
 End Namespace

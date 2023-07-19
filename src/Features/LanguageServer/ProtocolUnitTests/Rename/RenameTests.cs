@@ -12,14 +12,19 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Rename
 {
     public class RenameTests : AbstractLanguageServerProtocolTests
     {
-        [WpfFact]
-        public async Task TestRenameAsync()
+        public RenameTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
+        [WpfTheory, CombinatorialData]
+        public async Task TestRenameAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -32,17 +37,39 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Rename
         {|renamed:M|}()
     }
 }";
-            using var workspace = CreateTestWorkspace(markup, out var locations);
-            var renameLocation = locations["caret"].First();
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+            var renameLocation = testLspServer.GetLocations("caret").First();
             var renameValue = "RENAME";
-            var expectedEdits = locations["renamed"].Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
+            var expectedEdits = testLspServer.GetLocations("renamed").Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
 
-            var results = await RunRenameAsync(workspace.CurrentSolution, CreateRenameParams(renameLocation, renameValue));
+            var results = await RunRenameAsync(testLspServer, CreateRenameParams(renameLocation, renameValue));
             AssertJsonEquals(expectedEdits, ((TextDocumentEdit[])results.DocumentChanges).First().Edits);
         }
 
-        [WpfFact]
-        public async Task TestRename_WithLinkedFilesAsync()
+        [WpfTheory, CombinatorialData]
+        public async Task TestRename_InvalidIdentifierAsync(bool mutatingLspWorkspace)
+        {
+            var markup =
+@"class A
+{
+    void {|caret:|}{|renamed:M|}()
+    {
+    }
+    void M2()
+    {
+        {|renamed:M|}()
+    }
+}";
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+            var renameLocation = testLspServer.GetLocations("caret").First();
+            var renameValue = "$RENAMED$";
+
+            var results = await RunRenameAsync(testLspServer, CreateRenameParams(renameLocation, renameValue));
+            Assert.Null(results);
+        }
+
+        [WpfTheory, CombinatorialData]
+        public async Task TestRename_WithLinkedFilesAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -66,17 +93,17 @@ $@"<Workspace>
     </Project>
 </Workspace>";
 
-            using var workspace = CreateXmlTestWorkspace(workspaceXml, out var locations);
-            var renameLocation = locations["caret"].First();
+            await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, mutatingLspWorkspace);
+            var renameLocation = testLspServer.GetLocations("caret").First();
             var renameValue = "RENAME";
-            var expectedEdits = locations["renamed"].Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
+            var expectedEdits = testLspServer.GetLocations("renamed").Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
 
-            var results = await RunRenameAsync(workspace.CurrentSolution, CreateRenameParams(renameLocation, renameValue));
+            var results = await RunRenameAsync(testLspServer, CreateRenameParams(renameLocation, renameValue));
             AssertJsonEquals(expectedEdits, ((TextDocumentEdit[])results.DocumentChanges).First().Edits);
         }
 
-        [WpfFact]
-        public async Task TestRename_WithLinkedFilesAndPreprocessorAsync()
+        [WpfTheory, CombinatorialData]
+        public async Task TestRename_WithLinkedFilesAndPreprocessorAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -112,17 +139,17 @@ $@"<Workspace>
     </Project>
 </Workspace>";
 
-            using var workspace = CreateXmlTestWorkspace(workspaceXml, out var locations);
-            var renameLocation = locations["caret"].First();
+            await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, mutatingLspWorkspace);
+            var renameLocation = testLspServer.GetLocations("caret").First();
             var renameValue = "RENAME";
-            var expectedEdits = locations["renamed"].Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
+            var expectedEdits = testLspServer.GetLocations("renamed").Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
 
-            var results = await RunRenameAsync(workspace.CurrentSolution, CreateRenameParams(renameLocation, renameValue));
+            var results = await RunRenameAsync(testLspServer, CreateRenameParams(renameLocation, renameValue));
             AssertJsonEquals(expectedEdits, ((TextDocumentEdit[])results.DocumentChanges).First().Edits);
         }
 
-        [WpfFact]
-        public async Task TestRename_WithMappedFileAsync()
+        [WpfTheory, CombinatorialData]
+        public async Task TestRename_WithMappedFileAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -135,10 +162,9 @@ $@"<Workspace>
         M()
     }
 }";
-            using var workspace = CreateTestWorkspace(string.Empty, out _);
-            SetSolutionProviderWorkspace(workspace);
+            await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace);
 
-            AddMappedDocument(workspace, markup);
+            AddMappedDocument(testLspServer.TestWorkspace, markup);
 
             var startPosition = new LSP.Position { Line = 2, Character = 9 };
             var endPosition = new LSP.Position { Line = 2, Character = 10 };
@@ -149,7 +175,7 @@ $@"<Workspace>
                 Range = new LSP.Range { Start = startPosition, End = endPosition }
             }, "RENAME");
 
-            var results = await RunRenameAsync(workspace.CurrentSolution, renameParams);
+            var results = await RunRenameAsync(testLspServer, renameParams);
 
             // There are two rename locations, so we expect two mapped locations.
             var expectedMappedRanges = ImmutableArray.Create(TestSpanMapper.MappedFileLocation.Range, TestSpanMapper.MappedFileLocation.Range);
@@ -169,11 +195,9 @@ $@"<Workspace>
                 TextDocument = CreateTextDocumentIdentifier(location.Uri)
             };
 
-        private static async Task<WorkspaceEdit> RunRenameAsync(Solution solution, LSP.RenameParams renameParams)
+        private static async Task<WorkspaceEdit> RunRenameAsync(TestLspServer testLspServer, LSP.RenameParams renameParams)
         {
-            var queue = CreateRequestQueue(solution);
-            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.RenameParams, LSP.WorkspaceEdit>(queue, LSP.Methods.TextDocumentRenameName,
-                          renameParams, new LSP.ClientCapabilities(), null, CancellationToken.None);
+            return await testLspServer.ExecuteRequestAsync<LSP.RenameParams, LSP.WorkspaceEdit>(LSP.Methods.TextDocumentRenameName, renameParams, CancellationToken.None);
         }
     }
 }

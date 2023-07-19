@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
@@ -15,7 +14,9 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.Utilities;
@@ -29,48 +30,34 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 {
-    internal abstract class AbstractPreviewFactoryService<TDifferenceViewer> : ForegroundThreadAffinitizedObject, IPreviewFactoryService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
+        IThreadingContext threadingContext,
+        ITextBufferFactoryService textBufferFactoryService,
+        IContentTypeRegistryService contentTypeRegistryService,
+        IProjectionBufferFactoryService projectionBufferFactoryService,
+        EditorOptionsService editorOptionsService,
+        ITextDifferencingSelectorService differenceSelectorService,
+        IDifferenceBufferFactoryService differenceBufferService,
+        ITextViewRoleSet previewRoleSet) : IPreviewFactoryService
         where TDifferenceViewer : IDifferenceViewer
     {
         private const double DefaultZoomLevel = 0.75;
-        private readonly ITextViewRoleSet _previewRoleSet;
+        private readonly ITextViewRoleSet _previewRoleSet = previewRoleSet;
+        private readonly ITextBufferFactoryService _textBufferFactoryService = textBufferFactoryService;
+        private readonly IContentTypeRegistryService _contentTypeRegistryService = contentTypeRegistryService;
+        private readonly IProjectionBufferFactoryService _projectionBufferFactoryService = projectionBufferFactoryService;
+        private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
+        private readonly ITextDifferencingSelectorService _differenceSelectorService = differenceSelectorService;
+        private readonly IDifferenceBufferFactoryService _differenceBufferService = differenceBufferService;
 
-        private readonly ITextBufferFactoryService _textBufferFactoryService;
-        private readonly IContentTypeRegistryService _contentTypeRegistryService;
-        private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
-        private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
-        private readonly ITextDifferencingSelectorService _differenceSelectorService;
-        private readonly IDifferenceBufferFactoryService _differenceBufferService;
+        protected readonly IThreadingContext ThreadingContext = threadingContext;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public AbstractPreviewFactoryService(
-            IThreadingContext threadingContext,
-            ITextBufferFactoryService textBufferFactoryService,
-            IContentTypeRegistryService contentTypeRegistryService,
-            IProjectionBufferFactoryService projectionBufferFactoryService,
-            IEditorOptionsFactoryService editorOptionsFactoryService,
-            ITextDifferencingSelectorService differenceSelectorService,
-            IDifferenceBufferFactoryService differenceBufferService,
-            ITextViewRoleSet previewRoleSet)
-            : base(threadingContext)
-        {
-            Contract.ThrowIfFalse(ThreadingContext.HasMainThread);
-
-            _textBufferFactoryService = textBufferFactoryService;
-            _contentTypeRegistryService = contentTypeRegistryService;
-            _projectionBufferFactoryService = projectionBufferFactoryService;
-            _editorOptionsFactoryService = editorOptionsFactoryService;
-            _differenceSelectorService = differenceSelectorService;
-            _differenceBufferService = differenceBufferService;
-
-            _previewRoleSet = previewRoleSet;
-        }
-
-        public SolutionPreviewResult GetSolutionPreviews(Solution oldSolution, Solution? newSolution, CancellationToken cancellationToken)
+        public SolutionPreviewResult? GetSolutionPreviews(Solution oldSolution, Solution? newSolution, CancellationToken cancellationToken)
             => GetSolutionPreviews(oldSolution, newSolution, DefaultZoomLevel, cancellationToken);
 
-        public SolutionPreviewResult GetSolutionPreviews(Solution oldSolution, Solution? newSolution, double zoomLevel, CancellationToken cancellationToken)
+        public SolutionPreviewResult? GetSolutionPreviews(Solution oldSolution, Solution? newSolution, double zoomLevel, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -500,7 +487,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             double zoomLevel,
             CancellationToken cancellationToken)
         {
-            Debug.Assert(oldDocument.Kind == TextDocumentKind.AdditionalDocument || oldDocument.Kind == TextDocumentKind.AnalyzerConfigDocument);
+            Debug.Assert(oldDocument.Kind is TextDocumentKind.AdditionalDocument or TextDocumentKind.AnalyzerConfigDocument);
 
             // openTextDocument must be called from the main thread
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -582,7 +569,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 
             var originalBuffer = _projectionBufferFactoryService.CreateProjectionBufferWithoutIndentation(
                 _contentTypeRegistryService,
-                _editorOptionsFactoryService.GlobalOptions,
+                _editorOptionsService.Factory.GlobalOptions,
                 oldBuffer.CurrentSnapshot,
                 "...",
                 description,
@@ -590,7 +577,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 
             var changedBuffer = _projectionBufferFactoryService.CreateProjectionBufferWithoutIndentation(
                 _contentTypeRegistryService,
-                _editorOptionsFactoryService.GlobalOptions,
+                _editorOptionsService.Factory.GlobalOptions,
                 newBuffer.CurrentSnapshot,
                 "...",
                 description,
@@ -679,8 +666,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 rightWorkspace = null;
             };
 
-            leftWorkspace?.EnableDiagnostic();
-            rightWorkspace?.EnableDiagnostic();
+            if (_editorOptionsService.GlobalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
+            {
+                leftWorkspace?.EnableSolutionCrawler();
+                rightWorkspace?.EnableSolutionCrawler();
+            }
 
             return new DifferenceViewerPreview(diffViewer);
         }
@@ -750,12 +740,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             cancellationToken.ThrowIfCancellationRequested();
 
             // Get the text that's actually in the editor.
-            var oldText = oldDocument.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var newText = newDocument.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var oldText = oldDocument.GetTextSynchronously(cancellationToken);
+            var newText = newDocument.GetTextSynchronously(cancellationToken);
 
             // Defer to the editor to figure out what changes the client made.
             var diffService = _differenceSelectorService.GetTextDifferencingService(
-                oldDocument.Project.LanguageServices.GetRequiredService<IContentTypeLanguageService>().GetDefaultContentType());
+                oldDocument.Project.Services.GetRequiredService<IContentTypeLanguageService>().GetDefaultContentType());
 
             diffService ??= _differenceSelectorService.DefaultTextDifferencingService;
             return diffService.DiffStrings(oldText.ToString(), newText.ToString(), new StringDifferenceOptions()

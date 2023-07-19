@@ -477,7 +477,6 @@ namespace Microsoft.CodeAnalysis
             return SpecializedCollections.EmptyEnumerable<Diagnostic>();
         }
 
-
         /// <summary>
         /// Determines whether the underlying node or token has any descendant preprocessor directives.
         /// </summary>
@@ -759,6 +758,12 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// See <see cref="SyntaxNode.IsIncrementallyIdenticalTo"/> and <see cref="SyntaxToken.IsIncrementallyIdenticalTo"/>.
+        /// </summary>
+        public bool IsIncrementallyIdenticalTo(SyntaxNodeOrToken other)
+            => this.UnderlyingNode != null && this.UnderlyingNode == other.UnderlyingNode;
+
+        /// <summary>
         /// Returns a new <see cref="SyntaxNodeOrToken"/> that wraps the supplied token.
         /// </summary>
         /// <param name="token">The input token.</param>
@@ -952,7 +957,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public SyntaxNodeOrToken GetNextSibling()

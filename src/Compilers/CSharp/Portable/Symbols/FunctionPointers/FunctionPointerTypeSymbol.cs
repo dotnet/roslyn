@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed partial class FunctionPointerTypeSymbol : TypeSymbol
     {
-        public static FunctionPointerTypeSymbol CreateFromSource(FunctionPointerTypeSyntax syntax, Binder typeBinder, DiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved, bool suppressUseSiteDiagnostics)
+        public static FunctionPointerTypeSymbol CreateFromSource(FunctionPointerTypeSyntax syntax, Binder typeBinder, BindingDiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved, bool suppressUseSiteDiagnostics)
             => new FunctionPointerTypeSymbol(
                 FunctionPointerMethodSymbol.CreateFromSource(
                     syntax,
@@ -52,9 +52,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpCompilation compilation)
             => new FunctionPointerTypeSymbol(FunctionPointerMethodSymbol.CreateFromParts(callingConvention, callingConventionModifiers, returnType, returnRefKind, parameterTypes, parameterRefKinds, compilation));
 
-        public static FunctionPointerTypeSymbol CreateFromMetadata(Cci.CallingConvention callingConvention, ImmutableArray<ParamInfo<TypeSymbol>> retAndParamTypes)
+        public static FunctionPointerTypeSymbol CreateFromMetadata(ModuleSymbol containingModule, Cci.CallingConvention callingConvention, ImmutableArray<ParamInfo<TypeSymbol>> retAndParamTypes)
             => new FunctionPointerTypeSymbol(
-                FunctionPointerMethodSymbol.CreateFromMetadata(callingConvention, retAndParamTypes));
+                FunctionPointerMethodSymbol.CreateFromMetadata(containingModule, callingConvention, retAndParamTypes));
 
         public FunctionPointerTypeSymbol SubstituteTypeSymbol(
             TypeWithAnnotations substitutedReturnType,
@@ -85,14 +85,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool IsSealed => false;
         // Pointers do not support boxing, so they really have no base type.
         internal override NamedTypeSymbol? BaseTypeNoUseSiteDiagnostics => null;
-        internal override ManagedKind GetManagedKind(ref HashSet<DiagnosticInfo>? useSiteDiagnostics) => ManagedKind.Unmanaged;
+        internal override ManagedKind GetManagedKind(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo) => ManagedKind.Unmanaged;
         internal override ObsoleteAttributeData? ObsoleteAttributeData => null;
         public override void Accept(CSharpSymbolVisitor visitor) => visitor.VisitFunctionPointerType(this);
         public override TResult Accept<TResult>(CSharpSymbolVisitor<TResult> visitor) => visitor.VisitFunctionPointerType(this);
         public override ImmutableArray<Symbol> GetMembers() => ImmutableArray<Symbol>.Empty;
         public override ImmutableArray<Symbol> GetMembers(string name) => ImmutableArray<Symbol>.Empty;
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers() => ImmutableArray<NamedTypeSymbol>.Empty;
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name) => ImmutableArray<NamedTypeSymbol>.Empty;
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name) => ImmutableArray<NamedTypeSymbol>.Empty;
         internal override TResult Accept<TArgument, TResult>(CSharpSymbolVisitor<TArgument, TResult> visitor, TArgument a) => visitor.VisitFunctionPointerType(this, a);
         internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved = null) => ImmutableArray<NamedTypeSymbol>.Empty;
 
@@ -140,13 +140,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return madeChanges;
         }
 
-        internal override DiagnosticInfo? GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            DiagnosticInfo? fromSignature = Signature.GetUseSiteDiagnostic();
+            UseSiteInfo<AssemblySymbol> fromSignature = Signature.GetUseSiteInfo();
 
-            if (fromSignature?.Code == (int)ErrorCode.ERR_BindToBogus && fromSignature.Arguments.AsSingleton() == (object)Signature)
+            if (fromSignature.DiagnosticInfo?.Code == (int)ErrorCode.ERR_BindToBogus && fromSignature.DiagnosticInfo.Arguments.AsSingleton() == (object)Signature)
             {
-                return new CSDiagnosticInfo(ErrorCode.ERR_BogusType, this);
+                return new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_BogusType, this));
             }
 
             return fromSignature;
@@ -214,5 +214,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool IsRecord => false;
+
+        internal override bool IsRecordStruct => false;
+
+        internal override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
+        {
+            return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
+        }
+
+        internal override bool HasInlineArrayAttribute(out int length)
+        {
+            length = 0;
+            return false;
+        }
     }
 }

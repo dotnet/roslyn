@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// 
         /// the result might not be an exact copy of the given source or contains more then given span
         /// </summary>
-        Task<ExcerptResult?> TryExcerptAsync(Document document, TextSpan span, ExcerptMode mode, CancellationToken cancellationToken);
+        Task<ExcerptResult?> TryExcerptAsync(Document document, TextSpan span, ExcerptMode mode, ClassificationOptions classificationOptions, CancellationToken cancellationToken);
     }
 
     /// <summary>
@@ -37,45 +37,35 @@ namespace Microsoft.CodeAnalysis.Host
     /// <summary>
     /// Result of excerpt
     /// </summary>
-    internal struct ExcerptResult
+    internal readonly struct ExcerptResult(SourceText content, TextSpan mappedSpan, ImmutableArray<ClassifiedSpan> classifiedSpans, Document document, TextSpan span)
     {
         /// <summary>
         /// excerpt content
         /// </summary>
-        public readonly SourceText Content;
+        public readonly SourceText Content = content;
 
         /// <summary>
         /// span on <see cref="Content"/> that given <see cref="Span"/> got mapped to
         /// </summary>
-        public readonly TextSpan MappedSpan;
+        public readonly TextSpan MappedSpan = mappedSpan;
 
         /// <summary>
         /// classification information on the <see cref="Content"/>
         /// </summary>
-        public readonly ImmutableArray<ClassifiedSpan> ClassifiedSpans;
+        public readonly ImmutableArray<ClassifiedSpan> ClassifiedSpans = classifiedSpans;
 
         /// <summary>
         /// <see cref="Document"/> this excerpt is from
         /// 
-        /// should be same document in <see cref="IDocumentExcerptService.TryExcerptAsync(Document, TextSpan, ExcerptMode, CancellationToken)" />
+        /// should be same document in <see cref="IDocumentExcerptService.TryExcerptAsync(Document, TextSpan, ExcerptMode, ClassificationOptions, CancellationToken)" />
         /// </summary>
-        public readonly Document Document;
+        public readonly Document Document = document;
 
         /// <summary>
         /// span on <see cref="Document"/> this excerpt is from
         /// 
-        /// should be same text span in <see cref="IDocumentExcerptService.TryExcerptAsync(Document, TextSpan, ExcerptMode, CancellationToken)" />
+        /// should be same text span in <see cref="IDocumentExcerptService.TryExcerptAsync(Document, TextSpan, ExcerptMode, ClassificationOptions, CancellationToken)" />
         /// </summary>
-        public readonly TextSpan Span;
-
-        public ExcerptResult(SourceText content, TextSpan mappedSpan, ImmutableArray<ClassifiedSpan> classifiedSpans, Document document, TextSpan span)
-        {
-            Content = content;
-            MappedSpan = mappedSpan;
-            ClassifiedSpans = classifiedSpans;
-
-            Document = document;
-            Span = span;
-        }
+        public readonly TextSpan Span = span;
     }
 }

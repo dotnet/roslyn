@@ -5,18 +5,20 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using BenchmarkDotNet.Attributes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 namespace IdeCoreBenchmarks
 {
     [MemoryDiagnoser]
     public class SerializationBenchmarks
     {
-        private CompilationUnitSyntax _root;
+        private List<CompilationUnitSyntax> _rootList;
         private MemoryStream _stream;
 
         private readonly int _iterationCount = 10;
@@ -25,16 +27,22 @@ namespace IdeCoreBenchmarks
         public void GlobalSetup()
         {
             var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
-            var csFilePath = Path.Combine(roslynRoot, @"src\Compilers\CSharp\Portable\Generated\Syntax.xml.Syntax.Generated.cs");
+            var csFilePath = Path.Combine(roslynRoot, @"src\Compilers\CSharp\Portable\Parser");
 
-            if (!File.Exists(csFilePath))
+            var files = Directory.GetFiles(csFilePath);
+            _rootList = new List<CompilationUnitSyntax>();
+
+            foreach (var file in files)
             {
-                throw new ArgumentException();
-            }
+                if (!File.Exists(file))
+                {
+                    throw new ArgumentException();
+                }
 
-            var text = File.ReadAllText(csFilePath);
-            var tree = SyntaxFactory.ParseSyntaxTree(text);
-            _root = tree.GetCompilationUnitRoot();
+                var text = File.ReadAllText(file);
+                var tree = SyntaxFactory.ParseSyntaxTree(SourceText.From(text, encoding: null, SourceHashAlgorithms.Default));
+                _rootList.Add(tree.GetCompilationUnitRoot());
+            }
         }
 
         [IterationCleanup]
@@ -52,9 +60,12 @@ namespace IdeCoreBenchmarks
         [Benchmark]
         public void SerializeSyntaxNode()
         {
-            for (var i = 0; i < _iterationCount; ++i)
+            foreach (var root in _rootList)
             {
-                _root.SerializeTo(_stream);
+                for (var i = 0; i < _iterationCount; ++i)
+                {
+                    root.SerializeTo(_stream);
+                }
             }
         }
 
@@ -63,9 +74,12 @@ namespace IdeCoreBenchmarks
         {
             _stream = new MemoryStream();
 
-            for (var i = 0; i < _iterationCount; ++i)
+            foreach (var root in _rootList)
             {
-                _root.SerializeTo(_stream);
+                for (var i = 0; i < _iterationCount; ++i)
+                {
+                    root.SerializeTo(_stream);
+                }
             }
 
             _stream.Position = 0;

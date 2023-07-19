@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override BoundStatement BindLockStatementParts(DiagnosticBag diagnostics, Binder originalBinder)
+        internal override BoundStatement BindLockStatementParts(BindingDiagnosticBag diagnostics, Binder originalBinder)
         {
             // Allow method groups during binding and then rule them out when we check that the expression has
             // a reference type.
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)exprType == null)
             {
-                if (expr.ConstantValue != ConstantValue.Null || Compilation.FeatureStrictEnabled) // Dev10 allows the null literal.
+                if (expr.ConstantValueOpt != ConstantValue.Null || Compilation.FeatureStrictEnabled) // Dev10 allows the null literal.
                 {
                     Error(diagnostics, ErrorCode.ERR_LockNeedsReference, exprSyntax, expr.Display);
                     hasErrors = true;

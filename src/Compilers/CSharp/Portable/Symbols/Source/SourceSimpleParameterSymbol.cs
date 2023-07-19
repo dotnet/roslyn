@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -16,21 +16,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SourceSimpleParameterSymbol : SourceParameterSymbol
     {
         public SourceSimpleParameterSymbol(
-           Symbol owner,
-           TypeWithAnnotations parameterType,
-           int ordinal,
-           RefKind refKind,
-           string name,
-           bool isDiscard,
-           ImmutableArray<Location> locations)
-           : base(owner, parameterType, ordinal, refKind, name, locations)
+            Symbol owner,
+            TypeWithAnnotations parameterType,
+            int ordinal,
+            RefKind refKind,
+            ScopedKind scope,
+            string name,
+            ImmutableArray<Location> locations)
+            : this(owner, parameterType, ordinal, refKind, scope, name, locations.FirstOrDefault())
         {
-            IsDiscard = isDiscard;
+            Debug.Assert(locations.Length <= 1);
         }
 
-        public override bool IsDiscard { get; }
+        public SourceSimpleParameterSymbol(
+            Symbol owner,
+            TypeWithAnnotations parameterType,
+            int ordinal,
+            RefKind refKind,
+            ScopedKind scope,
+            string name,
+            Location? location)
+            : base(owner, parameterType, ordinal, refKind, scope, name, location)
+        {
+        }
 
-        internal override ConstantValue ExplicitDefaultConstantValue
+        public override bool IsDiscard => false;
+
+        internal override ConstantValue? ExplicitDefaultConstantValue
         {
             get { return null; }
         }
@@ -55,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
-        internal override SyntaxReference SyntaxReference
+        internal override SyntaxReference? SyntaxReference
         {
             get { return null; }
         }
@@ -90,6 +102,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        internal override int CallerArgumentExpressionParameterIndex
+        {
+            get { return -1; }
+        }
+
+        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => ImmutableArray<int>.Empty;
+
+        internal override bool HasInterpolatedStringHandlerArgumentError => false;
+
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {
             get { return FlowAnalysisAnnotations.None; }
@@ -97,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableHashSet<string> NotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
 
-        internal override MarshalPseudoCustomAttributeData MarshallingInformation
+        internal override MarshalPseudoCustomAttributeData? MarshallingInformation
         {
             get { return null; }
         }
@@ -122,5 +143,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return ConstantValue.NotAvailable; }
         }
+
+        internal override ScopedKind EffectiveScope => CalculateEffectiveScopeIgnoringAttributes();
+
+        internal override bool HasUnscopedRefAttribute => false;
     }
 }

@@ -2,52 +2,56 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.FindUsages;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(LSP.Methods.TextDocumentImplementationName, mutatesSolutionState: false)]
-    internal class FindImplementationsHandler : IRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]>
+    [ExportCSharpVisualBasicStatelessLspService(typeof(FindImplementationsHandler)), Shared]
+    [Method(LSP.Methods.TextDocumentImplementationName)]
+    internal sealed class FindImplementationsHandler : ILspServiceDocumentRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]>
     {
+        private readonly IGlobalOptionService _globalOptions;
+
         [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FindImplementationsHandler()
+        [System.Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public FindImplementationsHandler(IGlobalOptionService globalOptions)
         {
+            _globalOptions = globalOptions;
         }
 
-        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.TextDocumentPositionParams request) => request.TextDocument;
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
+
+        public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.TextDocumentPositionParams request) => request.TextDocument;
 
         public async Task<LSP.Location[]> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {
+            var document = context.GetRequiredDocument();
+            var clientCapabilities = context.GetRequiredClientCapabilities();
+
             var locations = ArrayBuilder<LSP.Location>.GetInstance();
 
-            var document = context.Document;
-            if (document == null)
-            {
-                return locations.ToArrayAndFree();
-            }
-
-            var findUsagesService = document.Project.LanguageServices.GetRequiredService<IFindUsagesService>();
+            var findUsagesService = document.GetRequiredLanguageService<IFindUsagesLSPService>();
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
-            var findUsagesContext = new SimpleFindUsagesContext(cancellationToken);
-
-            await FindImplementationsAsync(findUsagesService, document, position, findUsagesContext).ConfigureAwait(false);
+            var findUsagesContext = new SimpleFindUsagesContext(_globalOptions);
+            await findUsagesService.FindImplementationsAsync(findUsagesContext, document, position, cancellationToken).ConfigureAwait(false);
 
             foreach (var definition in findUsagesContext.GetDefinitions())
             {
                 var text = definition.GetClassifiedText();
                 foreach (var sourceSpan in definition.SourceSpans)
                 {
-                    if (context.ClientCapabilities?.HasVisualStudioLspCapability() == true)
+                    if (clientCapabilities.HasVisualStudioLspCapability() == true)
                     {
                         locations.AddIfNotNull(await ProtocolConversions.DocumentSpanToLocationWithTextAsync(sourceSpan, text, cancellationToken).ConfigureAwait(false));
                     }
@@ -60,8 +64,5 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             return locations.ToArrayAndFree();
         }
-
-        protected virtual Task FindImplementationsAsync(IFindUsagesService findUsagesService, Document document, int position, SimpleFindUsagesContext context)
-            => findUsagesService.FindImplementationsAsync(document, position, context);
     }
 }

@@ -37,6 +37,11 @@
         <target state="translated">Correggi stringa verbatim interpolata</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fixing_string_literal_after_paste">
+        <source>Fixing string literal after paste</source>
+        <target state="translated">Correzione del valore letterale stringa dopo l'operazione Incolla</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Found_0_assemblies_for_1">
         <source>Found '{0}' assemblies for '{1}':</source>
         <target state="translated">Sono stati trovati '{0}' assembly per '{1}':</target>
@@ -62,6 +67,11 @@
         <target state="translated">Genera sottoscrizione di eventi</target>
         <note />
       </trans-unit>
+      <trans-unit id="Grow_raw_string">
+        <source>Grow raw string</source>
+        <target state="translated">Aumenta stringa non elaborata</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Load_from_0">
         <source>Load from: '{0}'</source>
         <target state="translated">Carica da: '{0}'</target>
@@ -70,6 +80,11 @@
       <trans-unit id="Module_not_found">
         <source>Module not found!</source>
         <target state="translated">Modulo non trovato.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Outside_namespace">
+        <source>Outside namespace</source>
+        <target state="translated">All'esterno di namespace</target>
         <note />
       </trans-unit>
       <trans-unit id="Press_TAB_to_insert">
@@ -90,6 +105,11 @@
       <trans-unit id="Smart_Indenting">
         <source>Smart Indenting</source>
         <target state="translated">Rientro automatico</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Split_raw_string">
+        <source>Split raw string</source>
+        <target state="translated">Dividi stringa non elaborata</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_string">

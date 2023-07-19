@@ -8,14 +8,15 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
 {
-    [Shared]
-    [ExportLspMethod(LSP.Methods.TextDocumentDidChangeName, mutatesSolutionState: true)]
-    internal class DidChangeHandler : IRequestHandler<LSP.DidChangeTextDocumentParams, object>
+    [ExportCSharpVisualBasicStatelessLspService(typeof(DidChangeHandler)), Shared]
+    [Method(LSP.Methods.TextDocumentDidChangeName)]
+    internal class DidChangeHandler : ILspServiceDocumentRequestHandler<LSP.DidChangeTextDocumentParams, object?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -23,13 +24,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
         {
         }
 
-        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DidChangeTextDocumentParams request) => request.TextDocument;
+        public bool MutatesSolutionState => true;
+        public bool RequiresLSPSolution => false;
 
-        public async Task<object> HandleRequestAsync(LSP.DidChangeTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
+        public TextDocumentIdentifier GetTextDocumentIdentifier(LSP.DidChangeTextDocumentParams request) => request.TextDocument;
+
+        public Task<object?> HandleRequestAsync(LSP.DidChangeTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(context.Document);
-
-            var text = await context.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = context.GetTrackedDocumentSourceText(request.TextDocument.Uri);
 
             // Per the LSP spec, each text change builds upon the previous, so we don't need to translate
             // any text positions between changes, which makes this quite easy.
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
 
             context.UpdateTrackedDocument(request.TextDocument.Uri, text);
 
-            return true;
+            return SpecializedTasks.Default<object>();
         }
     }
 }

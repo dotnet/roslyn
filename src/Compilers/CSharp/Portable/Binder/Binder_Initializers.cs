@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             internal ImmutableArray<BoundInitializer> BoundInitializers { get; set; }
             internal BoundStatement? LoweredInitializers { get; set; }
-            internal NullableWalker.VariableState AfterInitializersState;
             internal bool HasErrors { get; set; }
             internal ImportChain? FirstImportChain { get; set; }
         }
@@ -27,10 +26,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpCompilation compilation,
             SynthesizedInteractiveInitializerMethod? scriptInitializerOpt,
             ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> fieldInitializers,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             ref ProcessedFieldInitializers processedInitializers)
         {
-            var diagsForInstanceInitializers = DiagnosticBag.GetInstance();
+            var diagsForInstanceInitializers = BindingDiagnosticBag.GetInstance(withDiagnostics: true, diagnostics.AccumulatesDependencies);
             ImportChain? firstImportChain;
             processedInitializers.BoundInitializers = BindFieldInitializers(compilation, scriptInitializerOpt, fieldInitializers, diagsForInstanceInitializers, out firstImportChain);
             processedInitializers.HasErrors = diagsForInstanceInitializers.HasAnyErrors();
@@ -43,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpCompilation compilation,
             SynthesizedInteractiveInitializerMethod? scriptInitializerOpt,
             ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> initializers,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             out ImportChain? firstImportChain)
         {
             if (initializers.IsEmpty)
@@ -72,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpCompilation compilation,
             ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> initializers,
             ArrayBuilder<BoundInitializer> boundInitializers,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             out ImportChain? firstDebugImports)
         {
             firstDebugImports = null;
@@ -136,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break;
 
                             default:
-                                throw ExceptionUtilities.Unreachable;
+                                throw ExceptionUtilities.Unreachable();
                         }
                     }
                 }
@@ -150,10 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Binder binder = this;
 
-            if (!fieldSymbol.IsStatic && fieldSymbol.ContainingType.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().SingleOrDefault() is SynthesizedRecordConstructor recordCtor)
-            {
-                binder = new InMethodBinder(recordCtor, binder);
-            }
+            binder = new WithPrimaryConstructorParametersBinder(fieldSymbol.ContainingType, binder);
 
             return new LocalScopeBinder(binder).WithAdditionalFlagsAndContainingMemberOrLambda(suppressBinderFlagsFieldInitializer ? BinderFlags.None : BinderFlags.FieldInitializer, fieldSymbol);
         }
@@ -167,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SynthesizedInteractiveInitializerMethod scriptInitializer,
             ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> initializers,
             ArrayBuilder<BoundInitializer> boundInitializers,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             out ImportChain? firstDebugImports)
         {
             firstDebugImports = null;
@@ -248,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder binder,
             SynthesizedInteractiveInitializerMethod scriptInitializer,
             StatementSyntax statementNode,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             bool isLast)
         {
             var statement = binder.BindStatement(statementNode, diagnostics);
@@ -288,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static BoundFieldEqualsValue BindFieldInitializer(Binder binder, FieldSymbol fieldSymbol, EqualsValueClauseSyntax equalsValueClauseNode,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!fieldSymbol.IsMetadataConstant);
 
@@ -299,10 +295,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If the type is implicitly typed, the initializer diagnostics have already been reported, so ignore them here:
             // CONSIDER (tomat): reusing the bound field initializers for implicitly typed fields.
-            DiagnosticBag initializerDiagnostics;
+            BindingDiagnosticBag initializerDiagnostics;
             if (isImplicitlyTypedField)
             {
-                initializerDiagnostics = DiagnosticBag.GetInstance();
+                initializerDiagnostics = BindingDiagnosticBag.Discarded;
             }
             else
             {
@@ -311,11 +307,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             binder = new ExecutableCodeBinder(equalsValueClauseNode, fieldSymbol, new LocalScopeBinder(binder));
             BoundFieldEqualsValue boundInitValue = binder.BindFieldInitializer(fieldSymbol, equalsValueClauseNode, initializerDiagnostics);
-
-            if (isImplicitlyTypedField)
-            {
-                initializerDiagnostics.Free();
-            }
 
             return boundInitValue;
         }

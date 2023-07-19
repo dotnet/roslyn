@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             return r.CompileResult;
         }
 
-        private struct CompileExpressionResult
+        private readonly struct CompileExpressionResult
         {
             internal readonly CompileResult CompileResult;
             internal readonly CompilationTestData TestData;
@@ -497,29 +497,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             ImmutableArray<byte> pdbBytes;
             CommonTestBase.EmitILToArray(ilSource, appendDefaultHeader: true, includePdb: true, assemblyBytes: out peBytes, pdbBytes: out pdbBytes);
             return ModuleInstance.Create(peBytes, SymReaderFactory.CreateReader(pdbBytes), includeLocalSignatures: true);
-        }
-
-        internal static AssemblyIdentity GetAssemblyIdentity(this MetadataReference reference)
-        {
-            using (var moduleMetadata = GetManifestModuleMetadata(reference))
-            {
-                return moduleMetadata.MetadataReader.ReadAssemblyIdentityOrThrow();
-            }
-        }
-
-        internal static Guid GetModuleVersionId(this MetadataReference reference)
-        {
-            using (var moduleMetadata = GetManifestModuleMetadata(reference))
-            {
-                return moduleMetadata.MetadataReader.GetModuleVersionIdOrThrow();
-            }
-        }
-
-        private static ModuleMetadata GetManifestModuleMetadata(MetadataReference reference)
-        {
-            // make a copy to avoid disposing shared reference metadata:
-            var metadata = ((MetadataImageReference)reference).GetMetadata();
-            return (metadata as AssemblyMetadata)?.GetModules()[0] ?? (ModuleMetadata)metadata;
         }
 
         internal static void VerifyLocal<TMethodSymbol>(
@@ -782,9 +759,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
             var parameters = signature.Substring(parameterListStart + 1, signature.Length - parameterListStart - 2);
             var methodName = signature.Substring(0, parameterListStart);
-            parameterTypeNames = (parameters.Length == 0) ?
-                new string[0] :
-                parameters.Split(',');
+            parameterTypeNames = (parameters.Length == 0)
+                ? new string[0]
+                : parameters.Split(',');
             return methodName;
         }
 
@@ -840,7 +817,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                         comp.MessageProvider,
                         () => peStream,
                         () => pdbStream,
-                        null, null,
+                        nativePdbWriterOpt: null,
+                        pdbPathOpt: null,
                         metadataOnly: true,
                         isDeterministic: false,
                         emitTestCoverageData: false,

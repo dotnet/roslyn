@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SynthesizedEventAccessorSymbol _addMethod;
         private readonly SynthesizedEventAccessorSymbol _removeMethod;
 
-        internal SourceFieldLikeEventSymbol(SourceMemberContainerTypeSymbol containingType, Binder binder, SyntaxTokenList modifiers, VariableDeclaratorSyntax declaratorSyntax, DiagnosticBag diagnostics)
+        internal SourceFieldLikeEventSymbol(SourceMemberContainerTypeSymbol containingType, Binder binder, SyntaxTokenList modifiers, VariableDeclaratorSyntax declaratorSyntax, BindingDiagnosticBag diagnostics)
             : base(containingType, declaratorSyntax, modifiers, isFieldLike: true, interfaceSpecifierSyntaxOpt: null,
                    nameTokenSyntax: declaratorSyntax.Identifier, diagnostics: diagnostics)
         {
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _name = declaratorSyntax.Identifier.ValueText;
 
-            var declaratorDiagnostics = DiagnosticBag.GetInstance();
+            var declaratorDiagnostics = BindingDiagnosticBag.GetInstance();
             var declarationSyntax = (VariableDeclarationSyntax)declaratorSyntax.Parent;
             _type = BindEventType(binder, declarationSyntax.Type, declaratorDiagnostics);
 
@@ -66,15 +66,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (inInterfaceType && !this.IsStatic)
                 {
-                    diagnostics.Add(ErrorCode.ERR_InterfaceEventInitializer, this.Locations[0], this);
+                    diagnostics.Add(ErrorCode.ERR_InterfaceEventInitializer, this.GetFirstLocation(), this);
                 }
                 else if (this.IsAbstract)
                 {
-                    diagnostics.Add(ErrorCode.ERR_AbstractEventInitializer, this.Locations[0], this);
+                    diagnostics.Add(ErrorCode.ERR_AbstractEventInitializer, this.GetFirstLocation(), this);
                 }
                 else if (this.IsExtern)
                 {
-                    diagnostics.Add(ErrorCode.ERR_ExternEventInitializer, this.Locations[0], this);
+                    diagnostics.Add(ErrorCode.ERR_ExternEventInitializer, this.GetFirstLocation(), this);
                 }
             }
 
@@ -88,27 +88,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!IsStatic && ContainingType.IsReadOnly)
             {
-                diagnostics.Add(ErrorCode.ERR_FieldlikeEventsInRoStruct, this.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_FieldlikeEventsInRoStruct, this.GetFirstLocation());
             }
 
             if (inInterfaceType)
             {
-                if (this.IsExtern || this.IsStatic)
+                if ((IsAbstract || IsVirtual) && IsStatic)
+                {
+                    if (!ContainingAssembly.RuntimeSupportsStaticAbstractMembersInInterfaces)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, this.GetFirstLocation());
+                    }
+                }
+                else if (this.IsExtern || this.IsStatic)
                 {
                     if (!ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
                     {
-                        diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, this.Locations[0]);
+                        diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, this.GetFirstLocation());
                     }
                 }
                 else if (!this.IsAbstract)
                 {
-                    diagnostics.Add(ErrorCode.ERR_EventNeedsBothAccessors, this.Locations[0], this);
+                    diagnostics.Add(ErrorCode.ERR_EventNeedsBothAccessors, this.GetFirstLocation(), this);
                 }
             }
 
-            // Accessors will assume that Type is available.
-            _addMethod = new SynthesizedEventAccessorSymbol(this, isAdder: true);
-            _removeMethod = new SynthesizedEventAccessorSymbol(this, isAdder: false);
+            _addMethod = new SynthesizedEventAccessorSymbol(this, isAdder: true, isExpressionBodied: false);
+            _removeMethod = new SynthesizedEventAccessorSymbol(this, isAdder: false, isExpressionBodied: false);
 
             if (declarationSyntax.Variables[0] == declaratorSyntax)
             {
@@ -169,9 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private SourceEventFieldSymbol MakeAssociatedField(VariableDeclaratorSyntax declaratorSyntax)
         {
-            DiagnosticBag discardedDiagnostics = DiagnosticBag.GetInstance();
-            var field = new SourceEventFieldSymbol(this, declaratorSyntax, discardedDiagnostics);
-            discardedDiagnostics.Free();
+            var field = new SourceEventFieldSymbol(this, declaratorSyntax, BindingDiagnosticBag.Discarded);
 
             Debug.Assert(field.Name == _name);
             return field;

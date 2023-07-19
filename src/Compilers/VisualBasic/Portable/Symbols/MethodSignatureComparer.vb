@@ -36,13 +36,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ParameterByrefMismatch = 1 << 11
         ParamArrayMismatch = 1 << 12
         PropertyAccessorMismatch = 1 << 13
-        VarargMismatch = 1 << 14
+        ''' <summary>
+        ''' Taken into consideration only if <see cref="PropertyAccessorMismatch"/> is set.
+        ''' </summary>
+        PropertyInitOnlyMismatch = 1 << 14
+        VarargMismatch = 1 << 15
         ''' <summary>
         ''' Mismatch in total number of parameters, both required and optional
         ''' </summary>
         ''' <remarks></remarks>
-        TotalParameterCountMismatch = 1 << 15
-        TupleNamesMismatch = 1 << 16
+        TotalParameterCountMismatch = 1 << 16
+        TupleNamesMismatch = 1 << 17
+
+        AllMismatches = (1 << 18) - 1
 
         AllParameterMismatches =
             OptionalParameterMismatch Or
@@ -55,8 +61,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ParamArrayMismatch Or
             OptionalParameterValueMismatch Or
             TupleNamesMismatch
-
-        AllMismatches = (1 << 17) - 1
 
         ' The set of mismatches for DetailedCompare that are ignored
         ' when testing for conflicting method in a class, or first 

@@ -59,7 +59,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Throw Exceptions.ThrowEUnexpected()
         End Function
 
-        Private Function GetEventPrototype(symbol As IEventSymbol, parameters As ImmutableArray(Of IParameterSymbol), flags As PrototypeFlags) As String
+        Private Shared Function GetEventPrototype(symbol As IEventSymbol, parameters As ImmutableArray(Of IParameterSymbol), flags As PrototypeFlags) As String
             If Not AreValidFunctionPrototypeFlags(flags) Then
                 Throw Exceptions.ThrowEInvalidArg()
             End If
@@ -77,7 +77,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Return builder.ToString()
         End Function
 
-        Private Function GetFunctionPrototype(symbol As ISymbol, parameters As ImmutableArray(Of IParameterSymbol), flags As PrototypeFlags) As String
+        Private Shared Function GetFunctionPrototype(symbol As ISymbol, parameters As ImmutableArray(Of IParameterSymbol), flags As PrototypeFlags) As String
             If Not AreValidFunctionPrototypeFlags(flags) Then
                 Throw Exceptions.ThrowEInvalidArg()
             End If
@@ -104,7 +104,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Return builder.ToString()
         End Function
 
-        Private Function GetVariablePrototype(symbol As IFieldSymbol, flags As PrototypeFlags) As String
+        Private Shared Function GetVariablePrototype(symbol As IFieldSymbol, flags As PrototypeFlags) As String
             If Not AreValidVariablePrototypeFlags(flags) Then
                 Throw Exceptions.ThrowEInvalidArg()
             End If
@@ -167,7 +167,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             End Select
         End Sub
 
-        Private Sub AppendParameters(builder As StringBuilder, parameters As ImmutableArray(Of IParameterSymbol), flags As PrototypeFlags)
+        Private Shared Sub AppendParameters(builder As StringBuilder, parameters As ImmutableArray(Of IParameterSymbol), flags As PrototypeFlags)
             builder.Append("("c)
 
             If (flags And PrototypeFlags.ParametersMask) <> 0 Then

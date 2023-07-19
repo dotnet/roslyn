@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (accessor.MethodKind == MethodKind.PropertyGet)
             {
-                statement = new BoundReturnStatement(accessor.SyntaxNode, RefKind.None, fieldAccess);
+                statement = new BoundReturnStatement(accessor.SyntaxNode, RefKind.None, fieldAccess, @checked: false);
             }
             else
             {
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Generate an accessor for a field-like event.
         /// </summary>
-        internal static BoundBlock ConstructFieldLikeEventAccessorBody(SourceEventSymbol eventSymbol, bool isAddMethod, CSharpCompilation compilation, DiagnosticBag diagnostics)
+        internal static BoundBlock ConstructFieldLikeEventAccessorBody(SourceEventSymbol eventSymbol, bool isAddMethod, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(eventSymbol.HasAssociatedField);
             return eventSymbol.IsWindowsRuntimeEvent
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Remove:
         ///   EventRegistrationTokenTable&lt;Event&gt;.GetOrCreateEventRegistrationTokenTable(ref _tokenTable).RemoveEventHandler(value);
         /// </summary>
-        internal static BoundBlock ConstructFieldLikeEventAccessorBody_WinRT(SourceEventSymbol eventSymbol, bool isAddMethod, CSharpCompilation compilation, DiagnosticBag diagnostics)
+        internal static BoundBlock ConstructFieldLikeEventAccessorBody_WinRT(SourceEventSymbol eventSymbol, bool isAddMethod, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
         {
             CSharpSyntaxNode syntax = eventSymbol.CSharpSyntaxNode;
 
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)getOrCreateMethod == null)
             {
-                Debug.Assert(diagnostics.HasAnyErrors());
+                Debug.Assert(diagnostics.DiagnosticBag is null || diagnostics.HasAnyErrors());
                 return null;
             }
 
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)processHandlerMethod == null)
             {
-                Debug.Assert(diagnostics.HasAnyErrors());
+                Debug.Assert(diagnostics.DiagnosticBag is null || diagnostics.HasAnyErrors());
                 return null;
             }
 
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     return;
                 // }
                 BoundStatement callStatement = new BoundExpressionStatement(syntax, processHandlerCall);
-                BoundStatement returnStatement = new BoundReturnStatement(syntax, RefKind.None, expressionOpt: null);
+                BoundStatement returnStatement = new BoundReturnStatement(syntax, RefKind.None, expressionOpt: null, @checked: false);
                 return BoundBlock.SynthesizedNoLocals(syntax, callStatement, returnStatement);
             }
         }
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// _event = (DelegateType)Delegate.Combine(_event, value); //Remove for -=
         ///
         /// </summary>
-        internal static BoundBlock ConstructFieldLikeEventAccessorBody_Regular(SourceEventSymbol eventSymbol, bool isAddMethod, CSharpCompilation compilation, DiagnosticBag diagnostics)
+        internal static BoundBlock ConstructFieldLikeEventAccessorBody_Regular(SourceEventSymbol eventSymbol, bool isAddMethod, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
         {
             CSharpSyntaxNode syntax = eventSymbol.CSharpSyntaxNode;
 
@@ -353,7 +353,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundStatement @return = new BoundReturnStatement(syntax,
                 refKind: RefKind.None,
-                expressionOpt: null)
+                expressionOpt: null,
+                @checked: false)
             { WasCompilerGenerated = true };
 
             if (updateMethod == null)
@@ -367,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BoundBlock.SynthesizedNoLocals(syntax, @return);
             }
 
-            Binder.ReportUseSiteDiagnostics(updateMethod, diagnostics, syntax);
+            Binder.ReportUseSite(updateMethod, diagnostics, syntax);
 
             BoundThisReference fieldReceiver = eventSymbol.IsStatic ?
                 null :
@@ -415,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             compareExchangeMethod = compareExchangeMethod.Construct(ImmutableArray.Create<TypeSymbol>(delegateType));
 
-            Binder.ReportUseSiteDiagnostics(compareExchangeMethod, diagnostics, syntax);
+            Binder.ReportUseSite(compareExchangeMethod, diagnostics, syntax);
 
             GeneratedLabelSymbol loopLabel = new GeneratedLabelSymbol("loop");
 
@@ -493,6 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 right: boundTmps[1],
                 constantValueOpt: null,
                 methodOpt: null,
+                constrainedToTypeOpt: null,
                 resultKind: LookupResultKind.Viable,
                 type: boolType)
             { WasCompilerGenerated = true };

@@ -41936,307 +41936,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
     Friend Partial Class SyntaxFactory
 
-        Friend Shared Function GetNodeTypes() As IEnumerable(Of Object)
-            Return New Object() {
-              GetType(VisualBasicSyntaxNode),
-              GetType(StatementSyntax),
-              GetType(ExecutableStatementSyntax),
-              GetType(DeclarationStatementSyntax),
-              GetType(EmptyStatementSyntax),
-              GetType(EndBlockStatementSyntax),
-              GetType(CompilationUnitSyntax),
-              GetType(OptionStatementSyntax),
-              GetType(ImportsStatementSyntax),
-              GetType(ImportsClauseSyntax),
-              GetType(SimpleImportsClauseSyntax),
-              GetType(ImportAliasClauseSyntax),
-              GetType(XmlNamespaceImportsClauseSyntax),
-              GetType(NamespaceBlockSyntax),
-              GetType(NamespaceStatementSyntax),
-              GetType(TypeBlockSyntax),
-              GetType(ModuleBlockSyntax),
-              GetType(StructureBlockSyntax),
-              GetType(InterfaceBlockSyntax),
-              GetType(ClassBlockSyntax),
-              GetType(EnumBlockSyntax),
-              GetType(InheritsOrImplementsStatementSyntax),
-              GetType(InheritsStatementSyntax),
-              GetType(ImplementsStatementSyntax),
-              GetType(TypeStatementSyntax),
-              GetType(ModuleStatementSyntax),
-              GetType(StructureStatementSyntax),
-              GetType(InterfaceStatementSyntax),
-              GetType(ClassStatementSyntax),
-              GetType(EnumStatementSyntax),
-              GetType(TypeParameterListSyntax),
-              GetType(TypeParameterSyntax),
-              GetType(TypeParameterConstraintClauseSyntax),
-              GetType(TypeParameterSingleConstraintClauseSyntax),
-              GetType(TypeParameterMultipleConstraintClauseSyntax),
-              GetType(ConstraintSyntax),
-              GetType(SpecialConstraintSyntax),
-              GetType(TypeConstraintSyntax),
-              GetType(EnumMemberDeclarationSyntax),
-              GetType(MethodBlockBaseSyntax),
-              GetType(MethodBlockSyntax),
-              GetType(ConstructorBlockSyntax),
-              GetType(OperatorBlockSyntax),
-              GetType(AccessorBlockSyntax),
-              GetType(PropertyBlockSyntax),
-              GetType(EventBlockSyntax),
-              GetType(MethodBaseSyntax),
-              GetType(ParameterListSyntax),
-              GetType(MethodStatementSyntax),
-              GetType(SubNewStatementSyntax),
-              GetType(DeclareStatementSyntax),
-              GetType(DelegateStatementSyntax),
-              GetType(EventStatementSyntax),
-              GetType(OperatorStatementSyntax),
-              GetType(PropertyStatementSyntax),
-              GetType(AccessorStatementSyntax),
-              GetType(ImplementsClauseSyntax),
-              GetType(HandlesClauseSyntax),
-              GetType(EventContainerSyntax),
-              GetType(KeywordEventContainerSyntax),
-              GetType(WithEventsEventContainerSyntax),
-              GetType(WithEventsPropertyEventContainerSyntax),
-              GetType(HandlesClauseItemSyntax),
-              GetType(IncompleteMemberSyntax),
-              GetType(FieldDeclarationSyntax),
-              GetType(VariableDeclaratorSyntax),
-              GetType(AsClauseSyntax),
-              GetType(SimpleAsClauseSyntax),
-              GetType(AsNewClauseSyntax),
-              GetType(ObjectCreationInitializerSyntax),
-              GetType(ObjectMemberInitializerSyntax),
-              GetType(ObjectCollectionInitializerSyntax),
-              GetType(FieldInitializerSyntax),
-              GetType(InferredFieldInitializerSyntax),
-              GetType(NamedFieldInitializerSyntax),
-              GetType(EqualsValueSyntax),
-              GetType(ParameterSyntax),
-              GetType(ModifiedIdentifierSyntax),
-              GetType(ArrayRankSpecifierSyntax),
-              GetType(AttributeListSyntax),
-              GetType(AttributeSyntax),
-              GetType(AttributeTargetSyntax),
-              GetType(AttributesStatementSyntax),
-              GetType(ExpressionStatementSyntax),
-              GetType(PrintStatementSyntax),
-              GetType(WhileBlockSyntax),
-              GetType(UsingBlockSyntax),
-              GetType(SyncLockBlockSyntax),
-              GetType(WithBlockSyntax),
-              GetType(LocalDeclarationStatementSyntax),
-              GetType(LabelStatementSyntax),
-              GetType(GoToStatementSyntax),
-              GetType(LabelSyntax),
-              GetType(StopOrEndStatementSyntax),
-              GetType(ExitStatementSyntax),
-              GetType(ContinueStatementSyntax),
-              GetType(ReturnStatementSyntax),
-              GetType(SingleLineIfStatementSyntax),
-              GetType(SingleLineElseClauseSyntax),
-              GetType(MultiLineIfBlockSyntax),
-              GetType(IfStatementSyntax),
-              GetType(ElseIfBlockSyntax),
-              GetType(ElseIfStatementSyntax),
-              GetType(ElseBlockSyntax),
-              GetType(ElseStatementSyntax),
-              GetType(TryBlockSyntax),
-              GetType(TryStatementSyntax),
-              GetType(CatchBlockSyntax),
-              GetType(CatchStatementSyntax),
-              GetType(CatchFilterClauseSyntax),
-              GetType(FinallyBlockSyntax),
-              GetType(FinallyStatementSyntax),
-              GetType(ErrorStatementSyntax),
-              GetType(OnErrorGoToStatementSyntax),
-              GetType(OnErrorResumeNextStatementSyntax),
-              GetType(ResumeStatementSyntax),
-              GetType(SelectBlockSyntax),
-              GetType(SelectStatementSyntax),
-              GetType(CaseBlockSyntax),
-              GetType(CaseStatementSyntax),
-              GetType(CaseClauseSyntax),
-              GetType(ElseCaseClauseSyntax),
-              GetType(SimpleCaseClauseSyntax),
-              GetType(RangeCaseClauseSyntax),
-              GetType(RelationalCaseClauseSyntax),
-              GetType(SyncLockStatementSyntax),
-              GetType(DoLoopBlockSyntax),
-              GetType(DoStatementSyntax),
-              GetType(LoopStatementSyntax),
-              GetType(WhileOrUntilClauseSyntax),
-              GetType(WhileStatementSyntax),
-              GetType(ForOrForEachBlockSyntax),
-              GetType(ForBlockSyntax),
-              GetType(ForEachBlockSyntax),
-              GetType(ForOrForEachStatementSyntax),
-              GetType(ForStatementSyntax),
-              GetType(ForStepClauseSyntax),
-              GetType(ForEachStatementSyntax),
-              GetType(NextStatementSyntax),
-              GetType(UsingStatementSyntax),
-              GetType(ThrowStatementSyntax),
-              GetType(AssignmentStatementSyntax),
-              GetType(MidExpressionSyntax),
-              GetType(CallStatementSyntax),
-              GetType(AddRemoveHandlerStatementSyntax),
-              GetType(RaiseEventStatementSyntax),
-              GetType(WithStatementSyntax),
-              GetType(ReDimStatementSyntax),
-              GetType(RedimClauseSyntax),
-              GetType(EraseStatementSyntax),
-              GetType(ExpressionSyntax),
-              GetType(LiteralExpressionSyntax),
-              GetType(ParenthesizedExpressionSyntax),
-              GetType(TupleExpressionSyntax),
-              GetType(TupleTypeSyntax),
-              GetType(TupleElementSyntax),
-              GetType(TypedTupleElementSyntax),
-              GetType(NamedTupleElementSyntax),
-              GetType(InstanceExpressionSyntax),
-              GetType(MeExpressionSyntax),
-              GetType(MyBaseExpressionSyntax),
-              GetType(MyClassExpressionSyntax),
-              GetType(GetTypeExpressionSyntax),
-              GetType(TypeOfExpressionSyntax),
-              GetType(GetXmlNamespaceExpressionSyntax),
-              GetType(MemberAccessExpressionSyntax),
-              GetType(XmlMemberAccessExpressionSyntax),
-              GetType(InvocationExpressionSyntax),
-              GetType(NewExpressionSyntax),
-              GetType(ObjectCreationExpressionSyntax),
-              GetType(AnonymousObjectCreationExpressionSyntax),
-              GetType(ArrayCreationExpressionSyntax),
-              GetType(CollectionInitializerSyntax),
-              GetType(CastExpressionSyntax),
-              GetType(CTypeExpressionSyntax),
-              GetType(DirectCastExpressionSyntax),
-              GetType(TryCastExpressionSyntax),
-              GetType(PredefinedCastExpressionSyntax),
-              GetType(BinaryExpressionSyntax),
-              GetType(UnaryExpressionSyntax),
-              GetType(BinaryConditionalExpressionSyntax),
-              GetType(TernaryConditionalExpressionSyntax),
-              GetType(LambdaExpressionSyntax),
-              GetType(SingleLineLambdaExpressionSyntax),
-              GetType(MultiLineLambdaExpressionSyntax),
-              GetType(LambdaHeaderSyntax),
-              GetType(ArgumentListSyntax),
-              GetType(ArgumentSyntax),
-              GetType(OmittedArgumentSyntax),
-              GetType(SimpleArgumentSyntax),
-              GetType(NameColonEqualsSyntax),
-              GetType(RangeArgumentSyntax),
-              GetType(QueryExpressionSyntax),
-              GetType(QueryClauseSyntax),
-              GetType(CollectionRangeVariableSyntax),
-              GetType(ExpressionRangeVariableSyntax),
-              GetType(AggregationRangeVariableSyntax),
-              GetType(VariableNameEqualsSyntax),
-              GetType(AggregationSyntax),
-              GetType(FunctionAggregationSyntax),
-              GetType(GroupAggregationSyntax),
-              GetType(FromClauseSyntax),
-              GetType(LetClauseSyntax),
-              GetType(AggregateClauseSyntax),
-              GetType(DistinctClauseSyntax),
-              GetType(WhereClauseSyntax),
-              GetType(PartitionWhileClauseSyntax),
-              GetType(PartitionClauseSyntax),
-              GetType(GroupByClauseSyntax),
-              GetType(JoinClauseSyntax),
-              GetType(JoinConditionSyntax),
-              GetType(SimpleJoinClauseSyntax),
-              GetType(GroupJoinClauseSyntax),
-              GetType(OrderByClauseSyntax),
-              GetType(OrderingSyntax),
-              GetType(SelectClauseSyntax),
-              GetType(XmlNodeSyntax),
-              GetType(XmlDocumentSyntax),
-              GetType(XmlDeclarationSyntax),
-              GetType(XmlDeclarationOptionSyntax),
-              GetType(XmlElementSyntax),
-              GetType(XmlTextSyntax),
-              GetType(XmlElementStartTagSyntax),
-              GetType(XmlElementEndTagSyntax),
-              GetType(XmlEmptyElementSyntax),
-              GetType(XmlAttributeSyntax),
-              GetType(BaseXmlAttributeSyntax),
-              GetType(XmlStringSyntax),
-              GetType(XmlPrefixNameSyntax),
-              GetType(XmlNameSyntax),
-              GetType(XmlBracketedNameSyntax),
-              GetType(XmlPrefixSyntax),
-              GetType(XmlCommentSyntax),
-              GetType(XmlProcessingInstructionSyntax),
-              GetType(XmlCDataSectionSyntax),
-              GetType(XmlEmbeddedExpressionSyntax),
-              GetType(TypeSyntax),
-              GetType(ArrayTypeSyntax),
-              GetType(NullableTypeSyntax),
-              GetType(PredefinedTypeSyntax),
-              GetType(NameSyntax),
-              GetType(SimpleNameSyntax),
-              GetType(IdentifierNameSyntax),
-              GetType(GenericNameSyntax),
-              GetType(QualifiedNameSyntax),
-              GetType(GlobalNameSyntax),
-              GetType(TypeArgumentListSyntax),
-              GetType(CrefReferenceSyntax),
-              GetType(CrefSignatureSyntax),
-              GetType(CrefSignaturePartSyntax),
-              GetType(CrefOperatorReferenceSyntax),
-              GetType(QualifiedCrefOperatorReferenceSyntax),
-              GetType(YieldStatementSyntax),
-              GetType(AwaitExpressionSyntax),
-              GetType(SyntaxToken),
-              GetType(KeywordSyntax),
-              GetType(PunctuationSyntax),
-              GetType(BadTokenSyntax),
-              GetType(XmlNameTokenSyntax),
-              GetType(XmlTextTokenSyntax),
-              GetType(InterpolatedStringTextTokenSyntax),
-              GetType(IdentifierTokenSyntax),
-              GetType(IntegerLiteralTokenSyntax),
-              GetType(FloatingLiteralTokenSyntax),
-              GetType(DecimalLiteralTokenSyntax),
-              GetType(DateLiteralTokenSyntax),
-              GetType(StringLiteralTokenSyntax),
-              GetType(CharacterLiteralTokenSyntax),
-              GetType(StructuredTriviaSyntax),
-              GetType(SkippedTokensTriviaSyntax),
-              GetType(DocumentationCommentTriviaSyntax),
-              GetType(XmlCrefAttributeSyntax),
-              GetType(XmlNameAttributeSyntax),
-              GetType(ConditionalAccessExpressionSyntax),
-              GetType(NameOfExpressionSyntax),
-              GetType(InterpolatedStringExpressionSyntax),
-              GetType(InterpolatedStringContentSyntax),
-              GetType(InterpolatedStringTextSyntax),
-              GetType(InterpolationSyntax),
-              GetType(InterpolationAlignmentClauseSyntax),
-              GetType(InterpolationFormatClauseSyntax),
-              GetType(DirectiveTriviaSyntax),
-              GetType(SyntaxTrivia),
-              GetType(ConstDirectiveTriviaSyntax),
-              GetType(IfDirectiveTriviaSyntax),
-              GetType(ElseDirectiveTriviaSyntax),
-              GetType(EndIfDirectiveTriviaSyntax),
-              GetType(RegionDirectiveTriviaSyntax),
-              GetType(EndRegionDirectiveTriviaSyntax),
-              GetType(ExternalSourceDirectiveTriviaSyntax),
-              GetType(EndExternalSourceDirectiveTriviaSyntax),
-              GetType(ExternalChecksumDirectiveTriviaSyntax),
-              GetType(EnableWarningDirectiveTriviaSyntax),
-              GetType(DisableWarningDirectiveTriviaSyntax),
-              GetType(ReferenceDirectiveTriviaSyntax),
-              GetType(BadDirectiveTriviaSyntax)
-            }
-        End Function
-
 
         ''' <summary>
         ''' A class to represent an empty statement. This can occur when a colon is on a
@@ -42980,7 +42679,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents an "End XXX" statement, where XXX is a single keyword.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' EndBlockStatementSyntax. One of EndIfStatement, EndUsingStatement,
         ''' EndWithStatement, EndSelectStatement, EndStructureStatement, EndEnumStatement,
         ''' EndInterfaceStatement, EndClassStatement, EndModuleStatement,
@@ -43783,7 +43482,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' one of: NewConstraint, ReferenceConstraint or ValueConstraint.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' SpecialConstraintSyntax. One of NewConstraint, ClassConstraint,
         ''' StructureConstraint.
         ''' </param>
@@ -43927,7 +43626,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' beginning declaration, a body of executable statements and an end statement.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of MethodBlockSyntax.
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of MethodBlockSyntax.
         ''' One of SubBlock, FunctionBlock.
         ''' </param>
         ''' <param name="subOrFunctionStatement">
@@ -44204,9 +43903,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Examples include property accessors and custom event accessors.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of AccessorBlockSyntax.
-        ''' One of GetAccessorBlock, SetAccessorBlock, AddHandlerAccessorBlock,
-        ''' RemoveHandlerAccessorBlock, RaiseEventAccessorBlock.
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
+        ''' AccessorBlockSyntax. One of GetAccessorBlock, SetAccessorBlock,
+        ''' AddHandlerAccessorBlock, RemoveHandlerAccessorBlock, RaiseEventAccessorBlock.
         ''' </param>
         ''' <param name="accessorStatement">
         ''' The "Get", "Set", "AddHandler", "RemoveHandler", or "RaiseEvent" statement that
@@ -44441,7 +44140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' that BlockStatement.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' MethodStatementSyntax. One of SubStatement, FunctionStatement.
         ''' </param>
         ''' <param name="attributeLists">
@@ -44635,7 +44334,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' A Declare statement that declares an external DLL method.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' DeclareStatementSyntax. One of DeclareSubStatement, DeclareFunctionStatement.
         ''' </param>
         ''' <param name="attributeLists">
@@ -44780,7 +44479,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' A statement that declares a delegate type.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' DelegateStatementSyntax. One of DelegateSubStatement,
         ''' DelegateFunctionStatement.
         ''' </param>
@@ -45106,7 +44805,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Begin of a BlockNode, and the body of the accessor is the Body of that node.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' AccessorStatementSyntax. One of GetAccessorStatement, SetAccessorStatement,
         ''' AddHandlerAccessorStatement, RemoveHandlerAccessorStatement,
         ''' RaiseEventAccessorStatement.
@@ -46167,8 +45866,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' or next keyword.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of LabelSyntax. One of
-        ''' IdentifierLabel, NumericLabel, NextLabel.
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of LabelSyntax. One
+        ''' of IdentifierLabel, NumericLabel, NextLabel.
         ''' </param>
         ''' <param name="labelToken">
         ''' The label name (identifier), line number (integer literal), or next keyword
@@ -46248,7 +45947,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' kind of statement this is.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' StopOrEndStatementSyntax. One of StopStatement, EndStatement.
         ''' </param>
         ''' <param name="stopOrEndKeyword">
@@ -46539,10 +46238,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Kind.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of ExitStatementSyntax.
-        ''' One of ExitDoStatement, ExitForStatement, ExitSubStatement,
-        ''' ExitFunctionStatement, ExitOperatorStatement, ExitPropertyStatement,
-        ''' ExitTryStatement, ExitSelectStatement, ExitWhileStatement.
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
+        ''' ExitStatementSyntax. One of ExitDoStatement, ExitForStatement,
+        ''' ExitSubStatement, ExitFunctionStatement, ExitOperatorStatement,
+        ''' ExitPropertyStatement, ExitTryStatement, ExitSelectStatement,
+        ''' ExitWhileStatement.
         ''' </param>
         ''' <param name="exitKeyword">
         ''' The "Exit" keyword.
@@ -46665,7 +46365,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' determined by examining the Kind.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' ContinueStatementSyntax. One of ContinueWhileStatement, ContinueDoStatement,
         ''' ContinueForStatement.
         ''' </param>
@@ -47243,7 +46943,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents an OnError Goto statement.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' OnErrorGoToStatementSyntax. One of OnErrorGoToZeroStatement,
         ''' OnErrorGoToMinusOneStatement, OnErrorGoToLabelStatement.
         ''' </param>
@@ -47841,7 +47541,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents a relation clause in a Case statement, such as "Is &gt; expression".
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' RelationalCaseClauseSyntax. One of CaseEqualsClause, CaseNotEqualsClause,
         ''' CaseLessThanClause, CaseLessThanOrEqualClause, CaseGreaterThanOrEqualClause,
         ''' CaseGreaterThanClause.
@@ -48070,7 +47770,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' is a Do While, Do Until, Do Loop While, Do Loop Until, or infinite Do Loop.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of DoLoopBlockSyntax.
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of DoLoopBlockSyntax.
         ''' One of SimpleDoLoopBlock, DoWhileLoopBlock, DoUntilLoopBlock, DoLoopWhileBlock,
         ''' DoLoopUntilBlock.
         ''' </param>
@@ -48191,7 +47891,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The Do statement that begins a Do-Loop block.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of DoStatementSyntax.
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of DoStatementSyntax.
         ''' One of SimpleDoStatement, DoWhileStatement, DoUntilStatement.
         ''' </param>
         ''' <param name="doKeyword">
@@ -48308,8 +48008,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The Loop statement that begins a Do-Loop block.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of LoopStatementSyntax.
-        ''' One of SimpleLoopStatement, LoopWhileStatement, LoopUntilStatement.
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
+        ''' LoopStatementSyntax. One of SimpleLoopStatement, LoopWhileStatement,
+        ''' LoopUntilStatement.
         ''' </param>
         ''' <param name="loopKeyword">
         ''' The "Loop" keyword.
@@ -48403,7 +48104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' indicate which kind of clause.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' WhileOrUntilClauseSyntax. One of WhileClause, UntilClause.
         ''' </param>
         ''' <param name="whileOrUntilKeyword">
@@ -49107,7 +48808,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' determined by checking the Kind.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' AssignmentStatementSyntax. One of SimpleAssignmentStatement,
         ''' MidAssignmentStatement, AddAssignmentStatement, SubtractAssignmentStatement,
         ''' MultiplyAssignmentStatement, DivideAssignmentStatement,
@@ -49258,7 +48959,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' determines which one.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' AddRemoveHandlerStatementSyntax. One of AddHandlerStatement,
         ''' RemoveHandlerStatement.
         ''' </param>
@@ -49722,7 +49423,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' value from the token.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' LiteralExpressionSyntax. One of CharacterLiteralExpression,
         ''' TrueLiteralExpression, FalseLiteralExpression, NumericLiteralExpression,
         ''' DateLiteralExpression, StringLiteralExpression, NothingLiteralExpression.
@@ -50051,7 +49752,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents a TypeOf...Is or IsNot expression.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' TypeOfExpressionSyntax. One of TypeOfIsExpression, TypeOfIsNotExpression.
         ''' </param>
         ''' <param name="typeOfKeyword">
@@ -50168,7 +49869,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' property determines which kind of access.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' MemberAccessExpressionSyntax. One of SimpleMemberAccessExpression,
         ''' DictionaryAccessExpression.
         ''' </param>
@@ -50288,7 +49989,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Kind property determines which kind of access.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' XmlMemberAccessExpressionSyntax. One of XmlElementAccessExpression,
         ''' XmlDescendantAccessExpression, XmlAttributeAccessExpression.
         ''' </param>
@@ -51328,7 +51029,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' exact operation being performed is determined by the Operator property.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' BinaryExpressionSyntax. One of AddExpression, SubtractExpression,
         ''' MultiplyExpression, DivideExpression, IntegerDivideExpression,
         ''' ExponentiateExpression, LeftShiftExpression, RightShiftExpression,
@@ -51481,7 +51182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Describes a unary operator: Plus, Negate, Not or AddressOf.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' UnaryExpressionSyntax. One of UnaryPlusExpression, UnaryMinusExpression,
         ''' NotExpression, AddressOfExpression.
         ''' </param>
@@ -51649,7 +51350,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents a single line lambda expression.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' SingleLineLambdaExpressionSyntax. One of SingleLineFunctionLambdaExpression,
         ''' SingleLineSubLambdaExpression.
         ''' </param>
@@ -51755,7 +51456,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents a multi-line lambda expression.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' MultiLineLambdaExpressionSyntax. One of MultiLineFunctionLambdaExpression,
         ''' MultiLineSubLambdaExpression.
         ''' </param>
@@ -51856,8 +51557,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents the header part of a lambda expression
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of LambdaHeaderSyntax.
-        ''' One of SubLambdaHeader, FunctionLambdaHeader.
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
+        ''' LambdaHeaderSyntax. One of SubLambdaHeader, FunctionLambdaHeader.
         ''' </param>
         ''' <param name="attributeLists">
         ''' A list of all attribute lists on this declaration. If no attributes were
@@ -52427,7 +52128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' tells which.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' PartitionWhileClauseSyntax. One of SkipWhileClause, TakeWhileClause.
         ''' </param>
         ''' <param name="skipOrTakeKeyword">
@@ -52520,7 +52221,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents a "Skip" or "Take" query operator. The Kind property tells which.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' PartitionClauseSyntax. One of SkipClause, TakeClause.
         ''' </param>
         ''' <param name="skipOrTakeKeyword">
@@ -52765,8 +52466,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' whether to order in ascending or descending order.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of OrderingSyntax. One
-        ''' of AscendingOrdering, DescendingOrdering.
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of OrderingSyntax.
+        ''' One of AscendingOrdering, DescendingOrdering.
         ''' </param>
         ''' <param name="expression">
         ''' The expression to sort by.
@@ -53610,8 +53311,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' normalization such as comment, pi and cdata text.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of XmlTextTokenSyntax.
-        ''' One of XmlTextLiteralToken, XmlEntityLiteralToken,
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
+        ''' XmlTextTokenSyntax. One of XmlTextLiteralToken, XmlEntityLiteralToken,
         ''' DocumentationCommentLineBreakToken.
         ''' </param>
         ''' <param name="text">
@@ -54050,8 +53751,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' directives, and disabled code.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of SyntaxTrivia. One of
-        ''' WhitespaceTrivia, EndOfLineTrivia, ColonTrivia, CommentTrivia,
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of SyntaxTrivia. One
+        ''' of WhitespaceTrivia, EndOfLineTrivia, ColonTrivia, CommentTrivia,
         ''' ConflictMarkerTrivia, LineContinuationTrivia,
         ''' DocumentationCommentExteriorTrivia, DisabledTextTrivia.
         ''' </param>
@@ -55056,7 +54757,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents an "End XXX" statement, where XXX is a single keyword.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' EndBlockStatementSyntax. One of EndIfStatement, EndUsingStatement,
         ''' EndWithStatement, EndSelectStatement, EndStructureStatement, EndEnumStatement,
         ''' EndInterfaceStatement, EndClassStatement, EndModuleStatement,
@@ -55859,7 +55560,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' one of: NewConstraint, ReferenceConstraint or ValueConstraint.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' SpecialConstraintSyntax. One of NewConstraint, ClassConstraint,
         ''' StructureConstraint.
         ''' </param>
@@ -56003,7 +55704,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' beginning declaration, a body of executable statements and an end statement.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of MethodBlockSyntax.
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of MethodBlockSyntax.
         ''' One of SubBlock, FunctionBlock.
         ''' </param>
         ''' <param name="subOrFunctionStatement">
@@ -56280,9 +55981,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Examples include property accessors and custom event accessors.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of AccessorBlockSyntax.
-        ''' One of GetAccessorBlock, SetAccessorBlock, AddHandlerAccessorBlock,
-        ''' RemoveHandlerAccessorBlock, RaiseEventAccessorBlock.
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
+        ''' AccessorBlockSyntax. One of GetAccessorBlock, SetAccessorBlock,
+        ''' AddHandlerAccessorBlock, RemoveHandlerAccessorBlock, RaiseEventAccessorBlock.
         ''' </param>
         ''' <param name="accessorStatement">
         ''' The "Get", "Set", "AddHandler", "RemoveHandler", or "RaiseEvent" statement that
@@ -56517,7 +56218,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' that BlockStatement.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' MethodStatementSyntax. One of SubStatement, FunctionStatement.
         ''' </param>
         ''' <param name="attributeLists">
@@ -56711,7 +56412,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' A Declare statement that declares an external DLL method.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' DeclareStatementSyntax. One of DeclareSubStatement, DeclareFunctionStatement.
         ''' </param>
         ''' <param name="attributeLists">
@@ -56856,7 +56557,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' A statement that declares a delegate type.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' DelegateStatementSyntax. One of DelegateSubStatement,
         ''' DelegateFunctionStatement.
         ''' </param>
@@ -57182,7 +56883,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Begin of a BlockNode, and the body of the accessor is the Body of that node.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' AccessorStatementSyntax. One of GetAccessorStatement, SetAccessorStatement,
         ''' AddHandlerAccessorStatement, RemoveHandlerAccessorStatement,
         ''' RaiseEventAccessorStatement.
@@ -58243,8 +57944,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' or next keyword.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of LabelSyntax. One of
-        ''' IdentifierLabel, NumericLabel, NextLabel.
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of LabelSyntax. One
+        ''' of IdentifierLabel, NumericLabel, NextLabel.
         ''' </param>
         ''' <param name="labelToken">
         ''' The label name (identifier), line number (integer literal), or next keyword
@@ -58324,7 +58025,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' kind of statement this is.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' StopOrEndStatementSyntax. One of StopStatement, EndStatement.
         ''' </param>
         ''' <param name="stopOrEndKeyword">
@@ -58615,10 +58316,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Kind.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of ExitStatementSyntax.
-        ''' One of ExitDoStatement, ExitForStatement, ExitSubStatement,
-        ''' ExitFunctionStatement, ExitOperatorStatement, ExitPropertyStatement,
-        ''' ExitTryStatement, ExitSelectStatement, ExitWhileStatement.
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
+        ''' ExitStatementSyntax. One of ExitDoStatement, ExitForStatement,
+        ''' ExitSubStatement, ExitFunctionStatement, ExitOperatorStatement,
+        ''' ExitPropertyStatement, ExitTryStatement, ExitSelectStatement,
+        ''' ExitWhileStatement.
         ''' </param>
         ''' <param name="exitKeyword">
         ''' The "Exit" keyword.
@@ -58741,7 +58443,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' determined by examining the Kind.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' ContinueStatementSyntax. One of ContinueWhileStatement, ContinueDoStatement,
         ''' ContinueForStatement.
         ''' </param>
@@ -59319,7 +59021,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents an OnError Goto statement.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' OnErrorGoToStatementSyntax. One of OnErrorGoToZeroStatement,
         ''' OnErrorGoToMinusOneStatement, OnErrorGoToLabelStatement.
         ''' </param>
@@ -59917,7 +59619,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents a relation clause in a Case statement, such as "Is &gt; expression".
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' RelationalCaseClauseSyntax. One of CaseEqualsClause, CaseNotEqualsClause,
         ''' CaseLessThanClause, CaseLessThanOrEqualClause, CaseGreaterThanOrEqualClause,
         ''' CaseGreaterThanClause.
@@ -60146,7 +59848,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' is a Do While, Do Until, Do Loop While, Do Loop Until, or infinite Do Loop.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of DoLoopBlockSyntax.
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of DoLoopBlockSyntax.
         ''' One of SimpleDoLoopBlock, DoWhileLoopBlock, DoUntilLoopBlock, DoLoopWhileBlock,
         ''' DoLoopUntilBlock.
         ''' </param>
@@ -60267,7 +59969,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The Do statement that begins a Do-Loop block.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of DoStatementSyntax.
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of DoStatementSyntax.
         ''' One of SimpleDoStatement, DoWhileStatement, DoUntilStatement.
         ''' </param>
         ''' <param name="doKeyword">
@@ -60384,8 +60086,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The Loop statement that begins a Do-Loop block.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of LoopStatementSyntax.
-        ''' One of SimpleLoopStatement, LoopWhileStatement, LoopUntilStatement.
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
+        ''' LoopStatementSyntax. One of SimpleLoopStatement, LoopWhileStatement,
+        ''' LoopUntilStatement.
         ''' </param>
         ''' <param name="loopKeyword">
         ''' The "Loop" keyword.
@@ -60479,7 +60182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' indicate which kind of clause.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' WhileOrUntilClauseSyntax. One of WhileClause, UntilClause.
         ''' </param>
         ''' <param name="whileOrUntilKeyword">
@@ -61183,7 +60886,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' determined by checking the Kind.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' AssignmentStatementSyntax. One of SimpleAssignmentStatement,
         ''' MidAssignmentStatement, AddAssignmentStatement, SubtractAssignmentStatement,
         ''' MultiplyAssignmentStatement, DivideAssignmentStatement,
@@ -61334,7 +61037,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' determines which one.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' AddRemoveHandlerStatementSyntax. One of AddHandlerStatement,
         ''' RemoveHandlerStatement.
         ''' </param>
@@ -61798,7 +61501,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' value from the token.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' LiteralExpressionSyntax. One of CharacterLiteralExpression,
         ''' TrueLiteralExpression, FalseLiteralExpression, NumericLiteralExpression,
         ''' DateLiteralExpression, StringLiteralExpression, NothingLiteralExpression.
@@ -62127,7 +61830,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents a TypeOf...Is or IsNot expression.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' TypeOfExpressionSyntax. One of TypeOfIsExpression, TypeOfIsNotExpression.
         ''' </param>
         ''' <param name="typeOfKeyword">
@@ -62244,7 +61947,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' property determines which kind of access.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' MemberAccessExpressionSyntax. One of SimpleMemberAccessExpression,
         ''' DictionaryAccessExpression.
         ''' </param>
@@ -62364,7 +62067,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Kind property determines which kind of access.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' XmlMemberAccessExpressionSyntax. One of XmlElementAccessExpression,
         ''' XmlDescendantAccessExpression, XmlAttributeAccessExpression.
         ''' </param>
@@ -63404,7 +63107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' exact operation being performed is determined by the Operator property.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' BinaryExpressionSyntax. One of AddExpression, SubtractExpression,
         ''' MultiplyExpression, DivideExpression, IntegerDivideExpression,
         ''' ExponentiateExpression, LeftShiftExpression, RightShiftExpression,
@@ -63557,7 +63260,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Describes a unary operator: Plus, Negate, Not or AddressOf.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' UnaryExpressionSyntax. One of UnaryPlusExpression, UnaryMinusExpression,
         ''' NotExpression, AddressOfExpression.
         ''' </param>
@@ -63725,7 +63428,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents a single line lambda expression.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' SingleLineLambdaExpressionSyntax. One of SingleLineFunctionLambdaExpression,
         ''' SingleLineSubLambdaExpression.
         ''' </param>
@@ -63831,7 +63534,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents a multi-line lambda expression.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' MultiLineLambdaExpressionSyntax. One of MultiLineFunctionLambdaExpression,
         ''' MultiLineSubLambdaExpression.
         ''' </param>
@@ -63932,8 +63635,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents the header part of a lambda expression
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of LambdaHeaderSyntax.
-        ''' One of SubLambdaHeader, FunctionLambdaHeader.
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
+        ''' LambdaHeaderSyntax. One of SubLambdaHeader, FunctionLambdaHeader.
         ''' </param>
         ''' <param name="attributeLists">
         ''' A list of all attribute lists on this declaration. If no attributes were
@@ -64503,7 +64206,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' tells which.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' PartitionWhileClauseSyntax. One of SkipWhileClause, TakeWhileClause.
         ''' </param>
         ''' <param name="skipOrTakeKeyword">
@@ -64596,7 +64299,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents a "Skip" or "Take" query operator. The Kind property tells which.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
         ''' PartitionClauseSyntax. One of SkipClause, TakeClause.
         ''' </param>
         ''' <param name="skipOrTakeKeyword">
@@ -64841,8 +64544,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' whether to order in ascending or descending order.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of OrderingSyntax. One
-        ''' of AscendingOrdering, DescendingOrdering.
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of OrderingSyntax.
+        ''' One of AscendingOrdering, DescendingOrdering.
         ''' </param>
         ''' <param name="expression">
         ''' The expression to sort by.
@@ -65686,8 +65389,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' normalization such as comment, pi and cdata text.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of XmlTextTokenSyntax.
-        ''' One of XmlTextLiteralToken, XmlEntityLiteralToken,
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of
+        ''' XmlTextTokenSyntax. One of XmlTextLiteralToken, XmlEntityLiteralToken,
         ''' DocumentationCommentLineBreakToken.
         ''' </param>
         ''' <param name="text">
@@ -66126,8 +65829,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' directives, and disabled code.
         ''' </summary>
         ''' <param name="kind">
-        ''' A <cref c="SyntaxKind"/> representing the specific kind of SyntaxTrivia. One of
-        ''' WhitespaceTrivia, EndOfLineTrivia, ColonTrivia, CommentTrivia,
+        ''' A <see cref="SyntaxKind"/> representing the specific kind of SyntaxTrivia. One
+        ''' of WhitespaceTrivia, EndOfLineTrivia, ColonTrivia, CommentTrivia,
         ''' ConflictMarkerTrivia, LineContinuationTrivia,
         ''' DocumentationCommentExteriorTrivia, DisabledTextTrivia.
         ''' </param>

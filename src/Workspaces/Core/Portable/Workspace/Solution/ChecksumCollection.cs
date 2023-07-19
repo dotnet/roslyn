@@ -17,17 +17,13 @@ namespace Microsoft.CodeAnalysis.Serialization
     /// <summary>
     /// collection which children is checksum.
     /// </summary>
-    internal abstract class ChecksumCollection : ChecksumWithChildren, IEnumerable<Checksum>
+    internal class ChecksumCollection(ImmutableArray<object> checksums) : ChecksumWithChildren(checksums), IReadOnlyCollection<Checksum>
     {
-        protected ChecksumCollection(WellKnownSynchronizationKind kind, Checksum[] checksums) : this(kind, (object[])checksums)
+        public ChecksumCollection(ImmutableArray<Checksum> checksums) : this(checksums.CastArray<object>())
         {
         }
 
-        protected ChecksumCollection(WellKnownSynchronizationKind kind, object[] checksums) : base(kind, checksums)
-        {
-        }
-
-        public int Count => Children.Count;
+        public int Count => Children.Length;
         public Checksum this[int index] => (Checksum)Children[index];
 
         public IEnumerator<Checksum> GetEnumerator()
@@ -36,13 +32,14 @@ namespace Microsoft.CodeAnalysis.Serialization
         IEnumerator IEnumerable.GetEnumerator()
             => GetEnumerator();
 
-        internal static async Task FindAsync<TKey, TValue>(
-            ImmutableSortedDictionary<TKey, TValue> documentStates,
+        [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1333566", AllowGenericEnumeration = false)]
+        internal static async Task FindAsync<TState>(
+            TextDocumentStates<TState> documentStates,
             HashSet<Checksum> searchingChecksumsLeft,
             Dictionary<Checksum, object> result,
-            CancellationToken cancellationToken) where TValue : TextDocumentState
+            CancellationToken cancellationToken) where TState : TextDocumentState
         {
-            foreach (var (_, state) in documentStates)
+            foreach (var (_, state) in documentStates.States)
             {
                 Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksums));
 
@@ -61,9 +58,9 @@ namespace Microsoft.CodeAnalysis.Serialization
             Dictionary<Checksum, object> result,
             CancellationToken cancellationToken)
         {
-            Contract.ThrowIfFalse(values.Count == checksums.Children.Count);
+            Contract.ThrowIfFalse(values.Count == checksums.Children.Length);
 
-            for (var i = 0; i < checksums.Children.Count; i++)
+            for (var i = 0; i < checksums.Children.Length; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -81,48 +78,5 @@ namespace Microsoft.CodeAnalysis.Serialization
                 }
             }
         }
-    }
-
-    // we have a type for each kind so that we can distinguish these later
-    internal class ProjectChecksumCollection : ChecksumCollection
-    {
-        public ProjectChecksumCollection(Checksum[] checksums) : this((object[])checksums) { }
-        public ProjectChecksumCollection(object[] checksums) : base(WellKnownSynchronizationKind.ProjectChecksumCollection, checksums) { }
-    }
-
-    internal class DocumentChecksumCollection : ChecksumCollection
-    {
-        public DocumentChecksumCollection(Checksum[] checksums) : this((object[])checksums) { }
-        public DocumentChecksumCollection(object[] checksums) : base(WellKnownSynchronizationKind.DocumentChecksumCollection, checksums) { }
-    }
-
-    internal class TextDocumentChecksumCollection : ChecksumCollection
-    {
-        public TextDocumentChecksumCollection(Checksum[] checksums) : this((object[])checksums) { }
-        public TextDocumentChecksumCollection(object[] checksums) : base(WellKnownSynchronizationKind.TextDocumentChecksumCollection, checksums) { }
-    }
-
-    internal class AnalyzerConfigDocumentChecksumCollection : ChecksumCollection
-    {
-        public AnalyzerConfigDocumentChecksumCollection(Checksum[] checksums) : this((object[])checksums) { }
-        public AnalyzerConfigDocumentChecksumCollection(object[] checksums) : base(WellKnownSynchronizationKind.AnalyzerConfigDocumentChecksumCollection, checksums) { }
-    }
-
-    internal class ProjectReferenceChecksumCollection : ChecksumCollection
-    {
-        public ProjectReferenceChecksumCollection(Checksum[] checksums) : this((object[])checksums) { }
-        public ProjectReferenceChecksumCollection(object[] checksums) : base(WellKnownSynchronizationKind.ProjectReferenceChecksumCollection, checksums) { }
-    }
-
-    internal class MetadataReferenceChecksumCollection : ChecksumCollection
-    {
-        public MetadataReferenceChecksumCollection(Checksum[] checksums) : this((object[])checksums) { }
-        public MetadataReferenceChecksumCollection(object[] checksums) : base(WellKnownSynchronizationKind.MetadataReferenceChecksumCollection, checksums) { }
-    }
-
-    internal class AnalyzerReferenceChecksumCollection : ChecksumCollection
-    {
-        public AnalyzerReferenceChecksumCollection(Checksum[] checksums) : this((object[])checksums) { }
-        public AnalyzerReferenceChecksumCollection(object[] checksums) : base(WellKnownSynchronizationKind.AnalyzerReferenceChecksumCollection, checksums) { }
     }
 }

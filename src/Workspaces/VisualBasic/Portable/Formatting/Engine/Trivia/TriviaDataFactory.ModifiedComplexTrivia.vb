@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
             Private ReadOnly _original As ComplexTrivia
 
-            Public Sub New(options As AnalyzerConfigOptions, original As ComplexTrivia, lineBreaks As Integer, space As Integer)
+            Public Sub New(options As SyntaxFormattingOptions, original As ComplexTrivia, lineBreaks As Integer, space As Integer)
                 MyBase.New(options, LanguageNames.VisualBasic)
                 Contract.ThrowIfNull(original)
 

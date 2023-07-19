@@ -2,17 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
-    internal sealed class NavigationBarItemSelectedEventArgs : EventArgs
+    internal sealed class NavigationBarItemSelectedEventArgs(NavigationBarItem item) : EventArgs
     {
-        public NavigationBarItem Item { get; }
-
-        public NavigationBarItemSelectedEventArgs(NavigationBarItem item)
-            => this.Item = item;
+        public NavigationBarItem Item { get; } = item;
     }
 }

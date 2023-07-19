@@ -33,8 +33,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             builder.Add<EventDeclarationSyntax, EventDeclarationStructureProvider>();
             builder.Add<EventFieldDeclarationSyntax, EventFieldDeclarationStructureProvider>();
             builder.Add<FieldDeclarationSyntax, FieldDeclarationStructureProvider>();
+            builder.Add<FileScopedNamespaceDeclarationSyntax, FileScopedNamespaceDeclarationStructureProvider>();
             builder.Add<IndexerDeclarationSyntax, IndexerDeclarationStructureProvider>();
             builder.Add<InitializerExpressionSyntax, InitializerExpressionStructureProvider>();
+            builder.Add<AnonymousObjectCreationExpressionSyntax, AnonymousObjectCreationExpressionStructureProvider>();
             builder.Add<InterfaceDeclarationSyntax, TypeDeclarationStructureProvider>();
             builder.Add<MethodDeclarationSyntax, MethodDeclarationStructureProvider>();
             builder.Add<NamespaceDeclarationSyntax, NamespaceDeclarationStructureProvider>();
@@ -48,6 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             builder.Add<SwitchStatementSyntax, SwitchStatementStructureProvider>();
             builder.Add<LiteralExpressionSyntax, StringLiteralExpressionStructureProvider>();
             builder.Add<InterpolatedStringExpressionSyntax, InterpolatedStringExpressionStructureProvider>();
+            builder.Add<IfDirectiveTriviaSyntax, IfDirectiveTriviaStructureProvider>();
 
             return builder.ToImmutable();
         }
@@ -57,6 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             var builder = ImmutableDictionary.CreateBuilder<int, ImmutableArray<AbstractSyntaxStructureProvider>>();
 
             builder.Add((int)SyntaxKind.DisabledTextTrivia, ImmutableArray.Create<AbstractSyntaxStructureProvider>(new DisabledTextTriviaStructureProvider()));
+            builder.Add((int)SyntaxKind.MultiLineCommentTrivia, ImmutableArray.Create<AbstractSyntaxStructureProvider>(new MultilineCommentBlockStructureProvider()));
 
             return builder.ToImmutable();
         }

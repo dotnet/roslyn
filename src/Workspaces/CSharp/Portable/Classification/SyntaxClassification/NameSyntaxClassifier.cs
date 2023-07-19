@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -20,10 +21,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
     internal class NameSyntaxClassifier : AbstractNameSyntaxClassifier
     {
         public override void AddClassifications(
-            Workspace workspace,
             SyntaxNode syntax,
             SemanticModel semanticModel,
-            ArrayBuilder<ClassifiedSpan> result,
+            ClassificationOptions options,
+            SegmentedList<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
             if (syntax is NameSyntax name)
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         private void ClassifyTypeSyntax(
             NameSyntax name,
             SemanticModel semanticModel,
-            ArrayBuilder<ClassifiedSpan> result,
+            SegmentedList<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
             var symbolInfo = semanticModel.GetSymbolInfo(name, cancellationToken);
@@ -59,25 +60,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 TryClassifySymbol(name, symbolInfo, semanticModel, result, cancellationToken) ||
                 TryClassifyFromIdentifier(name, symbolInfo, result) ||
                 TryClassifyValueIdentifier(name, symbolInfo, result) ||
-                TryClassifyNameOfIdentifier(name, symbolInfo, result);
+                TryClassifyNameOfIdentifier(name, symbolInfo, result) ||
+                TryClassifyAsyncIdentifier(name, symbolInfo, result);
         }
 
         private bool TryClassifySymbol(
             NameSyntax name,
             SymbolInfo symbolInfo,
             SemanticModel semanticModel,
-            ArrayBuilder<ClassifiedSpan> result,
+            SegmentedList<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
-            if (symbolInfo.CandidateReason == CandidateReason.Ambiguous ||
-                symbolInfo.CandidateReason == CandidateReason.MemberGroup)
+            if (symbolInfo.CandidateReason is
+                CandidateReason.Ambiguous or
+                CandidateReason.MemberGroup)
             {
                 return TryClassifyAmbiguousSymbol(name, symbolInfo, semanticModel, result, cancellationToken);
             }
 
             // Only classify if we get one good symbol back, or if it bound to a constructor symbol with
             // overload resolution/accessibility errors, or bound to type/constructor and type wasn't creatable.
-            var symbol = TryGetSymbol(name, symbolInfo, semanticModel);
+            var symbol = TryGetSymbol(name, symbolInfo);
             if (TryClassifySymbol(name, symbol, semanticModel, cancellationToken, out var classifiedSpan))
             {
                 result.Add(classifiedSpan);
@@ -98,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             NameSyntax name,
             SymbolInfo symbolInfo,
             SemanticModel semanticModel,
-            ArrayBuilder<ClassifiedSpan> result,
+            SegmentedList<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
             // If everything classifies the same way, then just pick that classification.
@@ -174,6 +177,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 }
             }
 
+            if (name is IdentifierNameSyntax { Identifier.Text: "args" } &&
+                symbol is IParameterSymbol { ContainingSymbol: IMethodSymbol { Name: WellKnownMemberNames.TopLevelStatementsEntryPointMethodName } })
+            {
+                classifiedSpan = new ClassifiedSpan(name.Span, ClassificationTypeNames.Keyword);
+                return true;
+            }
+
             if (name.IsNint || name.IsNuint)
             {
                 if (symbol is ITypeSymbol type && type.IsNativeIntegerType)
@@ -212,6 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                         classifiedSpan = new ClassifiedSpan(token.Span, classification);
                         return true;
                     }
+
                     break;
 
                 case IFieldSymbol fieldSymbol:
@@ -292,6 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         {
             return
                 name.CheckParent<RefTypeSyntax>(v => v.Type == name) ||
+                name.CheckParent<ScopedTypeSyntax>(v => v.Type == name) ||
                 name.CheckParent<ForEachStatementSyntax>(f => f.Type == name) ||
                 name.CheckParent<DeclarationPatternSyntax>(v => v.Type == name) ||
                 name.CheckParent<VariableDeclarationSyntax>(v => v.Type == name) ||
@@ -301,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         private static bool TryClassifyFromIdentifier(
             NameSyntax name,
             SymbolInfo symbolInfo,
-            ArrayBuilder<ClassifiedSpan> result)
+            SegmentedList<ClassifiedSpan> result)
         {
             // Okay - it wasn't a type. If the syntax matches "var q = from" or "q = from", and from
             // doesn't bind to anything then optimistically color from as a keyword.
@@ -323,14 +335,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         private static bool TryClassifyValueIdentifier(
             NameSyntax name,
             SymbolInfo symbolInfo,
-            ArrayBuilder<ClassifiedSpan> result)
+            SegmentedList<ClassifiedSpan> result)
         {
-            var identifierName = name as IdentifierNameSyntax;
-            if (symbolInfo.Symbol.IsImplicitValueParameter())
+            if (name is IdentifierNameSyntax identifierName &&
+                symbolInfo.Symbol.IsImplicitValueParameter())
             {
-#nullable disable // Can 'identifierName' be null here?
                 result.Add(new ClassifiedSpan(identifierName.Identifier.Span, ClassificationTypeNames.Keyword));
-#nullable enable
                 return true;
             }
 
@@ -338,12 +348,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         }
 
         private static bool TryClassifyNameOfIdentifier(
-            NameSyntax name, SymbolInfo symbolInfo, ArrayBuilder<ClassifiedSpan> result)
+            NameSyntax name, SymbolInfo symbolInfo, SegmentedList<ClassifiedSpan> result)
         {
             if (name is IdentifierNameSyntax identifierName &&
                 identifierName.Identifier.IsKindOrHasMatchingText(SyntaxKind.NameOfKeyword) &&
-                symbolInfo.Symbol == null &&
-                !symbolInfo.CandidateSymbols.Any())
+                symbolInfo.GetAnySymbol() is null)
             {
                 result.Add(new ClassifiedSpan(identifierName.Identifier.Span, ClassificationTypeNames.Keyword));
                 return true;
@@ -352,7 +361,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             return false;
         }
 
-        private static bool IsSymbolWithName([NotNullWhen(returnValue: true)] ISymbol? symbol, string name)
+        private static bool TryClassifyAsyncIdentifier(NameSyntax name, SymbolInfo symbolInfo, SegmentedList<ClassifiedSpan> result)
+        {
+            var symbol = symbolInfo.GetAnySymbol();
+
+            // Simple approach, if the user ever types 'async' and it doesn't actually bind to anything, presume that
+            // they intend to use it as a keyword and are about to create an async symbol.  This works for all error
+            // cases, while not conflicting with the extremely rare case where 'async' might actually be used to
+            // reference an actual symbol with that name.
+            if (symbol is null &&
+                name is IdentifierNameSyntax { Identifier.Text: "async" })
+            {
+                result.Add(new(name.Span, ClassificationTypeNames.Keyword));
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool IsSymbolWithName([NotNullWhen(true)] ISymbol? symbol, string name)
         {
             if (symbol is null || symbol.Name != name)
             {

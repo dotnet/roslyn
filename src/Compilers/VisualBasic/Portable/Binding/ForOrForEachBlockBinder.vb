@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Dim result = LookupResult.GetInstance()
 
-                        ContainingBinder.Lookup(result, identifier.ValueText, 0, LookupOptions.AllMethodsOfAnyArity, useSiteDiagnostics:=Nothing)
+                        ContainingBinder.Lookup(result, identifier.ValueText, 0, LookupOptions.AllMethodsOfAnyArity, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
 
                         ' If there was something found we do not create a new local of an inferred type.
                         ' The only exception is if all symbols (should be one only, or the result is not good) are type symbols.

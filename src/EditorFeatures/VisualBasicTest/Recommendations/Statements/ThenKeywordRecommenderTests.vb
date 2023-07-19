@@ -3,16 +3,18 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class ThenKeywordRecommenderTests
+        Inherits RecommenderTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotAfterHashIfTest() As Task
-            Await VerifyRecommendationsMissingAsync(<File>#If |</File>, "Then")
-        End Function
+        <Fact>
+        Public Sub NotAfterHashIfTest()
+            VerifyRecommendationsMissing(<File>#If |</File>, "Then")
+        End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AfterHashIfExpressionTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>#If True |</File>, "Then")
-        End Function
+        <Fact>
+        Public Sub AfterHashIfExpressionTest()
+            VerifyRecommendationsContain(<File>#If True |</File>, "Then")
+        End Sub
     End Class
 End Namespace

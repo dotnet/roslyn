@@ -261,20 +261,20 @@ End Class
             Dim fullName_S1 = MetadataTypeName.FromFullName("S1")
             Dim fullName_S2 = MetadataTypeName.FromFullName("NS1.S2")
 
-            Assert.IsType(Of MissingMetadataTypeSymbol.TopLevel)(localTypes1.LookupTopLevelMetadataType(fullName_I1))
-            Assert.IsType(Of MissingMetadataTypeSymbol.TopLevel)(localTypes1.LookupTopLevelMetadataType(fullName_I2))
-            Assert.IsType(Of MissingMetadataTypeSymbol.TopLevel)(localTypes1.LookupTopLevelMetadataType(fullName_S1))
-            Assert.IsType(Of MissingMetadataTypeSymbol.TopLevel)(localTypes1.LookupTopLevelMetadataType(fullName_S2))
+            Assert.Null(localTypes1.LookupTopLevelMetadataType(fullName_I1))
+            Assert.Null(localTypes1.LookupTopLevelMetadataType(fullName_I2))
+            Assert.Null(localTypes1.LookupTopLevelMetadataType(fullName_S1))
+            Assert.Null(localTypes1.LookupTopLevelMetadataType(fullName_S2))
 
             Assert.Null(assemblies(0).GetTypeByMetadataName(fullName_I1.FullName))
             Assert.Null(assemblies(0).GetTypeByMetadataName(fullName_I2.FullName))
             Assert.Null(assemblies(0).GetTypeByMetadataName(fullName_S1.FullName))
             Assert.Null(assemblies(0).GetTypeByMetadataName(fullName_S2.FullName))
 
-            Assert.IsType(Of MissingMetadataTypeSymbol.TopLevel)(localTypes2.LookupTopLevelMetadataType(fullName_I1))
-            Assert.IsType(Of MissingMetadataTypeSymbol.TopLevel)(localTypes2.LookupTopLevelMetadataType(fullName_I2))
-            Assert.IsType(Of MissingMetadataTypeSymbol.TopLevel)(localTypes2.LookupTopLevelMetadataType(fullName_S1))
-            Assert.IsType(Of MissingMetadataTypeSymbol.TopLevel)(localTypes2.LookupTopLevelMetadataType(fullName_S2))
+            Assert.Null(localTypes2.LookupTopLevelMetadataType(fullName_I1))
+            Assert.Null(localTypes2.LookupTopLevelMetadataType(fullName_I2))
+            Assert.Null(localTypes2.LookupTopLevelMetadataType(fullName_S1))
+            Assert.Null(localTypes2.LookupTopLevelMetadataType(fullName_S2))
 
             Assert.Null(assemblies(1).GetTypeByMetadataName(fullName_I1.FullName))
             Assert.Null(assemblies(1).GetTypeByMetadataName(fullName_I2.FullName))
@@ -1589,7 +1589,6 @@ End Interface
     ]]></file>
 </compilation>
 
-
             Dim pia1 = CreateCompilationWithMscorlib40(piaSource, options:=TestOptions.ReleaseDll)
             CompileAndVerify(pia1)
 
@@ -1633,7 +1632,8 @@ End Class
                 references:={New VisualBasicCompilationReference(multiModule),
                              New VisualBasicCompilationReference(pia1)})
 
-            CompileAndVerify(consumer)
+            ' ILVerify: The method or operation is not implemented.
+            CompileAndVerify(consumer, verify:=Verification.FailsILVerify)
         End Sub
 
         <Fact, WorkItem(528047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528047")>

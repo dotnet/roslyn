@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 expectedOutput: expectedOutput,
                 parseOptions: TestOptions.Regular9,
                 // init-only fails verification
-                verify: Verification.Skipped);
+                verify: Verification.FailsPEVerify);
 
         [Fact]
         public void GeneratedConstructor()
@@ -75,7 +75,7 @@ record C(int x, string y)
                 // (4,12): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
                 //     public C(int a, string b)
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(4, 12),
-                // (4,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (4,12): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public C(int a, string b)
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(4, 12)
                 );
@@ -104,7 +104,7 @@ record C(int x, string y)
     }
 }");
             comp.VerifyDiagnostics(
-                // (4,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                // (4,12): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
                 //     public C(int a, int b) // overload
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(4, 12)
                 );
@@ -120,7 +120,7 @@ record C(int x, string y)
                     var p1 = ctor.Parameters[0];
                     Assert.Equal(SpecialType.System_Int32, p1.Type.SpecialType);
                     var p2 = ctor.Parameters[1];
-                    if (ctor is SynthesizedRecordConstructor)
+                    if (ctor is SynthesizedPrimaryConstructor)
                     {
                         Assert.Equal("x", p1.Name);
                         Assert.Equal("y", p2.Name);
@@ -375,32 +375,37 @@ False").VerifyDiagnostics();
 }");
             verifier.VerifyIL("C.Equals(C)", @"
 {
-  // Code size       71 (0x47)
+  // Code size       77 (0x4d)
   .maxstack  3
-  IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0045
-  IL_0003:  ldarg.0
-  IL_0004:  callvirt   ""System.Type C.EqualityContract.get""
-  IL_0009:  ldarg.1
-  IL_000a:  callvirt   ""System.Type C.EqualityContract.get""
-  IL_000f:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
-  IL_0014:  brfalse.s  IL_0045
-  IL_0016:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_001b:  ldarg.0
-  IL_001c:  ldfld      ""int C.<X>k__BackingField""
-  IL_0021:  ldarg.1
-  IL_0022:  ldfld      ""int C.<X>k__BackingField""
-  IL_0027:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_002c:  brfalse.s  IL_0045
-  IL_002e:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_0033:  ldarg.0
-  IL_0034:  ldfld      ""int C.<Y>k__BackingField""
-  IL_0039:  ldarg.1
-  IL_003a:  ldfld      ""int C.<Y>k__BackingField""
-  IL_003f:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_0044:  ret
-  IL_0045:  ldc.i4.0
-  IL_0046:  ret
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  beq.s      IL_004b
+  IL_0004:  ldarg.1
+  IL_0005:  brfalse.s  IL_0049
+  IL_0007:  ldarg.0
+  IL_0008:  callvirt   ""System.Type C.EqualityContract.get""
+  IL_000d:  ldarg.1
+  IL_000e:  callvirt   ""System.Type C.EqualityContract.get""
+  IL_0013:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
+  IL_0018:  brfalse.s  IL_0049
+  IL_001a:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_001f:  ldarg.0
+  IL_0020:  ldfld      ""int C.<X>k__BackingField""
+  IL_0025:  ldarg.1
+  IL_0026:  ldfld      ""int C.<X>k__BackingField""
+  IL_002b:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0030:  brfalse.s  IL_0049
+  IL_0032:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_0037:  ldarg.0
+  IL_0038:  ldfld      ""int C.<Y>k__BackingField""
+  IL_003d:  ldarg.1
+  IL_003e:  ldfld      ""int C.<Y>k__BackingField""
+  IL_0043:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0048:  ret
+  IL_0049:  ldc.i4.0
+  IL_004a:  ret
+  IL_004b:  ldc.i4.1
+  IL_004c:  ret
 }");
         }
 
@@ -470,39 +475,44 @@ True").VerifyDiagnostics();
 
             verifier.VerifyIL("C.Equals(C)", @"
 {
-  // Code size       95 (0x5f)
+  // Code size      101 (0x65)
   .maxstack  3
-  IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_005d
-  IL_0003:  ldarg.0
-  IL_0004:  callvirt   ""System.Type C.EqualityContract.get""
-  IL_0009:  ldarg.1
-  IL_000a:  callvirt   ""System.Type C.EqualityContract.get""
-  IL_000f:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
-  IL_0014:  brfalse.s  IL_005d
-  IL_0016:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_001b:  ldarg.0
-  IL_001c:  ldfld      ""int C.<X>k__BackingField""
-  IL_0021:  ldarg.1
-  IL_0022:  ldfld      ""int C.<X>k__BackingField""
-  IL_0027:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_002c:  brfalse.s  IL_005d
-  IL_002e:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_0033:  ldarg.0
-  IL_0034:  ldfld      ""int C.<Y>k__BackingField""
-  IL_0039:  ldarg.1
-  IL_003a:  ldfld      ""int C.<Y>k__BackingField""
-  IL_003f:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_0044:  brfalse.s  IL_005d
-  IL_0046:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_004b:  ldarg.0
-  IL_004c:  ldfld      ""int C.Z""
-  IL_0051:  ldarg.1
-  IL_0052:  ldfld      ""int C.Z""
-  IL_0057:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_005c:  ret
-  IL_005d:  ldc.i4.0
-  IL_005e:  ret
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  beq.s      IL_0063
+  IL_0004:  ldarg.1
+  IL_0005:  brfalse.s  IL_0061
+  IL_0007:  ldarg.0
+  IL_0008:  callvirt   ""System.Type C.EqualityContract.get""
+  IL_000d:  ldarg.1
+  IL_000e:  callvirt   ""System.Type C.EqualityContract.get""
+  IL_0013:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
+  IL_0018:  brfalse.s  IL_0061
+  IL_001a:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_001f:  ldarg.0
+  IL_0020:  ldfld      ""int C.<X>k__BackingField""
+  IL_0025:  ldarg.1
+  IL_0026:  ldfld      ""int C.<X>k__BackingField""
+  IL_002b:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0030:  brfalse.s  IL_0061
+  IL_0032:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_0037:  ldarg.0
+  IL_0038:  ldfld      ""int C.<Y>k__BackingField""
+  IL_003d:  ldarg.1
+  IL_003e:  ldfld      ""int C.<Y>k__BackingField""
+  IL_0043:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0048:  brfalse.s  IL_0061
+  IL_004a:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_004f:  ldarg.0
+  IL_0050:  ldfld      ""int C.Z""
+  IL_0055:  ldarg.1
+  IL_0056:  ldfld      ""int C.Z""
+  IL_005b:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0060:  ret
+  IL_0061:  ldc.i4.0
+  IL_0062:  ret
+  IL_0063:  ldc.i4.1
+  IL_0064:  ret
 }");
         }
 
@@ -559,32 +569,37 @@ True").VerifyDiagnostics();
 
             verifier.VerifyIL("C.Equals(C)", @"
 {
-  // Code size       71 (0x47)
+  // Code size       77 (0x4d)
   .maxstack  3
-  IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0045
-  IL_0003:  ldarg.0
-  IL_0004:  callvirt   ""System.Type C.EqualityContract.get""
-  IL_0009:  ldarg.1
-  IL_000a:  callvirt   ""System.Type C.EqualityContract.get""
-  IL_000f:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
-  IL_0014:  brfalse.s  IL_0045
-  IL_0016:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_001b:  ldarg.0
-  IL_001c:  ldfld      ""int C.<X>k__BackingField""
-  IL_0021:  ldarg.1
-  IL_0022:  ldfld      ""int C.<X>k__BackingField""
-  IL_0027:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_002c:  brfalse.s  IL_0045
-  IL_002e:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_0033:  ldarg.0
-  IL_0034:  ldfld      ""int C.<Y>k__BackingField""
-  IL_0039:  ldarg.1
-  IL_003a:  ldfld      ""int C.<Y>k__BackingField""
-  IL_003f:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_0044:  ret
-  IL_0045:  ldc.i4.0
-  IL_0046:  ret
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  beq.s      IL_004b
+  IL_0004:  ldarg.1
+  IL_0005:  brfalse.s  IL_0049
+  IL_0007:  ldarg.0
+  IL_0008:  callvirt   ""System.Type C.EqualityContract.get""
+  IL_000d:  ldarg.1
+  IL_000e:  callvirt   ""System.Type C.EqualityContract.get""
+  IL_0013:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
+  IL_0018:  brfalse.s  IL_0049
+  IL_001a:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_001f:  ldarg.0
+  IL_0020:  ldfld      ""int C.<X>k__BackingField""
+  IL_0025:  ldarg.1
+  IL_0026:  ldfld      ""int C.<X>k__BackingField""
+  IL_002b:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0030:  brfalse.s  IL_0049
+  IL_0032:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_0037:  ldarg.0
+  IL_0038:  ldfld      ""int C.<Y>k__BackingField""
+  IL_003d:  ldarg.1
+  IL_003e:  ldfld      ""int C.<Y>k__BackingField""
+  IL_0043:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0048:  ret
+  IL_0049:  ldc.i4.0
+  IL_004a:  ret
+  IL_004b:  ldc.i4.1
+  IL_004c:  ret
 }");
         }
 
@@ -616,32 +631,37 @@ True
 True");
             verifier.VerifyIL("C.Equals(C)", @"
 {
-  // Code size       71 (0x47)
+  // Code size       77 (0x4d)
   .maxstack  3
-  IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0045
-  IL_0003:  ldarg.0
-  IL_0004:  callvirt   ""System.Type C.EqualityContract.get""
-  IL_0009:  ldarg.1
-  IL_000a:  callvirt   ""System.Type C.EqualityContract.get""
-  IL_000f:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
-  IL_0014:  brfalse.s  IL_0045
-  IL_0016:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_001b:  ldarg.0
-  IL_001c:  ldfld      ""int C.<X>k__BackingField""
-  IL_0021:  ldarg.1
-  IL_0022:  ldfld      ""int C.<X>k__BackingField""
-  IL_0027:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_002c:  brfalse.s  IL_0045
-  IL_002e:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_0033:  ldarg.0
-  IL_0034:  ldfld      ""int C.<Y>k__BackingField""
-  IL_0039:  ldarg.1
-  IL_003a:  ldfld      ""int C.<Y>k__BackingField""
-  IL_003f:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_0044:  ret
-  IL_0045:  ldc.i4.0
-  IL_0046:  ret
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  beq.s      IL_004b
+  IL_0004:  ldarg.1
+  IL_0005:  brfalse.s  IL_0049
+  IL_0007:  ldarg.0
+  IL_0008:  callvirt   ""System.Type C.EqualityContract.get""
+  IL_000d:  ldarg.1
+  IL_000e:  callvirt   ""System.Type C.EqualityContract.get""
+  IL_0013:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
+  IL_0018:  brfalse.s  IL_0049
+  IL_001a:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_001f:  ldarg.0
+  IL_0020:  ldfld      ""int C.<X>k__BackingField""
+  IL_0025:  ldarg.1
+  IL_0026:  ldfld      ""int C.<X>k__BackingField""
+  IL_002b:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0030:  brfalse.s  IL_0049
+  IL_0032:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_0037:  ldarg.0
+  IL_0038:  ldfld      ""int C.<Y>k__BackingField""
+  IL_003d:  ldarg.1
+  IL_003e:  ldfld      ""int C.<Y>k__BackingField""
+  IL_0043:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0048:  ret
+  IL_0049:  ldc.i4.0
+  IL_004a:  ret
+  IL_004b:  ldc.i4.1
+  IL_004c:  ret
 }");
         }
 
@@ -672,39 +692,44 @@ True").VerifyDiagnostics();
 
             verifier.VerifyIL("C.Equals(C)", @"
 {
-  // Code size       95 (0x5f)
+  // Code size      101 (0x65)
   .maxstack  3
-  IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_005d
-  IL_0003:  ldarg.0
-  IL_0004:  callvirt   ""System.Type C.EqualityContract.get""
-  IL_0009:  ldarg.1
-  IL_000a:  callvirt   ""System.Type C.EqualityContract.get""
-  IL_000f:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
-  IL_0014:  brfalse.s  IL_005d
-  IL_0016:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_001b:  ldarg.0
-  IL_001c:  ldfld      ""int C.<X>k__BackingField""
-  IL_0021:  ldarg.1
-  IL_0022:  ldfld      ""int C.<X>k__BackingField""
-  IL_0027:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_002c:  brfalse.s  IL_005d
-  IL_002e:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_0033:  ldarg.0
-  IL_0034:  ldfld      ""int C.<Y>k__BackingField""
-  IL_0039:  ldarg.1
-  IL_003a:  ldfld      ""int C.<Y>k__BackingField""
-  IL_003f:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_0044:  brfalse.s  IL_005d
-  IL_0046:  call       ""System.Collections.Generic.EqualityComparer<System.Action> System.Collections.Generic.EqualityComparer<System.Action>.Default.get""
-  IL_004b:  ldarg.0
-  IL_004c:  ldfld      ""System.Action C.E""
-  IL_0051:  ldarg.1
-  IL_0052:  ldfld      ""System.Action C.E""
-  IL_0057:  callvirt   ""bool System.Collections.Generic.EqualityComparer<System.Action>.Equals(System.Action, System.Action)""
-  IL_005c:  ret
-  IL_005d:  ldc.i4.0
-  IL_005e:  ret
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  beq.s      IL_0063
+  IL_0004:  ldarg.1
+  IL_0005:  brfalse.s  IL_0061
+  IL_0007:  ldarg.0
+  IL_0008:  callvirt   ""System.Type C.EqualityContract.get""
+  IL_000d:  ldarg.1
+  IL_000e:  callvirt   ""System.Type C.EqualityContract.get""
+  IL_0013:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
+  IL_0018:  brfalse.s  IL_0061
+  IL_001a:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_001f:  ldarg.0
+  IL_0020:  ldfld      ""int C.<X>k__BackingField""
+  IL_0025:  ldarg.1
+  IL_0026:  ldfld      ""int C.<X>k__BackingField""
+  IL_002b:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0030:  brfalse.s  IL_0061
+  IL_0032:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_0037:  ldarg.0
+  IL_0038:  ldfld      ""int C.<Y>k__BackingField""
+  IL_003d:  ldarg.1
+  IL_003e:  ldfld      ""int C.<Y>k__BackingField""
+  IL_0043:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0048:  brfalse.s  IL_0061
+  IL_004a:  call       ""System.Collections.Generic.EqualityComparer<System.Action> System.Collections.Generic.EqualityComparer<System.Action>.Default.get""
+  IL_004f:  ldarg.0
+  IL_0050:  ldfld      ""System.Action C.E""
+  IL_0055:  ldarg.1
+  IL_0056:  ldfld      ""System.Action C.E""
+  IL_005b:  callvirt   ""bool System.Collections.Generic.EqualityComparer<System.Action>.Equals(System.Action, System.Action)""
+  IL_0060:  ret
+  IL_0061:  ldc.i4.0
+  IL_0062:  ret
+  IL_0063:  ldc.i4.1
+  IL_0064:  ret
 }");
         }
 
@@ -724,7 +749,8 @@ True").VerifyDiagnostics();
             Assert.Equal(1, ctor.ParameterCount);
             Assert.True(ctor.Parameters[0].Type.Equals(c, TypeCompareKind.ConsiderEverything));
 
-            var verifier = CompileAndVerify(comp, verify: Verification.Fails).VerifyDiagnostics();
+            // PEVerify: Cannot change initonly field outside its .ctor.
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify).VerifyDiagnostics();
             verifier.VerifyIL("C." + WellKnownMemberNames.CloneMethodName, @"
 {
   // Code size        7 (0x7)
@@ -776,7 +802,8 @@ record C(int x, int y)
             Assert.Equal(1, ctor.ParameterCount);
             Assert.True(ctor.Parameters[0].Type.Equals(c, TypeCompareKind.ConsiderEverything));
 
-            var verifier = CompileAndVerify(comp, verify: Verification.Fails).VerifyDiagnostics();
+            // PEVerify: Cannot change initonly field outside its .ctor.
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify).VerifyDiagnostics();
             verifier.VerifyIL("C." + WellKnownMemberNames.CloneMethodName, @"
 {
   // Code size        7 (0x7)
@@ -872,7 +899,8 @@ public record C(int x, int y)
             Assert.Equal(1, ctor.ParameterCount);
             Assert.True(ctor.Parameters[0].Type.Equals(c, TypeCompareKind.ConsiderEverything));
 
-            var verifier = CompileAndVerify(comp, verify: Verification.Fails).VerifyDiagnostics(
+            // PEVerify: Cannot change initonly field outside its .ctor.
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify).VerifyDiagnostics(
                 // (5,25): warning CS0067: The event 'C.E' is never used
                 //     public event Action E;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(5, 25)
@@ -917,62 +945,6 @@ public record C(int x, int y)
 ");
         }
 
-        [Fact(Skip = "record struct")]
-        public void RecordClone4_0()
-        {
-            var comp = CreateCompilation(@"
-using System;
-public data struct S(int x, int y)
-{
-    public event Action E;
-    public int Z;
-}");
-            comp.VerifyDiagnostics(
-                // (3,21): error CS0171: Field 'S.E' must be fully assigned before control is returned to the caller
-                // public data struct S(int x, int y)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "(int x, int y)").WithArguments("S.E").WithLocation(3, 21),
-                // (3,21): error CS0171: Field 'S.Z' must be fully assigned before control is returned to the caller
-                // public data struct S(int x, int y)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "(int x, int y)").WithArguments("S.Z").WithLocation(3, 21),
-                // (5,25): warning CS0067: The event 'S.E' is never used
-                //     public event Action E;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("S.E").WithLocation(5, 25)
-            );
-
-            var s = comp.GlobalNamespace.GetTypeMember("S");
-            var clone = s.GetMethod(WellKnownMemberNames.CloneMethodName);
-            Assert.Equal(0, clone.Arity);
-            Assert.Equal(0, clone.ParameterCount);
-            Assert.Equal(s, clone.ReturnType);
-
-            var ctor = (MethodSymbol)s.GetMembers(".ctor")[1];
-            Assert.Equal(1, ctor.ParameterCount);
-            Assert.True(ctor.Parameters[0].Type.Equals(s, TypeCompareKind.ConsiderEverything));
-        }
-
-        [Fact(Skip = "record struct")]
-        public void RecordClone4_1()
-        {
-            var comp = CreateCompilation(@"
-using System;
-public data struct S(int x, int y)
-{
-    public event Action E = null;
-    public int Z = 0;
-}");
-            comp.VerifyDiagnostics(
-                // (5,25): error CS0573: 'S': cannot have instance property or field initializers in structs
-                //     public event Action E = null;
-                Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "E").WithArguments("S").WithLocation(5, 25),
-                // (5,25): warning CS0414: The field 'S.E' is assigned but its value is never used
-                //     public event Action E = null;
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "E").WithArguments("S.E").WithLocation(5, 25),
-                // (6,16): error CS0573: 'S': cannot have instance property or field initializers in structs
-                //     public int Z = 0;
-                Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "Z").WithArguments("S").WithLocation(6, 16)
-                );
-        }
-
         [Fact]
         public void NominalRecordEquals()
         {
@@ -996,7 +968,7 @@ record C
         Console.WriteLine(c.Equals(c2));
         Console.WriteLine(c.Equals((object)c2));
     }
-}", expectedOutput: @"False
+}", verify: Verification.Passes, expectedOutput: @"False
 False
 True
 True").VerifyDiagnostics(
@@ -1017,39 +989,44 @@ True").VerifyDiagnostics(
 }");
             verifier.VerifyIL("C.Equals(C)", @"
 {
-  // Code size       95 (0x5f)
+  // Code size      101 (0x65)
   .maxstack  3
-  IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_005d
-  IL_0003:  ldarg.0
-  IL_0004:  callvirt   ""System.Type C.EqualityContract.get""
-  IL_0009:  ldarg.1
-  IL_000a:  callvirt   ""System.Type C.EqualityContract.get""
-  IL_000f:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
-  IL_0014:  brfalse.s  IL_005d
-  IL_0016:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_001b:  ldarg.0
-  IL_001c:  ldfld      ""int C.X""
-  IL_0021:  ldarg.1
-  IL_0022:  ldfld      ""int C.X""
-  IL_0027:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_002c:  brfalse.s  IL_005d
-  IL_002e:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_0033:  ldarg.0
-  IL_0034:  ldfld      ""int C.<Y>k__BackingField""
-  IL_0039:  ldarg.1
-  IL_003a:  ldfld      ""int C.<Y>k__BackingField""
-  IL_003f:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_0044:  brfalse.s  IL_005d
-  IL_0046:  call       ""System.Collections.Generic.EqualityComparer<System.Action> System.Collections.Generic.EqualityComparer<System.Action>.Default.get""
-  IL_004b:  ldarg.0
-  IL_004c:  ldfld      ""System.Action C.E""
-  IL_0051:  ldarg.1
-  IL_0052:  ldfld      ""System.Action C.E""
-  IL_0057:  callvirt   ""bool System.Collections.Generic.EqualityComparer<System.Action>.Equals(System.Action, System.Action)""
-  IL_005c:  ret
-  IL_005d:  ldc.i4.0
-  IL_005e:  ret
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  beq.s      IL_0063
+  IL_0004:  ldarg.1
+  IL_0005:  brfalse.s  IL_0061
+  IL_0007:  ldarg.0
+  IL_0008:  callvirt   ""System.Type C.EqualityContract.get""
+  IL_000d:  ldarg.1
+  IL_000e:  callvirt   ""System.Type C.EqualityContract.get""
+  IL_0013:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
+  IL_0018:  brfalse.s  IL_0061
+  IL_001a:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_001f:  ldarg.0
+  IL_0020:  ldfld      ""int C.X""
+  IL_0025:  ldarg.1
+  IL_0026:  ldfld      ""int C.X""
+  IL_002b:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0030:  brfalse.s  IL_0061
+  IL_0032:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_0037:  ldarg.0
+  IL_0038:  ldfld      ""int C.<Y>k__BackingField""
+  IL_003d:  ldarg.1
+  IL_003e:  ldfld      ""int C.<Y>k__BackingField""
+  IL_0043:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0048:  brfalse.s  IL_0061
+  IL_004a:  call       ""System.Collections.Generic.EqualityComparer<System.Action> System.Collections.Generic.EqualityComparer<System.Action>.Default.get""
+  IL_004f:  ldarg.0
+  IL_0050:  ldfld      ""System.Action C.E""
+  IL_0055:  ldarg.1
+  IL_0056:  ldfld      ""System.Action C.E""
+  IL_005b:  callvirt   ""bool System.Collections.Generic.EqualityComparer<System.Action>.Equals(System.Action, System.Action)""
+  IL_0060:  ret
+  IL_0061:  ldc.i4.0
+  IL_0062:  ret
+  IL_0063:  ldc.i4.1
+  IL_0064:  ret
 }");
         }
 
@@ -1075,7 +1052,7 @@ record C
     public int X { get; }
     public string Y { get; }
     public event Action E;
-}").VerifyDiagnostics(
+}", verify: Verification.Passes).VerifyDiagnostics(
                 // (7,25): warning CS0067: The event 'C.E' is never used
                 //     public event Action E;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(7, 25)
@@ -1107,10 +1084,10 @@ record C
                 "System.String! C.Y { get; init; }",
                 "System.String! C.Y.get",
                 "void C.Y.init",
-                "System.String C.ToString()",
+                "System.String! C.ToString()",
                 "System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder! builder)",
-                "System.Boolean C.operator !=(C? r1, C? r2)",
-                "System.Boolean C.operator ==(C? r1, C? r2)",
+                "System.Boolean C.operator !=(C? left, C? right)",
+                "System.Boolean C.operator ==(C? left, C? right)",
                 "System.Int32 C.GetHashCode()",
                 "System.Boolean C.Equals(System.Object? obj)",
                 "System.Boolean C.Equals(C? other)",
@@ -1141,7 +1118,7 @@ partial record C(int X, int Y)
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (13,17): error CS8863: Only a single record partial declaration may have a parameter list
+                // (13,17): error CS8863: Only a single partial type declaration may have a parameter list
                 // partial record C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int X, int Y)").WithLocation(13, 17)
                 );
@@ -1170,7 +1147,7 @@ partial record C(int X)
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (13,17): error CS8863: Only a single record partial declaration may have a parameter list
+                // (13,17): error CS8863: Only a single partial type declaration may have a parameter list
                 // partial record C(int X)
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int X)").WithLocation(13, 17)
                 );
@@ -1234,73 +1211,62 @@ data class C1 { }
 data class C2(int X, int Y);
 data struct S1 { }
 data struct S2(int X, int Y);";
-            var comp = CreateCompilation(src);
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // error CS8805: Program using top-level statements must be an executable.
-                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable).WithLocation(1, 1),
-                // (2,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (2,6): error CS1001: Identifier expected
                 // data class C1 { }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "data").WithLocation(2, 1),
-                // (3,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "class").WithLocation(2, 6),
+                // (2,6): error CS1002: ; expected
+                // data class C1 { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(2, 6),
+                // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
                 // data class C2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "data").WithLocation(3, 1),
-                // (3,14): error CS1514: { expected
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "data ").WithLocation(3, 1),
+                // (3,6): error CS1001: Identifier expected
                 // data class C2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(3, 14),
-                // (3,14): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "class").WithLocation(3, 6),
+                // (3,6): error CS1002: ; expected
                 // data class C2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(3, 14),
-                // (3,14): error CS8803: Top-level statements must precede namespace and type declarations.
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(3, 6),
+                // (3,19): warning CS9113: Parameter 'X' is unread.
                 // data class C2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int X, int Y);").WithLocation(3, 14),
-                // (3,14): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "X").WithArguments("X").WithLocation(3, 19),
+                // (3,26): warning CS9113: Parameter 'Y' is unread.
                 // data class C2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "(int X, int Y)").WithLocation(3, 14),
-                // (3,15): error CS8185: A declaration is not allowed in this context.
-                // data class C2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int X").WithLocation(3, 15),
-                // (3,15): error CS0165: Use of unassigned local variable 'X'
-                // data class C2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int X").WithArguments("X").WithLocation(3, 15),
-                // (3,22): error CS8185: A declaration is not allowed in this context.
-                // data class C2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int Y").WithLocation(3, 22),
-                // (3,22): error CS0165: Use of unassigned local variable 'Y'
-                // data class C2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int Y").WithArguments("Y").WithLocation(3, 22),
-                // (4,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Y").WithArguments("Y").WithLocation(3, 26),
+                // (5,20): warning CS9113: Parameter 'X' is unread.
+                // data struct S2(int X, int Y);
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "X").WithArguments("X").WithLocation(5, 20),
+                // (5,27): warning CS9113: Parameter 'Y' is unread.
+                // data struct S2(int X, int Y);
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Y").WithArguments("Y").WithLocation(5, 27),
+                // (4,6): error CS1001: Identifier expected
                 // data struct S1 { }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "data").WithLocation(4, 1),
-                // (5,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "struct").WithLocation(4, 6),
+                // (4,6): error CS1002: ; expected
+                // data struct S1 { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(4, 6),
+                // (5,6): error CS1001: Identifier expected
                 // data struct S2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "data").WithLocation(5, 1),
-                // (5,15): error CS1514: { expected
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "struct").WithLocation(5, 6),
+                // (5,6): error CS1002: ; expected
                 // data struct S2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(5, 15),
-                // (5,15): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(5, 6),
+                // (2,1): error CS8805: Program using top-level statements must be an executable.
+                // data class C1 { }
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "data ").WithLocation(2, 1),
+                // (2,1): error CS0246: The type or namespace name 'data' could not be found (are you missing a using directive or an assembly reference?)
+                // data class C1 { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "data").WithArguments("data").WithLocation(2, 1),
+                // (3,1): error CS0246: The type or namespace name 'data' could not be found (are you missing a using directive or an assembly reference?)
+                // data class C2(int X, int Y);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "data").WithArguments("data").WithLocation(3, 1),
+                // (4,1): error CS0246: The type or namespace name 'data' could not be found (are you missing a using directive or an assembly reference?)
+                // data struct S1 { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "data").WithArguments("data").WithLocation(4, 1),
+                // (5,1): error CS0246: The type or namespace name 'data' could not be found (are you missing a using directive or an assembly reference?)
                 // data struct S2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(5, 15),
-                // (5,15): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
-                // data struct S2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "(int X, int Y)").WithLocation(5, 15),
-                // (5,16): error CS8185: A declaration is not allowed in this context.
-                // data struct S2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int X").WithLocation(5, 16),
-                // (5,16): error CS0165: Use of unassigned local variable 'X'
-                // data struct S2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int X").WithArguments("X").WithLocation(5, 16),
-                // (5,20): error CS0128: A local variable or function named 'X' is already defined in this scope
-                // data struct S2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "X").WithArguments("X").WithLocation(5, 20),
-                // (5,23): error CS8185: A declaration is not allowed in this context.
-                // data struct S2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int Y").WithLocation(5, 23),
-                // (5,23): error CS0165: Use of unassigned local variable 'Y'
-                // data struct S2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int Y").WithArguments("Y").WithLocation(5, 23),
-                // (5,27): error CS0128: A local variable or function named 'Y' is already defined in this scope
-                // data struct S2(int X, int Y);
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "Y").WithArguments("Y").WithLocation(5, 27)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "data").WithArguments("data").WithLocation(5, 1)
             );
         }
 
@@ -1340,6 +1306,9 @@ enum G : C { }";
                 // (3,8): error CS0115: 'B.Equals(A?)': no suitable method found to override
                 // record B : A { }
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.Equals(A?)").WithLocation(3, 8),
+                // (3,8): error CS0115: 'B.PrintMembers(StringBuilder)': no suitable method found to override
+                // record B : A { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.PrintMembers(System.Text.StringBuilder)").WithLocation(3, 8),
                 // (3,8): error CS8867: No accessible copy constructor found in base type 'A'.
                 // record B : A { }
                 Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "B").WithArguments("A").WithLocation(3, 8),
@@ -1393,6 +1362,9 @@ enum H : C { }
                 // (3,8): error CS0115: 'E.Equals(A?)': no suitable method found to override
                 // record E : A { }
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "E").WithArguments("E.Equals(A?)").WithLocation(3, 8),
+                // (3,8): error CS0115: 'E.PrintMembers(StringBuilder)': no suitable method found to override
+                // record E : A { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "E").WithArguments("E.PrintMembers(System.Text.StringBuilder)").WithLocation(3, 8),
                 // (3,8): error CS8867: No accessible copy constructor found in base type 'A'.
                 // record E : A { }
                 Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "E").WithArguments("A").WithLocation(3, 8),
@@ -1631,6 +1603,197 @@ public record R1 : I1
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void MergeInitializers_01()
+        {
+            var src = @"
+record C(int X)
+{
+    public int Y = 22;
+}
+
+class Test
+{
+    static void Main()
+    {
+        System.Console.Write((new C(11)).ToString());
+    }
+}
+";
+            CompileAndVerify(src, expectedOutput: "C { X = 11, Y = 22 }").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MergeInitializers_02()
+        {
+            var src1 = @"
+partial record C(int X)
+{
+}
+";
+            var src2 = @"
+partial record C
+{
+    public int Y = 22;
+}
+
+class Test
+{
+    static void Main()
+    {
+        System.Console.Write((new C(11)).ToString());
+    }
+}
+";
+            CompileAndVerify(src1 + src2, expectedOutput: "C { X = 11, Y = 22 }").VerifyDiagnostics();
+            CompileAndVerify(new[] { src1, src2 }, expectedOutput: "C { X = 11, Y = 22 }").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MergeInitializers_03()
+        {
+            var src1 = @"
+partial record C
+{
+    public int Y = 22;
+}
+";
+            var src2 = @"
+partial record C(int X)
+{
+}
+
+class Test
+{
+    static void Main()
+    {
+        System.Console.Write((new C(11)).ToString());
+    }
+}
+";
+            CompileAndVerify(src1 + src2, expectedOutput: "C { Y = 22, X = 11 }").VerifyDiagnostics();
+            CompileAndVerify(new[] { src1, src2 }, expectedOutput: "C { Y = 22, X = 11 }").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MergeInitializers_04()
+        {
+            var src1 = @"
+partial record C
+{
+    public int Y = 22;
+}
+";
+            var src2 = @"
+partial record C(int X)
+{
+}
+";
+            var src3 = @"
+partial record C
+{
+    public int Z = 33;
+}
+
+class Test
+{
+    static void Main()
+    {
+        System.Console.Write((new C(11)).ToString());
+    }
+}
+";
+            CompileAndVerify(src1 + src2 + src3, expectedOutput: "C { Y = 22, X = 11, Z = 33 }").VerifyDiagnostics();
+            CompileAndVerify(new[] { src1, src2, src3 }, expectedOutput: "C { Y = 22, X = 11, Z = 33 }").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MergeInitializers_05()
+        {
+            var src1 = @"
+partial record C(int X)
+{
+    public int U = 44;
+}
+";
+            var src2 = @"
+partial record C
+{
+    public int Y = 22;
+}
+
+class Test
+{
+    static void Main()
+    {
+        System.Console.Write((new C(11)).ToString());
+    }
+}
+";
+            CompileAndVerify(src1 + src2, expectedOutput: "C { X = 11, U = 44, Y = 22 }").VerifyDiagnostics();
+            CompileAndVerify(new[] { src1, src2 }, expectedOutput: "C { X = 11, U = 44, Y = 22 }").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MergeInitializers_06()
+        {
+            var src1 = @"
+partial record C
+{
+    public int Y = 22;
+}
+";
+            var src2 = @"
+partial record C(int X)
+{
+    public int U = 44;
+}
+
+class Test
+{
+    static void Main()
+    {
+        System.Console.Write((new C(11)).ToString());
+    }
+}
+";
+            CompileAndVerify(src1 + src2, expectedOutput: "C { Y = 22, X = 11, U = 44 }").VerifyDiagnostics();
+            CompileAndVerify(new[] { src1, src2 }, expectedOutput: "C { Y = 22, X = 11, U = 44 }").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MergeInitializers_07()
+        {
+            var src1 = @"
+partial record C
+{
+    public int Y = 22;
+}
+";
+            var src2 = @"
+partial record C(int X)
+{
+    public int U = 44;
+}
+";
+            var src3 = @"
+partial record C
+{
+    public int Z = 33;
+}
+
+class Test
+{
+    static void Main()
+    {
+        System.Console.Write((new C(11)).ToString());
+    }
+}
+";
+            CompileAndVerify(src1 + src2 + src3, expectedOutput: "C { Y = 22, X = 11, U = 44, Z = 33 }").VerifyDiagnostics();
+            CompileAndVerify(new[] { src1, src2, src3 }, expectedOutput: "C { Y = 22, X = 11, U = 44, Z = 33 }").VerifyDiagnostics();
         }
     }
 }

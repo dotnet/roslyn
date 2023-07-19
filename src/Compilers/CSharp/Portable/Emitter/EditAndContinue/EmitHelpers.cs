@@ -2,16 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection.Metadata;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
@@ -26,14 +27,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,
-            ICollection<MethodDefinitionHandle> updatedMethods,
-            CompilationTestData testData,
+            CompilationTestData? testData,
             CancellationToken cancellationToken)
         {
             var diagnostics = DiagnosticBag.GetInstance();
 
             var emitOptions = EmitOptions.Default.WithDebugInformationFormat(baseline.HasPortablePdb ? DebugInformationFormat.PortablePdb : DebugInformationFormat.Pdb);
-            string runtimeMDVersion = compilation.GetRuntimeMetadataVersion(emitOptions, diagnostics);
+            var runtimeMDVersion = compilation.GetRuntimeMetadataVersion(emitOptions, diagnostics);
             var serializationProperties = compilation.ConstructModuleSerializationProperties(emitOptions, runtimeMDVersion, baseline.ModuleVersionId);
             var manifestResources = SpecializedCollections.EmptyEnumerable<ResourceDescription>();
 
@@ -54,19 +54,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 // TODO: https://github.com/dotnet/roslyn/issues/9004
                 diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, NoLocation.Singleton, compilation.AssemblyName, e.Message);
-                return new EmitDifferenceResult(success: false, diagnostics: diagnostics.ToReadOnlyAndFree(), baseline: null);
+                return new EmitDifferenceResult(
+                    success: false,
+                    diagnostics: diagnostics.ToReadOnlyAndFree(),
+                    baseline: null,
+                    updatedMethods: ImmutableArray<MethodDefinitionHandle>.Empty,
+                    changedTypes: ImmutableArray<TypeDefinitionHandle>.Empty);
             }
 
             if (testData != null)
             {
-                moduleBeingBuilt.SetMethodTestData(testData.Methods);
-                testData.Module = moduleBeingBuilt;
+                moduleBeingBuilt.SetTestData(testData);
             }
 
             var definitionMap = moduleBeingBuilt.PreviousDefinitions;
-            var changes = moduleBeingBuilt.Changes;
+            var changes = moduleBeingBuilt.EncSymbolChanges;
+            Debug.Assert(changes != null);
 
-            EmitBaseline newBaseline = null;
+            EmitBaseline? newBaseline = null;
+            var updatedMethods = ArrayBuilder<MethodDefinitionHandle>.GetInstance();
+            var changedTypes = ArrayBuilder<TypeDefinitionHandle>.GetInstance();
 
             if (compilation.Compile(
                 moduleBeingBuilt,
@@ -75,30 +82,71 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 filterOpt: s => changes.RequiresCompilation(s.GetISymbol()),
                 cancellationToken: cancellationToken))
             {
-                // Map the definitions from the previous compilation to the current compilation.
-                // This must be done after compiling above since synthesized definitions
-                // (generated when compiling method bodies) may be required.
-                var mappedBaseline = MapToCompilation(compilation, moduleBeingBuilt);
+                if (!ContainsPreviousAnonymousDelegates(definitionMap, baseline.AnonymousDelegatesWithIndexedNames, moduleBeingBuilt.GetAnonymousDelegatesWithIndexedNames()))
+                {
+                    diagnostics.Add(ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged, Location.None);
+                }
+                else
+                {
+                    // Map the definitions from the previous compilation to the current compilation.
+                    // This must be done after compiling above since synthesized definitions
+                    // (generated when compiling method bodies) may be required.
+                    var mappedBaseline = MapToCompilation(compilation, moduleBeingBuilt);
 
-                newBaseline = compilation.SerializeToDeltaStreams(
-                    moduleBeingBuilt,
-                    mappedBaseline,
-                    definitionMap,
-                    changes,
-                    metadataStream,
-                    ilStream,
-                    pdbStream,
-                    updatedMethods,
-                    diagnostics,
-                    testData?.SymWriterFactory,
-                    emitOptions.PdbFilePath,
-                    cancellationToken);
+                    newBaseline = compilation.SerializeToDeltaStreams(
+                        moduleBeingBuilt,
+                        mappedBaseline,
+                        definitionMap,
+                        changes,
+                        metadataStream,
+                        ilStream,
+                        pdbStream,
+                        updatedMethods,
+                        changedTypes,
+                        diagnostics,
+                        testData?.SymWriterFactory,
+                        emitOptions.PdbFilePath,
+                        cancellationToken);
+                }
             }
 
             return new EmitDifferenceResult(
                 success: newBaseline != null,
                 diagnostics: diagnostics.ToReadOnlyAndFree(),
-                baseline: newBaseline);
+                baseline: newBaseline,
+                updatedMethods: updatedMethods.ToImmutableAndFree(),
+                changedTypes: changedTypes.ToImmutableAndFree());
+        }
+
+        private static bool ContainsPreviousAnonymousDelegates(
+            CSharpDefinitionMap definitionMap,
+            IReadOnlyDictionary<string, AnonymousTypeValue> previousDictionary,
+            IReadOnlyDictionary<string, AnonymousTypeValue> currentDictionary)
+        {
+            if (previousDictionary.Count == 0)
+            {
+                return true;
+            }
+
+            if (previousDictionary.Count > currentDictionary.Count)
+            {
+                return false;
+            }
+
+            Dictionary<string, Cci.ITypeDefinition> currentTypes = getTypes(currentDictionary).ToDictionary(t => getName(t));
+            IEnumerable<Cci.ITypeDefinition> previousTypes = getTypes(previousDictionary);
+            foreach (var previousType in previousTypes)
+            {
+                if (!currentTypes.TryGetValue(getName(previousType), out var currentType) ||
+                    definitionMap.MapDefinition(currentType) is null)
+                {
+                    return false;
+                }
+            }
+            return true;
+
+            static IEnumerable<Cci.ITypeDefinition> getTypes(IReadOnlyDictionary<string, AnonymousTypeValue> dictionary) => dictionary.Values.Select(v => v.Type);
+            static string getName(Cci.ITypeDefinition type) => ((Cci.INamedEntity)type).Name!;
         }
 
         /// <summary>
@@ -113,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             PEDeltaAssemblyBuilder moduleBeingBuilt)
         {
             var previousGeneration = moduleBeingBuilt.PreviousGeneration;
-            Debug.Assert(previousGeneration.Compilation != compilation);
+            RoslynDebug.Assert(previousGeneration.Compilation != compilation);
 
             if (previousGeneration.Ordinal == 0)
             {
@@ -123,38 +171,55 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return previousGeneration;
             }
 
+            RoslynDebug.AssertNotNull(previousGeneration.Compilation);
+            RoslynDebug.AssertNotNull(previousGeneration.PEModuleBuilder);
+            RoslynDebug.AssertNotNull(moduleBeingBuilt.EncSymbolChanges);
+
             var currentSynthesizedMembers = moduleBeingBuilt.GetAllSynthesizedMembers();
+            var currentDeletedMembers = moduleBeingBuilt.EncSymbolChanges.GetAllDeletedMembers();
 
             // Mapping from previous compilation to the current.
             var anonymousTypeMap = moduleBeingBuilt.GetAnonymousTypeMap();
+            var anonymousDelegates = moduleBeingBuilt.GetAnonymousDelegates();
+            var anonymousDelegatesWithIndexedNames = moduleBeingBuilt.GetAnonymousDelegatesWithIndexedNames();
             var sourceAssembly = ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly;
             var sourceContext = new EmitContext((PEModuleBuilder)previousGeneration.PEModuleBuilder, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var otherContext = new EmitContext(moduleBeingBuilt, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
 
             var matcher = new CSharpSymbolMatcher(
                 anonymousTypeMap,
+                anonymousDelegates,
+                anonymousDelegatesWithIndexedNames,
                 sourceAssembly,
                 sourceContext,
                 compilation.SourceAssembly,
                 otherContext,
-                currentSynthesizedMembers);
+                currentSynthesizedMembers,
+                currentDeletedMembers);
 
-            var mappedSynthesizedMembers = matcher.MapSynthesizedMembers(previousGeneration.SynthesizedMembers, currentSynthesizedMembers);
+            var mappedSynthesizedMembers = matcher.MapSynthesizedOrDeletedMembers(previousGeneration.SynthesizedMembers, currentSynthesizedMembers, isDeletedMemberMapping: false);
+
+            // Deleted members are mapped the same way as synthesized members, so we can just call the same method.
+            var mappedDeletedMembers = matcher.MapSynthesizedOrDeletedMembers(previousGeneration.DeletedMembers, currentDeletedMembers, isDeletedMemberMapping: true);
 
             // TODO: can we reuse some data from the previous matcher?
             var matcherWithAllSynthesizedMembers = new CSharpSymbolMatcher(
                 anonymousTypeMap,
+                anonymousDelegates,
+                anonymousDelegatesWithIndexedNames,
                 sourceAssembly,
                 sourceContext,
                 compilation.SourceAssembly,
                 otherContext,
-                mappedSynthesizedMembers);
+                mappedSynthesizedMembers,
+                mappedDeletedMembers);
 
             return matcherWithAllSynthesizedMembers.MapBaselineToCompilation(
                 previousGeneration,
                 compilation,
                 moduleBeingBuilt,
-                mappedSynthesizedMembers);
+                mappedSynthesizedMembers,
+                mappedDeletedMembers);
         }
     }
 }

@@ -593,8 +593,8 @@ class C
 }
 ";
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (9,30): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&d").WithArguments("dynamic"),
+                // (9,30): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('dynamic')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&d").WithArguments("dynamic"),
                 // (10,15): error CS0193: The * or -> operator must be applied to a pointer
                 Diagnostic(ErrorCode.ERR_PtrExpected, "*d"),
                 // (11,15): error CS0193: The * or -> operator must be applied to a pointer
@@ -1057,7 +1057,6 @@ remove_Event
 ");
         }
 
-
         #endregion
 
         #region Conditional, Coalescing Expression
@@ -1078,17 +1077,24 @@ public class C
         var dd = d1 ?? d2;  //-typeExpression: dynamic
                             //-fieldAccess: dynamic
                             //-fieldAccess: dynamic
+                            //-valuePlaceholder: dynamic
+                            //-valuePlaceholder: dynamic
+                            //-conversion: object
                             //-nullCoalescingOperator: dynamic
 
         var sd = s1 ?? d2;  //-typeExpression: dynamic
                             //-fieldAccess: object
                             //-fieldAccess: dynamic
+                            //-valuePlaceholder: object
+                            //-valuePlaceholder: object
                             //-nullCoalescingOperator: dynamic
 
         var ds = d1 ?? s2;  //-typeExpression: dynamic
                             //-fieldAccess: dynamic
                             //-fieldAccess: object
                             //-conversion: dynamic
+                            //-valuePlaceholder: dynamic
+                            //-valuePlaceholder: dynamic
                             //-nullCoalescingOperator: dynamic
     }
 }
@@ -1231,7 +1237,9 @@ public unsafe class C
     }
 }
 ";
-            CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+
+            var expectedDiagnostics = new[]
+            {
                 // (13,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'dynamic' and 'method group'
                 //         var y = s1 ? d2 : M;
                 Diagnostic(ErrorCode.ERR_InvalidQM, "s1 ? d2 : M").WithArguments("dynamic", "method group").WithLocation(13, 17),
@@ -1244,7 +1252,13 @@ public unsafe class C
                 // (16,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'dynamic' and 'void*'
                 //         var w = s1 ? d2 : ptr;
                 Diagnostic(ErrorCode.ERR_InvalidQM, "s1 ? d2 : ptr").WithArguments("dynamic", "void*").WithLocation(16, 17)
-                );
+            };
+
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         #endregion
@@ -1391,7 +1405,7 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax:
       IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'C.Goo(int, int)'
+                // CS7036: There is no argument given that corresponds to the required parameter 'y' of 'C.Goo(int, int)'
                 //         /*<bind>*/c.Goo(d)/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Goo").WithArguments("y", "C.Goo(int, int)").WithLocation(8, 21)
             };
@@ -2173,9 +2187,9 @@ public unsafe class C
             c.ei += d1;  //-isAddition: True isDynamic: True
 
             d1 += d2;    //-@operator: DynamicAddition leftConversion: NoConversion finalConversion: Identity
-            d1 += a;     //-@operator: DynamicAddition leftConversion: NoConversion finalConversion: ImplicitReference
-            d1.x += a;   //-@operator: DynamicAddition leftConversion: NoConversion finalConversion: ImplicitReference
-            d1[i] += a;  //-@operator: DynamicAddition leftConversion: NoConversion finalConversion: ImplicitReference
+            d1 += a;     //-@operator: DynamicAddition leftConversion: NoConversion finalConversion: Identity
+            d1.x += a;   //-@operator: DynamicAddition leftConversion: NoConversion finalConversion: Identity
+            d1[i] += a;  //-@operator: DynamicAddition leftConversion: NoConversion finalConversion: Identity
         }}
         checked
         {{
@@ -2185,9 +2199,9 @@ public unsafe class C
             c.ei += d1;  //-isAddition: True isDynamic: True
 
             d1 += d2;    //-@operator: DynamicAddition, Checked leftConversion: NoConversion finalConversion: Identity
-            d1 += a;     //-@operator: DynamicAddition, Checked leftConversion: NoConversion finalConversion: ImplicitReference
-            d1.x += a;   //-@operator: DynamicAddition, Checked leftConversion: NoConversion finalConversion: ImplicitReference
-            d1[i] += a;  //-@operator: DynamicAddition, Checked leftConversion: NoConversion finalConversion: ImplicitReference
+            d1 += a;     //-@operator: DynamicAddition, Checked leftConversion: NoConversion finalConversion: Identity
+            d1.x += a;   //-@operator: DynamicAddition, Checked leftConversion: NoConversion finalConversion: Identity
+            d1[i] += a;  //-@operator: DynamicAddition, Checked leftConversion: NoConversion finalConversion: Identity
         }}
     }
 } 
@@ -2234,9 +2248,9 @@ public unsafe class C
             c.ei -= d1;  //-isAddition: False isDynamic: True
                         
             d1 -= d2;    //-@operator: DynamicSubtraction leftConversion: NoConversion finalConversion: Identity
-            d1 -= a;     //-@operator: DynamicSubtraction leftConversion: NoConversion finalConversion: ImplicitReference
-            d1.x -= a;   //-@operator: DynamicSubtraction leftConversion: NoConversion finalConversion: ImplicitReference
-            d1[i] -= a;  //-@operator: DynamicSubtraction leftConversion: NoConversion finalConversion: ImplicitReference
+            d1 -= a;     //-@operator: DynamicSubtraction leftConversion: NoConversion finalConversion: Identity
+            d1.x -= a;   //-@operator: DynamicSubtraction leftConversion: NoConversion finalConversion: Identity
+            d1[i] -= a;  //-@operator: DynamicSubtraction leftConversion: NoConversion finalConversion: Identity
         }}
         checked
         {{
@@ -2246,9 +2260,9 @@ public unsafe class C
             c.ei -= d1;  //-isAddition: False isDynamic: True
                         
             d1 -= d2;    //-@operator: DynamicSubtraction, Checked leftConversion: NoConversion finalConversion: Identity
-            d1 -= a;     //-@operator: DynamicSubtraction, Checked leftConversion: NoConversion finalConversion: ImplicitReference
-            d1.x -= a;   //-@operator: DynamicSubtraction, Checked leftConversion: NoConversion finalConversion: ImplicitReference
-            d1[i] -= a;  //-@operator: DynamicSubtraction, Checked leftConversion: NoConversion finalConversion: ImplicitReference
+            d1 -= a;     //-@operator: DynamicSubtraction, Checked leftConversion: NoConversion finalConversion: Identity
+            d1.x -= a;   //-@operator: DynamicSubtraction, Checked leftConversion: NoConversion finalConversion: Identity
+            d1[i] -= a;  //-@operator: DynamicSubtraction, Checked leftConversion: NoConversion finalConversion: Identity
         }}
     }
 } 
@@ -2297,9 +2311,9 @@ public unsafe class C
             c.ei {0}= d1;  //-@operator: {1} leftConversion: NoConversion finalConversion: ImplicitDynamic
                          
             d1 {0}= d2;    //-@operator: {1} leftConversion: NoConversion finalConversion: Identity
-            d1 {0}= a;     //-@operator: {1} leftConversion: NoConversion finalConversion: ImplicitReference
-            d1.x {0}= a;   //-@operator: {1} leftConversion: NoConversion finalConversion: ImplicitReference
-            d1[i] {0}= a;  //-@operator: {1} leftConversion: NoConversion finalConversion: ImplicitReference
+            d1 {0}= a;     //-@operator: {1} leftConversion: NoConversion finalConversion: Identity
+            d1.x {0}= a;   //-@operator: {1} leftConversion: NoConversion finalConversion: Identity
+            d1[i] {0}= a;  //-@operator: {1} leftConversion: NoConversion finalConversion: Identity
         }}
 
         checked
@@ -2310,9 +2324,9 @@ public unsafe class C
             c.ei {0}= d1;  //-@operator: {1}, Checked leftConversion: NoConversion finalConversion: ImplicitDynamic
                                             
             d1 {0}= d2;    //-@operator: {1}, Checked leftConversion: NoConversion finalConversion: Identity
-            d1 {0}= a;     //-@operator: {1}, Checked leftConversion: NoConversion finalConversion: ImplicitReference
-            d1.x {0}= a;   //-@operator: {1}, Checked leftConversion: NoConversion finalConversion: ImplicitReference
-            d1[i] {0}= a;  //-@operator: {1}, Checked leftConversion: NoConversion finalConversion: ImplicitReference
+            d1 {0}= a;     //-@operator: {1}, Checked leftConversion: NoConversion finalConversion: Identity
+            d1.x {0}= a;   //-@operator: {1}, Checked leftConversion: NoConversion finalConversion: Identity
+            d1[i] {0}= a;  //-@operator: {1}, Checked leftConversion: NoConversion finalConversion: Identity
         }}
     }}
 }}
@@ -2392,60 +2406,90 @@ class C
                   //-fieldAccess: bool
                   //-thisReference: C
                   //-fieldAccess: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-conversion: bool
                   //-compoundAssignmentOperator: bool
 
         a |= d;   //-thisReference: C
                   //-fieldAccess: bool
                   //-thisReference: C
                   //-fieldAccess: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-conversion: bool
                   //-compoundAssignmentOperator: bool
        
         a ^= d;   //-thisReference: C
                   //-fieldAccess: bool
                   //-thisReference: C
                   //-fieldAccess: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-conversion: bool
                   //-compoundAssignmentOperator: bool
         
         i += d;   //-thisReference: C
                   //-fieldAccess: int
                   //-thisReference: C
                   //-fieldAccess: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-conversion: int
                   //-compoundAssignmentOperator: int
 
         i -= d;   //-thisReference: C
                   //-fieldAccess: int
                   //-thisReference: C
                   //-fieldAccess: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-conversion: int
                   //-compoundAssignmentOperator: int
 
         i *= d;   //-thisReference: C
                   //-fieldAccess: int
                   //-thisReference: C
                   //-fieldAccess: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-conversion: int
                   //-compoundAssignmentOperator: int
 
         i /= d;   //-thisReference: C
                   //-fieldAccess: int
                   //-thisReference: C
                   //-fieldAccess: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-conversion: int
                   //-compoundAssignmentOperator: int
 
         i %= d;   //-thisReference: C
                   //-fieldAccess: int
                   //-thisReference: C
                   //-fieldAccess: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-conversion: int
                   //-compoundAssignmentOperator: int
 
         i <<= d;  //-thisReference: C
                   //-fieldAccess: int
                   //-thisReference: C
                   //-fieldAccess: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-conversion: int
                   //-compoundAssignmentOperator: int
 
         i >>= d;  //-thisReference: C
                   //-fieldAccess: int
                   //-thisReference: C
                   //-fieldAccess: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-valuePlaceholder: dynamic
+                  //-conversion: int
                   //-compoundAssignmentOperator: int
     }
 }
@@ -2520,7 +2564,7 @@ IInvalidOperation (OperationKind.Invalid, Type: dynamic, IsInvalid) (Syntax: 'ne
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "f").WithArguments("f").WithLocation(11, 21),
                 // file.cs(6,26): error CS8382: Invalid object creation
                 // 		var x = /*<bind>*/ new dynamic
-                Diagnostic(ErrorCode.ERR_InvalidObjectCreation, "dynamic").WithArguments("dynamic").WithLocation(6, 26)
+                Diagnostic(ErrorCode.ERR_InvalidObjectCreation, "dynamic").WithLocation(6, 26)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -2552,15 +2596,28 @@ unsafe class X
     }
 } 
 ";
-            CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (14,17): error CS0428: Cannot convert method group 'M' to non-delegate type 'dynamic'. Did you intend to invoke the method?
-                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "M").WithArguments("M", "dynamic"),
-                // (15,17): error CS0029: Cannot implicitly convert type 'int*' to 'dynamic'
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "ptr").WithArguments("int*", "dynamic"),
+
+            var expectedDiagnostics = new[]
+            {
+                // (16,17): error CS0428: Cannot convert method group 'M' to non-delegate type 'dynamic'. Did you intend to invoke the method?
+                //             A = M,
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "M").WithArguments("M", "dynamic").WithLocation(16, 17),
+                // (17,17): error CS0029: Cannot implicitly convert type 'int*' to 'dynamic'
+                //             B = ptr,
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "ptr").WithArguments("int*", "dynamic").WithLocation(17, 17),
                 // (18,17): error CS1660: Cannot convert lambda expression to type 'dynamic' because it is not a delegate type
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => {}").WithArguments("lambda expression", "dynamic"),
+                //             C = () => {},
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => {}").WithArguments("lambda expression", "dynamic").WithLocation(18, 17),
                 // (19,17): error CS0029: Cannot implicitly convert type 'System.TypedReference' to 'dynamic'
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "default(TypedReference)").WithArguments("System.TypedReference", "dynamic"));
+                //             D = default(TypedReference)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "default(TypedReference)").WithArguments("System.TypedReference", "dynamic").WithLocation(19, 17)
+            };
+
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -2744,7 +2801,7 @@ class C : List<int>
                 Diagnostic(ErrorCode.WRN_IsDynamicIsConfusing, "d is dynamic").WithArguments("is", "dynamic", "Object").WithLocation(43, 55),
                 // (46,59): error CS8382: Invalid object creation
                 //         Expression<Func<dynamic, dynamic>> e21 = x => new dynamic();
-                Diagnostic(ErrorCode.ERR_InvalidObjectCreation, "dynamic").WithArguments("dynamic").WithLocation(46, 59),
+                Diagnostic(ErrorCode.ERR_InvalidObjectCreation, "dynamic").WithLocation(46, 59),
                 // (25,52): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<C>> e0 = () => new C { P = d };
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "d").WithLocation(25, 52),
@@ -3084,7 +3141,7 @@ class C : B
 
             var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
-                // (16,5): error CS7036: There is no argument given that corresponds to the required formal parameter 'c' of 'C.this[int, Func<int, int>, object]'
+                // (16,5): error CS7036: There is no argument given that corresponds to the required parameter 'c' of 'C.this[int, Func<int, int>, object]'
                 //     c[d, d] = 1; 
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "c[d, d]").WithArguments("c", "C.this[int, System.Func<int, int>, object]").WithLocation(16, 5),
                 // (22,10): error CS1977: Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.
@@ -3320,7 +3377,7 @@ class C
             TestOperatorKinds(source);
             var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
-                // (8,16): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'C.C(string, string)'
+                // (8,16): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'C.C(string, string)'
                 //     return new C(d);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("y", "C.C(string, string)").WithLocation(8, 16));
         }
@@ -3395,7 +3452,7 @@ class C
 
 class D
 {
-    class dynamic { }
+    class @dynamic { }
 
     dynamic M()
     {
@@ -3545,7 +3602,8 @@ class Program
     static T Goo<T>(Action<T, T> x) { throw null; }
 }
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithAllowUnsafe(true), verify: Verification.Fails).VerifyDiagnostics();
+            // PEVerify: [ : Program::Main][mdToken=0x6000001][offset 0x0000002C][found unmanaged pointer][expected unmanaged pointer] Unexpected type on the stack.
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithAllowUnsafe(true), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
             var tree = verifier.Compilation.SyntaxTrees.Single();
             var model = verifier.Compilation.GetSemanticModel(tree);
@@ -3572,7 +3630,8 @@ class Program
     static T Goo<T>(Action<T, T> x) { throw null; }
 }
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithAllowUnsafe(true), verify: Verification.Fails).VerifyDiagnostics();
+            // PEVerify: [ : Program::Main][mdToken=0x6000001][offset 0x0000002C][found unmanaged pointer][expected unmanaged pointer] Unexpected type on the stack.
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithAllowUnsafe(true), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
             var tree = verifier.Compilation.SyntaxTrees.Single();
             var model = verifier.Compilation.GetSemanticModel(tree);
@@ -4207,6 +4266,56 @@ class C
                 // (8,39): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
                 //         System.Console.WriteLine(d[in x]);
                 Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "x").WithLocation(8, 39)
+                );
+        }
+
+        [Fact]
+        public void UserDefinedConversion_01()
+        {
+            var source = @"
+dynamic x = true;
+
+if (new C() && x)
+{
+    System.Console.WriteLine(""1"");
+}
+
+System.Console.WriteLine(""2"");
+
+class C
+{
+    [System.Obsolete()]
+    public static implicit operator bool(C c)
+    {
+        System.Console.WriteLine(""op_Implicit"");
+        return false;
+    }
+
+    public static bool operator true(C c)
+    {
+        System.Console.WriteLine(""op_True"");
+        return false;
+    }
+
+    public static bool operator false(C c)
+    {
+        System.Console.WriteLine(""op_False"");
+        return false;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib45AndCSharp(source);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"op_Implicit
+op_Implicit
+2
+"
+).VerifyDiagnostics(
+                // (4,5): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // if (new C() && x)
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new C()").WithArguments("C.implicit operator bool(C)").WithLocation(4, 5)
                 );
         }
     }

@@ -74,6 +74,136 @@ unsafe class C
 ");
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
+        public void Invocation_Pointer()
+        {
+            var text = @"
+class C
+{
+    void M(int* param)
+    {
+        M(param);
+    }
+}
+";
+            var comp = CreateCompilation(text, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (4,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     void M(int* param)
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(4, 12),
+                // (6,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         M(param);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "M(param)").WithLocation(6, 9),
+                // (6,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         M(param);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "param").WithLocation(6, 11)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
+        public void Invocation_PointerArray()
+        {
+            var text = @"
+class C
+{
+    void M(int*[] param)
+    {
+        M(param);
+    }
+}
+";
+            var comp = CreateCompilation(text, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (4,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     void M(int*[] param)
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(4, 12),
+                // (6,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         M(param);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "M(param)").WithLocation(6, 9),
+                // (6,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         M(param);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "param").WithLocation(6, 11)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
+        public void Invocation_PointerArray_Nested()
+        {
+            var text = @"
+class C<T>
+{
+    void M(C<int*[]>[] param)
+    {
+        M(param);
+    }
+}
+";
+            var comp = CreateCompilation(text, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (4,14): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     void M(C<int*[]>[] param)
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(4, 14),
+                // (6,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         M(param);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "M(param)").WithLocation(6, 9),
+                // (6,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         M(param);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "param").WithLocation(6, 11)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
+        public void ClassCreation_Pointer()
+        {
+            var text = @"
+class C
+{
+    C(int* param)
+    {
+        new C(param);
+    }
+}
+";
+            var comp = CreateCompilation(text, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (4,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     C(int* param)
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(4, 7),
+                // (6,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         new C(param);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "new C(param)").WithLocation(6, 9),
+                // (6,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         new C(param);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "param").WithLocation(6, 15)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
+        public void ClassCreation_PointerArray()
+        {
+            var text = @"
+class C
+{
+    C(int*[] param)
+    {
+        new C(param);
+    }
+}
+";
+            var comp = CreateCompilation(text, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (4,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     C(int*[] param)
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(4, 7),
+                // (6,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         new C(param);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "new C(param)").WithLocation(6, 9),
+                // (6,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         new C(param);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "param").WithLocation(6, 15)
+                );
+        }
+
         [Fact]
         public void AddressOfParameter_Unused()
         {
@@ -4114,7 +4244,6 @@ static class FixableExt
 ");
         }
 
-
         [Fact]
         public void SimpleCaseOfCustomFixed_oldVersion()
         {
@@ -5812,7 +5941,7 @@ unsafe class C
     }
 }
 ";
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("C.M", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.FailsPEVerify).VerifyIL("C.M", @"
 {
   // Code size       79 (0x4f)
   .maxstack  1
@@ -5902,7 +6031,7 @@ unsafe class C
     }
 }
 ";
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("C.M", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.FailsPEVerify).VerifyIL("C.M", @"
 {
   // Code size       79 (0x4f)
   .maxstack  1
@@ -6499,7 +6628,7 @@ unsafe class C
     }
 }
 ";
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "1234", verify: Verification.Fails).VerifyIL("C.Main", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "1234", verify: Verification.FailsPEVerify).VerifyIL("C.Main", @"
 {
   // Code size      120 (0x78)
   .maxstack  5
@@ -8055,8 +8184,6 @@ class PointerArithmetic
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "2", verify: Verification.Fails);
         }
 
-
-
         #endregion Pointer arithmetic tests
 
         #region Checked pointer arithmetic overflow tests
@@ -9564,7 +9691,7 @@ True
 False
 False", verify: Verification.Skipped);
 
-            verifier.VerifyIL("<Program>$.<<Main>$>g__test|0_0<T>(S<T>*)", @"
+            verifier.VerifyIL("Program.<<Main>$>g__test|0_0<T>(S<T>*)", @"
 {
   // Code size       21 (0x15)
   .maxstack  2
@@ -9606,7 +9733,7 @@ True
 False
 False", verify: Verification.Skipped);
 
-            verifier.VerifyIL("<Program>$.<<Main>$>g__test|0_0<T>(T*)", @"
+            verifier.VerifyIL("Program.<<Main>$>g__test|0_0<T>(T*)", @"
 {
   // Code size       21 (0x15)
   .maxstack  2
@@ -9627,6 +9754,7 @@ False", verify: Verification.Skipped);
 
         [Theory]
         [InlineData("int*")]
+        [InlineData("int*[]")]
         [InlineData("delegate*<void>")]
         [InlineData("T*")]
         [InlineData("delegate*<T>")]
@@ -9637,7 +9765,7 @@ var c = default(S<int>);
 _ = c.Field is null;
 unsafe struct S<T> where T : unmanaged
 {{
-#pragma warning disable CS0649 // Field is unassigned 
+#pragma warning disable CS0649 // Field is unassigned
     public {pointerType} Field;
 }}
 ", options: TestOptions.UnsafeReleaseExe);
@@ -9784,7 +9912,7 @@ unsafe class C
     }
 }
 ";
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("C.M", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.FailsPEVerify).VerifyIL("C.M", @"
 {
   // Code size       12 (0xc)
   .maxstack  1
@@ -10146,8 +10274,11 @@ No overflow from (S15*)0 + sizeof(S15)
 No overflow from (S15*)0 + sizeof(S16)
 No overflow from (S16*)0 + sizeof(S15)";
             }
-
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails);
+            // PEVerify:
+            // [ : C+<>c__DisplayClass0_0::<Main>b__0][mdToken=0x6000005][offset 0x00000012][found Native Int][expected unmanaged pointer] Unexpected type on the stack.
+            // [ : C+<> c__DisplayClass0_0::< Main > b__1][mdToken= 0x6000006][offset 0x00000012][found Native Int][expected unmanaged pointer] Unexpected type on the stack.
+            // [ : C +<> c__DisplayClass0_0::< Main > b__2][mdToken = 0x6000007][offset 0x00000012][found Native Int][expected unmanaged pointer] Unexpected type on the stack.
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify);
         }
 
         [Fact]
@@ -10172,6 +10303,159 @@ delegate void F2(int x);
 ";
 
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"2", verify: Verification.Passes);
+        }
+
+        [Fact]
+        public void LambdaConversion_PointerArray()
+        {
+            var text = @"
+using System;
+
+class C<T> { }
+
+class Program
+{
+    static void Main()
+    {
+        M(x => { });
+    }
+
+    static void M(F1 f) { throw null; }
+    static void M(F2 f) { Console.WriteLine(2); }
+}
+
+unsafe delegate void F1(C<int*[]> x);
+delegate void F2(int x);
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.UnsafeDebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "2");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
+        public void ParameterContainsPointer()
+        {
+            var source = """
+class C<T> { }
+class D
+{
+    public static void M1()
+    {
+        var lam1 = (int* ptr) => ptr; // 1
+    }
+    public static void M2()
+    {
+        var lam2 = (int*[] a) => a; // 2
+    }
+    public static void M3()
+    {
+        var lam3 = (delegate*<void> ptr) => ptr; // 3
+    }
+    public static void M4()
+    {
+        var lam4 = (C<delegate*<void>[]> a) => a; // 4
+    }
+}
+""";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (6,21): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         var lam1 = (int* ptr) => ptr; // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(6, 21),
+                // (6,26): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         var lam1 = (int* ptr) => ptr; // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "ptr").WithLocation(6, 26),
+                // (6,34): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         var lam1 = (int* ptr) => ptr; // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "ptr").WithLocation(6, 34),
+                // (10,21): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         var lam2 = (int*[] a) => a; // 2
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(10, 21),
+                // (10,28): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         var lam2 = (int*[] a) => a; // 2
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "a").WithLocation(10, 28),
+                // (10,34): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         var lam2 = (int*[] a) => a; // 2
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "a").WithLocation(10, 34),
+                // (14,21): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         var lam3 = (delegate*<void> ptr) => ptr; // 3
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(14, 21),
+                // (14,37): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         var lam3 = (delegate*<void> ptr) => ptr; // 3
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "ptr").WithLocation(14, 37),
+                // (14,45): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         var lam3 = (delegate*<void> ptr) => ptr; // 3
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "ptr").WithLocation(14, 45),
+                // (18,23): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         var lam4 = (C<delegate*<void>[]> a) => a; // 4
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(18, 23),
+                // (18,42): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         var lam4 = (C<delegate*<void>[]> a) => a; // 4
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "a").WithLocation(18, 42),
+                // (18,48): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         var lam4 = (C<delegate*<void>[]> a) => a; // 4
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "a").WithLocation(18, 48)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
+        public void DelegateConversionContainsPointer()
+        {
+            var source = """
+class C<T> { }
+unsafe delegate int* D1(int* ptr);
+unsafe delegate int*[] D2(int*[] a);
+unsafe delegate delegate*<void> D3(delegate*<void> ptr);
+unsafe delegate C<delegate*<void>[]> D4(C<delegate*<void>[]> a);
+
+class D
+{
+    public static D1 M1()
+    {
+        return (ptr) => ptr; // 1
+    }
+    public static D2 M2()
+    {
+        return (a) => a; // 2
+    }
+    public static D3 M3()
+    {
+        return (ptr) => ptr; // 3
+    }
+    public static D4 M4()
+    {
+        return (a) => a; // 4
+    }
+}
+""";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (11,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         return (ptr) => ptr; // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "ptr").WithLocation(11, 17),
+                // (11,25): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         return (ptr) => ptr; // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "ptr").WithLocation(11, 25),
+                // (15,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         return (a) => a; // 2
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "a").WithLocation(15, 17),
+                // (15,23): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         return (a) => a; // 2
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "a").WithLocation(15, 23),
+                // (19,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         return (ptr) => ptr; // 3
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "ptr").WithLocation(19, 17),
+                // (19,25): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         return (ptr) => ptr; // 3
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "ptr").WithLocation(19, 25),
+                // (23,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         return (a) => a; // 4
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "a").WithLocation(23, 17),
+                // (23,23): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         return (a) => a; // 4
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "a").WithLocation(23, 23)
+                );
         }
 
         [Fact]
@@ -10328,7 +10612,13 @@ public class Test
     }
 }
 ";
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails).VerifyDiagnostics();
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.FailsPEVerify with
+            {
+                PEVerifyMessage = """
+                    [ : ChannelServices::.cctor][offset 0x0000000C][found unmanaged pointer][expected unmanaged pointer] Unexpected type on the stack.
+                    [ : ChannelServices::GetPrivateContextsPerfCounters][offset 0x00000002][found Native Int][expected unmanaged pointer] Unexpected type on the stack.
+                    """,
+            }).VerifyDiagnostics();
         }
 
         [WorkItem(545026, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545026")]
@@ -10342,7 +10632,12 @@ class C
     unsafe int* p = (int*)2;
 }
 ";
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyDiagnostics(
+            var c = CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.FailsPEVerify with
+            {
+                PEVerifyMessage = "[ : C::.ctor][offset 0x0000000A][found Native Int][expected unmanaged pointer] Unexpected type on the stack."
+            });
+
+            c.VerifyDiagnostics(
                 // (4,9): warning CS0414: The field 'C.x' is assigned but its value is never used
                 //     int x = 1;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "x").WithArguments("C.x"));
@@ -10359,7 +10654,12 @@ class C
     int x = 1;
 }
 ";
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyDiagnostics(
+            var c = CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.FailsPEVerify with
+            {
+                PEVerifyMessage = "[ : C::.ctor][offset 0x00000003][found Native Int][expected unmanaged pointer] Unexpected type on the stack."
+            });
+
+            c.VerifyDiagnostics(
                 // (5,9): warning CS0414: The field 'C.x' is assigned but its value is never used
                 //     int x = 1;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "x").WithArguments("C.x"));
@@ -10844,7 +11144,7 @@ unsafe struct S1
 
 ";
 
-            var verifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll.WithConcurrentBuild(false), verify: Verification.Fails);
+            var verifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll.WithConcurrentBuild(false), verify: Verification.FailsPEVerify);
         }
 
         [Fact, WorkItem(748530, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/748530")]
@@ -11318,7 +11618,6 @@ public unsafe class C
             var result = CompileAndVerify(compilation, expectedOutput: "5");
         }
 
-
         [Fact, WorkItem(7550, "https://github.com/dotnet/roslyn/issues/7550")]
         public void EnsureNullPointerIsPoppedIfUnused()
         {
@@ -11360,7 +11659,10 @@ public static class Program
        return types.Length;
    }
 }";
-            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "0", verify: Verification.Fails);
+            // PEVerify:
+            // [ : Program::Main][mdToken= 0x6000001][offset 0x00000001] Unmanaged pointers are not a verifiable type.
+            // [ : Program::Main][mdToken = 0x6000001][offset 0x00000001] Unable to resolve token.
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "0", verify: Verification.FailsPEVerify);
             comp.VerifyIL("Program.Main", @"
 {
   // Code size       17 (0x11)

@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Const GenerateFileNameForDocComment As String = "USE-OUTPUT-NAME"
 
             Dim diagnostics As List(Of Diagnostic) = New List(Of Diagnostic)()
-            Dim flattenedArgs As List(Of String) = New List(Of String)()
+            Dim flattenedArgs = ArrayBuilder(Of String).GetInstance()
             Dim scriptArgs As List(Of String) = If(IsScriptCommandLineParser, New List(Of String)(), Nothing)
 
             ' normalized paths to directories containing response files:
@@ -123,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim embeddedFiles = New List(Of CommandLineSourceFile)()
             Dim embedAllSourceFiles = False
             Dim codepage As Encoding = Nothing
-            Dim checksumAlgorithm = SourceHashAlgorithmUtils.DefaultContentHashAlgorithm
+            Dim checksumAlgorithm = SourceHashAlgorithms.Default
             Dim defines As IReadOnlyDictionary(Of String, Object) = Nothing
             Dim metadataReferences = New List(Of CommandLineReference)()
             Dim analyzers = New List(Of CommandLineAnalyzerReference)()
@@ -167,6 +167,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim instrumentationKinds As ArrayBuilder(Of InstrumentationKind) = ArrayBuilder(Of InstrumentationKind).GetInstance()
             Dim sourceLink As String = Nothing
             Dim ruleSetPath As String = Nothing
+            Dim generatedFilesOutputDirectory As String = Nothing
+            Dim reportIvts As Boolean = False
 
             ' Process ruleset files first so that diagnostic severity settings specified on the command line via
             ' /nowarn and /warnaserror can override diagnostic severity settings specified in the ruleset file.
@@ -193,9 +195,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim name As String = Nothing
                 Dim value As String = Nothing
                 If Not TryParseOption(arg, name, value) Then
-                    For Each path In ParseFileArgument(arg, baseDirectory, diagnostics)
+                    Dim builder = ArrayBuilder(Of String).GetInstance()
+                    ParseFileArgument(arg.AsMemory(), baseDirectory, builder, diagnostics)
+                    For Each path In builder
                         sourceFiles.Add(ToCommandLineSourceFile(path))
                     Next
+                    builder.Free()
                     hasSourceFiles = True
                     Continue For
                 End If
@@ -420,6 +425,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         libPaths.AddRange(ParseSeparatedPaths(value))
                         Continue For
 
+                    Case "reportivts", "reportivts+"
+                        If value IsNot Nothing Then
+                            AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "reportivts")
+                            Continue For
+                        End If
+
+                        reportIvts = True
+                        Continue For
+
+                    Case "reportivts-"
+                        If value IsNot Nothing Then
+                            AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "reportivts")
+                            Continue For
+                        End If
+
+                        reportIvts = False
+                        Continue For
+
 #If DEBUG Then
                     Case "attachdebugger"
                         Debugger.Launch()
@@ -493,7 +516,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                             refOnly = True
                             Continue For
-
 
                         Case "t", "target"
                             value = RemoveQuotesAndSlashes(value)
@@ -574,11 +596,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "errorlog", ErrorLogOptionFormat)
                             Else
                                 Dim diagnosticAlreadyReported As Boolean
-                                errorLogOptions = ParseErrorLogOptions(unquoted, diagnostics, baseDirectory, diagnosticAlreadyReported)
+                                errorLogOptions = ParseErrorLogOptions(unquoted.AsMemory(), diagnostics, baseDirectory, diagnosticAlreadyReported)
                                 If errorLogOptions Is Nothing And Not diagnosticAlreadyReported Then
                                     AddDiagnostic(diagnostics, ERRID.ERR_BadSwitchValue, unquoted, "errorlog", ErrorLogOptionFormat)
                                     Continue For
                                 End If
+                            End If
+
+                            Continue For
+
+                        Case "generatedfilesout"
+                            value = RemoveQuotesAndSlashes(value)
+                            If String.IsNullOrEmpty(value) Then
+                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<dir>")
+                            Else
+                                generatedFilesOutputDirectory = ParseGenericPathToFile(value, diagnostics, baseDirectory)
                             End If
 
                             Continue For
@@ -1377,6 +1409,8 @@ lVbRuntimePlus:
                 AddDiagnostic(diagnostics, ERRID.ERR_NoSourcesOut)
             End If
 
+            flattenedArgs.Free()
+
             Dim parseOptions = New VisualBasicParseOptions(
                 languageVersion:=languageVersion,
                 documentationMode:=If(parseDocumentationComments, DocumentationMode.Diagnose, DocumentationMode.None),
@@ -1488,7 +1522,9 @@ lVbRuntimePlus:
                 .PreferredUILang = preferredUILang,
                 .ReportAnalyzer = reportAnalyzer,
                 .SkipAnalyzers = skipAnalyzers,
-                .EmbeddedFiles = embeddedFiles.AsImmutable()
+                .EmbeddedFiles = embeddedFiles.AsImmutable(),
+                .GeneratedFilesOutputDirectory = generatedFilesOutputDirectory,
+                .ReportInternalsVisibleToAttributes = reportIVTs
             }
         End Function
 
@@ -1682,7 +1718,7 @@ lVbRuntimePlus:
             Dim accessibility As String = Nothing
 
             ParseResourceDescription(
-                resourceDescriptor,
+                resourceDescriptor.AsMemory(),
                 baseDirectory,
                 True,
                 filePath,

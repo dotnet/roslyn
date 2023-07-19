@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows;
@@ -70,10 +68,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
             var commandTarget = commandSource.CommandTarget;
             if (command is RoutedCommand routedCommand)
             {
-                if (commandTarget is null)
-                {
-                    commandTarget = commandSource as IInputElement;
-                }
+                commandTarget ??= commandSource as IInputElement;
 
                 if (routedCommand.CanExecute(commandParameter, commandTarget))
                 {

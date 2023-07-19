@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private sealed partial class AnonymousTypeConstructorSymbol : SynthesizedMethodBase
         {
-            internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+            internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
             {
                 //  Method body:
                 //
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 //  explicit base constructor call
                 Debug.Assert(ContainingType.BaseTypeNoUseSiteDiagnostics.SpecialType == SpecialType.System_Object);
-                BoundExpression call = MethodCompiler.GenerateBaseParameterlessConstructorInitializer(this, diagnostics);
+                BoundExpression call = Binder.GenerateBaseParameterlessConstructorInitializer(this, diagnostics);
                 if (call == null)
                 {
                     // This may happen if Object..ctor is not found or is inaccessible
@@ -69,11 +69,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get { return true; }
             }
+
+            protected override bool HasSetsRequiredMembersImpl => false;
         }
 
         private sealed partial class AnonymousTypePropertyGetAccessorSymbol : SynthesizedMethodBase
         {
-            internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+            internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
             {
                 //  Method body:
                 //
@@ -93,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed partial class AnonymousTypeEqualsMethodSymbol : SynthesizedMethodBase
         {
-            internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+            internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
             {
                 AnonymousTypeManager manager = ((AnonymousTypeTemplateSymbol)this.ContainingType).Manager;
                 SyntheticBoundNodeFactory F = this.CreateBoundNodeFactory(compilationState, diagnostics);
@@ -102,10 +104,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //
                 //  {
                 //      $anonymous$ local = value as $anonymous$;
-                //      return local != null 
+                //      return (object)local == this || (local != null 
                 //             && System.Collections.Generic.EqualityComparer<T_1>.Default.Equals(this.backingFld_1, local.backingFld_1)
                 //             ...
-                //             && System.Collections.Generic.EqualityComparer<T_N>.Default.Equals(this.backingFld_N, local.backingFld_N);
+                //             && System.Collections.Generic.EqualityComparer<T_N>.Default.Equals(this.backingFld_N, local.backingFld_N));
                 //  }
 
                 // Type and type expression
@@ -137,6 +139,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     fields.Free();
                 }
 
+                // Compare references
+                retExpression = F.LogicalOr(F.ObjectEqual(F.This(), boundLocal), retExpression);
+
                 // Final return statement
                 BoundStatement retStatement = F.Return(retExpression);
 
@@ -152,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed partial class AnonymousTypeGetHashCodeMethodSymbol : SynthesizedMethodBase
         {
-            internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+            internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
             {
                 AnonymousTypeManager manager = ((AnonymousTypeTemplateSymbol)this.ContainingType).Manager;
                 SyntheticBoundNodeFactory F = this.CreateBoundNodeFactory(compilationState, diagnostics);
@@ -215,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed partial class AnonymousTypeToStringMethodSymbol : SynthesizedMethodBase
         {
-            internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+            internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
             {
                 AnonymousTypeManager manager = ((AnonymousTypeTemplateSymbol)this.ContainingType).Manager;
                 SyntheticBoundNodeFactory F = this.CreateBoundNodeFactory(compilationState, diagnostics);
@@ -263,6 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                                 type: property.BackingField.Type), manager.System_Object__ToString),
                                                                             null,
                                                                             id: i,
+                                                                            forceCopyOfNullableValueType: true,
                                                                             type: manager.System_String),
                                                  Conversion.ImplicitReference);
                     }

@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="Add_Missing_Usings_on_Paste">
         <source>Add Missing Usings on Paste</source>
-        <target state="new">Add Missing Usings on Paste</target>
+        <target state="translated">Yapıştırılırken Eksik Using Yönergelerini Ekle</target>
         <note>"usings" is a language specific term and should not be localized</note>
       </trans-unit>
       <trans-unit id="Adding_missing_usings">
         <source>Adding missing usings...</source>
-        <target state="new">Adding missing usings...</target>
+        <target state="translated">Eksik using yönergeleri ekleniyor...</target>
         <note>Shown in a thread await dialog. "usings" is a language specific term and should not be localized</note>
       </trans-unit>
       <trans-unit id="Chosen_version_0">
@@ -37,6 +37,11 @@
         <target state="translated">Ara değer olarak eklenmiş tam dizeyi düzelt</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fixing_string_literal_after_paste">
+        <source>Fixing string literal after paste</source>
+        <target state="translated">Yapıştırma işleminden sonra sabit değerli dize düzeltiliyor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Found_0_assemblies_for_1">
         <source>Found '{0}' assemblies for '{1}':</source>
         <target state="translated">'{1}' için '{0}' bütünleştirilmiş kod bulundu:</target>
@@ -62,6 +67,11 @@
         <target state="translated">Olay Aboneliği Oluştur</target>
         <note />
       </trans-unit>
+      <trans-unit id="Grow_raw_string">
+        <source>Grow raw string</source>
+        <target state="translated">Ham dizeyi büyüt</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Load_from_0">
         <source>Load from: '{0}'</source>
         <target state="translated">Şuradan yükle: '{0}'</target>
@@ -70,6 +80,11 @@
       <trans-unit id="Module_not_found">
         <source>Module not found!</source>
         <target state="translated">Modül bulunamadı!</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Outside_namespace">
+        <source>Outside namespace</source>
+        <target state="translated">namespace dışında</target>
         <note />
       </trans-unit>
       <trans-unit id="Press_TAB_to_insert">
@@ -90,6 +105,11 @@
       <trans-unit id="Smart_Indenting">
         <source>Smart Indenting</source>
         <target state="translated">Akıllı Girintileme</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Split_raw_string">
+        <source>Split raw string</source>
+        <target state="translated">Ham dizeyi böl</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_string">

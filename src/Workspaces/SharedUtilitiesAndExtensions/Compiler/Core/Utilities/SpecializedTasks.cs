@@ -8,7 +8,9 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Roslyn.Utilities
 {
@@ -49,10 +51,6 @@ namespace Roslyn.Utilities
         public static Task<IEnumerable<T>> EmptyEnumerable<T>()
             => EmptyTasks<T>.EmptyEnumerable;
 
-        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-        public static Task<T> FromResult<T>(T t) where T : class
-            => FromResultCache<T>.FromResult(t);
-
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "Naming is modeled after Task.WhenAll.")]
         public static ValueTask<T[]> WhenAll<T>(IEnumerable<ValueTask<T>> tasks)
         {
@@ -86,6 +84,104 @@ namespace Roslyn.Utilities
             }
         }
 
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "Naming is modeled after Task.WhenAll.")]
+        public static async ValueTask<ImmutableArray<TResult>> WhenAll<TResult>(this IReadOnlyCollection<Task<TResult>> tasks)
+        {
+            using var _ = ArrayBuilder<TResult>.GetInstance(tasks.Count, out var result);
+
+            // Explicit cast to IEnumerable<Task> so we call the overload that doesn't allocate an array as the result.
+            await Task.WhenAll((IEnumerable<Task>)tasks).ConfigureAwait(false);
+            foreach (var task in tasks)
+                result.Add(await task.ConfigureAwait(false));
+
+            return result.ToImmutableAndClear();
+        }
+
+        /// <summary>
+        /// This helper method provides semantics equivalent to the following, but avoids throwing an intermediate
+        /// <see cref="OperationCanceledException"/> in the case where the asynchronous operation is cancelled.
+        ///
+        /// <code><![CDATA[
+        /// public ValueTask<TResult> MethodAsync(TArg arg, CancellationToken cancellationToken)
+        /// {
+        ///   var intermediate = await func(arg, cancellationToken).ConfigureAwait(false);
+        ///   return transform(intermediate);
+        /// }
+        /// ]]></code>
+        /// </summary>
+        /// <remarks>
+        /// This helper method is only intended for use in cases where profiling reveals substantial overhead related to
+        /// cancellation processing.
+        /// </remarks>
+        /// <typeparam name="TArg">The type of a state variable to pass to <paramref name="func"/> and <paramref name="transform"/>.</typeparam>
+        /// <typeparam name="TIntermediate">The type of intermediate result produced by <paramref name="func"/>.</typeparam>
+        /// <typeparam name="TResult">The type of result produced by <paramref name="transform"/>.</typeparam>
+        /// <param name="func">The intermediate asynchronous operation.</param>
+        /// <param name="transform">The synchronous transformation to apply to the result of <paramref name="func"/>.</param>
+        /// <param name="arg">The state to pass to <paramref name="func"/> and <paramref name="transform"/>.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> that the operation will observe.</param>
+        /// <returns></returns>
+        public static ValueTask<TResult> TransformWithoutIntermediateCancellationExceptionAsync<TArg, TIntermediate, TResult>(
+            Func<TArg, CancellationToken, ValueTask<TIntermediate>> func,
+            Func<TIntermediate, TArg, TResult> transform,
+            TArg arg,
+            CancellationToken cancellationToken)
+        {
+            if (func is null)
+                throw new ArgumentNullException(nameof(func));
+            if (transform is null)
+                throw new ArgumentNullException(nameof(transform));
+
+            var intermediateResult = func(arg, cancellationToken);
+            if (intermediateResult.IsCompletedSuccessfully)
+            {
+                // Synchronous fast path if 'func' completes synchronously
+                var result = intermediateResult.Result;
+                if (cancellationToken.IsCancellationRequested)
+                    return new ValueTask<TResult>(Task.FromCanceled<TResult>(cancellationToken));
+
+                return new ValueTask<TResult>(transform(result, arg));
+            }
+            else if (intermediateResult.IsCanceled && cancellationToken.IsCancellationRequested)
+            {
+                // Synchronous fast path if 'func' cancels synchronously
+                return new ValueTask<TResult>(Task.FromCanceled<TResult>(cancellationToken));
+            }
+            else
+            {
+                // Asynchronous fallback path
+                return UnwrapAndTransformAsync(intermediateResult, transform, arg, cancellationToken);
+            }
+
+            static ValueTask<TResult> UnwrapAndTransformAsync(ValueTask<TIntermediate> intermediateResult, Func<TIntermediate, TArg, TResult> transform, TArg arg, CancellationToken cancellationToken)
+            {
+                // Apply the transformation function once a result is available. The behavior depends on the final
+                // status of 'intermediateResult' and the 'cancellationToken'.
+                //
+                // | 'intermediateResult'       | 'cancellationToken' | Behavior                                 |
+                // | -------------------------- | ------------------- | ---------------------------------------- |
+                // | Ran to completion          | Not cancelled       | Apply transform                          |
+                // | Ran to completion          | Cancelled           | Cancel result without applying transform |
+                // | Cancelled (matching token) | Cancelled           | Cancel result without applying transform |
+                // | Cancelled (mismatch token) | Not cancelled       | Cancel result without applying transform |
+                // | Cancelled (mismatch token) | Cancelled           | Cancel result without applying transform |
+                // | Direct fault¹              | Not cancelled       | Directly fault (exception is not caught) |
+                // | Direct fault¹              | Cancelled           | Directly fault (exception is not caught) |
+                // | Indirect fault             | Not cancelled       | Fault result without applying transform  |
+                // | Indirect fault             | Cancelled           | Cancel result without applying transform |
+                //
+                // ¹ Direct faults are exceptions thrown from 'func' prior to returning a ValueTask<TIntermediate>
+                //   instances. Indirect faults are exceptions captured by return an instance of
+                //   ValueTask<TIntermediate> which (immediately or eventually) transitions to the faulted state. The
+                //   direct fault behavior is currently handled without calling UnwrapAndTransformAsync.
+                return new ValueTask<TResult>(intermediateResult.AsTask().ContinueWith(
+                    task => transform(task.GetAwaiter().GetResult(), arg),
+                    cancellationToken,
+                    TaskContinuationOptions.LazyCancellation | TaskContinuationOptions.NotOnCanceled | TaskContinuationOptions.ExecuteSynchronously,
+                    TaskScheduler.Default));
+            }
+        }
+
         private static class EmptyTasks<T>
         {
             public static readonly Task<T?> Default = Task.FromResult<T?>(default);
@@ -93,16 +189,6 @@ namespace Roslyn.Utilities
             public static readonly Task<ImmutableArray<T>> EmptyImmutableArray = Task.FromResult(ImmutableArray<T>.Empty);
             public static readonly Task<IList<T>> EmptyList = Task.FromResult(SpecializedCollections.EmptyList<T>());
             public static readonly Task<IReadOnlyList<T>> EmptyReadOnlyList = Task.FromResult(SpecializedCollections.EmptyReadOnlyList<T>());
-        }
-
-        private static class FromResultCache<T> where T : class
-        {
-            private static readonly ConditionalWeakTable<T, Task<T>> s_fromResultCache = new();
-            private static readonly ConditionalWeakTable<T, Task<T>>.CreateValueCallback s_taskCreationCallback = Task.FromResult<T>;
-
-            [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-            public static Task<T> FromResult(T t)
-                => s_fromResultCache.GetValue(t, s_taskCreationCallback);
         }
     }
 }

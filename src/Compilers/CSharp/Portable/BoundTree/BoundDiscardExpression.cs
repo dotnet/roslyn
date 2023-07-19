@@ -12,16 +12,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression SetInferredTypeWithAnnotations(TypeWithAnnotations type)
         {
             Debug.Assert(Type is null && type.HasType);
-            return this.Update(type.Type);
+            Debug.Assert(this.IsInferred);
+            return this.Update(type.NullableAnnotation, isInferred: true, type.Type);
         }
 
-        public BoundDiscardExpression FailInference(Binder binder, DiagnosticBag? diagnosticsOpt)
+        public BoundDiscardExpression FailInference(Binder binder, BindingDiagnosticBag? diagnosticsOpt)
         {
-            if (diagnosticsOpt != null)
+            if (diagnosticsOpt?.DiagnosticBag != null)
             {
                 Binder.Error(diagnosticsOpt, ErrorCode.ERR_DiscardTypeInferenceFailed, this.Syntax);
             }
-            return this.Update(binder.CreateErrorType("var"));
+            return this.Update(NullableAnnotation.Oblivious, this.IsInferred, binder.CreateErrorType("var"));
         }
 
         public override Symbol ExpressionSymbol

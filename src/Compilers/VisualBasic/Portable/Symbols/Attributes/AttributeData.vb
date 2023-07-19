@@ -182,7 +182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' SPEC:    it is a security custom attribute and requires special treatment.
 
             If _lazyIsSecurityAttribute = ThreeState.Unknown Then
-                _lazyIsSecurityAttribute = Me.AttributeClass.IsOrDerivedFromWellKnownClass(WellKnownType.System_Security_Permissions_SecurityAttribute, comp, useSiteDiagnostics:=Nothing).ToThreeState()
+                _lazyIsSecurityAttribute = Me.AttributeClass.IsOrDerivedFromWellKnownClass(WellKnownType.System_Security_Permissions_SecurityAttribute, comp, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded).ToThreeState()
             End If
 
             Return _lazyIsSecurityAttribute.Value
@@ -190,7 +190,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Sub DecodeSecurityAttribute(Of T As {WellKnownAttributeData, ISecurityAttributeTarget, New})(targetSymbol As Symbol, compilation As VisualBasicCompilation, ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
             Dim hasErrors As Boolean = False
-            Dim action As DeclarativeSecurityAction = Me.DecodeSecurityAttributeAction(targetSymbol, compilation, arguments.AttributeSyntaxOpt, hasErrors, arguments.Diagnostics)
+            Dim action As DeclarativeSecurityAction = Me.DecodeSecurityAttributeAction(targetSymbol, compilation, arguments.AttributeSyntaxOpt, hasErrors, DirectCast(arguments.Diagnostics, BindingDiagnosticBag))
             If Not hasErrors Then
                 Dim data As T = arguments.GetOrCreateData(Of T)()
                 Dim securityData As SecurityWellKnownAttributeData = data.GetOrCreateData()
@@ -210,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             compilation As VisualBasicCompilation,
             nodeOpt As AttributeSyntax,
             ByRef hasErrors As Boolean,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As DeclarativeSecurityAction
             Debug.Assert(Not hasErrors)
             Debug.Assert(Me.IsSecurityAttribute(compilation))
@@ -235,17 +235,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Else
                 Dim firstArg As TypedConstant = Me.CommonConstructorArguments.FirstOrDefault()
                 Dim firstArgType = DirectCast(firstArg.TypeInternal, TypeSymbol)
-                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                If firstArgType IsNot Nothing AndAlso firstArgType.IsOrDerivedFromWellKnownClass(WellKnownType.System_Security_Permissions_SecurityAction, compilation, useSiteDiagnostics) Then
+                Dim useSiteInfo As New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, compilation.Assembly)
+                If firstArgType IsNot Nothing AndAlso firstArgType.IsOrDerivedFromWellKnownClass(WellKnownType.System_Security_Permissions_SecurityAction, compilation, useSiteInfo) Then
                     Return ValidateSecurityAction(firstArg, targetSymbol, nodeOpt, diagnostics, hasErrors)
                 End If
 
-                diagnostics.Add(If(nodeOpt IsNot Nothing, nodeOpt.Name.GetLocation, NoLocation.Singleton), useSiteDiagnostics)
+                diagnostics.Add(If(nodeOpt IsNot Nothing, nodeOpt.Name.GetLocation, NoLocation.Singleton), useSiteInfo)
             End If
 
-            ' BC31205: First argument to a security attribute must be a valid SecurityAction
-            diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_SecurityAttributeMissingAction,
-                                                   Me.AttributeClass),
+            ' BC31211: First argument to a security attribute must be a valid SecurityAction
+            diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_SecurityAttributeMissingAction),
                             If(nodeOpt IsNot Nothing, nodeOpt.Name.GetLocation, NoLocation.Singleton))
 
             hasErrors = True
@@ -253,11 +252,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Nothing
         End Function
 
+        Friend Shared Function GetArgumentLocation(nodeOpt As AttributeSyntax, argumentIndex As Integer) As Location
+            Return GetArgumentDisplayAndLocation(nodeOpt, 0, argumentIndex).Location
+        End Function
+
+        Private Shared Function GetArgumentDisplayAndLocation(nodeOpt As AttributeSyntax, value As Integer, argumentIndex As Integer) As (ArgumentDisplay As String, Location As Location)
+            If nodeOpt IsNot Nothing Then
+                If nodeOpt.ArgumentList IsNot Nothing AndAlso nodeOpt.ArgumentList.Arguments.Count > argumentIndex Then
+                    Dim arg As ArgumentSyntax = nodeOpt.ArgumentList.Arguments(argumentIndex)
+                    Return (arg.ToString(), arg.GetLocation())
+                Else
+                    Return (value.ToString(), nodeOpt.GetLocation())
+                End If
+            Else
+                Return ("", NoLocation.Singleton)
+            End If
+        End Function
+
+        Friend Shared Function GetFirstArgumentLocation(nodeOpt As AttributeSyntax) As Location
+            Return GetArgumentLocation(nodeOpt, argumentIndex:=0)
+        End Function
+
+        Private Shared Function GetFirstArgumentDisplayAndLocation(nodeOpt As AttributeSyntax, value As Integer) As (ArgumentDisplay As String, Location As Location)
+            Return GetArgumentDisplayAndLocation(nodeOpt, value, argumentIndex:=0)
+        End Function
+
         Private Function ValidateSecurityAction(
             typedValue As TypedConstant,
             targetSymbol As Symbol,
             nodeOpt As AttributeSyntax,
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             <Out> ByRef hasErrors As Boolean
         ) As DeclarativeSecurityAction
             Debug.Assert(targetSymbol.Kind = SymbolKind.Assembly OrElse targetSymbol.Kind = SymbolKind.NamedType OrElse targetSymbol.Kind = SymbolKind.Method)
@@ -271,10 +295,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                      DeclarativeSecurityAction.LinkDemand
 
                     If Me.IsTargetAttribute(targetSymbol, AttributeDescription.PrincipalPermissionAttribute) Then
-                        ' BC31209: SecurityAction value '{0}' is invalid for PrincipalPermission attribute
-                        diagnostics.Add(ERRID.ERR_PrincipalPermissionInvalidAction,
-                                        If(nodeOpt IsNot Nothing, nodeOpt.ArgumentList.Arguments(0).GetLocation(), NoLocation.Singleton),
-                                        If(nodeOpt IsNot Nothing, nodeOpt.ArgumentList.Arguments(0).ToString(), ""))
+                        ' BC31215: SecurityAction value '{0}' is invalid for PrincipalPermission attribute
+                        Dim displayAndLocation As (ArgumentDisplay As String, Location As Location) = GetFirstArgumentDisplayAndLocation(nodeOpt, securityAction)
+                        diagnostics.Add(ERRID.ERR_PrincipalPermissionInvalidAction, displayAndLocation.Location, displayAndLocation.ArgumentDisplay)
 
                         hasErrors = True
                         Return DeclarativeSecurityAction.None
@@ -301,11 +324,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     isPermissionRequestAction = True
 
                 Case Else
-                    ' BC31206: Security attribute '{0}' has an invalid SecurityAction value '{1}'
-                    diagnostics.Add(ERRID.ERR_SecurityAttributeInvalidActionTypeOrMethod,
-                                    If(nodeOpt IsNot Nothing, nodeOpt.ArgumentList.Arguments(0).GetLocation(), NoLocation.Singleton),
-                                    If(nodeOpt IsNot Nothing, nodeOpt.Name.ToString, ""),
-                                    If(nodeOpt IsNot Nothing, nodeOpt.ArgumentList.Arguments(0).ToString(), ""))
+                    ' BC31214: SecurityAction value '{0}' is invalid for security attributes applied to a type or a method.
+                    Dim displayAndLocation As (ArgumentDisplay As String, Location As Location) = GetFirstArgumentDisplayAndLocation(nodeOpt, securityAction)
+                    diagnostics.Add(ERRID.ERR_SecurityAttributeInvalidActionTypeOrMethod, displayAndLocation.Location, displayAndLocation.ArgumentDisplay)
 
                     hasErrors = True
                     Return DeclarativeSecurityAction.None
@@ -315,10 +336,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If targetSymbol.Kind = SymbolKind.NamedType OrElse targetSymbol.Kind = SymbolKind.Method Then
                     ' Types and methods cannot take permission requests.
 
-                    ' BC31208: SecurityAction value '{0}' is invalid for security attributes applied to a type or a method
-                    diagnostics.Add(ERRID.ERR_SecurityAttributeInvalidActionTypeOrMethod,
-                                    If(nodeOpt IsNot Nothing, nodeOpt.ArgumentList.Arguments(0).GetLocation, NoLocation.Singleton),
-                                    If(nodeOpt IsNot Nothing, nodeOpt.ArgumentList.Arguments(0).ToString(), ""))
+                    ' BC31214: SecurityAction value '{0}' is invalid for security attributes applied to a type or a method.
+                    Dim displayAndLocation As (ArgumentDisplay As String, Location As Location) = GetFirstArgumentDisplayAndLocation(nodeOpt, securityAction)
+                    diagnostics.Add(ERRID.ERR_SecurityAttributeInvalidActionTypeOrMethod, displayAndLocation.Location, displayAndLocation.ArgumentDisplay)
 
                     hasErrors = True
                     Return DeclarativeSecurityAction.None
@@ -327,10 +347,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ElseIf targetSymbol.Kind = SymbolKind.Assembly Then
                 ' Assemblies cannot take declarative security.
 
-                ' BC31207: SecurityAction value '{0}' is invalid for security attributes applied to an assembly
-                diagnostics.Add(ERRID.ERR_SecurityAttributeInvalidActionAssembly,
-                                If(nodeOpt IsNot Nothing, nodeOpt.ArgumentList.Arguments(0).GetLocation, NoLocation.Singleton),
-                                If(nodeOpt IsNot Nothing, nodeOpt.ArgumentList.Arguments(0).ToString(), ""))
+                ' BC31213: SecurityAction value '{0}' is invalid for security attributes applied to an assembly.
+                Dim displayAndLocation As (ArgumentDisplay As String, Location As Location) = GetFirstArgumentDisplayAndLocation(nodeOpt, securityAction)
+                diagnostics.Add(ERRID.ERR_SecurityAttributeInvalidActionAssembly, displayAndLocation.Location, displayAndLocation.ArgumentDisplay)
 
                 hasErrors = True
                 Return DeclarativeSecurityAction.None
@@ -376,11 +395,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     If resolvedFilePath Is Nothing Then
 
-                        ' BC31210: Unable to resolve file path '{0}' specified for the named argument '{1}' for PermissionSet attribute
+                        ' BC31216: Unable to resolve file path '{0}' specified for the named argument '{1}' for PermissionSet attribute.
                         Dim argSyntaxLocation As Location = If(arguments.AttributeSyntaxOpt IsNot Nothing,
                                                                arguments.AttributeSyntaxOpt.ArgumentList.Arguments(1).GetLocation(),
                                                                NoLocation.Singleton)
-                        arguments.Diagnostics.Add(ERRID.ERR_PermissionSetAttributeInvalidFile, argSyntaxLocation, If(fileName, "<empty>"), filePropName)
+                        DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_PermissionSetAttributeInvalidFile, argSyntaxLocation, If(fileName, "<empty>"), filePropName)
 
                     ElseIf (Not PermissionSetAttributeTypeHasRequiredProperty(attrType, hexPropName)) Then
 
@@ -415,7 +434,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return False
         End Function
 
-        Friend Sub DecodeClassInterfaceAttribute(nodeOpt As AttributeSyntax, diagnostics As DiagnosticBag)
+        Friend Sub DecodeClassInterfaceAttribute(nodeOpt As AttributeSyntax, diagnostics As BindingDiagnosticBag)
             Debug.Assert(Not Me.HasErrors)
 
             Dim ctorArgument As TypedConstant = Me.CommonConstructorArguments(0)
@@ -429,14 +448,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Case ClassInterfaceType.None, Cci.Constants.ClassInterfaceType_AutoDispatch, Cci.Constants.ClassInterfaceType_AutoDual
                     Exit Select
                 Case Else
-                    diagnostics.Add(ERRID.ERR_BadAttribute1, If(nodeOpt IsNot Nothing, nodeOpt.ArgumentList.Arguments(0).GetLocation(), NoLocation.Singleton), Me.AttributeClass)
+                    Dim location As Location = GetFirstArgumentLocation(nodeOpt)
+                    diagnostics.Add(ERRID.ERR_BadAttribute1, location, Me.AttributeClass)
             End Select
         End Sub
 
-        Friend Sub DecodeInterfaceTypeAttribute(node As AttributeSyntax, diagnostics As DiagnosticBag)
+        Friend Sub DecodeInterfaceTypeAttribute(node As AttributeSyntax, diagnostics As BindingDiagnosticBag)
             Dim discarded As ComInterfaceType = Nothing
             If Not DecodeInterfaceTypeAttribute(discarded) Then
-                diagnostics.Add(ERRID.ERR_BadAttribute1, node.ArgumentList.Arguments(0).GetLocation(), Me.AttributeClass)
+                Dim location As Location = GetFirstArgumentLocation(node)
+                diagnostics.Add(ERRID.ERR_BadAttribute1, location, Me.AttributeClass)
             End If
         End Sub
 
@@ -469,7 +490,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                       CType(ctorArgument.DecodeValue(Of Short)(SpecialType.System_Int16), Cci.TypeLibTypeFlags))
         End Function
 
-        Friend Sub DecodeGuidAttribute(nodeOpt As AttributeSyntax, diagnostics As DiagnosticBag)
+        Friend Sub DecodeGuidAttribute(nodeOpt As AttributeSyntax, diagnostics As BindingDiagnosticBag)
             Debug.Assert(Not Me.HasErrors)
 
             Dim guidString As String = Me.GetConstructorArgument(Of String)(0, SpecialType.System_String)
@@ -477,9 +498,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Native compiler allows only a specific GUID format: "D" format (32 digits separated by hyphens)
             Dim guidVal As Guid
             If Not Guid.TryParseExact(guidString, "D", guidVal) Then
-                diagnostics.Add(ERRID.ERR_BadAttributeUuid2,
-                                If(nodeOpt IsNot Nothing, nodeOpt.ArgumentList.Arguments(0).GetLocation(), NoLocation.Singleton),
-                                Me.AttributeClass, If(guidString, ObjectDisplay.NullLiteral))
+                Dim location As Location = GetFirstArgumentLocation(nodeOpt)
+                diagnostics.Add(ERRID.ERR_BadAttributeUuid2, location, Me.AttributeClass, If(guidString, ObjectDisplay.NullLiteral))
             End If
         End Sub
 

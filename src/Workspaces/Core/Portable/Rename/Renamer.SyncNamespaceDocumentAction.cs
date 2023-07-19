@@ -8,9 +8,11 @@ using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeNamespace;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename
@@ -28,20 +30,22 @@ namespace Microsoft.CodeAnalysis.Rename
         internal sealed class SyncNamespaceDocumentAction : RenameDocumentAction
         {
             private readonly AnalysisResult _analysis;
+            private readonly CodeCleanupOptionsProvider _fallbackOptions;
 
-            private SyncNamespaceDocumentAction(AnalysisResult analysis)
+            private SyncNamespaceDocumentAction(AnalysisResult analysis, CodeCleanupOptionsProvider fallbackOptions)
                 : base(ImmutableArray<ErrorResource>.Empty)
             {
                 _analysis = analysis;
+                _fallbackOptions = fallbackOptions;
             }
 
             public override string GetDescription(CultureInfo? culture)
                 => WorkspacesResources.ResourceManager.GetString("Sync_namespace_to_folder_structure", culture ?? WorkspacesResources.Culture)!;
 
-            internal override async Task<Solution> GetModifiedSolutionAsync(Document document, OptionSet _, CancellationToken cancellationToken)
+            internal override async Task<Solution> GetModifiedSolutionAsync(Document document, DocumentRenameOptions options, CancellationToken cancellationToken)
             {
                 var changeNamespaceService = document.GetRequiredLanguageService<IChangeNamespaceService>();
-                var solution = await changeNamespaceService.TryChangeTopLevelNamespacesAsync(document, _analysis.TargetNamespace, cancellationToken).ConfigureAwait(false);
+                var solution = await changeNamespaceService.TryChangeTopLevelNamespacesAsync(document, _analysis.TargetNamespace, _fallbackOptions, cancellationToken).ConfigureAwait(false);
 
                 // If the solution fails to update fail silently. The user will see no large
                 // negative impact from not doing this modification, and it's possible the document
@@ -49,13 +53,13 @@ namespace Microsoft.CodeAnalysis.Rename
                 return solution ?? document.Project.Solution;
             }
 
-            public static SyncNamespaceDocumentAction? TryCreate(Document document, IReadOnlyList<string> newFolders, CancellationToken _)
+            public static SyncNamespaceDocumentAction? TryCreate(Document document, IReadOnlyList<string> newFolders, CodeCleanupOptionsProvider fallbackOptions)
             {
                 var analysisResult = Analyze(document, newFolders);
 
                 if (analysisResult.HasValue)
                 {
-                    return new SyncNamespaceDocumentAction(analysisResult.Value);
+                    return new SyncNamespaceDocumentAction(analysisResult.Value, fallbackOptions);
                 }
 
                 return null;
@@ -68,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 if (document.Project.Language == LanguageNames.CSharp)
                 {
                     var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-                    var targetNamespace = WorkspacePathUtilities.TryBuildNamespaceFromFolders(newFolders, syntaxFacts);
+                    var targetNamespace = PathMetadataUtilities.TryBuildNamespaceFromFolders(newFolders, syntaxFacts, document.Project.DefaultNamespace);
 
                     if (targetNamespace is null)
                     {
@@ -83,14 +87,9 @@ namespace Microsoft.CodeAnalysis.Rename
                 }
             }
 
-            private readonly struct AnalysisResult
+            private readonly struct AnalysisResult(string targetNamespace)
             {
-                public string TargetNamespace { get; }
-
-                public AnalysisResult(string targetNamespace)
-                {
-                    TargetNamespace = targetNamespace;
-                }
+                public string TargetNamespace { get; } = targetNamespace;
             }
         }
     }

@@ -330,6 +330,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                     // The point that continues dispatch is not reachable. Cancel the dispatch.
                                     return;
                                 }
+
                                 break;
 
                             case ControlFlowRegionKind.TryAndCatch:
@@ -357,7 +358,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                             continue;
                         }
 
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                     }
 
                     fromRegion = enclosing;

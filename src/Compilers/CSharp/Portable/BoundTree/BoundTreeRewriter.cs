@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal abstract partial class BoundTreeRewriter : BoundTreeVisitor
     {
-        [return: NotNullIfNotNull("type")]
+        [return: NotNullIfNotNull(nameof(type))]
         public virtual TypeSymbol? VisitType(TypeSymbol? type)
         {
             return type;
@@ -75,6 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected int RecursionDepth => _recursionDepth;
 
+        [return: NotNullIfNotNull(nameof(node))]
         public override BoundNode? Visit(BoundNode? node)
         {
             var expression = node as BoundExpression;
@@ -142,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var right = (BoundExpression?)this.Visit(binary.Right);
                 Debug.Assert(right is { });
                 var type = this.VisitType(binary.Type);
-                left = binary.Update(binary.OperatorKind, binary.ConstantValueOpt, binary.MethodOpt, binary.ResultKind, binary.OriginalUserDefinedOperatorsOpt, left, right, type);
+                left = binary.Update(binary.OperatorKind, binary.Data, binary.ResultKind, left, right, type);
             }
             while (stack.Count > 0);
 

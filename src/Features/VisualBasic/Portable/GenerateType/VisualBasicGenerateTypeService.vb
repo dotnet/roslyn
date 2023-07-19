@@ -5,13 +5,14 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 Imports Microsoft.CodeAnalysis.GenerateType
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Utilities
@@ -431,7 +432,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                 Dim containerList = New List(Of String)(containers)
                 Dim enclosingNamespace = GetDeclaringNamespace(containerList, 0, compilationUnit)
                 If enclosingNamespace IsNot Nothing Then
-                    Dim enclosingNamespaceSymbol = semanticModel.GetSymbolInfo(enclosingNamespace.Name)
+                    Dim enclosingNamespaceSymbol = semanticModel.GetSymbolInfo(enclosingNamespace.Name, cancellationToken)
                     If enclosingNamespaceSymbol.Symbol IsNot Nothing Then
                         Return (DirectCast(enclosingNamespaceSymbol.Symbol, INamespaceSymbol),
                                 namedTypeSymbol,
@@ -453,7 +454,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             Return (globalNamespace, rootNamespaceOrType, afterThisLocation)
         End Function
 
-        Private Function GetDeclaringNamespace(containers As List(Of String), indexDone As Integer, compilationUnit As CompilationUnitSyntax) As NamespaceStatementSyntax
+        Private Shared Function GetDeclaringNamespace(containers As List(Of String), indexDone As Integer, compilationUnit As CompilationUnitSyntax) As NamespaceStatementSyntax
             For Each member In compilationUnit.Members
                 Dim namespaceDeclaration = GetDeclaringNamespace(containers, indexDone, member)
                 If namespaceDeclaration IsNot Nothing Then
@@ -464,7 +465,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             Return Nothing
         End Function
 
-        Private Function GetDeclaringNamespace(containers As List(Of String), indexDone As Integer, localRoot As SyntaxNode) As NamespaceStatementSyntax
+        Private Shared Function GetDeclaringNamespace(containers As List(Of String), indexDone As Integer, localRoot As SyntaxNode) As NamespaceStatementSyntax
             Dim namespaceBlock = TryCast(localRoot, NamespaceBlockSyntax)
             If namespaceBlock IsNot Nothing Then
                 Dim matchingNamesCount = MatchingNamesFromNamespaceName(containers, indexDone, namespaceBlock.NamespaceStatement)
@@ -493,7 +494,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
 
         End Function
 
-        Private Function MatchingNamesFromNamespaceName(containers As List(Of String), indexDone As Integer, namespaceStatementSyntax As NamespaceStatementSyntax) As Integer
+        Private Shared Function MatchingNamesFromNamespaceName(containers As List(Of String), indexDone As Integer, namespaceStatementSyntax As NamespaceStatementSyntax) As Integer
 
             If namespaceStatementSyntax Is Nothing Then
                 Return -1
@@ -520,7 +521,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             Return True
         End Function
 
-        Private Sub GetNamespaceContainers(name As NameSyntax, namespaceContainers As List(Of String))
+        Private Shared Sub GetNamespaceContainers(name As NameSyntax, namespaceContainers As List(Of String))
             If TypeOf name Is QualifiedNameSyntax Then
                 GetNamespaceContainers(DirectCast(name, QualifiedNameSyntax).Left, namespaceContainers)
                 namespaceContainers.Add(DirectCast(name, QualifiedNameSyntax).Right.Identifier.ValueText)
@@ -562,10 +563,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
         Friend Overrides Function IsPublicOnlyAccessibility(expression As ExpressionSyntax, project As Project) As Boolean
             If expression Is Nothing Then
                 Return False
-            End If
-
-            If GeneratedTypesMustBePublic(project) Then
-                Return True
             End If
 
             Dim node As SyntaxNode = expression
@@ -623,17 +620,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             Return TypeOf expression Is SimpleNameSyntax
         End Function
 
-        Friend Overrides Async Function TryAddUsingsOrImportToDocumentAsync(updatedSolution As Solution, modifiedRoot As SyntaxNode, document As Document, simpleName As SimpleNameSyntax, includeUsingsOrImports As String, cancellationToken As CancellationToken) As Task(Of Solution)
+        Friend Overrides Async Function TryAddUsingsOrImportToDocumentAsync(
+                updatedSolution As Solution,
+                modifiedRoot As SyntaxNode,
+                document As Document,
+                simpleName As SimpleNameSyntax,
+                includeUsingsOrImports As String,
+                fallbackOptions As AddImportPlacementOptionsProvider,
+                cancellationToken As CancellationToken) As Task(Of Solution)
+
             ' Nothing to include
             If String.IsNullOrWhiteSpace(includeUsingsOrImports) Then
                 Return updatedSolution
             End If
 
-            Dim documentOptions = Await document.GetOptionsAsync(cancellationToken).ConfigureAwait(False)
-            Dim placeSystemNamespaceFirst = documentOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst)
-
             Dim root As SyntaxNode = Nothing
-            If (modifiedRoot Is Nothing) Then
+            If modifiedRoot Is Nothing Then
                 root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Else
                 root = modifiedRoot
@@ -670,7 +672,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                     Return updatedSolution
                 End If
 
-                Dim addedCompilationRoot = compilationRoot.AddImportsStatement(newImport, placeSystemNamespaceFirst, Formatter.Annotation, Simplifier.Annotation)
+                Dim addImportOptions = Await document.GetAddImportPlacementOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(False)
+                Dim addedCompilationRoot = compilationRoot.AddImportsStatement(newImport, addImportOptions.PlaceSystemNamespaceFirst, Formatter.Annotation, Simplifier.Annotation)
                 updatedSolution = updatedSolution.WithDocumentSyntaxRoot(document.Id, addedCompilationRoot, PreservationMode.PreserveIdentity)
             End If
 
@@ -686,6 +689,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             If fieldInitializer IsNot Nothing Then
                 Return typeInference.InferType(semanticModel, fieldInitializer.Name, True, cancellationToken)
             End If
+
             Return Nothing
         End Function
 

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -14,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeFieldReadonly
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MakeFieldReadonly), Shared]
     internal class CSharpMakeFieldReadonlyCodeFixProvider : AbstractMakeFieldReadonlyCodeFixProvider<VariableDeclaratorSyntax, FieldDeclarationSyntax>
     {
         [ImportingConstructor]
@@ -23,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeFieldReadonly
         {
         }
 
-        protected override SyntaxNode GetInitializerNode(VariableDeclaratorSyntax declaration)
+        protected override SyntaxNode? GetInitializerNode(VariableDeclaratorSyntax declaration)
             => declaration.Initializer?.Value;
 
         protected override ImmutableList<VariableDeclaratorSyntax> GetVariableDeclarators(FieldDeclarationSyntax fieldDeclaration)

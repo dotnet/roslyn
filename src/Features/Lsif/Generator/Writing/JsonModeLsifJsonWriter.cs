@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph;
 using Newtonsoft.Json;
@@ -41,6 +42,15 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing
             lock (_writeGate)
             {
                 _jsonSerializer.Serialize(_jsonTextWriter, element);
+            }
+        }
+
+        public void WriteAll(List<Element> elements)
+        {
+            lock (_writeGate)
+            {
+                foreach (var element in elements)
+                    _jsonSerializer.Serialize(_jsonTextWriter, element);
             }
         }
 

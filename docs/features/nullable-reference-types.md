@@ -92,7 +92,7 @@ Invocation of methods annotated with the following attributes will also affect f
 - `[DoesNotReturnIf(bool)]` (e.g. `[DoesNotReturnIf(false)]` for `Debug.Assert`) and `[DoesNotReturn]`
 - `[NotNullIfNotNull(string)]`
  - member post-conditions: `[MemberNotNull(params string[])]` and `[MemberNotNullWhen(bool, params string[])]`
-See https://github.com/dotnet/csharplang/blob/master/meetings/2019/LDM-2019-05-15.md
+See https://github.com/dotnet/csharplang/blob/main/meetings/2019/LDM-2019-05-15.md
 
 The `Interlocked.CompareExchange` methods have special handling in flow analysis instead of being annotated due to the complexity of their nullability semantics. The affected overloads include:
 - `static object? System.Threading.Interlocked.CompareExchange(ref object? location, object? value, object? comparand)`
@@ -203,7 +203,7 @@ var z = (IEnumerable<object?>)x; // no warning
 
 ### Method type inference
 
-We modify the spec rule for [Fixing](https://github.com/dotnet/csharplang/blob/master/spec/expressions.md#fixing "Fixing") to take account of types that may be equivalent (i.e. have an identity conversion) yet may not be identical in the set of bounds. The existing spec says (third bullet)
+We modify the spec rule for [Fixing](https://github.com/dotnet/csharplang/blob/main/spec/expressions.md#fixing "Fixing") to take account of types that may be equivalent (i.e. have an identity conversion) yet may not be identical in the set of bounds. The existing spec says (third bullet)
 
 > If among the remaining candidate types `Uj` there is a unique type `V` from which there is an implicit conversion to all the other candidate types, then `Xi` is fixed to `V`.
 
@@ -297,7 +297,7 @@ This is not yet reflected in the language specification for nullable reference t
 ## Type parameters
 A `class?` constraint is allowed, which, like class, requires the type argument to be a reference type, but allows it to be nullable.
 [Nullable strawman](https://github.com/dotnet/csharplang/issues/790)
-[4/25/18](https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-04-25.md)
+[4/25/18](https://github.com/dotnet/csharplang/blob/main/meetings/2018/LDM-2018-04-25.md)
 
 Explicit `object` (or `System.Object`) constraints of any nullability are disallowed. However, type substitution can lead to
 `object!` or `object~` constraints to appear among the constraint types, when their nullability is significant by comparison to
@@ -307,16 +307,16 @@ An unconstrained (here it means - no type constraints, and no `class`, `struct`,
 equivalent to one constrained by `object?` when it is declared in a context where nullable annotations are enabled. If annotations are disabled,
 the type parameter is essentially equivalent to one constrained by `object~`. The context is determined at the identifier that declares the type
 parameter within a type parameter list.
-[4/25/18](https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-04-25.md)
+[4/25/18](https://github.com/dotnet/csharplang/blob/main/meetings/2018/LDM-2018-04-25.md)
 Note, the `object`/`System.Object` constraint is represented in metadata as any other type constraint, the type is System.Object.
 
 An explicit `notnull` constraint is allowed, which requires the type to be non-nullable (value or reference type).
-[5/15/19](https://github.com/dotnet/csharplang/blob/master/meetings/2019/LDM-2019-05-15.md)
+[5/15/19](https://github.com/dotnet/csharplang/blob/main/meetings/2019/LDM-2019-05-15.md)
 The rules to determine when it is a named type constraint or a special `notnull` constraint are similar to rules for `unmanaged`. Similarly, it is valid only
 at the first position in constraints list.
 
 A warning is reported for nullable type argument for type parameter with `class` constraint or non-nullable reference type or interface type constraint.
-[4/25/18](https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-04-25.md)
+[4/25/18](https://github.com/dotnet/csharplang/blob/main/meetings/2018/LDM-2018-04-25.md)
 ```c#
 static void F1<T>() where T : class { }
 static void F2<T>() where T : Stream { }
@@ -326,7 +326,7 @@ F2<Stream?>(); // warning
 F3<Stream?>(); // warning
 ```
 Type parameter constraints may include nullable reference type and interface types.
-[4/25/18](https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-04-25.md)
+[4/25/18](https://github.com/dotnet/csharplang/blob/main/meetings/2018/LDM-2018-04-25.md)
 ```c#
 static void F2<T> where T : Stream? { }
 static void F3<T>() where T : IDisposable? { }
@@ -334,7 +334,7 @@ F2<Stream?>(); // ok
 F3<Stream?>(); // ok
 ```
 A warning is reported for inconsistent top-level nullability of constraint types.
-[4/25/18](https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-04-25.md)
+[4/25/18](https://github.com/dotnet/csharplang/blob/main/meetings/2018/LDM-2018-04-25.md)
 ```c#
 static void F4<T> where T : class, Stream? { } // warning
 static void F5<T> where T : Stream?, IDisposable { } // warning

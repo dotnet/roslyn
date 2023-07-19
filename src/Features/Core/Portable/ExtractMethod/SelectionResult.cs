@@ -5,7 +5,7 @@
 #nullable disable
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             OperationStatus status,
             TextSpan originalSpan,
             TextSpan finalSpan,
-            OptionSet options,
+            ExtractMethodOptions options,
             bool selectionInExpression,
             SemanticDocument document,
             SyntaxAnnotation firstTokenAnnotation,
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         public OperationStatus Status { get; }
         public TextSpan OriginalSpan { get; }
         public TextSpan FinalSpan { get; }
-        public OptionSet Options { get; }
+        public ExtractMethodOptions Options { get; }
         public bool SelectionInExpression { get; }
         public SemanticDocument SemanticDocument { get; private set; }
         public SyntaxAnnotation FirstTokenAnnotation { get; }
@@ -118,6 +118,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         {
             var firstToken = GetFirstTokenInSelection();
             var lastToken = GetLastTokenInSelection();
+            var syntaxFacts = SemanticDocument.Project.Services.GetService<ISyntaxFactsService>();
 
             for (var currentToken = firstToken;
                 currentToken.Span.End < lastToken.SpanStart;
@@ -129,7 +130,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 //
                 // for the case above, even if the selection contains "await", it doesn't belong to the enclosing block
                 // which extract method is applied to
-                if (SemanticDocument.Project.LanguageServices.GetService<ISyntaxFactsService>().IsAwaitKeyword(currentToken)
+                if (syntaxFacts.IsAwaitKeyword(currentToken)
                     && !UnderAnonymousOrLocalMethod(currentToken, firstToken, lastToken))
                 {
                     return true;
@@ -141,6 +142,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
         public bool ShouldCallConfigureAwaitFalse()
         {
+            var syntaxFacts = SemanticDocument.Project.Services.GetService<ISyntaxFactsService>();
+
             var firstToken = GetFirstTokenInSelection();
             var lastToken = GetLastTokenInSelection();
 
@@ -149,56 +152,34 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             foreach (var node in SemanticDocument.Root.DescendantNodesAndSelf())
             {
                 if (!node.Span.OverlapsWith(span))
-                {
                     continue;
-                }
 
                 if (IsConfigureAwaitFalse(node) && !UnderAnonymousOrLocalMethod(node.GetFirstToken(), firstToken, lastToken))
-                {
                     return true;
-                }
             }
 
             return false;
-        }
 
-        private bool IsConfigureAwaitFalse(SyntaxNode node)
-        {
-            var syntaxFacts = SemanticDocument.Project.LanguageServices.GetService<ISyntaxFactsService>();
-            if (!syntaxFacts.IsInvocationExpression(node))
+            bool IsConfigureAwaitFalse(SyntaxNode node)
             {
-                return false;
-            }
+                if (!syntaxFacts.IsInvocationExpression(node))
+                    return false;
 
-            var invokedExpression = syntaxFacts.GetExpressionOfInvocationExpression(node);
-            if (!syntaxFacts.IsSimpleMemberAccessExpression(invokedExpression))
-            {
-                return false;
-            }
+                var invokedExpression = syntaxFacts.GetExpressionOfInvocationExpression(node);
+                if (!syntaxFacts.IsSimpleMemberAccessExpression(invokedExpression))
+                    return false;
 
-            var name = syntaxFacts.GetNameOfMemberAccessExpression(invokedExpression);
-            var identifier = syntaxFacts.GetIdentifierOfSimpleName(name);
-            if (!syntaxFacts.StringComparer.Equals(identifier.ValueText, nameof(Task.ConfigureAwait)))
-            {
-                return false;
-            }
+                var name = syntaxFacts.GetNameOfMemberAccessExpression(invokedExpression);
+                var identifier = syntaxFacts.GetIdentifierOfSimpleName(name);
+                if (!syntaxFacts.StringComparer.Equals(identifier.ValueText, nameof(Task.ConfigureAwait)))
+                    return false;
 
-            var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(node);
-            if (arguments.Count != 1)
-            {
-                return false;
-            }
+                var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(node);
+                if (arguments.Count != 1)
+                    return false;
 
-            var argument = arguments[0];
-            var expression = syntaxFacts.GetExpressionOfArgument(argument);
-            return syntaxFacts.IsFalseLiteralExpression(expression);
-        }
-
-        public bool DontPutOutOrRefOnStruct
-        {
-            get
-            {
-                return Options.GetOption(ExtractMethodOptions.DontPutOutOrRefOnStruct, SemanticDocument.Project.Language);
+                var expression = syntaxFacts.GetExpressionOfArgument(arguments[0]);
+                return syntaxFacts.IsFalseLiteralExpression(expression);
             }
         }
     }

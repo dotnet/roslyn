@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -261,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             }
             catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             return default;
@@ -306,6 +307,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             var rpc = new JsonRpc(new HeaderDelimitedMessageHandler(stream, jsonFormatter))
             {
                 CancelLocallyInvokedMethodsWhenConnectionIsClosed = true,
+                ExceptionStrategy = ExceptionProcessing.ISerializable,
             };
 
             if (incomingCallTarget != null)
@@ -335,10 +337,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 var newService = CreateRemoteService(options, skipInitialization: false);
 
                 var oldService = Interlocked.Exchange(ref _lazyRemoteService, newService);
-                if (oldService != null)
-                {
-                    oldService.Dispose();
-                }
+                oldService?.Dispose();
 
                 var initializedService = await TryGetOrCreateRemoteServiceAsync().ConfigureAwait(false);
                 if (initializedService.Service == null)
@@ -350,7 +349,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             }
             catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -400,10 +399,10 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// <summary>
         /// Sets the current session's search paths and base directory.
         /// </summary>
-        public Task<RemoteExecutionResult> SetPathsAsync(string[] referenceSearchPaths, string[] sourceSearchPaths, string baseDirectory)
+        public Task<RemoteExecutionResult> SetPathsAsync(ImmutableArray<string> referenceSearchPaths, ImmutableArray<string> sourceSearchPaths, string baseDirectory)
         {
-            Contract.ThrowIfNull(referenceSearchPaths);
-            Contract.ThrowIfNull(sourceSearchPaths);
+            Contract.ThrowIfTrue(referenceSearchPaths.IsDefault);
+            Contract.ThrowIfTrue(sourceSearchPaths.IsDefault);
             Contract.ThrowIfNull(baseDirectory);
 
             return ExecuteRemoteAsync(nameof(Service.SetPathsAsync), referenceSearchPaths, sourceSearchPaths, baseDirectory);

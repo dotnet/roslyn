@@ -21,6 +21,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim propertySymbol = DirectCast(accessor.AssociatedSymbol, PropertySymbol)
 
             Dim syntax = DirectCast(VisualBasic.VisualBasicSyntaxTree.Dummy.GetRoot(), VisualBasicSyntaxNode)
+
+            If propertySymbol.Type.IsVoidType Then
+                ' An error is reported elsewhere
+                Return (New BoundBlock(syntax, Nothing, ImmutableArray(Of LocalSymbol).Empty, ImmutableArray(Of BoundStatement).Empty, hasErrors:=True)).MakeCompilerGenerated()
+            End If
+
             Dim meSymbol As ParameterSymbol = Nothing
             Dim meReference As BoundExpression = Nothing
 
@@ -292,7 +298,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     (New BoundExpressionStatement(
                         syntax,
                         valueSettingExpression).MakeCompilerGenerated()))
-
 
                 ' after setting new event source, hookup handlers
                 If eventsToHookup IsNot Nothing Then

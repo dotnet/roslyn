@@ -187,6 +187,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Throw ExceptionUtilities.Unreachable
             End Get
         End Property
+
+        Friend Overrides ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
+            Get
+                Throw ExceptionUtilities.Unreachable
+            End Get
+        End Property
 #End Region
     End Class
 End Namespace

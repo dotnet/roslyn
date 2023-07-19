@@ -19,6 +19,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
                 SyntaxKind.TypeParameter)
 
         Protected Overrides Function ShouldIgnore(symbol As ISymbol) As Boolean
+            If symbol.IsExtern Then
+                ' Extern symbols are mainly P/Invoke And runtime invoke, probably requiring their name
+                ' to match external definition exactly.
+                ' Simply ignoring them.
+                Return True
+            End If
+
             Return False
         End Function
     End Class

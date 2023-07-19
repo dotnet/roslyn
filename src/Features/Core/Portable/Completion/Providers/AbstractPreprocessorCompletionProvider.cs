@@ -6,29 +6,22 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
+namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractPreprocessorCompletionProvider : LSPCompletionProvider
     {
-        protected abstract Task<SyntaxContext> CreateContextAsync(Workspace workspace, SemanticModel semanticModel, int position, System.Threading.CancellationToken cancellationToken);
-
         public sealed override async Task ProvideCompletionsAsync(CompletionContext context)
         {
             var cancellationToken = context.CancellationToken;
             var originatingDocument = context.Document;
             var position = context.Position;
-
-            var semanticModel = await originatingDocument.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-
             var solution = originatingDocument.Project.Solution;
-            var syntaxContext = await CreateContextAsync(solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(false);
+            var syntaxContext = await context.GetSyntaxContextWithExistingSpeculativeModelAsync(originatingDocument, cancellationToken).ConfigureAwait(false);
             if (!syntaxContext.IsPreProcessorExpressionContext)
                 return;
 

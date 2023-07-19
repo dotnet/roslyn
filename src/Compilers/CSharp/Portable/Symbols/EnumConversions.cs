@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case DeclarationKind.Class:
                 case DeclarationKind.Script:
                 case DeclarationKind.ImplicitClass:
-                case DeclarationKind.SimpleProgram:
                 case DeclarationKind.Record:
                     return TypeKind.Class;
 
@@ -34,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return TypeKind.Interface;
 
                 case DeclarationKind.Struct:
+                case DeclarationKind.RecordStruct:
                     return TypeKind.Struct;
 
                 default:

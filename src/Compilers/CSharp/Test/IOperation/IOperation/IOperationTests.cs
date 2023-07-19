@@ -15,7 +15,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     [CompilerTrait(CompilerFeature.IOperation)]
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.RefLocalsReturns)]
         [Fact]
@@ -695,7 +695,7 @@ class C
             }
         }
 
-        [Fact, WorkItem(45955, "https://github.com/dotnet/roslyn/issues/45955")]
+        [ConditionalFact(typeof(NoIOperationValidation)), WorkItem(45955, "https://github.com/dotnet/roslyn/issues/45955")]
         public void SemanticModelFieldInitializerRace()
         {
             var source = $@"

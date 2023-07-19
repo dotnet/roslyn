@@ -4,6 +4,8 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -43,13 +45,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static ImmutableArray<IParameterSymbol> RenameParameters(this IList<IParameterSymbol> parameters, ImmutableArray<string> parameterNames)
         {
-            var result = ArrayBuilder<IParameterSymbol>.GetInstance();
+            using var _ = ArrayBuilder<IParameterSymbol>.GetInstance(parameters.Count, out var result);
             for (var i = 0; i < parameterNames.Length; i++)
-            {
                 result.Add(parameters[i].RenameParameter(parameterNames[i]));
-            }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutableAndClear();
         }
     }
 }

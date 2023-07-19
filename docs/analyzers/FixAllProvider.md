@@ -54,7 +54,7 @@ Selecting an Equivalence key for code actions
 Each unique equivalence key for a code fixer defines a unique equivalence class of code actions. Equivalence key of the trigger code action is part of the `FixAllContext` and is used to determine the FixAll occurrences code fix.
 Normally, you can use the **'title'** of the code action as the equivalence key. However, there are cases where you may desire to have different values. Let us take an example to get a better understanding.
 
-Let us consider the [C# SimplifyTypeNamesCodeFixProvider](https://github.com/dotnet/roslyn/blob/master/src/Features/CSharp/Portable/SimplifyTypeNames/SimplifyTypeNamesCodeFixProvider.cs) that registers multiple code actions and also has FixAll support. This code fixer offers fixes to simplify the following expressions:
+Let us consider the [C# SimplifyTypeNamesCodeFixProvider](https://github.com/dotnet/roslyn/blob/main/src/Features/CSharp/Portable/SimplifyTypeNames/SimplifyTypeNamesCodeFixProvider.cs) that registers multiple code actions and also has FixAll support. This code fixer offers fixes to simplify the following expressions:
  - `this` expressions of the form 'this.x' to 'x'.
  - Qualified type names of the form 'A.B' to 'B'.
  - Member access expressions of the form 'A.M' to 'M'.
@@ -69,7 +69,7 @@ It uses the below equivalence keys for its registered code actions to get the de
  - Qualified type name simplification: Formatted resource string "Simplify type name A.B", which explicitly includes the contents of the node being simplified.
  - Member access expressions: Formatted resource string "Simplify type name A.M", which explicitly includes the contents of the node being simplified.
 
-Note that '`this` expression simplification' fix requires a different kind of an equivalence class from the other two simplifications. See method [GetCodeActionId](https://github.com/dotnet/roslyn/blob/master/src/Features/Core/Portable/ImplementAbstractClass/AbstractImplementAbstractClassCodeFixProvider.cs) for the actual implementation.
+Note that '`this` expression simplification' fix requires a different kind of an equivalence class from the other two simplifications. See method [GetCodeActionId](https://github.com/dotnet/roslyn/blob/main/src/Features/Core/Portable/ImplementAbstractClass/AbstractImplementAbstractClassCodeFixProvider.cs) for the actual implementation.
 
 To summarize, use the equivalence key that best suits the category of fixes to be applied as part of a FixAll operation.
 
@@ -117,4 +117,4 @@ Following guidelines should help in the implementation:
  - **GetSupportedFixAllScopes:** Virtual method to get all the supported FixAll scopes. By default, it returns all the three supported scopes: document, project and solution scopes. Generally, you need not override this method. However, you may do so if you wish to support a subset of these scopes.
  - **GetSupportedFixAllDiagnosticIds:** Virtual method to get all the fixable diagnostic ids. By default, it returns the underlying code fixer's `FixableDiagnosticIds`. Generally, you need not override this method. However, you may do so if you wish to support FixAll only for a subset of these ids.
 
-See [DeclarePublicAPIFix](https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/Core/CodeFixes/DeclarePublicApiFix.cs) for an example implementation of a custom FixAllProvider.
+See [DeclarePublicAPIFix](https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/Core/CodeFixes/DeclarePublicApiFix.cs) for an example implementation of a custom FixAllProvider.

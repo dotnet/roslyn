@@ -48,16 +48,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 
             Dim componentModel = DirectCast(serviceProvider.GetService(GetType(SComponentModel)), IComponentModel)
 
-            ProjectCodeModel = componentModel.GetService(Of IProjectCodeModelFactory).CreateProjectCodeModel(VisualStudioProject.Id, New VisualBasicCodeModelInstanceFactory(Me))
-            VisualStudioProjectOptionsProcessor = New OptionsProcessor(VisualStudioProject, Workspace.Services)
+            ProjectCodeModel = componentModel.GetService(Of IProjectCodeModelFactory).CreateProjectCodeModel(ProjectSystemProject.Id, New VisualBasicCodeModelInstanceFactory(Me))
+            VisualStudioProjectOptionsProcessor = New OptionsProcessor(ProjectSystemProject, Workspace.Services.SolutionServices)
         End Sub
 
         Private Shadows Property VisualStudioProjectOptionsProcessor As OptionsProcessor
             Get
-                Return DirectCast(MyBase.VisualStudioProjectOptionsProcessor, OptionsProcessor)
+                Return DirectCast(MyBase.ProjectSystemProjectOptionsProcessor, OptionsProcessor)
             End Get
             Set(value As OptionsProcessor)
-                MyBase.VisualStudioProjectOptionsProcessor = value
+                MyBase.ProjectSystemProjectOptionsProcessor = value
             End Set
         End Property
 
@@ -70,7 +70,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         End Sub
 
         Public Function AddEmbeddedMetaDataReference(wszFileName As String) As Integer Implements IVbCompilerProject.AddEmbeddedMetaDataReference
-            VisualStudioProject.AddMetadataReference(wszFileName, New MetadataReferenceProperties(embedInteropTypes:=True))
+            ProjectSystemProject.AddMetadataReference(wszFileName, New MetadataReferenceProperties(embedInteropTypes:=True))
             Return VSConstants.S_OK
         End Function
 
@@ -80,7 +80,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                 _explicitlyAddedRuntimeLibraries.Add(wszFileName)
                 Return VSConstants.S_OK
             Else
-                VisualStudioProject.AddMetadataReference(wszFileName, MetadataReferenceProperties.Assembly)
+                ProjectSystemProject.AddMetadataReference(wszFileName, MetadataReferenceProperties.Assembly)
                 Return VSConstants.S_OK
             End If
         End Function
@@ -94,7 +94,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                 Throw New ArgumentException("Unknown type of IVbCompilerProject.", NameOf(pReferencedCompilerProject))
             End If
 
-            VisualStudioProject.AddProjectReference(New ProjectReference(referencedProject.VisualStudioProject.Id, embedInteropTypes:=True))
+            ProjectSystemProject.AddProjectReference(New ProjectReference(referencedProject.ProjectSystemProject.Id, embedInteropTypes:=True))
         End Sub
 
         Public Shadows Sub AddFile(wszFileName As String, itemid As UInteger, fAddDuringOpen As Boolean) Implements IVbCompilerProject.AddFile
@@ -114,7 +114,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                 Throw New ArgumentException("Unknown type of IVbCompilerProject.", NameOf(pReferencedCompilerProject))
             End If
 
-            VisualStudioProject.AddProjectReference(New ProjectReference(referencedProject.VisualStudioProject.Id))
+            ProjectSystemProject.AddProjectReference(New ProjectReference(referencedProject.ProjectSystemProject.Id))
         End Sub
 
         Public Sub AddResourceReference(wszFileName As String, wszName As String, fPublic As Boolean, fEmbed As Boolean) Implements IVbCompilerProject.AddResourceReference
@@ -198,7 +198,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         End Function
 
         Public Sub GetEntryPointsList(cItems As Integer, strList() As String, ByVal pcActualItems As IntPtr) Implements IVbCompilerProject.GetEntryPointsList
-            Dim project = Workspace.CurrentSolution.GetProject(VisualStudioProject.Id)
+            Dim project = Workspace.CurrentSolution.GetProject(ProjectSystemProject.Id)
             Dim compilation = project.GetCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None)
 
             GetEntryPointsWorker(compilation, cItems, strList, pcActualItems, findFormsOnly:=False)
@@ -210,8 +210,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                                                ByVal pcActualItems As IntPtr,
                                                findFormsOnly As Boolean)
 
+            Dim entryPoints = EntryPointFinder.FindEntryPoints(compilation.SourceModule.GlobalNamespace, findFormsOnly:=findFormsOnly)
+
             ' If called with cItems = 0 and pcActualItems != NULL, GetEntryPointsList returns in pcActualItems the number of items available.
-            Dim entryPoints = EntryPointFinder.FindEntryPoints(compilation.Assembly.GlobalNamespace, findFormsOnly:=findFormsOnly)
             If cItems = 0 AndAlso pcActualItems <> Nothing Then
                 Marshal.WriteInt32(pcActualItems, entryPoints.Count())
                 Exit Sub
@@ -269,7 +270,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                 Return
             End If
 
-            VisualStudioProject.RemoveMetadataReference(wszFileName, VisualStudioProject.GetPropertiesForMetadataReference(wszFileName).Single())
+            ProjectSystemProject.RemoveMetadataReference(wszFileName, ProjectSystemProject.GetPropertiesForMetadataReference(wszFileName).Single())
         End Sub
 
         Public Shadows Sub RemoveProjectReference(pReferencedCompilerProject As IVbCompilerProject) Implements IVbCompilerProject.RemoveProjectReference
@@ -281,8 +282,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                 Throw New ArgumentException("Unknown type of IVbCompilerProject.", NameOf(pReferencedCompilerProject))
             End If
 
-            Dim projectReference = VisualStudioProject.GetProjectReferences().Single(Function(p) p.ProjectId = referencedProject.VisualStudioProject.Id)
-            VisualStudioProject.RemoveProjectReference(projectReference)
+            Dim projectReference = ProjectSystemProject.GetProjectReferences().Single(Function(p) p.ProjectId = referencedProject.ProjectSystemProject.Id)
+            ProjectSystemProject.RemoveProjectReference(projectReference)
         End Sub
 
         Public Sub RenameDefaultNamespace(bstrDefaultNamespace As String) Implements IVbCompilerProject.RenameDefaultNamespace
@@ -314,16 +315,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             VisualStudioProjectOptionsProcessor.SetNewRawOptions(pCompilerOptions)
 
             If Not String.IsNullOrEmpty(pCompilerOptions.wszExeName) Then
-                VisualStudioProject.AssemblyName = Path.GetFileNameWithoutExtension(pCompilerOptions.wszExeName)
+                ProjectSystemProject.AssemblyName = Path.GetFileNameWithoutExtension(pCompilerOptions.wszExeName)
 
                 ' Some legacy projects (e.g. Venus IntelliSense project) set '\' as the wszOutputPath.
                 ' /src/venus/project/vb/vbprj/vbintelliproj.cpp
                 ' Ignore paths that are not absolute.
                 If Not String.IsNullOrEmpty(pCompilerOptions.wszOutputPath) Then
                     If PathUtilities.IsAbsolute(pCompilerOptions.wszOutputPath) Then
-                        VisualStudioProject.CompilationOutputAssemblyFilePath = Path.Combine(pCompilerOptions.wszOutputPath, pCompilerOptions.wszExeName)
+                        ProjectSystemProject.CompilationOutputAssemblyFilePath = Path.Combine(pCompilerOptions.wszOutputPath, pCompilerOptions.wszExeName)
                     Else
-                        VisualStudioProject.CompilationOutputAssemblyFilePath = Nothing
+                        ProjectSystemProject.CompilationOutputAssemblyFilePath = Nothing
                     End If
                 End If
             End If
@@ -333,14 +334,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             _runtimeLibraries = VisualStudioProjectOptionsProcessor.GetRuntimeLibraries(_compilerHost)
 
             If Not _runtimeLibraries.SequenceEqual(oldRuntimeLibraries, StringComparer.Ordinal) Then
-                Using batchScope = VisualStudioProject.CreateBatchScope()
+                Using batchScope = ProjectSystemProject.CreateBatchScope()
                     ' To keep things simple, we'll just remove everything and add everything back in
                     For Each oldRuntimeLibrary In oldRuntimeLibraries
                         ' If this one was added explicitly in addition to our computation, we don't have to remove it 
                         If _explicitlyAddedRuntimeLibraries.Contains(oldRuntimeLibrary) Then
                             _explicitlyAddedRuntimeLibraries.Remove(oldRuntimeLibrary)
                         Else
-                            VisualStudioProject.RemoveMetadataReference(oldRuntimeLibrary, MetadataReferenceProperties.Assembly)
+                            ProjectSystemProject.RemoveMetadataReference(oldRuntimeLibrary, MetadataReferenceProperties.Assembly)
                         End If
                     Next
 
@@ -348,10 +349,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                         newRuntimeLibrary = FileUtilities.NormalizeAbsolutePath(newRuntimeLibrary)
 
                         ' If we already reference this, just skip it
-                        If VisualStudioProject.ContainsMetadataReference(newRuntimeLibrary, MetadataReferenceProperties.Assembly) Then
+                        If ProjectSystemProject.ContainsMetadataReference(newRuntimeLibrary, MetadataReferenceProperties.Assembly) Then
                             _explicitlyAddedRuntimeLibraries.Add(newRuntimeLibrary)
                         Else
-                            VisualStudioProject.AddMetadataReference(newRuntimeLibrary, MetadataReferenceProperties.Assembly)
+                            ProjectSystemProject.AddMetadataReference(newRuntimeLibrary, MetadataReferenceProperties.Assembly)
                         End If
                     Next
                 End Using

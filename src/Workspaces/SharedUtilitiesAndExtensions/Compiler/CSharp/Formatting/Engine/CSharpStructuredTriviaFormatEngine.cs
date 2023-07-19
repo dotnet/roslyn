@@ -4,10 +4,10 @@
 
 using System;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public static IFormattingResult Format(
             SyntaxTrivia trivia,
             int initialColumn,
-            AnalyzerConfigOptions options,
+            SyntaxFormattingOptions options,
             ChainedFormattingRules formattingRules,
             CancellationToken cancellationToken)
         {
@@ -28,19 +28,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private CSharpStructuredTriviaFormatEngine(
             SyntaxTrivia trivia,
             int initialColumn,
-            AnalyzerConfigOptions options,
+            SyntaxFormattingOptions options,
             ChainedFormattingRules formattingRules,
-            SyntaxToken token1,
-            SyntaxToken token2)
+            SyntaxToken startToken,
+            SyntaxToken endToken)
             : base(TreeData.Create(trivia, initialColumn),
                    options,
                    formattingRules,
-                   token1,
-                   token2)
+                   startToken,
+                   endToken)
         {
         }
 
-        internal override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
+        internal override IHeaderFacts HeaderFacts => CSharpHeaderFacts.Instance;
 
         protected override AbstractTriviaDataFactory CreateTriviaFactory()
             => new TriviaDataFactory(this.TreeData, this.Options);

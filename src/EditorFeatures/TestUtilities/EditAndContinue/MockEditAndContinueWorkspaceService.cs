@@ -7,51 +7,77 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
-    internal class MockEditAndContinueWorkspaceService : IEditAndContinueWorkspaceService
+    internal delegate void ActionOut<TArg1>(out TArg1 arg);
+    internal delegate void ActionOut<TArg1, TArg2>(TArg1 arg1, out TArg2 arg2);
+
+    [Export(typeof(IEditAndContinueService)), Shared]
+    internal class MockEditAndContinueWorkspaceService : IEditAndContinueService
     {
-        public Func<ImmutableArray<DocumentId>, ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>>? GetBaseActiveStatementSpansAsyncImpl;
-        public Func<Solution, ActiveInstructionId, LinePositionSpan?>? GetCurrentActiveStatementPositionAsyncImpl;
-        public Func<Document, ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>? GetAdjustedDocumentActiveStatementSpansAsyncImpl;
+        public Func<Solution, ImmutableArray<DocumentId>, ImmutableArray<ImmutableArray<ActiveStatementSpan>>>? GetBaseActiveStatementSpansImpl;
 
-        public bool IsDebuggingSessionInProgress => throw new NotImplementedException();
+        public Func<TextDocument, ActiveStatementSpanProvider, ImmutableArray<ActiveStatementSpan>>? GetAdjustedActiveStatementSpansImpl;
+        public Func<Solution, IManagedHotReloadService, IPdbMatchingSourceTextProvider, ImmutableArray<DocumentId>, bool, bool, DebuggingSessionId>? StartDebuggingSessionImpl;
 
-        public void CommitSolutionUpdate() => throw new NotImplementedException();
+        public ActionOut<ImmutableArray<DocumentId>>? EndDebuggingSessionImpl;
+        public Func<Solution, ActiveStatementSpanProvider, EmitSolutionUpdateResults>? EmitSolutionUpdateImpl;
+        public Action<Document>? OnSourceFileUpdatedImpl;
+        public ActionOut<ImmutableArray<DocumentId>>? CommitSolutionUpdateImpl;
+        public ActionOut<bool?, ImmutableArray<DocumentId>>? BreakStateOrCapabilitiesChangedImpl;
+        public Action? DiscardSolutionUpdateImpl;
+        public Func<Document, ActiveStatementSpanProvider, ImmutableArray<Diagnostic>>? GetDocumentDiagnosticsImpl;
 
-        public void DiscardSolutionUpdate() => throw new NotImplementedException();
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public MockEditAndContinueWorkspaceService()
+        {
+        }
 
-        public Task<(SolutionUpdateStatus Summary, ImmutableArray<Deltas> Deltas)> EmitSolutionUpdateAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken) => throw new NotImplementedException();
+        public void BreakStateOrCapabilitiesChanged(DebuggingSessionId sessionId, bool? inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze)
+        {
+            documentsToReanalyze = ImmutableArray<DocumentId>.Empty;
+            BreakStateOrCapabilitiesChangedImpl?.Invoke(inBreakState, out documentsToReanalyze);
+        }
 
-        public void EndDebuggingSession() => throw new NotImplementedException();
+        public void CommitSolutionUpdate(DebuggingSessionId sessionId, out ImmutableArray<DocumentId> documentsToReanalyze)
+        {
+            documentsToReanalyze = ImmutableArray<DocumentId>.Empty;
+            CommitSolutionUpdateImpl?.Invoke(out documentsToReanalyze);
+        }
 
-        public void EndEditSession() => throw new NotImplementedException();
+        public void DiscardSolutionUpdate(DebuggingSessionId sessionId)
+            => DiscardSolutionUpdateImpl?.Invoke();
 
-        public Task<ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>> GetBaseActiveStatementSpansAsync(Solution solution, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
-            => Task.FromResult((GetBaseActiveStatementSpansAsyncImpl ?? throw new NotImplementedException()).Invoke(documentIds));
+        public ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(DebuggingSessionId sessionId, Solution solution, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
+            => new((EmitSolutionUpdateImpl ?? throw new NotImplementedException()).Invoke(solution, activeStatementSpanProvider));
 
-        public Task<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, ActiveInstructionId instructionId, CancellationToken cancellationToken)
-            => Task.FromResult((GetCurrentActiveStatementPositionAsyncImpl ?? throw new NotImplementedException()).Invoke(solution, instructionId));
+        public void EndDebuggingSession(DebuggingSessionId sessionId, out ImmutableArray<DocumentId> documentsToReanalyze)
+        {
+            documentsToReanalyze = ImmutableArray<DocumentId>.Empty;
+            EndDebuggingSessionImpl?.Invoke(out documentsToReanalyze);
+        }
 
-        public Task<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>> GetAdjustedActiveStatementSpansAsync(Document document, DocumentActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
-            => Task.FromResult((GetAdjustedDocumentActiveStatementSpansAsyncImpl ?? throw new NotImplementedException()).Invoke(document));
+        public ValueTask<ImmutableArray<ImmutableArray<ActiveStatementSpan>>> GetBaseActiveStatementSpansAsync(DebuggingSessionId sessionId, Solution solution, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
+            => new((GetBaseActiveStatementSpansImpl ?? throw new NotImplementedException()).Invoke(solution, documentIds));
 
-        public Task<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, DocumentActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken) => throw new NotImplementedException();
+        public ValueTask<ImmutableArray<ActiveStatementSpan>> GetAdjustedActiveStatementSpansAsync(DebuggingSessionId sessionId, TextDocument document, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
+            => new((GetAdjustedActiveStatementSpansImpl ?? throw new NotImplementedException()).Invoke(document, activeStatementSpanProvider));
 
-        public Task<bool> HasChangesAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, string? sourceFilePath, CancellationToken cancellationToken) => throw new NotImplementedException();
+        public ValueTask<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
+            => new((GetDocumentDiagnosticsImpl ?? throw new NotImplementedException()).Invoke(document, activeStatementSpanProvider));
 
-        public Task<bool?> IsActiveStatementInExceptionRegionAsync(Solution solution, ActiveInstructionId instructionId, CancellationToken cancellationToken) => throw new NotImplementedException();
+        public void OnSourceFileUpdated(Document document)
+            => OnSourceFileUpdatedImpl?.Invoke(document);
 
-        public void OnSourceFileUpdated(Document document) => throw new NotImplementedException();
+        public ValueTask<DebuggingSessionId> StartDebuggingSessionAsync(Solution solution, IManagedHotReloadService debuggerService, IPdbMatchingSourceTextProvider sourceTextProvider, ImmutableArray<DocumentId> captureMatchingDocuments, bool captureAllMatchingDocuments, bool reportDiagnostics, CancellationToken cancellationToken)
+            => new((StartDebuggingSessionImpl ?? throw new NotImplementedException()).Invoke(solution, debuggerService, sourceTextProvider, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics));
 
-        public void ReportApplyChangesException(Solution solution, string message) => throw new NotImplementedException();
-
-        public void StartDebuggingSession(Solution solution) => throw new NotImplementedException();
-
-        public void StartEditSession(ActiveStatementProvider activeStatementsProvider) => throw new NotImplementedException();
+        public void SetFileLoggingDirectory(string? logDirectory)
+            => throw new NotImplementedException();
     }
 }

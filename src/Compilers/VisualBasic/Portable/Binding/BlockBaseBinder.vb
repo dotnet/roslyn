@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                       arity As Integer,
                                                       options As LookupOptions,
                                                       originalBinder As Binder,
-                                                      <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
+                                                      <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol))
             ' locals are always arity 0, and never types and namespaces.
             Dim locals = Me.Locals
             Dim localSymbol As T = Nothing
@@ -71,13 +71,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     For Each localSymbol In locals
                         Dim symName = localSymbol.Name
                         If symName Is name OrElse (symName.Length = name.Length And IdentifierComparison.Equals(symName, name)) Then
-                            lookupResult.SetFrom(CheckViability(localSymbol, arity, options, Nothing, useSiteDiagnostics))
+                            lookupResult.SetFrom(CheckViability(localSymbol, arity, options, Nothing, useSiteInfo))
                             Exit For
                         End If
                     Next
                 Else
                     If Me.LocalsMap.TryGetValue(name, localSymbol) Then
-                        lookupResult.SetFrom(CheckViability(localSymbol, arity, options, Nothing, useSiteDiagnostics))
+                        lookupResult.SetFrom(CheckViability(localSymbol, arity, options, Nothing, useSiteInfo))
                     End If
                 End If
             End If

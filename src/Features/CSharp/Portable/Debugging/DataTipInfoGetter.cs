@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
 
                 var token = root.FindToken(position);
 
-                if (!(token.Parent is ExpressionSyntax expression))
+                if (token.Parent is not ExpressionSyntax expression)
                 {
                     return token.IsKind(SyntaxKind.IdentifierToken)
                         ? new DebugDataTipInfo(token.Span, text: null)
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
                     // literal they're hovering over.
                     // Partial semantics should always be sufficient because the (unconverted) type
                     // of a literal can always easily be determined.
-                    var semanticModel = await document.GetPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    var (_, semanticModel) = await document.GetPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                     var type = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
                     return type == null
                         ? default
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
 
                 // NOTE(cyrusn): This behavior is to mimic what we did in Dev10, I'm not sure if it's
                 // necessary or not.
-                if (expression.IsKind(SyntaxKind.InvocationExpression, out InvocationExpressionSyntax invocation))
+                if (expression is InvocationExpressionSyntax invocation)
                 {
                     expression = invocation.Expression;
                 }
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
 
                 return new DebugDataTipInfo(expression.Span, textOpt);
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 return default;
             }

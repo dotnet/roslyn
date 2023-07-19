@@ -4,15 +4,17 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -23,7 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         internal static readonly CSharpSemanticFactsService Instance = new();
 
-        protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
+        public override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
+        public override IBlockFacts BlockFacts => CSharpBlockFacts.Instance;
+
         protected override ISemanticFacts SemanticFacts => CSharpSemanticFacts.Instance;
 
         private CSharpSemanticFactsService()
@@ -39,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var visibleSymbols = semanticModel.LookupSymbols(location.SpanStart);
 
             // Local function parameter is allowed to shadow variables since C# 8.
-            if (((CSharpCompilation)semanticModel.Compilation).LanguageVersion.MapSpecifiedToEffectiveVersion() >= LanguageVersion.CSharp8)
+            if (semanticModel.Compilation.LanguageVersion().MapSpecifiedToEffectiveVersion() >= LanguageVersion.CSharp8)
             {
                 if (SyntaxFacts.IsParameterList(container) && SyntaxFacts.IsLocalFunctionStatement(container.Parent))
                 {
@@ -71,11 +75,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return semanticModel.SyntaxTree.IsExpressionContext(
                 position,
                 semanticModel.SyntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken),
-                attributes: true, cancellationToken: cancellationToken, semanticModelOpt: semanticModel);
+                attributes: true, cancellationToken: cancellationToken, semanticModel: semanticModel);
         }
-
-        public bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken)
-            => node.IsInExpressionTree(semanticModel, expressionTypeOpt, cancellationToken);
 
         public bool IsStatementContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
@@ -115,5 +116,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public CommonConversion ClassifyConversion(SemanticModel semanticModel, SyntaxNode expression, ITypeSymbol destination)
             => semanticModel.ClassifyConversion((ExpressionSyntax)expression, destination).ToCommonConversion();
+
+#nullable enable
+
+        public IMethodSymbol? TryGetDisposeMethod(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+        {
+            var isAsync = false;
+            ExpressionSyntax? expression = null;
+
+            if (node is UsingStatementSyntax usingStatement)
+            {
+                isAsync = usingStatement.AwaitKeyword != default;
+                expression = usingStatement is { Declaration.Variables: [{ Initializer.Value: { } value }] } ? value : usingStatement.Expression;
+            }
+            else if (node is LocalDeclarationStatementSyntax { Declaration.Variables: [{ Initializer.Value: { } value }] } localDeclaration)
+            {
+                isAsync = localDeclaration.AwaitKeyword != default;
+                expression = value;
+            }
+
+            if (expression is null)
+                return null;
+
+            var type = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
+            return FindDisposeMethod(semanticModel.Compilation, type, isAsync);
+        }
     }
 }

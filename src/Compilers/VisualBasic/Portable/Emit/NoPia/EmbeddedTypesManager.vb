@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports System.Collections.Concurrent
 Imports System.Threading
+Imports ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer
 
 #If Not DEBUG Then
 Imports SymbolAdapter = Microsoft.CodeAnalysis.VisualBasic.Symbol
@@ -43,15 +44,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
         Public Function GetSystemStringType(syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As NamedTypeSymbol
             If _lazySystemStringType Is ErrorTypeSymbol.UnknownResultType Then
                 Dim type = ModuleBeingBuilt.Compilation.GetSpecialType(SpecialType.System_String)
-                Dim info = type.GetUseSiteErrorInfo()
+                Dim info = type.GetUseSiteInfo()
 
                 If type.IsErrorType() Then
                     type = Nothing
                 End If
 
                 If TypeSymbol.Equals(Interlocked.CompareExchange(Of NamedTypeSymbol)(_lazySystemStringType, type, ErrorTypeSymbol.UnknownResultType), ErrorTypeSymbol.UnknownResultType, TypeCompareKind.ConsiderEverything) Then
-                    If info IsNot Nothing Then
-                        ReportDiagnostic(diagnostics, syntaxNodeOpt, info)
+                    If info.DiagnosticInfo IsNot Nothing Then
+                        ReportDiagnostic(diagnostics, syntaxNodeOpt, info.DiagnosticInfo)
                     End If
                 End If
             End If
@@ -65,14 +66,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
 
         Private Function LazyGetWellKnownTypeMethod(ByRef lazyMethod As MethodSymbol, method As WellKnownMember, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As MethodSymbol
             If lazyMethod Is ErrorMethodSymbol.UnknownMethod Then
-                Dim info As DiagnosticInfo = Nothing
+                Dim info As UseSiteInfo(Of AssemblySymbol) = Nothing
                 Dim symbol = DirectCast(Binder.GetWellKnownTypeMember(ModuleBeingBuilt.Compilation, method, info), MethodSymbol)
 
-                Debug.Assert(info Is Nothing OrElse symbol Is Nothing)
+                Debug.Assert(info.DiagnosticInfo Is Nothing OrElse symbol Is Nothing)
 
                 If Interlocked.CompareExchange(Of MethodSymbol)(lazyMethod, symbol, ErrorMethodSymbol.UnknownMethod) = ErrorMethodSymbol.UnknownMethod Then
-                    If info IsNot Nothing Then
-                        ReportDiagnostic(diagnostics, syntaxNodeOpt, info)
+                    If info.DiagnosticInfo IsNot Nothing Then
+                        ReportDiagnostic(diagnostics, syntaxNodeOpt, info.DiagnosticInfo)
                     End If
                 End If
             End If
@@ -161,10 +162,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
         Friend Overrides Sub ReportIndirectReferencesToLinkedAssemblies(assembly As AssemblySymbol, diagnostics As DiagnosticBag)
             Debug.Assert(IsFrozen)
 
-            ' We are emitting an assembly, A, which /references some assembly, B, and 
+            ' We are emitting an assembly, A, which /references some assembly, B, and
             ' /links some other assembly, C, so that it can use C's types (by embedding them)
             ' without having an assemblyref to C itself.
-            ' We can say that A has an indirect reference to each assembly that B references. 
+            ' We can say that A has an indirect reference to each assembly that B references.
             ' In this function, we are looking for the situation where B has an assemblyref to C,
             ' thus giving A an indirect reference to C. If so, we will report a warning.
 

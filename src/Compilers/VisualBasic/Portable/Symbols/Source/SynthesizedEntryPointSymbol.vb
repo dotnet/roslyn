@@ -18,20 +18,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly _containingType As NamedTypeSymbol
         Private ReadOnly _returnType As TypeSymbol
 
-        Friend Shared Function Create(initializerMethod As SynthesizedInteractiveInitializerMethod, diagnostics As DiagnosticBag) As SynthesizedEntryPointSymbol
+        Friend Shared Function Create(initializerMethod As SynthesizedInteractiveInitializerMethod, diagnostics As BindingDiagnosticBag) As SynthesizedEntryPointSymbol
             Dim containingType = initializerMethod.ContainingType
             Dim compilation = ContainingType.DeclaringCompilation
             If compilation.IsSubmission Then
                 Dim submissionArrayType = compilation.CreateArrayTypeSymbol(compilation.GetSpecialType(SpecialType.System_Object))
-                ReportUseSiteDiagnostics(submissionArrayType, diagnostics)
+                ReportUseSiteInfo(submissionArrayType, diagnostics)
                 Return New SubmissionEntryPoint(containingType, initializerMethod.ReturnType, submissionArrayType)
             Else
                 Dim taskType = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task)
-#If DEBUG Then
-                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                Debug.Assert(taskType.IsErrorType() OrElse initializerMethod.ReturnType.IsOrDerivedFrom(taskType, useSiteDiagnostics))
-#End If
-                ReportUseSiteDiagnostics(taskType, diagnostics)
+
+                Debug.Assert(taskType.IsErrorType() OrElse initializerMethod.ReturnType.IsOrDerivedFrom(taskType, CompoundUseSiteInfo(Of AssemblySymbol).Discarded))
+
+                ReportUseSiteInfo(taskType, diagnostics)
                 Dim getAwaiterMethod = If(taskType.IsErrorType(),
                     Nothing,
                     GetRequiredMethod(taskType, WellKnownMemberNames.GetAwaiter, diagnostics))
@@ -191,14 +190,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return VisualBasicSyntaxTree.Dummy.GetRoot()
         End Function
 
-        Private Shared Sub ReportUseSiteDiagnostics(symbol As Symbol, diagnostics As DiagnosticBag)
-            Dim useSiteDiagnostic = symbol.GetUseSiteErrorInfo()
-            If useSiteDiagnostic IsNot Nothing Then
-                diagnostics.Add(useSiteDiagnostic, NoLocation.Singleton)
-            End If
+        Private Shared Sub ReportUseSiteInfo(symbol As Symbol, diagnostics As BindingDiagnosticBag)
+            diagnostics.Add(symbol.GetUseSiteInfo(), NoLocation.Singleton)
         End Sub
 
-        Private Shared Function GetRequiredMethod(type As TypeSymbol, methodName As String, diagnostics As DiagnosticBag) As MethodSymbol
+        Private Shared Function GetRequiredMethod(type As TypeSymbol, methodName As String, diagnostics As BindingDiagnosticBag) As MethodSymbol
             Dim method = TryCast(type.GetMembers(methodName).SingleOrDefault(), MethodSymbol)
             If method Is Nothing Then
                 diagnostics.Add(

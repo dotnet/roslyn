@@ -2,12 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -15,12 +12,13 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -35,16 +33,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
     [Trait(Traits.Feature, Traits.Features.Classification)]
     public class SemanticClassifierTests : AbstractCSharpClassifierTests
     {
-        protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options, TestHost testHost)
+        protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions? options, TestHost testHost)
         {
             using var workspace = CreateWorkspace(code, options, testHost);
-            var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
+            var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.First().Id);
 
             return await GetSemanticClassificationsAsync(document, span);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task GenericClassDeclaration(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -55,8 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Class("Class"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task RefVar(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -65,8 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Classifications(Keyword("var"), Local("i")));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task UsingAlias1(TestHost testHost)
         {
             await TestAsync(
@@ -78,8 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Static("Math"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsTypeArgument(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -90,8 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Classifications(Class("Class"), Keyword("dynamic")));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task UsingTypeAliases(TestHost testHost)
         {
             var code = @"using Alias = Test; 
@@ -108,8 +101,7 @@ class Test { void M() { Test a = new Test(); Alias b = new Alias(); } }";
                 Class("Alias"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicTypeAlias(TestHost testHost)
         {
             await TestAsync(
@@ -127,8 +119,7 @@ class C
                 Class("dynamic"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsDelegateName(TestHost testHost)
         {
             await TestAsync(
@@ -145,8 +136,7 @@ class C
                 Delegate("dynamic"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsInterfaceName(TestHost testHost)
         {
             await TestAsync(
@@ -162,8 +152,7 @@ class C
                 Interface("dynamic"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsEnumName(TestHost testHost)
         {
             await TestAsync(
@@ -179,8 +168,7 @@ class C
                 Enum("dynamic"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsClassName(TestHost testHost)
         {
             await TestAsync(
@@ -196,9 +184,8 @@ class C
                 Class("dynamic"));
         }
 
-        [Theory]
-        [CombinatorialData]
-        [WorkItem(46985, "https://github.com/dotnet/roslyn/issues/46985")]
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/46985")]
         public async Task DynamicAsRecordName(TestHost testHost)
         {
             await TestAsync(
@@ -211,11 +198,10 @@ class C
     dynamic d;
 }",
                 testHost,
-                Record("dynamic"));
+                RecordClass("dynamic"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsClassNameAndLocalVariableName(TestHost testHost)
         {
             await TestAsync(
@@ -230,8 +216,7 @@ class C
                 Class("dynamic"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsStructName(TestHost testHost)
         {
             await TestAsync(
@@ -247,8 +232,7 @@ class C
                 Struct("dynamic"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsGenericClassName(TestHost testHost)
         {
             await TestAsync(
@@ -264,8 +248,7 @@ class C
                 Class("dynamic"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsGenericClassNameButOtherArity(TestHost testHost)
         {
             await TestAsync(
@@ -281,8 +264,7 @@ class C
                 Keyword("dynamic"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsUndefinedGenericType(TestHost testHost)
         {
             await TestAsync(
@@ -293,11 +275,12 @@ class C
 class C
 {
     dynamic<int> d;
-}", testHost);
+}",
+                testHost,
+                Class("dynamic"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsExternAlias(TestHost testHost)
         {
             await TestAsync(
@@ -311,8 +294,7 @@ class C
     Namespace("dynamic"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task GenericClassNameButOtherArity(TestHost testHost)
         {
             await TestAsync(
@@ -327,8 +309,7 @@ class C
  Class("A"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task GenericTypeParameter(TestHost testHost)
         {
             await TestAsync(
@@ -342,8 +323,7 @@ class C
                 TypeParameter("T"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task GenericMethodTypeParameter(TestHost testHost)
         {
             await TestAsync(
@@ -360,8 +340,7 @@ class C
                 TypeParameter("T"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task GenericMethodTypeParameterInLocalVariableDeclaration(TestHost testHost)
         {
             await TestAsync(
@@ -376,8 +355,7 @@ class C
                 TypeParameter("T"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ParameterOfLambda1(TestHost testHost)
         {
             await TestAsync(
@@ -393,8 +371,7 @@ class C
                 Class("C"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ParameterOfAnonymousMethod(TestHost testHost)
         {
             await TestAsync(
@@ -410,8 +387,7 @@ class C
                 Class("C"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task GenericTypeParameterAfterWhere(TestHost testHost)
         {
             await TestAsync(
@@ -423,8 +399,7 @@ class C
                 TypeParameter("B"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task BaseClass(TestHost testHost)
         {
             await TestAsync(
@@ -439,8 +414,7 @@ class C2 : C
                 Class("C"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task BaseInterfaceOnInterface(TestHost testHost)
         {
             await TestAsync(
@@ -455,8 +429,7 @@ interface T2 : T
                 Interface("T"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task BaseInterfaceOnClass(TestHost testHost)
         {
             await TestAsync(
@@ -471,8 +444,7 @@ class T2 : T
                 Interface("T"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task InterfaceColorColor(TestHost testHost)
         {
             await TestAsync(
@@ -489,8 +461,7 @@ class T2 : T
                 Interface("T"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DelegateColorColor(TestHost testHost)
         {
             await TestAsync(
@@ -504,8 +475,7 @@ class T2
                 Delegate("T"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DelegateReturnsItself(TestHost testHost)
         {
             await TestAsync(
@@ -521,8 +491,7 @@ class C
                 Delegate("T"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task StructColorColor(TestHost testHost)
         {
             await TestAsync(
@@ -534,8 +503,7 @@ class C
                 Struct("T"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task EnumColorColor(TestHost testHost)
         {
             await TestAsync(
@@ -553,8 +521,7 @@ class C
                 Enum("T"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsGenericTypeParameter(TestHost testHost)
         {
             await TestAsync(
@@ -566,8 +533,7 @@ class C
                 TypeParameter("dynamic"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DynamicAsGenericFieldName(TestHost testHost)
         {
             await TestAsync(
@@ -579,8 +545,7 @@ class C
                 TypeParameter("T"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PropertySameNameAsClass(TestHost testHost)
         {
             await TestAsync(
@@ -605,8 +570,7 @@ class C
                 Property("N"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task AttributeWithoutAttributeSuffix(TestHost testHost)
         {
             await TestAsync(
@@ -621,8 +585,7 @@ class C
                 Class("Obsolete"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task AttributeOnNonExistingMember(TestHost testHost)
         {
             await TestAsync(
@@ -637,8 +600,7 @@ class A
                 Class("Obsolete"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task AttributeWithoutAttributeSuffixOnAssembly(TestHost testHost)
         {
             await TestAsync(
@@ -655,8 +617,7 @@ class MyAttribute : Attribute
                 Class("Attribute"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task AttributeViaNestedClassOrDerivedClass(TestHost testHost)
         {
             await TestAsync(
@@ -684,8 +645,7 @@ class Derived : Base
                 Class("Base"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NamedAndOptional(TestHost testHost)
         {
             await TestAsync(
@@ -706,8 +666,7 @@ class Derived : Base
                 Parameter("C"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PartiallyWrittenGenericName1(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -718,8 +677,7 @@ class Derived : Base
                 Class("Class"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PartiallyWrittenGenericName2(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -734,8 +692,7 @@ class Derived : Base
         // a property name is the same as a type name
         // and the resulting ambiguities that the spec
         // resolves in favor of properties
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ColorColor(TestHost testHost)
         {
             await TestAsync(
@@ -747,8 +704,7 @@ class Derived : Base
                 Class("Color"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ColorColor2(TestHost testHost)
         {
             await TestAsync(
@@ -768,8 +724,7 @@ class Derived : Base
                 Class("T"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ColorColor3(TestHost testHost)
         {
             await TestAsync(
@@ -795,8 +750,7 @@ class Derived : Base
         /// Instance field should be preferred to type
         /// §7.5.4.1
         /// </summary>
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ColorColor4(TestHost testHost)
         {
             await TestAsync(
@@ -819,8 +773,7 @@ class Derived : Base
         /// Type should be preferred to a static field
         /// §7.5.4.1
         /// </summary>
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ColorColor5(TestHost testHost)
         {
             await TestAsync(
@@ -843,8 +796,7 @@ class Derived : Base
         /// <summary>
         /// Needs to prefer the local
         /// </summary>
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ColorColor6(TestHost testHost)
         {
             await TestAsync(
@@ -868,8 +820,7 @@ class Derived : Base
         /// <summary>
         /// Needs to prefer the type
         /// </summary>
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ColorColor7(TestHost testHost)
         {
             await TestAsync(
@@ -891,8 +842,7 @@ class Derived : Base
                 Static("field"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ColorColor8(TestHost testHost)
         {
             await TestAsync(
@@ -916,8 +866,7 @@ class Derived : Base
                 Local("T"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ColorColor9(TestHost testHost)
         {
             await TestAsync(
@@ -937,8 +886,7 @@ class Derived : Base
                 Parameter("T"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ColorColor10(TestHost testHost)
         {
             // note: 'var' now binds to the type of the local.
@@ -958,8 +906,7 @@ class Derived : Base
                 Class("T"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ColorColor11(TestHost testHost)
         {
             await TestAsync(
@@ -977,8 +924,7 @@ class Derived : Base
                 Class("T"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ColorColor12(TestHost testHost)
         {
             await TestAsync(
@@ -997,8 +943,7 @@ class Derived : Base
                 Class("T"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ColorColor13(TestHost testHost)
         {
             await TestAsync(
@@ -1017,8 +962,7 @@ class Derived : Base
                 Class("T"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ColorColor14(TestHost testHost)
         {
             await TestAsync(
@@ -1037,8 +981,7 @@ class Derived : Base
                 Local("T"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NamespaceNameSameAsTypeName1(TestHost testHost)
         {
             await TestAsync(
@@ -1058,8 +1001,7 @@ class Derived : Base
                 Class("T"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NamespaceNameSameAsTypeNameWithGlobal(TestHost testHost)
         {
             await TestAsync(
@@ -1081,8 +1023,7 @@ class Derived : Base
                 Class("T"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task AmbiguityTypeAsGenericMethodArgumentVsLocal(TestHost testHost)
         {
             await TestAsync(
@@ -1100,8 +1041,7 @@ class Derived : Base
                 TypeParameter("T"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task AmbiguityTypeAsGenericArgumentVsLocal(TestHost testHost)
         {
             await TestAsync(
@@ -1125,8 +1065,7 @@ class Derived : Base
                 Class("T"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task AmbiguityTypeAsGenericArgumentVsField(TestHost testHost)
         {
             await TestAsync(
@@ -1154,8 +1093,7 @@ class Derived : Base
         /// <summary>
         /// §7.5.4.2
         /// </summary>
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task GrammarAmbiguity_7_5_4_2(TestHost testHost)
         {
             await TestAsync(
@@ -1192,8 +1130,7 @@ class Derived : Base
                 Class("B"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task AnonymousTypePropertyName(TestHost testHost)
         {
             await TestAsync(
@@ -1210,8 +1147,7 @@ class C
                 Property("String"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task YieldAsATypeName(TestHost testHost)
         {
             await TestAsync(
@@ -1236,8 +1172,7 @@ class yield
                 Local("yield"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TypeNameDottedNames(TestHost testHost)
         {
             await TestAsync(
@@ -1254,8 +1189,7 @@ class yield
                 Class("Nested"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task BindingTypeNameFromBCLViaGlobalAlias(TestHost testHost)
         {
             await TestAsync(
@@ -1271,8 +1205,7 @@ class C
                 Class("String"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task BindingTypeNames(TestHost testHost)
         {
             var code = @"using System;
@@ -1308,8 +1241,7 @@ class C
                 Class("String"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task Constructors(TestHost testHost)
         {
             await TestAsync(
@@ -1340,8 +1272,7 @@ class C
                 Class("C"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TypesOfClassMembers(TestHost testHost)
         {
             await TestAsync(
@@ -1406,8 +1337,7 @@ class C
         /// <summary>
         /// NAQ = Namespace Alias Qualifier (?)
         /// </summary>
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NAQTypeNameCtor(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -1421,8 +1351,7 @@ class C
                 Class("BufferedStream"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NAQEnum(TestHost testHost)
         {
             await TestAsync(
@@ -1439,8 +1368,7 @@ class C
                 Enum("DriveType"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NAQDelegate(TestHost testHost)
         {
             await TestAsync(
@@ -1456,18 +1384,17 @@ class C
                 Delegate("AssemblyLoadEventHandler"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NAQTypeNameMethodCall(TestHost testHost)
         {
             await TestInMethodAsync(@"global::System.String.Clone("");",
                 testHost,
                 Namespace("System"),
-                Class("String"));
+                Class("String"),
+                Method("Clone"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NAQEventSubscription(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -1483,8 +1410,7 @@ class C
                 Class("AssemblyLoadEventArgs"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task AnonymousDelegateParameterType(TestHost testHost)
         {
             await TestAsync(
@@ -1505,8 +1431,7 @@ class C
                 Class("EventArgs"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NAQCtor(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -1520,8 +1445,7 @@ class C
                 Struct("DictionaryEntry"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NAQSameFileClass(TestHost testHost)
         {
             var code = @"class C { static void M() { global::C.M(); } }";
@@ -1534,8 +1458,7 @@ class C
                 Static("M"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task InteractiveNAQSameFileClass(TestHost testHost)
         {
             var code = @"class C { static void M() { global::Script.C.M(); } }";
@@ -1549,8 +1472,7 @@ class C
                 Static("M"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NAQSameFileClassWithNamespace(TestHost testHost)
         {
             await TestAsync(
@@ -1576,8 +1498,7 @@ namespace N
                 Static("M"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NAQSameFileClassWithNamespaceAndEscapedKeyword(TestHost testHost)
         {
             await TestAsync(
@@ -1603,8 +1524,7 @@ namespace N
                 Static("M"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NAQGlobalWarning(TestHost testHost)
         {
             await TestAsync(
@@ -1630,8 +1550,7 @@ namespace N
                 Static("M"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NAQUserDefinedNAQNamespace(TestHost testHost)
         {
             await TestAsync(
@@ -1657,8 +1576,7 @@ namespace N
                 Static("M"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NAQUserDefinedNAQNamespaceDoubleColon(TestHost testHost)
         {
             await TestAsync(
@@ -1684,8 +1602,7 @@ namespace N
                 Static("M"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NAQUserDefinedNamespace1(TestHost testHost)
         {
             await TestAsync(
@@ -1714,8 +1631,7 @@ namespace A
                 Namespace("B"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NAQUserDefinedNamespaceWithGlobal(TestHost testHost)
         {
             await TestAsync(
@@ -1744,8 +1660,7 @@ namespace A
                 Namespace("B"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NAQUserDefinedNAQForClass(TestHost testHost)
         {
             await TestAsync(
@@ -1766,8 +1681,7 @@ class C
                 Class("BinaryReader"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NAQUserDefinedTypes(TestHost testHost)
         {
             await TestAsync(
@@ -1855,8 +1769,7 @@ namespace MyNameSpace
                 Delegate("MyDelegate"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PreferPropertyOverNestedClass(TestHost testHost)
         {
             await TestAsync(
@@ -1883,8 +1796,7 @@ namespace MyNameSpace
                 Field("B"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TypeNameInsideNestedClass(TestHost testHost)
         {
             await TestAsync(
@@ -1913,8 +1825,7 @@ class Outer
                 Static("WriteLine"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task StructEnumTypeNames(TestHost testHost)
         {
             await TestAsync(
@@ -1942,8 +1853,7 @@ class C
                 Struct("Int32"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PreferFieldOverClassWithSameName(TestHost testHost)
         {
             await TestAsync(
@@ -1959,8 +1869,7 @@ class C
  Field("C"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task AttributeBinding(TestHost testHost)
         {
             await TestAsync(
@@ -1976,12 +1885,12 @@ class Serializable
 {
 }
 
-[NonSerialized]           // Binds to global::NonSerializedAttribute; not colorized
+[NonSerialized]           // Binds to global::NonSerializedAttribute; colorized
 class NonSerializedAttribute
 {
 }
 
-[NonSerializedAttribute]  // Binds to global::NonSerializedAttribute; not colorized
+[NonSerializedAttribute]  // Binds to global::NonSerializedAttribute; colorized
 class NonSerializedAttribute
 {
 }
@@ -1999,14 +1908,15 @@ class ObsoleteAttribute : Attribute
                 Namespace("System"),
                 Class("Serializable"),
                 Class("SerializableAttribute"),
+                Class("NonSerialized"),
+                Class("NonSerializedAttribute"),
                 Class("Obsolete"),
                 Class("Attribute"),
                 Class("ObsoleteAttribute"),
                 Class("Attribute"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ShouldNotClassifyNamespacesAsTypes(TestHost testHost)
         {
             await TestAsync(
@@ -2022,8 +1932,7 @@ namespace Roslyn.Compilers.Internal
     Namespace("Internal"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NestedTypeCantHaveSameNameAsParentType(TestHost testHost)
         {
             await TestAsync(
@@ -2044,8 +1953,7 @@ namespace Roslyn.Compilers.Internal
                 Class("Program"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NestedTypeCantHaveSameNameAsParentTypeWithGlobalNamespaceAlias(TestHost testHost)
         {
             var code = @"class Program
@@ -2063,8 +1971,7 @@ namespace Roslyn.Compilers.Internal
                 Class("Program"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task InteractiveNestedTypeCantHaveSameNameAsParentTypeWithGlobalNamespaceAlias(TestHost testHost)
         {
             var code = @"class Program
@@ -2083,8 +1990,7 @@ namespace Roslyn.Compilers.Internal
                 Class("Program"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task EnumFieldWithSameNameShouldBePreferredToType(TestHost testHost)
         {
             await TestAsync(
@@ -2096,8 +2002,7 @@ namespace Roslyn.Compilers.Internal
  EnumMember("E"));
         }
 
-        [WorkItem(541150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541150")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541150")]
         [CombinatorialData]
         public async Task TestGenericVarClassification(TestHost testHost)
         {
@@ -2120,8 +2025,7 @@ class var<T>
     Keyword("var"));
         }
 
-        [WorkItem(541154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541154")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541154")]
         [CombinatorialData]
         public async Task TestInaccessibleVarClassification(TestHost testHost)
         {
@@ -2148,8 +2052,7 @@ class B : A
                 Keyword("var"));
         }
 
-        [WorkItem(541154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541154")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541154")]
         [CombinatorialData]
         public async Task TestVarNamedTypeClassification(TestHost testHost)
         {
@@ -2165,8 +2068,7 @@ class B : A
                 Class("var"));
         }
 
-        [WorkItem(9513, "DevDiv_Projects/Roslyn")]
-        [Theory]
+        [Theory, WorkItem(9513, "DevDiv_Projects/Roslyn")]
         [CombinatorialData]
         public async Task RegressionFor9513(TestHost testHost)
         {
@@ -2204,8 +2106,7 @@ class C
                 EnumMember("A"));
         }
 
-        [WorkItem(542368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542368")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542368")]
         [CombinatorialData]
         public async Task RegressionFor9572(TestHost testHost)
         {
@@ -2228,8 +2129,7 @@ class C
                 Interface("I"));
         }
 
-        [WorkItem(542368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542368")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542368")]
         [CombinatorialData]
         public async Task RegressionFor9831(TestHost testHost)
         {
@@ -2251,8 +2151,7 @@ public class X : B<X>
                 Class("A"));
         }
 
-        [WorkItem(542432, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542432")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542432")]
         [CombinatorialData]
         public async Task TestVar(TestHost testHost)
         {
@@ -2283,8 +2182,7 @@ public class X : B<X>
                 Class("var"));
         }
 
-        [WorkItem(543123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543123")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543123")]
         [CombinatorialData]
         public async Task TestVar2(TestHost testHost)
         {
@@ -2303,8 +2201,7 @@ public class X : B<X>
                 Parameter("args"));
         }
 
-        [WorkItem(542778, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542778")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542778")]
         [CombinatorialData]
         public async Task TestDuplicateTypeParamWithConstraint(TestHost testHost)
         {
@@ -2324,8 +2221,7 @@ class C<T>
                 Interface("IEnumerable"));
         }
 
-        [WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
         [CombinatorialData]
         public async Task OptimisticallyColorFromInDeclaration(TestHost testHost)
         {
@@ -2334,8 +2230,7 @@ class C<T>
                 Keyword("from"));
         }
 
-        [WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
         [CombinatorialData]
         public async Task OptimisticallyColorFromInAssignment(TestHost testHost)
         {
@@ -2349,16 +2244,14 @@ q = from",
                 Keyword("from"));
         }
 
-        [WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
         [CombinatorialData]
-        public async Task DontColorThingsOtherThanFromInDeclaration(TestHost testHost)
+        public async Task DoNotColorThingsOtherThanFromInDeclaration(TestHost testHost)
             => await TestInExpressionAsync("fro ", testHost);
 
-        [WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
         [CombinatorialData]
-        public async Task DontColorThingsOtherThanFromInAssignment(TestHost testHost)
+        public async Task DoNotColorThingsOtherThanFromInAssignment(TestHost testHost)
         {
             await TestInMethodAsync(
 @"var q = 3;
@@ -2369,10 +2262,9 @@ q = fro",
                 Local("q"));
         }
 
-        [WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
         [CombinatorialData]
-        public async Task DontColorFromWhenBoundInDeclaration(TestHost testHost)
+        public async Task DoNotColorFromWhenBoundInDeclaration(TestHost testHost)
         {
             await TestInMethodAsync(
 @"var from = 3;
@@ -2383,10 +2275,9 @@ var q = from",
                 Local("from"));
         }
 
-        [WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
         [CombinatorialData]
-        public async Task DontColorFromWhenBoundInAssignment(TestHost testHost)
+        public async Task DoNotColorFromWhenBoundInAssignment(TestHost testHost)
         {
             await TestInMethodAsync(
 @"var q = 3;
@@ -2400,8 +2291,7 @@ q = from",
                 Local("from"));
         }
 
-        [WorkItem(543404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543404")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543404")]
         [CombinatorialData]
         public async Task NewOfClassWithOnlyPrivateConstructor(TestHost testHost)
         {
@@ -2424,8 +2314,7 @@ class Program
                 Class("X"));
         }
 
-        [WorkItem(544179, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544179")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544179")]
         [CombinatorialData]
         public async Task TestNullableVersusConditionalAmbiguity1(TestHost testHost)
         {
@@ -2445,8 +2334,7 @@ public class C1
                 Class("C1"));
         }
 
-        [WorkItem(544179, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544179")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544179")]
         [CombinatorialData]
         public async Task TestPointerVersusMultiplyAmbiguity1(TestHost testHost)
         {
@@ -2466,8 +2354,7 @@ public class C1
                 Class("C1"));
         }
 
-        [WorkItem(544302, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544302")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544302")]
         [CombinatorialData]
         public async Task EnumTypeAssignedToNamedPropertyOfSameNameInAttributeCtor(TestHost testHost)
         {
@@ -2490,8 +2377,7 @@ class C
                 Enum("CallingConvention"));
         }
 
-        [WorkItem(531119, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531119")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531119")]
         [CombinatorialData]
         public async Task OnlyClassifyGenericNameOnce(TestHost testHost)
         {
@@ -2508,8 +2394,7 @@ struct Type<T>
                 Struct("Type"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NameOf1(TestHost testHost)
         {
             await TestAsync(
@@ -2525,8 +2410,7 @@ struct Type<T>
                 Keyword("nameof"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NameOf2(TestHost testHost)
         {
             await TestAsync(
@@ -2543,8 +2427,7 @@ struct Type<T>
                 Class("C"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NameOfLocalMethod(TestHost testHost)
         {
             await TestAsync(
@@ -2573,8 +2456,7 @@ struct Type<T>
                 Method("M"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task MethodCalledNameOfInScope(TestHost testHost)
         {
             await TestAsync(
@@ -2591,32 +2473,34 @@ struct Type<T>
     }
 }",
                 testHost,
-                Keyword("var"));
+                Keyword("var"),
+                Method("nameof"));
         }
 
-        [WpfFact]
-        [WorkItem(744813, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/744813")]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/744813")]
         public async Task TestCreateWithBufferNotInWorkspace()
         {
             // don't crash
             using var workspace = TestWorkspace.CreateCSharp("");
-            var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
+            var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.First().Id);
 
-            var contentTypeService = document.GetLanguageService<IContentTypeLanguageService>();
+            var contentTypeService = document.GetRequiredLanguageService<IContentTypeLanguageService>();
             var contentType = contentTypeService.GetDefaultContentType();
             var extraBuffer = workspace.ExportProvider.GetExportedValue<ITextBufferFactoryService>().CreateTextBuffer("", contentType);
 
             WpfTestRunner.RequireWpfFact($"Creates an {nameof(IWpfTextView)} explicitly with an unrelated buffer");
             using var disposableView = workspace.ExportProvider.GetExportedValue<ITextEditorFactoryService>().CreateDisposableTextView(extraBuffer);
             var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+            var globalOptions = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
 
             var provider = new SemanticClassificationViewTaggerProvider(
-                workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
-                workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
-                workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
+                workspace.GetService<IThreadingContext>(),
+                workspace.GetService<ClassificationTypeMap>(),
+                globalOptions,
+                visibilityTracker: null,
                 listenerProvider);
 
-            using var tagger = (IDisposable)provider.CreateTagger<IClassificationTag>(disposableView.TextView, extraBuffer);
+            using var tagger = (IDisposable?)provider.CreateTagger<IClassificationTag>(disposableView.TextView, extraBuffer);
             using (var edit = extraBuffer.CreateEdit())
             {
                 edit.Insert(0, "class A { }");
@@ -2627,37 +2511,7 @@ struct Type<T>
             await waiter.ExpeditedWaitAsync();
         }
 
-        [WpfFact]
-        public async Task TestGetTagsOnBufferTagger()
-        {
-            // don't crash
-            using var workspace = TestWorkspace.CreateCSharp("class C { C c; }");
-            var document = workspace.Documents.First();
-
-            var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
-
-            var provider = new SemanticClassificationBufferTaggerProvider(
-                workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
-                workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
-                workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
-                listenerProvider);
-
-            var tagger = provider.CreateTagger<IClassificationTag>(document.GetTextBuffer());
-            using var disposable = (IDisposable)tagger;
-            var waiter = listenerProvider.GetWaiter(FeatureAttribute.Classification);
-            await waiter.ExpeditedWaitAsync();
-
-            var tags = tagger.GetTags(document.GetTextBuffer().CurrentSnapshot.GetSnapshotSpanCollection());
-            var allTags = tagger.GetAllTags(document.GetTextBuffer().CurrentSnapshot.GetSnapshotSpanCollection(), CancellationToken.None);
-
-            Assert.Empty(tags);
-            Assert.NotEmpty(allTags);
-
-            Assert.Equal(1, allTags.Count());
-        }
-
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task Tuples(TestHost testHost)
         {
             await TestAsync(
@@ -2669,9 +2523,8 @@ struct Type<T>
                 ParseOptions(TestOptions.Regular, Options.Script));
         }
 
-        [Theory]
-        [CombinatorialData]
-        [WorkItem(261049, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/261049")]
+        [Theory, CombinatorialData]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/261049")]
         public async Task DevDiv261049RegressionTest(TestHost testHost)
         {
             var source = @"
@@ -2684,9 +2537,8 @@ struct Type<T>
                 Keyword("var"), Local("a"), Local("a"));
         }
 
-        [Theory]
-        [CombinatorialData]
-        [WorkItem(633, "https://github.com/dotnet/roslyn/issues/633")]
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/633")]
         public async Task InXmlDocCref_WhenTypeOnlyIsSpecified_ItIsClassified(TestHost testHost)
         {
             await TestAsync(
@@ -2703,9 +2555,8 @@ class MyClass
     Class("MyClass"));
         }
 
-        [Theory]
-        [CombinatorialData]
-        [WorkItem(633, "https://github.com/dotnet/roslyn/issues/633")]
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/633")]
         public async Task InXmlDocCref_WhenConstructorOnlyIsSpecified_NothingIsClassified(TestHost testHost)
         {
             await TestAsync(
@@ -2721,9 +2572,8 @@ class MyClass
  Class("MyClass"));
         }
 
-        [Theory]
-        [CombinatorialData]
-        [WorkItem(633, "https://github.com/dotnet/roslyn/issues/633")]
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/633")]
         public async Task InXmlDocCref_WhenTypeAndConstructorSpecified_OnlyTypeIsClassified(TestHost testHost)
         {
             await TestAsync(
@@ -2741,9 +2591,8 @@ class MyClass
     Class("MyClass"));
         }
 
-        [Theory]
-        [CombinatorialData]
-        [WorkItem(13174, "https://github.com/dotnet/roslyn/issues/13174")]
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13174")]
         public async Task TestMemberBindingThatLooksGeneric(TestHost testHost)
         {
             await TestAsync(
@@ -2775,48 +2624,8 @@ namespace ConsoleApplication1
     Property("Length"));
         }
 
-        [WpfTheory(Skip = "https://github.com/dotnet/roslyn/issues/30855")]
-        [CombinatorialData]
-        [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
-        public async Task TestVarInPattern1(TestHost testHost)
-        {
-            await TestAsync(
-@"
-class Program
-{
-    void Main(string s)
-    {
-        if (s is var v)
-        {
-        }
-    }
-}", testHost,
- Parameter("s"), Keyword("var"));
-        }
-
-        [WpfTheory(Skip = "https://github.com/dotnet/roslyn/issues/30855")]
-        [CombinatorialData]
-        [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
-        public async Task TestVarInPattern2(TestHost testHost)
-        {
-            await TestAsync(
-@"
-class Program
-{
-    void Main(string s)
-    {
-        switch (s)
-        {
-            case var v:
-        }
-    }
-}", testHost,
- Parameter("s"), Keyword("var"));
-        }
-
-        [Theory]
-        [CombinatorialData]
-        [WorkItem(23940, "https://github.com/dotnet/roslyn/issues/23940")]
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/23940")]
         public async Task TestAliasQualifiedClass(TestHost testHost)
         {
             await TestAsync(
@@ -2846,8 +2655,7 @@ namespace AliasTest
     Class("List"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_InsideMethod(TestHost testHost)
         {
             // Asserts no Keyword("unmanaged") because it is an identifier.
@@ -2859,8 +2667,7 @@ unmanaged++;",
                 Local("unmanaged"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_Type_Keyword(TestHost testHost)
         {
             await TestAsync(
@@ -2870,8 +2677,7 @@ unmanaged++;",
                 Keyword("unmanaged"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_Type_ExistingInterface(TestHost testHost)
         {
             await TestAsync(@"
@@ -2882,8 +2688,7 @@ class X<T> where T : unmanaged { }",
                 Interface("unmanaged"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_Type_ExistingInterfaceButOutOfScope(TestHost testHost)
         {
             await TestAsync(@"
@@ -2898,8 +2703,7 @@ class X<T> where T : unmanaged { }",
                 Keyword("unmanaged"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_Method_Keyword(TestHost testHost)
         {
             await TestAsync(@"
@@ -2912,8 +2716,7 @@ class X
                 Keyword("unmanaged"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_Method_ExistingInterface(TestHost testHost)
         {
             await TestAsync(@"
@@ -2927,8 +2730,7 @@ class X
                 Interface("unmanaged"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_Method_ExistingInterfaceButOutOfScope(TestHost testHost)
         {
             await TestAsync(@"
@@ -2946,8 +2748,7 @@ class X
                 Keyword("unmanaged"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_Delegate_Keyword(TestHost testHost)
         {
             await TestAsync(
@@ -2957,8 +2758,7 @@ class X
                 Keyword("unmanaged"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_Delegate_ExistingInterface(TestHost testHost)
         {
             await TestAsync(@"
@@ -2969,8 +2769,7 @@ delegate void D<T>() where T : unmanaged;",
                 Interface("unmanaged"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_Delegate_ExistingInterfaceButOutOfScope(TestHost testHost)
         {
             await TestAsync(@"
@@ -2985,8 +2784,7 @@ delegate void D<T>() where T : unmanaged;",
                 Keyword("unmanaged"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRegex1(TestHost testHost)
         {
             await TestAsync(
@@ -2995,7 +2793,6 @@ using System.Text.RegularExpressions;
 
 class Program
 {
-
     void Goo()
     {
         var r = new Regex(@""$(\a\t\u0020)|[^\p{Lu}-a\w\sa-z-[m-p]]+?(?#comment)|(\b\G\z)|(?<name>sub){0,5}?^"");
@@ -3069,8 +2866,7 @@ Regex.Quantifier("?"),
 Regex.Anchor("^"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRegex2(TestHost testHost)
         {
             await TestAsync(
@@ -3079,7 +2875,6 @@ using System.Text.RegularExpressions;
 
 class Program
 {
-
     void Goo()
     {
         // language=regex
@@ -3153,8 +2948,7 @@ Regex.Quantifier("?"),
 Regex.Anchor("^"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRegex3(TestHost testHost)
         {
             await TestAsync(
@@ -3236,8 +3030,7 @@ Regex.Quantifier("?"),
 Regex.Anchor("^"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRegex4(TestHost testHost)
         {
             await TestAsync(
@@ -3261,8 +3054,55 @@ Regex.OtherEscape("a"),
 Regex.Comment("(?#comment)"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
+        public async Task TestRegex4_utf8_1(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* lang=regex */""$\\a(?#comment)"";
+    }
+}",
+testHost, Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.OtherEscape(@"\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestRegex4_utf8_2(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* lang=regex */@""$\a(?#comment)""u8;
+    }
+}",
+testHost, Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory, CombinatorialData]
         public async Task TestRegex5(TestHost testHost)
         {
             await TestAsync(
@@ -3286,8 +3126,7 @@ Regex.OtherEscape("a"),
 Regex.Comment("(?#comment)"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRegex6(TestHost testHost)
         {
             await TestAsync(
@@ -3312,8 +3151,7 @@ Regex.Comment("(?#comment)"),
 Regex.Text(" # not end of line comment"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRegex7(TestHost testHost)
         {
             await TestAsync(
@@ -3338,8 +3176,7 @@ Regex.Comment("(?#comment)"),
 Regex.Comment("# is end of line comment"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRegex8(TestHost testHost)
         {
             await TestAsync(
@@ -3364,8 +3201,7 @@ Regex.Comment("(?#comment)"),
 Regex.Comment("# is end of line comment"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRegex9(TestHost testHost)
         {
             await TestAsync(
@@ -3393,8 +3229,7 @@ Enum("RegexOptions"),
 EnumMember("IgnorePatternWhitespace"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRegex10(TestHost testHost)
         {
             await TestAsync(
@@ -3420,8 +3255,33 @@ Regex.Comment("(?#comment)"),
 Regex.Text(" # is not end of line comment"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
+        public async Task TestRegex10_utf8(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        // lang=regex
+        var r = @""$\a(?#comment) # is not end of line comment""u8;
+    }
+}",
+testHost, Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"),
+Regex.Text(" # is not end of line comment"));
+        }
+
+        [Theory, CombinatorialData]
         public async Task TestRegex11(TestHost testHost)
         {
             await TestAsync(
@@ -3448,7 +3308,107 @@ Regex.OtherEscape("0020"),
 Regex.Grouping(")"));
         }
 
-        [Theory, WorkItem(47079, "https://github.com/dotnet/roslyn/issues/47079")]
+        [Theory, CombinatorialData]
+        public async Task TestRegexSingleLineRawStringLiteral(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* lang=regex */ """"""$\a(?#comment)"""""";
+    }
+}",
+testHost, Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestRegexSingleLineRawStringLiteral_utf8(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* lang=regex */ """"""$\a(?#comment)""""""u8;
+    }
+}",
+testHost, Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestRegexMultiLineRawStringLiteral(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* lang=regex */ """"""
+            $\a(?#comment)
+            """""";
+    }
+}",
+testHost, Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestRegexMultiLineRawStringLiteral_utf8(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* lang=regex */ """"""
+            $\a(?#comment)
+            """"""u8;
+    }
+}",
+testHost, Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/47079")]
         [CombinatorialData]
         public async Task TestRegexWithSpecialCSharpCharLiterals(TestHost testHost)
         {
@@ -3472,8 +3432,526 @@ Regex.Text(@" """" "),
 Regex.Anchor("$"));
         }
 
-        [Theory]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/47079")]
         [CombinatorialData]
+        public async Task TestRegexWithSpecialCSharpCharLiterals_utf8(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    // lang=regex
+    private string myRegex = @""^ """" $""u8;
+}",
+testHost,
+Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Regex.Anchor("^"),
+Regex.Text(@" """" "),
+Regex.Anchor("$"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_Field(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    [StringSyntax(StringSyntaxAttribute.Regex)]
+    private string field;
+
+    void Goo()
+    {
+        [|this.field = @""$\a(?#comment)"";|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Field("field"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_Field2(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    [StringSyntax(StringSyntaxAttribute.Regex)]
+    [|private string field = @""$\a(?#comment)"";|]
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_Property(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    [StringSyntax(StringSyntaxAttribute.Regex)]
+    private string Prop { get; set; }
+
+    void Goo()
+    {
+        [|this.Prop = @""$\a(?#comment)"";|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Property("Prop"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_Property2(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    [StringSyntax(StringSyntaxAttribute.Regex)]
+    [|private string Prop { get; set; } = @""$\a(?#comment)"";|]
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_Argument(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    private void M([StringSyntax(StringSyntaxAttribute.Regex)] string p)
+    {
+    }
+
+    void Goo()
+    {
+        [|M(@""$\a(?#comment)"");|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Method("M"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_ParamsArgument(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    private void M([StringSyntax(StringSyntaxAttribute.Regex)] params string[] p)
+    {
+    }
+
+    void Goo()
+    {
+        [|M(@""$\a(?#comment)"");|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Method("M"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/64549")]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_ParamsArgument2(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    private void M([StringSyntax(StringSyntaxAttribute.Regex)] params string[] p)
+    {
+    }
+
+    void Goo()
+    {
+        [|M(@""$\a(?#comment)"", @""$\a(?#comment)"");|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Method("M"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_ArrayArgument(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    private void M([StringSyntax(StringSyntaxAttribute.Regex)] string[] p)
+    {
+    }
+
+    void Goo()
+    {
+        [|M(new string[] { @""$\a(?#comment)"" });|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Method("M"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_ImplicitArrayArgument(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    private void M([StringSyntax(StringSyntaxAttribute.Regex)] string[] p)
+    {
+    }
+
+    void Goo()
+    {
+        [|M(new[] { @""$\a(?#comment)"" });|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Method("M"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_CollectionArgument(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    private void M([StringSyntax(StringSyntaxAttribute.Regex)] List<string> p)
+    {
+    }
+
+    void Goo()
+    {
+        [|M(new List<string> { @""$\a(?#comment)"" });|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Method("M"),
+Class("List"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_ImplicitCollectionArgument(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    private void M([StringSyntax(StringSyntaxAttribute.Regex)] List<string> p)
+    {
+    }
+
+    void Goo()
+    {
+        [|M(new() { @""$\a(?#comment)"" });|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Method("M"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_Argument_Options(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    private void M([StringSyntax(StringSyntaxAttribute.Regex)] string p, RegexOptions options)
+    {
+    }
+
+    void Goo()
+    {
+        [|M(@""$\a(?#comment) # is end of line comment"", RegexOptions.IgnorePatternWhitespace);|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Method("M"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"),
+Regex.Comment("# is end of line comment"),
+Enum("RegexOptions"),
+EnumMember("IgnorePatternWhitespace"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_Attribute(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+[AttributeUsage(AttributeTargets.Field)]
+class RegexTestAttribute : Attribute
+{
+    public RegexTestAttribute([StringSyntax(StringSyntaxAttribute.Regex)] string value) { }
+}
+
+class Program
+{
+    [|[RegexTest(@""$\a(?#comment)"")]|]
+    private string field;
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Class("RegexTest"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/61947")]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_AttributeField(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+[AttributeUsage(AttributeTargets.Field)]
+class RegexTestAttribute : Attribute
+{
+    public RegexTestAttribute() { }
+
+    [StringSyntax(StringSyntaxAttribute.Regex)]
+    public string value;
+}
+
+class Program
+{
+    [|[RegexTest(value = @""$\a(?#comment)"")]|]
+    private string field;
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Class("RegexTest"),
+Field("value"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/61947")]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_AttributeProperty(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+[AttributeUsage(AttributeTargets.Field)]
+class RegexTestAttribute : Attribute
+{
+    public RegexTestAttribute() { }
+
+    [StringSyntax(StringSyntaxAttribute.Regex)]
+    public string value { get; set; }
+}
+
+class Program
+{
+    [|[RegexTest(value = @""$\a(?#comment)"")]|]
+    private string field;
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Class("RegexTest"),
+Property("value"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_ParamsAttribute(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+[AttributeUsage(AttributeTargets.Field)]
+class RegexTestAttribute : Attribute
+{
+    public RegexTestAttribute([StringSyntax(StringSyntaxAttribute.Regex)] params string[] value) { }
+}
+
+class Program
+{
+    [|[RegexTest(@""$\a(?#comment)"")]|]
+    private string field;
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Class("RegexTest"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_ArrayAttribute(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+[AttributeUsage(AttributeTargets.Field)]
+class RegexTestAttribute : Attribute
+{
+    public RegexTestAttribute([StringSyntax(StringSyntaxAttribute.Regex)] string[] value) { }
+}
+
+class Program
+{
+    [|[RegexTest(new string[] { @""$\a(?#comment)"" })]|]
+    private string field;
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Class("RegexTest"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_ImplicitArrayAttribute(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+[AttributeUsage(AttributeTargets.Field)]
+class RegexTestAttribute : Attribute
+{
+    public RegexTestAttribute([StringSyntax(StringSyntaxAttribute.Regex)] string[] value) { }
+}
+
+class Program
+{
+    [|[RegexTest(new[] { @""$\a(?#comment)"" })]|]
+    private string field;
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Class("RegexTest"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory, CombinatorialData]
         public async Task TestIncompleteRegexLeadingToStringInsideSkippedTokensInsideADirective(TestHost testHost)
         {
             await TestAsync(
@@ -3502,8 +3980,304 @@ Keyword("var"),
 Class("Regex"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/61982")]
+        public async Task TestRegexAmbiguity1(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = Regex.Match("""", [|@""$\a(?#comment)""|]
+",
+testHost,
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/61982")]
+        public async Task TestRegexAmbiguity2(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = Regex.Match("""", [|@""$\a(?#comment)""|],
+",
+testHost,
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68534")]
+        public async Task TestJson1(TestHost testHost)
+        {
+            await TestAsync(
+@"
+class Program
+{
+    void Goo()
+    {
+        // lang=json
+        var r = @""[/*comment*/{ 'goo': 0, bar: -Infinity, """"baz"""": true }, new Date(), text, 'str'] // comment"";
+    }
+}",
+testHost,
+Keyword("var"),
+Json.Array("["),
+Json.Comment("/*comment*/"),
+Json.Object("{"),
+Json.PropertyName("'goo'"),
+Json.Punctuation(":"),
+Json.Number("0"),
+Json.Punctuation(","),
+Json.PropertyName("bar"),
+Json.Punctuation(":"),
+Json.Operator("-"),
+Json.Keyword("Infinity"),
+Json.Punctuation(","),
+Json.PropertyName(@"""""baz"""""),
+Json.Punctuation(":"),
+Json.Keyword("true"),
+Json.Object("}"),
+Json.Punctuation(","),
+Json.Keyword("new"),
+Json.ConstructorName("Date"),
+Json.Punctuation("("),
+Json.Punctuation(")"),
+Json.Punctuation(","),
+Json.Text("text"),
+Json.Punctuation(","),
+Json.String("'str'"),
+Json.Array("]"),
+Json.Comment("// comment"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestJson_RawString(TestHost testHost)
+        {
+            await TestAsync(
+@"
+class Program
+{
+    void Goo()
+    {
+        // lang=json
+        var r = """"""[/*comment*/{ 'goo': 0 }]"""""";
+    }
+}",
+testHost,
+Keyword("var"),
+Json.Array("["),
+Json.Comment("/*comment*/"),
+Json.Object("{"),
+Json.PropertyName("'goo'"),
+Json.Punctuation(":"),
+Json.Number("0"),
+Json.Object("}"),
+Json.Array("]"));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68534")]
+        public async Task TestMultiLineJson1(TestHost testHost)
+        {
+            await TestAsync(
+@"
+class Program
+{
+    void Goo()
+    {
+        // lang=json
+        var r = @""[
+            /*comment*/
+            {
+                'goo': 0,
+                bar: -Infinity,
+                """"baz"""": true,
+                0: null
+            },
+            new Date(),
+            text,
+            'str'] // comment"";
+    }
+}",
+testHost,
+Keyword("var"),
+Json.Array("["),
+Json.Comment("/*comment*/"),
+Json.Object("{"),
+Json.PropertyName("'goo'"),
+Json.Punctuation(":"),
+Json.Number("0"),
+Json.Punctuation(","),
+Json.PropertyName("bar"),
+Json.Punctuation(":"),
+Json.Operator("-"),
+Json.Keyword("Infinity"),
+Json.Punctuation(","),
+Json.PropertyName(@"""""baz"""""),
+Json.Punctuation(":"),
+Json.Keyword("true"),
+Json.Punctuation(","),
+Json.PropertyName("0"),
+Json.Punctuation(":"),
+Json.Keyword("null"),
+Json.Object("}"),
+Json.Punctuation(","),
+Json.Keyword("new"),
+Json.ConstructorName("Date"),
+Json.Punctuation("("),
+Json.Punctuation(")"),
+Json.Punctuation(","),
+Json.Text("text"),
+Json.Punctuation(","),
+Json.String("'str'"),
+Json.Array("]"),
+Json.Comment("// comment"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestJson_NoComment_NotLikelyJson(TestHost testHost)
+        {
+            var input = @"
+class C
+{
+    void Goo()
+    {
+        var r = @""[1, 2, 3]"";
+    }
+}";
+            await TestAsync(input,
+testHost,
+Keyword("var"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestJson_NoComment_LikelyJson(TestHost testHost)
+        {
+            var input = @"
+class C
+{
+    void Goo()
+    {
+        var r = @""[1, { prop: 0 }, 3]"";
+    }
+}";
+            await TestAsync(input,
+testHost,
+Keyword("var"),
+Json.Array("["),
+Json.Number("1"),
+Json.Punctuation(","),
+Json.Object("{"),
+Json.PropertyName("prop"),
+Json.Punctuation(":"),
+Json.Number("0"),
+Json.Object("}"),
+Json.Punctuation(","),
+Json.Number("3"),
+Json.Array("]"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestJsonOnApiWithStringSyntaxAttribute_Field(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+
+class Program
+{
+    [StringSyntax(StringSyntaxAttribute.Json)]
+    private string field;
+    void Goo()
+    {
+        [|this.field = @""[{ 'goo': 0}]"";|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Field("field"),
+Json.Array("["),
+Json.Object("{"),
+Json.PropertyName("'goo'"),
+Json.Punctuation(":"),
+Json.Number("0"),
+Json.Object("}"),
+Json.Array("]"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestJsonOnApiWithStringSyntaxAttribute_Property(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+
+class Program
+{
+    [StringSyntax(StringSyntaxAttribute.Json)]
+    private string Prop { get; set; }
+    void Goo()
+    {
+        [|this.Prop = @""[{ 'goo': 0}]"";|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Property("Prop"),
+Json.Array("["),
+Json.Object("{"),
+Json.PropertyName("'goo'"),
+Json.Punctuation(":"),
+Json.Number("0"),
+Json.Object("}"),
+Json.Array("]"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestJsonOnApiWithStringSyntaxAttribute_Argument(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+
+class Program
+{
+    private void M([StringSyntax(StringSyntaxAttribute.Json)] string p)
+    {
+    }
+
+    void Goo()
+    {
+        [|M(@""[{ 'goo': 0}]"");|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Method("M"),
+Json.Array("["),
+Json.Object("{"),
+Json.PropertyName("'goo'"),
+Json.Punctuation(":"),
+Json.Number("0"),
+Json.Object("}"),
+Json.Array("]"));
+        }
+
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_LocalFunction_Keyword(TestHost testHost)
         {
             await TestAsync(@"
@@ -3519,8 +4293,7 @@ class X
                 Keyword("unmanaged"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_LocalFunction_ExistingInterface(TestHost testHost)
         {
             await TestAsync(@"
@@ -3537,8 +4310,7 @@ class X
                 Interface("unmanaged"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_LocalFunction_ExistingInterfaceButOutOfScope(TestHost testHost)
         {
             await TestAsync(@"
@@ -3559,8 +4331,7 @@ class X
                 Keyword("unmanaged"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestStringEscape1(TestHost testHost)
         {
             await TestInMethodAsync(@"var goo = ""goo\r\nbar"";",
@@ -3570,8 +4341,17 @@ class X
                 Escape(@"\n"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
+        public async Task TestStringEscape1_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = ""goo\r\nbar""u8;",
+                testHost,
+                Keyword("var"),
+                Escape(@"\r"),
+                Escape(@"\n"));
+        }
+
+        [Theory, CombinatorialData]
         public async Task TestStringEscape2(TestHost testHost)
         {
             await TestInMethodAsync(@"var goo = @""goo\r\nbar"";",
@@ -3579,8 +4359,15 @@ class X
                 Keyword("var"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
+        public async Task TestStringEscape2_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = @""goo\r\nbar""u8;",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory, CombinatorialData]
         public async Task TestStringEscape3(TestHost testHost)
         {
             await TestInMethodAsync(@"var goo = $""goo{{1}}bar"";",
@@ -3590,8 +4377,17 @@ class X
                 Escape(@"}}"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
+        public async Task TestStringEscape3_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $""goo{{1}}bar""u8;",
+                testHost,
+                Keyword("var"),
+                Escape(@"{{"),
+                Escape(@"}}"));
+        }
+
+        [Theory, CombinatorialData]
         public async Task TestStringEscape4(TestHost testHost)
         {
             await TestInMethodAsync(@"var goo = $@""goo{{1}}bar"";",
@@ -3601,8 +4397,17 @@ class X
                 Escape(@"}}"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
+        public async Task TestStringEscape4_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $@""goo{{1}}bar""u8;",
+                testHost,
+                Keyword("var"),
+                Escape(@"{{"),
+                Escape(@"}}"));
+        }
+
+        [Theory, CombinatorialData]
         public async Task TestStringEscape5(TestHost testHost)
         {
             await TestInMethodAsync(@"var goo = $""goo\r{{1}}\nbar"";",
@@ -3614,8 +4419,19 @@ class X
                 Escape(@"\n"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
+        public async Task TestStringEscape5_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $""goo\r{{1}}\nbar""u8;",
+                testHost,
+                Keyword("var"),
+                Escape(@"\r"),
+                Escape(@"{{"),
+                Escape(@"}}"),
+                Escape(@"\n"));
+        }
+
+        [Theory, CombinatorialData]
         public async Task TestStringEscape6(TestHost testHost)
         {
             await TestInMethodAsync(@"var goo = $@""goo\r{{1}}\nbar"";",
@@ -3625,8 +4441,17 @@ class X
                 Escape(@"}}"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
+        public async Task TestStringEscape6_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $@""goo\r{{1}}\nbar""u8;",
+                testHost,
+                Keyword("var"),
+                Escape(@"{{"),
+                Escape(@"}}"));
+        }
+
+        [Theory, CombinatorialData]
         public async Task TestStringEscape7(TestHost testHost)
         {
             await TestInMethodAsync(@"var goo = $""goo\r{1}\nbar"";",
@@ -3636,8 +4461,17 @@ class X
                 Escape(@"\n"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
+        public async Task TestStringEscape7_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $""goo\r{1}\nbar""u8;",
+                testHost,
+                Keyword("var"),
+                Escape(@"\r"),
+                Escape(@"\n"));
+        }
+
+        [Theory, CombinatorialData]
         public async Task TestStringEscape8(TestHost testHost)
         {
             await TestInMethodAsync(@"var goo = $@""{{goo{1}bar}}"";",
@@ -3647,8 +4481,149 @@ class X
                 Escape(@"}}"));
         }
 
-        [WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
-        [Theory]
+        [Theory, CombinatorialData]
+        public async Task TestStringEscape8_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $@""{{goo{1}bar}}""u8;",
+                testHost,
+                Keyword("var"),
+                Escape(@"{{"),
+                Escape(@"}}"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestStringEscape9(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $@""{{{12:X}}}"";",
+                testHost,
+                Keyword("var"),
+                Escape(@"{{"),
+                Escape(@"}}"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestStringEscape9_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $@""{{{12:X}}}""u8;",
+                testHost,
+                Keyword("var"),
+                Escape(@"{{"),
+                Escape(@"}}"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral1(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = """"""goo\r\nbar"""""";",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral1_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = """"""goo\r\nbar""""""u8;",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral2(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = """"""
+    goo\r\nbar
+    """""";",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral2_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = """"""
+    goo\r\nbar
+    """"""u8;",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral3(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $""""""
+    goo\r\nbar
+    """""";",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral3_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $""""""
+    goo\r\nbar
+    """"""u8;",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral4(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = """"""\"""""";",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral4_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = """"""\""""""u8;",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral5(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = """"""
+    \
+    """""";",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral5_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = """"""
+    \
+    """"""u8;",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral6(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $""""""
+    \
+    """""";",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral6_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $""""""
+    \
+    """"""u8;",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/31200")]
         [CombinatorialData]
         public async Task TestCharEscape1(TestHost testHost)
         {
@@ -3658,8 +4633,7 @@ class X
                 Escape(@"\n"));
         }
 
-        [WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
-        [Theory]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/31200")]
         [CombinatorialData]
         public async Task TestCharEscape2(TestHost testHost)
         {
@@ -3669,8 +4643,7 @@ class X
                 Escape(@"\\"));
         }
 
-        [WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
-        [Theory]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/31200")]
         [CombinatorialData]
         public async Task TestCharEscape3(TestHost testHost)
         {
@@ -3680,8 +4653,7 @@ class X
                 Escape(@"\'"));
         }
 
-        [WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
-        [Theory]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/31200")]
         [CombinatorialData]
         public async Task TestCharEscape5(TestHost testHost)
         {
@@ -3690,8 +4662,7 @@ class X
                 Keyword("var"));
         }
 
-        [WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
-        [Theory]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/31200")]
         [CombinatorialData]
         public async Task TestCharEscape4(TestHost testHost)
         {
@@ -3701,14 +4672,12 @@ class X
                 Escape(@"\u000a"));
         }
 
-        [WorkItem(29451, "https://github.com/dotnet/roslyn/issues/29451")]
-        [Theory]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/29451")]
         [CombinatorialData]
         public async Task TestDirectiveStringLiteral(TestHost testHost)
             => await TestInMethodAsync(@"#line 1 ""a\b""", testHost);
 
-        [WorkItem(30378, "https://github.com/dotnet/roslyn/issues/30378")]
-        [Theory]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/30378")]
         [CombinatorialData]
         public async Task TestFormatSpecifierInInterpolation(TestHost testHost)
         {
@@ -3719,8 +4688,7 @@ class X
                 Escape(@"}}"));
         }
 
-        [WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")]
-        [Theory]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/29492")]
         [CombinatorialData]
         public async Task TestOverloadedOperator_BinaryExpression(TestHost testHost)
         {
@@ -3752,8 +4720,7 @@ class True
                 Class("True"));
         }
 
-        [WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")]
-        [Theory]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/29492")]
         [CombinatorialData]
         public async Task TestOverloadedOperator_PrefixUnaryExpression(TestHost testHost)
         {
@@ -3781,8 +4748,7 @@ class True
                 Class("True"));
         }
 
-        [WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")]
-        [Theory]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/29492")]
         [CombinatorialData]
         public async Task TestOverloadedOperator_PostfixUnaryExpression(TestHost testHost)
         {
@@ -3816,8 +4782,7 @@ class True
                 Class("True"));
         }
 
-        [WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")]
-        [Theory]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/29492")]
         [CombinatorialData]
         public async Task TestOverloadedOperator_ConditionalExpression(TestHost testHost)
         {
@@ -3847,8 +4812,7 @@ class True
                 Class("True"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestCatchDeclarationVariable(TestHost testHost)
         {
             await TestInMethodAsync(@"
@@ -3863,8 +4827,7 @@ catch (Exception ex)
                 Local("ex"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_InsideMethod(TestHost testHost)
         {
             // Asserts no Keyword("notnull") because it is an identifier.
@@ -3876,8 +4839,7 @@ notnull++;",
                 Local("notnull"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_Type_Keyword(TestHost testHost)
         {
             await TestAsync(
@@ -3887,8 +4849,7 @@ notnull++;",
                 Keyword("notnull"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_Type_ExistingInterface(TestHost testHost)
         {
             await TestAsync(@"
@@ -3899,8 +4860,7 @@ class X<T> where T : notnull { }",
                 Interface("notnull"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_Type_ExistingInterfaceButOutOfScope(TestHost testHost)
         {
             await TestAsync(@"
@@ -3915,8 +4875,7 @@ class X<T> where T : notnull { }",
                 Keyword("notnull"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_Method_Keyword(TestHost testHost)
         {
             await TestAsync(@"
@@ -3929,8 +4888,7 @@ class X
                 Keyword("notnull"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_Method_ExistingInterface(TestHost testHost)
         {
             await TestAsync(@"
@@ -3944,8 +4902,7 @@ class X
                 Interface("notnull"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_Method_ExistingInterfaceButOutOfScope(TestHost testHost)
         {
             await TestAsync(@"
@@ -3963,8 +4920,7 @@ class X
                 Keyword("notnull"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_Delegate_Keyword(TestHost testHost)
         {
             await TestAsync(
@@ -3974,8 +4930,7 @@ class X
                 Keyword("notnull"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_Delegate_ExistingInterface(TestHost testHost)
         {
             await TestAsync(@"
@@ -3986,8 +4941,7 @@ delegate void D<T>() where T : notnull;",
                 Interface("notnull"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_Delegate_ExistingInterfaceButOutOfScope(TestHost testHost)
         {
             await TestAsync(@"
@@ -4002,8 +4956,7 @@ delegate void D<T>() where T : notnull;",
                 Keyword("notnull"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_LocalFunction_Keyword(TestHost testHost)
         {
             await TestAsync(@"
@@ -4019,8 +4972,7 @@ class X
                 Keyword("notnull"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_LocalFunction_ExistingInterface(TestHost testHost)
         {
             await TestAsync(@"
@@ -4037,8 +4989,7 @@ class X
                 Interface("notnull"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_LocalFunction_ExistingInterfaceButOutOfScope(TestHost testHost)
         {
             await TestAsync(@"
@@ -4059,8 +5010,7 @@ class X
                 Keyword("notnull"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NonDiscardVariableDeclaration(TestHost testHost)
         {
             await TestAsync(@"
@@ -4077,8 +5027,7 @@ class X
             Static("Parse"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NonDiscardVariableDeclarationMultipleDeclarators(TestHost testHost)
         {
             await TestAsync(@"
@@ -4092,8 +5041,7 @@ class X
 }", testHost);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DiscardAssignment(TestHost testHost)
         {
             await TestAsync(@"
@@ -4110,8 +5058,7 @@ class X
             Static("Parse"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DiscardInOutDeclaration(TestHost testHost)
         {
             await TestAsync(@"
@@ -4129,8 +5076,7 @@ class X
             Keyword("_"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DiscardInOutAssignment(TestHost testHost)
         {
             await TestAsync(@"
@@ -4147,8 +5093,7 @@ class X
             Keyword("_"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DiscardInDeconstructionAssignment(TestHost testHost)
         {
             await TestAsync(@"
@@ -4163,8 +5108,7 @@ class X
             Keyword("_"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DiscardInDeconstructionDeclaration(TestHost testHost)
         {
             await TestAsync(@"
@@ -4179,8 +5123,7 @@ class X
             Keyword("_"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DiscardInPatternMatch(TestHost testHost)
         {
             await TestAsync(@"
@@ -4196,8 +5139,7 @@ class X
             Keyword("_"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DiscardInSwitch(TestHost testHost)
         {
             await TestAsync(@"
@@ -4219,8 +5161,7 @@ class X
             Keyword("_"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DiscardInSwitchPatternMatch(TestHost testHost)
         {
             await TestAsync(@"
@@ -4239,8 +5180,7 @@ class X
             Keyword("_"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task UnusedUnderscoreParameterInLambda(TestHost testHost)
         {
             await TestAsync(@"
@@ -4256,8 +5196,7 @@ class X
             Delegate("Func"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task UsedUnderscoreParameterInLambda(TestHost testHost)
         {
             await TestAsync(@"
@@ -4274,8 +5213,7 @@ class X
             Parameter("_"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DiscardsInLambda(TestHost testHost)
         {
             await TestAsync(@"
@@ -4293,8 +5231,7 @@ class X
             Keyword("_"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DiscardsInLambdaWithInferredType(TestHost testHost)
         {
             await TestAsync(@"
@@ -4312,8 +5249,7 @@ class X
             Keyword("_"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NativeInteger(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -4322,8 +5258,7 @@ class X
                 Classifications(Keyword("nint"), Keyword("nuint")));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NotNativeInteger(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -4334,8 +5269,7 @@ class X
                 Classifications(Class("nint")));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NotNativeUnsignedInteger(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -4346,8 +5280,7 @@ class X
                 Classifications(Class("nuint")));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task StaticBoldingMethodName(TestHost testHost)
         {
             await TestAsync(
@@ -4365,8 +5298,7 @@ class X
             Static("Method"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task StaticBoldingMethodNameNestedInNameof(TestHost testHost)
         {
             await TestAsync(
@@ -4384,8 +5316,7 @@ class X
             Method("Method"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task BoldingMethodNameStaticAndNot(TestHost testHost)
         {
             await TestAsync(
@@ -4412,9 +5343,8 @@ class X
             Method("Method"));
         }
 
-        [Theory]
-        [CombinatorialData]
-        [WorkItem(46985, "https://github.com/dotnet/roslyn/issues/46985")]
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/46985")]
         public async Task BasicRecordClassification(TestHost testHost)
         {
             await TestAsync(
@@ -4425,12 +5355,11 @@ class X
     R() { }
 }",
                 testHost,
-                Record("R"));
+                RecordClass("R"));
         }
 
-        [Theory]
-        [CombinatorialData]
-        [WorkItem(46985, "https://github.com/dotnet/roslyn/issues/46985")]
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/46985")]
         public async Task ParameterizedRecordClassification(TestHost testHost)
         {
             await TestAsync(
@@ -4441,7 +5370,171 @@ class C
     R r;
 }",
                 testHost,
-                Record("R"));
+                RecordClass("R"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task BasicRecordClassClassification(TestHost testHost)
+        {
+            await TestAsync(
+@"record class R
+{
+    R r;
+
+    R() { }
+}",
+                testHost,
+                RecordClass("R"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task BasicRecordStructClassification(TestHost testHost)
+        {
+            await TestAsync(
+@"record struct R
+{
+    R property { get; set; }
+}",
+                testHost,
+                RecordStruct("R"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task BasicFileScopedNamespaceClassification(TestHost testHost)
+        {
+            await TestAsync(
+@"namespace NS;
+
+class C { }",
+                testHost,
+                Namespace("NS"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task NullCheckedParameterClassification(TestHost testHost)
+        {
+            await TestAsync(
+@"
+class C
+{
+    void M(string s!!) { }
+}",
+                testHost);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/57184")]
+        public async Task MethodGroupClassifications(TestHost testHost)
+        {
+            await TestAsync(
+@"var f = m;
+Delegate d = m;
+MulticastDelegate md = m;
+ICloneable c = m;
+object obj = m;
+m(m);
+
+int m(Delegate d) { }",
+                testHost,
+                    Keyword("var"),
+                    Method("m"),
+                    Method("m"),
+                    Method("m"),
+                    Method("m"),
+                    Method("m"),
+                    Method("m"),
+                    Method("m"));
+        }
+
+        /// <seealso cref="SyntacticClassifierTests.LocalFunctionDeclaration"/>
+        /// <seealso cref="TotalClassifierTests.LocalFunctionDeclarationAndUse"/>
+        [Theory, CombinatorialData]
+        public async Task LocalFunctionUse(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                using System;
+
+                class C
+                {
+                    void M(Action action)
+                    {
+                        [|localFunction();
+                        staticLocalFunction();
+
+                        M(localFunction);
+                        M(staticLocalFunction);
+
+                        void localFunction() { }
+                        static void staticLocalFunction() { }|]
+                    }
+                }
+
+                """,
+                testHost,
+                Method("localFunction"),
+                Method("staticLocalFunction"),
+                Static("staticLocalFunction"),
+                Method("M"),
+                Method("localFunction"),
+                Method("M"),
+                Method("staticLocalFunction"),
+                Static("staticLocalFunction"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestEscapeFourBytesCharacter(TestHost testHost)
+        {
+            await TestAsync(@"
+class C
+{
+        void M()
+        {
+            var x = ""𠀀𠀁𠣶𤆐𥽠𪛕"";
+        }
+}", testHost,
+Keyword("var"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestEscapeCharacter(TestHost testHost)
+        {
+            await TestAsync(@"
+class C
+{
+    string x1 = ""\xabcd"";
+    string x2 = ""\uabcd"";
+    string x3 = ""\U00009F99"";
+    string x4 = ""\'"";
+    string x5 = ""\"""";
+    string x6 = ""\\"";
+    string x7 = ""\0"";
+    string x8 = ""\a"";
+    string x9 = ""\b"";
+    string x10 = ""\f"";
+    string x11 = ""\n"";
+    string x12 = ""\r"";
+    string x13 = ""\t"";
+    string x14 = ""\v"";
+    string x15 = @"""""""";
+}", testHost,
+Escape("\\xabcd"),
+Escape("\\uabcd"),
+Escape("\\U00009F99"),
+Escape("\\\'"),
+Escape("\\\""),
+Escape("\\\\"),
+Escape("\\0"),
+Escape("\\a"),
+Escape("\\b"),
+Escape("\\f"),
+Escape("\\n"),
+Escape("\\r"),
+Escape("\\t"),
+Escape("\\v"),
+Escape("\"\"")
+);
+
         }
     }
 }

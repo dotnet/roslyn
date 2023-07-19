@@ -9,6 +9,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.PooledObjects
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
@@ -22,7 +23,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             metadataStream As Stream,
             ilStream As Stream,
             pdbStream As Stream,
-            updatedMethods As ICollection(Of MethodDefinitionHandle),
             testData As CompilationTestData,
             cancellationToken As CancellationToken) As EmitDifferenceResult
 
@@ -48,18 +48,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Catch e As NotSupportedException
                 ' TODO: https://github.com/dotnet/roslyn/issues/9004
                 diagnostics.Add(ERRID.ERR_ModuleEmitFailure, NoLocation.Singleton, compilation.AssemblyName, e.Message)
-                Return New EmitDifferenceResult(success:=False, diagnostics:=diagnostics.ToReadOnlyAndFree(), baseline:=Nothing)
+                Return New EmitDifferenceResult(
+                    success:=False,
+                    diagnostics:=diagnostics.ToReadOnlyAndFree(),
+                    baseline:=Nothing,
+                    updatedMethods:=ImmutableArray(Of MethodDefinitionHandle).Empty,
+                    changedTypes:=ImmutableArray(Of TypeDefinitionHandle).Empty)
             End Try
 
             If testData IsNot Nothing Then
-                moduleBeingBuilt.SetMethodTestData(testData.Methods)
-                testData.Module = moduleBeingBuilt
+                moduleBeingBuilt.SetTestData(testData)
             End If
 
             Dim definitionMap = moduleBeingBuilt.PreviousDefinitions
-            Dim changes = moduleBeingBuilt.Changes
+            Dim changes = moduleBeingBuilt.EncSymbolChanges
 
             Dim newBaseline As EmitBaseline = Nothing
+            Dim updatedMethods = ArrayBuilder(Of MethodDefinitionHandle).GetInstance()
+            Dim changedTypes = ArrayBuilder(Of TypeDefinitionHandle).GetInstance()
 
             If compilation.Compile(moduleBeingBuilt,
                                    emittingPdb:=True,
@@ -81,6 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     ilStream,
                     pdbStream,
                     updatedMethods,
+                    changedTypes,
                     diagnostics,
                     testData?.SymWriterFactory,
                     emitOpts.PdbFilePath,
@@ -90,7 +97,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return New EmitDifferenceResult(
                 success:=newBaseline IsNot Nothing,
                 diagnostics:=diagnostics.ToReadOnlyAndFree(),
-                baseline:=newBaseline)
+                baseline:=newBaseline,
+                updatedMethods:=updatedMethods.ToImmutableAndFree(),
+                changedTypes:=changedTypes.ToImmutableAndFree())
         End Function
 
         Friend Function MapToCompilation(
@@ -108,6 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End If
 
             Dim currentSynthesizedMembers = moduleBeingBuilt.GetAllSynthesizedMembers()
+            Dim currentDeletedMembers = moduleBeingBuilt.EncSymbolChanges.GetAllDeletedMembers()
 
             ' Mapping from previous compilation to the current.
             Dim anonymousTypeMap = moduleBeingBuilt.GetAnonymousTypeMap()
@@ -121,9 +131,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 sourceContext,
                 compilation.SourceAssembly,
                 otherContext,
-                currentSynthesizedMembers)
+                currentSynthesizedMembers,
+                currentDeletedMembers)
 
-            Dim mappedSynthesizedMembers = matcher.MapSynthesizedMembers(previousGeneration.SynthesizedMembers, currentSynthesizedMembers)
+            Dim mappedSynthesizedMembers = matcher.MapSynthesizedOrDeletedMembers(previousGeneration.SynthesizedMembers, currentSynthesizedMembers, isDeletedMemberMapping:=False)
+            Dim mappedDeletedMembers = matcher.MapSynthesizedOrDeletedMembers(previousGeneration.DeletedMembers, currentDeletedMembers, isDeletedMemberMapping:=True)
 
             ' TODO can we reuse some data from the previous matcher?
             Dim matcherWithAllSynthesizedMembers = New VisualBasicSymbolMatcher(
@@ -132,13 +144,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 sourceContext,
                 compilation.SourceAssembly,
                 otherContext,
-                mappedSynthesizedMembers)
+                mappedSynthesizedMembers,
+                mappedDeletedMembers)
 
             Return matcherWithAllSynthesizedMembers.MapBaselineToCompilation(
                 previousGeneration,
                 compilation,
                 moduleBeingBuilt,
-                mappedSynthesizedMembers)
+                mappedSynthesizedMembers,
+                mappedDeletedMembers)
         End Function
     End Module
 End Namespace

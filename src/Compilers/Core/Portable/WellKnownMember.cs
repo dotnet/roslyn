@@ -7,6 +7,8 @@ namespace Microsoft.CodeAnalysis
     // Members of well known types
     internal enum WellKnownMember
     {
+        System_Object__ToString,
+
         System_Math__RoundDouble,
         System_Math__PowDoubleDouble,
 
@@ -121,6 +123,9 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_InteropServices_LCIDConversionAttribute__ctor,
         System_Runtime_InteropServices_UnmanagedFunctionPointerAttribute__ctor,
 
+        System_Runtime_InteropServices_MemoryMarshal__CreateSpan,
+        System_Runtime_InteropServices_MemoryMarshal__CreateReadOnlySpan,
+
         System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T__AddEventHandler,
         System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T__GetOrCreateEventRegistrationTokenTable,
         System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T__InvocationList,
@@ -146,10 +151,16 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_CallSite_T__Create,
         System_Runtime_CompilerServices_CallSite_T__Target,
 
+        System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle,
         System_Runtime_CompilerServices_RuntimeHelpers__GetObjectValueObject,
         System_Runtime_CompilerServices_RuntimeHelpers__InitializeArrayArrayRuntimeFieldHandle,
         System_Runtime_CompilerServices_RuntimeHelpers__get_OffsetToStringData,
         System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T,
+        System_Runtime_CompilerServices_RuntimeHelpers__EnsureSufficientExecutionStack,
+
+        System_Runtime_CompilerServices_Unsafe__Add_T,
+        System_Runtime_CompilerServices_Unsafe__As_T,
+        System_Runtime_CompilerServices_Unsafe__AsRef_T,
 
         System_Runtime_ExceptionServices_ExceptionDispatchInfo__Capture,
         System_Runtime_ExceptionServices_ExceptionDispatchInfo__Throw,
@@ -424,6 +435,46 @@ namespace Microsoft.CodeAnalysis
         Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
         Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles,
 
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogMethodEntry,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLambdaEntry,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogStateMachineMethodEntry,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogStateMachineLambdaEntry,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogReturn,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__GetNewStateMachineInstanceId,
+
+        // Each of the following LogLocalStore helpers have a matching LogParameterStore helper below.
+        // The corresponding helpers must be listed in the same order.
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreBoolean,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreByte,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreUInt16,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreUInt32,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreUInt64,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreSingle,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreDouble,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreDecimal,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreString,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreObject,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStorePointer,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreUnmanaged,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreParameterAlias,
+
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreBoolean,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreByte,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreUInt16,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreUInt32,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreUInt64,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreSingle,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreDouble,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreDecimal,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreString,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreObject,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStorePointer,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreUnmanaged,
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreParameterAlias,
+
+        // No LogParameterStoreLocalAlias since address of a local can't be assigned to a parameter
+        Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreLocalAlias,
+
         System_Runtime_CompilerServices_NullableAttribute__ctorByte,
         System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags,
         System_Runtime_CompilerServices_NullableContextAttribute__ctor,
@@ -434,13 +485,18 @@ namespace Microsoft.CodeAnalysis
 
         System_ObsoleteAttribute__ctor,
 
-        System_Span_T__ctor,
+        System_Span_T__ctor_Pointer,
+        System_Span_T__ctor_Array,
         System_Span_T__get_Item,
         System_Span_T__get_Length,
+        System_Span_T__Slice_Int_Int,
 
-        System_ReadOnlySpan_T__ctor,
+        System_ReadOnlySpan_T__ctor_Pointer,
+        System_ReadOnlySpan_T__ctor_Array,
+        System_ReadOnlySpan_T__ctor_Array_Start_Length,
         System_ReadOnlySpan_T__get_Item,
         System_ReadOnlySpan_T__get_Length,
+        System_ReadOnlySpan_T__Slice_Int_Int,
 
         System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
 
@@ -496,6 +552,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_ITuple__get_Length,
 
         System_InvalidOperationException__ctor,
+        System_InvalidOperationException__ctorString,
         System_Runtime_CompilerServices_SwitchExpressionException__ctor,
         System_Runtime_CompilerServices_SwitchExpressionException__ctorObject,
 
@@ -504,12 +561,33 @@ namespace Microsoft.CodeAnalysis
         System_Threading_CancellationTokenSource__Token,
         System_Threading_CancellationTokenSource__Dispose,
 
+        System_ArgumentNullException__ctorString,
+
         System_Runtime_CompilerServices_NativeIntegerAttribute__ctor,
         System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags,
 
         System_Text_StringBuilder__AppendString,
+        System_Text_StringBuilder__AppendChar,
         System_Text_StringBuilder__AppendObject,
         System_Text_StringBuilder__ctor,
+
+        System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear,
+        System_Runtime_CompilerServices_RequiredMemberAttribute__ctor,
+        System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute__ctor,
+        System_Runtime_CompilerServices_ScopedRefAttribute__ctor,
+        System_Runtime_CompilerServices_RefSafetyRulesAttribute__ctor,
+
+        System_MemoryExtensions__SequenceEqual_Span_T,
+        System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T,
+        System_MemoryExtensions__AsSpan_String,
+
+        System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor,
+        System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor,
+
+        System_MissingMethodException__ctor,
+        System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor,
+
+        System_Collections_Generic_List_T__ToArray,
 
         Count
 

@@ -2,10 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-# nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.IO;
@@ -24,33 +20,32 @@ namespace Microsoft.CodeAnalysis.MSBuild
     /// </summary>
     public partial class MSBuildProjectLoader
     {
-        // the workspace that the projects and solutions are intended to be loaded into.
-        private readonly HostWorkspaceServices _workspaceServices;
+        // the services for the projects and solutions are intended to be loaded into.
+        private readonly SolutionServices _solutionServices;
 
         private readonly DiagnosticReporter _diagnosticReporter;
         private readonly PathResolver _pathResolver;
         private readonly ProjectFileLoaderRegistry _projectFileLoaderRegistry;
 
         // used to protect access to the following mutable state
-        private readonly NonReentrantLock _dataGuard = new NonReentrantLock();
-        private ImmutableDictionary<string, string> _properties;
+        private readonly NonReentrantLock _dataGuard = new();
 
         internal MSBuildProjectLoader(
-            HostWorkspaceServices workspaceServices,
+            SolutionServices solutionServices,
             DiagnosticReporter diagnosticReporter,
             ProjectFileLoaderRegistry? projectFileLoaderRegistry,
             ImmutableDictionary<string, string>? properties)
         {
-            _workspaceServices = workspaceServices;
+            _solutionServices = solutionServices;
             _diagnosticReporter = diagnosticReporter;
             _pathResolver = new PathResolver(_diagnosticReporter);
-            _projectFileLoaderRegistry = projectFileLoaderRegistry ?? new ProjectFileLoaderRegistry(workspaceServices, _diagnosticReporter);
+            _projectFileLoaderRegistry = projectFileLoaderRegistry ?? new ProjectFileLoaderRegistry(solutionServices, _diagnosticReporter);
 
-            _properties = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase);
+            Properties = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase);
 
             if (properties != null)
             {
-                _properties = _properties.AddRange(properties);
+                Properties = Properties.AddRange(properties);
             }
         }
 
@@ -61,7 +56,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <param name="properties">An optional dictionary of additional MSBuild properties and values to use when loading projects.
         /// These are the same properties that are passed to msbuild via the /property:&lt;n&gt;=&lt;v&gt; command line argument.</param>
         public MSBuildProjectLoader(Workspace workspace, ImmutableDictionary<string, string>? properties = null)
-            : this(workspace.Services, new DiagnosticReporter(workspace), projectFileLoaderRegistry: null, properties)
+            : this(workspace.Services.SolutionServices, new DiagnosticReporter(workspace), projectFileLoaderRegistry: null, properties)
         {
         }
 
@@ -69,7 +64,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// The MSBuild properties used when interpreting project files.
         /// These are the same properties that are passed to msbuild via the /property:&lt;n&gt;=&lt;v&gt; command line argument.
         /// </summary>
-        public ImmutableDictionary<string, string> Properties => _properties;
+        public ImmutableDictionary<string, string> Properties { get; private set; }
 
         /// <summary>
         /// Determines if metadata from existing output assemblies is loaded instead of opening referenced projects.
@@ -80,13 +75,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         /// <summary>
         /// Determines if unrecognized projects are skipped when solutions or projects are opened.
-        /// 
-        /// A project is unrecognized if it either has 
-        ///   a) an invalid file path, 
+        ///
+        /// A project is unrecognized if it either has
+        ///   a) an invalid file path,
         ///   b) a non-existent project file,
-        ///   c) has an unrecognized file extension or 
+        ///   c) has an unrecognized file extension or
         ///   d) a file extension associated with an unsupported language.
-        /// 
+        ///
         /// If unrecognized projects cannot be skipped a corresponding exception is thrown.
         /// </summary>
         public bool SkipUnrecognizedProjects { get; set; } = true;
@@ -121,13 +116,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
             // $(SolutionDir) is defined to be the directory where the .sln file is located.
             // Some projects out there rely on $(SolutionDir) being set (although the best practice is to
             // use MSBuildProjectDirectory which is always defined).
-            if (!string.IsNullOrEmpty(solutionFilePath))
+            if (!RoslynString.IsNullOrEmpty(solutionFilePath))
             {
                 var solutionDirectory = PathUtilities.GetDirectoryName(solutionFilePath) + PathUtilities.DirectorySeparatorChar;
 
                 if (Directory.Exists(solutionDirectory))
                 {
-                    _properties = _properties.SetItem(SolutionDirProperty, solutionDirectory);
+                    Properties = Properties.SetItem(SolutionDirProperty, solutionDirectory);
                 }
             }
         }
@@ -138,7 +133,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 : DiagnosticReportingMode.Throw;
 
         /// <summary>
-        /// Loads the <see cref="SolutionInfo"/> for the specified solution file, including all projects referenced by the solution file and 
+        /// Loads the <see cref="SolutionInfo"/> for the specified solution file, including all projects referenced by the solution file and
         /// all the projects referenced by the project files.
         /// </summary>
         /// <param name="solutionFilePath">The path to the solution file to be loaded. This may be an absolute path or a path relative to the
@@ -163,13 +158,19 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 return null!;
             }
 
+            var projectfilter = ImmutableHashSet<string>.Empty;
+            if (SolutionFilterReader.IsSolutionFilterFilename(absoluteSolutionPath) &&
+                !SolutionFilterReader.TryRead(absoluteSolutionPath, _pathResolver, out absoluteSolutionPath, out projectfilter))
+            {
+                throw new Exception(string.Format(WorkspaceMSBuildResources.Failed_to_load_solution_filter_0, solutionFilePath));
+            }
+
             using (_dataGuard.DisposableWait(cancellationToken))
             {
                 this.SetSolutionProperties(absoluteSolutionPath);
             }
 
             var solutionFile = MSB.Construction.SolutionFile.Parse(absoluteSolutionPath);
-
             var reportingMode = GetReportingModeForUnrecognizedProjects();
 
             var reportingOptions = new DiagnosticReportingOptions(
@@ -183,16 +184,23 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (project.ProjectType != MSB.Construction.SolutionProjectType.SolutionFolder)
+                if (project.ProjectType == MSB.Construction.SolutionProjectType.SolutionFolder)
+                {
+                    continue;
+                }
+
+                // Load project if we have an empty project filter and the project path is present.
+                if (projectfilter.IsEmpty ||
+                    projectfilter.Contains(project.AbsolutePath))
                 {
                     projectPaths.Add(project.RelativePath);
                 }
             }
 
-            var buildManager = new ProjectBuildManager(_properties, msbuildLogger);
+            var buildManager = new ProjectBuildManager(Properties, msbuildLogger);
 
             var worker = new Worker(
-                _workspaceServices,
+                _solutionServices,
                 _diagnosticReporter,
                 _pathResolver,
                 _projectFileLoaderRegistry,
@@ -200,7 +208,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 projectPaths.ToImmutable(),
                 // TryGetAbsoluteSolutionPath should not return an invalid path
                 baseDirectory: Path.GetDirectoryName(absoluteSolutionPath)!,
-                _properties,
+                Properties,
                 projectMap: null,
                 progress,
                 requestedProjectOptions: reportingOptions,
@@ -248,17 +256,17 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 onPathFailure: reportingMode,
                 onLoaderFailure: reportingMode);
 
-            var buildManager = new ProjectBuildManager(_properties, msbuildLogger);
+            var buildManager = new ProjectBuildManager(Properties, msbuildLogger);
 
             var worker = new Worker(
-                _workspaceServices,
+                _solutionServices,
                 _diagnosticReporter,
                 _pathResolver,
                 _projectFileLoaderRegistry,
                 buildManager,
                 requestedProjectPaths: ImmutableArray.Create(projectFilePath),
                 baseDirectory: Directory.GetCurrentDirectory(),
-                globalProperties: _properties,
+                globalProperties: Properties,
                 projectMap,
                 progress,
                 requestedProjectOptions,

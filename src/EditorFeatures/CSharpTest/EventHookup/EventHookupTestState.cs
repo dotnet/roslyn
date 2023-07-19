@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
@@ -32,14 +33,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
             : base(workspaceElement, s_composition)
         {
             _commandHandler = new EventHookupCommandHandler(
-                Workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
+                Workspace.GetService<IThreadingContext>(),
                 Workspace.GetService<IInlineRenameService>(),
-                Workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>(),
-                Workspace.ExportProvider.GetExportedValue<EventHookupSessionManager>());
+                Workspace.GetService<EventHookupSessionManager>(),
+                Workspace.GetService<IGlobalOptionService>(),
+                Workspace.GetService<IAsynchronousOperationListenerProvider>());
 
             _testSessionHookupMutex = new Mutex(false);
             _commandHandler.TESTSessionHookupMutex = _testSessionHookupMutex;
-            Workspace.ApplyOptions(options);
+            options?.SetGlobalOptions(Workspace.GlobalOptions);
         }
 
         public static EventHookupTestState CreateTestState(string markup, OptionsCollection options = null)

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -19,17 +20,18 @@ namespace Microsoft.CodeAnalysis.Host
 
         ParseOptions GetDefaultParseOptionsWithLatestLanguageVersion();
 
+        ParseOptions TryParsePdbParseOptions(IReadOnlyDictionary<string, string> compilationOptionsMetadata);
+
+        /// <summary>
+        /// Returns true if the two options differ only by preprocessor directives; this allows for us to reuse trees
+        /// if they don't have preprocessor directives in them.
+        /// </summary>
+        bool OptionsDifferOnlyByPreprocessorDirectives(ParseOptions options1, ParseOptions options2);
+
         // new tree from root node
-        SyntaxTree CreateSyntaxTree(string? filePath, ParseOptions options, Encoding? encoding, SyntaxNode root);
+        SyntaxTree CreateSyntaxTree(string? filePath, ParseOptions options, Encoding? encoding, SourceHashAlgorithm checksumAlgorithm, SyntaxNode root);
 
         // new tree from text
         SyntaxTree ParseSyntaxTree(string? filePath, ParseOptions options, SourceText text, CancellationToken cancellationToken);
-
-        bool CanCreateRecoverableTree(SyntaxNode root);
-
-        // new recoverable tree from root node
-        SyntaxTree CreateRecoverableTree(ProjectId cacheKey, string? filePath, ParseOptions options, ValueSource<TextAndVersion> text, Encoding? encoding, SyntaxNode root);
-
-        SyntaxNode DeserializeNodeFrom(Stream stream, CancellationToken cancellationToken);
     }
 }

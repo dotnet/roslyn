@@ -392,6 +392,7 @@ class C
             );
         }
 
+#if NET472
         [ConditionalFact(typeof(DesktopOnly))]
         public void AddManagedResource()
         {
@@ -752,7 +753,7 @@ class C
                 Assert.True(result6.Success);
             }
         }
-
+#endif
         [Fact]
         public void AddManagedLinkedResourceFail()
         {

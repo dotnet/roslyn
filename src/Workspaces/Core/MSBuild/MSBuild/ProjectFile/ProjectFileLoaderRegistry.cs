@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
@@ -14,14 +13,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
 {
     internal class ProjectFileLoaderRegistry
     {
-        private readonly HostWorkspaceServices _workspaceServices;
+        private readonly SolutionServices _solutionServices;
         private readonly DiagnosticReporter _diagnosticReporter;
         private readonly Dictionary<string, string> _extensionToLanguageMap;
         private readonly NonReentrantLock _dataGuard;
 
-        public ProjectFileLoaderRegistry(HostWorkspaceServices workspaceServices, DiagnosticReporter diagnosticReporter)
+        public ProjectFileLoaderRegistry(SolutionServices solutionServices, DiagnosticReporter diagnosticReporter)
         {
-            _workspaceServices = workspaceServices;
+            _solutionServices = solutionServices;
             _diagnosticReporter = diagnosticReporter;
             _extensionToLanguageMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             _dataGuard = new NonReentrantLock();
@@ -38,26 +37,31 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        public bool TryGetLoaderFromProjectPath(string projectFilePath, out IProjectFileLoader loader)
+        public bool TryGetLoaderFromProjectPath(string? projectFilePath, [NotNullWhen(true)] out IProjectFileLoader? loader)
         {
             return TryGetLoaderFromProjectPath(projectFilePath, DiagnosticReportingMode.Ignore, out loader);
         }
 
-        public bool TryGetLoaderFromProjectPath(string projectFilePath, DiagnosticReportingMode mode, out IProjectFileLoader loader)
+        public bool TryGetLoaderFromProjectPath(string? projectFilePath, DiagnosticReportingMode mode, [NotNullWhen(true)] out IProjectFileLoader? loader)
         {
             using (_dataGuard.DisposableWait())
             {
                 var extension = Path.GetExtension(projectFilePath);
-                if (extension.Length > 0 && extension[0] == '.')
+                if (extension is null)
                 {
-                    extension = extension.Substring(1);
+                    loader = null;
+                    _diagnosticReporter.Report(mode, $"Project file path was 'null'");
+                    return false;
                 }
+
+                if (extension is ['.', .. var rest])
+                    extension = rest;
 
                 if (_extensionToLanguageMap.TryGetValue(extension, out var language))
                 {
-                    if (_workspaceServices.SupportedLanguages.Contains(language))
+                    if (_solutionServices.SupportedLanguages.Contains(language))
                     {
-                        loader = _workspaceServices.GetLanguageServices(language).GetService<IProjectFileLoader>();
+                        loader = _solutionServices.GetLanguageServices(language).GetService<IProjectFileLoader>();
                     }
                     else
                     {
@@ -68,7 +72,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 }
                 else
                 {
-                    loader = ProjectFileLoader.GetLoaderForProjectFileExtension(_workspaceServices, extension);
+                    loader = ProjectFileLoader.GetLoaderForProjectFileExtension(_solutionServices, extension);
 
                     if (loader == null)
                     {
@@ -83,7 +87,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     language = loader.Language;
 
                     // check for command line parser existing... if not then error.
-                    var commandLineParser = _workspaceServices
+                    var commandLineParser = _solutionServices
                         .GetLanguageServices(language)
                         .GetService<ICommandLineParserService>();
 

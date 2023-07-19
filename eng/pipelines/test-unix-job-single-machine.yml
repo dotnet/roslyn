@@ -1,0 +1,73 @@
+# Test on Unix using a single machine
+parameters:
+- name: testRunName
+  type: string
+  default: ''
+- name: jobName
+  type: string
+  default: ''
+- name: testArtifactName
+  type: string
+  default: ''
+- name: configuration
+  type: string
+  default: 'Debug'
+- name: testArguments
+  type: string
+  default: ''
+- name: poolName
+  type: string
+  default: ''
+- name: queueName
+  type: string
+  default: ''
+- name: vmImageName
+  type: string
+  default: ''
+
+jobs:
+- job: ${{ parameters.jobName }}
+  pool:
+    ${{ if ne(parameters.queueName, '') }}:
+      name: ${{ parameters.poolName }}
+      demands: ImageOverride -equals ${{ parameters.queueName }}
+
+    ${{ if ne(parameters.vmImageName, '') }}:
+      vmImage: ${{ parameters.vmImageName }}
+  timeoutInMinutes: 50
+  variables:
+    DOTNET_ROLL_FORWARD: LatestMajor
+    DOTNET_ROLL_FORWARD_TO_PRERELEASE: 1
+  steps:
+    - checkout: none
+
+    - task: DownloadPipelineArtifact@2
+      displayName: Download Test Payload
+      inputs:
+        artifact: ${{ parameters.testArtifactName }}
+        path: '$(Build.SourcesDirectory)'
+    
+    - task: ShellScript@2
+      displayName: Rehydrate Unit Tests Environment
+      inputs:
+        scriptPath: ./rehydrate-all.sh
+
+    - task: ShellScript@2
+      inputs:
+        scriptPath: ./eng/build.sh
+        args: --ci --configuration ${{ parameters.configuration }} ${{ parameters.testArguments }}
+      displayName: Test
+
+    - task: PublishTestResults@2
+      displayName: Publish xUnit Test Results
+      inputs:
+        testRunner: XUnit
+        testResultsFiles: '$(Build.SourcesDirectory)/artifacts/TestResults/${{ parameters.configuration }}/*.xml'
+        mergeTestResults: true
+        testRunTitle: ${{ parameters.testRunName }}
+      condition: always()
+
+    - template: publish-logs.yml
+      parameters:
+        configuration: ${{ parameters.configuration }}
+        jobName: ${{ parameters.jobName }}

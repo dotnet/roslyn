@@ -1,0 +1,18 @@
+﻿<UserControl x:Class="Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.View.CodeStyleSeverityControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+             Resources="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogDefaultStylesKey}}"
+             mc:Ignorable="d" 
+             x:ClassModifier="internal">
+    <Grid x:Name="RootGrid">
+        <ComboBox x:Name="SeverityComboBox"
+                  ItemsSource="{Binding Severities}"
+                  SelectedValue="{Binding SelectedSeverityValue}"
+                  ToolTip="{Binding ToolTip}"
+                  AutomationProperties.Name="{Binding AutomationName}" 
+                  SelectionChanged="SeverityComboBox_SelectionChanged"/>
+    </Grid>
+</UserControl>

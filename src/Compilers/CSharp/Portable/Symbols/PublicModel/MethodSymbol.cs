@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         private readonly Symbols.MethodSymbol _underlying;
         private ITypeSymbol _lazyReturnType;
         private ImmutableArray<ITypeSymbol> _lazyTypeArguments;
+        private ImmutableArray<IParameterSymbol> _lazyParameters;
         private ITypeSymbol _lazyReceiverType;
 
         public MethodSymbol(Symbols.MethodSymbol underlying)
@@ -100,13 +101,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         {
             get
             {
-                if (_lazyTypeArguments.IsDefault)
-                {
-
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyTypeArguments, _underlying.TypeArgumentsWithAnnotations.GetPublicSymbols(), default);
-                }
-
-                return _lazyTypeArguments;
+                return InterlockedOperations.InterlockedInitialize(
+                    ref _lazyTypeArguments,
+                    static underlying => underlying.TypeArgumentsWithAnnotations.GetPublicSymbols(),
+                    _underlying);
             }
         }
 
@@ -125,7 +123,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         {
             get
             {
-                return _underlying.Parameters.GetPublicSymbols();
+                return InterlockedOperations.InterlockedInitialize(
+                    ref _lazyParameters,
+                    static underlying => underlying.Parameters.GetPublicSymbols(),
+                    _underlying);
             }
         }
 
@@ -297,6 +298,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             }
         }
 
+        bool IMethodSymbol.IsPartialDefinition => _underlying.IsPartialDefinition();
+
         INamedTypeSymbol IMethodSymbol.AssociatedAnonymousDelegate
         {
             get
@@ -308,6 +311,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         int IMethodSymbol.Arity => _underlying.Arity;
 
         bool IMethodSymbol.IsExtensionMethod => _underlying.IsExtensionMethod;
+
+        System.Reflection.MethodImplAttributes IMethodSymbol.MethodImplementationFlags => _underlying.ImplementationAttributes;
 
         bool IMethodSymbol.IsVararg => _underlying.IsVararg;
 
@@ -335,6 +340,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         protected override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
         {
             return visitor.VisitMethod(this);
+        }
+
+        protected override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitMethod(this, argument);
         }
 
         #endregion

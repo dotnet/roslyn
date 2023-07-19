@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         private const byte ChecksumKind = 0;
         private const byte ChecksumWithChildrenKind = 1;
 
-        private static readonly ImmutableDictionary<WellKnownSynchronizationKind, Func<object[], ChecksumWithChildren>> s_creatorMap = CreateCreatorMap();
+        private static readonly ImmutableDictionary<WellKnownSynchronizationKind, Func<ImmutableArray<object>, ChecksumWithChildren>> s_creatorMap = CreateCreatorMap();
 
         public void SerializeChecksumWithChildren(ChecksumWithChildren checksums, ObjectWriter writer, CancellationToken cancellationToken)
         {
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             writer.WriteInt32((int)kind);
             checksums.Checksum.WriteTo(writer);
 
-            writer.WriteInt32(checksums.Children.Count);
+            writer.WriteInt32(checksums.Children.Length);
             foreach (var child in checksums.Children)
             {
                 switch (child)
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             }
         }
 
-        private ChecksumWithChildren DeserializeChecksumWithChildren(ObjectReader reader, CancellationToken cancellationToken)
+        private static ChecksumWithChildren DeserializeChecksumWithChildren(ObjectReader reader, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -55,45 +56,38 @@ namespace Microsoft.CodeAnalysis.Serialization
             var checksum = Checksum.ReadFrom(reader);
 
             var childrenCount = reader.ReadInt32();
-            var children = new object[childrenCount];
+            var children = ImmutableArray.CreateBuilder<object>(childrenCount);
 
             for (var i = 0; i < childrenCount; i++)
             {
                 var childKind = reader.ReadByte();
                 if (childKind == ChecksumKind)
                 {
-                    children[i] = Checksum.ReadFrom(reader);
-                    continue;
+                    children.Add(Checksum.ReadFrom(reader));
                 }
-
-                if (childKind == ChecksumWithChildrenKind)
+                else if (childKind == ChecksumWithChildrenKind)
                 {
-                    children[i] = DeserializeChecksumWithChildren(reader, cancellationToken);
-                    continue;
+                    children.Add(DeserializeChecksumWithChildren(reader, cancellationToken));
                 }
-
-                throw ExceptionUtilities.UnexpectedValue(childKind);
+                else
+                {
+                    throw ExceptionUtilities.UnexpectedValue(childKind);
+                }
             }
 
-            var checksums = s_creatorMap[kind](children);
+            var checksums = s_creatorMap[kind](children.MoveToImmutable());
             Contract.ThrowIfFalse(checksums.Checksum == checksum);
 
             return checksums;
         }
 
-        private static ImmutableDictionary<WellKnownSynchronizationKind, Func<object[], ChecksumWithChildren>> CreateCreatorMap()
+        private static ImmutableDictionary<WellKnownSynchronizationKind, Func<ImmutableArray<object>, ChecksumWithChildren>> CreateCreatorMap()
         {
-            return ImmutableDictionary<WellKnownSynchronizationKind, Func<object[], ChecksumWithChildren>>.Empty
+            return ImmutableDictionary<WellKnownSynchronizationKind, Func<ImmutableArray<object>, ChecksumWithChildren>>.Empty
                 .Add(WellKnownSynchronizationKind.SolutionState, children => new SolutionStateChecksums(children))
                 .Add(WellKnownSynchronizationKind.ProjectState, children => new ProjectStateChecksums(children))
                 .Add(WellKnownSynchronizationKind.DocumentState, children => new DocumentStateChecksums(children))
-                .Add(WellKnownSynchronizationKind.Projects, children => new ProjectChecksumCollection(children))
-                .Add(WellKnownSynchronizationKind.Documents, children => new DocumentChecksumCollection(children))
-                .Add(WellKnownSynchronizationKind.TextDocuments, children => new TextDocumentChecksumCollection(children))
-                .Add(WellKnownSynchronizationKind.AnalyzerConfigDocuments, children => new AnalyzerConfigDocumentChecksumCollection(children))
-                .Add(WellKnownSynchronizationKind.ProjectReferences, children => new ProjectReferenceChecksumCollection(children))
-                .Add(WellKnownSynchronizationKind.MetadataReferences, children => new MetadataReferenceChecksumCollection(children))
-                .Add(WellKnownSynchronizationKind.AnalyzerReferences, children => new AnalyzerReferenceChecksumCollection(children));
+                .Add(WellKnownSynchronizationKind.ChecksumCollection, children => new ChecksumCollection(children));
         }
     }
 }

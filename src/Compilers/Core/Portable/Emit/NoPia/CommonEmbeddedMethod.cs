@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
                 StateMachineMoveNextBodyDebugInfo Cci.IMethodBody.MoveNextBodyInfo => null;
 
-                DynamicAnalysisMethodBodyData Cci.IMethodBody.DynamicAnalysisData => null;
+                ImmutableArray<SourceSpan> Cci.IMethodBody.CodeCoverageSpans => ImmutableArray<SourceSpan>.Empty;
 
                 ImmutableArray<Cci.LocalScope> Cci.IMethodBody.LocalScopes =>
                     ImmutableArray<Cci.LocalScope>.Empty;
@@ -161,7 +161,12 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 ImmutableArray<LambdaDebugInfo> Cci.IMethodBody.LambdaDebugInfo =>
                     default(ImmutableArray<LambdaDebugInfo>);
 
+                public StateMachineStatesDebugInfo StateMachineStatesDebugInfo
+                    => default;
+
                 public DebugId MethodId => default(DebugId);
+
+                public bool IsPrimaryConstructor => false;
             }
 
             IEnumerable<Cci.IGenericMethodParameter> Cci.IMethodDefinition.GenericParameters => _typeParameters;

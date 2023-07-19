@@ -3,65 +3,98 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
     [ExportLanguageService(typeof(INavigateToSearchService), InternalLanguageNames.TypeScript), Shared]
-    internal class VSTypeScriptNavigateToSearchService : INavigateToSearchService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class VSTypeScriptNavigateToSearchService(
+        [Import(AllowDefault = true)] IVSTypeScriptNavigateToSearchService? searchService) : INavigateToSearchService
     {
-        private readonly IVSTypeScriptNavigateToSearchService? _searchService;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VSTypeScriptNavigateToSearchService(
-            [Import(AllowDefault = true)] IVSTypeScriptNavigateToSearchService? searchService)
-        {
-            _searchService = searchService;
-        }
+        private readonly IVSTypeScriptNavigateToSearchService? _searchService = searchService;
 
         public IImmutableSet<string> KindsProvided => _searchService?.KindsProvided ?? ImmutableHashSet<string>.Empty;
 
         public bool CanFilter => _searchService?.CanFilter ?? false;
 
-        public async Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
+        public async Task SearchDocumentAsync(
+            Document document,
+            string searchPattern,
+            IImmutableSet<string> kinds,
+            Document? activeDocument,
+            Func<INavigateToSearchResult, Task> onResultFound,
+            CancellationToken cancellationToken)
         {
-            if (_searchService == null)
-                return ImmutableArray<INavigateToSearchResult>.Empty;
-
-            var results = await _searchService.SearchDocumentAsync(document, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
-            return results.SelectAsArray(r => Convert(r));
+            if (_searchService != null)
+            {
+                var results = await _searchService.SearchDocumentAsync(document, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
+                foreach (var result in results)
+                    await onResultFound(Convert(result)).ConfigureAwait(false);
+            }
         }
 
-        public async Task<ImmutableArray<INavigateToSearchResult>> SearchProjectAsync(Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
+        public async Task SearchProjectAsync(
+            Project project,
+            ImmutableArray<Document> priorityDocuments,
+            string searchPattern,
+            IImmutableSet<string> kinds,
+            Document? activeDocument,
+            Func<INavigateToSearchResult, Task> onResultFound,
+            CancellationToken cancellationToken)
         {
-            if (_searchService == null)
-                return ImmutableArray<INavigateToSearchResult>.Empty;
+            if (_searchService != null)
+            {
+                var results = await _searchService.SearchProjectAsync(project, priorityDocuments, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
+                foreach (var result in results)
+                    await onResultFound(Convert(result)).ConfigureAwait(false);
+            }
+        }
 
-            var results = await _searchService.SearchProjectAsync(project, priorityDocuments, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
-            return results.SelectAsArray(r => Convert(r));
+        public Task SearchCachedDocumentsAsync(
+            Project project,
+            ImmutableArray<Document> priorityDocuments,
+            string searchPattern,
+            IImmutableSet<string> kinds,
+            Document? activeDocument,
+            Func<INavigateToSearchResult, Task> onResultFound,
+            CancellationToken cancellationToken)
+        {
+            // we don't support searching cached documents.
+            return Task.CompletedTask;
+        }
+
+        public Task SearchGeneratedDocumentsAsync(
+            Project project,
+            string searchPattern,
+            IImmutableSet<string> kinds,
+            Document? activeDocument,
+            Func<INavigateToSearchResult, Task> onResultFound,
+            CancellationToken cancellationToken)
+        {
+            // we don't support searching generated documents.
+            return Task.CompletedTask;
         }
 
         private static INavigateToSearchResult Convert(IVSTypeScriptNavigateToSearchResult result)
             => new WrappedNavigateToSearchResult(result);
 
-        private class WrappedNavigateToSearchResult : INavigateToSearchResult
+        private class WrappedNavigateToSearchResult(IVSTypeScriptNavigateToSearchResult result) : INavigateToSearchResult
         {
-            private readonly IVSTypeScriptNavigateToSearchResult _result;
-
-            public WrappedNavigateToSearchResult(IVSTypeScriptNavigateToSearchResult result)
-            {
-                _result = result;
-            }
+            private readonly IVSTypeScriptNavigateToSearchResult _result = result;
 
             public string AdditionalInformation => _result.AdditionalInformation;
 
@@ -94,34 +127,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
             public string Summary => _result.Summary;
 
-            public INavigableItem? NavigableItem => _result.NavigableItem == null ? null : new WrappedNavigableItem(_result.NavigableItem);
-        }
+            public INavigableItem NavigableItem => new VSTypeScriptNavigableItemWrapper(_result.NavigableItem);
 
-        private class WrappedNavigableItem : INavigableItem
-        {
-            private readonly IVSTypeScriptNavigableItem _navigableItem;
-
-            public WrappedNavigableItem(IVSTypeScriptNavigableItem navigableItem)
-            {
-                _navigableItem = navigableItem;
-            }
-
-            public Glyph Glyph => _navigableItem.Glyph;
-
-            public ImmutableArray<TaggedText> DisplayTaggedParts => _navigableItem.DisplayTaggedParts;
-
-            public bool DisplayFileLocation => _navigableItem.DisplayFileLocation;
-
-            public bool IsImplicitlyDeclared => _navigableItem.IsImplicitlyDeclared;
-
-            public Document Document => _navigableItem.Document;
-
-            public TextSpan SourceSpan => _navigableItem.SourceSpan;
-
-            public ImmutableArray<INavigableItem> ChildItems
-                => _navigableItem.ChildItems.IsDefault
-                    ? default
-                    : _navigableItem.ChildItems.SelectAsArray(i => (INavigableItem)new WrappedNavigableItem(i));
+            public ImmutableArray<PatternMatch> Matches => NavigateToSearchResultHelpers.GetMatches(this);
         }
     }
 }

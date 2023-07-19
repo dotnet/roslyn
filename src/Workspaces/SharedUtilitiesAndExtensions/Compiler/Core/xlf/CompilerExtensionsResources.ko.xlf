@@ -97,6 +97,11 @@
         <target state="translated">명명 스타일</target>
         <note />
       </trans-unit>
+      <trans-unit id="New_line_preferences">
+        <source>New line preferences</source>
+        <target state="translated">새 줄 기본 설정</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Non_Field_Members">
         <source>Non-Field Members</source>
         <target state="translated">필드가 아닌 멤버</target>

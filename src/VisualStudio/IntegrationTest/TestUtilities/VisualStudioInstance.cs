@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -15,7 +13,7 @@ using EnvDTE;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature;
+using Xunit;
 using Process = System.Diagnostics.Process;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
@@ -36,35 +34,27 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public ChangeSignatureDialog_OutOfProc ChangeSignatureDialog { get; }
 
+        public CodeDefinitionWindow_OutOfProc CodeDefinitionWindow { get; }
+
         public CSharpInteractiveWindow_OutOfProc InteractiveWindow { get; }
 
         public ObjectBrowserWindow_OutOfProc ObjectBrowserWindow { get; }
 
         public Debugger_OutOfProc Debugger { get; }
 
-        public Dialog_OutOfProc Dialog { get; }
-
         public Editor_OutOfProc Editor { get; }
-
-        public EncapsulateField_OutOfProc EncapsulateField { get; }
 
         public ErrorList_OutOfProc ErrorList { get; }
 
         public ExtractInterfaceDialog_OutOfProc ExtractInterfaceDialog { get; }
 
-        public FindReferencesWindow_OutOfProc FindReferencesWindow { get; }
-
         public GenerateTypeDialog_OutOfProc GenerateTypeDialog { get; }
 
         public ImmediateWindow_OutOfProc ImmediateWindow { get; }
 
-        public InlineRenameDialog_OutOfProc InlineRenameDialog { get; set; }
-
         public LocalsWindow_OutOfProc LocalsWindow { get; set; }
         public MoveToNamespaceDialog_OutOfProc MoveToNamespaceDialog { get; }
         public PickMembersDialog_OutOfProc PickMembersDialog { get; set; }
-
-        public PreviewChangesDialog_OutOfProc PreviewChangesDialog { get; }
 
         public SendKeys SendKeys { get; }
 
@@ -91,12 +81,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         public string InstallationPath { get; }
 
-        public VisualStudioInstance(Process hostProcess, DTE dte, ImmutableHashSet<string> supportedPackageIds, string installationPath)
+        public bool IsUsingLspEditor { get; }
+
+        public VisualStudioInstance(Process hostProcess, DTE dte, ImmutableHashSet<string> supportedPackageIds, string installationPath, bool isUsingLspEditor)
         {
             HostProcess = hostProcess;
             Dte = dte;
             SupportedPackageIds = supportedPackageIds;
             InstallationPath = installationPath;
+            IsUsingLspEditor = isUsingLspEditor;
 
             if (System.Diagnostics.Debugger.IsAttached)
             {
@@ -105,10 +98,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 var debuggerHostDte = GetDebuggerHostDte();
                 var targetProcessId = Process.GetCurrentProcess().Id;
                 var localProcess = debuggerHostDte?.Debugger.LocalProcesses.OfType<EnvDTE80.Process2>().FirstOrDefault(p => p.ProcessID == hostProcess.Id);
-                if (localProcess != null)
-                {
-                    localProcess.Attach2("Managed");
-                }
+                localProcess?.Attach2("Managed");
             }
 
             StartRemoteIntegrationService(dte);
@@ -131,22 +121,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             AddParameterDialog = new AddParameterDialog_OutOfProc(this);
             ChangeSignatureDialog = new ChangeSignatureDialog_OutOfProc(this);
+            CodeDefinitionWindow = new CodeDefinitionWindow_OutOfProc(this);
             InteractiveWindow = new CSharpInteractiveWindow_OutOfProc(this);
             ObjectBrowserWindow = new ObjectBrowserWindow_OutOfProc(this);
             Debugger = new Debugger_OutOfProc(this);
-            Dialog = new Dialog_OutOfProc(this);
             Editor = new Editor_OutOfProc(this);
-            EncapsulateField = new EncapsulateField_OutOfProc(this);
             ErrorList = new ErrorList_OutOfProc(this);
             ExtractInterfaceDialog = new ExtractInterfaceDialog_OutOfProc(this);
-            FindReferencesWindow = new FindReferencesWindow_OutOfProc(this);
             GenerateTypeDialog = new GenerateTypeDialog_OutOfProc(this);
-            InlineRenameDialog = new InlineRenameDialog_OutOfProc(this);
             ImmediateWindow = new ImmediateWindow_OutOfProc(this);
             LocalsWindow = new LocalsWindow_OutOfProc(this);
             MoveToNamespaceDialog = new MoveToNamespaceDialog_OutOfProc(this);
             PickMembersDialog = new PickMembersDialog_OutOfProc(this);
-            PreviewChangesDialog = new PreviewChangesDialog_OutOfProc(this);
             Shell = new Shell_OutOfProc(this);
             SolutionExplorer = new SolutionExplorer_OutOfProc(this);
             Workspace = new VisualStudioWorkspace_OutOfProc(this);
@@ -232,6 +218,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             // Prevent the start page from showing after each solution closes
             StartPage.SetEnabled(false);
+            Workspace.ResetOptions();
         }
 
         public void Close(bool exitHostProcess = true)
@@ -261,7 +248,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             }
         }
 
-        private static DTE GetDebuggerHostDte()
+        private static DTE? GetDebuggerHostDte()
         {
             var currentProcessId = Process.GetCurrentProcess().Id;
             foreach (var process in Process.GetProcessesByName("devenv"))
@@ -304,7 +291,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             }
         }
 
-        private void StartRemoteIntegrationService(DTE dte)
+        private static void StartRemoteIntegrationService(DTE dte)
         {
             // We use DTE over RPC to start the integration service. All other DTE calls should happen in the host process.
             if (dte.Commands.Item(WellKnownCommandNames.Test_IntegrationTestService_Start).IsAvailable)
@@ -330,8 +317,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         private void DisableTestTelemetryChannel()
             => _inProc.DisableTestTelemetryChannel();
 
-        private void WaitForTelemetryEvents(string[] names)
-            => _inProc.WaitForTelemetryEvents(names);
+        /// <summary>
+        /// Waits for specific telemetry events to occur.
+        /// </summary>
+        /// <param name="names">The telemetry events to wait for.</param>
+        /// <returns><see langword="true"/> if the telemetry events occurred; otherwise, <see langword="false"/> if
+        /// telemetry is disabled.</returns>
+        private bool TryWaitForTelemetryEvents(string[] names)
+            => _inProc.TryWaitForTelemetryEvents(names);
 
         public class TelemetryVerifier : IDisposable
         {
@@ -351,7 +344,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             /// <param name="expectedEventNames"></param>
             public void VerifyFired(params string[] expectedEventNames)
             {
-                _instance.WaitForTelemetryEvents(expectedEventNames);
+                var telemetryEnabled = _instance.TryWaitForTelemetryEvents(expectedEventNames);
+                if (string.Equals(Environment.GetEnvironmentVariable("ROSLYN_TEST_CI"), "true", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Telemetry verification is optional for developer machines, but required for CI.
+                    Assert.True(telemetryEnabled);
+                }
             }
         }
     }

@@ -1380,8 +1380,6 @@ BC30237: Parameter already declared with name 'x'.
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation, expectedErrors)
         End Sub
 
-
-
         <Fact>
         Public Sub BC30237ERR_DuplicateParamName1_ExternalMethods()
             Dim source =
@@ -6359,6 +6357,7 @@ BC31029: Method 'EventHandler' cannot handle event 'Event1' because they do not 
                                                                           ~~~~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
+            CompilationUtils.AssertTheseEmitDiagnostics(compilation1, expectedErrors1)
         End Sub
 
         <Fact>
@@ -7257,7 +7256,6 @@ End Class
     ]]></file>
     </compilation>).VerifyDiagnostics(Diagnostic(ERRID.ERR_InvalidMultipleAttributeUsage1, "A1()").WithArguments("A1"))
         End Sub
-
 
         <Fact()>
         Public Sub BC30663ERR_InvalidMultipleAttributeUsage1d()
@@ -11824,6 +11822,7 @@ BC31407: Event 'Public Event evtTest3 As I1.evtTest1EventHandler' cannot impleme
                                                          ~~~~~~~~~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
+            CompilationUtils.AssertTheseEmitDiagnostics(compilation1, expectedErrors1)
         End Sub
 
         <Fact>
@@ -12400,6 +12399,7 @@ BC31422: 'System.Void' can only be used in a GetType expression.
                           ~~~~~~~~~~~
     ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation, expectedErrors)
+            CompilationUtils.AssertTheseEmitDiagnostics(compilation, expectedErrors)
         End Sub
 
         <Fact()>
@@ -19431,7 +19431,6 @@ Namespace ns1
                         Namespace ns1
                         End Namespace
                     ]]></file>
-
         <file name="b.vb"><![CDATA[
                         Namespace Ns1
                         End Namespace
@@ -19444,7 +19443,6 @@ Namespace ns1
           ~~~
 ]]></errors>)
 
-
             compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="NamespaceCaseMismatch3">
         <file name="a.vb"><![CDATA[
@@ -19455,7 +19453,6 @@ Namespace ns1
                         End Namespace
 
                     ]]></file>
-
         <file name="b.vb"><![CDATA[
                         Namespace NS.Ab
                         End Namespace
@@ -22332,6 +22329,149 @@ BC30270: 'Iterator' is not valid on an interface method declaration.
         End Sub
 
         <Fact>
+        <WorkItem(50472, "https://github.com/dotnet/roslyn/issues/50472")>
+        <WorkItem(1263908, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1263908")>
+        Public Sub UnsupportedHandles_01()
+            Dim compilation = CompilationUtils.CreateCompilation(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Class DerivedClass
+    Inherits BaseClass
+
+    Private Shared Sub Handler() Handles EventHost.SomeEvent
+    End Sub
+End Class
+
+Public MustInherit Class BaseClass
+    Protected Shared WithEvents EventHost As EventHost
+End Class
+
+Public Class EventHost
+    Public Event SomeEvent()
+End Class
+    ]]></file>
+</compilation>)
+
+            Dim expectedErrors = <errors><![CDATA[ 
+BC36611: Events of shared WithEvents variables cannot be handled by methods in a different type.
+    Private Shared Sub Handler() Handles EventHost.SomeEvent
+                                         ~~~~~~~~~
+]]></errors>
+
+            compilation.AssertTheseDeclarationDiagnostics(expectedErrors)
+            compilation.AssertTheseEmitDiagnostics(expectedErrors)
+        End Sub
+
+        <Fact>
+        <WorkItem(50472, "https://github.com/dotnet/roslyn/issues/50472")>
+        <WorkItem(1263908, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1263908")>
+        Public Sub UnsupportedHandles_02()
+            Dim compilation = CompilationUtils.CreateCompilation(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Class DerivedClass
+    Inherits BaseClass
+
+    Private Sub Handler() Handles EventHost.SomeEvent
+    End Sub
+End Class
+
+Public MustInherit Class BaseClass
+    Protected Shared WithEvents EventHost As EventHost
+End Class
+
+Public Class EventHost
+    Public Event SomeEvent()
+End Class
+    ]]></file>
+</compilation>)
+
+            Dim expectedErrors = <errors><![CDATA[ 
+BC30594: Events of shared WithEvents variables cannot be handled by non-shared methods.
+    Private Sub Handler() Handles EventHost.SomeEvent
+                                  ~~~~~~~~~
+BC36611: Events of shared WithEvents variables cannot be handled by methods in a different type.
+    Private Sub Handler() Handles EventHost.SomeEvent
+                                  ~~~~~~~~~
+]]></errors>
+
+            compilation.AssertTheseDeclarationDiagnostics(expectedErrors)
+            compilation.AssertTheseEmitDiagnostics(expectedErrors)
+        End Sub
+
+        <Fact>
+        <WorkItem(50472, "https://github.com/dotnet/roslyn/issues/50472")>
+        <WorkItem(1263908, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1263908")>
+        Public Sub UnsupportedHandles_03()
+            Dim compilation = CompilationUtils.CreateCompilation(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Class DerivedClass
+    Inherits BaseClass
+
+    Private Shared Sub Handler() Handles EventHost.SomeEvent, EventHost2.SomeEvent
+    End Sub
+
+    Protected Shared WithEvents EventHost2 As EventHost
+End Class
+
+Public MustInherit Class BaseClass
+    Protected Shared WithEvents EventHost As EventHost
+End Class
+
+Public Class EventHost
+    Public Event SomeEvent()
+End Class
+    ]]></file>
+</compilation>)
+
+            Dim expectedErrors = <errors><![CDATA[ 
+BC36611: Events of shared WithEvents variables cannot be handled by methods in a different type.
+    Private Shared Sub Handler() Handles EventHost.SomeEvent, EventHost2.SomeEvent
+                                         ~~~~~~~~~
+]]></errors>
+
+            compilation.AssertTheseDeclarationDiagnostics(expectedErrors)
+            compilation.AssertTheseEmitDiagnostics(expectedErrors)
+        End Sub
+
+        <Fact>
+        <WorkItem(50472, "https://github.com/dotnet/roslyn/issues/50472")>
+        <WorkItem(1263908, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1263908")>
+        Public Sub UnsupportedHandles_04()
+            Dim compilation = CompilationUtils.CreateCompilation(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Class DerivedClass
+    Inherits BaseClass
+
+    Private Shared Sub Handler() Handles EventHost2.SomeEvent, EventHost.SomeEvent
+    End Sub
+
+    Protected Shared WithEvents EventHost2 As EventHost
+End Class
+
+Public MustInherit Class BaseClass
+    Protected Shared WithEvents EventHost As EventHost
+End Class
+
+Public Class EventHost
+    Public Event SomeEvent()
+End Class
+    ]]></file>
+</compilation>)
+
+            Dim expectedErrors = <errors><![CDATA[ 
+BC36611: Events of shared WithEvents variables cannot be handled by methods in a different type.
+    Private Shared Sub Handler() Handles EventHost2.SomeEvent, EventHost.SomeEvent
+                                                               ~~~~~~~~~
+]]></errors>
+
+            compilation.AssertTheseDeclarationDiagnostics(expectedErrors)
+            compilation.AssertTheseEmitDiagnostics(expectedErrors)
+        End Sub
+
+        <Fact>
         Public Sub ErrorTypeSymbol_DefaultMember_CodeCoverageItems()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="Coverage">
@@ -22377,7 +22517,6 @@ End Class
             Assert.Equal(0, errTypeSym.TypeParameters.Length)
             Assert.Equal(errTypeSym.CandidateSymbols.Length, errTypeSym.IErrorTypeSymbol_CandidateSymbols.Length)
         End Sub
-
 
         <Fact>
         Public Sub ConstructorErrors1()
@@ -24475,6 +24614,18 @@ BC37208: Module 'C.dll' in assembly 'C, Version=0.0.0.0, Culture=neutral, Public
             ClassB.MethodB(obj)
             ~~~~~~~~~~~~~~~~~~~
 ]]></errors>)
+        End Sub
+
+        <Fact>
+        <WorkItem(52516, "https://github.com/dotnet/roslyn/issues/52516")>
+        Public Sub ErrorInfo_01()
+            Dim [error] = New MissingMetadataTypeSymbol.Nested(New UnsupportedMetadataTypeSymbol(), "Test", 0, False)
+            Dim info = [error].ErrorInfo
+
+            Assert.Equal(ERRID.ERR_UnsupportedType1, CType(info.Code, ERRID))
+            Assert.Null([error].ContainingModule)
+            Assert.Null([error].ContainingAssembly)
+            Assert.NotNull([error].ContainingSymbol)
         End Sub
 
     End Class

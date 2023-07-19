@@ -5,12 +5,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -36,8 +38,8 @@ namespace Microsoft.CodeAnalysis
             _state = state;
         }
 
-        internal Solution(Workspace workspace, SolutionInfo.SolutionAttributes solutionAttributes, SerializableOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
-            : this(new SolutionState(workspace.PrimaryBranchId, new SolutionServices(workspace), solutionAttributes, options, analyzerReferences))
+        internal Solution(Workspace workspace, SolutionInfo.SolutionAttributes solutionAttributes, SolutionOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
+            : this(new SolutionState(workspace.Kind, workspace.PartialSemanticsEnabled, workspace.Services.SolutionServices, solutionAttributes, options, analyzerReferences))
         {
         }
 
@@ -45,16 +47,31 @@ namespace Microsoft.CodeAnalysis
 
         internal int WorkspaceVersion => _state.WorkspaceVersion;
 
-        internal SolutionServices Services => _state.Services;
+        internal bool PartialSemanticsEnabled => _state.PartialSemanticsEnabled;
 
-        internal BranchId BranchId => _state.BranchId;
+        /// <summary>
+        /// Per solution services provided by the host environment.  Use this instead of <see
+        /// cref="Workspace.Services"/> when possible.
+        /// </summary>
+        public SolutionServices Services => _state.Services;
+
+        internal string? WorkspaceKind => _state.WorkspaceKind;
 
         internal ProjectState? GetProjectState(ProjectId projectId) => _state.GetProjectState(projectId);
 
         /// <summary>
         /// The Workspace this solution is associated with.
         /// </summary>
-        public Workspace Workspace => _state.Workspace;
+        public Workspace Workspace
+        {
+            get
+            {
+                Contract.ThrowIfTrue(this.WorkspaceKind == CodeAnalysis.WorkspaceKind.RemoteWorkspace, "Access .Workspace off of a RemoteWorkspace Solution is not supported.");
+#pragma warning disable CS0618 // Type or member is obsolete (TODO: obsolete the property)
+                return _state.Services.WorkspaceServices.Workspace;
+#pragma warning restore
+            }
+        }
 
         /// <summary>
         /// The Id of the solution. Multiple solution instances may share the same Id.
@@ -129,7 +146,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Given a <paramref name="symbol"/> returns the <see cref="ProjectId"/> of the <see cref="Project"/> it came
-        /// from.  Returns <see langword="null"/> if <paramref name="symbol"/> does not come from <paramref name="symbol"/>.
+        /// from.  Returns <see langword="null"/> if <paramref name="symbol"/> does not come from any project in this solution.
         /// </summary>
         /// <remarks>
         /// This function differs from <see cref="GetProject(IAssemblySymbol, CancellationToken)"/> in terms of how it
@@ -186,13 +203,36 @@ namespace Microsoft.CodeAnalysis
         /// Gets the document in this solution with the specified document ID.
         /// </summary>
         public Document? GetDocument(DocumentId? documentId)
+            => GetProject(documentId?.ProjectId)?.GetDocument(documentId!);
+
+        /// <summary>
+        /// Gets a document or a source generated document in this solution with the specified document ID.
+        /// </summary>
+        internal ValueTask<Document?> GetDocumentAsync(DocumentId? documentId, bool includeSourceGenerated = false, CancellationToken cancellationToken = default)
         {
-            if (this.ContainsDocument(documentId))
+            var project = GetProject(documentId?.ProjectId);
+            if (project == null)
             {
-                return this.GetProject(documentId.ProjectId)!.GetDocument(documentId);
+                return default;
             }
 
-            return null;
+            Contract.ThrowIfNull(documentId);
+            return project.GetDocumentAsync(documentId, includeSourceGenerated, cancellationToken);
+        }
+
+        /// <summary>
+        /// Gets a document, additional document, analyzer config document or a source generated document in this solution with the specified document ID.
+        /// </summary>
+        internal ValueTask<TextDocument?> GetTextDocumentAsync(DocumentId? documentId, CancellationToken cancellationToken = default)
+        {
+            var project = GetProject(documentId?.ProjectId);
+            if (project == null)
+            {
+                return default;
+            }
+
+            Contract.ThrowIfNull(documentId);
+            return project.GetTextDocumentAsync(documentId, cancellationToken);
         }
 
         /// <summary>
@@ -396,6 +436,22 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Creates a new solution instance with the project specified updated to have the specified attributes.
+        /// </summary>
+        internal Solution WithProjectChecksumAlgorithm(ProjectId projectId, SourceHashAlgorithm checksumAlgorithm)
+        {
+            CheckContainsProject(projectId);
+
+            var newState = _state.WithProjectChecksumAlgorithm(projectId, checksumAlgorithm);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
         /// Creates a new solution instance with the project specified updated to have the name.
         /// </summary>
         public Solution WithProjectName(ProjectId projectId, string name)
@@ -516,8 +572,20 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the project documents in the order by the specified document ids.
         /// The specified document ids must be the same as what is already in the project; no adding or removing is allowed.
         /// </summary>
+        /// <exception cref="ArgumentNullException"><paramref name="projectId"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="documentIds"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException">The solution does not contain <paramref name="projectId"/>.</exception>
+        /// <exception cref="ArgumentException">The number of documents specified in <paramref name="documentIds"/> is not equal to the number of documents in project <paramref name="projectId"/>.</exception>
+        /// <exception cref="InvalidOperationException">Document specified in <paramref name="documentIds"/> does not exist in project <paramref name="projectId"/>.</exception>
         public Solution WithProjectDocumentsOrder(ProjectId projectId, ImmutableList<DocumentId> documentIds)
         {
+            CheckContainsProject(projectId);
+
+            if (documentIds == null)
+            {
+                throw new ArgumentNullException(nameof(documentIds));
+            }
+
             var newState = _state.WithProjectDocumentsOrder(projectId, documentIds);
             if (newState == _state)
             {
@@ -926,7 +994,18 @@ namespace Microsoft.CodeAnalysis
         /// document instance defined by its name and text.
         /// </summary>
         public Solution AddDocument(DocumentId documentId, string name, string text, IEnumerable<string>? folders = null, string? filePath = null)
-            => this.AddDocument(documentId, name, SourceText.From(text), folders, filePath);
+        {
+            if (documentId == null)
+                throw new ArgumentNullException(nameof(documentId));
+
+            if (name == null)
+                throw new ArgumentNullException(nameof(name));
+
+            var project = GetRequiredProjectState(documentId.ProjectId);
+            var sourceText = SourceText.From(text, encoding: null, checksumAlgorithm: project.ChecksumAlgorithm);
+
+            return AddDocumentImpl(project, documentId, name, sourceText, PublicContract.ToBoxedImmutableArrayWithNonNullItems(folders, nameof(folders)), filePath, isGenerated: false);
+        }
 
         /// <summary>
         /// Creates a new solution instance with the corresponding project updated to include a new
@@ -935,40 +1014,16 @@ namespace Microsoft.CodeAnalysis
         public Solution AddDocument(DocumentId documentId, string name, SourceText text, IEnumerable<string>? folders = null, string? filePath = null, bool isGenerated = false)
         {
             if (documentId == null)
-            {
                 throw new ArgumentNullException(nameof(documentId));
-            }
 
             if (name == null)
-            {
                 throw new ArgumentNullException(nameof(name));
-            }
 
             if (text == null)
-            {
                 throw new ArgumentNullException(nameof(text));
-            }
 
-            var project = _state.GetProjectState(documentId.ProjectId);
-
-            if (project == null)
-            {
-                throw new InvalidOperationException(string.Format(WorkspacesResources._0_is_not_part_of_the_workspace, documentId.ProjectId));
-            }
-
-            var version = VersionStamp.Create();
-            var loader = TextLoader.From(TextAndVersion.Create(text, version, name));
-
-            var info = DocumentInfo.Create(
-                documentId,
-                name: name,
-                folders: folders,
-                sourceCodeKind: GetSourceCodeKind(project),
-                loader: loader,
-                filePath: filePath,
-                isGenerated: isGenerated);
-
-            return this.AddDocument(info);
+            var project = GetRequiredProjectState(documentId.ProjectId);
+            return AddDocumentImpl(project, documentId, name, text, PublicContract.ToBoxedImmutableArrayWithNonNullItems(folders, nameof(folders)), filePath, isGenerated);
         }
 
         /// <summary>
@@ -976,7 +1031,32 @@ namespace Microsoft.CodeAnalysis
         /// document instance defined by its name and root <see cref="SyntaxNode"/>.
         /// </summary>
         public Solution AddDocument(DocumentId documentId, string name, SyntaxNode syntaxRoot, IEnumerable<string>? folders = null, string? filePath = null, bool isGenerated = false, PreservationMode preservationMode = PreservationMode.PreserveValue)
-            => this.AddDocument(documentId, name, SourceText.From(string.Empty), folders, filePath, isGenerated).WithDocumentSyntaxRoot(documentId, syntaxRoot, preservationMode);
+        {
+            if (documentId == null)
+                throw new ArgumentNullException(nameof(documentId));
+
+            if (name == null)
+                throw new ArgumentNullException(nameof(name));
+
+            if (syntaxRoot == null)
+                throw new ArgumentNullException(nameof(syntaxRoot));
+
+            var project = GetRequiredProjectState(documentId.ProjectId);
+            var sourceText = SourceText.From(string.Empty, encoding: null, project.ChecksumAlgorithm);
+
+            return AddDocumentImpl(project, documentId, name, sourceText, PublicContract.ToBoxedImmutableArrayWithNonNullItems(folders, nameof(folders)), filePath, isGenerated).
+                WithDocumentSyntaxRoot(documentId, syntaxRoot, preservationMode);
+        }
+
+        private Solution AddDocumentImpl(ProjectState project, DocumentId documentId, string name, SourceText text, IReadOnlyList<string>? folders, string? filePath, bool isGenerated)
+            => AddDocument(DocumentInfo.Create(
+                documentId,
+                name: name,
+                folders: folders,
+                sourceCodeKind: GetSourceCodeKind(project),
+                loader: TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create(), name)),
+                filePath: filePath,
+                isGenerated: isGenerated));
 
         /// <summary>
         /// Creates a new solution instance with the project updated to include a new document with
@@ -985,35 +1065,22 @@ namespace Microsoft.CodeAnalysis
         public Solution AddDocument(DocumentId documentId, string name, TextLoader loader, IEnumerable<string>? folders = null)
         {
             if (documentId == null)
-            {
                 throw new ArgumentNullException(nameof(documentId));
-            }
 
             if (name == null)
-            {
                 throw new ArgumentNullException(nameof(name));
-            }
 
             if (loader == null)
-            {
                 throw new ArgumentNullException(nameof(loader));
-            }
 
-            var project = _state.GetProjectState(documentId.ProjectId);
+            var project = GetRequiredProjectState(documentId.ProjectId);
 
-            if (project == null)
-            {
-                throw new InvalidOperationException(string.Format(WorkspacesResources._0_is_not_part_of_the_workspace, documentId.ProjectId));
-            }
-
-            var info = DocumentInfo.Create(
+            return AddDocument(DocumentInfo.Create(
                 documentId,
-                name: name,
-                folders: folders,
-                sourceCodeKind: GetSourceCodeKind(project),
-                loader: loader);
-
-            return this.AddDocument(info);
+                name,
+                folders,
+                GetSourceCodeKind(project),
+                loader));
         }
 
         /// <summary>
@@ -1115,13 +1182,7 @@ namespace Microsoft.CodeAnalysis
 
         private DocumentInfo CreateDocumentInfo(DocumentId documentId, string name, SourceText text, IEnumerable<string>? folders, string? filePath)
         {
-            var project = _state.GetProjectState(documentId.ProjectId);
-
-            if (project is null)
-            {
-                throw new InvalidOperationException(string.Format(WorkspacesResources._0_is_not_part_of_the_workspace, documentId.ProjectId));
-            }
-
+            var project = GetRequiredProjectState(documentId.ProjectId);
             var version = VersionStamp.Create();
             var loader = TextLoader.From(TextAndVersion.Create(text, version, name));
 
@@ -1133,6 +1194,9 @@ namespace Microsoft.CodeAnalysis
                 loader: loader,
                 filePath: filePath);
         }
+
+        private ProjectState GetRequiredProjectState(ProjectId projectId)
+            => _state.GetProjectState(projectId) ?? throw new InvalidOperationException(string.Format(WorkspacesResources._0_is_not_part_of_the_workspace, projectId));
 
         /// <summary>
         /// Creates a new Solution instance that contains a new compiler configuration document like a .editorconfig file.
@@ -1488,6 +1552,12 @@ namespace Microsoft.CodeAnalysis
             return new Solution(newState);
         }
 
+        internal Solution WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState)
+        {
+            var newState = _state.WithDocumentContentsFrom(documentId, documentState);
+            return newState == _state ? this : new Solution(newState);
+        }
+
         /// <summary>
         /// Creates a new solution instance with the document specified updated to have the source
         /// code kind specified.
@@ -1535,12 +1605,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            return UpdateDocumentTextLoader(documentId, loader, text: null, mode: mode);
-        }
-
-        internal Solution UpdateDocumentTextLoader(DocumentId documentId, TextLoader loader, SourceText? text, PreservationMode mode)
-        {
-            var newState = _state.UpdateDocumentTextLoader(documentId, loader, text, mode);
+            var newState = _state.UpdateDocumentTextLoader(documentId, loader, mode);
 
             // Note: state is currently not reused.
             // If UpdateDocumentTextLoader is changed to reuse the state replace this assert with Solution instance reusal.
@@ -1624,41 +1689,19 @@ namespace Microsoft.CodeAnalysis
             CancellationToken cancellationToken = default)
         {
             // we only log sessioninfo for actual changes committed to workspace which should exclude ones from preview
-            var session = new LinkedFileDiffMergingSession(oldSolution, this, solutionChanges ?? this.GetChanges(oldSolution), logSessionInfo: solutionChanges != null);
+            var session = new LinkedFileDiffMergingSession(oldSolution, this, solutionChanges ?? this.GetChanges(oldSolution));
 
             return (await session.MergeDiffsAsync(mergeConflictHandler, cancellationToken).ConfigureAwait(false)).MergedSolution;
         }
 
         internal ImmutableArray<DocumentId> GetRelatedDocumentIds(DocumentId documentId)
         {
-            var projectState = _state.GetProjectState(documentId.ProjectId);
-            if (projectState == null)
-            {
-                // this document no longer exist
-                return ImmutableArray<DocumentId>.Empty;
-            }
-
-            var documentState = projectState.GetDocumentState(documentId);
-            if (documentState == null)
-            {
-                // this document no longer exist
-                return ImmutableArray<DocumentId>.Empty;
-            }
-
-            var filePath = documentState.FilePath;
-            if (string.IsNullOrEmpty(filePath))
-            {
-                // this document can't have any related document. only related document is itself.
-                return ImmutableArray.Create(documentId);
-            }
-
-            var documentIds = GetDocumentIdsWithFilePath(filePath);
-            return this.FilterDocumentIdsByLanguage(documentIds, projectState.ProjectInfo.Language);
+            return _state.GetRelatedDocumentIds(documentId);
         }
 
-        internal Solution WithNewWorkspace(Workspace workspace, int workspaceVersion)
+        internal Solution WithNewWorkspace(string? workspaceKind, int workspaceVersion, SolutionServices services)
         {
-            var newState = _state.WithNewWorkspace(workspace, workspaceVersion);
+            var newState = _state.WithNewWorkspace(workspaceKind, workspaceVersion, services);
             if (newState == _state)
             {
                 return this;
@@ -1668,16 +1711,14 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets a copy of the solution isolated from the original so that they do not share computed state.
-        /// 
-        /// Use isolated solutions when doing operations that are likely to access a lot of text,
-        /// syntax trees or compilations that are unlikely to be needed again after the operation is done. 
-        /// When the isolated solution is reclaimed so will the computed state.
+        /// Formerly, returned a copy of the solution isolated from the original so that they do not share computed state. It now does nothing.
         /// </summary>
+        [Obsolete("This method no longer produces a Solution that does not share state and is no longer necessary to call.", error: false)]
+        [EditorBrowsable(EditorBrowsableState.Never)] // hide this since it is obsolete and only leads to confusion
         public Solution GetIsolatedSolution()
         {
-            var newState = _state.GetIsolatedSolution();
-            return new Solution(newState);
+            // To maintain compat, just return ourself, which will be functionally identical.
+            return this;
         }
 
         /// <summary>
@@ -1701,6 +1742,55 @@ namespace Microsoft.CodeAnalysis
             }
 
             var newState = _state.WithDocumentText(documentIds, text, mode);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
+        /// Returns a new Solution that will always produce a specific output for a generated file. This is used only in the
+        /// implementation of <see cref="TextExtensions.GetOpenDocumentInCurrentContextWithChanges"/> where if a user has a source
+        /// generated file open, we need to make sure everything lines up.
+        /// </summary>
+        internal Document WithFrozenSourceGeneratedDocument(SourceGeneratedDocumentIdentity documentIdentity, SourceText text)
+        {
+            var newState = _state.WithFrozenSourceGeneratedDocument(documentIdentity, text);
+            var newSolution = newState != _state ? new Solution(newState) : this;
+            var newDocumentState = newState.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentIdentity.DocumentId);
+            Contract.ThrowIfNull(newDocumentState, "Because we just froze this document, it should always exist.");
+            var newProject = newSolution.GetRequiredProject(newDocumentState.Id.ProjectId);
+            return newProject.GetOrCreateSourceGeneratedDocument(newDocumentState);
+        }
+
+        /// <summary>
+        /// Undoes the operation of <see cref="WithFrozenSourceGeneratedDocument"/>; any frozen source generated document is allowed
+        /// to have it's real output again.
+        /// </summary>
+        internal Solution WithoutFrozenSourceGeneratedDocuments()
+        {
+            var newState = _state.WithoutFrozenSourceGeneratedDocuments();
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
+        /// Returns a new Solution which represents the same state as before, but with the cached generator driver state from the given project updated to match.
+        /// </summary>
+        /// <remarks>
+        /// When generators are ran in a Solution snapshot, they may cache state to speed up future runs. For Razor, we only run their generator on forked
+        /// solutions that are thrown away; this API gives us a way to reuse that cached state in other forked solutions, since otherwise there's no way to reuse
+        /// the cached state.
+        /// </remarks>
+        internal Solution WithCachedSourceGeneratorState(ProjectId projectToUpdate, Project projectWithCachedGeneratorState)
+        {
+            var newState = _state.WithCachedSourceGeneratorState(projectToUpdate, projectWithCachedGeneratorState);
             if (newState == _state)
             {
                 return this;
@@ -1752,7 +1842,7 @@ namespace Microsoft.CodeAnalysis
         {
             return options switch
             {
-                SerializableOptionSet serializableOptions => WithOptions(serializableOptions),
+                SolutionOptionSet serializableOptions => WithOptions(serializableOptions),
                 null => throw new ArgumentNullException(nameof(options)),
                 _ => throw new ArgumentException(WorkspacesResources.Options_did_not_come_from_specified_Solution, paramName: nameof(options))
             };
@@ -1761,7 +1851,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new solution instance with the specified serializable <paramref name="options"/>.
         /// </summary>
-        internal Solution WithOptions(SerializableOptionSet options)
+        internal Solution WithOptions(SolutionOptionSet options)
         {
             var newState = _state.WithOptions(options: options);
             if (newState == _state)
@@ -1871,9 +1961,17 @@ namespace Microsoft.CodeAnalysis
         {
             foreach (var projectReference in projectReferences)
             {
-                if (projectId == projectReference.ProjectId || _state.ContainsTransitiveReference(projectReference.ProjectId, projectId))
+                if (projectId == projectReference.ProjectId)
                 {
-                    throw new InvalidOperationException(WorkspacesResources.The_project_already_transitively_references_the_target_project);
+                    throw new InvalidOperationException(WorkspacesResources.A_project_may_not_reference_itself);
+                }
+
+                if (_state.ContainsTransitiveReference(projectReference.ProjectId, projectId))
+                {
+                    throw new InvalidOperationException(
+                        string.Format(WorkspacesResources.Adding_project_reference_from_0_to_1_will_cause_a_circular_reference,
+                            projectId,
+                            projectReference.ProjectId));
                 }
             }
         }

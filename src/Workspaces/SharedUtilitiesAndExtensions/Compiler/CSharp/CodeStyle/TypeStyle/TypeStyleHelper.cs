@@ -11,12 +11,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using OptionSet = Microsoft.CodeAnalysis.Options.OptionSet;
-#endif
-
 namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
 {
     internal static class TypeStyleHelper
@@ -40,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             CancellationToken cancellationToken)
         {
             // tuple literals
-            if (initializerExpression.IsKind(SyntaxKind.TupleExpression, out TupleExpressionSyntax? tuple))
+            if (initializerExpression is TupleExpressionSyntax tuple)
             {
                 if (typeInDeclaration == null || !typeInDeclaration.IsTupleType)
                 {
@@ -82,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
 
             // constructor invocations cases:
             //      = new type();
-            if (initializerExpression.IsKind(SyntaxKind.ObjectCreationExpression, SyntaxKind.ArrayCreationExpression) &&
+            if (initializerExpression.Kind() is SyntaxKind.ObjectCreationExpression or SyntaxKind.ArrayCreationExpression &&
                 !initializerExpression.IsKind(SyntaxKind.AnonymousObjectCreationExpression))
             {
                 return true;
@@ -107,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
                 return false;
             }
 
-            if (!(semanticModel.GetSymbolInfo(memberName, cancellationToken).Symbol is IMethodSymbol methodSymbol))
+            if (semanticModel.GetSymbolInfo(memberName, cancellationToken).Symbol is not IMethodSymbol methodSymbol)
             {
                 return false;
             }
@@ -195,13 +189,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             }
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         private static ITypeSymbol? UnwrapTupleType(ITypeSymbol? symbol)
         {
             if (symbol is null)
                 return null;
 
-            if (!(symbol is INamedTypeSymbol namedTypeSymbol))
+            if (symbol is not INamedTypeSymbol namedTypeSymbol)
                 return symbol;
 
             return namedTypeSymbol.TupleUnderlyingType ?? symbol;

@@ -123,12 +123,6 @@
   <data name="Correcting_word_casing" xml:space="preserve">
     <value>Correcting word casing...</value>
   </data>
-  <data name="New_" xml:space="preserve">
-    <value>New</value>
-  </data>
-  <data name="_0_Events" xml:space="preserve">
-    <value>({0} Events)</value>
-  </data>
   <data name="This_call_is_required_by_the_designer" xml:space="preserve">
     <value>This call is required by the designer.</value>
   </data>
@@ -140,9 +134,6 @@
   </data>
   <data name="Smart_Indenting" xml:space="preserve">
     <value>Smart Indenting</value>
-  </data>
-  <data name="Format_Document" xml:space="preserve">
-    <value>Format Document</value>
   </data>
   <data name="Formatting_Document" xml:space="preserve">
     <value>Formatting Document...</value>

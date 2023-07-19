@@ -8,6 +8,7 @@ Imports System.Threading
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
@@ -16,6 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         ' TODO: Need to estimate amount of elements for this map and pass that value to the constructor.
         Protected ReadOnly m_AssemblyOrModuleSymbolToModuleRefMap As New ConcurrentDictionary(Of Symbol, Microsoft.Cci.IModuleReference)()
         Private ReadOnly _genericInstanceMap As New ConcurrentDictionary(Of Symbol, Object)()
+        Private ReadOnly _translatedImportsMap As New ConcurrentDictionary(Of SourceFile, ImmutableArray(Of Cci.UsedNamespaceOrType))(ReferenceEqualityComparer.Instance)
         Private ReadOnly _reportedErrorTypesMap As New ConcurrentSet(Of TypeSymbol)()
 
         Private ReadOnly _embeddedTypesManagerOpt As NoPia.EmbeddedTypesManager
@@ -130,11 +132,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             ' Unreported bad types can come through NoPia embedding, for example.
             If namedTypeSymbol.OriginalDefinition.Kind = SymbolKind.ErrorType Then
                 Dim errorType = DirectCast(namedTypeSymbol.OriginalDefinition, ErrorTypeSymbol)
-                Dim diagInfo = If(errorType.GetUseSiteErrorInfo(), errorType.ErrorInfo)
+                Dim diagInfo = If(errorType.GetUseSiteInfo().DiagnosticInfo, errorType.ErrorInfo)
 
                 If diagInfo Is Nothing AndAlso namedTypeSymbol.Kind = SymbolKind.ErrorType Then
                     errorType = DirectCast(namedTypeSymbol, ErrorTypeSymbol)
-                    diagInfo = If(errorType.GetUseSiteErrorInfo(), errorType.ErrorInfo)
+                    diagInfo = If(errorType.GetUseSiteInfo().DiagnosticInfo, errorType.ErrorInfo)
                 End If
 
                 ' Try to decrease noise by not complaining about the same type over and over again.
@@ -223,7 +225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Dim location = If(syntaxNodeOpt Is Nothing, NoLocation.Singleton, syntaxNodeOpt.GetLocation())
             If declaredBase IsNot Nothing Then
-                Dim diagnosticInfo = declaredBase.GetUseSiteErrorInfo()
+                Dim diagnosticInfo = declaredBase.GetUseSiteInfo().DiagnosticInfo
                 If diagnosticInfo IsNot Nothing Then
                     diagnostics.Add(diagnosticInfo, location)
                     Return
@@ -300,18 +302,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Public Shared Function MemberVisibility(symbol As Symbol) As Microsoft.Cci.TypeMemberVisibility
             '
             ' We need to relax visibility of members in interactive submissions since they might be emitted into multiple assemblies.
-            ' 
+            '
             ' Top-level:
             '   private                       -> public
             '   family                        -> public (compiles with a warning)
-            '   public                         
+            '   public
             '   friend                        -> public
-            ' 
+            '
             ' In a nested class:
-            '   
-            '   private                       
-            '   family                     
-            '   public                         
+            '
+            '   private
+            '   family
+            '   public
             '   friend                        -> public
             '
             Select Case symbol.DeclaredAccessibility
@@ -520,6 +522,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Friend Overloads Function Translate(symbol As ArrayTypeSymbol) As Microsoft.Cci.IArrayTypeReference
             Return DirectCast(GetCciAdapter(symbol), Microsoft.Cci.IArrayTypeReference)
+        End Function
+
+        Friend Function TryGetTranslatedImports(file As SourceFile, <Runtime.InteropServices.Out> ByRef [imports] As ImmutableArray(Of Cci.UsedNamespaceOrType)) As Boolean
+            Return _translatedImportsMap.TryGetValue(file, [imports])
+        End Function
+
+        Friend Function GetOrAddTranslatedImports(file As SourceFile, [imports] As ImmutableArray(Of Cci.UsedNamespaceOrType)) As ImmutableArray(Of Cci.UsedNamespaceOrType)
+            Return _translatedImportsMap.GetOrAdd(file, [imports])
         End Function
     End Class
 End Namespace

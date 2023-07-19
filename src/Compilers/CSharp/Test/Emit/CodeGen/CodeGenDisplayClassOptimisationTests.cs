@@ -42,7 +42,7 @@ public static class Program
         }
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"3", options: TestOptions.ReleaseExe);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"3", options: TestOptions.ReleaseExe);
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -126,7 +126,7 @@ public static class Program
         }
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"3", options: TestOptions.DebugExe);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"3", options: TestOptions.DebugExe);
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -257,7 +257,7 @@ public static class Program
         actions[2]();
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"three
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"three
 two
 one");
 
@@ -432,7 +432,7 @@ class C
         }
     }
 }";
-            var compilation = CompileAndVerify(source);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
 
             VerifyTypeIL(compilation, "C", @"
 .class private auto ansi beforefieldinit C
@@ -584,7 +584,7 @@ class C
         }
     }
 }";
-            var compilation = CompileAndVerify(source);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
 
             VerifyTypeIL(compilation, "C", @"
 .class private auto ansi beforefieldinit C
@@ -730,7 +730,7 @@ public static class Program
 		actions[2]();
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"three
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"three
 two
 one");
 
@@ -739,6 +739,45 @@ one");
 	extends [mscorlib]System.Object
 {
 	// Nested Types
+	.class nested private auto ansi sealed serializable beforefieldinit '<>c'
+		extends [mscorlib]System.Object
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Fields
+		.field public static initonly class Program/'<>c' '<>9'
+		.field public static class [mscorlib]System.Action '<>9__0_1'
+		// Methods
+		.method private hidebysig specialname rtspecialname static 
+			void .cctor () cil managed 
+		{
+			// Method begins at RVA 0x2115
+			// Code size 11 (0xb)
+			.maxstack 8
+			IL_0000: newobj instance void Program/'<>c'::.ctor()
+			IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
+			IL_000a: ret
+		} // end of method '<>c'::.cctor
+		.method public hidebysig specialname rtspecialname 
+			instance void .ctor () cil managed 
+		{
+			// Method begins at RVA 0x2121
+			// Code size 7 (0x7)
+			.maxstack 8
+			IL_0000: ldarg.0
+			IL_0001: call instance void [mscorlib]System.Object::.ctor()
+			IL_0006: ret
+		} // end of method '<>c'::.ctor
+		.method assembly hidebysig 
+			instance void '<Main>b__0_1' () cil managed 
+		{
+			// Method begins at RVA 0x2129
+			// Code size 1 (0x1)
+			.maxstack 8
+			IL_0000: ret
+		} // end of method '<>c'::'<Main>b__0_1'
+	} // end of class <>c
 	.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
 		extends [mscorlib]System.Object
 	{
@@ -752,7 +791,7 @@ one");
 		.method public hidebysig specialname rtspecialname 
 			instance void .ctor () cil managed 
 		{
-			// Method begins at RVA 0x2115
+			// Method begins at RVA 0x2121
 			// Code size 7 (0x7)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -773,7 +812,7 @@ one");
 		.method public hidebysig specialname rtspecialname 
 			instance void .ctor () cil managed 
 		{
-			// Method begins at RVA 0x2115
+			// Method begins at RVA 0x2121
 			// Code size 7 (0x7)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -783,7 +822,7 @@ one");
 		.method assembly hidebysig 
 			instance void '<Main>b__0' () cil managed 
 		{
-			// Method begins at RVA 0x211d
+			// Method begins at RVA 0x212b
 			// Code size 42 (0x2a)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -802,45 +841,6 @@ one");
 			IL_0029: ret
 		} // end of method '<>c__DisplayClass0_1'::'<Main>b__0'
 	} // end of class <>c__DisplayClass0_1
-	.class nested private auto ansi sealed serializable beforefieldinit '<>c'
-		extends [mscorlib]System.Object
-	{
-		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-			01 00 00 00
-		)
-		// Fields
-		.field public static initonly class Program/'<>c' '<>9'
-		.field public static class [mscorlib]System.Action '<>9__0_1'
-		// Methods
-		.method private hidebysig specialname rtspecialname static 
-			void .cctor () cil managed 
-		{
-			// Method begins at RVA 0x2148
-			// Code size 11 (0xb)
-			.maxstack 8
-			IL_0000: newobj instance void Program/'<>c'::.ctor()
-			IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
-			IL_000a: ret
-		} // end of method '<>c'::.cctor
-		.method public hidebysig specialname rtspecialname 
-			instance void .ctor () cil managed 
-		{
-			// Method begins at RVA 0x2115
-			// Code size 7 (0x7)
-			.maxstack 8
-			IL_0000: ldarg.0
-			IL_0001: call instance void [mscorlib]System.Object::.ctor()
-			IL_0006: ret
-		} // end of method '<>c'::.ctor
-		.method assembly hidebysig 
-			instance void '<Main>b__0_1' () cil managed 
-		{
-			// Method begins at RVA 0x2154
-			// Code size 1 (0x1)
-			.maxstack 8
-			IL_0000: ret
-		} // end of method '<>c'::'<Main>b__0_1'
-	} // end of class <>c
 	// Methods
 	.method public hidebysig static 
 		void Main () cil managed 
@@ -949,7 +949,7 @@ public static class Program
 		actions[2]();
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"one
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"one
 one
 one");
 
@@ -1129,7 +1129,7 @@ public static class Program
 		actions[2]();
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"one
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"one
 one
 one");
 
@@ -1138,6 +1138,45 @@ one");
 	extends [mscorlib]System.Object
 {
 	// Nested Types
+	.class nested private auto ansi sealed serializable beforefieldinit '<>c'
+		extends [mscorlib]System.Object
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Fields
+		.field public static initonly class Program/'<>c' '<>9'
+		.field public static class [mscorlib]System.Action '<>9__0_1'
+		// Methods
+		.method private hidebysig specialname rtspecialname static 
+			void .cctor () cil managed 
+		{
+			// Method begins at RVA 0x2124
+			// Code size 11 (0xb)
+			.maxstack 8
+			IL_0000: newobj instance void Program/'<>c'::.ctor()
+			IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
+			IL_000a: ret
+		} // end of method '<>c'::.cctor
+		.method public hidebysig specialname rtspecialname 
+			instance void .ctor () cil managed 
+		{
+			// Method begins at RVA 0x2130
+			// Code size 7 (0x7)
+			.maxstack 8
+			IL_0000: ldarg.0
+			IL_0001: call instance void [mscorlib]System.Object::.ctor()
+			IL_0006: ret
+		} // end of method '<>c'::.ctor
+		.method assembly hidebysig 
+			instance void '<Main>b__0_1' () cil managed 
+		{
+			// Method begins at RVA 0x2138
+			// Code size 1 (0x1)
+			.maxstack 8
+			IL_0000: ret
+		} // end of method '<>c'::'<Main>b__0_1'
+	} // end of class <>c
 	.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
 		extends [mscorlib]System.Object
 	{
@@ -1150,7 +1189,7 @@ one");
 		.method public hidebysig specialname rtspecialname 
 			instance void .ctor () cil managed 
 		{
-			// Method begins at RVA 0x2124
+			// Method begins at RVA 0x2130
 			// Code size 7 (0x7)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -1172,7 +1211,7 @@ one");
 		.method public hidebysig specialname rtspecialname 
 			instance void .ctor () cil managed 
 		{
-			// Method begins at RVA 0x2124
+			// Method begins at RVA 0x2130
 			// Code size 7 (0x7)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -1182,7 +1221,7 @@ one");
 		.method assembly hidebysig 
 			instance void '<Main>b__0' () cil managed 
 		{
-			// Method begins at RVA 0x212c
+			// Method begins at RVA 0x213a
 			// Code size 35 (0x23)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -1198,45 +1237,6 @@ one");
 			IL_0022: ret
 		} // end of method '<>c__DisplayClass0_1'::'<Main>b__0'
 	} // end of class <>c__DisplayClass0_1
-	.class nested private auto ansi sealed serializable beforefieldinit '<>c'
-		extends [mscorlib]System.Object
-	{
-		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-			01 00 00 00
-		)
-		// Fields
-		.field public static initonly class Program/'<>c' '<>9'
-		.field public static class [mscorlib]System.Action '<>9__0_1'
-		// Methods
-		.method private hidebysig specialname rtspecialname static 
-			void .cctor () cil managed 
-		{
-			// Method begins at RVA 0x2150
-			// Code size 11 (0xb)
-			.maxstack 8
-			IL_0000: newobj instance void Program/'<>c'::.ctor()
-			IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
-			IL_000a: ret
-		} // end of method '<>c'::.cctor
-		.method public hidebysig specialname rtspecialname 
-			instance void .ctor () cil managed 
-		{
-			// Method begins at RVA 0x2124
-			// Code size 7 (0x7)
-			.maxstack 8
-			IL_0000: ldarg.0
-			IL_0001: call instance void [mscorlib]System.Object::.ctor()
-			IL_0006: ret
-		} // end of method '<>c'::.ctor
-		.method assembly hidebysig 
-			instance void '<Main>b__0_1' () cil managed 
-		{
-			// Method begins at RVA 0x215c
-			// Code size 1 (0x1)
-			.maxstack 8
-			IL_0000: ret
-		} // end of method '<>c'::'<Main>b__0_1'
-	} // end of class <>c
 	// Methods
 	.method public hidebysig static 
 		void Main () cil managed 
@@ -1364,13 +1364,52 @@ public class Program
 		actions[2]();
 	}
 }";
-            var compilation = CompileAndVerify(source);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi beforefieldinit Program
 	extends [mscorlib]System.Object
 {
 	// Nested Types
+	.class nested private auto ansi sealed serializable beforefieldinit '<>c'
+		extends [mscorlib]System.Object
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Fields
+		.field public static initonly class Program/'<>c' '<>9'
+		.field public static class [mscorlib]System.Action '<>9__0_1'
+		// Methods
+		.method private hidebysig specialname rtspecialname static 
+			void .cctor () cil managed 
+		{
+			// Method begins at RVA 0x209e
+			// Code size 11 (0xb)
+			.maxstack 8
+			IL_0000: newobj instance void Program/'<>c'::.ctor()
+			IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
+			IL_000a: ret
+		} // end of method '<>c'::.cctor
+		.method public hidebysig specialname rtspecialname 
+			instance void .ctor () cil managed 
+		{
+			// Method begins at RVA 0x2053
+			// Code size 7 (0x7)
+			.maxstack 8
+			IL_0000: ldarg.0
+			IL_0001: call instance void [mscorlib]System.Object::.ctor()
+			IL_0006: ret
+		} // end of method '<>c'::.ctor
+		.method assembly hidebysig 
+			instance void '<M>b__0_1' () cil managed 
+		{
+			// Method begins at RVA 0x20aa
+			// Code size 1 (0x1)
+			.maxstack 8
+			IL_0000: ret
+		} // end of method '<>c'::'<M>b__0_1'
+	} // end of class <>c
 	.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
 		extends [mscorlib]System.Object
 	{
@@ -1415,7 +1454,7 @@ public class Program
 		.method assembly hidebysig 
 			instance void '<M>b__0' () cil managed 
 		{
-			// Method begins at RVA 0x209e
+			// Method begins at RVA 0x20ac
 			// Code size 35 (0x23)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -1431,45 +1470,6 @@ public class Program
 			IL_0022: ret
 		} // end of method '<>c__DisplayClass0_1'::'<M>b__0'
 	} // end of class <>c__DisplayClass0_1
-	.class nested private auto ansi sealed serializable beforefieldinit '<>c'
-		extends [mscorlib]System.Object
-	{
-		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-			01 00 00 00
-		)
-		// Fields
-		.field public static initonly class Program/'<>c' '<>9'
-		.field public static class [mscorlib]System.Action '<>9__0_1'
-		// Methods
-		.method private hidebysig specialname rtspecialname static 
-			void .cctor () cil managed 
-		{
-			// Method begins at RVA 0x20c2
-			// Code size 11 (0xb)
-			.maxstack 8
-			IL_0000: newobj instance void Program/'<>c'::.ctor()
-			IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
-			IL_000a: ret
-		} // end of method '<>c'::.cctor
-		.method public hidebysig specialname rtspecialname 
-			instance void .ctor () cil managed 
-		{
-			// Method begins at RVA 0x2053
-			// Code size 7 (0x7)
-			.maxstack 8
-			IL_0000: ldarg.0
-			IL_0001: call instance void [mscorlib]System.Object::.ctor()
-			IL_0006: ret
-		} // end of method '<>c'::.ctor
-		.method assembly hidebysig 
-			instance void '<M>b__0_1' () cil managed 
-		{
-			// Method begins at RVA 0x20ce
-			// Code size 1 (0x1)
-			.maxstack 8
-			IL_0000: ret
-		} // end of method '<>c'::'<M>b__0_1'
-	} // end of class <>c
 	.class nested private auto ansi sealed beforefieldinit '<M>d__0'
 		extends [mscorlib]System.ValueType
 		implements [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine
@@ -1680,11 +1680,11 @@ public class Program
 			[0] valuetype Program/'<M>d__0'
 		)
 		IL_0000: ldloca.s 0
- 		IL_0002: call valuetype [mscorlib]System.Runtime.CompilerServices.AsyncVoidMethodBuilder [mscorlib]System.Runtime.CompilerServices.AsyncVoidMethodBuilder::Create()
- 		IL_0007: stfld valuetype [mscorlib]System.Runtime.CompilerServices.AsyncVoidMethodBuilder Program/'<M>d__0'::'<>t__builder'
- 		IL_000c: ldloca.s 0
- 		IL_000e: ldarg.0
- 		IL_000f: stfld class C Program/'<M>d__0'::enumerable
+		IL_0002: call valuetype [mscorlib]System.Runtime.CompilerServices.AsyncVoidMethodBuilder [mscorlib]System.Runtime.CompilerServices.AsyncVoidMethodBuilder::Create()
+		IL_0007: stfld valuetype [mscorlib]System.Runtime.CompilerServices.AsyncVoidMethodBuilder Program/'<M>d__0'::'<>t__builder'
+		IL_000c: ldloca.s 0
+		IL_000e: ldarg.0
+		IL_000f: stfld class C Program/'<M>d__0'::enumerable
 		IL_0014: ldloca.s 0
 		IL_0016: ldc.i4.m1
 		IL_0017: stfld int32 Program/'<M>d__0'::'<>1__state'
@@ -1730,8 +1730,7 @@ public static class Program
 		actions[0]();
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "one");
-
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "one");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -1840,13 +1839,52 @@ public static class Program
 		actions[0]();
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "one");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "one");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
 	// Nested Types
+	.class nested private auto ansi sealed serializable beforefieldinit '<>c'
+		extends [mscorlib]System.Object
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Fields
+		.field public static initonly class Program/'<>c' '<>9'
+		.field public static class [mscorlib]System.Action '<>9__0_1'
+		// Methods
+		.method private hidebysig specialname rtspecialname static 
+			void .cctor () cil managed 
+		{
+			// Method begins at RVA 0x20b0
+			// Code size 11 (0xb)
+			.maxstack 8
+			IL_0000: newobj instance void Program/'<>c'::.ctor()
+			IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
+			IL_000a: ret
+		} // end of method '<>c'::.cctor
+		.method public hidebysig specialname rtspecialname 
+			instance void .ctor () cil managed 
+		{
+			// Method begins at RVA 0x20bc
+			// Code size 7 (0x7)
+			.maxstack 8
+			IL_0000: ldarg.0
+			IL_0001: call instance void [mscorlib]System.Object::.ctor()
+			IL_0006: ret
+		} // end of method '<>c'::.ctor
+		.method assembly hidebysig 
+			instance void '<Main>b__0_1' () cil managed 
+		{
+			// Method begins at RVA 0x20c4
+			// Code size 1 (0x1)
+			.maxstack 8
+			IL_0000: ret
+		} // end of method '<>c'::'<Main>b__0_1'
+	} // end of class <>c
 	.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
 		extends [mscorlib]System.Object
 	{
@@ -1861,7 +1899,7 @@ public static class Program
 		.method public hidebysig specialname rtspecialname 
 			instance void .ctor () cil managed 
 		{
-			// Method begins at RVA 0x20b0
+			// Method begins at RVA 0x20bc
 			// Code size 7 (0x7)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -1871,7 +1909,7 @@ public static class Program
 		.method assembly hidebysig 
 			instance void '<Main>b__0' () cil managed 
 		{
-			// Method begins at RVA 0x20b8
+			// Method begins at RVA 0x20c6
 			// Code size 30 (0x1e)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -1886,45 +1924,6 @@ public static class Program
 			IL_001d: ret
 		} // end of method '<>c__DisplayClass0_0'::'<Main>b__0'
 	} // end of class <>c__DisplayClass0_0
-	.class nested private auto ansi sealed serializable beforefieldinit '<>c'
-		extends [mscorlib]System.Object
-	{
-		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-			01 00 00 00
-		)
-		// Fields
-		.field public static initonly class Program/'<>c' '<>9'
-		.field public static class [mscorlib]System.Action '<>9__0_1'
-		// Methods
-		.method private hidebysig specialname rtspecialname static 
-			void .cctor () cil managed 
-		{
-			// Method begins at RVA 0x20d7
-			// Code size 11 (0xb)
-			.maxstack 8
-			IL_0000: newobj instance void Program/'<>c'::.ctor()
-			IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
-			IL_000a: ret
-		} // end of method '<>c'::.cctor
-		.method public hidebysig specialname rtspecialname 
-			instance void .ctor () cil managed 
-		{
-			// Method begins at RVA 0x20b0
-			// Code size 7 (0x7)
-			.maxstack 8
-			IL_0000: ldarg.0
-			IL_0001: call instance void [mscorlib]System.Object::.ctor()
-			IL_0006: ret
-		} // end of method '<>c'::.ctor
-		.method assembly hidebysig 
-			instance void '<Main>b__0_1' () cil managed 
-		{
-			// Method begins at RVA 0x20e3
-			// Code size 1 (0x1)
-			.maxstack 8
-			IL_0000: ret
-		} // end of method '<>c'::'<Main>b__0_1'
-	} // end of class <>c
 	// Methods
 	.method public hidebysig static 
 		void Main () cil managed 
@@ -1992,13 +1991,52 @@ public static class Program
 		actions[0]();
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "one");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "one");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
 	// Nested Types
+	.class nested private auto ansi sealed serializable beforefieldinit '<>c'
+		extends [mscorlib]System.Object
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Fields
+		.field public static initonly class Program/'<>c' '<>9'
+		.field public static class [mscorlib]System.Action '<>9__0_1'
+		// Methods
+		.method private hidebysig specialname rtspecialname static 
+			void .cctor () cil managed 
+		{
+			// Method begins at RVA 0x20ce
+			// Code size 11 (0xb)
+			.maxstack 8
+			IL_0000: newobj instance void Program/'<>c'::.ctor()
+			IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
+			IL_000a: ret
+		} // end of method '<>c'::.cctor
+		.method public hidebysig specialname rtspecialname 
+			instance void .ctor () cil managed 
+		{
+			// Method begins at RVA 0x20da
+			// Code size 7 (0x7)
+			.maxstack 8
+			IL_0000: ldarg.0
+			IL_0001: call instance void [mscorlib]System.Object::.ctor()
+			IL_0006: ret
+		} // end of method '<>c'::.ctor
+		.method assembly hidebysig 
+			instance void '<Main>b__0_1' () cil managed 
+		{
+			// Method begins at RVA 0x20e2
+			// Code size 1 (0x1)
+			.maxstack 8
+			IL_0000: ret
+		} // end of method '<>c'::'<Main>b__0_1'
+	} // end of class <>c
 	.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
 		extends [mscorlib]System.Object
 	{
@@ -2013,7 +2051,7 @@ public static class Program
 		.method public hidebysig specialname rtspecialname 
 			instance void .ctor () cil managed 
 		{
-			// Method begins at RVA 0x20ce
+			// Method begins at RVA 0x20da
 			// Code size 7 (0x7)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -2023,7 +2061,7 @@ public static class Program
 		.method assembly hidebysig 
 			instance void '<Main>b__0' () cil managed 
 		{
-			// Method begins at RVA 0x20d6
+			// Method begins at RVA 0x20e4
 			// Code size 30 (0x1e)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -2038,45 +2076,6 @@ public static class Program
 			IL_001d: ret
 		} // end of method '<>c__DisplayClass0_0'::'<Main>b__0'
 	} // end of class <>c__DisplayClass0_0
-	.class nested private auto ansi sealed serializable beforefieldinit '<>c'
-		extends [mscorlib]System.Object
-	{
-		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-			01 00 00 00
-		)
-		// Fields
-		.field public static initonly class Program/'<>c' '<>9'
-		.field public static class [mscorlib]System.Action '<>9__0_1'
-		// Methods
-		.method private hidebysig specialname rtspecialname static 
-			void .cctor () cil managed 
-		{
-			// Method begins at RVA 0x20f5
-			// Code size 11 (0xb)
-			.maxstack 8
-			IL_0000: newobj instance void Program/'<>c'::.ctor()
-			IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
-			IL_000a: ret
-		} // end of method '<>c'::.cctor
-		.method public hidebysig specialname rtspecialname 
-			instance void .ctor () cil managed 
-		{
-			// Method begins at RVA 0x20ce
-			// Code size 7 (0x7)
-			.maxstack 8
-			IL_0000: ldarg.0
-			IL_0001: call instance void [mscorlib]System.Object::.ctor()
-			IL_0006: ret
-		} // end of method '<>c'::.ctor
-		.method assembly hidebysig 
-			instance void '<Main>b__0_1' () cil managed 
-		{
-			// Method begins at RVA 0x2101
-			// Code size 1 (0x1)
-			.maxstack 8
-			IL_0000: ret
-		} // end of method '<>c'::'<Main>b__0_1'
-	} // end of class <>c
 	// Methods
 	.method public hidebysig static 
 		void Main () cil managed 
@@ -2157,7 +2156,7 @@ public static class Program
 		public void Dispose(){}
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"Program+Disposable
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"Program+Disposable
 one");
 
             VerifyTypeIL(compilation, "Program", @"
@@ -2311,7 +2310,7 @@ public static class Program
 		public void Dispose(){}
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"Program+Disposable
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"Program+Disposable
 one");
 
             VerifyTypeIL(compilation, "Program", @"
@@ -2343,46 +2342,6 @@ one");
 			IL_0006: ret
 		} // end of method Disposable::.ctor
 	} // end of class Disposable
-	.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
-		extends [mscorlib]System.Object
-	{
-		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-			01 00 00 00
-		)
-		// Fields
-		.field public class [mscorlib]System.Collections.Generic.List`1<string> strings
-		.field public class Program/Disposable disposable
-		.field public int32 i
-		// Methods
-		.method public hidebysig specialname rtspecialname 
-			instance void .ctor () cil managed 
-		{
-			// Method begins at RVA 0x20da
-			// Code size 7 (0x7)
-			.maxstack 8
-			IL_0000: ldarg.0
-			IL_0001: call instance void [mscorlib]System.Object::.ctor()
-			IL_0006: ret
-		} // end of method '<>c__DisplayClass0_0'::.ctor
-		.method assembly hidebysig 
-			instance void '<Main>b__0' () cil managed 
-		{
-			// Method begins at RVA 0x20e2
-			// Code size 39 (0x27)
-			.maxstack 8
-			IL_0000: ldarg.0
-			IL_0001: ldfld class Program/Disposable Program/'<>c__DisplayClass0_0'::disposable
-			IL_0006: callvirt instance string [mscorlib]System.Object::ToString()
-			IL_000b: call void [mscorlib]System.Console::WriteLine(string)
-			IL_0010: ldarg.0
-			IL_0011: ldfld class [mscorlib]System.Collections.Generic.List`1<string> Program/'<>c__DisplayClass0_0'::strings
-			IL_0016: ldarg.0
-			IL_0017: ldfld int32 Program/'<>c__DisplayClass0_0'::i
-			IL_001c: callvirt instance !0 class [mscorlib]System.Collections.Generic.List`1<string>::get_Item(int32)
-			IL_0021: call void [mscorlib]System.Console::WriteLine(string)
-			IL_0026: ret
-		} // end of method '<>c__DisplayClass0_0'::'<Main>b__0'
-	} // end of class <>c__DisplayClass0_0
 	.class nested private auto ansi sealed serializable beforefieldinit '<>c'
 		extends [mscorlib]System.Object
 	{
@@ -2396,7 +2355,7 @@ one");
 		.method private hidebysig specialname rtspecialname static 
 			void .cctor () cil managed 
 		{
-			// Method begins at RVA 0x210a
+			// Method begins at RVA 0x20e2
 			// Code size 11 (0xb)
 			.maxstack 8
 			IL_0000: newobj instance void Program/'<>c'::.ctor()
@@ -2422,6 +2381,46 @@ one");
 			IL_0000: ret
 		} // end of method '<>c'::'<Main>b__0_1'
 	} // end of class <>c
+	.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+		extends [mscorlib]System.Object
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Fields
+		.field public class [mscorlib]System.Collections.Generic.List`1<string> strings
+		.field public class Program/Disposable disposable
+		.field public int32 i
+		// Methods
+		.method public hidebysig specialname rtspecialname 
+			instance void .ctor () cil managed 
+		{
+			// Method begins at RVA 0x20da
+			// Code size 7 (0x7)
+			.maxstack 8
+			IL_0000: ldarg.0
+			IL_0001: call instance void [mscorlib]System.Object::.ctor()
+			IL_0006: ret
+		} // end of method '<>c__DisplayClass0_0'::.ctor
+		.method assembly hidebysig 
+			instance void '<Main>b__0' () cil managed 
+		{
+			// Method begins at RVA 0x20ee
+			// Code size 39 (0x27)
+			.maxstack 8
+			IL_0000: ldarg.0
+			IL_0001: ldfld class Program/Disposable Program/'<>c__DisplayClass0_0'::disposable
+			IL_0006: callvirt instance string [mscorlib]System.Object::ToString()
+			IL_000b: call void [mscorlib]System.Console::WriteLine(string)
+			IL_0010: ldarg.0
+			IL_0011: ldfld class [mscorlib]System.Collections.Generic.List`1<string> Program/'<>c__DisplayClass0_0'::strings
+			IL_0016: ldarg.0
+			IL_0017: ldfld int32 Program/'<>c__DisplayClass0_0'::i
+			IL_001c: callvirt instance !0 class [mscorlib]System.Collections.Generic.List`1<string>::get_Item(int32)
+			IL_0021: call void [mscorlib]System.Console::WriteLine(string)
+			IL_0026: ret
+		} // end of method '<>c__DisplayClass0_0'::'<Main>b__0'
+	} // end of class <>c__DisplayClass0_0
 	// Methods
 	.method public hidebysig static 
 		void Main () cil managed 
@@ -2514,7 +2513,7 @@ public static class Program
 		public void Dispose() { }
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"Program+Disposable
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"Program+Disposable
 three
 Program+Disposable
 two
@@ -2550,6 +2549,45 @@ one");
 			IL_0006: ret
 		} // end of method Disposable::.ctor
 	} // end of class Disposable
+	.class nested private auto ansi sealed serializable beforefieldinit '<>c'
+		extends [mscorlib]System.Object
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Fields
+		.field public static initonly class Program/'<>c' '<>9'
+		.field public static class [mscorlib]System.Action '<>9__0_1'
+		// Methods
+		.method private hidebysig specialname rtspecialname static 
+			void .cctor () cil managed 
+		{
+			// Method begins at RVA 0x21ba
+			// Code size 11 (0xb)
+			.maxstack 8
+			IL_0000: newobj instance void Program/'<>c'::.ctor()
+			IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
+			IL_000a: ret
+		} // end of method '<>c'::.cctor
+		.method public hidebysig specialname rtspecialname 
+			instance void .ctor () cil managed 
+		{
+			// Method begins at RVA 0x21b2
+			// Code size 7 (0x7)
+			.maxstack 8
+			IL_0000: ldarg.0
+			IL_0001: call instance void [mscorlib]System.Object::.ctor()
+			IL_0006: ret
+		} // end of method '<>c'::.ctor
+		.method assembly hidebysig 
+			instance void '<Main>b__0_1' () cil managed 
+		{
+			// Method begins at RVA 0x21b0
+			// Code size 1 (0x1)
+			.maxstack 8
+			IL_0000: ret
+		} // end of method '<>c'::'<Main>b__0_1'
+	} // end of class <>c
 	.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
 		extends [mscorlib]System.Object
 	{
@@ -2617,7 +2655,7 @@ one");
 		.method assembly hidebysig 
 			instance void '<Main>b__0' () cil managed 
 		{
-			// Method begins at RVA 0x21bc
+			// Method begins at RVA 0x21c8
 			// Code size 82 (0x52)
 			.maxstack 3
 			IL_0000: ldarg.0
@@ -2648,45 +2686,6 @@ one");
 			IL_0051: ret
 		} // end of method '<>c__DisplayClass0_2'::'<Main>b__0'
 	} // end of class <>c__DisplayClass0_2
-	.class nested private auto ansi sealed serializable beforefieldinit '<>c'
-		extends [mscorlib]System.Object
-	{
-		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-			01 00 00 00
-		)
-		// Fields
-		.field public static initonly class Program/'<>c' '<>9'
-		.field public static class [mscorlib]System.Action '<>9__0_1'
-		// Methods
-		.method private hidebysig specialname rtspecialname static 
-			void .cctor () cil managed 
-		{
-			// Method begins at RVA 0x221a
-			// Code size 11 (0xb)
-			.maxstack 8
-			IL_0000: newobj instance void Program/'<>c'::.ctor()
-			IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
-			IL_000a: ret
-		} // end of method '<>c'::.cctor
-		.method public hidebysig specialname rtspecialname 
-			instance void .ctor () cil managed 
-		{
-			// Method begins at RVA 0x21b2
-			// Code size 7 (0x7)
-			.maxstack 8
-			IL_0000: ldarg.0
-			IL_0001: call instance void [mscorlib]System.Object::.ctor()
-			IL_0006: ret
-		} // end of method '<>c'::.ctor
-		.method assembly hidebysig 
-			instance void '<Main>b__0_1' () cil managed 
-		{
-			// Method begins at RVA 0x21b0
-			// Code size 1 (0x1)
-			.maxstack 8
-			IL_0000: ret
-		} // end of method '<>c'::'<Main>b__0_1'
-	} // end of class <>c
 	// Methods
 	.method public hidebysig static 
 		void Main () cil managed 
@@ -2847,7 +2846,7 @@ public static class Program
 		actions[2]();
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"one
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"one
 two
 three");
 
@@ -2856,6 +2855,45 @@ three");
 	extends [mscorlib]System.Object
 {
 	// Nested Types
+	.class nested private auto ansi sealed serializable beforefieldinit '<>c'
+		extends [mscorlib]System.Object
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Fields
+		.field public static initonly class Program/'<>c' '<>9'
+		.field public static class [mscorlib]System.Action '<>9__0_1'
+		// Methods
+		.method private hidebysig specialname rtspecialname static 
+			void .cctor () cil managed 
+		{
+			// Method begins at RVA 0x20f2
+			// Code size 11 (0xb)
+			.maxstack 8
+			IL_0000: newobj instance void Program/'<>c'::.ctor()
+			IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
+			IL_000a: ret
+		} // end of method '<>c'::.cctor
+		.method public hidebysig specialname rtspecialname 
+			instance void .ctor () cil managed 
+		{
+			// Method begins at RVA 0x20fe
+			// Code size 7 (0x7)
+			.maxstack 8
+			IL_0000: ldarg.0
+			IL_0001: call instance void [mscorlib]System.Object::.ctor()
+			IL_0006: ret
+		} // end of method '<>c'::.ctor
+		.method assembly hidebysig 
+			instance void '<Main>b__0_1' () cil managed 
+		{
+			// Method begins at RVA 0x2106
+			// Code size 1 (0x1)
+			.maxstack 8
+			IL_0000: ret
+		} // end of method '<>c'::'<Main>b__0_1'
+	} // end of class <>c
 	.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
 		extends [mscorlib]System.Object
 	{
@@ -2868,7 +2906,7 @@ three");
 		.method public hidebysig specialname rtspecialname 
 			instance void .ctor () cil managed 
 		{
-			// Method begins at RVA 0x20f2
+			// Method begins at RVA 0x20fe
 			// Code size 7 (0x7)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -2890,7 +2928,7 @@ three");
 		.method public hidebysig specialname rtspecialname 
 			instance void .ctor () cil managed 
 		{
-			// Method begins at RVA 0x20f2
+			// Method begins at RVA 0x20fe
 			// Code size 7 (0x7)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -2900,7 +2938,7 @@ three");
 		.method assembly hidebysig 
 			instance void '<Main>b__0' () cil managed 
 		{
-			// Method begins at RVA 0x20fa
+			// Method begins at RVA 0x2108
 			// Code size 35 (0x23)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -2916,45 +2954,6 @@ three");
 			IL_0022: ret
 		} // end of method '<>c__DisplayClass0_1'::'<Main>b__0'
 	} // end of class <>c__DisplayClass0_1
-	.class nested private auto ansi sealed serializable beforefieldinit '<>c'
-		extends [mscorlib]System.Object
-	{
-		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-			01 00 00 00
-		)
-		// Fields
-		.field public static initonly class Program/'<>c' '<>9'
-		.field public static class [mscorlib]System.Action '<>9__0_1'
-		// Methods
-		.method private hidebysig specialname rtspecialname static 
-			void .cctor () cil managed 
-		{
-			// Method begins at RVA 0x211e
-			// Code size 11 (0xb)
-			.maxstack 8
-			IL_0000: newobj instance void Program/'<>c'::.ctor()
-			IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
-			IL_000a: ret
-		} // end of method '<>c'::.cctor
-		.method public hidebysig specialname rtspecialname 
-			instance void .ctor () cil managed 
-		{
-			// Method begins at RVA 0x20f2
-			// Code size 7 (0x7)
-			.maxstack 8
-			IL_0000: ldarg.0
-			IL_0001: call instance void [mscorlib]System.Object::.ctor()
-			IL_0006: ret
-		} // end of method '<>c'::.ctor
-		.method assembly hidebysig 
-			instance void '<Main>b__0_1' () cil managed 
-		{
-			// Method begins at RVA 0x212a
-			// Code size 1 (0x1)
-			.maxstack 8
-			IL_0000: ret
-		} // end of method '<>c'::'<Main>b__0_1'
-	} // end of class <>c
 	// Methods
 	.method public hidebysig static 
 		void Main () cil managed 
@@ -3050,7 +3049,7 @@ public static class Program
 		actions[1]();
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"two
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"two
 one");
 
             VerifyTypeIL(compilation, "Program", @"
@@ -3058,6 +3057,45 @@ one");
 	extends [mscorlib]System.Object
 {
 	// Nested Types
+	.class nested private auto ansi sealed serializable beforefieldinit '<>c'
+		extends [mscorlib]System.Object
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Fields
+		.field public static initonly class Program/'<>c' '<>9'
+		.field public static class [mscorlib]System.Action '<>9__0_1'
+		// Methods
+		.method private hidebysig specialname rtspecialname static 
+			void .cctor () cil managed 
+		{
+			// Method begins at RVA 0x20fa
+			// Code size 11 (0xb)
+			.maxstack 8
+			IL_0000: newobj instance void Program/'<>c'::.ctor()
+			IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
+			IL_000a: ret
+		} // end of method '<>c'::.cctor
+		.method public hidebysig specialname rtspecialname 
+			instance void .ctor () cil managed 
+		{
+			// Method begins at RVA 0x2106
+			// Code size 7 (0x7)
+			.maxstack 8
+			IL_0000: ldarg.0
+			IL_0001: call instance void [mscorlib]System.Object::.ctor()
+			IL_0006: ret
+		} // end of method '<>c'::.ctor
+		.method assembly hidebysig 
+			instance void '<Main>b__0_1' () cil managed 
+		{
+			// Method begins at RVA 0x210e
+			// Code size 1 (0x1)
+			.maxstack 8
+			IL_0000: ret
+		} // end of method '<>c'::'<Main>b__0_1'
+	} // end of class <>c
 	.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
 		extends [mscorlib]System.Object
 	{
@@ -3071,7 +3109,7 @@ one");
 		.method public hidebysig specialname rtspecialname 
 			instance void .ctor () cil managed 
 		{
-			// Method begins at RVA 0x20fa
+			// Method begins at RVA 0x2106
 			// Code size 7 (0x7)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -3092,7 +3130,7 @@ one");
 		.method public hidebysig specialname rtspecialname 
 			instance void .ctor () cil managed 
 		{
-			// Method begins at RVA 0x20fa
+			// Method begins at RVA 0x2106
 			// Code size 7 (0x7)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -3102,7 +3140,7 @@ one");
 		.method assembly hidebysig 
 			instance void '<Main>b__0' () cil managed 
 		{
-			// Method begins at RVA 0x2102
+			// Method begins at RVA 0x2110
 			// Code size 42 (0x2a)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -3121,45 +3159,6 @@ one");
 			IL_0029: ret
 		} // end of method '<>c__DisplayClass0_1'::'<Main>b__0'
 	} // end of class <>c__DisplayClass0_1
-	.class nested private auto ansi sealed serializable beforefieldinit '<>c'
-		extends [mscorlib]System.Object
-	{
-		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-			01 00 00 00
-		)
-		// Fields
-		.field public static initonly class Program/'<>c' '<>9'
-		.field public static class [mscorlib]System.Action '<>9__0_1'
-		// Methods
-		.method private hidebysig specialname rtspecialname static 
-			void .cctor () cil managed 
-		{
-			// Method begins at RVA 0x212d
-			// Code size 11 (0xb)
-			.maxstack 8
-			IL_0000: newobj instance void Program/'<>c'::.ctor()
-			IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
-			IL_000a: ret
-		} // end of method '<>c'::.cctor
-		.method public hidebysig specialname rtspecialname 
-			instance void .ctor () cil managed 
-		{
-			// Method begins at RVA 0x20fa
-			// Code size 7 (0x7)
-			.maxstack 8
-			IL_0000: ldarg.0
-			IL_0001: call instance void [mscorlib]System.Object::.ctor()
-			IL_0006: ret
-		} // end of method '<>c'::.ctor
-		.method assembly hidebysig 
-			instance void '<Main>b__0_1' () cil managed 
-		{
-			// Method begins at RVA 0x2139
-			// Code size 1 (0x1)
-			.maxstack 8
-			IL_0000: ret
-		} // end of method '<>c'::'<Main>b__0_1'
-	} // end of class <>c
 	// Methods
 	.method public hidebysig static 
 		void Main () cil managed 
@@ -3253,13 +3252,52 @@ public static class Program
         action();
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"one");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"one");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
 	// Nested Types
+	.class nested private auto ansi sealed serializable beforefieldinit '<>c'
+		extends [mscorlib]System.Object
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Fields
+		.field public static initonly class Program/'<>c' '<>9'
+		.field public static class [mscorlib]System.Action '<>9__0_1'
+		// Methods
+		.method private hidebysig specialname rtspecialname static 
+			void .cctor () cil managed 
+		{
+			// Method begins at RVA 0x20df
+			// Code size 11 (0xb)
+			.maxstack 8
+			IL_0000: newobj instance void Program/'<>c'::.ctor()
+			IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
+			IL_000a: ret
+		} // end of method '<>c'::.cctor
+		.method public hidebysig specialname rtspecialname 
+			instance void .ctor () cil managed 
+		{
+			// Method begins at RVA 0x20eb
+			// Code size 7 (0x7)
+			.maxstack 8
+			IL_0000: ldarg.0
+			IL_0001: call instance void [mscorlib]System.Object::.ctor()
+			IL_0006: ret
+		} // end of method '<>c'::.ctor
+		.method assembly hidebysig 
+			instance void '<Main>b__0_1' () cil managed 
+		{
+			// Method begins at RVA 0x20f3
+			// Code size 1 (0x1)
+			.maxstack 8
+			IL_0000: ret
+		} // end of method '<>c'::'<Main>b__0_1'
+	} // end of class <>c
 	.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
 		extends [mscorlib]System.Object
 	{
@@ -3273,7 +3311,7 @@ public static class Program
 		.method public hidebysig specialname rtspecialname 
 			instance void .ctor () cil managed 
 		{
-			// Method begins at RVA 0x20df
+			// Method begins at RVA 0x20eb
 			// Code size 7 (0x7)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -3294,7 +3332,7 @@ public static class Program
 		.method public hidebysig specialname rtspecialname 
 			instance void .ctor () cil managed 
 		{
-			// Method begins at RVA 0x20df
+			// Method begins at RVA 0x20eb
 			// Code size 7 (0x7)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -3304,7 +3342,7 @@ public static class Program
 		.method assembly hidebysig 
 			instance void '<Main>b__0' () cil managed 
 		{
-			// Method begins at RVA 0x20e7
+			// Method begins at RVA 0x20f5
 			// Code size 42 (0x2a)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -3323,45 +3361,6 @@ public static class Program
 			IL_0029: ret
 		} // end of method '<>c__DisplayClass0_1'::'<Main>b__0'
 	} // end of class <>c__DisplayClass0_1
-	.class nested private auto ansi sealed serializable beforefieldinit '<>c'
-		extends [mscorlib]System.Object
-	{
-		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-			01 00 00 00
-		)
-		// Fields
-		.field public static initonly class Program/'<>c' '<>9'
-		.field public static class [mscorlib]System.Action '<>9__0_1'
-		// Methods
-		.method private hidebysig specialname rtspecialname static 
-			void .cctor () cil managed 
-		{
-			// Method begins at RVA 0x2112
-			// Code size 11 (0xb)
-			.maxstack 8
-			IL_0000: newobj instance void Program/'<>c'::.ctor()
-			IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
-			IL_000a: ret
-		} // end of method '<>c'::.cctor
-		.method public hidebysig specialname rtspecialname 
-			instance void .ctor () cil managed 
-		{
-			// Method begins at RVA 0x20df
-			// Code size 7 (0x7)
-			.maxstack 8
-			IL_0000: ldarg.0
-			IL_0001: call instance void [mscorlib]System.Object::.ctor()
-			IL_0006: ret
-		} // end of method '<>c'::.ctor
-		.method assembly hidebysig 
-			instance void '<Main>b__0_1' () cil managed 
-		{
-			// Method begins at RVA 0x211e
-			// Code size 1 (0x1)
-			.maxstack 8
-			IL_0000: ret
-		} // end of method '<>c'::'<Main>b__0_1'
-	} // end of class <>c
 	// Methods
 	.method public hidebysig static 
 		void Main () cil managed 
@@ -3449,7 +3448,7 @@ public static class Program
             action();
         }
     }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"one");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"one");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -3586,7 +3585,7 @@ public static class Program
             action();
         }
     }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"one");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"one");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -3730,7 +3729,7 @@ public static class Program
             actions[2]();
         }
     }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"three
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"three
 two
 one");
 
@@ -3739,6 +3738,45 @@ one");
 	extends [mscorlib]System.Object
 {
 	// Nested Types
+	.class nested private auto ansi sealed serializable beforefieldinit '<>c'
+		extends [mscorlib]System.Object
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Fields
+		.field public static initonly class Program/'<>c' '<>9'
+		.field public static class [mscorlib]System.Action '<>9__0_1'
+		// Methods
+		.method private hidebysig specialname rtspecialname static 
+			void .cctor () cil managed 
+		{
+			// Method begins at RVA 0x2104
+			// Code size 11 (0xb)
+			.maxstack 8
+			IL_0000: newobj instance void Program/'<>c'::.ctor()
+			IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
+			IL_000a: ret
+		} // end of method '<>c'::.cctor
+		.method public hidebysig specialname rtspecialname 
+			instance void .ctor () cil managed 
+		{
+			// Method begins at RVA 0x2110
+			// Code size 7 (0x7)
+			.maxstack 8
+			IL_0000: ldarg.0
+			IL_0001: call instance void [mscorlib]System.Object::.ctor()
+			IL_0006: ret
+		} // end of method '<>c'::.ctor
+		.method assembly hidebysig 
+			instance void '<Main>b__0_1' () cil managed 
+		{
+			// Method begins at RVA 0x2118
+			// Code size 1 (0x1)
+			.maxstack 8
+			IL_0000: ret
+		} // end of method '<>c'::'<Main>b__0_1'
+	} // end of class <>c
 	.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
 		extends [mscorlib]System.Object
 	{
@@ -3752,7 +3790,7 @@ one");
 		.method public hidebysig specialname rtspecialname 
 			instance void .ctor () cil managed 
 		{
-			// Method begins at RVA 0x2104
+			// Method begins at RVA 0x2110
 			// Code size 7 (0x7)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -3773,7 +3811,7 @@ one");
 		.method public hidebysig specialname rtspecialname 
 			instance void .ctor () cil managed 
 		{
-			// Method begins at RVA 0x2104
+			// Method begins at RVA 0x2110
 			// Code size 7 (0x7)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -3783,7 +3821,7 @@ one");
 		.method assembly hidebysig 
 			instance void '<Main>b__0' () cil managed 
 		{
-			// Method begins at RVA 0x210c
+			// Method begins at RVA 0x211a
 			// Code size 42 (0x2a)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -3802,45 +3840,6 @@ one");
 			IL_0029: ret
 		} // end of method '<>c__DisplayClass0_1'::'<Main>b__0'
 	} // end of class <>c__DisplayClass0_1
-	.class nested private auto ansi sealed serializable beforefieldinit '<>c'
-		extends [mscorlib]System.Object
-	{
-		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-			01 00 00 00
-		)
-		// Fields
-		.field public static initonly class Program/'<>c' '<>9'
-		.field public static class [mscorlib]System.Action '<>9__0_1'
-		// Methods
-		.method private hidebysig specialname rtspecialname static 
-			void .cctor () cil managed 
-		{
-			// Method begins at RVA 0x2137
-			// Code size 11 (0xb)
-			.maxstack 8
-			IL_0000: newobj instance void Program/'<>c'::.ctor()
-			IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
-			IL_000a: ret
-		} // end of method '<>c'::.cctor
-		.method public hidebysig specialname rtspecialname 
-			instance void .ctor () cil managed 
-		{
-			// Method begins at RVA 0x2104
-			// Code size 7 (0x7)
-			.maxstack 8
-			IL_0000: ldarg.0
-			IL_0001: call instance void [mscorlib]System.Object::.ctor()
-			IL_0006: ret
-		} // end of method '<>c'::.ctor
-		.method assembly hidebysig 
-			instance void '<Main>b__0_1' () cil managed 
-		{
-			// Method begins at RVA 0x2143
-			// Code size 1 (0x1)
-			.maxstack 8
-			IL_0000: ret
-		} // end of method '<>c'::'<Main>b__0_1'
-	} // end of class <>c
 	// Methods
 	.method public hidebysig static 
 		void Main () cil managed 
@@ -3941,7 +3940,7 @@ public static class Program
         
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"1");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -4031,7 +4030,7 @@ public static class Program
 		}
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -4119,7 +4118,7 @@ public static class Program
         }
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"1");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -4223,7 +4222,7 @@ public static class Program
         }
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"1");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -4326,7 +4325,7 @@ public static class Program
         }
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"1");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -4422,7 +4421,7 @@ public static class Program
         }
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"1");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -4522,7 +4521,7 @@ public static class Program
 
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"1");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -4615,7 +4614,7 @@ public static class Program
 		goto target;
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"1");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -4733,7 +4732,7 @@ public static class Program
         }
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"1");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -4850,7 +4849,7 @@ public static class Program
 		}
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"1");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -4969,7 +4968,7 @@ public static class Program
 		}
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"1");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -5089,7 +5088,7 @@ public static class Program
         }
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"1");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -5219,7 +5218,7 @@ public static class Program
         }
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"1");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -5336,7 +5335,7 @@ public static class Program
 		Action _ = () => Console.WriteLine(a);
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"1");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -5465,7 +5464,7 @@ public static class Program
 		}
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"1");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -5565,7 +5564,7 @@ public static class Program
 		}
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"1");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -5662,7 +5661,7 @@ public static class Program
 		}
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"1");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -5796,7 +5795,7 @@ public static class Program
 		}
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"4");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"4");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -5939,7 +5938,7 @@ public static class Program
 		}
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"2");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"2");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -6092,7 +6091,7 @@ public static class Program
 		}
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"3");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"3");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -6227,7 +6226,7 @@ public static class Program
 		}
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"3");
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"3");
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -6359,7 +6358,7 @@ public class Program
 		actions[3]();
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"1
 1");
 
             VerifyTypeIL(compilation, "Program", @"
@@ -6551,7 +6550,7 @@ public class Program
         actions[3]();
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"1
 1");
 
             VerifyTypeIL(compilation, "Program", @"
@@ -6749,7 +6748,7 @@ public class Program
 		}
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"3
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"3
 3");
 
             VerifyTypeIL(compilation, "Program", @"
@@ -6917,7 +6916,7 @@ target:
 		}
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"3
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"3
 3");
 
             VerifyTypeIL(compilation, "Program", @"
@@ -7085,7 +7084,7 @@ target:
 		}
 	}
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"3
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: @"3
 3");
 
             VerifyTypeIL(compilation, "Program", @"
@@ -7263,7 +7262,7 @@ public class Program
         }
 	}
 }";
-            var compilation = CompileAndVerify(source);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi beforefieldinit Program
@@ -7399,7 +7398,7 @@ public class Program
         }
     }
 }";
-            var compilation = CompileAndVerify(source);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi beforefieldinit Program
@@ -7601,7 +7600,7 @@ public class C {
         }
     }
 }";
-            var compilation = CompileAndVerify(source);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
 
             VerifyTypeIL(compilation, "C", @"
 .class public auto ansi beforefieldinit C
@@ -8041,7 +8040,7 @@ public class C {
         }
     }
 }";
-            var compilation = CompileAndVerify(source);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
 
             VerifyTypeIL(compilation, "C", @"
 .class public auto ansi beforefieldinit C

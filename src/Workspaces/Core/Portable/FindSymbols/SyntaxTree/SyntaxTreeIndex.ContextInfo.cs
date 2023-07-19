@@ -2,10 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -27,13 +25,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 bool containsQueryExpression,
                 bool containsThisConstructorInitializer,
                 bool containsBaseConstructorInitializer,
-                bool containsElementAccessExpression,
+                bool containsExplicitOrImplicitElementAccessExpression,
                 bool containsIndexerMemberCref,
                 bool containsDeconstruction,
                 bool containsAwait,
                 bool containsTupleExpressionOrTupleType,
                 bool containsImplicitObjectCreation,
-                bool containsGlobalAttributes)
+                bool containsGlobalSuppressMessageAttribute,
+                bool containsConversion,
+                bool containsGlobalKeyword,
+                bool containsCollectionInitializer)
                 : this(predefinedTypes, predefinedOperators,
                        ConvertToContainingNodeFlag(
                          containsForEachStatement,
@@ -42,13 +43,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                          containsQueryExpression,
                          containsThisConstructorInitializer,
                          containsBaseConstructorInitializer,
-                         containsElementAccessExpression,
+                         containsExplicitOrImplicitElementAccessExpression,
                          containsIndexerMemberCref,
                          containsDeconstruction,
                          containsAwait,
                          containsTupleExpressionOrTupleType,
                          containsImplicitObjectCreation,
-                         containsGlobalAttributes))
+                         containsGlobalSuppressMessageAttribute,
+                         containsConversion,
+                         containsGlobalKeyword,
+                         containsCollectionInitializer))
             {
             }
 
@@ -66,13 +70,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 bool containsQueryExpression,
                 bool containsThisConstructorInitializer,
                 bool containsBaseConstructorInitializer,
-                bool containsElementAccessExpression,
+                bool containsExplicitOrImplicitElementAccessExpression,
                 bool containsIndexerMemberCref,
                 bool containsDeconstruction,
                 bool containsAwait,
                 bool containsTupleExpressionOrTupleType,
                 bool containsImplicitObjectCreation,
-                bool containsGlobalAttributes)
+                bool containsGlobalSuppressMessageAttribute,
+                bool containsConversion,
+                bool containsGlobalKeyword,
+                bool containsCollectionInitializer)
             {
                 var containingNodes = ContainingNodes.None;
 
@@ -82,13 +89,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 containingNodes |= containsQueryExpression ? ContainingNodes.ContainsQueryExpression : 0;
                 containingNodes |= containsThisConstructorInitializer ? ContainingNodes.ContainsThisConstructorInitializer : 0;
                 containingNodes |= containsBaseConstructorInitializer ? ContainingNodes.ContainsBaseConstructorInitializer : 0;
-                containingNodes |= containsElementAccessExpression ? ContainingNodes.ContainsElementAccessExpression : 0;
+                containingNodes |= containsExplicitOrImplicitElementAccessExpression ? ContainingNodes.ContainsExplicitOrImplicitElementAccessExpression : 0;
                 containingNodes |= containsIndexerMemberCref ? ContainingNodes.ContainsIndexerMemberCref : 0;
                 containingNodes |= containsDeconstruction ? ContainingNodes.ContainsDeconstruction : 0;
                 containingNodes |= containsAwait ? ContainingNodes.ContainsAwait : 0;
                 containingNodes |= containsTupleExpressionOrTupleType ? ContainingNodes.ContainsTupleExpressionOrTupleType : 0;
                 containingNodes |= containsImplicitObjectCreation ? ContainingNodes.ContainsImplicitObjectCreation : 0;
-                containingNodes |= containsGlobalAttributes ? ContainingNodes.ContainsGlobalAttributes : 0;
+                containingNodes |= containsGlobalSuppressMessageAttribute ? ContainingNodes.ContainsGlobalSuppressMessageAttribute : 0;
+                containingNodes |= containsConversion ? ContainingNodes.ContainsConversion : 0;
+                containingNodes |= containsGlobalKeyword ? ContainingNodes.ContainsGlobalKeyword : 0;
+                containingNodes |= containsCollectionInitializer ? ContainingNodes.ContainsCollectionInitializer : 0;
 
                 return containingNodes;
             }
@@ -126,8 +136,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public bool ContainsBaseConstructorInitializer
                 => (_containingNodes & ContainingNodes.ContainsBaseConstructorInitializer) == ContainingNodes.ContainsBaseConstructorInitializer;
 
-            public bool ContainsElementAccessExpression
-                => (_containingNodes & ContainingNodes.ContainsElementAccessExpression) == ContainingNodes.ContainsElementAccessExpression;
+            public bool ContainsExplicitOrImplicitElementAccessExpression
+                => (_containingNodes & ContainingNodes.ContainsExplicitOrImplicitElementAccessExpression) == ContainingNodes.ContainsExplicitOrImplicitElementAccessExpression;
 
             public bool ContainsIndexerMemberCref
                 => (_containingNodes & ContainingNodes.ContainsIndexerMemberCref) == ContainingNodes.ContainsIndexerMemberCref;
@@ -135,8 +145,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public bool ContainsTupleExpressionOrTupleType
                 => (_containingNodes & ContainingNodes.ContainsTupleExpressionOrTupleType) == ContainingNodes.ContainsTupleExpressionOrTupleType;
 
-            public bool ContainsGlobalAttributes
-                => (_containingNodes & ContainingNodes.ContainsGlobalAttributes) == ContainingNodes.ContainsGlobalAttributes;
+            public bool ContainsGlobalKeyword
+                => (_containingNodes & ContainingNodes.ContainsGlobalKeyword) == ContainingNodes.ContainsGlobalKeyword;
+
+            public bool ContainsGlobalSuppressMessageAttribute
+                => (_containingNodes & ContainingNodes.ContainsGlobalSuppressMessageAttribute) == ContainingNodes.ContainsGlobalSuppressMessageAttribute;
+
+            public bool ContainsConversion
+                => (_containingNodes & ContainingNodes.ContainsConversion) == ContainingNodes.ContainsConversion;
+
+            public bool ContainsCollectionInitializer
+                => (_containingNodes & ContainingNodes.ContainsCollectionInitializer) == ContainingNodes.ContainsCollectionInitializer;
 
             public void WriteTo(ObjectWriter writer)
             {
@@ -172,13 +191,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 ContainsQueryExpression = 1 << 3,
                 ContainsThisConstructorInitializer = 1 << 4,
                 ContainsBaseConstructorInitializer = 1 << 5,
-                ContainsElementAccessExpression = 1 << 6,
+                ContainsExplicitOrImplicitElementAccessExpression = 1 << 6,
                 ContainsIndexerMemberCref = 1 << 7,
                 ContainsDeconstruction = 1 << 8,
                 ContainsAwait = 1 << 9,
                 ContainsTupleExpressionOrTupleType = 1 << 10,
                 ContainsImplicitObjectCreation = 1 << 11,
-                ContainsGlobalAttributes = 1 << 12,
+                ContainsGlobalSuppressMessageAttribute = 1 << 12,
+                ContainsConversion = 1 << 13,
+                ContainsGlobalKeyword = 1 << 14,
+                ContainsCollectionInitializer = 1 << 15,
             }
         }
     }

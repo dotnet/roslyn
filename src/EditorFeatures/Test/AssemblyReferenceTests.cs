@@ -16,12 +16,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
     /// </summary>
     public class AssemblyReferenceTests
     {
-        [Fact, WorkItem(26642, "https://github.com/dotnet/roslyn/issues/26642")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26642")]
         public void TestNoReferenceToImageCatalog()
         {
             var editorsFeatureAssembly = typeof(Microsoft.CodeAnalysis.Editor.Shared.Extensions.GlyphExtensions).Assembly;
             var dependencies = editorsFeatureAssembly.GetReferencedAssemblies();
             Assert.Empty(dependencies.Where(a => a.FullName.Contains("Microsoft.VisualStudio.ImageCatalog")));
+        }
+
+        [Fact]
+        public void TestNoReferenceToImagingInterop()
+        {
+            var editorsFeatureAssembly = typeof(Microsoft.CodeAnalysis.Editor.Shared.Extensions.GlyphExtensions).Assembly;
+            var dependencies = editorsFeatureAssembly.GetReferencedAssemblies();
+            Assert.Empty(dependencies.Where(a => a.FullName.Contains("Microsoft.VisualStudio.Imaging.Interop")));
         }
     }
 }

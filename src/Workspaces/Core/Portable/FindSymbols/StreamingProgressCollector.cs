@@ -4,12 +4,15 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -20,25 +23,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     /// APIs to return all the results at the end of the operation, as opposed to broadcasting
     /// the results as they are found.
     /// </summary>
-    internal class StreamingProgressCollector : IStreamingFindReferencesProgress
+    internal class StreamingProgressCollector(
+        IStreamingFindReferencesProgress underlyingProgress) : IStreamingFindReferencesProgress
     {
         private readonly object _gate = new();
-        private readonly IStreamingFindReferencesProgress _underlyingProgress;
+        private readonly Dictionary<ISymbol, List<ReferenceLocation>> _symbolToLocations = new();
 
-        private readonly Dictionary<ISymbol, List<ReferenceLocation>> _symbolToLocations =
-            new();
-
-        public IStreamingProgressTracker ProgressTracker => _underlyingProgress.ProgressTracker;
+        public IStreamingProgressTracker ProgressTracker => underlyingProgress.ProgressTracker;
 
         public StreamingProgressCollector()
             : this(NoOpStreamingFindReferencesProgress.Instance)
         {
-        }
-
-        public StreamingProgressCollector(
-            IStreamingFindReferencesProgress underlyingProgress)
-        {
-            _underlyingProgress = underlyingProgress;
         }
 
         public ImmutableArray<ReferencedSymbol> GetReferencedSymbols()
@@ -46,37 +41,45 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             lock (_gate)
             {
                 using var _ = ArrayBuilder<ReferencedSymbol>.GetInstance(out var result);
-                foreach (var kvp in _symbolToLocations)
-                    result.Add(new ReferencedSymbol(kvp.Key, kvp.Value.ToImmutableArray()));
+                foreach (var (symbol, locations) in _symbolToLocations)
+                    result.Add(new ReferencedSymbol(symbol, locations.ToImmutableArray()));
 
                 return result.ToImmutable();
             }
         }
 
-        public ValueTask OnStartedAsync() => _underlyingProgress.OnStartedAsync();
-        public ValueTask OnCompletedAsync() => _underlyingProgress.OnCompletedAsync();
+        public ValueTask OnStartedAsync(CancellationToken cancellationToken) => underlyingProgress.OnStartedAsync(cancellationToken);
+        public ValueTask OnCompletedAsync(CancellationToken cancellationToken) => underlyingProgress.OnCompletedAsync(cancellationToken);
 
-        public ValueTask OnFindInDocumentCompletedAsync(Document document) => _underlyingProgress.OnFindInDocumentCompletedAsync(document);
-        public ValueTask OnFindInDocumentStartedAsync(Document document) => _underlyingProgress.OnFindInDocumentStartedAsync(document);
+        public ValueTask OnFindInDocumentCompletedAsync(Document document, CancellationToken cancellationToken) => underlyingProgress.OnFindInDocumentCompletedAsync(document, cancellationToken);
+        public ValueTask OnFindInDocumentStartedAsync(Document document, CancellationToken cancellationToken) => underlyingProgress.OnFindInDocumentStartedAsync(document, cancellationToken);
 
-        public ValueTask OnDefinitionFoundAsync(ISymbol definition)
+        public ValueTask OnDefinitionFoundAsync(SymbolGroup group, CancellationToken cancellationToken)
         {
-            lock (_gate)
+            try
             {
-                _symbolToLocations[definition] = new List<ReferenceLocation>();
-            }
+                lock (_gate)
+                {
+                    foreach (var definition in group.Symbols)
+                        _symbolToLocations[definition] = new List<ReferenceLocation>();
+                }
 
-            return _underlyingProgress.OnDefinitionFoundAsync(definition);
+                return underlyingProgress.OnDefinitionFoundAsync(group, cancellationToken);
+            }
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
         }
 
-        public ValueTask OnReferenceFoundAsync(ISymbol definition, ReferenceLocation location)
+        public ValueTask OnReferenceFoundAsync(SymbolGroup group, ISymbol definition, ReferenceLocation location, CancellationToken cancellationToken)
         {
             lock (_gate)
             {
                 _symbolToLocations[definition].Add(location);
             }
 
-            return _underlyingProgress.OnReferenceFoundAsync(definition, location);
+            return underlyingProgress.OnReferenceFoundAsync(group, definition, location, cancellationToken);
         }
     }
 }

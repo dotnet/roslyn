@@ -545,7 +545,7 @@ class C
                 EvalResult("Raw View", null, "", "(new C())._4, raw", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Data));
         }
 
-        [Fact, WorkItem(1024016, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024016")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024016")]
         public void NonGenericProxyOnGenericBase()
         {
             var source =
@@ -1105,8 +1105,7 @@ class P
                 EvalResult("F", "3", "int", "(new C(3)).F", DkmEvaluationResultFlags.CanFavorite));
         }
 
-        [WorkItem(18581, "https://github.com/dotnet/roslyn/issues/18581")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18581")]
         public void AccessibilityTrumpedByAttribute()
         {
             var source =

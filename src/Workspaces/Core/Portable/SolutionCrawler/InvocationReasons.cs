@@ -2,44 +2,36 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.Serialization;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
-    internal partial struct InvocationReasons : IEnumerable<string>
+    [DataContract]
+    internal partial struct InvocationReasons(ImmutableHashSet<string> reasons) : IEnumerable<string>
     {
         public static readonly InvocationReasons Empty = new(ImmutableHashSet<string>.Empty);
 
-        private readonly ImmutableHashSet<string> _reasons;
+        [DataMember(Order = 0)]
+        private readonly ImmutableHashSet<string> _reasons = reasons ?? ImmutableHashSet<string>.Empty;
 
         public InvocationReasons(string reason)
-            : this(ImmutableHashSet.Create<string>(reason))
+            : this(ImmutableHashSet.Create(reason))
         {
         }
 
-        private InvocationReasons(ImmutableHashSet<string> reasons)
-            => _reasons = reasons;
+        public bool IsEmpty => _reasons.IsEmpty;
 
         public bool Contains(string reason)
             => _reasons.Contains(reason);
 
         public InvocationReasons With(InvocationReasons invocationReasons)
-            => new((_reasons ?? ImmutableHashSet<string>.Empty).Union(invocationReasons._reasons));
+            => new(_reasons.Union(invocationReasons._reasons));
 
         public InvocationReasons With(string reason)
-            => new((_reasons ?? ImmutableHashSet<string>.Empty).Add(reason));
-
-        public bool IsEmpty
-        {
-            get
-            {
-                return _reasons == null || _reasons.Count == 0;
-            }
-        }
+            => new(_reasons.Add(reason));
 
         public ImmutableHashSet<string>.Enumerator GetEnumerator()
             => _reasons.GetEnumerator();

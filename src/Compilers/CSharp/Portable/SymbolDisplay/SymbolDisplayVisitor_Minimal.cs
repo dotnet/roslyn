@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 startNode = usingDirective.Parent.Parent;
             }
 
-            var usingAliases = GetAncestorsOrThis<NamespaceDeclarationSyntax>(startNode)
+            var usingAliases = GetAncestorsOrThis<BaseNamespaceDeclarationSyntax>(startNode)
                 .SelectMany(n => n.Usings)
                 .Concat(GetAncestorsOrThis<CompilationUnitSyntax>(startNode).SelectMany(c => c.Usings))
                 .Where(u => u.Alias != null)
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ => null
             };
 
-        private string RemoveAttributeSufficeIfNecessary(INamedTypeSymbol symbol, string symbolName)
+        private string RemoveAttributeSuffixIfNecessary(INamedTypeSymbol symbol, string symbolName)
         {
             if (this.IsMinimizing &&
                 format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.RemoveAttributeSuffix) &&

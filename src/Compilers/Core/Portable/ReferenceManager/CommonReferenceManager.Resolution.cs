@@ -54,12 +54,13 @@ namespace Microsoft.CodeAnalysis
         protected abstract bool WeakIdentityPropertiesEquivalent(AssemblyIdentity identity1, AssemblyIdentity identity2);
 
         [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-        protected struct ResolvedReference
+        protected readonly struct ResolvedReference
         {
             private readonly MetadataImageKind _kind;
             private readonly int _index;
             private readonly ImmutableArray<string> _aliasesOpt;
             private readonly ImmutableArray<string> _recursiveAliasesOpt;
+            private readonly ImmutableArray<MetadataReference> _mergedReferencesOpt;
 
             // uninitialized aliases
             public ResolvedReference(int index, MetadataImageKind kind)
@@ -69,20 +70,23 @@ namespace Microsoft.CodeAnalysis
                 _kind = kind;
                 _aliasesOpt = default(ImmutableArray<string>);
                 _recursiveAliasesOpt = default(ImmutableArray<string>);
+                _mergedReferencesOpt = default(ImmutableArray<MetadataReference>);
             }
 
             // initialized aliases
-            public ResolvedReference(int index, MetadataImageKind kind, ImmutableArray<string> aliasesOpt, ImmutableArray<string> recursiveAliasesOpt)
+            public ResolvedReference(int index, MetadataImageKind kind, ImmutableArray<string> aliasesOpt, ImmutableArray<string> recursiveAliasesOpt, ImmutableArray<MetadataReference> mergedReferences)
                 : this(index, kind)
             {
                 // We have to have non-default aliases (empty are ok). We can have both recursive and non-recursive aliases if two references were merged.
                 Debug.Assert(!aliasesOpt.IsDefault || !recursiveAliasesOpt.IsDefault);
+                Debug.Assert(!mergedReferences.IsDefault);
 
                 _aliasesOpt = aliasesOpt;
                 _recursiveAliasesOpt = recursiveAliasesOpt;
+                _mergedReferencesOpt = mergedReferences;
             }
 
-            private bool IsUninitialized => _aliasesOpt.IsDefault && _recursiveAliasesOpt.IsDefault;
+            private bool IsUninitialized => (_aliasesOpt.IsDefault && _recursiveAliasesOpt.IsDefault) || _mergedReferencesOpt.IsDefault;
 
             /// <summary>
             /// Aliases that should be applied to the referenced assembly. 
@@ -109,6 +113,15 @@ namespace Microsoft.CodeAnalysis
                 {
                     Debug.Assert(!IsUninitialized);
                     return _recursiveAliasesOpt;
+                }
+            }
+
+            public ImmutableArray<MetadataReference> MergedReferences
+            {
+                get
+                {
+                    Debug.Assert(!IsUninitialized);
+                    return _mergedReferencesOpt;
                 }
             }
 
@@ -426,11 +439,17 @@ namespace Microsoft.CodeAnalysis
         private static ResolvedReference GetResolvedReferenceAndFreePropertyMapEntry(MetadataReference reference, int index, MetadataImageKind kind, Dictionary<MetadataReference, MergedAliases>? propertyMapOpt)
         {
             ImmutableArray<string> aliasesOpt, recursiveAliasesOpt;
+            var mergedReferences = ImmutableArray<MetadataReference>.Empty;
 
             if (propertyMapOpt != null && propertyMapOpt.TryGetValue(reference, out MergedAliases? mergedProperties))
             {
                 aliasesOpt = mergedProperties.AliasesOpt?.ToImmutableAndFree() ?? default(ImmutableArray<string>);
                 recursiveAliasesOpt = mergedProperties.RecursiveAliasesOpt?.ToImmutableAndFree() ?? default(ImmutableArray<string>);
+
+                if (mergedProperties.MergedReferencesOpt is object)
+                {
+                    mergedReferences = mergedProperties.MergedReferencesOpt.ToImmutableAndFree();
+                }
             }
             else if (reference.Properties.HasRecursiveAliases)
             {
@@ -443,7 +462,7 @@ namespace Microsoft.CodeAnalysis
                 recursiveAliasesOpt = default(ImmutableArray<string>);
             }
 
-            return new ResolvedReference(index, kind, aliasesOpt, recursiveAliasesOpt);
+            return new ResolvedReference(index, kind, aliasesOpt, recursiveAliasesOpt, mergedReferences);
         }
 
         /// <summary>
@@ -916,6 +935,11 @@ namespace Microsoft.CodeAnalysis
             {
                 AssemblyIdentity definition = definitions[i].Identity;
 
+                if (!AssemblyIdentityComparer.SimpleNameComparer.Equals(reference.Name, definition.Name))
+                {
+                    continue;
+                }
+
                 switch (assemblyIdentityComparer.Compare(reference, definition))
                 {
                     case AssemblyIdentityComparer.ComparisonResult.NotEquivalent:
@@ -947,7 +971,7 @@ namespace Microsoft.CodeAnalysis
                         continue;
 
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                 }
             }
 

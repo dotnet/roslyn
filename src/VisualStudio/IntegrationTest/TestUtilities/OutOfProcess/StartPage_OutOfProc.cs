@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
@@ -17,9 +15,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         {
             _inProc = CreateInProcComponent<StartPage_InProc>(visualStudioInstance);
         }
-
-        public bool IsEnabled()
-            => _inProc.IsEnabled();
 
         public void SetEnabled(bool enabled)
             => _inProc.SetEnabled(enabled);

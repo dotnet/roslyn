@@ -75,17 +75,16 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         }
 
         public ReferenceCountedDisposable<SQLiteConnectionPool>? TryOpenDatabase(
-            Solution? bulkLoadSnapshot,
             string databaseFilePath,
             IPersistentStorageFaultInjector? faultInjector,
-            Action<Solution?, SqlConnection, CancellationToken> initializer,
+            Action<SqlConnection, CancellationToken> initializer,
             CancellationToken cancellationToken)
         {
             lock (_gate)
             {
                 if (_connectionPools.TryGetValue(databaseFilePath, out var pool))
                 {
-                    return pool.TryAddReference() ?? throw ExceptionUtilities.Unreachable;
+                    return pool.TryAddReference() ?? throw ExceptionUtilities.Unreachable();
                 }
 
                 // try to get db ownership lock. if someone else already has the lock. it will throw
@@ -100,11 +99,11 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                     pool = new ReferenceCountedDisposable<SQLiteConnectionPool>(
                         new SQLiteConnectionPool(this, faultInjector, databaseFilePath, ownershipLock));
 
-                    pool.Target.Initialize(bulkLoadSnapshot, initializer, cancellationToken);
+                    pool.Target.Initialize(initializer, cancellationToken);
 
                     // Place the initial ownership reference in _connectionPools, and return another
                     _connectionPools.Add(databaseFilePath, pool);
-                    return pool.TryAddReference() ?? throw ExceptionUtilities.Unreachable;
+                    return pool.TryAddReference() ?? throw ExceptionUtilities.Unreachable();
                 }
                 catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))
                 {
@@ -148,6 +147,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         private static void EnsureDirectory(string databaseFilePath)
         {
             var directory = Path.GetDirectoryName(databaseFilePath);
+            Contract.ThrowIfNull(directory);
+
             if (Directory.Exists(directory))
             {
                 return;

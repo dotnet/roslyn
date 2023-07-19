@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Emit.NoPia;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 #if !DEBUG
 using SymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbol;
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             {
                 var typeSymbol = ModuleBeingBuilt.Compilation.GetSpecialType(SpecialType.System_String);
 
-                DiagnosticInfo info = typeSymbol.GetUseSiteDiagnostic();
+                UseSiteInfo<AssemblySymbol> info = typeSymbol.GetUseSiteInfo();
 
                 if (typeSymbol.IsErrorType())
                 {
@@ -66,9 +67,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 
                 if (TypeSymbol.Equals(Interlocked.CompareExchange(ref _lazySystemStringType, typeSymbol, ErrorTypeSymbol.UnknownResultType), ErrorTypeSymbol.UnknownResultType, TypeCompareKind.ConsiderEverything2))
                 {
-                    if (info != null)
+                    if (info.DiagnosticInfo != null)
                     {
-                        Symbol.ReportUseSiteDiagnostic(info,
+                        Symbol.ReportUseSiteDiagnostic(info.DiagnosticInfo,
                                                        diagnostics,
                                                        syntaxNodeOpt != null ? syntaxNodeOpt.Location : NoLocation.Singleton);
                     }
@@ -90,22 +91,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             if ((object)lazyMethod == (object)ErrorMethodSymbol.UnknownMethod)
             {
-                DiagnosticInfo info;
+                UseSiteInfo<AssemblySymbol> info;
                 var symbol = (MethodSymbol)Binder.GetWellKnownTypeMember(ModuleBeingBuilt.Compilation,
                                                                          member,
                                                                          out info,
                                                                          isOptional: false);
 
-                if (info != null && info.Severity == DiagnosticSeverity.Error)
+                if (info.DiagnosticInfo?.Severity == DiagnosticSeverity.Error)
                 {
                     symbol = null;
                 }
 
                 if (Interlocked.CompareExchange(ref lazyMethod, symbol, ErrorMethodSymbol.UnknownMethod) == ErrorMethodSymbol.UnknownMethod)
                 {
-                    if (info != null)
+                    if (info.DiagnosticInfo != null)
                     {
-                        Symbol.ReportUseSiteDiagnostic(info,
+                        Symbol.ReportUseSiteDiagnostic(info.DiagnosticInfo,
                                                        diagnostics,
                                                        syntaxNodeOpt != null ? syntaxNodeOpt.Location : NoLocation.Singleton);
                     }
@@ -205,10 +206,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             Debug.Assert(IsFrozen);
 
-            // We are emitting an assembly, A, which /references some assembly, B, and 
+            // We are emitting an assembly, A, which /references some assembly, B, and
             // /links some other assembly, C, so that it can use C's types (by embedding them)
             // without having an assemblyref to C itself.
-            // We can say that A has an indirect reference to each assembly that B references. 
+            // We can say that A has an indirect reference to each assembly that B references.
             // In this function, we are looking for the situation where B has an assemblyref to C,
             // thus giving A an indirect reference to C. If so, we will report a warning.
 
@@ -237,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             DiagnosticBag diagnostics,
             EmbeddedTypesManager optTypeManager = null)
         {
-            // We do not embed SpecialTypes (they must be defined in Core assembly), error types and 
+            // We do not embed SpecialTypes (they must be defined in Core assembly), error types and
             // types from assemblies that aren't linked.
             if (namedType.SpecialType != SpecialType.None || namedType.IsErrorType() || !namedType.ContainingAssembly.IsLinked)
             {
@@ -436,11 +437,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 
             var containerKind = field.AdaptedFieldSymbol.ContainingType.TypeKind;
 
-            // Structures may contain only public instance fields. 
+            // Structures may contain only public instance fields.
             if (containerKind == TypeKind.Interface || containerKind == TypeKind.Delegate ||
                 (containerKind == TypeKind.Struct && (field.AdaptedFieldSymbol.IsStatic || field.AdaptedFieldSymbol.DeclaredAccessibility != Accessibility.Public)))
             {
-                // ERRID.ERR_InvalidStructMemberNoPIA1/ERR_InteropStructContainsMethods 
+                // ERRID.ERR_InvalidStructMemberNoPIA1/ERR_InteropStructContainsMethods
                 ReportNotEmbeddableSymbol(ErrorCode.ERR_InteropStructContainsMethods, field.AdaptedFieldSymbol.ContainingType, syntaxNodeOpt, diagnostics, this);
             }
 
@@ -588,6 +589,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             Debug.Assert(member.AdaptedSymbol.IsDefinition);
             Debug.Assert(ModuleBeingBuilt.SourceModule.AnyReferencedAssembliesAreLinked);
+
+            if (member.AdaptedSymbol.OriginalDefinition is SynthesizedGlobalMethodSymbol)
+            {
+                // No need to embed an internal type from current assembly
+                return null;
+            }
 
             NamedTypeSymbol namedType = member.AdaptedSymbol.ContainingType;
 

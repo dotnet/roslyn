@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
     internal partial class CSharpIntroduceVariableService
     {
         private static bool IsAnyQueryClause(SyntaxNode node)
-            => node is QueryClauseSyntax || node is SelectOrGroupClauseSyntax;
+            => node is QueryClauseSyntax or SelectOrGroupClauseSyntax;
 
         protected override Task<Document> IntroduceQueryLocalAsync(
             SemanticDocument document, ExpressionSyntax expression, bool allOccurrences, CancellationToken cancellationToken)

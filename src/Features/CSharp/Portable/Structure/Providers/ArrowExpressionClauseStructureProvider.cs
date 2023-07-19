@@ -16,12 +16,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     internal class ArrowExpressionClauseStructureProvider : AbstractSyntaxNodeStructureProvider<ArrowExpressionClauseSyntax>
     {
         protected override void CollectBlockSpans(
+            SyntaxToken previousToken,
             ArrowExpressionClauseSyntax node,
             ref TemporaryArray<BlockSpan> spans,
-            BlockStructureOptionProvider optionProvider,
+            BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
-            var previousToken = node.ArrowToken.GetPreviousToken();
             spans.Add(new BlockSpan(
                 isCollapsible: true,
                 textSpan: TextSpan.FromBounds(previousToken.Span.End, node.Parent.Span.End),

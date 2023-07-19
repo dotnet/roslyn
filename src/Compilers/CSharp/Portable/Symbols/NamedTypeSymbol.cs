@@ -11,7 +11,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -23,6 +25,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal abstract partial class NamedTypeSymbol : TypeSymbol, INamedTypeSymbolInternal
     {
         private bool _hasNoBaseCycles;
+
+        private static readonly ImmutableSegmentedDictionary<string, Symbol> RequiredMembersErrorSentinel = ImmutableSegmentedDictionary<string, Symbol>.Empty.Add("<error sentinel>", null!);
+
+        /// <summary>
+        /// <see langword="default"/> if uninitialized. <see cref="RequiredMembersErrorSentinel"/> if there are errors. <see cref="ImmutableSegmentedDictionary{TKey, TValue}.Empty"/> if
+        /// there are no required members. Otherwise, the required members.
+        /// </summary>
+        private ImmutableSegmentedDictionary<string, Symbol> _lazyRequiredMembers = default;
 
         // Only the compiler can create NamedTypeSymbols.
         internal NamedTypeSymbol(TupleExtraData tupleData = null)
@@ -54,27 +64,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Returns the type arguments that have been substituted for the type parameters. 
-        /// If nothing has been substituted for a give type parameters,
+        /// If nothing has been substituted for a given type parameter,
         /// then the type parameter itself is consider the type argument.
         /// </summary>
         internal abstract ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics { get; }
 
-        internal ImmutableArray<TypeWithAnnotations> TypeArgumentsWithDefinitionUseSiteDiagnostics(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal ImmutableArray<TypeWithAnnotations> TypeArgumentsWithDefinitionUseSiteDiagnostics(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var result = TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
 
             foreach (var typeArgument in result)
             {
-                typeArgument.Type.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+                typeArgument.Type.OriginalDefinition.AddUseSiteInfo(ref useSiteInfo);
             }
 
             return result;
         }
 
-        internal TypeWithAnnotations TypeArgumentWithDefinitionUseSiteDiagnostics(int index, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal TypeWithAnnotations TypeArgumentWithDefinitionUseSiteDiagnostics(int index, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var result = TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[index];
-            result.Type.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+            result.Type.OriginalDefinition.AddUseSiteInfo(ref useSiteInfo);
             return result;
         }
 
@@ -157,6 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return GetGuidStringDefaultImplementation(out guidString);
         }
 
+#nullable enable
         /// <summary>
         /// For delegate types, gets the delegate's invoke method.  Returns null on
         /// all other kinds of types.  Note that it is possible to have an ill-formed
@@ -164,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Such a type will be classified as a delegate but its DelegateInvokeMethod
         /// would be null.
         /// </summary>
-        public MethodSymbol DelegateInvokeMethod
+        public MethodSymbol? DelegateInvokeMethod
         {
             get
             {
@@ -193,6 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return method;
             }
         }
+#nullable disable
 
         /// <summary>
         /// Get the operators for this type by their metadata name
@@ -205,12 +217,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ImmutableArray<MethodSymbol>.Empty;
             }
 
-            ArrayBuilder<MethodSymbol> operators = ArrayBuilder<MethodSymbol>.GetInstance();
-            foreach (MethodSymbol candidate in candidates.OfType<MethodSymbol>())
+            var operators = ArrayBuilder<MethodSymbol>.GetInstance(candidates.Length);
+            foreach (var candidate in candidates)
             {
-                if (candidate.MethodKind == MethodKind.UserDefinedOperator || candidate.MethodKind == MethodKind.Conversion)
+                if (candidate is MethodSymbol { MethodKind: MethodKind.UserDefinedOperator or MethodKind.Conversion } method)
                 {
-                    operators.Add(candidate);
+                    operators.Add(method);
                 }
             }
 
@@ -396,12 +408,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ManagedKind GetManagedKind(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal override ManagedKind GetManagedKind(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // CONSIDER: we could cache this, but it's only expensive for non-special struct types
             // that are pointed to.  For now, only cache on SourceMemberContainerSymbol since it fits
             // nicely into the flags variable.
-            return BaseTypeAnalysis.GetManagedKind(this, ref useSiteDiagnostics);
+            return BaseTypeAnalysis.GetManagedKind(this, ref useSiteInfo);
         }
 
         /// <summary>
@@ -466,6 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public abstract override string Name { get; }
 
+#nullable enable
         /// <summary>
         /// Return the name including the metadata arity suffix.
         /// </summary>
@@ -473,14 +486,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return MangleName ? MetadataHelpers.ComposeAritySuffixedMetadataName(Name, Arity) : Name;
+                var fileIdentifier = this.GetFileLocalTypeMetadataNamePrefix();
+                // If we have a file prefix, the type will definitely use CLS arity encoding for nonzero arity.
+                Debug.Assert(!(fileIdentifier != null && !MangleName && Arity > 0));
+                return fileIdentifier != null || MangleName
+                    ? MetadataHelpers.ComposeAritySuffixedMetadataName(Name, Arity, fileIdentifier)
+                    : Name;
             }
         }
+
+        internal abstract bool IsFileLocal { get; }
+
+        /// <summary>
+        /// If this type is a file-local type, returns an identifier for the file this type was declared in. Otherwise, returns null.
+        /// </summary>
+        internal abstract FileIdentifier? AssociatedFileIdentifier { get; }
+
+#nullable disable
 
         /// <summary>
         /// Should the name returned by Name property be mangled with [`arity] suffix in order to get metadata name.
         /// Must return False for a type with Arity == 0.
         /// </summary>
+        /// <remarks>
+        /// Some types with Arity > 0 still have MangleName == false. For example, EENamedTypeSymbol.
+        /// Note that other differences between source names and metadata names exist and are not controlled by this property,
+        /// such as the 'AssociatedFileIdentifier' prefix for file types.
+        /// </remarks>
         internal abstract bool MangleName
         {
             // Intentionally no default implementation to force consideration of appropriate implementation for each new subclass
@@ -491,6 +523,128 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Collection of names of members declared within this type. May return duplicates.
         /// </summary>
         public abstract IEnumerable<string> MemberNames { get; }
+
+        /// <summary>
+        /// True if this type declares any required members. It does not recursively check up the tree for _all_ required members.
+        /// </summary>
+        internal abstract bool HasDeclaredRequiredMembers { get; }
+
+#nullable enable
+        /// <summary>
+        /// Whether the type encountered an error while trying to build its complete list of required members.
+        /// </summary>
+        internal bool HasRequiredMembersError
+        {
+            get
+            {
+                EnsureRequiredMembersCalculated();
+                Debug.Assert(!_lazyRequiredMembers.IsDefault);
+                return _lazyRequiredMembers == RequiredMembersErrorSentinel;
+            }
+        }
+
+        /// <summary>
+        /// Returns true if there are any required members. Prefer calling this over checking <see cref="AllRequiredMembers"/> for empty, as
+        /// this will avoid calculating base type requirements if not necessary.
+        /// </summary>
+        internal bool HasAnyRequiredMembers => HasDeclaredRequiredMembers || !AllRequiredMembers.IsEmpty;
+
+        /// <summary>
+        /// The full list of all required members for this type, including from base classes. If <see cref="HasRequiredMembersError"/> is true,
+        /// this returns empty.
+        /// </summary>
+        /// <remarks>
+        /// Do not call this API if all you need are the required members declared on this type. Use <see cref="GetMembers()"/> instead, filtering for
+        /// required members, instead of calling this API. If you only need to determine whether this type or any base types have required members, call
+        /// <see cref="HasAnyRequiredMembers"/>, which will avoid calling this API if not required.
+        /// </remarks>
+        internal ImmutableSegmentedDictionary<string, Symbol> AllRequiredMembers
+        {
+            get
+            {
+                EnsureRequiredMembersCalculated();
+                Debug.Assert(!_lazyRequiredMembers.IsDefault);
+                if (_lazyRequiredMembers == RequiredMembersErrorSentinel)
+                {
+                    return ImmutableSegmentedDictionary<string, Symbol>.Empty;
+                }
+
+                return _lazyRequiredMembers;
+            }
+        }
+
+        private void EnsureRequiredMembersCalculated()
+        {
+            if (!_lazyRequiredMembers.IsDefault)
+            {
+                return;
+            }
+
+            bool success = tryCalculateRequiredMembers(out ImmutableSegmentedDictionary<string, Symbol>.Builder? builder);
+
+            var requiredMembers = success
+                ? builder?.ToImmutable() ?? BaseTypeNoUseSiteDiagnostics?.AllRequiredMembers ?? ImmutableSegmentedDictionary<string, Symbol>.Empty
+                : RequiredMembersErrorSentinel;
+
+            RoslynImmutableInterlocked.InterlockedInitialize(ref _lazyRequiredMembers, requiredMembers);
+
+            bool tryCalculateRequiredMembers(out ImmutableSegmentedDictionary<string, Symbol>.Builder? requiredMembersBuilder)
+            {
+                requiredMembersBuilder = null;
+                if (BaseTypeNoUseSiteDiagnostics?.HasRequiredMembersError == true)
+                {
+                    return false;
+                }
+
+                var baseAllRequiredMembers = BaseTypeNoUseSiteDiagnostics?.AllRequiredMembers ?? ImmutableSegmentedDictionary<string, Symbol>.Empty;
+                var hasDeclaredRequiredMembers = HasDeclaredRequiredMembers;
+
+                foreach (var member in GetMembersUnordered())
+                {
+                    if (member is PropertySymbol { ParameterCount: > 0 } prop)
+                    {
+                        if (prop.IsRequired)
+                        {
+                            // Bad metadata. Indexed properties cannot be required.
+                            return false;
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                    }
+
+                    if (baseAllRequiredMembers.TryGetValue(member.Name, out var existingMember))
+                    {
+                        // This is only permitted if the member is an override of a required member from a base type, and is required itself.
+                        if (!member.IsRequired()
+                            || member.GetOverriddenMember() is not { } overriddenMember
+                            || !overriddenMember.Equals(existingMember, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.AllNullableIgnoreOptions))
+                        {
+                            return false;
+                        }
+                    }
+
+                    if (!member.IsRequired())
+                    {
+                        continue;
+                    }
+
+                    if (!hasDeclaredRequiredMembers)
+                    {
+                        // Bad metadata. Type claimed it didn't declare any required members, but we found one.
+                        return false;
+                    }
+
+                    requiredMembersBuilder ??= baseAllRequiredMembers.ToBuilder();
+
+                    requiredMembersBuilder[member.Name] = member;
+                }
+
+                return true;
+            }
+        }
+#nullable disable
 
         /// <summary>
         /// Get all the members of this symbol.
@@ -526,20 +680,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract override ImmutableArray<NamedTypeSymbol> GetTypeMembers();
 
         /// <summary>
-        /// Get all the members of this symbol that are types that have a particular name, of any arity.
-        /// </summary>
-        /// <returns>An ImmutableArray containing all the types that are members of this symbol with the given name.
-        /// If this symbol has no type members with this name,
-        /// returns an empty ImmutableArray. Never returns null.</returns>
-        public abstract override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name);
-
-        /// <summary>
         /// Get all the members of this symbol that are types that have a particular name and arity
         /// </summary>
         /// <returns>An ImmutableArray containing all the types that are members of this symbol with the given name and arity.
         /// If this symbol has no type members with this name and arity,
         /// returns an empty ImmutableArray. Never returns null.</returns>
-        public abstract override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity);
+        public abstract override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity);
 
         /// <summary>
         /// Get all instance field and event members.
@@ -1009,6 +1155,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool HasCodeAnalysisEmbeddedAttribute { get; }
 
+        /// <summary>
+        /// Gets a value indicating whether this type has System.Runtime.CompilerServices.InterpolatedStringHandlerAttribute or not.
+        /// </summary>
+        internal abstract bool IsInterpolatedStringHandlerType { get; }
+
         internal static readonly Func<TypeWithAnnotations, bool> TypeWithAnnotationsIsNullFunction = type => !type.HasType;
 
         internal static readonly Func<TypeWithAnnotations, bool> TypeWithAnnotationsIsErrorType = type => type.HasType && type.Type.IsErrorType();
@@ -1112,36 +1263,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // Given C<int>.D<string, double>, yields { int, string, double }
-        internal void GetAllTypeArguments(ArrayBuilder<TypeSymbol> builder, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal void GetAllTypeArguments(ref TemporaryArray<TypeSymbol> builder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var outer = ContainingType;
             if (!ReferenceEquals(outer, null))
             {
-                outer.GetAllTypeArguments(builder, ref useSiteDiagnostics);
+                outer.GetAllTypeArguments(ref builder, ref useSiteInfo);
             }
 
-            foreach (var argument in TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
+            foreach (var argument in TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
             {
                 builder.Add(argument.Type);
             }
         }
 
-        internal ImmutableArray<TypeWithAnnotations> GetAllTypeArguments(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal ImmutableArray<TypeWithAnnotations> GetAllTypeArguments(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             ArrayBuilder<TypeWithAnnotations> builder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-            GetAllTypeArguments(builder, ref useSiteDiagnostics);
+            GetAllTypeArguments(builder, ref useSiteInfo);
             return builder.ToImmutableAndFree();
         }
 
-        internal void GetAllTypeArguments(ArrayBuilder<TypeWithAnnotations> builder, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal void GetAllTypeArguments(ArrayBuilder<TypeWithAnnotations> builder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var outer = ContainingType;
             if (!ReferenceEquals(outer, null))
             {
-                outer.GetAllTypeArguments(builder, ref useSiteDiagnostics);
+                outer.GetAllTypeArguments(builder, ref useSiteInfo);
             }
 
-            builder.AddRange(TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics));
+            builder.AddRange(TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteInfo));
         }
 
         internal void GetAllTypeArgumentsNoUseSiteDiagnostics(ArrayBuilder<TypeWithAnnotations> builder)
@@ -1208,26 +1359,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Use-Site Diagnostics
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
+            UseSiteInfo<AssemblySymbol> result = new UseSiteInfo<AssemblySymbol>(PrimaryDependency);
+
             if (this.IsDefinition)
             {
-                return base.GetUseSiteDiagnostic();
+                return result;
             }
 
-            DiagnosticInfo result = null;
-
             // Check definition, type arguments 
-            if (DeriveUseSiteDiagnosticFromType(ref result, this.OriginalDefinition) ||
-                DeriveUseSiteDiagnosticFromTypeArguments(ref result))
+            if (!DeriveUseSiteInfoFromType(ref result, this.OriginalDefinition))
             {
-                return result;
+                DeriveUseSiteDiagnosticFromTypeArguments(ref result);
             }
 
             return result;
         }
 
-        private bool DeriveUseSiteDiagnosticFromTypeArguments(ref DiagnosticInfo result)
+        private bool DeriveUseSiteDiagnosticFromTypeArguments(ref UseSiteInfo<AssemblySymbol> result)
         {
             NamedTypeSymbol currentType = this;
 
@@ -1235,7 +1385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (TypeWithAnnotations arg in currentType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
                 {
-                    if (DeriveUseSiteDiagnosticFromType(ref result, arg, AllowedRequiredModifierType.None))
+                    if (DeriveUseSiteInfoFromType(ref result, arg, AllowedRequiredModifierType.None))
                     {
                         return true;
                     }
@@ -1280,7 +1430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (@base.IsErrorType() && @base is NoPiaIllegalGenericInstantiationSymbol)
                 {
-                    return @base.GetUseSiteDiagnostic();
+                    return @base.GetUseSiteInfo().DiagnosticInfo;
                 }
 
                 @base = @base.BaseTypeNoUseSiteDiagnostics;
@@ -1526,6 +1676,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns an instance of a symbol that represents a native integer
         /// if this underlying symbol represents System.IntPtr or System.UIntPtr.
+        /// For platforms that support numeric IntPtr/UIntPtr, those types are returned as-is.
         /// For other symbols, throws <see cref="System.InvalidOperationException"/>.
         /// </summary>
         internal abstract NamedTypeSymbol AsNativeInteger();

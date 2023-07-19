@@ -6,7 +6,9 @@ using System.Collections;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer
@@ -33,45 +35,69 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
+        private static readonly DiagnosticDescriptor s_descriptor = CreateDescriptorWithId(
+            IDEDiagnosticIds.UseCollectionInitializerDiagnosticId,
+            EnforceOnBuildValues.UseCollectionInitializer,
+            new LocalizableResourceString(nameof(AnalyzersResources.Simplify_collection_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+            new LocalizableResourceString(nameof(AnalyzersResources.Collection_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+            isUnnecessary: false);
+
+        private static readonly DiagnosticDescriptor s_unnecessaryCodeDescriptor = CreateDescriptorWithId(
+            IDEDiagnosticIds.UseCollectionInitializerDiagnosticId,
+            EnforceOnBuildValues.UseCollectionInitializer,
+            new LocalizableResourceString(nameof(AnalyzersResources.Simplify_collection_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+            new LocalizableResourceString(nameof(AnalyzersResources.Collection_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+            isUnnecessary: true);
+
         protected AbstractUseCollectionInitializerDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.UseCollectionInitializerDiagnosticId,
-                   EnforceOnBuildValues.UseCollectionInitializer,
-                   CodeStyleOptions2.PreferCollectionInitializer,
-                   new LocalizableResourceString(nameof(AnalyzersResources.Simplify_collection_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-                   new LocalizableResourceString(nameof(AnalyzersResources.Collection_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
+            : base(ImmutableDictionary<DiagnosticDescriptor, IOption2>.Empty
+                    .Add(s_descriptor, CodeStyleOptions2.PreferCollectionInitializer)
+                    .Add(s_unnecessaryCodeDescriptor, CodeStyleOptions2.PreferCollectionInitializer))
         {
         }
+
+        protected abstract ISyntaxFacts GetSyntaxFacts();
+        protected abstract bool AreCollectionInitializersSupported(Compilation compilation);
 
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterCompilationStartAction(OnCompilationStart);
 
         private void OnCompilationStart(CompilationStartAnalysisContext context)
         {
+            if (!AreCollectionInitializersSupported(context.Compilation))
+                return;
+
             var ienumerableType = context.Compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName!);
             if (ienumerableType != null)
             {
                 var syntaxKinds = GetSyntaxFacts().SyntaxKinds;
-                context.RegisterSyntaxNodeAction(
-                    nodeContext => AnalyzeNode(nodeContext, ienumerableType),
-                    syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ObjectCreationExpression));
+
+                using var matchKinds = TemporaryArray<TSyntaxKind>.Empty;
+                matchKinds.Add(syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ObjectCreationExpression));
+                if (syntaxKinds.ImplicitObjectCreationExpression != null)
+                    matchKinds.Add(syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ImplicitObjectCreationExpression.Value));
+                var matchKindsArray = matchKinds.ToImmutableAndClear();
+
+                // We wrap the SyntaxNodeAction within a CodeBlockStartAction, which allows us to
+                // get callbacks for object creation expression nodes, but analyze nodes across the entire code block
+                // and eventually report fading diagnostics with location outside this node.
+                // Without the containing CodeBlockStartAction, our reported diagnostic would be classified
+                // as a non-local diagnostic and would not participate in lightbulb for computing code fixes.
+                context.RegisterCodeBlockStartAction<TSyntaxKind>(blockStartContext =>
+                    blockStartContext.RegisterSyntaxNodeAction(
+                        nodeContext => AnalyzeNode(nodeContext, ienumerableType),
+                        matchKindsArray));
             }
         }
 
-        protected abstract bool AreCollectionInitializersSupported(SyntaxNodeAnalysisContext context);
-
         private void AnalyzeNode(SyntaxNodeAnalysisContext context, INamedTypeSymbol ienumerableType)
         {
-            if (!AreCollectionInitializersSupported(context))
-            {
-                return;
-            }
-
             var semanticModel = context.SemanticModel;
             var objectCreationExpression = (TObjectCreationExpressionSyntax)context.Node;
             var language = objectCreationExpression.Language;
             var cancellationToken = context.CancellationToken;
 
-            var option = context.GetOption(CodeStyleOptions2.PreferCollectionInitializer, language);
+            var option = context.GetAnalyzerOptions().PreferCollectionInitializer;
             if (!option.Value)
             {
                 // not point in analyzing if the option is off.
@@ -82,38 +108,29 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             // implements the IEnumerable type.
             var objectType = context.SemanticModel.GetTypeInfo(objectCreationExpression, cancellationToken);
             if (objectType.Type == null || !objectType.Type.AllInterfaces.Contains(ienumerableType))
-            {
                 return;
-            }
 
-            var matches = ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
+            var matches = UseCollectionInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
                 semanticModel, GetSyntaxFacts(), objectCreationExpression, cancellationToken);
 
             if (matches == null || matches.Value.Length == 0)
-            {
                 return;
-            }
 
             var containingStatement = objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
             if (containingStatement == null)
-            {
                 return;
-            }
 
             var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(matches.Value);
             var syntaxFacts = GetSyntaxFacts();
             if (syntaxFacts.ContainsInterleavedDirective(nodes, cancellationToken))
-            {
                 return;
-            }
 
             var locations = ImmutableArray.Create(objectCreationExpression.GetLocation());
 
-            var severity = option.Notification.Severity;
             context.ReportDiagnostic(DiagnosticHelper.Create(
-                Descriptor,
-                objectCreationExpression.GetLocation(),
-                severity,
+                s_descriptor,
+                objectCreationExpression.GetFirstToken().GetLocation(),
+                option.Notification.Severity,
                 additionalLocations: locations,
                 properties: null));
 
@@ -126,14 +143,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             ImmutableArray<Location> locations)
         {
             var syntaxTree = context.Node.SyntaxTree;
-
-            var fadeOutCode = context.GetOption(
-                CodeStyleOptions2.PreferCollectionInitializer_FadeOutCode, context.Node.Language);
-            if (!fadeOutCode)
-            {
-                return;
-            }
-
             var syntaxFacts = GetSyntaxFacts();
 
             foreach (var match in matches)
@@ -152,7 +161,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                     var location1 = additionalUnnecessaryLocations[0];
 
                     context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-                        Descriptor,
+                        s_unnecessaryCodeDescriptor,
                         location1,
                         ReportDiagnostic.Default,
                         additionalLocations: locations,
@@ -160,7 +169,5 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 }
             }
         }
-
-        protected abstract ISyntaxFacts GetSyntaxFacts();
     }
 }

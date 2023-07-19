@@ -4,10 +4,10 @@
 
 #nullable disable
 
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -24,7 +24,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         private MultiDictionary<string, ParameterSymbol> _lazyParameterMap;
         private readonly MethodSymbol _methodSymbol;
         private SmallDictionary<string, Symbol> _lazyDefinitionMap;
-        private TypeWithAnnotations.Boxed _iteratorElementType;
+
+#if DEBUG
+        /// <summary>
+        /// This map is used by <see cref="MethodCompiler.BindMethodBody(MethodSymbol, TypeCompilationState, BindingDiagnosticBag, bool, BoundNode?, bool, out ImportChain?, out bool, out bool, out MethodBodySemanticModel.InitialState)"/>
+        /// and <see cref="Binder.BindIdentifier"/> to validate some assumptions around identifiers.
+        /// 
+        /// Values in the dictionary are bit flags.
+        /// MethodCompiler.BindMethodBody adds keys with flag == 1 before binding a method body.
+        /// Binder.BindIdentifier adds or updates keys with flag == 2.
+        /// </summary>
+        public ConcurrentDictionary<IdentifierNameSyntax, int> IdentifierMap;
+#endif
 
         public InMethodBinder(MethodSymbol owner, Binder enclosing)
             : base(enclosing, enclosing.Flags & ~BinderFlags.AllClearedAtExecutableCodeBoundary)
@@ -54,8 +65,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return null;
         }
-
-        internal override uint LocalScopeDepth => Binder.TopLevelScope;
 
         protected override bool InExecutableBinder => true;
 
@@ -109,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override void ValidateYield(YieldStatementSyntax node, DiagnosticBag diagnostics)
+        protected override void ValidateYield(YieldStatementSyntax node, BindingDiagnosticBag diagnostics)
         {
         }
 
@@ -130,22 +139,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return !elementType.IsDefault ? elementType : TypeWithAnnotations.Create(CreateErrorType());
             }
 
-            if (_iteratorElementType is null)
-            {
-                TypeWithAnnotations elementType = GetIteratorElementTypeFromReturnType(Compilation, refKind, returnType, errorLocation: null, diagnostics: null);
-                if (elementType.IsDefault)
-                {
-                    elementType = TypeWithAnnotations.Create(CreateErrorType());
-                }
-
-                Interlocked.CompareExchange(ref _iteratorElementType, new TypeWithAnnotations.Boxed(elementType), null);
-            }
-
-            return _iteratorElementType.Value;
+            return _methodSymbol.IteratorElementTypeWithAnnotations;
         }
 
         internal static TypeWithAnnotations GetIteratorElementTypeFromReturnType(CSharpCompilation compilation,
-            RefKind refKind, TypeSymbol returnType, Location errorLocation, DiagnosticBag diagnostics)
+            RefKind refKind, TypeSymbol returnType, Location errorLocation, BindingDiagnosticBag diagnostics)
         {
             if (refKind == RefKind.None && returnType.Kind == SymbolKind.NamedType)
             {
@@ -157,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var objectType = compilation.GetSpecialType(SpecialType.System_Object);
                         if (diagnostics != null)
                         {
-                            ReportUseSiteDiagnostics(objectType, diagnostics, errorLocation);
+                            ReportUseSite(objectType, diagnostics, errorLocation);
                         }
                         return TypeWithAnnotations.Create(objectType);
 
@@ -193,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal override void LookupSymbolsInSingleBinder(
-            LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(result.IsClear);
 
@@ -209,6 +207,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterMap = new MultiDictionary<string, ParameterSymbol>(parameters.Length, EqualityComparer<string>.Default);
                 foreach (var parameter in parameters)
                 {
+                    if ((this.Flags & BinderFlags.InEEMethodBinder) != 0 && parameter.Type.IsDisplayClassType())
+                    {
+                        // Display class parameters shouldn't be accessible in EE
+                        continue;
+                    }
+
                     parameterMap.Add(parameter.Name, parameter);
                 }
 
@@ -217,11 +221,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var parameterSymbol in parameterMap[name])
             {
-                result.MergeEqual(originalBinder.CheckViability(parameterSymbol, arity, options, null, diagnose, ref useSiteDiagnostics));
+                result.MergeEqual(originalBinder.CheckViability(parameterSymbol, arity, options, null, diagnose, ref useSiteInfo));
             }
         }
 
-        protected override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
+        internal override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
         {
             if (options.CanConsiderMembers())
             {
@@ -235,12 +239,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool ReportConflictWithParameter(Symbol parameter, Symbol newSymbol, string name, Location newLocation, DiagnosticBag diagnostics)
+        private static bool ReportConflictWithParameter(Symbol parameter, Symbol newSymbol, string name, Location newLocation, BindingDiagnosticBag diagnostics)
         {
 #if DEBUG
             var locations = parameter.Locations;
             Debug.Assert(!locations.IsEmpty || parameter.IsImplicitlyDeclared);
-            var oldLocation = locations.FirstOrNone();
+            var oldLocation = parameter.GetFirstLocationOrNone();
             Debug.Assert(oldLocation != newLocation || oldLocation == Location.None || newLocation.SourceTree?.GetRoot().ContainsDiagnostics == true,
                 "same nonempty location refers to different symbols?");
 #endif 
@@ -315,8 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-
-        internal override bool EnsureSingleDefinition(Symbol symbol, string name, Location location, DiagnosticBag diagnostics)
+        internal override bool EnsureSingleDefinition(Symbol symbol, string name, Location location, BindingDiagnosticBag diagnostics)
         {
             var parameters = _methodSymbol.Parameters;
             var typeParameters = _methodSymbol.TypeParameters;

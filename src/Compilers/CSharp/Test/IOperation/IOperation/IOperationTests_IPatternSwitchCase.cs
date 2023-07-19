@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests_Patterns : SemanticModelTestBase
+    public class IOperationTests_IPatternSwitchCase : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
@@ -420,9 +420,9 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
         ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True, IsInvalid) (Syntax: 'true')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0150: A constant value is expected
+                // (9,28): error CS9133: A constant value of type 'bool' is expected
                 //             case /*<bind>*/x is true/*</bind>*/:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "x is true").WithLocation(9, 28)
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "x is true").WithArguments("bool").WithLocation(9, 28)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -482,9 +482,9 @@ IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.Case
           TypeOperand: X
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0150: A constant value is expected
+                // (9,28): error CS9133: A constant value of type 'Type' is expected
                 //             /*<bind>*/case typeof(X):/*</bind>*/
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "typeof(X)").WithLocation(9, 28)
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "typeof(X)").WithArguments("System.Type").WithLocation(9, 28)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<CaseSwitchLabelSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -620,7 +620,7 @@ class X
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "const").WithArguments("const").WithLocation(9, 39),
                 // CS1003: Syntax error, ':' expected
                 //             /*<bind>*/case /*</bind>*/const int y:
-                Diagnostic(ErrorCode.ERR_SyntaxError, "const").WithArguments(":", "const").WithLocation(9, 39),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "const").WithArguments(":").WithLocation(9, 39),
                 // CS0145: A const field requires a value to be provided
                 //             /*<bind>*/case /*</bind>*/const int y:
                 Diagnostic(ErrorCode.ERR_ConstValueRequired, "y").WithLocation(9, 49),

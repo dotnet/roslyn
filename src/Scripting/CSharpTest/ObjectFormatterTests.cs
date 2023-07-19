@@ -5,8 +5,10 @@
 #nullable disable
 
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -354,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
                 };
 
                 var actual = s_formatter.FormatObject(obj, printOptions);
-                var expected = output.Substring(0, i) + "...";
+                var expected = output[..i] + "...";
                 Assert.Equal(expected, actual);
             }
         }
@@ -437,23 +439,59 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         }
 
         [Fact]
-        public void DebuggerProxy_FrameworkTypes_IEnumerable()
+        public void DebuggerProxy_FrameworkTypes_IEnumerable_Core()
         {
             string str;
             object obj;
 
-            obj = Enumerable.Range(0, 10);
+            obj = Range_Core(0, 10);
             str = s_formatter.FormatObject(obj, SingleLineOptions);
 
-            // the implementation differs between .NET Core and .NET FX
-            if (str.StartsWith("Enumerable"))
-            {
-                Assert.Equal("Enumerable.RangeIterator(Count = 10)", str);
-            }
-            else
-            {
-                Assert.Equal("RangeIterator { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }", str);
-            }
+            Assert.Equal("ObjectFormatterTests.CoreRangeIterator(Count = 10)", str);
+        }
+
+        // This method and the class below emulate the behaviour of Enumerable.Range
+        // in .NET Core. We use a custom type since not all runtime implementations
+        // (e.g. Mono) apply precisely the same attributes, but we want to test behavior
+        // under a specific set of attributes.
+        private static IEnumerable<int> Range_Core(int start, int count)
+            => new CoreRangeIterator(start, count);
+
+        [DebuggerDisplay("Count = {CountForDebugger}")]
+        private class CoreRangeIterator : IEnumerable<int>
+        {
+            private readonly int _start;
+            private readonly int _end;
+
+            private int CountForDebugger => _end - _start;
+
+            public CoreRangeIterator(int start, int count)
+                => (_start, _end) = (start, start + count);
+
+            public IEnumerator<int> GetEnumerator() => null;
+            IEnumerator IEnumerable.GetEnumerator() => null;
+        }
+
+        [Fact]
+        public void DebuggerProxy_FrameworkTypes_IEnumerable_Framework()
+        {
+            string str;
+            object obj;
+
+            obj = Range_Framework(0, 10);
+            str = s_formatter.FormatObject(obj, SingleLineOptions);
+
+            Assert.Equal("RangeIterator { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }", str);
+        }
+
+        // These methods emulate the .NET Framework Enumerable.Range method
+        private static IEnumerable<int> Range_Framework(int start, int count)
+            => RangeIterator(start, count);
+
+        private static IEnumerable<int> RangeIterator(int start, int count)
+        {
+            for (var i = 0; i < count; i++)
+                yield return start + i;
         }
 
         [Fact]
@@ -742,8 +780,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         {
         }
 
-        [Fact]
-        [WorkItem(10838, "https://github.com/mono/mono/issues/10838")]
+        [Fact, WorkItem("https://github.com/mono/mono/issues/10838")]
         public void DebuggerProxy_FrameworkTypes_Task()
         {
             var obj = new MockDesktopTask(TaskMethod);
@@ -836,8 +873,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             );
         }
 
-        [WorkItem(8542, "https://github.com/dotnet/roslyn/issues/8452")]
-        [Fact]
+        [Fact, WorkItem(8542, "https://github.com/dotnet/roslyn/issues/8452")]
         public void FormatConstructorSignature()
         {
             var constructor = typeof(object).GetTypeInfo().DeclaredConstructors.Single();
@@ -884,8 +920,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
-        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
-        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_NonGeneric()
         {
             try
@@ -907,8 +943,8 @@ $@"{new Exception().Message}
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
-        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
-        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_GenericMethod()
         {
             try
@@ -931,8 +967,8 @@ $@"{new Exception().Message}
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
-        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
-        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_GenericType()
         {
             try
@@ -955,8 +991,8 @@ $@"{new Exception().Message}
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
-        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
-        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_GenericMethodInGenericType()
         {
             try
@@ -987,8 +1023,8 @@ $@"{new Exception().Message}
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9221"), WorkItem(9221, "https://github.com/dotnet/roslyn/issues/9221")]
-        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9221"), WorkItem("https://github.com/dotnet/roslyn/issues/9221")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_Dynamic()
         {
             try
@@ -1027,8 +1063,8 @@ $@"'object' does not contain a definition for 'x'
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
-        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
-        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_RefOutParameters()
         {
             try
@@ -1052,8 +1088,8 @@ $@"{new Exception().Message}
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
-        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
-        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_GenericRefParameter()
         {
             try

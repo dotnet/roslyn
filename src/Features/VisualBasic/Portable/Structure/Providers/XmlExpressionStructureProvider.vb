@@ -11,9 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class XmlExpressionStructureProvider
         Inherits AbstractSyntaxNodeStructureProvider(Of XmlNodeSyntax)
 
-        Protected Overrides Sub CollectBlockSpans(xmlExpression As XmlNodeSyntax,
+        Protected Overrides Sub CollectBlockSpans(previousToken As SyntaxToken,
+                                                  xmlExpression As XmlNodeSyntax,
                                                   ByRef spans As TemporaryArray(Of BlockSpan),
-                                                  optionProvider As BlockStructureOptionProvider,
+                                                  options As BlockStructureOptions,
                                                   cancellationToken As CancellationToken)
             ' If this XML expression is inside structured trivia (i.e. an XML doc comment), don't outline.
             If xmlExpression.HasAncestor(Of DocumentationCommentTriviaSyntax)() Then

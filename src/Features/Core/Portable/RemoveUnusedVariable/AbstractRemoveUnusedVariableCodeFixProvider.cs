@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -30,20 +30,34 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
 
         protected abstract SyntaxNode GetNodeToRemoveOrReplace(SyntaxNode node);
 
-        protected abstract void RemoveOrReplaceNode(SyntaxEditor editor, SyntaxNode node, ISyntaxFactsService syntaxFacts);
+        protected abstract void RemoveOrReplaceNode(SyntaxEditor editor, SyntaxNode node, IBlockFactsService blockFacts);
 
         protected abstract SeparatedSyntaxList<SyntaxNode> GetVariables(TLocalDeclarationStatement localDeclarationStatement);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeQuality;
+        protected abstract bool ShouldOfferFixForLocalDeclaration(IBlockFactsService blockFacts, SyntaxNode node);
 
-        public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics.First();
-            context.RegisterCodeFix(new MyCodeAction(c => FixAsync(context.Document, diagnostic, c)), diagnostic);
-            return Task.CompletedTask;
+
+            var document = context.Document;
+            var root = await document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            var node = root.FindNode(diagnostic.Location.SourceSpan);
+
+            var blockFacts = document.GetRequiredLanguageService<IBlockFactsService>();
+
+            if (ShouldOfferFixForLocalDeclaration(blockFacts, node))
+            {
+                context.RegisterCodeFix(
+                    CodeAction.Create(
+                        FeaturesResources.Remove_unused_variable,
+                        GetDocumentUpdater(context),
+                        nameof(FeaturesResources.Remove_unused_variable)),
+                    diagnostic);
+            }
         }
 
-        protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor syntaxEditor, CancellationToken cancellationToken)
+        protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor syntaxEditor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var nodesToRemove = new HashSet<SyntaxNode>();
 
@@ -95,28 +109,26 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
             }
 
             MergeNodesToRemove(nodesToRemove);
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var blockFacts = document.GetLanguageService<IBlockFactsService>();
             foreach (var node in nodesToRemove)
-            {
-                actionsToPerform.Add((node.SpanStart, () => RemoveOrReplaceNode(syntaxEditor, node, syntaxFacts)));
-            }
+                actionsToPerform.Add((node.SpanStart, () => RemoveOrReplaceNode(syntaxEditor, node, blockFacts)));
 
             // Process nodes in reverse order 
             // to complete with nested declarations before processing the outer ones.
             foreach (var node in actionsToPerform.OrderByDescending(n => n.Item1))
-            {
                 node.Item2();
-            }
         }
 
-        protected static void RemoveNode(SyntaxEditor editor, SyntaxNode node, ISyntaxFactsService syntaxFacts)
+        protected static void RemoveNode(SyntaxEditor editor, SyntaxNode node, IBlockFactsService blockFacts)
         {
             var localDeclaration = node.GetAncestorOrThis<TLocalDeclarationStatement>();
-            var removeOptions = CreateSyntaxRemoveOptions(localDeclaration, syntaxFacts);
+            var removeOptions = CreateSyntaxRemoveOptions(localDeclaration, blockFacts);
             editor.RemoveNode(node, removeOptions);
         }
 
-        private static SyntaxRemoveOptions CreateSyntaxRemoveOptions(TLocalDeclarationStatement localDeclaration, ISyntaxFactsService syntaxFacts)
+        private static SyntaxRemoveOptions CreateSyntaxRemoveOptions(
+            TLocalDeclarationStatement localDeclaration,
+            IBlockFactsService blockFacts)
         {
             var removeOptions = SyntaxGenerator.DefaultRemoveOptions;
 
@@ -129,9 +141,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
                 else
                 {
                     var statementParent = localDeclaration.Parent;
-                    if (syntaxFacts.IsExecutableBlock(statementParent))
+                    if (blockFacts.IsExecutableBlock(statementParent))
                     {
-                        var siblings = syntaxFacts.GetExecutableBlockStatements(statementParent);
+                        var siblings = blockFacts.GetExecutableBlockStatements(statementParent);
                         var localDeclarationIndex = siblings.IndexOf(localDeclaration);
                         if (localDeclarationIndex != 0)
                         {
@@ -187,14 +199,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
                         nodesToRemove.Remove(variable);
                     }
                 }
-            }
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Remove_unused_variable, createChangedDocument, FeaturesResources.Remove_unused_variable)
-            {
             }
         }
     }

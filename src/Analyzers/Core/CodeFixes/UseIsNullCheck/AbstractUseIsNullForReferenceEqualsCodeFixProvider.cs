@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -13,7 +11,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -26,10 +24,8 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseIsNullCheckDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
+        protected abstract string GetTitle(bool negated, ParseOptions options);
 
-        protected abstract string GetIsNullTitle();
-        protected abstract string GetIsNotNullTitle();
         protected abstract SyntaxNode CreateNullCheck(TExpressionSyntax argument, bool isUnconstrainedGeneric);
         protected abstract SyntaxNode CreateNotNullCheck(TExpressionSyntax argument);
 
@@ -42,10 +38,9 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
             if (IsSupportedDiagnostic(diagnostic))
             {
                 var negated = diagnostic.Properties.ContainsKey(UseIsNullConstants.Negated);
-                var title = negated ? GetIsNotNullTitle() : GetIsNullTitle();
-
+                var title = GetTitle(negated, diagnostic.Location.SourceTree!.Options);
                 context.RegisterCodeFix(
-                    new MyCodeAction(title, c => FixAsync(context.Document, diagnostic, c)),
+                    CodeAction.Create(title, GetDocumentUpdater(context), title),
                     context.Diagnostics);
             }
 
@@ -54,9 +49,9 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             // Order in reverse so we process inner diagnostics before outer diagnostics.
             // Otherwise, we won't be able to find the nodes we want to replace if they're
@@ -64,9 +59,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
             foreach (var diagnostic in diagnostics.OrderByDescending(d => d.Location.SourceSpan.Start))
             {
                 if (!IsSupportedDiagnostic(diagnostic))
-                {
                     continue;
-                }
 
                 var invocation = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken: cancellationToken);
                 var negate = diagnostic.Properties.ContainsKey(UseIsNullConstants.Negated);
@@ -77,7 +70,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                     ? (TExpressionSyntax)syntaxFacts.GetExpressionOfArgument(arguments[1])
                     : (TExpressionSyntax)syntaxFacts.GetExpressionOfArgument(arguments[0]);
 
-                var toReplace = negate ? invocation.Parent : invocation;
+                var toReplace = negate ? invocation.GetRequiredParent() : invocation;
                 var replacement = negate
                     ? CreateNotNullCheck(argument)
                     : CreateNullCheck(argument, isUnconstrainedGeneric);
@@ -88,14 +81,6 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
             }
 
             return Task.CompletedTask;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
-            }
         }
     }
 }

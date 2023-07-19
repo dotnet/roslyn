@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
                 return null;
             }
 
-            if (!(curDocument is IVsWindowFrame frame))
+            if (curDocument is not IVsWindowFrame frame)
             {
                 // TODO: Report error
                 return null;

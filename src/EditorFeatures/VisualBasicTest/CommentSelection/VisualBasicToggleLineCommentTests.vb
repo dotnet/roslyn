@@ -2,7 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
+Imports Microsoft.CodeAnalysis.CommentSelection
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities.CommentSelection
 Imports Microsoft.VisualStudio.Commanding
@@ -10,10 +10,11 @@ Imports Microsoft.VisualStudio.Composition
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CommentSelection
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.ToggleLineComment)>
     Public Class VisualBasicToggleLineCommentTests
         Inherits AbstractToggleCommentTestBase
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ToggleLineComment)>
+        <WpfFact>
         Public Sub AddComment()
             Dim markup =
 <code>
@@ -27,7 +28,7 @@ End Class
             Dim expected =
 <code>
 Class A
-[|    'Function M()
+    [|'Function M()
     '    Dim a = 1
 
     'End Function|]
@@ -37,7 +38,7 @@ End Class
             ToggleAndReplaceLineEndings(markup, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ToggleLineComment)>
+        <WpfFact>
         Public Sub RemoveComment()
             Dim markup =
 <code>
@@ -51,7 +52,7 @@ End Class
             Dim expected =
 <code>
 Class A
-[|    Function M()
+    [|Function M()
         Dim a = 1
 
     End Function|]
@@ -61,7 +62,7 @@ End Class
             ToggleAndReplaceLineEndings(markup, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ToggleLineComment)>
+        <WpfFact>
         Public Sub ToggleComment_Multiple()
             Dim markup =
 <code>
@@ -76,7 +77,7 @@ End Class
             {
 <code>
 Class A
-[|    'Function M()
+    [|'Function M()
     '    Dim a = 1
 
     'End Function|]
@@ -84,7 +85,7 @@ End Class
 </code>.Value,
 <code>
 Class A
-[|    Function M()
+    [|Function M()
         Dim a = 1
 
     End Function|]

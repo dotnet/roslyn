@@ -611,7 +611,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the token that precedes this token in the syntax tree.
         /// </summary>
-        /// <returns>The next token that follows this token in the syntax tree.</returns>
+        /// <returns>The previous token that precedes this token in the syntax tree.</returns>
         public SyntaxToken GetPreviousToken(bool includeZeroWidth = false, bool includeSkipped = false, bool includeDirectives = false, bool includeDocumentationComments = false)
         {
             if (Node == null)
@@ -686,5 +686,22 @@ namespace Microsoft.CodeAnalysis
                 (Node == null && token.Node == null) ||
                 (Node != null && token.Node != null && Node.IsEquivalentTo(token.Node));
         }
+
+        /// <summary>
+        /// Returns true if these two tokens are considered "incrementally identical".  An incrementally identical token
+        /// occurs when a <see cref="SyntaxTree"/> is incrementally parsed using <see cref="SyntaxTree.WithChangedText"/>
+        /// and the incremental parser is able to take the token from the original tree and use it in its entirety in the
+        /// new tree.  In this case, the <see cref="SyntaxToken.ToFullString()"/> of each token will be the same, though 
+        /// they could have different parents, and may occur at different positions in the respective trees.  If two tokens are
+        /// incrementally identical, all trivial of each node will be incrementally identical as well.
+        /// </summary>
+        /// <remarks>
+        /// Incrementally identical tokens can also appear within the same syntax tree, or syntax trees that did not arise
+        /// from <see cref="SyntaxTree.WithChangedText"/>.  This can happen as the parser is allowed to construct parse
+        /// trees using shared tokens for efficiency.  In all these cases though, it will still remain true that the incrementally
+        /// identical tokens could have different parents and may occur at different positions in their respective trees.
+        /// </remarks>
+        public bool IsIncrementallyIdenticalTo(SyntaxToken token)
+            => this.Node != null && this.Node == token.Node;
     }
 }

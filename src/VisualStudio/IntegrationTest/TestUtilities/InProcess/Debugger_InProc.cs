@@ -2,12 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Globalization;
 using System.Runtime.InteropServices;
-using EnvDTE;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -46,7 +43,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void Go(bool waitForBreakMode) => _debugger.Go(waitForBreakMode);
 
-        public void StepOver(bool waitForBreakOrEnd) => this.WaitForRaiseDebuggerDteCommand(() => _debugger.StepOver(waitForBreakOrEnd));
+        public void StepOver(bool waitForBreakOrEnd) => WaitForRaiseDebuggerDteCommand(() => _debugger.StepOver(waitForBreakOrEnd));
 
         public void Stop(bool waitForDesignMode) => _debugger.Stop(WaitForDesignMode: waitForDesignMode);
 
@@ -60,7 +57,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         /// Executes the specified action delegate and retries if Operation Not Supported is thrown.
         /// </summary>
         /// <param name="action">Action delegate to exectute.</param>
-        private void WaitForRaiseDebuggerDteCommand(Action action)
+        private static void WaitForRaiseDebuggerDteCommand(Action action)
         {
             var actionSucceeded = false;
 

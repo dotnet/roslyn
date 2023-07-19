@@ -6,6 +6,8 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
 
@@ -13,24 +15,17 @@ namespace Microsoft.CodeAnalysis.AddImport
 {
     internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
-        private partial class AssemblyReference : Reference
+        private partial class AssemblyReference(
+            AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
+            SearchResult searchResult,
+            ReferenceAssemblyWithTypeResult referenceAssemblyWithType) : Reference(provider, searchResult)
         {
-            private readonly ReferenceAssemblyWithTypeResult _referenceAssemblyWithType;
-
-            public AssemblyReference(
-                AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
-                SearchResult searchResult,
-                ReferenceAssemblyWithTypeResult referenceAssemblyWithType)
-                : base(provider, searchResult)
-            {
-                _referenceAssemblyWithType = referenceAssemblyWithType;
-            }
+            private readonly ReferenceAssemblyWithTypeResult _referenceAssemblyWithType = referenceAssemblyWithType;
 
             public override async Task<AddImportFixData> TryGetFixDataAsync(
-                Document document, SyntaxNode node, bool placeSystemNamespaceFirst, bool allowInHiddenRegions, CancellationToken cancellationToken)
+                Document document, SyntaxNode node, CodeCleanupOptions options, CancellationToken cancellationToken)
             {
-                var textChanges = await GetTextChangesAsync(
-                    document, node, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken).ConfigureAwait(false);
+                var textChanges = await GetTextChangesAsync(document, node, options, cancellationToken).ConfigureAwait(false);
 
                 var title = $"{provider.GetDescription(SearchResult.NameParts)} ({string.Format(FeaturesResources.from_0, _referenceAssemblyWithType.AssemblyName)})";
                 var fullyQualifiedTypeName = string.Join(

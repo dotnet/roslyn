@@ -33,16 +33,17 @@ Public Class VisualBasicDeterministicBuildCompilationTests
             "define",
             originalOptions.ParseOptions.PreprocessorSymbols,
             isDefault:=Function(v) v.IsEmpty,
-            toString:=Function(v) String.Join(",", v.Select(Function(p) If(p.Value IsNot Nothing, $"{p.Key}={p.Value}", p.Key))))
+            toString:=Function(v) String.Join(",", v.Select(Function(p) If(p.Value IsNot Nothing, $"{p.Key}=""{p.Value}""", p.Key))))
     End Sub
 
     Private Sub TestDeterministicCompilationVB(syntaxTrees As SyntaxTree(), compilationOptions As VisualBasicCompilationOptions, emitOptions As EmitOptions, ParamArray metadataReferences() As TestMetadataReferenceInfo)
 
+        Dim tf = TargetFramework.NetStandard20
         Dim originalCompilation = CreateCompilation(
                 syntaxTrees,
                 references:=metadataReferences.SelectAsArray(Of MetadataReference)(Function(r) r.MetadataReference),
                 options:=compilationOptions,
-                targetFramework:=TargetFramework.NetStandard20)
+                targetFramework:=tf)
 
         Dim peBlob = originalCompilation.EmitToArray(emitOptions)
 
@@ -63,7 +64,7 @@ Public Class VisualBasicDeterministicBuildCompilationTests
                 Dim compilationOptionsReader = DeterministicBuildCompilationTestHelpers.GetSingleBlob(PortableCustomDebugInfoKinds.CompilationOptions, pdbReader)
 
                 VerifyCompilationOptions(compilationOptions, compilationOptionsReader, emitOptions, originalCompilation)
-                DeterministicBuildCompilationTestHelpers.VerifyReferenceInfo(metadataReferences, metadataReferenceReader)
+                DeterministicBuildCompilationTestHelpers.VerifyReferenceInfo(metadataReferences, tf, metadataReferenceReader)
             End Using
         End Using
     End Sub

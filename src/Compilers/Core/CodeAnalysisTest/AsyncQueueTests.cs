@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var task = queue.DequeueAsync();
             Assert.False(task.IsCompleted);
             queue.Enqueue(13);
-            Assert.Equal(13, await task.ConfigureAwait(false));
+            Assert.Equal(13, await task);
         }
 
         [Fact]
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var task = list[i];
                 Assert.False(task.IsCompleted);
                 queue.Enqueue(i);
-                Assert.Equal(i, await task.ConfigureAwait(false));
+                Assert.Equal(i, await task);
             }
         }
 
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var threw = false;
             try
             {
-                await task.ConfigureAwait(false);
+                await task;
             }
             catch (OperationCanceledException)
             {
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var threw = false;
                 try
                 {
-                    await task.ConfigureAwait(false);
+                    await task;
                 }
                 catch (OperationCanceledException)
                 {
@@ -144,13 +144,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var queue = new AsyncQueue<int>();
             queue.Enqueue(42);
             queue.Complete();
-            await queue.WhenCompletedTask.ConfigureAwait(false);
-            Assert.Equal(42, await queue.DequeueAsync().ConfigureAwait(false));
+            await queue.WhenCompletedTask;
+            Assert.Equal(42, await queue.DequeueAsync());
 
             var threw = false;
             try
             {
-                await queue.DequeueAsync().ConfigureAwait(false);
+                await queue.DequeueAsync();
             }
             catch (OperationCanceledException)
             {
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var task = queue.DequeueAsync(cts.Token);
             Assert.False(task.IsCompleted);
             queue.Enqueue(42);
-            await task.ConfigureAwait(false);
+            await task;
             cts.Cancel();
         }
 
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var queue = new AsyncQueue<int>();
             queue.Enqueue(13);
             queue.Complete();
-            await queue.WhenCompletedTask.ConfigureAwait(false);
+            await queue.WhenCompletedTask;
 
             int value;
             Assert.True(queue.TryDequeue(out value));

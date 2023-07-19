@@ -5,13 +5,14 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
 {
     /// <summary>
     /// Trivia on an <see cref="EmbeddedSyntaxToken{TSyntaxKind}"/>.
     /// </summary>
-    internal struct EmbeddedSyntaxTrivia<TSyntaxKind> where TSyntaxKind : struct
+    internal readonly struct EmbeddedSyntaxTrivia<TSyntaxKind> where TSyntaxKind : struct
     {
         public readonly TSyntaxKind Kind;
         public readonly VirtualCharSequence VirtualChars;
@@ -29,5 +30,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
             VirtualChars = virtualChars;
             Diagnostics = diagnostics;
         }
+
+        public TextSpan GetSpan()
+            => EmbeddedSyntaxHelpers.GetSpan(this.VirtualChars);
+
+        public override string ToString()
+            => VirtualChars.CreateString();
     }
 }

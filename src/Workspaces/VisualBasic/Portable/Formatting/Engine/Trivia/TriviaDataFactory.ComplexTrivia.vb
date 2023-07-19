@@ -17,13 +17,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Private Class ComplexTrivia
             Inherits AbstractComplexTrivia
 
-            Public Sub New(options As AnalyzerConfigOptions, treeInfo As TreeData, token1 As SyntaxToken, token2 As SyntaxToken)
+            Public Sub New(options As SyntaxFormattingOptions, treeInfo As TreeData, token1 As SyntaxToken, token2 As SyntaxToken)
                 MyBase.New(options, treeInfo, token1, token2)
                 Contract.ThrowIfNull(treeInfo)
             End Sub
 
             Protected Overrides Sub ExtractLineAndSpace(text As String, ByRef lines As Integer, ByRef spaces As Integer)
-                text.ProcessTextBetweenTokens(Me.TreeInfo, Me.Token1, Me.Options.GetOption(FormattingOptions2.TabSize), lines, spaces)
+                text.ProcessTextBetweenTokens(Me.TreeInfo, Me.Token1, Me.Options.TabSize, lines, spaces)
             End Sub
 
             Protected Overrides Function CreateComplexTrivia(line As Integer, space As Integer) As TriviaData
@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
                 Debug.Assert(Me.SecondTokenIsFirstTokenOnLine OrElse beginningOfNewLine)
 
-                If Me.Options.GetOption(FormattingOptions2.UseTabs) Then
+                If Me.Options.UseTabs Then
                     Return True
                 End If
 

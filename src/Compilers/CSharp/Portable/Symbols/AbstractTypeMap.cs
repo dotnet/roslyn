@@ -47,9 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (previous.IsAnonymousType)
             {
-                ImmutableArray<TypeWithAnnotations> oldFieldTypes = AnonymousTypeManager.GetAnonymousTypePropertyTypesWithAnnotations(previous);
-                ImmutableArray<TypeWithAnnotations> newFieldTypes = SubstituteTypes(oldFieldTypes);
-                return (oldFieldTypes == newFieldTypes) ? previous : AnonymousTypeManager.ConstructAnonymousTypeSymbol(previous, newFieldTypes);
+                return ((AnonymousTypeManager.AnonymousTypeOrDelegatePublicSymbol)previous).SubstituteTypes(this);
             }
 
             // TODO: we could construct the result's ConstructedFrom lazily by using a "deep"
@@ -208,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (interfaces.Length != 0)
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
 
                 return ArrayTypeSymbol.CreateSZArray(

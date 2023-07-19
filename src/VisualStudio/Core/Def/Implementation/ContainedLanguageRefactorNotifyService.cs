@@ -37,11 +37,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, ISymbol symbol, string newName, bool throwOnFailure)
         {
-            if (workspace is VisualStudioWorkspaceImpl visualStudioWorkspace)
+            if (workspace is VisualStudioWorkspaceImpl)
             {
                 foreach (var documentId in changedDocumentIDs)
                 {
-                    var containedDocument = visualStudioWorkspace.TryGetContainedDocument(documentId);
+                    var containedDocument = ContainedDocument.TryGetContainedDocument(documentId);
                     if (containedDocument != null)
                     {
                         var containedLanguageHost = containedDocument.ContainedLanguageHost;
@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return true;
         }
 
-        private ContainedLanguageRenameType GetRenameType(ISymbol symbol)
+        private static ContainedLanguageRenameType GetRenameType(ISymbol symbol)
         {
             if (symbol is INamespaceSymbol)
             {
@@ -78,10 +78,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 return ContainedLanguageRenameType.CLRT_CLASS;
             }
-            else if (symbol.Kind == SymbolKind.Event ||
-                symbol.Kind == SymbolKind.Field ||
-                symbol.Kind == SymbolKind.Method ||
-                symbol.Kind == SymbolKind.Property)
+            else if (symbol.Kind is SymbolKind.Event or
+                SymbolKind.Field or
+                SymbolKind.Method or
+                SymbolKind.Property)
             {
                 return ContainedLanguageRenameType.CLRT_CLASSMEMBER;
             }

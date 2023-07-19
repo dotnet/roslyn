@@ -10,11 +10,20 @@ using Xunit;
 using Moq;
 using System.IO;
 using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.BuildTasks.UnitTests.TestUtilities;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
     public sealed class CscTests
     {
+        public ITestOutputHelper TestOutputHelper { get; }
+
+        public CscTests(ITestOutputHelper testOutputHelper)
+        {
+            TestOutputHelper = testOutputHelper;
+        }
+
         [Fact]
         public void SingleSource()
         {
@@ -433,13 +442,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc.ToolPath = "";
             csc.ToolExe = Path.Combine("path", "to", "custom_csc");
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
-            Assert.Equal("", csc.GenerateCommandLine());
+            Assert.Equal("", csc.GenerateCommandLineContents());
             Assert.Equal(Path.Combine("path", "to", "custom_csc"), csc.GeneratePathToTool());
 
             csc = new Csc();
             csc.ToolExe = Path.Combine("path", "to", "custom_csc");
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
-            Assert.Equal("", csc.GenerateCommandLine());
+            Assert.Equal("", csc.GenerateCommandLineContents());
             Assert.Equal(Path.Combine("path", "to", "custom_csc"), csc.GeneratePathToTool());
         }
 
@@ -450,14 +459,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc.ToolPath = Path.Combine("path", "to", "custom_csc");
             csc.ToolExe = "";
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
-            Assert.Equal("", csc.GenerateCommandLine());
+            Assert.Equal("", csc.GenerateCommandLineContents());
             // StartsWith because it can be csc.exe or csc.dll
             Assert.StartsWith(Path.Combine("path", "to", "custom_csc", "csc."), csc.GeneratePathToTool());
 
             csc = new Csc();
             csc.ToolPath = Path.Combine("path", "to", "custom_csc");
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
-            Assert.Equal("", csc.GenerateCommandLine());
+            Assert.Equal("", csc.GenerateCommandLineContents());
             Assert.StartsWith(Path.Combine("path", "to", "custom_csc", "csc."), csc.GeneratePathToTool());
         }
 
@@ -497,6 +506,58 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc = new Csc();
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
             Assert.Equal("/out:test.exe test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        [WorkItem(52467, "https://github.com/dotnet/roslyn/issues/52467")]
+        public void UnexpectedExceptionLogsMessage()
+        {
+            var engine = new MockEngine();
+            var csc = new Csc()
+            {
+                BuildEngine = engine,
+            };
+
+            csc.ExecuteTool(@"q:\path\csc.exe", "", "", new TestableCompilerServerLogger()
+            {
+                LogFunc = delegate { throw new Exception(""); }
+            });
+            Assert.False(string.IsNullOrEmpty(engine.Log));
+        }
+
+        [Fact]
+        public void ReportIVTsSwitch()
+        {
+            var csc = new Csc();
+            csc.ReportIVTs = true;
+            AssertEx.Equal("/reportivts", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void CommandLineArgs1()
+        {
+            var engine = new MockEngine(TestOutputHelper);
+            var csc = new Csc()
+            {
+                BuildEngine = engine,
+                Sources = MSBuildUtil.CreateTaskItems("test.cs"),
+            };
+
+            TaskTestUtil.AssertCommandLine(csc, engine, "/out:test.exe", "test.cs");
+        }
+
+        [Fact]
+        public void CommandLineArgs2()
+        {
+            var engine = new MockEngine(TestOutputHelper);
+            var csc = new Csc()
+            {
+                BuildEngine = engine,
+                Sources = MSBuildUtil.CreateTaskItems("test.cs", "blah.cs"),
+                TargetType = "library"
+            };
+
+            TaskTestUtil.AssertCommandLine(csc, engine, "/out:test.dll", "/target:library", "test.cs", "blah.cs");
         }
     }
 }

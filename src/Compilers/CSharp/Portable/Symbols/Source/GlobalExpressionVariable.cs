@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -30,8 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSyntax typeSyntax,
             string name,
             SyntaxReference syntax,
-            Location location)
-            : base(containingType, modifiers, name, syntax, location)
+            TextSpan locationSpan)
+            : base(containingType, modifiers, name, syntax, locationSpan)
         {
             Debug.Assert(DeclaredAccessibility == Accessibility.Private);
             _typeSyntaxOpt = typeSyntax?.GetReference();
@@ -43,18 +44,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeSyntax typeSyntax,
                 string name,
                 SyntaxNode syntax,
-                Location location,
+                TextSpan locationSpan,
                 FieldSymbol containingFieldOpt,
                 SyntaxNode nodeToBind)
         {
             Debug.Assert(nodeToBind.Kind() == SyntaxKind.VariableDeclarator || nodeToBind is ExpressionSyntax);
 
             var syntaxReference = syntax.GetReference();
-            return (typeSyntax == null || typeSyntax.IsVar)
-                ? new InferrableGlobalExpressionVariable(containingType, modifiers, typeSyntax, name, syntaxReference, location, containingFieldOpt, nodeToBind)
-                : new GlobalExpressionVariable(containingType, modifiers, typeSyntax, name, syntaxReference, location);
+            return (typeSyntax == null || typeSyntax.SkipScoped(out _).SkipRef().IsVar)
+                ? new InferrableGlobalExpressionVariable(containingType, modifiers, typeSyntax, name, syntaxReference, locationSpan, containingFieldOpt, nodeToBind)
+                : new GlobalExpressionVariable(containingType, modifiers, typeSyntax, name, syntaxReference, locationSpan);
         }
-
 
         protected override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList => default(SyntaxList<AttributeListSyntax>);
         protected override TypeSyntax TypeSyntax => (TypeSyntax)_typeSyntaxOpt?.GetSyntax();
@@ -63,7 +63,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override ConstantValue MakeConstantValue(
             HashSet<SourceFieldSymbolWithSyntaxReference> dependencies,
             bool earlyDecodingWellKnownAttributes,
-            DiagnosticBag diagnostics) => null;
+            BindingDiagnosticBag diagnostics) => null;
+
+        public sealed override RefKind RefKind => RefKind.None;
 
         internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
@@ -78,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var compilation = this.DeclaringCompilation;
 
-            var diagnostics = DiagnosticBag.GetInstance();
+            var diagnostics = BindingDiagnosticBag.GetInstance();
             TypeWithAnnotations type;
             bool isVar;
 
@@ -87,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (typeSyntax != null)
             {
-                type = binder.BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar);
+                type = binder.BindTypeOrVarKeyword(typeSyntax.SkipScoped(out _).SkipRef(), diagnostics, out isVar);
             }
             else
             {
@@ -111,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     type = TypeWithAnnotations.Create(binder.CreateErrorType("var"));
                 }
 
-                SetType(compilation, diagnostics, type);
+                SetType(diagnostics, type);
             }
 
             diagnostics.Free();
@@ -122,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Can add some diagnostics into <paramref name="diagnostics"/>. 
         /// Returns the type that it actually locks onto (it's possible that it had already locked onto ErrorType).
         /// </summary>
-        private TypeWithAnnotations SetType(CSharpCompilation compilation, DiagnosticBag diagnostics, TypeWithAnnotations type)
+        private TypeWithAnnotations SetType(BindingDiagnosticBag diagnostics, TypeWithAnnotations type)
         {
             var originalType = _lazyType?.Value.DefaultType;
 
@@ -137,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 TypeChecks(type.Type, diagnostics);
 
-                compilation.DeclarationDiagnostics.AddRange(diagnostics);
+                AddDeclarationDiagnostics(diagnostics);
                 state.NotePartComplete(CompletionPart.Type);
             }
             return _lazyType.Value;
@@ -147,14 +149,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Can add some diagnostics into <paramref name="diagnostics"/>.
         /// Returns the type that it actually locks onto (it's possible that it had already locked onto ErrorType).
         /// </summary>
-        internal TypeWithAnnotations SetTypeWithAnnotations(TypeWithAnnotations type, DiagnosticBag diagnostics)
+        internal TypeWithAnnotations SetTypeWithAnnotations(TypeWithAnnotations type, BindingDiagnosticBag diagnostics)
         {
-            return SetType(DeclaringCompilation, diagnostics, type);
+            return SetType(diagnostics, type);
         }
 
         protected virtual void InferFieldType(ConsList<FieldSymbol> fieldsBeingBound, Binder binder)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private class InferrableGlobalExpressionVariable : GlobalExpressionVariable
@@ -168,10 +170,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeSyntax typeSyntax,
                 string name,
                 SyntaxReference syntax,
-                Location location,
+                TextSpan locationSpan,
                 FieldSymbol containingFieldOpt,
                 SyntaxNode nodeToBind)
-                : base(containingType, modifiers, typeSyntax, name, syntax, location)
+                : base(containingType, modifiers, typeSyntax, name, syntax, locationSpan)
             {
                 Debug.Assert(nodeToBind.Kind() == SyntaxKind.VariableDeclarator || nodeToBind is ExpressionSyntax);
 
@@ -191,7 +193,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 fieldsBeingBound = new ConsList<FieldSymbol>(this, fieldsBeingBound);
 
                 binder = new ImplicitlyTypedFieldBinder(binder, fieldsBeingBound);
-                var diagnostics = DiagnosticBag.GetInstance();
 
                 switch (nodeToBind.Kind())
                 {
@@ -199,15 +200,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // This occurs, for example, in
                         // int x, y[out var Z, 1 is int I];
                         // for (int x, y[out var Z, 1 is int I]; ;) {}
-                        binder.BindDeclaratorArguments((VariableDeclaratorSyntax)nodeToBind, diagnostics);
+                        binder.BindDeclaratorArguments((VariableDeclaratorSyntax)nodeToBind, BindingDiagnosticBag.Discarded);
                         break;
 
                     default:
-                        binder.BindExpression((ExpressionSyntax)nodeToBind, diagnostics);
+                        binder.BindExpression((ExpressionSyntax)nodeToBind, BindingDiagnosticBag.Discarded);
                         break;
                 }
-
-                diagnostics.Free();
             }
         }
     }

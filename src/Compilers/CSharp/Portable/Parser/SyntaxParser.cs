@@ -15,6 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
+    using Microsoft.CodeAnalysis.CSharp.Symbols;
     using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
     internal abstract partial class SyntaxParser : IDisposable
@@ -375,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private void AddTokenSlot()
         {
             // shift tokens to left if we are far to the right
-            // don't shift if reset points have fixed locked tge starting point at the token in the window
+            // don't shift if reset points have fixed locked the starting point at the token in the window
             if (_tokenOffset > (_blendedTokens.Length >> 1)
                 && (_resetStart == -1 || _resetStart > _firstToken))
             {
@@ -403,7 +404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private void AddLexedTokenSlot()
         {
             // shift tokens to left if we are far to the right
-            // don't shift if reset points have fixed locked tge starting point at the token in the window
+            // don't shift if reset points have fixed locked the starting point at the token in the window
             if (_tokenOffset > (_lexedTokens.Length >> 1)
                 && (_resetStart == -1 || _resetStart > _firstToken))
             {
@@ -621,9 +622,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         protected virtual SyntaxDiagnosticInfo GetExpectedTokenError(SyntaxKind expected, SyntaxKind actual, int offset, int width)
         {
             var code = GetExpectedTokenErrorCode(expected, actual);
-            if (code == ErrorCode.ERR_SyntaxError || code == ErrorCode.ERR_IdentifierExpectedKW)
+            if (code == ErrorCode.ERR_SyntaxError)
             {
-                return new SyntaxDiagnosticInfo(offset, width, code, SyntaxFacts.GetText(expected), SyntaxFacts.GetText(actual));
+                return new SyntaxDiagnosticInfo(offset, width, code, SyntaxFacts.GetText(expected));
+            }
+            else if (code == ErrorCode.ERR_IdentifierExpectedKW)
+            {
+                return new SyntaxDiagnosticInfo(offset, width, code, /*unused*/string.Empty, SyntaxFacts.GetText(actual));
             }
             else
             {
@@ -1062,7 +1067,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         protected static SyntaxToken ConvertToIdentifier(SyntaxToken token)
         {
             Debug.Assert(!token.IsMissing);
-            return SyntaxToken.Identifier(token.Kind, token.LeadingTrivia.Node, token.Text, token.ValueText, token.TrailingTrivia.Node);
+
+            var identifier = SyntaxToken.Identifier(token.Kind, token.LeadingTrivia.Node, token.Text, token.ValueText, token.TrailingTrivia.Node);
+            if (token.ContainsDiagnostics)
+                identifier = identifier.WithDiagnosticsGreen(token.GetDiagnostics());
+
+            return identifier;
         }
 
         internal DirectiveStack Directives
@@ -1081,24 +1091,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         protected TNode CheckFeatureAvailability<TNode>(TNode node, MessageID feature, bool forceWarning = false)
             where TNode : GreenNode
         {
-            LanguageVersion availableVersion = this.Options.LanguageVersion;
-            LanguageVersion requiredVersion = feature.RequiredVersion();
-
-            // There are special error codes for some features, so handle those separately.
-            switch (feature)
-            {
-                case MessageID.IDS_FeatureModuleAttrLoc:
-                    return availableVersion >= LanguageVersion.CSharp2
-                        ? node
-                        : this.AddError(node, ErrorCode.WRN_NonECMAFeature, feature.Localize());
-
-                case MessageID.IDS_FeatureAltInterpolatedVerbatimStrings:
-                    return availableVersion >= requiredVersion
-                        ? node
-                        : this.AddError(node, ErrorCode.ERR_AltInterpolatedVerbatimStringsNotAvailable,
-                            new CSharpRequiredLanguageVersion(requiredVersion));
-            }
-
             var info = feature.GetFeatureAvailabilityDiagnosticInfo(this.Options);
             if (info != null)
             {

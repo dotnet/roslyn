@@ -116,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         delegateRelaxationIdDispenser As Integer,
                         slotAllocatorOpt As VariableSlotAllocator,
                         compilationState As TypeCompilationState,
-                        diagnostics As DiagnosticBag)
+                        diagnostics As BindingDiagnosticBag)
             MyBase.New(slotAllocatorOpt, compilationState, diagnostics, method.PreserveOriginalLocals)
 
             Me._topLevelMethod = method
@@ -158,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                        slotAllocatorOpt As VariableSlotAllocator,
                                        CompilationState As TypeCompilationState,
                                        symbolsCapturedWithoutCopyCtor As ISet(Of Symbol),
-                                       diagnostics As DiagnosticBag,
+                                       diagnostics As BindingDiagnosticBag,
                                        rewrittenNodes As HashSet(Of BoundNode)) As BoundBlock
 
             Dim analysis = LambdaRewriter.Analysis.AnalyzeMethodBody(node, method, symbolsCapturedWithoutCopyCtor, diagnostics)
@@ -243,7 +243,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
 
             For Each frame In _frames.Values
-                CompilationState.AddSynthesizedMethod(frame.Constructor, MakeFrameCtor(frame, Diagnostics))
+                CompilationState.AddSynthesizedMethod(frame.Constructor, MakeFrameCtor(frame, Diagnostics), stateMachineType:=Nothing, ImmutableArray(Of StateMachineStateDebugInfo).Empty)
             Next
         End Sub
 
@@ -297,7 +297,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return frame
         End Function
 
-        Private Function GetStaticFrame(lambda As BoundNode, diagnostics As DiagnosticBag) As LambdaFrame
+        Private Function GetStaticFrame(lambda As BoundNode, diagnostics As BindingDiagnosticBag) As LambdaFrame
             If Me._lazyStaticLambdaFrame Is Nothing Then
                 Dim isNonGeneric = Not TopLevelMethod.IsGenericMethod
                 If isNonGeneric Then
@@ -332,7 +332,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim syntax = lambda.Syntax
 
                     ' add its ctor
-                    CompilationState.AddSynthesizedMethod(frame.Constructor, MakeFrameCtor(frame, diagnostics))
+                    CompilationState.AddSynthesizedMethod(frame.Constructor, MakeFrameCtor(frame, diagnostics), stateMachineType:=Nothing, ImmutableArray(Of StateMachineStateDebugInfo).Empty)
 
                     ' add cctor
                     ' Frame.inst = New Frame()
@@ -343,13 +343,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 F.[New](frame.Constructor)),
                             F.Return())
 
-                    CompilationState.AddSynthesizedMethod(frame.SharedConstructor, body)
+                    CompilationState.AddSynthesizedMethod(frame.SharedConstructor, body, stateMachineType:=Nothing, ImmutableArray(Of StateMachineStateDebugInfo).Empty)
                 End If
             End If
 
             Return Me._lazyStaticLambdaFrame
         End Function
-
 
         ''' <summary>
         ''' Produces a bound expression representing a pointer to a frame of a particular frame type.
@@ -403,7 +402,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         constructedProxyField.Type)
         End Function
 
-        Private Function MakeFrameCtor(frame As LambdaFrame, diagnostics As DiagnosticBag) As BoundBlock
+        Private Function MakeFrameCtor(frame As LambdaFrame, diagnostics As BindingDiagnosticBag) As BoundBlock
             Dim constructor = frame.Constructor
             Dim syntaxNode As SyntaxNode = constructor.Syntax
 
@@ -429,15 +428,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim parameterExpr = New BoundParameter(syntaxNode, arg, frame)
 
                 Dim bool = frame.ContainingAssembly.GetSpecialType(SpecialType.System_Boolean)
-                Dim useSiteError = bool.GetUseSiteErrorInfo()
-                If useSiteError IsNot Nothing Then
-                    diagnostics.Add(useSiteError, syntaxNode.GetLocation())
-                End If
+                Dim useSiteError = bool.GetUseSiteInfo()
+                diagnostics.Add(useSiteError, syntaxNode.GetLocation())
 
                 Dim obj = frame.ContainingAssembly.GetSpecialType(SpecialType.System_Object)
                 ' WARN: We assume that if System_Object was not found we would never reach 
                 '       this point because the error should have been/processed generated earlier
-                Debug.Assert(obj.GetUseSiteErrorInfo() Is Nothing)
+                Debug.Assert(obj.GetUseSiteInfo().DiagnosticInfo Is Nothing)
 
                 Dim condition = New BoundBinaryOperator(syntaxNode, BinaryOperatorKind.Is,
                                                         New BoundDirectCast(syntaxNode, parameterExpr.MakeRValue(), ConversionKind.WideningReference, obj, Nothing),
@@ -550,7 +547,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Else
                         prologue.Add(assignment)
                     End If
-
 
                     CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(frame, capturedFrame.GetCciAdapter())
 
@@ -876,7 +872,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="method">Method symbol for the rewritten lambda body.</param>
         ''' <param name="lambda">Original lambda node.</param>
         ''' <returns>Lambda body rewritten as a body of the given method symbol.</returns>
-        Public Function RewriteLambdaAsMethod(method As SynthesizedLambdaMethod, lambda As BoundLambda) As BoundBlock
+        Public Function RewriteLambdaAsMethod(method As SynthesizedLambdaMethod,
+                                              lambda As BoundLambda,
+                                              stateMachineStateDebugInfosBuilder As ArrayBuilder(Of StateMachineStateDebugInfo),
+                                              <Out> ByRef stateMachineType As StateMachineTypeSymbol) As BoundBlock
 
             ' report use site errors for attributes that are needed later on in the rewriter
             Dim lambdaSyntax = lambda.Syntax
@@ -897,14 +896,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 loweredBody = RewriteBlock(node)
             End If
 
-            Dim stateMachineTypeOpt As StateMachineTypeSymbol = Nothing
-
             ' In case of async/iterator lambdas, the method has already been uniquely named, so there is no need to
             ' produce a unique method ordinal for the corresponding state machine type, whose name includes the (unique) method name.
             Const methodOrdinal As Integer = -1
 
-            Dim slotAllocatorOpt = CompilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method, method.TopLevelMethod, Diagnostics)
-            Return Rewriter.RewriteIteratorAndAsync(loweredBody, method, methodOrdinal, CompilationState, Diagnostics, slotAllocatorOpt, stateMachineTypeOpt)
+            Dim slotAllocatorOpt = CompilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method, method.TopLevelMethod, Diagnostics.DiagnosticBag)
+            Return Rewriter.RewriteIteratorAndAsync(loweredBody, method, methodOrdinal, CompilationState, Diagnostics, stateMachineStateDebugInfosBuilder, slotAllocatorOpt, stateMachineType)
         End Function
 
         Public Overrides Function VisitTryCast(node As BoundTryCast) As BoundNode
@@ -1106,8 +1103,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _currentLambdaBodyTypeSubstitution = TypeSubstitution.Create(_topLevelMethod, _topLevelMethod.TypeParameters, _currentMethod.TypeArguments)
             End If
 
-            Dim body = DirectCast(RewriteLambdaAsMethod(synthesizedMethod, node), BoundStatement)
-            CompilationState.AddSynthesizedMethod(synthesizedMethod, body)
+            Dim stateMachineStateDebugInfosBuilder = ArrayBuilder(Of StateMachineStateDebugInfo).GetInstance()
+            Dim stateMachineType As StateMachineTypeSymbol = Nothing
+            Dim body = DirectCast(RewriteLambdaAsMethod(synthesizedMethod, node, stateMachineStateDebugInfosBuilder, stateMachineType), BoundStatement)
+            CompilationState.AddSynthesizedMethod(synthesizedMethod, body, stateMachineType, stateMachineStateDebugInfosBuilder.ToImmutableAndFree())
 
             ' return to old method
 
@@ -1204,7 +1203,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return result
         End Function
-
 
         ' This helper checks syntactically whether there is a loop or lambda expression
         ' between given lambda syntax and the syntax that corresponds to its closure.
@@ -1415,14 +1413,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function OptimizeMethodCallForDelegateInvoke(node As BoundCall) As BoundCall
             Dim method = node.Method
             Dim receiver = node.ReceiverOpt
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+            Dim useSiteInfo As New CompoundUseSiteInfo(Of AssemblySymbol)(Diagnostics, CompilationState.Compilation.Assembly)
 
             If method.MethodKind = MethodKind.DelegateInvoke AndAlso
                     method.ContainingType.IsAnonymousType AndAlso
                     receiver.Kind = BoundKind.DelegateCreationExpression AndAlso
                     Conversions.ClassifyMethodConversionForLambdaOrAnonymousDelegate(
-                        method, DirectCast(receiver, BoundDelegateCreationExpression).Method, useSiteDiagnostics) = MethodConversionKind.Identity Then
-                Diagnostics.Add(node, useSiteDiagnostics)
+                        method, DirectCast(receiver, BoundDelegateCreationExpression).Method, useSiteInfo) = MethodConversionKind.Identity Then
+                Diagnostics.Add(node, useSiteInfo)
 
                 Dim delegateCreation = DirectCast(receiver, BoundDelegateCreationExpression)
                 Debug.Assert(delegateCreation.RelaxationLambdaOpt Is Nothing AndAlso delegateCreation.RelaxationReceiverPlaceholderOpt Is Nothing)

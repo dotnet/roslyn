@@ -144,16 +144,23 @@ ValueC = 257 // Out of underlying range
         [WorkItem(539167, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539167")]
         // No enum-body 
         [Fact]
-        public void CS1514ERR_LbraceExpected_NoEnumBody()
+        public void NoEnumBody_01()
         {
             var text =
 @"enum Figure ;";
             VerifyEnumsValue(text, "Figure");
             var comp = CreateCompilation(text);
-            // Same errors as parsing "class Name ;".
-            DiagnosticsUtils.VerifyErrorCodesNoLineColumn(comp.GetDiagnostics(),
-                new ErrorDescription { Code = (int)ErrorCode.ERR_LbraceExpected },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_RbraceExpected });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NoEnumBody_02()
+        {
+            var text =
+@"enum Figure : int ;";
+            VerifyEnumsValue(text, "Figure");
+            var comp = CreateCompilation(text);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -341,7 +348,8 @@ class c1
     static void Main(string[] args)
     {
         Suits S = (Suits)Enum.ToObject(typeof(Suits), 2);
-        Console.WriteLine(S.ToString()); // ValueE
+        Console.WriteLine(S == Suits.ValueB);
+        Console.WriteLine(S == Suits.ValueE);
         Suits S1 = (Suits)Enum.ToObject(typeof(Suits), -1);
         Console.WriteLine(S1.ToString()); // -1
     }
@@ -349,8 +357,8 @@ class c1
 ";
             VerifyEnumsValue(source, "c1.Suits", 1, 2, 4, 2, 2);
 
-            CompileAndVerify(source, expectedOutput: @"
-ValueE
+            CompileAndVerify(source, expectedOutput: @"True
+True
 -1
 ");
         }
@@ -733,7 +741,7 @@ enum Figure : C { One, Two, Three }
 @"
 partial class EnumPartial
 {
-    internal enum partial
+    internal enum @partial
     { }
     partial M;
 }

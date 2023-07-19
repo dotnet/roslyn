@@ -14,13 +14,13 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 {
     internal abstract partial class AbstractImplementInterfaceService
     {
-        internal class State
+        internal class State(SyntaxNode interfaceNode, SyntaxNode classOrStructDecl, INamedTypeSymbol classOrStructType, IEnumerable<INamedTypeSymbol> interfaceTypes, SemanticModel model)
         {
-            public SyntaxNode Location { get; }
-            public SyntaxNode ClassOrStructDecl { get; }
-            public INamedTypeSymbol ClassOrStructType { get; }
-            public IEnumerable<INamedTypeSymbol> InterfaceTypes { get; }
-            public SemanticModel Model { get; }
+            public SyntaxNode Location { get; } = interfaceNode;
+            public SyntaxNode ClassOrStructDecl { get; } = classOrStructDecl;
+            public INamedTypeSymbol ClassOrStructType { get; } = classOrStructType;
+            public IEnumerable<INamedTypeSymbol> InterfaceTypes { get; } = interfaceTypes;
+            public SemanticModel Model { get; } = model;
 
             // The members that are not implemented at all.
             public ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented { get; private set; }
@@ -31,15 +31,6 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             // The members that have no explicit implementation.
             public ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> MembersWithoutExplicitImplementation { get; private set; }
                 = ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)>.Empty;
-
-            public State(SyntaxNode interfaceNode, SyntaxNode classOrStructDecl, INamedTypeSymbol classOrStructType, IEnumerable<INamedTypeSymbol> interfaceTypes, SemanticModel model)
-            {
-                Location = interfaceNode;
-                ClassOrStructDecl = classOrStructDecl;
-                ClassOrStructType = classOrStructType;
-                InterfaceTypes = interfaceTypes;
-                Model = model;
-            }
 
             public static State Generate(
                 AbstractImplementInterfaceService service,

@@ -22,7 +22,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Inherits Symbol
         Implements IEventSymbol
 
-
         ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ' Changes to the public interface of this class should remain synchronized with the C# version.
         ' Do not make any changes to the public interface without making the corresponding change
@@ -184,18 +183,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 #Region "Use-site Diagnostics"
 
-        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
             If Me.IsDefinition Then
-                Return MyBase.GetUseSiteErrorInfo()
+                Return New UseSiteInfo(Of AssemblySymbol)(PrimaryDependency)
             End If
 
-            Return Me.OriginalDefinition.GetUseSiteErrorInfo()
+            Return Me.OriginalDefinition.GetUseSiteInfo()
         End Function
 
-        Friend Function CalculateUseSiteErrorInfo() As DiagnosticInfo
+        Friend Function CalculateUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
             Debug.Assert(Me.IsDefinition)
             ' Check event type.
-            Dim errorInfo = DeriveUseSiteErrorInfoFromType(Me.Type)
+            Dim useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(PrimaryDependency)
+            MergeUseSiteInfo(useSiteInfo, DeriveUseSiteInfoFromType(Me.Type))
+            Dim errorInfo As DiagnosticInfo = useSiteInfo.DiagnosticInfo
 
             If errorInfo IsNot Nothing Then
                 Select Case errorInfo.Code
@@ -205,7 +206,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         ' TODO: Perhaps the error wording could be changed a bit to say "type of event..." ?
                         '
                         ' Reference required to assembly '{0}' containing the definition for event '{1}'. Add one to your project.
-                        errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnreferencedAssemblyEvent3, errorInfo.Arguments(0), Me)
+                        useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnreferencedAssemblyEvent3, errorInfo.Arguments(0), Me))
 
                     Case ERRID.ERR_UnreferencedModule3
                         ' NOTE: interestingly the error in Dev10 and thus here refers to the definition of the event
@@ -213,11 +214,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         ' TODO: Perhaps the error wording could be changed a bit to say "type of event..." ?
                         '
                         ' Reference required to module '{0}' containing the definition for event '{1}'. Add one to your project.
-                        errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnreferencedModuleEvent3, errorInfo.Arguments(0), Me)
+                        useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnreferencedModuleEvent3, errorInfo.Arguments(0), Me))
 
                     Case ERRID.ERR_UnsupportedType1
                         If errorInfo.Arguments(0).Equals(String.Empty) Then
-                            errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, CustomSymbolDisplayFormatter.ShortErrorName(Me))
+                            useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, CustomSymbolDisplayFormatter.ShortErrorName(Me)))
                         End If
 
                     Case Else
@@ -227,21 +228,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' If the member is in an assembly with unified references, 
                 ' we check if its definition depends on a type from a unified reference.
                 errorInfo = Me.Type.GetUnificationUseSiteDiagnosticRecursive(Me, checkedTypes:=Nothing)
+                If errorInfo IsNot Nothing Then
+                    Debug.Assert(errorInfo.Severity = DiagnosticSeverity.Error)
+                    useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(errorInfo)
+                End If
             End If
 
-            Return errorInfo
+            Return useSiteInfo
         End Function
 
-        Protected Overrides ReadOnly Property HighestPriorityUseSiteError As Integer
-            Get
-                Return ERRID.ERR_UnsupportedType1
-            End Get
-        End Property
+        Protected Overrides Function IsHighestPriorityUseSiteError(code As Integer) As Boolean
+            Return code = ERRID.ERR_UnsupportedType1 OrElse code = ERRID.ERR_UnsupportedCompilerFeature
+        End Function
 
         Public NotOverridable Overrides ReadOnly Property HasUnsupportedMetadata As Boolean
             Get
-                Dim info As DiagnosticInfo = GetUseSiteErrorInfo()
-                Return info IsNot Nothing AndAlso (info.Code = ERRID.ERR_UnsupportedType1 OrElse info.Code = ERRID.ERR_UnsupportedEvent1)
+                Dim info As DiagnosticInfo = GetUseSiteInfo().DiagnosticInfo
+                Return info IsNot Nothing AndAlso (info.Code = ERRID.ERR_UnsupportedType1 OrElse info.Code = ERRID.ERR_UnsupportedEvent1 OrElse info.Code = ERRID.ERR_UnsupportedCompilerFeature)
             End Get
         End Property
 
@@ -326,6 +329,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides Function Accept(Of TResult)(visitor As SymbolVisitor(Of TResult)) As TResult
             Return visitor.VisitEvent(Me)
+        End Function
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As SymbolVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitEvent(Me, argument)
         End Function
 
         Public Overrides Sub Accept(visitor As VisualBasicSymbolVisitor)

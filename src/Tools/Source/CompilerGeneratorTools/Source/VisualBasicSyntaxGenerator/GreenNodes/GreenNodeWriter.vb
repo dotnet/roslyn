@@ -59,7 +59,9 @@ Friend Class GreenNodeWriter
         'DumpNames("Nodes with Two Children", _nonterminalsWithTwoChildren)
     End Sub
 
+#Disable Warning IDE0051 ' Remove unused private members
     Private Sub DumpNames(title As String, names As List(Of String))
+#Enable Warning IDE0051 ' Remove unused private members
         Console.WriteLine(title)
         Console.WriteLine("=======================================")
         Dim sortedNames = From n In names Order By n
@@ -76,11 +78,6 @@ Friend Class GreenNodeWriter
             End If
         Next
     End Sub
-
-    ' Generate a constant value
-    Private Function GetConstantValue(val As Long) As String
-        Return val.ToString()
-    End Function
 
     ' Generate a class declaration for a node structure.
     Private Sub GenerateNodeStructureClass(nodeStructure As ParseNodeStructure)
@@ -159,8 +156,6 @@ Friend Class GreenNodeWriter
             GenerateAccept(nodeStructure)
         End If
 
-        'GenerateUpdate(nodeStructure)
-
         ' Special methods for the root node.
         If IsRoot(nodeStructure) Then
             GenerateRootNodeSpecialMethods(nodeStructure)
@@ -209,66 +204,6 @@ Friend Class GreenNodeWriter
         _writer.WriteLine("        Friend Overrides Function SetAnnotations(ByVal annotations As SyntaxAnnotation()) As GreenNode")
         _writer.Write("            Return new {0}", StructureTypeName(nodeStructure))
         GenerateNodeStructureConstructorParameters(nodeStructure, "GetDiagnostics", "annotations", "GetLeadingTrivia", "GetTrailingTrivia")
-        _writer.WriteLine("        End Function")
-        _writer.WriteLine()
-
-    End Sub
-
-    ' Generate Update method . But only for non terminals
-    Private Sub GenerateUpdate(nodeStructure As ParseNodeStructure)
-
-        If _parseTree.IsAbstract(nodeStructure) OrElse nodeStructure.IsToken OrElse nodeStructure.IsTrivia Then
-            Return
-        End If
-
-        Dim structureName = StructureTypeName(nodeStructure)
-        Dim factory = FactoryName(nodeStructure)
-        Dim needComma = False
-
-        _writer.Write("        Friend ")
-        If nodeStructure.ParentStructure IsNot Nothing AndAlso Not nodeStructure.ParentStructure.Abstract Then
-            _writer.Write("Shadows ")
-        End If
-        _writer.Write("Function Update(")
-        For Each child In GetAllChildrenOfStructure(nodeStructure)
-            If needComma Then
-                _writer.Write(", ")
-            End If
-            GenerateFactoryChildParameter(nodeStructure, child, Nothing, False)
-            needComma = True
-        Next
-        _writer.WriteLine(") As {0}", structureName)
-
-        needComma = False
-        _writer.Write("            If ")
-        For Each child In GetAllChildrenOfStructure(nodeStructure)
-            If needComma Then
-                _writer.Write(" OrElse ")
-            End If
-            If child.IsList OrElse KindTypeStructure(child.ChildKind).IsToken Then
-                _writer.Write("{0}.Node IsNot Me.{1}", ChildParamName(child), ChildVarName(child))
-            Else
-                _writer.Write("{0} IsNot Me.{1}", ChildParamName(child), ChildVarName(child))
-            End If
-            needComma = True
-        Next
-        _writer.WriteLine(" Then")
-
-        needComma = False
-        _writer.Write("                Return SyntaxFactory.{0}(", factory)
-        If nodeStructure.NodeKinds.Count >= 2 And Not _parseTree.NodeKinds.ContainsKey(FactoryName(nodeStructure)) Then
-            _writer.Write("Me.Kind, ")
-        End If
-        For Each child In GetAllChildrenOfStructure(nodeStructure)
-            If needComma Then
-                _writer.Write(", ")
-            End If
-            _writer.Write("{0}", ChildParamName(child))
-            needComma = True
-        Next
-        _writer.WriteLine(")")
-        _writer.WriteLine("            End If")
-        _writer.WriteLine("            Return Me")
         _writer.WriteLine("        End Function")
         _writer.WriteLine()
 
@@ -343,16 +278,6 @@ Friend Class GreenNodeWriter
 
         _writer.WriteLine()
 
-    End Sub
-
-    ' Generate IsTerminal property.
-    Private Sub GenerateIsTerminal(nodeStructure As ParseNodeStructure)
-        _writer.WriteLine("        Friend Overrides ReadOnly Property IsTerminal As Boolean")
-        _writer.WriteLine("            Get")
-        _writer.WriteLine("                Return {0}", If(nodeStructure.IsTerminal, "True", "False"))
-        _writer.WriteLine("            End Get")
-        _writer.WriteLine("        End Property")
-        _writer.WriteLine()
     End Sub
 
     Private Sub GenerateNodeStructureMembers(nodeStructure As ParseNodeStructure)
@@ -633,11 +558,6 @@ Friend Class GreenNodeWriter
     ' Generate a parameter corresponding to a node structure child
     Private Sub GenerateNodeStructureChildParameter(child As ParseNodeChild, Optional conflictName As String = Nothing, Optional isGreen As Boolean = False)
         _writer.Write("{0} As {1}", ChildParamName(child, conflictName), ChildConstructorTypeRef(child, isGreen))
-    End Sub
-
-    ' Generate a parameter corresponding to a node structure child
-    Private Sub GenerateFactoryChildParameter(node As ParseNodeStructure, child As ParseNodeChild, Optional conflictName As String = Nothing, Optional internalForm As Boolean = False)
-        _writer.Write("{0} As {1}", ChildParamName(child, conflictName), ChildFactoryTypeRef(node, child, True, internalForm))
     End Sub
 
     ' Get modifiers

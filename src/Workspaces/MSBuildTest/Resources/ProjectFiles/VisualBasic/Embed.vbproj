@@ -13,7 +13,7 @@
     <AssemblyName>VisualBasicProject</AssemblyName>
     <FileAlignment>512</FileAlignment>
     <MyType>Windows</MyType>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+   <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <VBRuntime>Embed</VBRuntime>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">

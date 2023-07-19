@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public partial class EmptyStatementSyntax
     {
         public EmptyStatementSyntax Update(SyntaxToken semicolonToken)
-            => Update(attributeLists: default, semicolonToken);
+            => Update(AttributeLists, semicolonToken);
     }
 }
 

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote.Testing;
@@ -17,8 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
     [Trait(Traits.Feature, Traits.Features.Classification)]
     public partial class SyntacticClassifierTests
     {
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_IfTrue(TestHost testHost)
         {
             var code =
@@ -33,8 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_IfTrueWithComment(TestHost testHost)
         {
             var code =
@@ -50,8 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_IfFalse(TestHost testHost)
         {
             var code =
@@ -66,8 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_IfGOO(TestHost testHost)
         {
             var code =
@@ -82,8 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_IfNotTrue(TestHost testHost)
         {
             var code =
@@ -99,8 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_IfNotFalse(TestHost testHost)
         {
             var code =
@@ -116,8 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_IfNotGOO(TestHost testHost)
         {
             var code =
@@ -133,8 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_IfTrueWithParens(TestHost testHost)
         {
             var code =
@@ -151,8 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_IfFalseWithParens(TestHost testHost)
         {
             var code =
@@ -169,8 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_IfGOOWithParens(TestHost testHost)
         {
             var code =
@@ -187,8 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_IfOrExpression(TestHost testHost)
         {
             var code =
@@ -206,8 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_IfAndExpression(TestHost testHost)
         {
             var code =
@@ -225,8 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_IfOrAndExpression(TestHost testHost)
         {
             var code =
@@ -246,8 +231,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_IfOrExpressionWithParens(TestHost testHost)
         {
             var code =
@@ -267,8 +251,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_IfAndExpressionWithParens(TestHost testHost)
         {
             var code =
@@ -288,8 +271,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_IfOrAndExpressionWithParens(TestHost testHost)
         {
             var code =
@@ -311,8 +293,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_If1(TestHost testHost)
         {
             await TestAsync("#if goo",
@@ -322,8 +303,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Identifier("goo"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_If2(TestHost testHost)
         {
             await TestAsync(" #if goo",
@@ -333,8 +313,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Identifier("goo"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_If3(TestHost testHost)
         {
             var code =
@@ -349,8 +328,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_If4(TestHost testHost)
         {
             var code =
@@ -364,8 +342,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("endif"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_If5(TestHost testHost)
         {
             var code =
@@ -384,8 +361,7 @@ aoeu
                 PPKeyword("endif"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_If6(TestHost testHost)
         {
             var code =
@@ -401,8 +377,7 @@ aeu";
                 Identifier("aeu"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_If7(TestHost testHost)
         {
             var code =
@@ -421,8 +396,7 @@ aeu";
                 Identifier("aeu"));
         }
 
-        [Theory]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
         [CombinatorialData]
         public async Task PP_If8(bool script, TestHost testHost)
         {
@@ -454,8 +428,7 @@ aeu";
                 script ? Field("aeu") : Identifier("aeu"));
         }
 
-        [Theory]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
         [CombinatorialData]
         public async Task PP_If9(bool script, TestHost testHost)
         {
@@ -490,8 +463,7 @@ aeu";
                 script ? Field("aeu") : Identifier("aeu"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_Region1(TestHost testHost)
         {
             await TestAsync("#region Goo",
@@ -501,8 +473,7 @@ aeu";
                 PPText("Goo"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_Region2(TestHost testHost)
         {
             await TestAsync("   #region goo",
@@ -512,8 +483,7 @@ aeu";
                 PPText("goo"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_EndRegion1(TestHost testHost)
         {
             await TestAsync("#endregion",
@@ -522,8 +492,7 @@ aeu";
                 PPKeyword("endregion"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_EndRegion2(TestHost testHost)
         {
             await TestAsync("   #endregion",
@@ -532,8 +501,7 @@ aeu";
                 PPKeyword("endregion"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_EndRegion3(TestHost testHost)
         {
             await TestAsync("#endregion adsf",
@@ -543,8 +511,7 @@ aeu";
                 PPText("adsf"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_EndRegion4(TestHost testHost)
         {
             await TestAsync("   #endregion adsf",
@@ -554,8 +521,7 @@ aeu";
                 PPText("adsf"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_RegionEndRegion1(TestHost testHost)
         {
             await TestAsync(
@@ -568,8 +534,7 @@ aeu";
                 PPKeyword("endregion"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_CommentAfterRegion1(TestHost testHost)
         {
             await TestAsync(
@@ -583,8 +548,7 @@ aeu";
                 PPKeyword("endregion"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_CommentAfterRegion2(TestHost testHost)
         {
             await TestAsync(
@@ -598,8 +562,7 @@ aeu";
                 PPKeyword("endregion"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_CommentAfterEndRegion1(TestHost testHost)
         {
             await TestAsync(
@@ -613,8 +576,7 @@ aeu";
                 PPText("adsf //comment"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_CommentAfterEndRegion2(TestHost testHost)
         {
             await TestAsync(
@@ -628,8 +590,7 @@ aeu";
                 Comment("//comment"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_DeclarationDirectives(TestHost testHost)
         {
             await TestAsync(
@@ -644,8 +605,7 @@ aeu";
                 Identifier("B"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_IfElseEndIfDirectives(TestHost testHost)
         {
             var code =
@@ -667,8 +627,7 @@ aeu";
                 PPKeyword("endif"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_DefineDirective(TestHost testHost)
         {
             var code = @"#define GOO";
@@ -679,8 +638,7 @@ aeu";
                 Identifier("GOO"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_DefineDirectiveWithCommentAndNoName(TestHost testHost)
         {
             var code = @"#define //Goo";
@@ -691,8 +649,7 @@ aeu";
                 Comment("//Goo"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_DefineDirectiveWithComment(TestHost testHost)
         {
             var code = @"#define GOO //Goo";
@@ -704,8 +661,7 @@ aeu";
                 Comment("//Goo"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_UndefDirectives(TestHost testHost)
         {
             var code = @"#undef GOO";
@@ -717,8 +673,7 @@ aeu";
                 Identifier("GOO"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_UndefDirectiveWithCommentAndNoName(TestHost testHost)
         {
             var code = @"#undef //Goo";
@@ -729,8 +684,7 @@ aeu";
                 Comment("//Goo"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_UndefDirectiveWithComment(TestHost testHost)
         {
             var code = @"#undef GOO //Goo";
@@ -742,8 +696,7 @@ aeu";
                 Comment("//Goo"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_ErrorDirective(TestHost testHost)
         {
             var code = @"#error GOO";
@@ -755,8 +708,7 @@ aeu";
                 PPText("GOO"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_ErrorDirectiveWithComment(TestHost testHost)
         {
             var code = @"#error GOO //Goo";
@@ -768,8 +720,7 @@ aeu";
                 PPText("GOO //Goo"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_WarningDirective(TestHost testHost)
         {
             var code = @"#warning GOO";
@@ -781,8 +732,7 @@ aeu";
                 PPText("GOO"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_WarningDirectiveWithComment(TestHost testHost)
         {
             var code = @"#warning GOO //Goo";
@@ -794,8 +744,7 @@ aeu";
                 PPText("GOO //Goo"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_LineHidden(TestHost testHost)
         {
             var code = @"#line hidden";
@@ -807,8 +756,7 @@ aeu";
                 PPKeyword("hidden"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_LineHiddenWithComment(TestHost testHost)
         {
             var code = @"#line hidden //Goo";
@@ -821,8 +769,7 @@ aeu";
                 Comment("//Goo"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_LineDefault(TestHost testHost)
         {
             var code = @"#line default";
@@ -834,8 +781,7 @@ aeu";
                 PPKeyword("default"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_LineDefaultWithComment(TestHost testHost)
         {
             var code = @"#line default //Goo";
@@ -848,8 +794,7 @@ aeu";
                 Comment("//Goo"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_LineNumber(TestHost testHost)
         {
             var code = @"#line 100";
@@ -861,8 +806,7 @@ aeu";
                 Number("100"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_LineNumberWithComment(TestHost testHost)
         {
             var code = @"#line 100 //Goo";
@@ -875,8 +819,7 @@ aeu";
                 Comment("//Goo"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_LineNumberWithFilename(TestHost testHost)
         {
             var code = @"#line 100 ""C:\Goo""";
@@ -889,8 +832,7 @@ aeu";
                 String("\"C:\\Goo\""));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_LineNumberWithFilenameAndComment(TestHost testHost)
         {
             var code = @"#line 100 ""C:\Goo"" //Goo";
@@ -904,8 +846,55 @@ aeu";
                 Comment("//Goo"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
+        public async Task PP_LineSpanWithCharacterOffset(TestHost testHost)
+        {
+            var code = @"#line (1, 2) - (3, 4) 5 ""file.txt""";
+
+            await TestAsync(code,
+                testHost,
+                PPKeyword("#"),
+                PPKeyword("line"),
+                Punctuation.OpenParen,
+                Number("1"),
+                Punctuation.Comma,
+                Number("2"),
+                Punctuation.CloseParen,
+                Operators.Minus,
+                Punctuation.OpenParen,
+                Number("3"),
+                Punctuation.Comma,
+                Number("4"),
+                Punctuation.CloseParen,
+                Number("5"),
+                String("\"file.txt\""));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task PP_LineSpanWithComment(TestHost testHost)
+        {
+            var code = @"#line (1, 2) - (3, 4) """" //comment";
+
+            await TestAsync(code,
+                testHost,
+                PPKeyword("#"),
+                PPKeyword("line"),
+                Punctuation.OpenParen,
+                Number("1"),
+                Punctuation.Comma,
+                Number("2"),
+                Punctuation.CloseParen,
+                Operators.Minus,
+                Punctuation.OpenParen,
+                Number("3"),
+                Punctuation.Comma,
+                Number("4"),
+                Punctuation.CloseParen,
+                String("\"\""),
+                Comment("//comment"));
+        }
+
+        [Theory, CombinatorialData]
         public async Task PP_NullableEnable(TestHost testHost)
         {
             var code = @"#nullable enable";
@@ -917,8 +906,7 @@ aeu";
                 PPKeyword("enable"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_NullableEnableWithComment(TestHost testHost)
         {
             var code = @"#nullable enable //Goo";
@@ -931,8 +919,7 @@ aeu";
                 Comment("//Goo"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_NullableEnableWarnings(TestHost testHost)
         {
             var code = @"#nullable enable warnings";
@@ -945,8 +932,7 @@ aeu";
                 PPKeyword("warnings"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_NullableEnableWarningsWithComment(TestHost testHost)
         {
             var code = @"#nullable enable warnings //Goo";
@@ -960,8 +946,7 @@ aeu";
                 Comment("//Goo"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_NullableEnableAnnotations(TestHost testHost)
         {
             var code = @"#nullable enable annotations";
@@ -974,8 +959,7 @@ aeu";
                 PPKeyword("annotations"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_NullableEnableAnnotationsWithComment(TestHost testHost)
         {
             var code = @"#nullable enable annotations //Goo";
@@ -989,8 +973,7 @@ aeu";
                 Comment("//Goo"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_NullableDisable(TestHost testHost)
         {
             var code = @"#nullable disable";
@@ -1002,8 +985,7 @@ aeu";
                 PPKeyword("disable"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_NullableDisableWithComment(TestHost testHost)
         {
             var code = @"#nullable disable //Goo";
@@ -1016,8 +998,7 @@ aeu";
                 Comment("//Goo"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_PragmaChecksum1(TestHost testHost)
         {
             await TestAsync(
@@ -1029,8 +1010,7 @@ aeu";
                 PPText("stuff"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_PragmaChecksum2(TestHost testHost)
         {
             await TestAsync(
@@ -1044,8 +1024,7 @@ aeu";
                 String("\"2453\""));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_PragmaChecksum3(TestHost testHost)
         {
             await TestAsync(
@@ -1060,8 +1039,7 @@ aeu";
                 Comment("// Goo"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_PragmaWarningDisableOne(TestHost testHost)
         {
             var code = @"#pragma warning disable 100";
@@ -1075,8 +1053,7 @@ aeu";
                 Number("100"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_PragmaWarningDisableOneWithComment(TestHost testHost)
         {
             var code = @"#pragma warning disable 100 //Goo";
@@ -1091,9 +1068,8 @@ aeu";
                 Comment("//Goo"));
         }
 
-        [Theory]
-        [CombinatorialData]
-        [WorkItem(30783, "https://github.com/dotnet/roslyn/issues/30783")]
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/30783")]
         public async Task PP_PragmaWarningDisableAllWithComment(TestHost testHost)
         {
             var code = @"#pragma warning disable //Goo";
@@ -1107,8 +1083,7 @@ aeu";
                 Comment("//Goo"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_PragmaWarningRestoreOne(TestHost testHost)
         {
             var code = @"#pragma warning restore 100";
@@ -1122,8 +1097,7 @@ aeu";
                 Number("100"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_PragmaWarningRestoreOneWithComment(TestHost testHost)
         {
             var code = @"#pragma warning restore 100 //Goo";
@@ -1138,9 +1112,8 @@ aeu";
                 Comment("//Goo"));
         }
 
-        [Theory]
-        [CombinatorialData]
-        [WorkItem(30783, "https://github.com/dotnet/roslyn/issues/30783")]
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/30783")]
         public async Task PP_PragmaWarningRestoreAllWithComment(TestHost testHost)
         {
             var code = @"#pragma warning restore //Goo";
@@ -1154,8 +1127,7 @@ aeu";
                 Comment("//Goo"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_PragmaWarningDisableTwo(TestHost testHost)
         {
             var code = @"#pragma warning disable 100, 101";
@@ -1171,8 +1143,7 @@ aeu";
                 Number("101"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_PragmaWarningRestoreTwo(TestHost testHost)
         {
             var code = @"#pragma warning restore 100, 101";
@@ -1188,8 +1159,7 @@ aeu";
                 Number("101"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_PragmaWarningDisableThree(TestHost testHost)
         {
             var code = @"#pragma warning disable 100, 101, 102";
@@ -1207,8 +1177,7 @@ aeu";
                 Number("102"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PP_PragmaWarningRestoreThree(TestHost testHost)
         {
             var code = @"#pragma warning restore 100, 101, 102";
@@ -1226,8 +1195,7 @@ aeu";
                 Number("102"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DiscardInOutDeclaration(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -1237,8 +1205,7 @@ aeu";
                     Keyword("_"), Punctuation.CloseParen, Punctuation.Semicolon));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DiscardInCasePattern(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -1248,8 +1215,7 @@ aeu";
                     Punctuation.OpenCurly, ControlKeyword("case"), Keyword("int"), Keyword("_"), Punctuation.Colon, Punctuation.CloseCurly));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DiscardInDeconstruction(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -1260,8 +1226,7 @@ aeu";
                     Punctuation.Comma, Number("2"), Punctuation.CloseParen, Punctuation.Semicolon));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DiscardInDeconstruction2(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -1272,8 +1237,7 @@ aeu";
                     Number("1"), Punctuation.Comma, Number("2"), Punctuation.CloseParen, Punctuation.Semicolon));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ShortDiscardInDeconstruction(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -1285,8 +1249,7 @@ aeu";
                     Punctuation.Semicolon));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ShortDiscardInOutDeclaration(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -1296,8 +1259,7 @@ aeu";
                     Punctuation.Semicolon));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ShortDiscardInAssignment(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -1306,8 +1268,7 @@ aeu";
  expected: Classifications(Identifier("_"), Operators.Equals, Number("1"), Punctuation.Semicolon));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task UnderscoreInLambda(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -1317,8 +1278,7 @@ aeu";
                     Operators.EqualsGreaterThan, Number("1"), Punctuation.Semicolon));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DiscardInLambda(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -1328,8 +1288,7 @@ aeu";
                     Operators.EqualsGreaterThan, Number("1"), Punctuation.Semicolon));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task UnderscoreInAssignment(TestHost testHost)
         {
             await TestInMethodAsync(code: @"int _; _ = 1;",

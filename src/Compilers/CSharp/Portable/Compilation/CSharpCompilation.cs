@@ -13,10 +13,10 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -50,7 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         private readonly CSharpCompilationOptions _options;
-        private readonly Lazy<Imports> _globalImports;
+        private readonly Lazy<UsingsFromOptionsAndDiagnostics> _usingsFromOptions;
+        private readonly Lazy<ImmutableArray<NamespaceOrTypeAndUsingDirective>> _globalImports;
         private readonly Lazy<Imports> _previousSubmissionImports;
         private readonly Lazy<AliasSymbol> _globalNamespaceAlias;  // alias symbol used to resolve "global::".
         private readonly Lazy<ImplicitNamedTypeSymbol?> _scriptClass;
@@ -58,14 +59,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         // The type of host object model if available.
         private TypeSymbol? _lazyHostObjectTypeSymbol;
 
-        // All imports (using directives and extern aliases) in syntax trees in this compilation.
-        // NOTE: We need to de-dup since the Imports objects that populate the list may be GC'd
-        // and re-created.
-        private ConcurrentSet<ImportInfo>? _lazyImportInfos;
+        /// <summary>
+        /// All imports (using directives and extern aliases) in syntax trees in this compilation.
+        /// NOTE: We need to de-dup since the Imports objects that populate the list may be GC'd
+        /// and re-created.
+        /// Values are the sets of dependencies for corresponding directives.
+        /// </summary>
+        private ConcurrentDictionary<ImportInfo, ImmutableArray<AssemblySymbol>>? _lazyImportInfos;
 
         // Cache the CLS diagnostics for the whole compilation so they aren't computed repeatedly.
         // NOTE: Presently, we do not cache the per-tree diagnostics.
         private ImmutableArray<Diagnostic> _lazyClsComplianceDiagnostics;
+        private ImmutableArray<AssemblySymbol> _lazyClsComplianceDependencies;
 
         private Conversions? _conversions;
         /// <summary>
@@ -77,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_conversions == null)
                 {
-                    Interlocked.CompareExchange(ref _conversions, new BuckStopsHereBinder(this).Conversions, null);
+                    Interlocked.CompareExchange(ref _conversions, new BuckStopsHereBinder(this, associatedFileIdentifier: null).Conversions, null);
                 }
 
                 return _conversions;
@@ -130,18 +135,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         private HashSet<SyntaxTree>? _lazyCompilationUnitCompletedTrees;
 
         /// <summary>
-        /// Run the nullable walker during the flow analysis passes. True if the project-level nullable
-        /// context option is set, or if any file enables nullable or just the nullable warnings.
+        /// The set of trees for which enough analysis was performed in order to record usage of using directives.
+        /// Once all trees are processed the value is set to null.
         /// </summary>
-        private ThreeState _lazyShouldRunNullableAnalysis;
+        private ImmutableHashSet<SyntaxTree>? _usageOfUsingsRecordedInTrees = ImmutableHashSet<SyntaxTree>.Empty;
 
         /// <summary>
-        /// Nullable analysis data for methods, parameter default values, and attributes.
-        /// The key is a symbol for methods or parameters, and syntax for attributes,
-        /// and the value is the number of entries tracked during analysis of that key.
-        /// The data is collected during testing only.
+        /// Optional data collected during testing only.
+        /// Used for instance for nullable analysis (<see cref="NullableWalker.NullableAnalysisData"/>)
+        /// and inferred delegate types (<see cref="InferredDelegateTypeData"/>).
         /// </summary>
-        internal ConcurrentDictionary<object, int>? NullableAnalysisData;
+        internal object? TestOnlyCompilationData;
+
+        internal ImmutableHashSet<SyntaxTree>? UsageOfUsingsRecordedInTrees => Volatile.Read(ref _usageOfUsingsRecordedInTrees);
+
+        /// <summary>
+        /// Cache of T to Nullable&lt;T&gt;.
+        /// </summary>
+        private readonly ConcurrentCache<TypeSymbol, NamedTypeSymbol> _typeToNullableVersion = new ConcurrentCache<TypeSymbol, NamedTypeSymbol>(size: 100);
+
+        /// <summary>Lazily caches SyntaxTrees by their mapped path. Used to look up the syntax tree referenced by an interceptor. <see cref="TryGetInterceptor"/></summary>
+        private ImmutableSegmentedDictionary<string, OneOrMany<SyntaxTree>> _mappedPathToSyntaxTree;
 
         public override string Language
         {
@@ -202,36 +216,50 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool IsPeVerifyCompatEnabled => LanguageVersion < LanguageVersion.CSharp7_2 || Feature("peverify-compat") != null;
 
         /// <summary>
-        /// Returns true if nullable analysis is enabled in this compilation.
+        /// True when the "disable-length-based-switch" feature flag is set.
+        /// When this flag is set, the compiler will not emit length-based switch for string dispatches.
+        /// </summary>
+        internal bool FeatureDisableLengthBasedSwitch => Feature("disable-length-based-switch") != null;
+
+        /// <summary>
+        /// Returns true if nullable analysis is enabled in the text span represented by the syntax node.
         /// </summary>
         /// <remarks>
-        /// Returns false if analysis is explicitly disabled for all methods; otherwise
-        /// returns true if the nullable context is enabled in the compilation options
-        /// or if there are any nullable-enabled contexts in the compilation.
+        /// This overload is used for member symbols during binding, or for cases other
+        /// than symbols such as attribute arguments and parameter defaults.
         /// </remarks>
-        internal bool IsNullableAnalysisEnabled
+        internal bool IsNullableAnalysisEnabledIn(SyntaxNode syntax)
         {
-            get
-            {
-                if (!_lazyShouldRunNullableAnalysis.HasValue())
-                {
-                    _lazyShouldRunNullableAnalysis = isEnabled().ToThreeState();
-                }
-                return _lazyShouldRunNullableAnalysis.Value();
+            return IsNullableAnalysisEnabledIn((CSharpSyntaxTree)syntax.SyntaxTree, syntax.Span);
+        }
 
-                bool isEnabled()
-                {
-                    if (GetNullableAnalysisValue() == false)
-                    {
-                        return false;
-                    }
-                    if (Options.NullableContextOptions != NullableContextOptions.Disable)
-                    {
-                        return true;
-                    }
-                    return SyntaxTrees.Any(tree => ((CSharpSyntaxTree)tree).HasNullableEnables());
-                }
-            }
+        /// <summary>
+        /// Returns true if nullable analysis is enabled in the text span.
+        /// </summary>
+        /// <remarks>
+        /// This overload is used for member symbols during binding, or for cases other
+        /// than symbols such as attribute arguments and parameter defaults.
+        /// </remarks>
+        internal bool IsNullableAnalysisEnabledIn(CSharpSyntaxTree tree, TextSpan span)
+        {
+            return GetNullableAnalysisValue() ??
+                tree.IsNullableAnalysisEnabled(span) ??
+                (Options.NullableContextOptions & NullableContextOptions.Warnings) != 0;
+        }
+
+        /// <summary>
+        /// Returns true if nullable analysis is enabled for the method. For constructors, the
+        /// region considered may include other constructors and field and property initializers.
+        /// </summary>
+        /// <remarks>
+        /// This overload is intended for callers that rely on symbols rather than syntax. The overload
+        /// uses the cached value calculated during binding (from potentially several spans)
+        /// from <see cref="IsNullableAnalysisEnabledIn(CSharpSyntaxTree, TextSpan)"/>.
+        /// </remarks>
+        internal bool IsNullableAnalysisEnabledIn(MethodSymbol method)
+        {
+            return GetNullableAnalysisValue() ??
+                method.IsNullableAnalysisEnabled();
         }
 
         /// <summary>
@@ -442,7 +470,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.builtInOperators = new BuiltInOperators(this);
             _scriptClass = new Lazy<ImplicitNamedTypeSymbol?>(BindScriptClass);
-            _globalImports = new Lazy<Imports>(BindGlobalImports);
+            _globalImports = new Lazy<ImmutableArray<NamespaceOrTypeAndUsingDirective>>(BindGlobalImports);
+            _usingsFromOptions = new Lazy<UsingsFromOptionsAndDiagnostics>(BindUsingsFromOptions);
             _previousSubmissionImports = new Lazy<Imports>(ExpandPreviousSubmissionImports);
             _globalNamespaceAlias = new Lazy<AliasSymbol>(CreateGlobalNamespaceAlias);
             _anonymousTypeManager = new AnonymousTypeManager(this);
@@ -753,7 +782,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Is there a trailing expression?
-            var lastGlobalStatement = (GlobalStatementSyntax)root.Members.LastOrDefault(m => m.IsKind(SyntaxKind.GlobalStatement));
+            var lastGlobalStatement = (GlobalStatementSyntax?)root.Members.LastOrDefault(m => m.IsKind(SyntaxKind.GlobalStatement));
             if (lastGlobalStatement != null)
             {
                 var statement = lastGlobalStatement.Statement;
@@ -999,7 +1028,43 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override int GetSyntaxTreeOrdinal(SyntaxTree tree)
         {
             Debug.Assert(this.ContainsSyntaxTree(tree));
-            return _syntaxAndDeclarations.GetLazyState().OrdinalMap[tree];
+            try
+            {
+                return _syntaxAndDeclarations.GetLazyState().OrdinalMap[tree];
+            }
+            catch (KeyNotFoundException)
+            {
+                // Explicitly catching and re-throwing exception so we don't send the syntax
+                // tree (potentially containing private user information) to telemetry.
+                throw new KeyNotFoundException($"Syntax tree not found with file path: {tree.FilePath}");
+            }
+        }
+
+        internal OneOrMany<SyntaxTree> GetSyntaxTreesByMappedPath(string mappedPath)
+        {
+            // We could consider storing this on SyntaxAndDeclarationManager instead, and updating it incrementally.
+            // However, this would make it more difficult for it to be "pay-for-play",
+            // i.e. only created in compilations where interceptors are used.
+            var mappedPathToSyntaxTree = _mappedPathToSyntaxTree;
+            if (mappedPathToSyntaxTree.IsDefault)
+            {
+                RoslynImmutableInterlocked.InterlockedInitialize(ref _mappedPathToSyntaxTree, computeMappedPathToSyntaxTree());
+                mappedPathToSyntaxTree = _mappedPathToSyntaxTree;
+            }
+
+            return mappedPathToSyntaxTree.TryGetValue(mappedPath, out var value) ? value : OneOrMany<SyntaxTree>.Empty;
+
+            ImmutableSegmentedDictionary<string, OneOrMany<SyntaxTree>> computeMappedPathToSyntaxTree()
+            {
+                var builder = ImmutableSegmentedDictionary.CreateBuilder<string, OneOrMany<SyntaxTree>>();
+                var resolver = Options.SourceReferenceResolver;
+                foreach (var tree in SyntaxTrees)
+                {
+                    var path = resolver?.NormalizePath(tree.FilePath, baseFilePath: null) ?? tree.FilePath;
+                    builder[path] = builder.ContainsKey(path) ? builder[path].Add(tree) : OneOrMany.Create(tree);
+                }
+                return builder.ToImmutable();
+            }
         }
 
         #endregion
@@ -1074,6 +1139,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int index = GetBoundReferenceManager().GetReferencedModuleIndex(reference);
                 return index < 0 ? null : this.Assembly.Modules[index];
             }
+        }
+
+        internal override TSymbol? GetSymbolInternal<TSymbol>(ISymbol? symbol) where TSymbol : class
+        {
+            return (TSymbol?)(object?)symbol.GetSymbol<Symbol>();
         }
 
         public override IEnumerable<AssemblyIdentity> ReferencedAssemblyNames
@@ -1192,7 +1262,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var referenceManager = GetBoundReferenceManager();
 
-            for (int i = 0; i < referenceManager.ReferencedAssemblies.Length; i++)
+            int length = referenceManager.ReferencedAssemblies.Length;
+
+            assemblies.EnsureCapacity(assemblies.Count + length);
+
+            for (int i = 0; i < length; i++)
             {
                 if (referenceManager.DeclarationsAccessibleWithoutAlias(i))
                 {
@@ -1351,14 +1425,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ConcurrentDictionary<string, NamespaceSymbol>? _externAliasTargets;
 
-        internal bool GetExternAliasTarget(string aliasName, out NamespaceSymbol? @namespace)
+        internal bool GetExternAliasTarget(string aliasName, out NamespaceSymbol @namespace)
         {
             if (_externAliasTargets == null)
             {
                 Interlocked.CompareExchange(ref _externAliasTargets, new ConcurrentDictionary<string, NamespaceSymbol>(), null);
             }
-            else if (_externAliasTargets.TryGetValue(aliasName, out @namespace))
+            else if (_externAliasTargets.TryGetValue(aliasName, out var cached))
             {
+                @namespace = cached;
                 return !(@namespace is MissingNamespaceSymbol);
             }
 
@@ -1418,9 +1493,48 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Global imports (including those from previous submissions, if there are any).
         /// </summary>
-        internal Imports GlobalImports => _globalImports.Value;
+        internal ImmutableArray<NamespaceOrTypeAndUsingDirective> GlobalImports => _globalImports.Value;
 
-        private Imports BindGlobalImports() => Imports.FromGlobalUsings(this);
+        private ImmutableArray<NamespaceOrTypeAndUsingDirective> BindGlobalImports()
+        {
+            var usingsFromoptions = UsingsFromOptions;
+            var previousSubmission = PreviousSubmission;
+            var previousSubmissionImports = previousSubmission is object ? Imports.ExpandPreviousSubmissionImports(previousSubmission.GlobalImports, this) : ImmutableArray<NamespaceOrTypeAndUsingDirective>.Empty;
+
+            if (usingsFromoptions.UsingNamespacesOrTypes.IsEmpty)
+            {
+                return previousSubmissionImports;
+            }
+            else if (previousSubmissionImports.IsEmpty)
+            {
+                return usingsFromoptions.UsingNamespacesOrTypes;
+            }
+
+            var boundUsings = ArrayBuilder<NamespaceOrTypeAndUsingDirective>.GetInstance();
+            var uniqueUsings = PooledHashSet<NamespaceOrTypeSymbol>.GetInstance();
+
+            boundUsings.AddRange(usingsFromoptions.UsingNamespacesOrTypes);
+            uniqueUsings.AddAll(usingsFromoptions.UsingNamespacesOrTypes.Select(static unt => unt.NamespaceOrType));
+
+            foreach (var previousUsing in previousSubmissionImports)
+            {
+                if (uniqueUsings.Add(previousUsing.NamespaceOrType))
+                {
+                    boundUsings.Add(previousUsing);
+                }
+            }
+
+            uniqueUsings.Free();
+
+            return boundUsings.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Global imports not including those from previous submissions.
+        /// </summary>
+        private UsingsFromOptionsAndDiagnostics UsingsFromOptions => _usingsFromOptions.Value;
+
+        private UsingsFromOptionsAndDiagnostics BindUsingsFromOptions() => UsingsFromOptionsAndDiagnostics.FromOptions(this);
 
         /// <summary>
         /// Imports declared by this submission (null if this isn't one).
@@ -1437,8 +1551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Imports.Empty;
             }
 
-            var binder = GetBinderFactory(tree).GetImportsBinder((CSharpSyntaxNode)tree.GetRoot());
-            return binder.GetImports(basesBeingResolved: null);
+            return ((SourceNamespaceSymbol)SourceModule.GlobalNamespace).GetImports((CSharpSyntaxNode)tree.GetRoot(), basesBeingResolved: null);
         }
 
         /// <summary>
@@ -1494,6 +1607,60 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Given a provided <paramref name="typeArgument"/>, gives back <see cref="Nullable{T}"/> constructed with that
+        /// argument.  This function is only intended to be used for very common instantiations produced heavily during
+        /// binding.  Specifically, the nullable versions of enums, and the nullable versions of core built-ins.  So
+        /// many of these are created that it's worthwhile to cache, keeping overall garbage low, while not ballooning
+        /// the size of the cache itself.
+        /// </summary>
+        internal NamedTypeSymbol GetOrCreateNullableType(TypeSymbol typeArgument)
+        {
+#if DEBUG
+            if (!isSupportedType(typeArgument))
+                Debug.Fail($"Unsupported type argument: {typeArgument.ToDisplayString()}");
+#endif
+
+            if (!_typeToNullableVersion.TryGetValue(typeArgument, out var constructedNullableInstance))
+            {
+                constructedNullableInstance = this.GetSpecialType(SpecialType.System_Nullable_T).Construct(typeArgument);
+                _typeToNullableVersion.TryAdd(typeArgument, constructedNullableInstance);
+            }
+
+            return constructedNullableInstance;
+
+#if DEBUG
+            static bool isSupportedType(TypeSymbol typeArgument)
+            {
+                if (typeArgument.IsEnumType())
+                    return true;
+
+                switch (typeArgument.SpecialType)
+                {
+                    case SpecialType.System_SByte:
+                    case SpecialType.System_Byte:
+                    case SpecialType.System_Int16:
+                    case SpecialType.System_UInt16:
+                    case SpecialType.System_Int32:
+                    case SpecialType.System_UInt32:
+                    case SpecialType.System_Int64:
+                    case SpecialType.System_UInt64:
+                    case SpecialType.System_Char:
+                    case SpecialType.System_Single:
+                    case SpecialType.System_Double:
+                    case SpecialType.System_Decimal:
+                    case SpecialType.System_Boolean:
+                        return true;
+                }
+
+                if (typeArgument.IsNativeIntegerType)
+                    return true;
+
+                return false;
+            }
+#endif
+        }
+
+        /// <summary>
         /// Get the symbol for the predefined type member from the COR Library referenced by this compilation.
         /// </summary>
         internal Symbol GetSpecialTypeMember(SpecialMember specialMember)
@@ -1506,10 +1673,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetSpecialTypeMember(specialMember);
         }
 
-        internal TypeSymbol GetTypeByReflectionType(Type type, DiagnosticBag diagnostics)
+        internal TypeSymbol GetTypeByReflectionType(Type type, BindingDiagnosticBag diagnostics)
         {
-            var result = Assembly.GetTypeByReflectionType(type, includeReferences: true);
-            if ((object)result == null)
+            var result = Assembly.GetTypeByReflectionType(type);
+            if (result is null)
             {
                 var errorType = new ExtendedErrorTypeSymbol(this, type.Name, 0, CreateReflectionTypeNotFoundError(type));
                 diagnostics.Add(errorType.ErrorInfo, NoLocation.Singleton);
@@ -1537,9 +1704,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (HostObjectType != null && _lazyHostObjectTypeSymbol is null)
             {
-                TypeSymbol symbol = Assembly.GetTypeByReflectionType(HostObjectType, includeReferences: true);
+                TypeSymbol? symbol = Assembly.GetTypeByReflectionType(HostObjectType);
 
-                if ((object)symbol == null)
+                if (symbol is null)
                 {
                     MetadataTypeName mdName = MetadataTypeName.FromNamespaceAndTypeName(HostObjectType.Namespace ?? String.Empty,
                                                                                         HostObjectType.Name,
@@ -1571,7 +1738,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal new NamedTypeSymbol? GetTypeByMetadataName(string fullyQualifiedMetadataName)
         {
-            return this.Assembly.GetTypeByMetadataName(fullyQualifiedMetadataName, includeReferences: true, isWellKnownType: false, conflicts: out var _);
+            var result = this.Assembly.GetTypeByMetadataName(fullyQualifiedMetadataName, includeReferences: true, isWellKnownType: false, conflicts: out var _);
+            Debug.Assert(result?.IsErrorType() != true);
+            return result;
         }
 
         /// <summary>
@@ -1616,14 +1785,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_lazyEntryPoint == null)
             {
                 EntryPoint? entryPoint;
-                MethodSymbol? simpleProgramEntryPointSymbol = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(this);
+                var simpleProgramEntryPointSymbol = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(this);
 
                 if (!this.Options.OutputKind.IsApplication() && (this.ScriptClass is null))
                 {
                     if (simpleProgramEntryPointSymbol is object)
                     {
-                        var diagnostics = DiagnosticBag.GetInstance();
-                        diagnostics.Add(ErrorCode.ERR_SimpleProgramNotAnExecutable, NoLocation.Singleton);
+                        var diagnostics = BindingDiagnosticBag.GetInstance();
+                        diagnostics.Add(ErrorCode.ERR_SimpleProgramNotAnExecutable, simpleProgramEntryPointSymbol.ReturnTypeSyntax.Location);
                         entryPoint = new EntryPoint(null, diagnostics.ToReadOnlyAndFree());
                     }
                     else
@@ -1643,7 +1812,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (entryPoint is null)
                     {
-                        ImmutableArray<Diagnostic> diagnostics;
+                        ImmutableBindingDiagnostic<AssemblySymbol> diagnostics;
                         var entryPointMethod = FindEntryPoint(simpleProgramEntryPointSymbol, cancellationToken, out diagnostics);
                         entryPoint = new EntryPoint(entryPointMethod, diagnostics);
                     }
@@ -1652,7 +1821,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var diagnostics = DiagnosticBag.GetInstance();
                         diagnostics.Add(ErrorCode.ERR_SimpleProgramDisallowsMainType, NoLocation.Singleton);
-                        entryPoint = new EntryPoint(entryPoint.MethodSymbol, entryPoint.Diagnostics.Concat(diagnostics.ToReadOnlyAndFree()));
+                        entryPoint = new EntryPoint(entryPoint.MethodSymbol,
+                                                    new ImmutableBindingDiagnostic<AssemblySymbol>(
+                                                        entryPoint.Diagnostics.Diagnostics.Concat(diagnostics.ToReadOnlyAndFree()), entryPoint.Diagnostics.Dependencies));
                     }
                 }
 
@@ -1662,9 +1833,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _lazyEntryPoint;
         }
 
-        private MethodSymbol? FindEntryPoint(MethodSymbol? simpleProgramEntryPointSymbol, CancellationToken cancellationToken, out ImmutableArray<Diagnostic> sealedDiagnostics)
+        private MethodSymbol? FindEntryPoint(MethodSymbol? simpleProgramEntryPointSymbol, CancellationToken cancellationToken, out ImmutableBindingDiagnostic<AssemblySymbol> sealedDiagnostics)
         {
-            var diagnostics = DiagnosticBag.GetInstance();
+            var diagnostics = BindingDiagnosticBag.GetInstance();
+            RoslynDebug.Assert(diagnostics.DiagnosticBag is object);
             var entryPointCandidates = ArrayBuilder<MethodSymbol>.GetInstance();
 
             try
@@ -1695,7 +1867,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     mainType = mainTypeOrNamespace as NamedTypeSymbol;
                     if (mainType is null || mainType.IsGenericType || (mainType.TypeKind != TypeKind.Class && mainType.TypeKind != TypeKind.Struct && !mainType.IsInterface))
                     {
-                        diagnostics.Add(ErrorCode.ERR_MainClassNotClass, mainTypeOrNamespace.Locations.First(), mainTypeOrNamespace);
+                        diagnostics.Add(ErrorCode.ERR_MainClassNotClass, mainTypeOrNamespace.GetFirstLocation(), mainTypeOrNamespace);
                         return null;
                     }
 
@@ -1714,7 +1886,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         foreach (var main in entryPointCandidates)
                         {
-                            diagnostics.Add(ErrorCode.WRN_MainIgnored, main.Locations.First(), main);
+                            if (main is not SynthesizedSimpleProgramEntryPointSymbol)
+                            {
+                                diagnostics.Add(ErrorCode.WRN_MainIgnored, main.GetFirstLocation(), main);
+                            }
                         }
 
                         if (scriptClass is object)
@@ -1730,17 +1905,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Validity and diagnostics are also tracked because they must be conditionally handled
                 // if there are not any "traditional" entrypoints found.
-                var taskEntryPoints = ArrayBuilder<(bool IsValid, MethodSymbol Candidate, DiagnosticBag SpecificDiagnostics)>.GetInstance();
+                var taskEntryPoints = ArrayBuilder<(bool IsValid, MethodSymbol Candidate, BindingDiagnosticBag SpecificDiagnostics)>.GetInstance();
 
                 // These diagnostics (warning only) are added to the compilation only if
                 // there were not any main methods found.
-                DiagnosticBag noMainFoundDiagnostics = DiagnosticBag.GetInstance();
+                var noMainFoundDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
+                RoslynDebug.Assert(noMainFoundDiagnostics.DiagnosticBag is object);
 
-                bool checkValid(MethodSymbol candidate, bool isCandidate, DiagnosticBag specificDiagnostics)
+                bool checkValid(MethodSymbol candidate, bool isCandidate, BindingDiagnosticBag specificDiagnostics)
                 {
                     if (!isCandidate)
                     {
-                        noMainFoundDiagnostics.Add(ErrorCode.WRN_InvalidMainSig, candidate.Locations.First(), candidate);
+                        noMainFoundDiagnostics.Add(ErrorCode.WRN_InvalidMainSig, candidate.GetFirstLocation(), candidate);
                         noMainFoundDiagnostics.AddRange(specificDiagnostics);
                         return false;
                     }
@@ -1748,7 +1924,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (candidate.IsGenericMethod || candidate.ContainingType.IsGenericType)
                     {
                         // a single error for partial methods:
-                        noMainFoundDiagnostics.Add(ErrorCode.WRN_MainCantBeGeneric, candidate.Locations.First(), candidate);
+                        noMainFoundDiagnostics.Add(ErrorCode.WRN_MainCantBeGeneric, candidate.GetFirstLocation(), candidate);
                         return false;
                     }
                     return true;
@@ -1758,7 +1934,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var candidate in entryPointCandidates)
                 {
-                    var perCandidateBag = DiagnosticBag.GetInstance();
+                    var perCandidateBag = BindingDiagnosticBag.GetInstance(diagnostics);
                     var (IsCandidate, IsTaskLike) = HasEntryPointSignature(candidate, perCandidateBag);
 
                     if (IsTaskLike)
@@ -1771,7 +1947,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (candidate.IsAsync)
                             {
-                                diagnostics.Add(ErrorCode.ERR_NonTaskMainCantBeAsync, candidate.Locations.First(), candidate);
+                                diagnostics.Add(ErrorCode.ERR_NonTaskMainCantBeAsync, candidate.GetFirstLocation());
                             }
                             else
                             {
@@ -1798,7 +1974,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (LanguageVersion >= MessageID.IDS_FeatureAsyncMain.RequiredVersion() && taskEntryPoints.Count > 0)
                 {
                     var taskCandidates = taskEntryPoints.SelectAsArray(s => (Symbol)s.Candidate);
-                    var taskLocations = taskCandidates.SelectAsArray(s => s.Locations[0]);
+                    var taskLocations = taskCandidates.SelectAsArray(s => s.GetFirstLocation());
 
                     foreach (var candidate in taskCandidates)
                     {
@@ -1808,7 +1984,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                              args: new object[] { candidate, viableEntryPoints[0] },
                              symbols: taskCandidates,
                              additionalLocations: taskLocations);
-                        diagnostics.Add(new CSDiagnostic(info, candidate.Locations[0]));
+                        diagnostics.Add(new CSDiagnostic(info, candidate.GetFirstLocation()));
                     }
                 }
 
@@ -1830,13 +2006,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // We can't add those Errors to the general diagnostics bag because it would break previously-working programs.
                     // The fact that these warnings are not added when csc is invoked with /main is possibly a bug, and is tracked at
                     // https://github.com/dotnet/roslyn/issues/18964
-                    foreach (var diagnostic in noMainFoundDiagnostics.AsEnumerable())
+                    foreach (var diagnostic in noMainFoundDiagnostics.DiagnosticBag.AsEnumerable())
                     {
                         if (diagnostic.Code == (int)ErrorCode.WRN_InvalidMainSig || diagnostic.Code == (int)ErrorCode.WRN_MainCantBeGeneric)
                         {
                             diagnostics.Add(diagnostic);
                         }
                     }
+
+                    diagnostics.AddDependencies(noMainFoundDiagnostics);
                 }
 
                 MethodSymbol? entryPoint = null;
@@ -1848,7 +2026,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        diagnostics.Add(ErrorCode.ERR_NoMainInClass, mainType.Locations.First(), mainType);
+                        diagnostics.Add(ErrorCode.ERR_NoMainInClass, mainType.GetFirstLocation(), mainType);
                     }
                 }
                 else
@@ -1859,7 +2037,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             Debug.Assert(!ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.Uninitialized));
                             Debug.Assert(!ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound));
-                            diagnostics.Add(ErrorCode.ERR_EntryPointCannotBeUnmanagedCallersOnly, viableEntryPoint.Locations.First());
+                            diagnostics.Add(ErrorCode.ERR_EntryPointCannotBeUnmanagedCallersOnly, viableEntryPoint.GetFirstLocation());
                         }
                     }
 
@@ -1870,9 +2048,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                              ErrorCode.ERR_MultipleEntryPoints,
                              args: Array.Empty<object>(),
                              symbols: viableEntryPoints.OfType<Symbol>().AsImmutable(),
-                             additionalLocations: viableEntryPoints.Select(m => m.Locations.First()).OfType<Location>().AsImmutable());
+                             additionalLocations: viableEntryPoints.Select(m => m.GetFirstLocation()).OfType<Location>().AsImmutable());
 
-                        diagnostics.Add(new CSDiagnostic(info, viableEntryPoints.First().Locations.First()));
+                        diagnostics.Add(new CSDiagnostic(info, viableEntryPoints.First().GetFirstLocation()));
                     }
                     else
                     {
@@ -1905,7 +2083,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal bool ReturnsAwaitableToVoidOrInt(MethodSymbol method, DiagnosticBag diagnostics)
+        internal bool ReturnsAwaitableToVoidOrInt(MethodSymbol method, BindingDiagnosticBag diagnostics)
         {
             // Common case optimization
             if (method.ReturnType.IsVoidType() || method.ReturnType.SpecialType == SpecialType.System_Int32)
@@ -1943,7 +2121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// is either void or int.
         /// - has either no parameter or a single parameter of type string[]
         /// </summary>
-        internal (bool IsCandidate, bool IsTaskLike) HasEntryPointSignature(MethodSymbol method, DiagnosticBag bag)
+        internal (bool IsCandidate, bool IsTaskLike) HasEntryPointSignature(MethodSymbol method, BindingDiagnosticBag bag)
         {
             if (method.IsVararg)
             {
@@ -1998,11 +2176,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal class EntryPoint
         {
             public readonly MethodSymbol? MethodSymbol;
-            public readonly ImmutableArray<Diagnostic> Diagnostics;
+            public readonly ImmutableBindingDiagnostic<AssemblySymbol> Diagnostics;
 
-            public static readonly EntryPoint None = new EntryPoint(null, ImmutableArray<Diagnostic>.Empty);
+            public static readonly EntryPoint None = new EntryPoint(null, ImmutableBindingDiagnostic<AssemblySymbol>.Empty);
 
-            public EntryPoint(MethodSymbol? methodSymbol, ImmutableArray<Diagnostic> diagnostics)
+            public EntryPoint(MethodSymbol? methodSymbol, ImmutableBindingDiagnostic<AssemblySymbol> diagnostics)
             {
                 this.MethodSymbol = methodSymbol;
                 this.Diagnostics = diagnostics;
@@ -2029,6 +2207,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <paramref name="source"/> type to the <paramref name="destination"/> type.</returns>
         public Conversion ClassifyConversion(ITypeSymbol source, ITypeSymbol destination)
         {
+            // https://github.com/dotnet/roslyn/issues/60397 : Add an API with ability to specify isChecked?
+
             // Note that it is possible for there to be both an implicit user-defined conversion
             // and an explicit built-in conversion from source to destination. In that scenario
             // this method returns the implicit conversion.
@@ -2046,8 +2226,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol? cssource = source.EnsureCSharpSymbolOrNull(nameof(source));
             TypeSymbol? csdest = destination.EnsureCSharpSymbolOrNull(nameof(destination));
 
-            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
-            return Conversions.ClassifyConversionFromType(cssource, csdest, ref useSiteDiagnostics);
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+
+            return Conversions.ClassifyConversionFromType(cssource, csdest, isChecked: false, ref discardedUseSiteInfo);
         }
 
         /// <summary>
@@ -2060,6 +2241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <paramref name="source"/> type to the <paramref name="destination"/> type.</returns>
         public override CommonConversion ClassifyCommonConversion(ITypeSymbol source, ITypeSymbol destination)
         {
+            // https://github.com/dotnet/roslyn/issues/60397 : Add an API with ability to specify isChecked?
             return ClassifyConversion(source, destination).ToCommonConversion();
         }
 
@@ -2136,11 +2318,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol? symbol0 = symbol.EnsureCSharpSymbolOrNull(nameof(symbol));
             Symbol? within0 = within.EnsureCSharpSymbolOrNull(nameof(within));
             TypeSymbol? throughType0 = throughType.EnsureCSharpSymbolOrNull(nameof(throughType));
-            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
             return
                 within0.Kind == SymbolKind.Assembly ?
-                AccessCheck.IsSymbolAccessible(symbol0, (AssemblySymbol)within0, ref useSiteDiagnostics) :
-                AccessCheck.IsSymbolAccessible(symbol0, (NamedTypeSymbol)within0, ref useSiteDiagnostics, throughType0);
+                AccessCheck.IsSymbolAccessible(symbol0, (AssemblySymbol)within0, ref discardedUseSiteInfo) :
+                AccessCheck.IsSymbolAccessible(symbol0, (NamedTypeSymbol)within0, ref discardedUseSiteInfo, throughType0);
         }
 
         [Obsolete("Compilation.IsSymbolAccessibleWithin is not designed for use within the compilers", true)]
@@ -2158,6 +2340,60 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!_declarationDiagnosticsFrozen);
             LazyInitializer.EnsureInitialized(ref _moduleInitializerMethods).Add(method);
+        }
+
+        // NB: the 'Many' case for these dictionary values means there are duplicates. An error is reported for this after binding.
+        private ConcurrentDictionary<(string FilePath, int Line, int Character), OneOrMany<(Location AttributeLocation, MethodSymbol Interceptor)>>? _interceptions;
+
+        internal void AddInterception(string filePath, int line, int character, Location attributeLocation, MethodSymbol interceptor)
+        {
+            Debug.Assert(!_declarationDiagnosticsFrozen);
+
+            var dictionary = LazyInitializer.EnsureInitialized(ref _interceptions);
+            dictionary.AddOrUpdate((filePath, line, character),
+                addValueFactory: static (key, newValue) => OneOrMany.Create(newValue),
+                updateValueFactory: static (key, existingValues, newValue) =>
+                {
+                    // AddInterception can be called when attributes are decoded on a symbol, which can happen for the same symbol concurrently.
+                    // If something else has already added the interceptor denoted by a given `[InterceptsLocation]`, we want to drop it.
+                    // Since the collection is almost always length 1, a simple foreach is adequate for detecting this.
+                    foreach (var (attributeLocation, interceptor) in existingValues)
+                    {
+                        if (attributeLocation == newValue.AttributeLocation && interceptor.Equals(newValue.Interceptor, TypeCompareKind.ConsiderEverything))
+                        {
+                            return existingValues;
+                        }
+                    }
+                    return existingValues.Add(newValue);
+                },
+                // Explicit tuple element names are needed here so that the names unify when this is an extension method call (netstandard2.0).
+                factoryArgument: (AttributeLocation: attributeLocation, Interceptor: interceptor));
+        }
+
+        internal (Location AttributeLocation, MethodSymbol Interceptor)? TryGetInterceptor(Location? callLocation)
+        {
+            if (_interceptions is null || callLocation is null)
+            {
+                return null;
+            }
+
+            var callLineColumn = callLocation.GetLineSpan().Span.Start;
+            Debug.Assert(callLocation.SourceTree is not null);
+            var key = (callLocation.SourceTree.FilePath, callLineColumn.Line, callLineColumn.Character);
+
+            if (_interceptions.TryGetValue(key, out var interceptionsAtAGivenLocation))
+            {
+                if (interceptionsAtAGivenLocation is [var oneInterception])
+                {
+                    return oneInterception;
+                }
+
+                // Duplicate interceptors is an error in the declaration phase.
+                // This method is only expected to be called if no such errors are present.
+                throw ExceptionUtilities.Unreachable();
+            }
+
+            return null;
         }
 
         #endregion
@@ -2204,7 +2440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BinderFactory GetBinderFactory(SyntaxTree syntaxTree, bool ignoreAccessibility = false)
         {
-            if (ignoreAccessibility && SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(this) is object)
+            if (ignoreAccessibility && SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(this) is object)
             {
                 return GetBinderFactory(syntaxTree, ignoreAccessibility: true, ref _ignoreAccessibilityBinderFactories);
             }
@@ -2261,17 +2497,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax);
         }
 
-        /// <summary>
-        /// Returns imported symbols for the given declaration.
-        /// </summary>
-        internal Imports GetImports(SingleNamespaceDeclaration declaration)
-        {
-            return GetBinderFactory(declaration.SyntaxReference.SyntaxTree).GetImportsBinder((CSharpSyntaxNode)declaration.SyntaxReference.GetSyntax()).GetImports(basesBeingResolved: null);
-        }
-
         private AliasSymbol CreateGlobalNamespaceAlias()
         {
-            return AliasSymbol.CreateGlobalNamespaceAlias(this.GlobalNamespace, new InContainerBinder(this.GlobalNamespace, new BuckStopsHereBinder(this)));
+            return AliasSymbol.CreateGlobalNamespaceAlias(this.GlobalNamespace);
         }
 
         private void CompleteTree(SyntaxTree tree)
@@ -2293,16 +2521,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override void ReportUnusedImports(SyntaxTree? filterTree, DiagnosticBag diagnostics, CancellationToken cancellationToken)
+        internal override void ReportUnusedImports(DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
-            if (_lazyImportInfos != null && filterTree?.Options.DocumentationMode != DocumentationMode.None)
+            Debug.Assert(diagnostics is { });
+            var bag = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+            Debug.Assert(bag.DiagnosticBag is { });
+            ReportUnusedImports(filterTree: null, bag, cancellationToken);
+            diagnostics.AddRange(bag.DiagnosticBag);
+            bag.Free();
+        }
+
+        private void ReportUnusedImports(SyntaxTree? filterTree, BindingDiagnosticBag diagnostics, CancellationToken cancellationToken)
+        {
+            if (_lazyImportInfos != null && (filterTree is null || ReportUnusedImportsInTree(filterTree)))
             {
-                foreach (ImportInfo info in _lazyImportInfos)
+                PooledHashSet<NamespaceSymbol>? externAliasesToCheck = null;
+
+                if (diagnostics.DependenciesBag is object)
+                {
+                    externAliasesToCheck = PooledHashSet<NamespaceSymbol>.GetInstance();
+                }
+
+                foreach (var pair in _lazyImportInfos)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
+                    ImportInfo info = pair.Key;
                     SyntaxTree infoTree = info.Tree;
-                    if ((filterTree == null || filterTree == infoTree) && infoTree.Options.DocumentationMode != DocumentationMode.None)
+                    if ((filterTree == null || filterTree == infoTree) && ReportUnusedImportsInTree(infoTree))
                     {
                         TextSpan infoSpan = info.Span;
                         if (!this.IsImportDirectiveUsed(infoTree, infoSpan.Start))
@@ -2312,7 +2558,66 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 : ErrorCode.HDN_UnusedUsingDirective;
                             diagnostics.Add(code, infoTree.GetLocation(infoSpan));
                         }
+                        else if (diagnostics.DependenciesBag is object)
+                        {
+                            RoslynDebug.Assert(externAliasesToCheck is object);
+                            ImmutableArray<AssemblySymbol> dependencies = pair.Value;
+
+                            if (!dependencies.IsDefaultOrEmpty)
+                            {
+                                diagnostics.AddDependencies(dependencies);
+                            }
+                            else if (info.Kind == SyntaxKind.ExternAliasDirective)
+                            {
+                                // Record targets of used extern aliases
+                                var node = info.Tree.GetRoot(cancellationToken).FindToken(info.Span.Start, findInsideTrivia: false).
+                                               Parent!.FirstAncestorOrSelf<ExternAliasDirectiveSyntax>();
+
+                                if (node is object && GetExternAliasTarget(node.Identifier.ValueText, out NamespaceSymbol target))
+                                {
+                                    externAliasesToCheck.Add(target);
+                                }
+                            }
+                        }
                     }
+                }
+
+                if (externAliasesToCheck is object)
+                {
+                    RoslynDebug.Assert(diagnostics.DependenciesBag is object);
+
+                    // We could do this check after we have built the transitive closure
+                    // in GetCompleteSetOfUsedAssemblies.completeTheSetOfUsedAssemblies. However,
+                    // the level of accuracy is probably not worth the complexity this would add.
+                    var bindingDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: false, withDependencies: true);
+                    RoslynDebug.Assert(bindingDiagnostics.DependenciesBag is object);
+
+                    foreach (var aliasedNamespace in externAliasesToCheck)
+                    {
+                        bindingDiagnostics.Clear();
+                        bindingDiagnostics.AddAssembliesUsedByNamespaceReference(aliasedNamespace);
+
+                        // See if any of the references with the alias are registered as used. We can get in a situation when none of them are.
+                        // For example, when the alias was used in a doc comment, but nothing was found within it. We would get only a warning
+                        // in this case and no assembly marked as used.
+                        if (_lazyUsedAssemblyReferences?.IsEmpty == false || diagnostics.DependenciesBag.Count != 0)
+                        {
+                            foreach (var assembly in bindingDiagnostics.DependenciesBag)
+                            {
+                                if (_lazyUsedAssemblyReferences?.Contains(assembly) == true ||
+                                    diagnostics.DependenciesBag.Contains(assembly))
+                                {
+                                    bindingDiagnostics.DependenciesBag.Clear();
+                                    break;
+                                }
+                            }
+                        }
+
+                        diagnostics.AddDependencies(bindingDiagnostics);
+                    }
+
+                    bindingDiagnostics.Free();
+                    externAliasesToCheck.Free();
                 }
             }
 
@@ -2338,6 +2643,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+
+            if (filterTree is null)
+            {
+                _usageOfUsingsRecordedInTrees = null;
+            }
         }
 
         internal void RecordImport(UsingDirectiveSyntax syntax)
@@ -2354,10 +2664,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Note: the suppression will be unnecessary once LazyInitializer is properly annotated
             LazyInitializer.EnsureInitialized(ref _lazyImportInfos)!.
-                Add(new ImportInfo(syntax.SyntaxTree, syntax.Kind(), syntax.Span));
+                TryAdd(new ImportInfo(syntax.SyntaxTree, syntax.Kind(), syntax.Span), default);
         }
 
-        private struct ImportInfo : IEquatable<ImportInfo>
+        internal void RecordImportDependencies(UsingDirectiveSyntax syntax, ImmutableArray<AssemblySymbol> dependencies)
+        {
+            RoslynDebug.Assert(_lazyImportInfos is object);
+            _lazyImportInfos.TryUpdate(new ImportInfo(syntax.SyntaxTree, syntax.Kind(), syntax.Span), dependencies, default);
+        }
+
+        private readonly struct ImportInfo : IEquatable<ImportInfo>
         {
             public readonly SyntaxTree Tree;
             public readonly SyntaxKind Kind;
@@ -2496,7 +2812,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override void GetDiagnostics(CompilationStage stage, bool includeEarlierStages, DiagnosticBag diagnostics, CancellationToken cancellationToken = default)
         {
-            DiagnosticBag? builder = DiagnosticBag.GetInstance();
+            var builder = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+            Debug.Assert(builder.DiagnosticBag is { });
+
+            GetDiagnosticsWithoutFiltering(stage, includeEarlierStages, builder, cancellationToken);
+
+            // Before returning diagnostics, we filter warnings
+            // to honor the compiler options (e.g., /nowarn, /warnaserror and /warn) and the pragmas.
+            FilterAndAppendDiagnostics(diagnostics, builder.DiagnosticBag, cancellationToken);
+            builder.Free();
+        }
+
+        private void GetDiagnosticsWithoutFiltering(CompilationStage stage, bool includeEarlierStages, BindingDiagnosticBag builder, CancellationToken cancellationToken)
+        {
+            RoslynDebug.Assert(builder.DiagnosticBag is object);
 
             if (stage == CompilationStage.Parse || (stage > CompilationStage.Parse && includeEarlierStages))
             {
@@ -2509,7 +2838,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         UICultureUtilities.WithCurrentUICulture<int>(i =>
                         {
                             var syntaxTree = syntaxTrees[i];
-                            AppendLoadDirectiveDiagnostics(builder, _syntaxAndDeclarations, syntaxTree);
+                            AppendLoadDirectiveDiagnostics(builder.DiagnosticBag, _syntaxAndDeclarations, syntaxTree);
                             builder.AddRange(syntaxTree.GetDiagnostics(cancellationToken));
                         }),
                         cancellationToken);
@@ -2519,7 +2848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     foreach (var syntaxTree in syntaxTrees)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        AppendLoadDirectiveDiagnostics(builder, _syntaxAndDeclarations, syntaxTree);
+                        AppendLoadDirectiveDiagnostics(builder.DiagnosticBag, _syntaxAndDeclarations, syntaxTree);
 
                         cancellationToken.ThrowIfCancellationRequested();
                         builder.AddRange(syntaxTree.GetDiagnostics(cancellationToken));
@@ -2543,7 +2872,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (stage == CompilationStage.Declare || stage > CompilationStage.Declare && includeEarlierStages)
             {
-                CheckAssemblyName(builder);
+                CheckAssemblyName(builder.DiagnosticBag);
                 builder.AddRange(Options.Errors);
 
                 if (Options.NullableContextOptions != NullableContextOptions.Disable && LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() &&
@@ -2561,7 +2890,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                builder.AddRange(GetSourceDeclarationDiagnostics(cancellationToken: cancellationToken));
+                builder.AddRange(GetSourceDeclarationDiagnostics(cancellationToken: cancellationToken), allowMismatchInDependencyAccumulation: true);
 
                 if (EventQueue != null && SyntaxTrees.Length == 0)
                 {
@@ -2573,14 +2902,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (stage == CompilationStage.Compile || stage > CompilationStage.Compile && includeEarlierStages)
             {
-                var methodBodyDiagnostics = DiagnosticBag.GetInstance();
-                GetDiagnosticsForAllMethodBodies(methodBodyDiagnostics, cancellationToken);
+                var methodBodyDiagnostics = builder.AccumulatesDependencies ? BindingDiagnosticBag.GetConcurrentInstance() : BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+                RoslynDebug.Assert(methodBodyDiagnostics.DiagnosticBag is object);
+                GetDiagnosticsForAllMethodBodies(methodBodyDiagnostics, doLowering: false, cancellationToken);
                 builder.AddRangeAndFree(methodBodyDiagnostics);
             }
-
-            // Before returning diagnostics, we filter warnings
-            // to honor the compiler options (e.g., /nowarn, /warnaserror and /warn) and the pragmas.
-            FilterAndAppendAndFreeDiagnostics(diagnostics, ref builder, cancellationToken);
         }
 
         private static void AppendLoadDirectiveDiagnostics(DiagnosticBag builder, SyntaxAndDeclarationManager syntaxAndDeclarations, SyntaxTree syntaxTree, Func<IEnumerable<Diagnostic>, IEnumerable<Diagnostic>>? locationFilterOpt = null)
@@ -2603,14 +2929,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Do the steps in compilation to get the method body diagnostics, but don't actually generate
         // IL or emit an assembly.
-        private void GetDiagnosticsForAllMethodBodies(DiagnosticBag diagnostics, CancellationToken cancellationToken)
+        private void GetDiagnosticsForAllMethodBodies(BindingDiagnosticBag diagnostics, bool doLowering, CancellationToken cancellationToken)
         {
+            RoslynDebug.Assert(diagnostics.DiagnosticBag is object);
             MethodCompiler.CompileMethodBodies(
                 compilation: this,
-                moduleBeingBuiltOpt: null,
+                moduleBeingBuiltOpt: doLowering ? (PEModuleBuilder?)CreateModuleBuilder(
+                                                                       emitOptions: EmitOptions.Default,
+                                                                       debugEntryPoint: null,
+                                                                       manifestResources: null,
+                                                                       sourceLinkStream: null,
+                                                                       embeddedTexts: null,
+                                                                       testData: null,
+                                                                       diagnostics: diagnostics.DiagnosticBag,
+                                                                       cancellationToken: cancellationToken)
+                                                : null,
                 emittingPdb: false,
-                emitTestCoverageData: false,
                 hasDeclarationErrors: false,
+                emitMethodBodies: false,
                 diagnostics: diagnostics,
                 filterOpt: null,
                 cancellationToken: cancellationToken);
@@ -2637,33 +2973,139 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ImmutableArray<Diagnostic> GetDiagnosticsForMethodBodiesInTree(SyntaxTree tree, TextSpan? span, CancellationToken cancellationToken)
         {
-            DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
-
-            MethodCompiler.CompileMethodBodies(
-                compilation: this,
-                moduleBeingBuiltOpt: null,
-                emittingPdb: false,
-                emitTestCoverageData: false,
-                hasDeclarationErrors: false,
-                diagnostics: diagnostics,
-                filterOpt: s => IsDefinedOrImplementedInSourceTree(s, tree, span),
-                cancellationToken: cancellationToken);
-
-            DocumentationCommentCompiler.WriteDocumentationCommentXml(this, null, null, diagnostics, cancellationToken, tree, span);
+            var bindingDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+            Debug.Assert(bindingDiagnostics.DiagnosticBag is { });
 
             // Report unused directives only if computing diagnostics for the entire tree.
             // Otherwise we cannot determine if a particular directive is used outside of the given sub-span within the tree.
-            if (!span.HasValue || span.Value == tree.GetRoot(cancellationToken).FullSpan)
+            bool reportUnusedUsings = (!span.HasValue || span.Value == tree.GetRoot(cancellationToken).FullSpan) && ReportUnusedImportsInTree(tree);
+            bool recordUsageOfUsingsInAllTrees = false;
+
+            if (reportUnusedUsings && UsageOfUsingsRecordedInTrees is not null)
             {
-                ReportUnusedImports(tree, diagnostics, cancellationToken);
+                foreach (var singleDeclaration in ((SourceNamespaceSymbol)SourceModule.GlobalNamespace).MergedDeclaration.Declarations)
+                {
+                    if (singleDeclaration.SyntaxReference.SyntaxTree == tree)
+                    {
+                        if (singleDeclaration.HasGlobalUsings)
+                        {
+                            // Global Using directives can be used in any tree. Make sure we collect usage information from all of them.
+                            recordUsageOfUsingsInAllTrees = true;
+                        }
+
+                        break;
+                    }
+                }
             }
 
-            return diagnostics.ToReadOnlyAndFree();
+            if (recordUsageOfUsingsInAllTrees && UsageOfUsingsRecordedInTrees?.IsEmpty == true)
+            {
+                Debug.Assert(reportUnusedUsings);
+
+                // Simply compile the world
+                compileMethodBodiesAndDocComments(filterTree: null, filterSpan: null, bindingDiagnostics, cancellationToken);
+                _usageOfUsingsRecordedInTrees = null;
+            }
+            else
+            {
+                // Always compile the target tree
+                compileMethodBodiesAndDocComments(filterTree: tree, filterSpan: span, bindingDiagnostics, cancellationToken);
+
+                if (reportUnusedUsings)
+                {
+                    registeredUsageOfUsingsInTree(tree);
+                }
+
+                // Compile other trees if we need to, but discard diagnostics from them.
+                if (recordUsageOfUsingsInAllTrees)
+                {
+                    Debug.Assert(reportUnusedUsings);
+
+                    var discarded = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+                    Debug.Assert(discarded.DiagnosticBag is object);
+
+                    foreach (var otherTree in SyntaxTrees)
+                    {
+                        var trackingSet = UsageOfUsingsRecordedInTrees;
+
+                        if (trackingSet is null)
+                        {
+                            break;
+                        }
+
+                        if (!trackingSet.Contains(otherTree))
+                        {
+                            compileMethodBodiesAndDocComments(filterTree: otherTree, filterSpan: null, discarded, cancellationToken);
+                            registeredUsageOfUsingsInTree(otherTree);
+                            discarded.DiagnosticBag.Clear();
+                        }
+                    }
+
+                    discarded.Free();
+                }
+            }
+
+            if (reportUnusedUsings)
+            {
+                ReportUnusedImports(tree, bindingDiagnostics, cancellationToken);
+            }
+
+            return bindingDiagnostics.ToReadOnlyAndFree().Diagnostics;
+
+            void compileMethodBodiesAndDocComments(SyntaxTree? filterTree, TextSpan? filterSpan, BindingDiagnosticBag bindingDiagnostics, CancellationToken cancellationToken)
+            {
+                MethodCompiler.CompileMethodBodies(
+                                compilation: this,
+                                moduleBeingBuiltOpt: null,
+                                emittingPdb: false,
+                                hasDeclarationErrors: false,
+                                emitMethodBodies: false,
+                                diagnostics: bindingDiagnostics,
+                                filterOpt: filterTree is object ? (Predicate<Symbol>?)(s => IsDefinedOrImplementedInSourceTree(s, filterTree, filterSpan)) : (Predicate<Symbol>?)null,
+                                cancellationToken: cancellationToken);
+
+                DocumentationCommentCompiler.WriteDocumentationCommentXml(this, null, null, bindingDiagnostics, cancellationToken, filterTree, filterSpan);
+            }
+
+            void registeredUsageOfUsingsInTree(SyntaxTree tree)
+            {
+                var current = UsageOfUsingsRecordedInTrees;
+
+                while (true)
+                {
+                    if (current is null)
+                    {
+                        break;
+                    }
+
+                    var updated = current.Add(tree);
+
+                    if ((object)updated == current)
+                    {
+                        break;
+                    }
+
+                    if (updated.Count == SyntaxTrees.Length)
+                    {
+                        _usageOfUsingsRecordedInTrees = null;
+                        break;
+                    }
+
+                    var recent = Interlocked.CompareExchange(ref _usageOfUsingsRecordedInTrees, updated, current);
+
+                    if (recent == (object)current)
+                    {
+                        break;
+                    }
+
+                    current = recent;
+                }
+            }
         }
 
-        private ImmutableArray<Diagnostic> GetSourceDeclarationDiagnostics(SyntaxTree? syntaxTree = null, TextSpan? filterSpanWithinTree = null, Func<IEnumerable<Diagnostic>, SyntaxTree, TextSpan?, IEnumerable<Diagnostic>>? locationFilterOpt = null, CancellationToken cancellationToken = default)
+        private ImmutableBindingDiagnostic<AssemblySymbol> GetSourceDeclarationDiagnostics(SyntaxTree? syntaxTree = null, TextSpan? filterSpanWithinTree = null, Func<IEnumerable<Diagnostic>, SyntaxTree, TextSpan?, IEnumerable<Diagnostic>>? locationFilterOpt = null, CancellationToken cancellationToken = default)
         {
-            GlobalImports.Complete(cancellationToken);
+            UsingsFromOptions.Complete(this, cancellationToken);
 
             SourceLocation? location = null;
             if (syntaxTree != null)
@@ -2697,29 +3139,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // NOTE: Concatenate the CLS diagnostics *after* filtering by tree/span, because they're already filtered.
-            ImmutableArray<Diagnostic> clsDiagnostics = GetClsComplianceDiagnostics(syntaxTree, filterSpanWithinTree, cancellationToken);
+            ImmutableBindingDiagnostic<AssemblySymbol> clsDiagnostics = GetClsComplianceDiagnostics(syntaxTree, filterSpanWithinTree, cancellationToken);
 
-            return result.AsImmutable().Concat(clsDiagnostics);
+            return new ImmutableBindingDiagnostic<AssemblySymbol>(result.AsImmutable().Concat(clsDiagnostics.Diagnostics), clsDiagnostics.Dependencies);
         }
 
-        private ImmutableArray<Diagnostic> GetClsComplianceDiagnostics(SyntaxTree? syntaxTree, TextSpan? filterSpanWithinTree, CancellationToken cancellationToken)
+        private ImmutableBindingDiagnostic<AssemblySymbol> GetClsComplianceDiagnostics(SyntaxTree? syntaxTree, TextSpan? filterSpanWithinTree, CancellationToken cancellationToken)
         {
             if (syntaxTree != null)
             {
-                var builder = DiagnosticBag.GetInstance();
+                var builder = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
                 ClsComplianceChecker.CheckCompliance(this, builder, cancellationToken, syntaxTree, filterSpanWithinTree);
                 return builder.ToReadOnlyAndFree();
             }
 
-            if (_lazyClsComplianceDiagnostics.IsDefault)
+            if (_lazyClsComplianceDiagnostics.IsDefault || _lazyClsComplianceDependencies.IsDefault)
             {
-                var builder = DiagnosticBag.GetInstance();
+                var builder = BindingDiagnosticBag.GetInstance();
                 ClsComplianceChecker.CheckCompliance(this, builder, cancellationToken);
-                ImmutableInterlocked.InterlockedInitialize(ref _lazyClsComplianceDiagnostics, builder.ToReadOnlyAndFree());
+                var result = builder.ToReadOnlyAndFree();
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyClsComplianceDependencies, result.Dependencies);
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyClsComplianceDiagnostics, result.Diagnostics);
             }
 
+            Debug.Assert(!_lazyClsComplianceDependencies.IsDefault);
             Debug.Assert(!_lazyClsComplianceDiagnostics.IsDefault);
-            return _lazyClsComplianceDiagnostics;
+            return new ImmutableBindingDiagnostic<AssemblySymbol>(_lazyClsComplianceDiagnostics, _lazyClsComplianceDependencies);
         }
 
         private static IEnumerable<Diagnostic> FilterDiagnosticsByLocation(IEnumerable<Diagnostic> diagnostics, SyntaxTree tree, TextSpan? filterSpanWithinTree)
@@ -2759,7 +3204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var declarationDiagnostics = GetSourceDeclarationDiagnostics(syntaxTree, filterSpanWithinTree, FilterDiagnosticsByLocation, cancellationToken);
                 // re-enabling/fixing the below assert is tracked by https://github.com/dotnet/roslyn/issues/21020
                 // Debug.Assert(declarationDiagnostics.All(d => d.HasIntersectingLocation(syntaxTree, filterSpanWithinTree)));
-                builder.AddRange(declarationDiagnostics);
+                builder.AddRange(declarationDiagnostics.Diagnostics);
             }
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -2838,7 +3283,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken)
         {
-            Debug.Assert(!IsSubmission || HasCodeToEmit());
+            Debug.Assert(!IsSubmission || HasCodeToEmit() ||
+                         (emitOptions == EmitOptions.Default && debugEntryPoint is null && sourceLinkStream is null && embeddedTexts is null && manifestResources is null && testData is null));
 
             string? runtimeMDVersion = GetRuntimeMetadataVersion(emitOptions, diagnostics);
             if (runtimeMDVersion == null)
@@ -2888,8 +3334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // testData is only passed when running tests.
             if (testData != null)
             {
-                moduleBeingBuilt.SetMethodTestData(testData.Methods);
-                testData.Module = moduleBeingBuilt;
+                moduleBeingBuilt.SetTestData(testData);
             }
 
             return moduleBeingBuilt;
@@ -2898,12 +3343,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override bool CompileMethods(
             CommonPEModuleBuilder moduleBuilder,
             bool emittingPdb,
-            bool emitMetadataOnly,
-            bool emitTestCoverageData,
             DiagnosticBag diagnostics,
             Predicate<ISymbolInternal>? filterOpt,
             CancellationToken cancellationToken)
         {
+            var emitMetadataOnly = moduleBuilder.EmitOptions.EmitMetadataOnly;
+
             // The diagnostics should include syntax and declaration errors. We insert these before calling Emitter.Emit, so that the emitter
             // does not attempt to emit if there are declaration errors (but we do insert all errors from method body binding...)
             PooledHashSet<int>? excludeDiagnostics = null;
@@ -2940,7 +3385,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                if ((emittingPdb || emitTestCoverageData) &&
+                if ((emittingPdb || moduleBeingBuilt.EmitOptions.InstrumentationKinds.Contains(InstrumentationKind.TestCoverage)) &&
                     !CreateDebugDocuments(moduleBeingBuilt.DebugDocumentsBuilder, moduleBeingBuilt.EmbeddedTexts, diagnostics))
                 {
                     return false;
@@ -2950,32 +3395,137 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // behavior as when calling GetDiagnostics()
 
                 // Use a temporary bag so we don't have to refilter pre-existing diagnostics.
-                DiagnosticBag? methodBodyDiagnosticBag = DiagnosticBag.GetInstance();
+                var methodBodyDiagnosticBag = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+                Debug.Assert(methodBodyDiagnosticBag.DiagnosticBag is { });
+                Debug.Assert(moduleBeingBuilt is object);
 
                 MethodCompiler.CompileMethodBodies(
                     this,
                     moduleBeingBuilt,
                     emittingPdb,
-                    emitTestCoverageData,
                     hasDeclarationErrors,
+                    emitMethodBodies: true,
                     diagnostics: methodBodyDiagnosticBag,
                     filterOpt: filterOpt,
                     cancellationToken: cancellationToken);
 
-                if (!hasDeclarationErrors && !CommonCompiler.HasUnsuppressableErrors(methodBodyDiagnosticBag))
+                if (!hasDeclarationErrors && !CommonCompiler.HasUnsuppressableErrors(methodBodyDiagnosticBag.DiagnosticBag))
                 {
-                    GenerateModuleInitializer(moduleBeingBuilt, methodBodyDiagnosticBag);
+                    GenerateModuleInitializer(moduleBeingBuilt, methodBodyDiagnosticBag.DiagnosticBag);
                 }
 
-                bool hasMethodBodyError = !FilterAndAppendAndFreeDiagnostics(diagnostics, ref methodBodyDiagnosticBag, cancellationToken);
+                bool hasDuplicateFilePaths = CheckDuplicateFilePaths(diagnostics);
 
-                if (hasDeclarationErrors || hasMethodBodyError)
+                bool hasMethodBodyError = !FilterAndAppendDiagnostics(diagnostics, methodBodyDiagnosticBag.DiagnosticBag, cancellationToken);
+
+                methodBodyDiagnosticBag.Free();
+                if (hasDeclarationErrors || hasMethodBodyError || hasDuplicateFilePaths)
                 {
                     return false;
                 }
             }
 
             return true;
+        }
+
+        private class DuplicateFilePathsVisitor : CSharpSymbolVisitor
+        {
+            // note: the default HashSet<string> uses an ordinal comparison
+            private readonly PooledHashSet<string> _duplicatePaths = PooledHashSet<string>.GetInstance();
+
+            private readonly DiagnosticBag _diagnostics;
+
+            private bool _hasDuplicateFilePaths;
+
+            public DuplicateFilePathsVisitor(DiagnosticBag diagnostics)
+            {
+                _diagnostics = diagnostics;
+            }
+
+            public bool CheckDuplicateFilePathsAndFree(ImmutableArray<SyntaxTree> syntaxTrees, NamespaceSymbol globalNamespace)
+            {
+                var paths = PooledHashSet<string>.GetInstance();
+                foreach (var tree in syntaxTrees)
+                {
+                    if (!paths.Add(tree.FilePath))
+                    {
+                        _duplicatePaths.Add(tree.FilePath);
+                    }
+                }
+                paths.Free();
+
+                if (_duplicatePaths.Any())
+                {
+                    VisitNamespace(globalNamespace);
+                }
+                _duplicatePaths.Free();
+                return _hasDuplicateFilePaths;
+            }
+
+            public override void VisitNamespace(NamespaceSymbol symbol)
+            {
+                foreach (var childSymbol in symbol.GetMembers())
+                {
+                    switch (childSymbol)
+                    {
+                        case NamespaceSymbol @namespace:
+                            VisitNamespace(@namespace);
+                            break;
+                        case NamedTypeSymbol namedType:
+                            VisitNamedType(namedType);
+                            break;
+                    }
+                }
+            }
+
+            public override void VisitNamedType(NamedTypeSymbol symbol)
+            {
+                Debug.Assert(symbol.ContainingSymbol.Kind == SymbolKind.Namespace); // avoid unnecessary traversal of nested types
+                if (symbol.IsFileLocal)
+                {
+                    var location = symbol.GetFirstLocation();
+                    var filePath = location.SourceTree?.FilePath;
+                    if (_duplicatePaths.Contains(filePath!))
+                    {
+                        _diagnostics.Add(ErrorCode.ERR_FileTypeNonUniquePath, location, symbol, filePath);
+                        _hasDuplicateFilePaths = true;
+                    }
+                }
+            }
+        }
+
+        /// <returns><see langword="true"/> if file types are present in files with duplicate file paths. Otherwise, <see langword="false" />.</returns>
+        private bool CheckDuplicateFilePaths(DiagnosticBag diagnostics)
+        {
+            var visitor = new DuplicateFilePathsVisitor(diagnostics);
+            return visitor.CheckDuplicateFilePathsAndFree(SyntaxTrees, GlobalNamespace);
+        }
+
+        /// <returns><see langword="true"/> if duplicate interceptions are present in the compilation. Otherwise, <see langword="false" />.</returns>
+        internal bool CheckDuplicateInterceptions(BindingDiagnosticBag diagnostics)
+        {
+            if (_interceptions is null)
+            {
+                return false;
+            }
+
+            bool anyDuplicates = false;
+            foreach ((_, OneOrMany<(Location, MethodSymbol)> interceptionsOfAGivenLocation) in _interceptions)
+            {
+                Debug.Assert(interceptionsOfAGivenLocation.Count != 0);
+                if (interceptionsOfAGivenLocation.Count == 1)
+                {
+                    continue;
+                }
+
+                anyDuplicates = true;
+                foreach (var (attributeLocation, _) in interceptionsOfAGivenLocation)
+                {
+                    diagnostics.Add(ErrorCode.ERR_DuplicateInterceptor, attributeLocation);
+                }
+            }
+
+            return anyDuplicates;
         }
 
         private void GenerateModuleInitializer(PEModuleBuilder moduleBeingBuilt, DiagnosticBag methodBodyDiagnosticBag)
@@ -3002,18 +3552,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override bool GenerateResourcesAndDocumentationComments(
+        internal override bool GenerateResources(
             CommonPEModuleBuilder moduleBuilder,
-            Stream? xmlDocStream,
             Stream? win32Resources,
-            string? outputNameOverride,
+            bool useRawWin32Resources,
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             // Use a temporary bag so we don't have to refilter pre-existing diagnostics.
             DiagnosticBag? resourceDiagnostics = DiagnosticBag.GetInstance();
 
-            SetupWin32Resources(moduleBuilder, win32Resources, resourceDiagnostics);
+            SetupWin32Resources(moduleBuilder, win32Resources, useRawWin32Resources, resourceDiagnostics);
 
             ReportManifestResourceDuplicates(
                 moduleBuilder.ManifestResources,
@@ -3021,20 +3572,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddedModulesResourceNames(resourceDiagnostics),
                 resourceDiagnostics);
 
-            if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref resourceDiagnostics, cancellationToken))
-            {
-                return false;
-            }
+            return FilterAndAppendAndFreeDiagnostics(diagnostics, ref resourceDiagnostics, cancellationToken);
+        }
 
+        internal override bool GenerateDocumentationComments(
+            Stream? xmlDocStream,
+            string? outputNameOverride,
+            DiagnosticBag diagnostics,
+            CancellationToken cancellationToken)
+        {
             cancellationToken.ThrowIfCancellationRequested();
 
             // Use a temporary bag so we don't have to refilter pre-existing diagnostics.
-            DiagnosticBag? xmlDiagnostics = DiagnosticBag.GetInstance();
+            var xmlDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+            Debug.Assert(xmlDiagnostics.DiagnosticBag is { });
 
             string? assemblyName = FileNameUtilities.ChangeExtension(outputNameOverride, extension: null);
             DocumentationCommentCompiler.WriteDocumentationCommentXml(this, assemblyName, xmlDocStream, xmlDiagnostics, cancellationToken);
 
-            return FilterAndAppendAndFreeDiagnostics(diagnostics, ref xmlDiagnostics, cancellationToken);
+            bool result = FilterAndAppendDiagnostics(diagnostics, xmlDiagnostics.DiagnosticBag, cancellationToken);
+
+            xmlDiagnostics.Free();
+            return result;
         }
 
         private IEnumerable<string> AddedModulesResourceNames(DiagnosticBag diagnostics)
@@ -3070,7 +3629,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,
-            ICollection<MethodDefinitionHandle> updatedMethods,
             CompilationTestData? testData,
             CancellationToken cancellationToken)
         {
@@ -3082,7 +3640,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 metadataStream,
                 ilStream,
                 pdbStream,
-                updatedMethods,
                 testData,
                 cancellationToken);
         }
@@ -3264,7 +3821,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.GetSemanticModel((SyntaxTree)syntaxTree, ignoreAccessibility);
         }
 
-        protected override IEnumerable<SyntaxTree> CommonSyntaxTrees
+        protected internal override ImmutableArray<SyntaxTree> CommonSyntaxTrees
         {
             get
             {
@@ -3516,7 +4073,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 memberTypes[i].EnsureCSharpSymbolOrNull($"{nameof(memberTypes)}[{i}]");
             }
 
-            if (!memberIsReadOnly.IsDefault && memberIsReadOnly.Any(v => !v))
+            if (!memberIsReadOnly.IsDefault && memberIsReadOnly.Any(static v => !v))
             {
                 throw new ArgumentException($"Non-ReadOnly members are not supported in C# anonymous types.");
             }
@@ -3529,12 +4086,314 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var name = memberNames[i];
                 var location = memberLocations.IsDefault ? Location.None : memberLocations[i];
                 var nullableAnnotation = memberNullableAnnotations.IsDefault ? NullableAnnotation.Oblivious : memberNullableAnnotations[i].ToInternalAnnotation();
-                fields.Add(new AnonymousTypeField(name, location, TypeWithAnnotations.Create(type, nullableAnnotation)));
+                fields.Add(new AnonymousTypeField(name, location, TypeWithAnnotations.Create(type, nullableAnnotation), RefKind.None, ScopedKind.None));
             }
 
             var descriptor = new AnonymousTypeDescriptor(fields.ToImmutableAndFree(), Location.None);
 
             return this.AnonymousTypeManager.ConstructAnonymousTypeSymbol(descriptor).GetPublicSymbol();
+        }
+
+        protected override IMethodSymbol CommonCreateBuiltinOperator(
+            string name,
+            ITypeSymbol returnType,
+            ITypeSymbol leftType,
+            ITypeSymbol rightType)
+        {
+            var csharpReturnType = returnType.EnsureCSharpSymbolOrNull(nameof(returnType));
+            var csharpLeftType = leftType.EnsureCSharpSymbolOrNull(nameof(leftType));
+            var csharpRightType = rightType.EnsureCSharpSymbolOrNull(nameof(rightType));
+
+            // caller already checked all of these were not null.
+            Debug.Assert(csharpReturnType is not null);
+            Debug.Assert(csharpLeftType is not null);
+            Debug.Assert(csharpRightType is not null);
+
+            var syntaxKind = SyntaxFacts.GetOperatorKind(name);
+            if (syntaxKind == SyntaxKind.None)
+                throw new ArgumentException(string.Format(CodeAnalysisResources.BadBuiltInOps1, name), nameof(name));
+
+            var binaryOperatorName = OperatorFacts.BinaryOperatorNameFromSyntaxKindIfAny(syntaxKind, SyntaxFacts.IsCheckedOperator(name));
+            if (binaryOperatorName != name)
+                throw new ArgumentException(string.Format(CodeAnalysisResources.BadBuiltInOps3, name), nameof(name));
+
+            // Lang specific checks to ensure this is an acceptable operator.
+            validateSignature();
+
+            return new SynthesizedIntrinsicOperatorSymbol(csharpLeftType, name, csharpRightType, csharpReturnType).GetPublicSymbol();
+
+            void validateSignature()
+            {
+                // Dynamic built-in operators allow virtually all operations with all types.  So we do no further checking here.
+                if (csharpReturnType.TypeKind is TypeKind.Dynamic ||
+                    csharpLeftType.TypeKind is TypeKind.Dynamic ||
+                    csharpReturnType.TypeKind is TypeKind.Dynamic)
+                {
+                    return;
+                }
+
+                // Use fast-path check to see if this types are ok.
+                var binaryKind = Binder.SyntaxKindToBinaryOperatorKind(SyntaxFacts.GetBinaryExpression(syntaxKind));
+
+                if (csharpReturnType.SpecialType != SpecialType.None &&
+                    csharpLeftType.SpecialType != SpecialType.None &&
+                    csharpRightType.SpecialType != SpecialType.None)
+                {
+                    var easyOutBinaryKind = OverloadResolution.BinopEasyOut.OpKind(binaryKind, csharpLeftType, csharpRightType);
+
+                    if (easyOutBinaryKind != BinaryOperatorKind.Error)
+                    {
+                        var signature = this.builtInOperators.GetSignature(easyOutBinaryKind);
+                        if (csharpReturnType.SpecialType == signature.ReturnType.SpecialType &&
+                            csharpLeftType.SpecialType == signature.LeftType.SpecialType &&
+                            csharpRightType.SpecialType == signature.RightType.SpecialType)
+                        {
+                            return;
+                        }
+                    }
+                }
+
+                // bool operator ==(object, object) is legal.
+                // bool operator !=(object, object) is legal.
+                // bool operator ==(Delegate, Delegate) is legal.
+                // bool operator !=(Delegate, Delegate) is legal.
+                if (binaryKind is BinaryOperatorKind.Equal or BinaryOperatorKind.NotEqual &&
+                    csharpReturnType.SpecialType is SpecialType.System_Boolean)
+                {
+                    if ((csharpLeftType.SpecialType, csharpRightType.SpecialType) is
+                            (SpecialType.System_Object, SpecialType.System_Object) or
+                            (SpecialType.System_Delegate, SpecialType.System_Delegate))
+                    {
+                        return;
+                    }
+                }
+
+                // Actual delegates have several operators that can be used on them.
+                if (csharpLeftType.TypeKind is TypeKind.Delegate &&
+                    TypeSymbol.Equals(csharpLeftType, csharpRightType, TypeCompareKind.ConsiderEverything))
+                {
+                    // bool operator ==(SomeDelegate, SomeDelegate) is legal.
+                    // bool operator !=(SomeDelegate, SomeDelegate) is legal.
+                    if (binaryKind is BinaryOperatorKind.Equal or BinaryOperatorKind.NotEqual &&
+                        csharpReturnType.SpecialType == SpecialType.System_Boolean)
+                    {
+                        return;
+                    }
+
+                    // SomeDelegate operator +(SomeDelegate, SomeDelegate) is legal.
+                    // SomeDelegate operator -(SomeDelegate, SomeDelegate) is legal.
+                    if (binaryKind is BinaryOperatorKind.Addition or BinaryOperatorKind.Subtraction &&
+                        TypeSymbol.Equals(csharpLeftType, csharpReturnType, TypeCompareKind.ConsiderEverything))
+                    {
+                        return;
+                    }
+                }
+
+                if (csharpLeftType.IsEnumType() || csharpRightType.IsEnumType())
+                {
+                    // bool operator ==(SomeEnum, SomeEnum) is legal.
+                    // bool operator !=(SomeEnum, SomeEnum) is legal.
+                    // bool operator >(SomeEnum, SomeEnum) is legal.
+                    // bool operator <(SomeEnum, SomeEnum) is legal.
+                    // bool operator >=(SomeEnum, SomeEnum) is legal.
+                    // bool operator <=(SomeEnum, SomeEnum) is legal.
+                    if (binaryKind is BinaryOperatorKind.Equal or
+                                      BinaryOperatorKind.NotEqual or
+                                      BinaryOperatorKind.GreaterThan or
+                                      BinaryOperatorKind.LessThan or
+                                      BinaryOperatorKind.GreaterThanOrEqual or
+                                      BinaryOperatorKind.LessThanOrEqual &&
+                        csharpReturnType.SpecialType is SpecialType.System_Boolean &&
+                        TypeSymbol.Equals(csharpLeftType, csharpRightType, TypeCompareKind.ConsiderEverything))
+                    {
+                        return;
+                    }
+
+                    // SomeEnum operator &(SomeEnum, SomeEnum) is legal.
+                    // SomeEnum operator |(SomeEnum, SomeEnum) is legal.
+                    // SomeEnum operator ^(SomeEnum, SomeEnum) is legal.
+                    if (binaryKind is BinaryOperatorKind.And or
+                                      BinaryOperatorKind.Or or
+                                      BinaryOperatorKind.Xor &&
+                        TypeSymbol.Equals(csharpLeftType, csharpRightType, TypeCompareKind.ConsiderEverything) &&
+                        TypeSymbol.Equals(csharpReturnType, csharpRightType, TypeCompareKind.ConsiderEverything))
+                    {
+                        return;
+                    }
+
+                    // SomeEnum operator+(SomeEnum, EnumUnderlyingInt)
+                    // SomeEnum operator+(EnumUnderlyingInt, SomeEnum)
+                    // SomeEnum operator-(SomeEnum, EnumUnderlyingInt)
+                    // SomeEnum operator-(EnumUnderlyingInt, SomeEnum)
+                    if (binaryKind is BinaryOperatorKind.Addition or BinaryOperatorKind.Subtraction)
+                    {
+                        if (csharpLeftType.IsEnumType() &&
+                            csharpRightType.SpecialType == csharpLeftType.GetEnumUnderlyingType()?.SpecialType &&
+                            TypeSymbol.Equals(csharpLeftType, csharpReturnType, TypeCompareKind.ConsiderEverything))
+                        {
+                            return;
+                        }
+
+                        if (csharpRightType.IsEnumType() &&
+                            csharpLeftType.SpecialType == csharpRightType.GetEnumUnderlyingType()?.SpecialType &&
+                            TypeSymbol.Equals(csharpRightType, csharpReturnType, TypeCompareKind.ConsiderEverything))
+                        {
+                            return;
+                        }
+                    }
+
+                    // EnumUnderlyingInt operator-(SomeEnum, SomeEnum)
+                    if (binaryKind is BinaryOperatorKind.Subtraction &&
+                        csharpReturnType.SpecialType == csharpLeftType.GetEnumUnderlyingType()?.SpecialType &&
+                        TypeSymbol.Equals(csharpLeftType, csharpRightType, TypeCompareKind.ConsiderEverything))
+                    {
+                        return;
+                    }
+                }
+
+                // void* has several comparison operators built in.
+                if (binaryKind is BinaryOperatorKind.Equal or
+                                  BinaryOperatorKind.NotEqual or
+                                  BinaryOperatorKind.GreaterThan or
+                                  BinaryOperatorKind.LessThan or
+                                  BinaryOperatorKind.GreaterThanOrEqual or
+                                  BinaryOperatorKind.LessThanOrEqual &&
+                    csharpReturnType.SpecialType is SpecialType.System_Boolean &&
+                    csharpLeftType is PointerTypeSymbol { PointedAtType.SpecialType: SpecialType.System_Void } &&
+                    csharpRightType is PointerTypeSymbol { PointedAtType.SpecialType: SpecialType.System_Void })
+                {
+                    return;
+                }
+
+                // T* operator+(T*, int/uint/long/ulong i)
+                if (binaryKind is BinaryOperatorKind.Addition &&
+                    csharpLeftType.IsPointerType() &&
+                    isAllowedPointerArithmeticIntegralType(csharpRightType) &&
+                    TypeSymbol.Equals(csharpLeftType, csharpReturnType, TypeCompareKind.ConsiderEverything))
+                {
+                    return;
+                }
+
+                // T* operator+(int/uint/long/ulong i, T*)
+                if (binaryKind is BinaryOperatorKind.Addition &&
+                    csharpRightType.IsPointerType() &&
+                    isAllowedPointerArithmeticIntegralType(csharpLeftType) &&
+                    TypeSymbol.Equals(csharpRightType, csharpReturnType, TypeCompareKind.ConsiderEverything))
+                {
+                    return;
+                }
+
+                // T* operator-(T*, int/uint/long/ulong i)
+                if (binaryKind is BinaryOperatorKind.Subtraction &&
+                    csharpLeftType.IsPointerType() &&
+                    isAllowedPointerArithmeticIntegralType(csharpRightType) &&
+                    TypeSymbol.Equals(csharpLeftType, csharpReturnType, TypeCompareKind.ConsiderEverything))
+                {
+                    return;
+                }
+
+                // long operator-(T*, T*)
+                if (binaryKind is BinaryOperatorKind.Subtraction &&
+                    csharpLeftType.IsPointerType() &&
+                    csharpReturnType.SpecialType is SpecialType.System_Int64 &&
+                    TypeSymbol.Equals(csharpLeftType, csharpRightType, TypeCompareKind.ConsiderEverything))
+                {
+                    return;
+                }
+
+                // ROS<byte> operator+(ROS<byte>, ROS<byte>). Legal because of utf8 strings.
+                if (binaryKind is BinaryOperatorKind.Addition &&
+                    isReadOnlySpanOfByteType(csharpReturnType) &&
+                    isReadOnlySpanOfByteType(csharpLeftType) &&
+                    isReadOnlySpanOfByteType(csharpRightType))
+                {
+                    return;
+                }
+
+                throw new ArgumentException(string.Format(CodeAnalysisResources.BadBuiltInOps2, $"{csharpReturnType.ToDisplayString()} operator {name}({csharpLeftType.ToDisplayString()}, {csharpRightType.ToDisplayString()})"));
+            }
+
+            bool isAllowedPointerArithmeticIntegralType(TypeSymbol type)
+                => type.SpecialType is SpecialType.System_Int32 or SpecialType.System_UInt32 or SpecialType.System_Int64 or SpecialType.System_UInt64;
+
+            bool isReadOnlySpanOfByteType(TypeSymbol type)
+                => IsReadOnlySpanType(type) && ((NamedTypeSymbol)type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].SpecialType == SpecialType.System_Byte;
+        }
+
+        protected override IMethodSymbol CommonCreateBuiltinOperator(
+            string name,
+            ITypeSymbol returnType,
+            ITypeSymbol operandType)
+        {
+            var csharpReturnType = returnType.EnsureCSharpSymbolOrNull(nameof(returnType));
+            var csharpOperandType = operandType.EnsureCSharpSymbolOrNull(nameof(operandType));
+
+            // caller already checked all of these were not null.
+            Debug.Assert(csharpReturnType is not null);
+            Debug.Assert(csharpOperandType is not null);
+
+            var syntaxKind = SyntaxFacts.GetOperatorKind(name);
+
+            // Currently compiler does not generate built-ins for `operator true/false`.  If that changes, this check
+            // can be relaxed.
+            if (syntaxKind == SyntaxKind.None || name is WellKnownMemberNames.TrueOperatorName or WellKnownMemberNames.FalseOperatorName)
+                throw new ArgumentException(string.Format(CodeAnalysisResources.BadBuiltInOps1, name), nameof(name));
+
+            var unaryOperatorName = OperatorFacts.UnaryOperatorNameFromSyntaxKindIfAny(syntaxKind, SyntaxFacts.IsCheckedOperator(name));
+            if (unaryOperatorName != name)
+                throw new ArgumentException(string.Format(CodeAnalysisResources.BadBuiltInOps3, name), nameof(name));
+
+            // Lang specific checks to ensure this is an acceptable operator.
+            validateSignature();
+
+            return new SynthesizedIntrinsicOperatorSymbol(csharpOperandType, name, csharpReturnType).GetPublicSymbol();
+
+            void validateSignature()
+            {
+                // Dynamic built-in operators allow virtually all operations with all types.  So we do no further checking here.
+                if (csharpReturnType.TypeKind is TypeKind.Dynamic ||
+                    csharpOperandType.TypeKind is TypeKind.Dynamic)
+                {
+                    return;
+                }
+
+                var unaryKind = Binder.SyntaxKindToUnaryOperatorKind(SyntaxFacts.GetPrefixUnaryExpression(syntaxKind));
+
+                // Use fast-path check to see if this types are ok.
+                if (csharpReturnType.SpecialType != SpecialType.None && csharpOperandType.SpecialType != SpecialType.None)
+                {
+                    var easyOutUnaryKind = OverloadResolution.UnopEasyOut.OpKind(unaryKind, csharpOperandType);
+
+                    if (easyOutUnaryKind != UnaryOperatorKind.Error)
+                    {
+                        var signature = this.builtInOperators.GetSignature(easyOutUnaryKind);
+                        if (csharpReturnType.SpecialType == signature.ReturnType.SpecialType &&
+                            csharpOperandType.SpecialType == signature.OperandType.SpecialType)
+                        {
+                            return;
+                        }
+                    }
+                }
+
+                // EnumType operator++(EnumType)
+                // EnumType operator~(EnumType)
+                if (csharpOperandType.IsEnumType() &&
+                    unaryKind is UnaryOperatorKind.PrefixIncrement or UnaryOperatorKind.PrefixDecrement or UnaryOperatorKind.BitwiseComplement &&
+                    TypeSymbol.Equals(csharpOperandType, csharpReturnType, TypeCompareKind.ConsiderEverything))
+                {
+                    return;
+                }
+
+                // T* operator++(T*)
+                if (csharpOperandType.IsPointerType() &&
+                    unaryKind is UnaryOperatorKind.PrefixIncrement or UnaryOperatorKind.PrefixDecrement &&
+                    TypeSymbol.Equals(csharpOperandType, csharpReturnType, TypeCompareKind.ConsiderEverything))
+                {
+                    return;
+                }
+
+                throw new ArgumentException(string.Format(CodeAnalysisResources.BadBuiltInOps2, $"{csharpReturnType.ToDisplayString()} operator {name}({csharpOperandType.ToDisplayString()})"));
+            }
         }
 
         protected override ITypeSymbol CommonDynamicType
@@ -3567,6 +4426,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal override int CompareSourceLocations(SyntaxReference loc1, SyntaxReference loc2)
+        {
+            var comparison = CompareSyntaxTreeOrdering(loc1.SyntaxTree, loc2.SyntaxTree);
+            if (comparison != 0)
+            {
+                return comparison;
+            }
+
+            return loc1.Span.Start - loc2.Span.Start;
+        }
+
+        internal override int CompareSourceLocations(SyntaxNode loc1, SyntaxNode loc2)
         {
             var comparison = CompareSyntaxTreeOrdering(loc1.SyntaxTree, loc2.SyntaxTree);
             if (comparison != 0)
@@ -3668,15 +4538,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// dynamic types.
         /// </summary>
         /// <returns></returns>
-        internal bool HasDynamicEmitAttributes()
+        internal bool HasDynamicEmitAttributes(BindingDiagnosticBag diagnostics, Location location)
         {
-            return
-                GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctor) is object &&
-                GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctorTransformFlags) is object;
+            return Binder.GetWellKnownTypeMember(this, WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctor, diagnostics, location) is object &&
+                   Binder.GetWellKnownTypeMember(this, WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctorTransformFlags, diagnostics, location) is object;
         }
 
-        internal bool HasTupleNamesAttributes =>
-            GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames) is object;
+        internal bool HasTupleNamesAttributes(BindingDiagnosticBag diagnostics, Location location) =>
+            Binder.GetWellKnownTypeMember(this, WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames, diagnostics, location) is object;
 
         /// <summary>
         /// Returns whether the compilation has the Boolean type and if it's good.
@@ -3687,7 +4556,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool CanEmitSpecialType(SpecialType type)
         {
             var typeSymbol = GetSpecialType(type);
-            var diagnostic = typeSymbol.GetUseSiteDiagnostic();
+            var diagnostic = typeSymbol.GetUseSiteInfo().DiagnosticInfo;
             return (diagnostic == null) || (diagnostic.Severity != DiagnosticSeverity.Error);
         }
 
@@ -3702,6 +4571,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 return _lazyEmitNullablePublicOnly.Value();
             }
+        }
+
+        internal bool ShouldEmitNativeIntegerAttributes()
+        {
+            return !Assembly.RuntimeSupportsNumericIntPtr;
         }
 
         internal bool ShouldEmitNullableAttributes(Symbol symbol)
@@ -3758,37 +4632,37 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void SymbolDeclaredEvent(Symbol symbol)
         {
-            EventQueue?.TryEnqueue(new SymbolDeclaredCompilationEvent(this, symbol.GetPublicSymbol()));
+            EventQueue?.TryEnqueue(new SymbolDeclaredCompilationEvent(this, symbol));
         }
 
         internal override void SerializePdbEmbeddedCompilationOptions(BlobBuilder builder)
         {
             // LanguageVersion should already be mapped to a specific version
             Debug.Assert(LanguageVersion == LanguageVersion.MapSpecifiedToEffectiveVersion());
-            WriteValue(CompilationOptionNames.LanguageVersion, LanguageVersion.ToDisplayString());
+            writeValue(CompilationOptionNames.LanguageVersion, LanguageVersion.ToDisplayString());
 
             if (Options.CheckOverflow)
             {
-                WriteValue(CompilationOptionNames.Checked, Options.CheckOverflow.ToString());
+                writeValue(CompilationOptionNames.Checked, Options.CheckOverflow.ToString());
             }
 
             if (Options.NullableContextOptions != NullableContextOptions.Disable)
             {
-                WriteValue(CompilationOptionNames.Nullable, Options.NullableContextOptions.ToString());
+                writeValue(CompilationOptionNames.Nullable, Options.NullableContextOptions.ToString());
             }
 
             if (Options.AllowUnsafe)
             {
-                WriteValue(CompilationOptionNames.Unsafe, Options.AllowUnsafe.ToString());
+                writeValue(CompilationOptionNames.Unsafe, Options.AllowUnsafe.ToString());
             }
 
             var preprocessorSymbols = GetPreprocessorSymbols();
             if (preprocessorSymbols.Any())
             {
-                WriteValue(CompilationOptionNames.Define, string.Join(",", preprocessorSymbols));
+                writeValue(CompilationOptionNames.Define, string.Join(",", preprocessorSymbols));
             }
 
-            void WriteValue(string key, string value)
+            void writeValue(string key, string value)
             {
                 builder.WriteUTF8(key);
                 builder.WriteByte(0);
@@ -3826,6 +4700,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return sustainedLowLatency != null && sustainedLowLatency.ContainingAssembly == Assembly.CorLibrary;
             }
         }
+
+        private protected override bool SupportsRuntimeCapabilityCore(RuntimeCapability capability)
+            => this.Assembly.SupportsRuntimeCapability(capability);
 
         private abstract class AbstractSymbolSearcher
         {
@@ -4054,7 +4931,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (SingleTypeDeclaration typeDecl in current.Declarations)
                 {
-                    if (typeDecl.MemberNames.Contains(_name))
+                    if (typeDecl.MemberNames.Value.Contains(_name))
                     {
                         return true;
                     }

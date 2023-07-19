@@ -2,33 +2,35 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal class LiveDiagnosticUpdateArgsId : AnalyzerUpdateArgsId
     {
-        private readonly string _analyzerPackageName;
+        private string? _buildTool;
 
         public readonly object ProjectOrDocumentId;
-        public readonly int Kind;
+        public readonly AnalysisKind Kind;
 
-        public LiveDiagnosticUpdateArgsId(DiagnosticAnalyzer analyzer, object projectOrDocumentId, int kind, string analyzerPackageName)
+        public LiveDiagnosticUpdateArgsId(DiagnosticAnalyzer analyzer, object projectOrDocumentId, AnalysisKind kind)
             : base(analyzer)
         {
             Contract.ThrowIfNull(projectOrDocumentId);
 
             ProjectOrDocumentId = projectOrDocumentId;
             Kind = kind;
-
-            _analyzerPackageName = analyzerPackageName;
         }
 
-        public override string BuildTool => _analyzerPackageName;
+        public override string BuildTool => _buildTool ??= ComputeBuildTool();
+
+        private string ComputeBuildTool()
+            => Analyzer.IsBuiltInAnalyzer() ? PredefinedBuildTools.Live : Analyzer.GetAnalyzerAssemblyName();
 
         public override bool Equals(object? obj)
         {
-            if (!(obj is LiveDiagnosticUpdateArgsId other))
+            if (obj is not LiveDiagnosticUpdateArgsId other)
             {
                 return false;
             }
@@ -37,6 +39,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public override int GetHashCode()
-            => Hash.Combine(ProjectOrDocumentId, Hash.Combine(Kind, base.GetHashCode()));
+            => Hash.Combine(ProjectOrDocumentId, Hash.Combine((int)Kind, base.GetHashCode()));
     }
 }

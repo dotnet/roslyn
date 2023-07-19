@@ -20,18 +20,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
     {
         internal abstract partial class RemoveSuppressionCodeAction
         {
-            public static BatchFixAllProvider GetBatchFixer(AbstractSuppressionCodeFixProvider suppressionFixProvider)
-                => new BatchFixer(suppressionFixProvider);
+            public static FixAllProvider GetBatchFixer(AbstractSuppressionCodeFixProvider suppressionFixProvider)
+                => new RemoveSuppressionBatchFixAllProvider(suppressionFixProvider);
 
             /// <summary>
             /// Batch fixer for pragma suppression removal code action.
             /// </summary>
-            private sealed class BatchFixer : BatchFixAllProvider
+            private sealed class RemoveSuppressionBatchFixAllProvider(AbstractSuppressionCodeFixProvider suppressionFixProvider) : AbstractSuppressionBatchFixAllProvider
             {
-                private readonly AbstractSuppressionCodeFixProvider _suppressionFixProvider;
-
-                public BatchFixer(AbstractSuppressionCodeFixProvider suppressionFixProvider)
-                    => _suppressionFixProvider = suppressionFixProvider;
+                private readonly AbstractSuppressionCodeFixProvider _suppressionFixProvider = suppressionFixProvider;
 
                 protected override async Task AddDocumentFixesAsync(
                     Document document, ImmutableArray<Diagnostic> diagnostics,
@@ -46,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     {
                         var span = diagnostic.Location.SourceSpan;
                         var removeSuppressionFixes = await _suppressionFixProvider.GetFixesAsync(
-                            document, span, SpecializedCollections.SingletonEnumerable(diagnostic), cancellationToken).ConfigureAwait(false);
+                            document, span, SpecializedCollections.SingletonEnumerable(diagnostic), fixAllState.CodeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
                         var removeSuppressionFix = removeSuppressionFixes.SingleOrDefault();
                         if (removeSuppressionFix != null)
                         {
@@ -91,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     foreach (var diagnostic in diagnostics.Where(d => !d.Location.IsInSource && d.IsSuppressed))
                     {
                         var removeSuppressionFixes = await _suppressionFixProvider.GetFixesAsync(
-                            project, SpecializedCollections.SingletonEnumerable(diagnostic), cancellationToken).ConfigureAwait(false);
+                            project, SpecializedCollections.SingletonEnumerable(diagnostic), fixAllState.CodeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
                         if (removeSuppressionFixes.SingleOrDefault()?.Action is RemoveSuppressionCodeAction removeSuppressionCodeAction)
                         {
                             if (fixAllState.IsFixMultiple)
@@ -145,13 +142,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                             currentSolution = currentSolution.WithDocumentSyntaxRoot(document.Id, newRoot);
                         }
 
-                        // This is a temporary generated code action, which doesn't need telemetry, hence suppressing RS0005.
-#pragma warning disable RS0005 // Do not use generic CodeAction.Create to create CodeAction
-                        var batchAttributeRemoveFix = Create(
+                        var batchAttributeRemoveFix = CodeAction.Create(
                             attributeRemoveFixes.First().Title,
                             createChangedSolution: ct => Task.FromResult(currentSolution),
                             equivalenceKey: fixAllState.CodeActionEquivalenceKey);
-#pragma warning restore RS0005 // Do not use generic CodeAction.Create to create CodeAction
 
                         newBatchOfFixes.Insert(0, (diagnostic: null, batchAttributeRemoveFix));
                     }
@@ -162,14 +156,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
                 private static async Task<ImmutableArray<SyntaxNode>> GetAttributeNodesToFixAsync(ImmutableArray<AttributeRemoveAction> attributeRemoveFixes, CancellationToken cancellationToken)
                 {
-                    using var builderDisposer = ArrayBuilder<SyntaxNode>.GetInstance(attributeRemoveFixes.Length, out var builder);
+                    using var _ = ArrayBuilder<SyntaxNode>.GetInstance(attributeRemoveFixes.Length, out var builder);
                     foreach (var attributeRemoveFix in attributeRemoveFixes)
                     {
                         var attributeToRemove = await attributeRemoveFix.GetAttributeToRemoveAsync(cancellationToken).ConfigureAwait(false);
                         builder.Add(attributeToRemove);
                     }
 
-                    return builder.ToImmutable();
+                    return builder.ToImmutableAndClear();
                 }
             }
         }

@@ -6,21 +6,26 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Tags;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal static class ImportCompletionItem
     {
-        private const string SortTextFormat = "{0} {1}";
+        // Note the additional space as prefix to the System namespace,
+        // to make sure items from System.* get sorted ahead.
+        private const string OtherNamespaceSortTextFormat = "~{0} {1}";
+        private const string SystemNamespaceSortTextFormat = "~{0}  {1}";
 
         private const string TypeAritySuffixName = nameof(TypeAritySuffixName);
         private const string AttributeFullName = nameof(AttributeFullName);
         private const string MethodKey = nameof(MethodKey);
         private const string ReceiverKey = nameof(ReceiverKey);
         private const string OverloadCountKey = nameof(OverloadCountKey);
+        private const string AlwaysAddMissingImportKey = nameof(AlwaysAddMissingImportKey);
 
         public static CompletionItem Create(
             string name,
@@ -29,7 +34,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             Glyph glyph,
             string genericTypeSuffix,
             CompletionItemFlags flags,
-            (string methodSymbolKey, string receiverTypeSymbolKey, int overloadCount)? extensionMethodData)
+            (string methodSymbolKey, string receiverTypeSymbolKey, int overloadCount)? extensionMethodData,
+            bool includedInTargetTypeCompletion = false)
         {
             ImmutableDictionary<string, string>? properties = null;
 
@@ -51,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 {
                     // We don't need arity to recover symbol if we already have SymbolKeyData or it's 0.
                     // (but it still needed below to decide whether to show generic suffix)
-                    builder.Add(TypeAritySuffixName, AbstractDeclaredSymbolInfoFactoryService.GetMetadataAritySuffix(arity));
+                    builder.Add(TypeAritySuffixName, ArityUtilities.GetMetadataAritySuffix(arity));
                 }
 
                 properties = builder.ToImmutableDictionaryAndFree();
@@ -61,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // but from different namespace all show up in the list, it also makes sure item with shorter name shows first, 
             // e.g. 'SomeType` before 'SomeTypeWithLongerName'. 
             var sortTextBuilder = PooledStringBuilder.GetInstance();
-            sortTextBuilder.Builder.AppendFormat(SortTextFormat, name, containingNamespace);
+            sortTextBuilder.Builder.AppendFormat(GetSortTextFormatString(containingNamespace), name, containingNamespace);
 
             var item = CompletionItem.Create(
                  displayText: name,
@@ -71,7 +77,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                  rules: CompletionItemRules.Default,
                  displayTextPrefix: null,
                  displayTextSuffix: arity == 0 ? string.Empty : genericTypeSuffix,
-                 inlineDescription: containingNamespace);
+                 inlineDescription: containingNamespace,
+                 isComplexTextEdit: true);
+
+            if (includedInTargetTypeCompletion)
+            {
+                item = item.AddTag(WellKnownTags.TargetTypeMatch);
+            }
 
             item.Flags = flags;
             return item;
@@ -85,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var newProperties = attributeItem.Properties.Add(AttributeFullName, attributeItem.DisplayText);
 
             var sortTextBuilder = PooledStringBuilder.GetInstance();
-            sortTextBuilder.Builder.AppendFormat(SortTextFormat, attributeNameWithoutSuffix, attributeItem.InlineDescription);
+            sortTextBuilder.Builder.AppendFormat(GetSortTextFormatString(attributeItem.InlineDescription), attributeNameWithoutSuffix, attributeItem.InlineDescription);
 
             var item = CompletionItem.Create(
                  displayText: attributeNameWithoutSuffix,
@@ -95,10 +107,19 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                  rules: attributeItem.Rules,
                  displayTextPrefix: attributeItem.DisplayTextPrefix,
                  displayTextSuffix: attributeItem.DisplayTextSuffix,
-                 inlineDescription: attributeItem.InlineDescription);
+                 inlineDescription: attributeItem.InlineDescription,
+                 isComplexTextEdit: true);
 
             item.Flags = flags;
             return item;
+        }
+
+        private static string GetSortTextFormatString(string containingNamespace)
+        {
+            if (containingNamespace == "System" || containingNamespace.StartsWith("System."))
+                return SystemNamespaceSortTextFormat;
+
+            return OtherNamespaceSortTextFormat;
         }
 
         public static CompletionItem CreateItemWithGenericDisplaySuffix(CompletionItem item, string genericTypeSuffix)
@@ -107,26 +128,41 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         public static string GetContainingNamespace(CompletionItem item)
             => item.InlineDescription;
 
-        public static async Task<CompletionDescription> GetCompletionDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        public static async Task<CompletionDescription> GetCompletionDescriptionAsync(Document document, CompletionItem item, SymbolDescriptionOptions options, CancellationToken cancellationToken)
         {
-            var compilation = (await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false));
+            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var (symbol, overloadCount) = GetSymbolAndOverloadCount(item, compilation);
 
             if (symbol != null)
             {
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                 return await CommonCompletionUtilities.CreateDescriptionAsync(
-                    document.Project.Solution.Workspace,
+                    document.Project.Solution.Services,
                     semanticModel,
                     position: 0,
                     symbol,
                     overloadCount,
+                    options,
                     supportedPlatforms: null,
                     cancellationToken).ConfigureAwait(false);
             }
 
             return CompletionDescription.Empty;
+        }
+
+        public static string GetTypeName(CompletionItem item)
+        {
+            var typeName = item.Properties.TryGetValue(AttributeFullName, out var attributeFullName)
+                ? attributeFullName
+                : item.DisplayText;
+
+            if (item.Properties.TryGetValue(TypeAritySuffixName, out var aritySuffix))
+            {
+                return typeName + aritySuffix;
+            }
+
+            return typeName;
         }
 
         private static string GetFullyQualifiedName(string namespaceName, string typeName)
@@ -174,5 +210,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             return (compilation.GetTypeByMetadataName(fullyQualifiedName), 0);
         }
+
+        public static CompletionItem MarkItemToAlwaysAddMissingImport(CompletionItem item) => item.WithProperties(item.Properties.Add(AlwaysAddMissingImportKey, AlwaysAddMissingImportKey));
+
+        public static bool ShouldAlwaysAddMissingImport(CompletionItem item) => item.Properties.ContainsKey(AlwaysAddMissingImportKey);
     }
 }

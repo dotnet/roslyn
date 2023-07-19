@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Symbols
 {
@@ -14,5 +16,13 @@ namespace Microsoft.CodeAnalysis.Symbols
         /// Gets the name of this assembly.
         /// </summary>
         AssemblyIdentity Identity { get; }
+
+        IAssemblySymbolInternal CorLibrary { get; }
+
+        IEnumerable<ImmutableArray<byte>> GetInternalsVisibleToPublicKeys(string simpleName);
+
+        IEnumerable<string> GetInternalsVisibleToAssemblyNames();
+
+        bool AreInternalsVisibleToThisAssembly(IAssemblySymbolInternal? otherAssembly);
     }
 }

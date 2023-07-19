@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -66,11 +67,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var comp = CSharp.CSharpCompilation.Create(
                 "c",
                 options: new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: CodeAnalysis.Diagnostic.MaxWarningLevel),
-                references: new[] { TestMetadata.NetCoreApp31.SystemRuntime });
+                references: new[] { NetCoreApp.SystemRuntime });
 
             var knownMissingTypes = new HashSet<SpecialType>()
             {
-                SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute
+                SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute
             };
 
             for (var specialType = SpecialType.None + 1; specialType <= SpecialType.Count; specialType++)
@@ -192,11 +193,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void ConstantValueToStringTest01()
         {
+            string value = (RuntimeUtilities.IsCoreClrRuntime && !RuntimeUtilities.IsCoreClr6Runtime)
+                ? "Nothing"
+                : "Null";
+
             var cv = ConstantValue.Create(null, ConstantValueTypeDiscriminator.Null);
-            Assert.Equal("ConstantValueNull(null: Null)", cv.ToString());
+            Assert.Equal($"ConstantValueNull(null: {value})", cv.ToString());
 
             cv = ConstantValue.Create(null, ConstantValueTypeDiscriminator.String);
-            Assert.Equal("ConstantValueNull(null: Null)", cv.ToString());
+            Assert.Equal($"ConstantValueNull(null: {value})", cv.ToString());
+
             // Never hit "ConstantValueString(null: Null)"
 
             var strVal = "QC";

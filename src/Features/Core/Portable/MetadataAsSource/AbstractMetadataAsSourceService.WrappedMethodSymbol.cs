@@ -12,15 +12,9 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
     internal partial class AbstractMetadataAsSourceService
     {
-        private class WrappedMethodSymbol : AbstractWrappedSymbol, IMethodSymbol
+        private class WrappedMethodSymbol(IMethodSymbol methodSymbol, bool canImplementImplicitly, IDocumentationCommentFormattingService docCommentFormattingService) : AbstractWrappedSymbol(methodSymbol, canImplementImplicitly, docCommentFormattingService), IMethodSymbol
         {
-            private readonly IMethodSymbol _symbol;
-
-            public WrappedMethodSymbol(IMethodSymbol methodSymbol, bool canImplementImplicitly, IDocumentationCommentFormattingService docCommentFormattingService)
-                : base(methodSymbol, canImplementImplicitly, docCommentFormattingService)
-            {
-                _symbol = methodSymbol;
-            }
+            private readonly IMethodSymbol _symbol = methodSymbol;
 
             public int Arity => _symbol.Arity;
 
@@ -32,6 +26,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public bool IsReadOnly => _symbol.IsReadOnly;
             public bool IsInitOnly => _symbol.IsInitOnly;
+
+            public System.Reflection.MethodImplAttributes MethodImplementationFlags => _symbol.MethodImplementationFlags;
 
             public ImmutableArray<IMethodSymbol> ExplicitInterfaceImplementations
             {
@@ -69,13 +65,15 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public IMethodSymbol PartialImplementationPart => _symbol.PartialImplementationPart;
 
+            public bool IsPartialDefinition => _symbol.IsPartialDefinition;
+
             public ITypeSymbol ReceiverType => _symbol.ReceiverType;
 
             public NullableAnnotation ReceiverNullableAnnotation => _symbol.ReceiverNullableAnnotation;
 
-            public IMethodSymbol ReducedFrom =>
+            public IMethodSymbol ReducedFrom
                     // This implementation feels incorrect!
-                    _symbol.ReducedFrom;
+                    => _symbol.ReducedFrom;
 
             public ITypeSymbol GetTypeInferredDuringReduction(ITypeParameterSymbol reducedFromTypeParameter)
             {

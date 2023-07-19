@@ -6,6 +6,7 @@ Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ErrorReporting
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -23,13 +24,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     ' The option page configuration is duplicated in PackageRegistration.pkgdef.
     '
     ' VB option pages tree
-    '   Basic
+    '   Visual Basic
     '     General (from editor)
     '     Scroll Bars (from editor)
     '     Tabs (from editor)
     '     Advanced
     '     Code Style (category)
     '       General
+    '       Naming
+    '     IntelliSense
     <ProvideLanguageEditorOptionPage(GetType(AdvancedOptionPage), "Basic", Nothing, "Advanced", "#102", 10160)>
     <ProvideLanguageEditorToolsOptionCategory("Basic", "Code Style", "#109")>
     <ProvideLanguageEditorOptionPage(GetType(CodeStylePage), "Basic", "Code Style", "General", "#111", 10161)>
@@ -55,12 +58,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Public Sub New()
             MyBase.New()
 
-            _comAggregate = Interop.ComAggregate.CreateAggregatedObject(Me)
+            ' This is a UI-affinitized operation. Currently this opeartion prevents setting AllowsBackgroundLoad for
+            ' VisualBasicPackage. The call should be removed from the constructor, and the package set back to allowing
+            ' background loads.
+            _comAggregate = Implementation.Interop.ComAggregate.CreateAggregatedObject(Me)
         End Sub
-
-        Protected Overrides Function CreateWorkspace() As VisualStudioWorkspaceImpl
-            Return Me.ComponentModel.GetService(Of VisualStudioWorkspaceImpl)
-        End Function
 
         Protected Overrides Async Function InitializeAsync(cancellationToken As CancellationToken, progress As IProgress(Of ServiceProgressData)) As Task
             Try
@@ -69,9 +71,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
 
                 RegisterLanguageService(GetType(IVbCompilerService), Function() Task.FromResult(_comAggregate))
 
-                Dim workspace = Me.ComponentModel.GetService(Of VisualStudioWorkspaceImpl)()
                 RegisterService(Of IVbTempPECompilerFactory)(
                     Async Function(ct)
+                        Dim workspace = Me.ComponentModel.GetService(Of VisualStudioWorkspace)()
                         Await JoinableTaskFactory.SwitchToMainThreadAsync(ct)
                         Return New TempPECompilerFactory(workspace)
                     End Function)
@@ -81,11 +83,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Function
 
         Protected Overrides Async Function RegisterObjectBrowserLibraryManagerAsync(cancellationToken As CancellationToken) As Task
+            Dim workspace As VisualStudioWorkspace = ComponentModel.GetService(Of VisualStudioWorkspace)()
+
             Await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken)
 
             Dim objectManager = TryCast(Await GetServiceAsync(GetType(SVsObjectManager)).ConfigureAwait(True), IVsObjectManager2)
             If objectManager IsNot Nothing Then
-                Me._libraryManager = New ObjectBrowserLibraryManager(Me, ComponentModel, Workspace)
+                Me._libraryManager = New ObjectBrowserLibraryManager(Me, ComponentModel, workspace)
 
                 If ErrorHandler.Failed(objectManager.RegisterSimpleLibrary(Me._libraryManager, Me._libraryManagerCookie)) Then
                     Me._libraryManagerCookie = 0
@@ -116,8 +120,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
 
         Protected Overrides Function GetAutomationObject(name As String) As Object
             If name = "Basic-Specific" Then
-                Dim workspace = Me.ComponentModel.GetService(Of VisualStudioWorkspace)()
-                Return New AutomationObject(workspace)
+                Return New AutomationObject(ComponentModel.GetService(Of ILegacyGlobalOptionService))
             End If
 
             Return MyBase.GetAutomationObject(name)

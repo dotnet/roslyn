@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -41,7 +42,10 @@ start:
             return hashCode;
         }
 
-        internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        /// <remarks>
+        /// This method should be kept consistent with <see cref="ComputeStringHash"/>
+        /// </remarks>
+        internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             SyntheticBoundNodeFactory F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
             F.CurrentFunction = this;
@@ -55,8 +59,6 @@ start:
                 LabelSymbol start = F.GenerateLabel("start");
 
                 ParameterSymbol text = this.Parameters[0];
-
-                //  This method should be kept consistent with ComputeStringHash
 
                 //uint hashCode = 0;
                 //if (text != null)
@@ -125,6 +127,99 @@ start:
         }
     }
 
+    /// <summary>
+    /// The synthesized method for computing the hash from a ReadOnlySpan&lt;char&gt; or Span&lt;char&gt;.
+    /// Matches the corresponding method for string <see cref="SynthesizedStringSwitchHashMethod"/>.
+    /// </summary>
+    internal sealed partial class SynthesizedSpanSwitchHashMethod : SynthesizedGlobalMethodSymbol
+    {
+        /// <remarks>
+        /// This method should be kept consistent with <see cref="SynthesizedStringSwitchHashMethod.ComputeStringHash"/>
+        /// </remarks>
+        internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
+        {
+            SyntheticBoundNodeFactory F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
+            F.CurrentFunction = this;
+
+            try
+            {
+                ParameterSymbol text = this.Parameters[0];
+
+                NamedTypeSymbol spanChar = F.WellKnownType(_isReadOnlySpan
+                    ? WellKnownType.System_ReadOnlySpan_T
+                    : WellKnownType.System_Span_T)
+                    .Construct(F.SpecialType(SpecialType.System_Char));
+
+                LocalSymbol i = F.SynthesizedLocal(F.SpecialType(SpecialType.System_Int32));
+                LocalSymbol hashCode = F.SynthesizedLocal(F.SpecialType(SpecialType.System_UInt32));
+
+                LabelSymbol again = F.GenerateLabel("again");
+                LabelSymbol start = F.GenerateLabel("start");
+
+                //  uint hashCode = unchecked((uint)2166136261);
+
+                //  int i = 0;
+                //  goto start;
+
+                //again:
+                //  hashCode = (text[i] ^ hashCode) * 16777619;
+                //  i = i + 1;
+
+                //start:
+                //  if (i < text.Length)
+                //      goto again;
+
+                //  return hashCode;
+
+                var body = F.Block(
+                        ImmutableArray.Create<LocalSymbol>(hashCode, i),
+                        F.Assignment(F.Local(hashCode), F.Literal((uint)2166136261)),
+                        F.Assignment(F.Local(i), F.Literal(0)),
+                        F.Goto(start),
+                        F.Label(again),
+                        F.Assignment(
+                            F.Local(hashCode),
+                            F.Binary(BinaryOperatorKind.Multiplication, hashCode.Type,
+                                F.Binary(BinaryOperatorKind.Xor, hashCode.Type,
+                                    F.Convert(hashCode.Type,
+                                        F.Call(
+                                            F.Parameter(text),
+                                            F.WellKnownMethod(_isReadOnlySpan
+                                                ? WellKnownMember.System_ReadOnlySpan_T__get_Item
+                                                : WellKnownMember.System_Span_T__get_Item).AsMember(spanChar),
+                                            F.Local(i)),
+                                        Conversion.ImplicitNumeric),
+                                    F.Local(hashCode)),
+                                F.Literal(16777619))),
+                        F.Assignment(
+                            F.Local(i),
+                            F.Binary(BinaryOperatorKind.Addition, i.Type,
+                                F.Local(i),
+                                F.Literal(1))),
+                        F.Label(start),
+                        F.If(
+                            F.Binary(BinaryOperatorKind.LessThan, F.SpecialType(SpecialType.System_Boolean),
+                                F.Local(i),
+                                F.Call(
+                                    F.Parameter(text),
+                                    F.WellKnownMethod(_isReadOnlySpan
+                                        ? WellKnownMember.System_ReadOnlySpan_T__get_Length
+                                        : WellKnownMember.System_Span_T__get_Length).AsMember(spanChar))),
+                            F.Goto(again)),
+                        F.Return(F.Local(hashCode))
+                    );
+
+                // NOTE: we created this block in its most-lowered form, so analysis is unnecessary
+                F.CloseMethod(body);
+            }
+            catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
+            {
+                diagnostics.Add(ex.Diagnostic);
+                F.CloseMethod(F.ThrowNull());
+            }
+        }
+    }
+
     internal sealed partial class SynthesizedExplicitImplementationForwardingMethod : SynthesizedImplementationMethod
     {
         internal override bool SynthesizesLoweredBoundBody
@@ -142,7 +237,7 @@ start:
         ///     return this.Goo&lt;T1, T2, ...&gt;(a1, a2, ...);
         /// }
         /// </summary>
-        internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             SyntheticBoundNodeFactory F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
             F.CurrentFunction = (MethodSymbol)this.OriginalDefinition;
@@ -180,7 +275,7 @@ start:
         /// Given a SynthesizedSealedPropertyAccessor (an accessor with a reference to the accessor it overrides),
         /// construct a BoundBlock body.
         /// </summary>
-        internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             SyntheticBoundNodeFactory F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
             F.CurrentFunction = (MethodSymbol)this.OriginalDefinition;
@@ -195,6 +290,8 @@ start:
                 F.CloseMethod(F.ThrowNull());
             }
         }
+
+        protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
     }
 
     internal abstract partial class MethodToClassRewriter
@@ -211,11 +308,13 @@ start:
                 get { return true; }
             }
 
+            internal override ExecutableCodeBinder? TryGetBodyBinder(BinderFactory? binderFactoryOpt = null, bool ignoreAccessibility = false) => throw ExceptionUtilities.Unreachable();
+
             /// <summary>
             /// Given a SynthesizedSealedPropertyAccessor (an accessor with a reference to the accessor it overrides),
             /// construct a BoundBlock body.
             /// </summary>
-            internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+            internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
             {
                 SyntheticBoundNodeFactory F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
                 F.CurrentFunction = this.OriginalDefinition;
@@ -363,7 +462,7 @@ start:
                 argBuilder.Add(F.Parameter(param));
             }
 
-            BoundExpression invocation = F.Call(useBaseReference ? (BoundExpression)F.Base(baseType: methodToInvoke.ContainingType) : F.This(),
+            BoundExpression invocation = F.Call(methodToInvoke.IsStatic ? null : (useBaseReference ? (BoundExpression)F.Base(baseType: methodToInvoke.ContainingType) : F.This()),
                                                 methodToInvoke,
                                                 argBuilder.ToImmutableAndFree());
 

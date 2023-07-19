@@ -15,21 +15,14 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 {
     internal abstract partial class MethodExtractor
     {
-        protected class VariableInfo
+        protected class VariableInfo(
+            VariableSymbol variableSymbol,
+            VariableStyle variableStyle,
+            bool useAsReturnValue = false)
         {
-            private readonly VariableSymbol _variableSymbol;
-            private readonly VariableStyle _variableStyle;
-            private readonly bool _useAsReturnValue;
-
-            public VariableInfo(
-                VariableSymbol variableSymbol,
-                VariableStyle variableStyle,
-                bool useAsReturnValue = false)
-            {
-                _variableSymbol = variableSymbol;
-                _variableStyle = variableStyle;
-                _useAsReturnValue = useAsReturnValue;
-            }
+            private readonly VariableSymbol _variableSymbol = variableSymbol;
+            private readonly VariableStyle _variableStyle = variableStyle;
+            private readonly bool _useAsReturnValue = useAsReturnValue;
 
             public bool UseAsReturnValue
             {
@@ -97,7 +90,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 Contract.ThrowIfNull(variable);
                 Contract.ThrowIfFalse(variable.CanBeUsedAsReturnValue);
-                Contract.ThrowIfFalse(variable.ParameterModifier == ParameterBehavior.Out || variable.ParameterModifier == ParameterBehavior.Ref);
+                Contract.ThrowIfFalse(variable.ParameterModifier is ParameterBehavior.Out or ParameterBehavior.Ref);
 
                 return new VariableInfo(variable._variableSymbol, variable._variableStyle, useAsReturnValue: true);
             }
@@ -110,18 +103,27 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             public string Name => _variableSymbol.Name;
 
+            /// <summary>
+            /// Returns true, if the variable could be either passed as a parameter
+            /// to the new local function or the local function can capture the variable.
+            /// </summary>
+            public bool CanBeCapturedByLocalFunction
+                => _variableSymbol.CanBeCapturedByLocalFunction;
+
             public bool OriginalTypeHadAnonymousTypeOrDelegate => _variableSymbol.OriginalTypeHadAnonymousTypeOrDelegate;
 
             public ITypeSymbol OriginalType => _variableSymbol.OriginalType;
 
-            public ITypeSymbol GetVariableType(SemanticDocument document)
-                => document.SemanticModel.ResolveType(_variableSymbol.OriginalType);
+            public ITypeSymbol GetVariableType()
+                => _variableSymbol.OriginalType;
 
             public SyntaxToken GetIdentifierTokenAtDeclaration(SemanticDocument document)
                 => document.GetTokenWithAnnotation(_variableSymbol.IdentifierTokenAnnotation);
 
             public SyntaxToken GetIdentifierTokenAtDeclaration(SyntaxNode node)
                 => node.GetAnnotatedTokens(_variableSymbol.IdentifierTokenAnnotation).SingleOrDefault();
+
+            public SyntaxToken GetOriginalIdentifierToken(CancellationToken cancellationToken) => _variableSymbol.GetOriginalIdentifierToken(cancellationToken);
 
             public static void SortVariables(Compilation compilation, ArrayBuilder<VariableInfo> variables)
             {

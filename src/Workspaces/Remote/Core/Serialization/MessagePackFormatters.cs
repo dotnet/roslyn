@@ -6,17 +6,14 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.Serialization;
+using System.Text;
 using MessagePack;
 using MessagePack.Formatters;
 using MessagePack.Resolvers;
-using Microsoft.CodeAnalysis.AddImport;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.ConvertTupleToStruct;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.DocumentHighlighting;
-using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.NavigateTo;
-using Microsoft.CodeAnalysis.Rename.ConflictEngine;
+using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -27,105 +24,43 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal sealed class MessagePackFormatters
     {
-        private static readonly ImmutableArray<IMessagePackFormatter> s_formatters = ImmutableArray.Create<IMessagePackFormatter>(
-            SolutionIdFormatter.Instance,
+        internal static readonly ImmutableArray<IMessagePackFormatter> Formatters = ImmutableArray.Create<IMessagePackFormatter>(
             ProjectIdFormatter.Instance,
-            DocumentIdFormatter.Instance,
-            EnumFormatters.AnalysisKind,
-            EnumFormatters.AnalysisKind.CreateNullable(),
-            EnumFormatters.HighlightSpanKind,
-            EnumFormatters.Scope,
-            EnumFormatters.RelatedLocationType,
-            EnumFormatters.SearchKind,
-            EnumFormatters.NavigateToMatchKind,
-            EnumFormatters.Glyph,
-            EnumFormatters.Glyph.CreateNullable(),
-            EnumFormatters.TaggedTextStyle,
-            EnumFormatters.ValueUsageInfo,
-            EnumFormatters.ValueUsageInfo.CreateNullable(),
-            EnumFormatters.TypeOrNamespaceUsageInfo,
-            EnumFormatters.TypeOrNamespaceUsageInfo.CreateNullable(),
-            EnumFormatters.AddImportFixKind,
-            EnumFormatters.CodeActionPriority,
-            EnumFormatters.DependentTypesKind);
+            EncodingFormatter.Instance,
+            // ForceTypelessFormatter<T> needs to be listed here for each Roslyn abstract type T that is being serialized OOP.
+            // TODO: add a resolver that provides these https://github.com/dotnet/roslyn/issues/60724
+            new ForceTypelessFormatter<SimplifierOptions>(),
+            new ForceTypelessFormatter<SyntaxFormattingOptions>(),
+            new ForceTypelessFormatter<CodeGenerationOptions>(),
+            new ForceTypelessFormatter<IdeCodeStyleOptions>());
 
         private static readonly ImmutableArray<IFormatterResolver> s_resolvers = ImmutableArray.Create<IFormatterResolver>(
-            ImmutableCollectionMessagePackResolver.Instance,
             StandardResolverAllowPrivate.Instance);
 
-        internal static readonly IFormatterResolver DefaultResolver = CompositeResolver.Create(s_formatters, s_resolvers);
+        internal static readonly IFormatterResolver DefaultResolver = CompositeResolver.Create(Formatters, s_resolvers);
 
         internal static IFormatterResolver CreateResolver(ImmutableArray<IMessagePackFormatter> additionalFormatters, ImmutableArray<IFormatterResolver> additionalResolvers)
-            => (additionalFormatters.IsEmpty && additionalResolvers.IsEmpty) ? DefaultResolver : CompositeResolver.Create(s_formatters.AddRange(additionalFormatters), s_resolvers.AddRange(additionalResolvers));
+            => (additionalFormatters.IsEmpty && additionalResolvers.IsEmpty) ? DefaultResolver : CompositeResolver.Create(Formatters.AddRange(additionalFormatters), s_resolvers.AddRange(additionalResolvers));
 
-        // TODO: remove https://github.com/neuecc/MessagePack-CSharp/issues/1025
-        internal static class EnumFormatters
-        {
-            public static readonly EnumFormatter<AnalysisKind> AnalysisKind = new(value => (int)value, value => (AnalysisKind)value);
-            public static readonly EnumFormatter<HighlightSpanKind> HighlightSpanKind = new(value => (int)value, value => (HighlightSpanKind)value);
-            public static readonly EnumFormatter<Scope> Scope = new(value => (int)value, value => (Scope)value);
-            public static readonly EnumFormatter<RelatedLocationType> RelatedLocationType = new(value => (int)value, value => (RelatedLocationType)value);
-            public static readonly EnumFormatter<SearchKind> SearchKind = new(value => (int)value, value => (SearchKind)value);
-            public static readonly EnumFormatter<NavigateToMatchKind> NavigateToMatchKind = new(value => (int)value, value => (NavigateToMatchKind)value);
-            public static readonly EnumFormatter<Glyph> Glyph = new(value => (int)value, value => (Glyph)value);
-            public static readonly EnumFormatter<TaggedTextStyle> TaggedTextStyle = new(value => (int)value, value => (TaggedTextStyle)value);
-            public static readonly EnumFormatter<ValueUsageInfo> ValueUsageInfo = new(value => (int)value, value => (ValueUsageInfo)value);
-            public static readonly EnumFormatter<TypeOrNamespaceUsageInfo> TypeOrNamespaceUsageInfo = new(value => (int)value, value => (TypeOrNamespaceUsageInfo)value);
-            public static readonly EnumFormatter<AddImportFixKind> AddImportFixKind = new(value => (int)value, value => (AddImportFixKind)value);
-            public static readonly EnumFormatter<CodeActionPriority> CodeActionPriority = new(value => (int)value, value => (CodeActionPriority)value);
-            public static readonly EnumFormatter<DependentTypesKind> DependentTypesKind = new(value => (int)value, value => (DependentTypesKind)value);
-        }
-
-        internal sealed class SolutionIdFormatter : IMessagePackFormatter<SolutionId?>
-        {
-            public static readonly SolutionIdFormatter Instance = new SolutionIdFormatter();
-
-            public SolutionId? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
-            {
-                try
-                {
-                    if (reader.TryReadNil())
-                    {
-                        return null;
-                    }
-
-                    Contract.ThrowIfFalse(reader.ReadArrayHeader() == 2);
-                    var id = GuidFormatter.Instance.Deserialize(ref reader, options);
-                    var debugName = reader.ReadString();
-
-                    return SolutionId.CreateFromSerialized(id, debugName);
-                }
-                catch (Exception e) when (e is not MessagePackSerializationException)
-                {
-                    throw new MessagePackSerializationException(e.Message, e);
-                }
-            }
-
-            public void Serialize(ref MessagePackWriter writer, SolutionId? value, MessagePackSerializerOptions options)
-            {
-                try
-                {
-                    if (value is null)
-                    {
-                        writer.WriteNil();
-                    }
-                    else
-                    {
-                        writer.WriteArrayHeader(2);
-                        GuidFormatter.Instance.Serialize(ref writer, value.Id, options);
-                        writer.Write(value.DebugName);
-                    }
-                }
-                catch (Exception e) when (e is not MessagePackSerializationException)
-                {
-                    throw new MessagePackSerializationException(e.Message, e);
-                }
-            }
-        }
-
+        /// <summary>
+        /// Specialized formatter used so we can cache and reuse <see cref="ProjectId"/> instances.  This is valuable as
+        /// it's very common for a set of results to reuse the same ProjectId across long sequences of results
+        /// containing <see cref="DocumentId"/>s.  This allows a single instance to be created and shared across that
+        /// entire sequence, saving on allocations.
+        /// </summary>
         internal sealed class ProjectIdFormatter : IMessagePackFormatter<ProjectId?>
         {
-            public static readonly ProjectIdFormatter Instance = new ProjectIdFormatter();
+            public static readonly ProjectIdFormatter Instance = new();
+
+            /// <summary>
+            /// Keep a copy of the most recent project ID to avoid duplicate instances when many consecutive IDs
+            /// reference the same project.
+            /// </summary>
+            /// <remarks>
+            /// Synchronization is not required for this field, since it's only intended to be an opportunistic (lossy)
+            /// cache.
+            /// </remarks>
+            private ProjectId? _previousProjectId;
 
             public ProjectId? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
             {
@@ -140,7 +75,13 @@ namespace Microsoft.CodeAnalysis.Remote
                     var id = GuidFormatter.Instance.Deserialize(ref reader, options);
                     var debugName = reader.ReadString();
 
-                    return ProjectId.CreateFromSerialized(id, debugName);
+                    var previousId = _previousProjectId;
+                    if (previousId is not null && previousId.Id == id && previousId.DebugName == debugName)
+                        return previousId;
+
+                    var currentId = ProjectId.CreateFromSerialized(id, debugName);
+                    _previousProjectId = currentId;
+                    return currentId;
                 }
                 catch (Exception e) when (e is not MessagePackSerializationException)
                 {
@@ -170,11 +111,20 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        internal sealed class DocumentIdFormatter : IMessagePackFormatter<DocumentId?>
+        /// <summary>
+        /// Supports (de)serialization of <see cref="Encoding"/> that do not customize <see cref="Encoding.EncoderFallback"/> or <see cref="Encoding.DecoderFallback"/>.
+        /// The fallback will be discarded if the <see cref="Encoding"/> has any.
+        /// </summary>
+        /// <remarks>
+        /// Only supports (de)serializing values that are statically typed to <see cref="Encoding"/>.
+        /// This is important as we can't assume anything about arbitrary subtypes of <see cref="Encoding"/>
+        /// and can only return general <see cref="Encoding"/> from the deserializer.
+        /// </remarks>
+        internal sealed class EncodingFormatter : IMessagePackFormatter<Encoding?>
         {
-            public static readonly DocumentIdFormatter Instance = new DocumentIdFormatter();
+            public static readonly EncodingFormatter Instance = new();
 
-            public DocumentId? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+            public Encoding? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
             {
                 try
                 {
@@ -183,15 +133,25 @@ namespace Microsoft.CodeAnalysis.Remote
                         return null;
                     }
 
-                    Contract.ThrowIfFalse(reader.ReadArrayHeader() == 3);
+                    var kind = (TextEncodingKind)reader.ReadByte();
+                    if (kind != TextEncodingKind.None)
+                    {
+                        return kind.GetEncoding();
+                    }
 
-                    var projectId = ProjectIdFormatter.Instance.Deserialize(ref reader, options);
-                    Contract.ThrowIfNull(projectId);
+                    var codePage = reader.ReadInt32();
+                    if (codePage > 0)
+                    {
+                        return Encoding.GetEncoding(codePage);
+                    }
 
-                    var id = GuidFormatter.Instance.Deserialize(ref reader, options);
-                    var debugName = reader.ReadString();
+                    var name = reader.ReadString();
+                    if (name is null)
+                    {
+                        return null;
+                    }
 
-                    return DocumentId.CreateFromSerialized(projectId, id, debugName);
+                    return Encoding.GetEncoding(name);
                 }
                 catch (Exception e) when (e is not MessagePackSerializationException)
                 {
@@ -199,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
             }
 
-            public void Serialize(ref MessagePackWriter writer, DocumentId? value, MessagePackSerializerOptions options)
+            public void Serialize(ref MessagePackWriter writer, Encoding? value, MessagePackSerializerOptions options)
             {
                 try
                 {
@@ -207,107 +167,25 @@ namespace Microsoft.CodeAnalysis.Remote
                     {
                         writer.WriteNil();
                     }
+                    else if (value.TryGetEncodingKind(out var kind))
+                    {
+                        Debug.Assert(kind != TextEncodingKind.None);
+                        writer.WriteUInt8((byte)kind);
+                    }
                     else
                     {
-                        writer.WriteArrayHeader(3);
-                        ProjectIdFormatter.Instance.Serialize(ref writer, value.ProjectId, options);
-                        GuidFormatter.Instance.Serialize(ref writer, value.Id, options);
-                        writer.Write(value.DebugName);
-                    }
-                }
-                catch (Exception e) when (e is not MessagePackSerializationException)
-                {
-                    throw new MessagePackSerializationException(e.Message, e);
-                }
-            }
-        }
-
-        // TODO: remove https://github.com/neuecc/MessagePack-CSharp/issues/1025
-        internal sealed class EnumFormatter<TEnum> : IMessagePackFormatter<TEnum>
-            where TEnum : struct
-        {
-            private readonly Func<TEnum, int> _toInt;
-            private readonly Func<int, TEnum> _toEnum;
-
-            static EnumFormatter()
-            {
-                var underlyingType = typeof(TEnum).GetEnumUnderlyingType();
-                Contract.ThrowIfTrue(underlyingType == typeof(long) || underlyingType == typeof(ulong));
-            }
-
-            public EnumFormatter(Func<TEnum, int> toInt, Func<int, TEnum> toEnum)
-            {
-                _toInt = toInt;
-                _toEnum = toEnum;
-            }
-
-            public TEnum Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
-            {
-                try
-                {
-                    return _toEnum(reader.ReadInt32());
-                }
-                catch (Exception e) when (e is not MessagePackSerializationException)
-                {
-                    throw new MessagePackSerializationException(e.Message, e);
-                }
-            }
-
-            public void Serialize(ref MessagePackWriter writer, TEnum value, MessagePackSerializerOptions options)
-            {
-                try
-                {
-                    writer.WriteInt32(_toInt(value));
-                }
-                catch (Exception e) when (e is not MessagePackSerializationException)
-                {
-                    throw new MessagePackSerializationException(e.Message, e);
-                }
-            }
-
-            public NullableEnum CreateNullable()
-                => new NullableEnum(_toInt, _toEnum);
-
-            internal sealed class NullableEnum : IMessagePackFormatter<TEnum?>
-            {
-                private readonly Func<TEnum, int> _toInt;
-                private readonly Func<int, TEnum> _toEnum;
-
-                public NullableEnum(Func<TEnum, int> toInt, Func<int, TEnum> toEnum)
-                {
-                    _toInt = toInt;
-                    _toEnum = toEnum;
-                }
-
-                public TEnum? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
-                {
-                    try
-                    {
-                        return reader.TryReadNil() ? null : _toEnum(reader.ReadInt32());
-                    }
-                    catch (Exception e) when (e is not MessagePackSerializationException)
-                    {
-                        throw new MessagePackSerializationException(e.Message, e);
-                    }
-                }
-
-                public void Serialize(ref MessagePackWriter writer, TEnum? value, MessagePackSerializerOptions options)
-                {
-                    try
-                    {
-                        if (value == null)
+                        writer.WriteUInt8((byte)TextEncodingKind.None);
+                        var codePage = value.CodePage;
+                        writer.Write(codePage);
+                        if (codePage <= 0)
                         {
-                            writer.WriteNil();
-                        }
-                        else
-                        {
-                            writer.WriteInt32(_toInt(value.Value));
+                            writer.Write(value.WebName);
                         }
                     }
-                    catch (Exception e) when (e is not MessagePackSerializationException)
-                    {
-                        throw new MessagePackSerializationException(e.Message, e);
-                    }
+                }
+                catch (Exception e) when (e is not MessagePackSerializationException)
+                {
+                    throw new MessagePackSerializationException(e.Message, e);
                 }
             }
         }

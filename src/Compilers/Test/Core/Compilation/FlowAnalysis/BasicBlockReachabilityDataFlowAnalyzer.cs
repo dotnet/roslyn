@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         // A basic block is considered unreachable by default.
         public override bool GetEmptyAnalysisData() => false;
 
-        // Destination block is reachable if either of the precedecessor blocks are reachable.
+        // Destination block is reachable if either of the predecessor blocks are reachable.
         public override bool Merge(bool predecessor1IsReachable, bool predecessor2IsReachable, CancellationToken cancellationToken)
             => predecessor1IsReachable || predecessor2IsReachable;
 

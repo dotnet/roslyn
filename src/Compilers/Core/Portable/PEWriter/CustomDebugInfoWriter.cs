@@ -63,55 +63,69 @@ namespace Microsoft.Cci
             return false;
         }
 
-        public byte[] SerializeMethodDebugInfo(EmitContext context, IMethodBody methodBody, MethodDefinitionHandle methodHandle, bool emitEncInfo, bool suppressNewCustomDebugInfo, out bool emitExternNamespaces)
+        public byte[] SerializeMethodDebugInfo(
+            EmitContext context,
+            IMethodBody methodBody,
+            MethodDefinitionHandle methodHandle,
+            bool emitStateMachineInfo,
+            bool emitEncInfo,
+            bool emitDynamicAndTupleInfo,
+            out bool emitExternNamespaces)
         {
             emitExternNamespaces = false;
 
-            // CONSIDER: this may not be the same "first" method as in Dev10, but
-            // it shouldn't matter since all methods will still forward to a method
-            // containing the appropriate information.
-            if (_methodBodyWithModuleInfo == null)
+            // Caller is only expecting emitExternNamespaces == true if emitStateMachineInfo == true.
+            if (emitStateMachineInfo)
             {
-                // This module level information could go on every method (and does in
-                // the edit-and-continue case), but - as an optimization - we'll just
-                // put it on the first method we happen to encounter and then put a
-                // reference to the first method's token in every other method (so they
-                // can find the information).
-                if (context.Module.GetAssemblyReferenceAliases(context).Any())
+                // CONSIDER: this may not be the same "first" method as in Dev10, but
+                // it shouldn't matter since all methods will still forward to a method
+                // containing the appropriate information.
+                if (_methodBodyWithModuleInfo == null)
                 {
-                    _methodWithModuleInfo = methodHandle;
-                    _methodBodyWithModuleInfo = methodBody;
-                    emitExternNamespaces = true;
+                    // This module level information could go on every method (and does in
+                    // the edit-and-continue case), but - as an optimization - we'll just
+                    // put it on the first method we happen to encounter and then put a
+                    // reference to the first method's token in every other method (so they
+                    // can find the information).
+                    if (context.Module.GetAssemblyReferenceAliases(context).Any())
+                    {
+                        _methodWithModuleInfo = methodHandle;
+                        _methodBodyWithModuleInfo = methodBody;
+                        emitExternNamespaces = true;
+                    }
                 }
             }
 
             var pooledBuilder = PooledBlobBuilder.GetInstance();
             var encoder = new CustomDebugInfoEncoder(pooledBuilder);
 
-            if (methodBody.StateMachineTypeName != null)
+            if (emitStateMachineInfo)
             {
-                encoder.AddStateMachineTypeName(methodBody.StateMachineTypeName);
-            }
-            else
-            {
-                SerializeNamespaceScopeMetadata(ref encoder, context, methodBody);
-
-                encoder.AddStateMachineHoistedLocalScopes(methodBody.StateMachineHoistedLocalScopes);
-            }
-
-            if (!suppressNewCustomDebugInfo)
-            {
-                SerializeDynamicLocalInfo(ref encoder, methodBody);
-                SerializeTupleElementNames(ref encoder, methodBody);
-
-                if (emitEncInfo)
+                if (methodBody.StateMachineTypeName != null)
                 {
-                    var encMethodInfo = MetadataWriter.GetEncMethodDebugInfo(methodBody);
-                    SerializeCustomDebugInformation(ref encoder, encMethodInfo);
+                    encoder.AddStateMachineTypeName(methodBody.StateMachineTypeName);
+                }
+                else
+                {
+                    SerializeNamespaceScopeMetadata(ref encoder, context, methodBody);
+
+                    encoder.AddStateMachineHoistedLocalScopes(methodBody.StateMachineHoistedLocalScopes);
                 }
             }
 
-            byte[] result = encoder.ToArray();
+            if (emitDynamicAndTupleInfo)
+            {
+                SerializeDynamicLocalInfo(ref encoder, methodBody);
+                SerializeTupleElementNames(ref encoder, methodBody);
+            }
+
+            if (emitEncInfo)
+            {
+                var encMethodInfo = MetadataWriter.GetEncMethodDebugInfo(methodBody);
+                SerializeCustomDebugInformation(ref encoder, encMethodInfo);
+            }
+
+            byte[] result = encoder.ToArray() ?? Array.Empty<byte>();
             pooledBuilder.Free();
             return result;
         }
@@ -136,6 +150,14 @@ namespace Microsoft.Cci
                     CustomDebugInfoKind.EditAndContinueLambdaMap,
                     debugInfo,
                     (info, builder) => info.SerializeLambdaMap(builder));
+            }
+
+            if (!debugInfo.StateMachineStates.IsDefaultOrEmpty)
+            {
+                encoder.AddRecord(
+                    CustomDebugInfoKind.EditAndContinueStateMachineStateMap,
+                    debugInfo,
+                    (info, builder) => info.SerializeStateMachineStates(builder));
             }
         }
 
@@ -254,7 +276,7 @@ namespace Microsoft.Cci
             var usingCounts = ArrayBuilder<int>.GetInstance();
             for (IImportScope scope = methodBody.ImportScope; scope != null; scope = scope.Parent)
             {
-                usingCounts.Add(scope.GetUsedNamespaces().Length);
+                usingCounts.Add(scope.GetUsedNamespaces(context).Length);
             }
 
             encoder.AddUsingGroups(usingCounts);
@@ -299,7 +321,7 @@ namespace Microsoft.Cci
             var s2 = previousScopes;
             while (s1 != null && s2 != null)
             {
-                if (!s1.GetUsedNamespaces().SequenceEqual(s2.GetUsedNamespaces()))
+                if (!s1.GetUsedNamespaces(context).SequenceEqual(s2.GetUsedNamespaces(context)))
                 {
                     return false;
                 }

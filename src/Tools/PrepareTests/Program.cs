@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Threading.Tasks;
+using Mono.Options;
+
+namespace PrepareTests;
 
 internal static class Program
 {
@@ -12,13 +14,45 @@ internal static class Program
 
     public static int Main(string[] args)
     {
-        if (args.Length != 2)
+        string? source = null;
+        string? destination = null;
+        bool isUnix = false;
+        string? dotnetPath = null;
+
+        var options = new OptionSet()
         {
-            Console.WriteLine("preparetests <path to binaries> <output path>");
+            { "source=", "Path to binaries", (string s) => source = s },
+            { "destination=", "Output path", (string s) => destination = s },
+            { "unix", "If true, prepares tests for unix environment instead of Windows", o => isUnix = o is object },
+            { "dotnetPath=", "Path to the dotnet CLI", (string s) => dotnetPath = s },
+        };
+        options.Parse(args);
+
+        if (source is null)
+        {
+            Console.Error.WriteLine("--source argument must be provided");
             return ExitFailure;
         }
 
-        MinimizeUtil.Run(args[0], args[1]);
+        if (destination is null)
+        {
+            Console.Error.WriteLine("--destination argument must be provided");
+            return ExitFailure;
+        }
+
+        if (dotnetPath is null)
+        {
+            Console.Error.WriteLine("--dotnetPath argument must be provided");
+            return ExitFailure;
+        }
+
+        var success = TestDiscovery.RunDiscovery(source, dotnetPath, isUnix);
+        if (!success)
+        {
+            return ExitFailure;
+        }
+
+        MinimizeUtil.Run(source, destination, isUnix);
         return ExitSuccess;
     }
 }

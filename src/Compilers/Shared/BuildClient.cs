@@ -24,6 +24,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CommandLine
 {
     internal delegate int CompileFunc(string[] arguments, BuildPaths buildPaths, TextWriter textWriter, IAnalyzerAssemblyLoader analyzerAssemblyLoader);
+    internal delegate Task<BuildResponse> CompileOnServerFunc(BuildRequest buildRequest, string pipeName, CancellationToken cancellationToken);
 
     internal readonly struct RunCompilationResult
     {
@@ -49,23 +50,40 @@ namespace Microsoft.CodeAnalysis.CommandLine
     {
         internal static bool IsRunningOnWindows => Path.DirectorySeparatorChar == '\\';
 
+        private readonly ICompilerServerLogger _logger;
         private readonly RequestLanguage _language;
         private readonly CompileFunc _compileFunc;
-        private readonly ICompilerServerLogger _logger;
-        private readonly CreateServerFunc _createServerFunc;
-        private readonly int? _timeoutOverride;
+        private readonly CompileOnServerFunc _compileOnServerFunc;
 
         /// <summary>
         /// When set it overrides all timeout values in milliseconds when communicating with the server.
         /// </summary>
-        internal BuildClient(RequestLanguage language, CompileFunc compileFunc, ICompilerServerLogger logger, CreateServerFunc createServerFunc = null, int? timeoutOverride = null)
+        internal BuildClient(ICompilerServerLogger logger, RequestLanguage language, CompileFunc compileFunc, CompileOnServerFunc compileOnServerFunc)
         {
+            _logger = logger;
             _language = language;
             _compileFunc = compileFunc;
-            _logger = logger;
-            _createServerFunc = createServerFunc ?? BuildServerConnection.TryCreateServerCore;
-            _timeoutOverride = timeoutOverride;
+            _compileOnServerFunc = compileOnServerFunc;
         }
+
+        /// <summary>
+        /// Get the directory which contains the csc, vbc and VBCSCompiler clients. 
+        /// 
+        /// Historically this is referred to as the "client" directory but maybe better if it was 
+        /// called the "installation" directory.
+        /// 
+        /// It is important that this method exist here and not on <see cref="BuildServerConnection"/>. This
+        /// can only reliably be called from our executable projects and this file is only linked into 
+        /// those projects while <see cref="BuildServerConnection"/> is also included in the MSBuild 
+        /// task.
+        /// </summary>
+        public static string GetClientDirectory() =>
+            // VBCSCompiler is installed in the same directory as csc.exe and vbc.exe which is also the 
+            // location of the response files.
+            //
+            // BaseDirectory was mistakenly marked as potentially null in 3.1
+            // https://github.com/dotnet/runtime/pull/32486
+            AppDomain.CurrentDomain.BaseDirectory!;
 
         /// <summary>
         /// Returns the directory that contains mscorlib, or null when running on CoreCLR.
@@ -77,7 +95,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 : RuntimeEnvironment.GetRuntimeDirectory();
         }
 
-        internal static int Run(IEnumerable<string> arguments, RequestLanguage language, CompileFunc compileFunc, ICompilerServerLogger logger)
+        internal static int Run(
+            IEnumerable<string> arguments,
+            RequestLanguage language,
+            CompileFunc compileFunc,
+            CompileOnServerFunc compileOnServerFunc,
+            ICompilerServerLogger logger)
         {
             var sdkDir = GetSystemSdkDirectory();
             if (RuntimeHostInfo.IsCoreClrRuntime)
@@ -87,15 +110,14 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
             }
 
-            var client = new BuildClient(language, compileFunc, logger);
-            var clientDir = AppContext.BaseDirectory;
+            var client = new BuildClient(logger, language, compileFunc, compileOnServerFunc);
+            var clientDir = GetClientDirectory();
             var workingDir = Directory.GetCurrentDirectory();
             var tempDir = BuildServerConnection.GetTempPath(workingDir);
             var buildPaths = new BuildPaths(clientDir: clientDir, workingDir: workingDir, sdkDir: sdkDir, tempDir: tempDir);
             var originalArguments = GetCommandLineArgs(arguments);
             return client.RunCompilation(originalArguments, buildPaths).ExitCode;
         }
-
 
         /// <summary>
         /// Run a compilation through the compiler server and print the output
@@ -130,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             if (hasShared)
             {
-                pipeName = pipeName ?? GetPipeName(buildPaths);
+                pipeName = pipeName ?? BuildServerConnection.GetPipeName(buildPaths.ClientDirectory);
                 var libDirectory = Environment.GetEnvironmentVariable("LIB");
                 var serverResult = RunServerCompilation(textWriter, parsedArgs, buildPaths, libDirectory, pipeName, keepAliveOpt);
                 if (serverResult.HasValue)
@@ -138,43 +160,14 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     Debug.Assert(serverResult.Value.RanOnServer);
                     return serverResult.Value;
                 }
+
+                _logger.Log("Server build failed, falling back to local build");
             }
 
             // It's okay, and expected, for the server compilation to fail.  In that case just fall 
             // back to normal compilation. 
             var exitCode = RunLocalCompilation(parsedArgs.ToArray(), buildPaths, textWriter);
             return new RunCompilationResult(exitCode);
-        }
-
-        private static bool TryEnableMulticoreJitting(out string errorMessage)
-        {
-            errorMessage = null;
-            try
-            {
-                // Enable multi-core JITing
-                // https://blogs.msdn.microsoft.com/dotnet/2012/10/18/an-easy-solution-for-improving-app-launch-performance/
-                var profileRoot = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "RoslynCompiler",
-                    "ProfileOptimization");
-                var assemblyName = Assembly.GetExecutingAssembly().GetName();
-                var profileName = assemblyName.Name + assemblyName.Version + ".profile";
-                Directory.CreateDirectory(profileRoot);
-#if NET472
-                ProfileOptimization.SetProfileRoot(profileRoot);
-                ProfileOptimization.StartProfile(profileName);
-#else
-                AssemblyLoadContext.Default.SetProfileOptimizationRoot(profileRoot);
-                AssemblyLoadContext.Default.StartProfileOptimization(profileName);
-#endif
-            }
-            catch (Exception e)
-            {
-                errorMessage = string.Format(CodeAnalysisResources.ExceptionEnablingMulticoreJit, e.Message);
-                return false;
-            }
-
-            return true;
         }
 
         public Task<RunCompilationResult> RunCompilationAsync(IEnumerable<string> originalArguments, BuildPaths buildPaths, TextWriter textWriter = null)
@@ -205,11 +198,19 @@ namespace Microsoft.CodeAnalysis.CommandLine
             return _compileFunc(arguments, buildPaths, textWriter, loader);
         }
 
+        public static CompileOnServerFunc GetCompileOnServerFunc(ICompilerServerLogger logger) => (buildRequest, pipeName, cancellationToken) =>
+            BuildServerConnection.RunServerBuildRequestAsync(
+                buildRequest,
+                pipeName,
+                GetClientDirectory(),
+                logger,
+                cancellationToken);
+
         /// <summary>
         /// Runs the provided compilation on the server.  If the compilation cannot be completed on the server then null
         /// will be returned.
         /// </summary>
-        private RunCompilationResult? RunServerCompilation(TextWriter textWriter, List<string> arguments, BuildPaths buildPaths, string libDirectory, string sessionName, string keepAlive)
+        private RunCompilationResult? RunServerCompilation(TextWriter textWriter, List<string> arguments, BuildPaths buildPaths, string libDirectory, string pipeName, string keepAlive)
         {
             BuildResponse buildResponse;
 
@@ -220,13 +221,21 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             try
             {
-                var buildResponseTask = RunServerCompilationAsync(
+                var requestId = Guid.NewGuid();
+                var buildRequest = BuildServerConnection.CreateBuildRequest(
+                    requestId,
+                    _language,
                     arguments,
-                    buildPaths,
-                    sessionName,
-                    keepAlive,
-                    libDirectory,
-                    CancellationToken.None);
+                    workingDirectory: buildPaths.WorkingDirectory,
+                    tempDirectory: buildPaths.TempDirectory,
+                    keepAlive: keepAlive,
+                    libDirectory: libDirectory);
+
+                var buildResponseTask = _compileOnServerFunc(
+                    buildRequest,
+                    pipeName,
+                    cancellationToken: default);
+
                 buildResponse = buildResponseTask.Result;
 
                 Debug.Assert(buildResponse != null);
@@ -235,11 +244,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     return null;
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogException(ex, "Server compilation failed");
                 return null;
             }
 
+            _logger.Log($"Server compilation completed: {buildResponse.Type}");
             switch (buildResponse.Type)
             {
                 case BuildResponse.ResponseType.Completed:
@@ -256,6 +267,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 case BuildResponse.ResponseType.IncorrectHash:
                 case BuildResponse.ResponseType.Rejected:
                 case BuildResponse.ResponseType.AnalyzerInconsistency:
+                case BuildResponse.ResponseType.CannotConnect:
                     // Build could not be completed on the server.
                     return null;
                 default:
@@ -264,58 +276,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     Debug.Assert(false);
                     return null;
             }
-        }
-
-        private Task<BuildResponse> RunServerCompilationAsync(
-            List<string> arguments,
-            BuildPaths buildPaths,
-            string sessionKey,
-            string keepAlive,
-            string libDirectory,
-            CancellationToken cancellationToken)
-        {
-            return RunServerCompilationCoreAsync(_language, arguments, buildPaths, sessionKey, keepAlive, libDirectory, _timeoutOverride, _createServerFunc, _logger, cancellationToken);
-        }
-
-        private static Task<BuildResponse> RunServerCompilationCoreAsync(
-            RequestLanguage language,
-            List<string> arguments,
-            BuildPaths buildPaths,
-            string pipeName,
-            string keepAlive,
-            string libEnvVariable,
-            int? timeoutOverride,
-            CreateServerFunc createServerFunc,
-            ICompilerServerLogger logger,
-            CancellationToken cancellationToken)
-        {
-            var alt = new BuildPathsAlt(
-                buildPaths.ClientDirectory,
-                buildPaths.WorkingDirectory,
-                buildPaths.SdkDirectory,
-                buildPaths.TempDirectory);
-
-            return BuildServerConnection.RunServerCompilationCoreAsync(
-                language,
-                arguments,
-                alt,
-                pipeName,
-                keepAlive,
-                libEnvVariable,
-                timeoutOverride,
-                createServerFunc,
-                logger,
-                cancellationToken);
-        }
-
-        /// <summary>
-        /// Given the full path to the directory containing the compiler exes,
-        /// retrieves the name of the pipe for client/server communication on
-        /// that instance of the compiler.
-        /// </summary>
-        private static string GetPipeName(BuildPaths buildPaths)
-        {
-            return BuildServerConnection.GetPipeNameForPath(buildPaths.ClientDirectory);
         }
 
         private static IEnumerable<string> GetCommandLineArgs(IEnumerable<string> args)

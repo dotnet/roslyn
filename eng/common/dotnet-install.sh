@@ -11,13 +11,15 @@ while [[ -h "$source" ]]; do
 done
 scriptroot="$( cd -P "$( dirname "$source" )" && pwd )"
 
+. "$scriptroot/tools.sh"
+
 version='Latest'
 architecture=''
 runtime='dotnet'
 runtimeSourceFeed=''
 runtimeSourceFeedKey=''
 while [[ $# > 0 ]]; do
-  opt="$(echo "$1" | awk '{print tolower($0)}')"
+  opt="$(echo "$1" | tr "[:upper:]" "[:lower:]")"
   case "$opt" in
     -version|-v)
       shift
@@ -40,18 +42,49 @@ while [[ $# > 0 ]]; do
       runtimeSourceFeedKey="$1"
       ;;
     *)
-      echo "Invalid argument: $1"
+      Write-PipelineTelemetryError -Category 'Build' -Message "Invalid argument: $1"
       exit 1
       ;;
   esac
   shift
 done
 
-. "$scriptroot/tools.sh"
-dotnetRoot="$repo_root/.dotnet"
+# Use uname to determine what the CPU is, see https://en.wikipedia.org/wiki/Uname#Examples
+cpuname=$(uname -m)
+case $cpuname in
+  arm64|aarch64)
+    buildarch=arm64
+    if [ "$(getconf LONG_BIT)" -lt 64 ]; then
+        # This is 32-bit OS running on 64-bit CPU (for example Raspberry Pi OS)
+        buildarch=arm
+    fi
+    ;;
+  loongarch64)
+    buildarch=loongarch64
+    ;;
+  amd64|x86_64)
+    buildarch=x64
+    ;;
+  armv*l)
+    buildarch=arm
+    ;;
+  i[3-6]86)
+    buildarch=x86
+    ;;
+  *)
+    echo "Unknown CPU $cpuname detected, treating it as x64"
+    buildarch=x64
+    ;;
+esac
+
+dotnetRoot="${repo_root}.dotnet"
+if [[ $architecture != "" ]] && [[ $architecture != $buildarch ]]; then
+  dotnetRoot="$dotnetRoot/$architecture"
+fi
+
 InstallDotNet $dotnetRoot $version "$architecture" $runtime true $runtimeSourceFeed $runtimeSourceFeedKey || {
   local exit_code=$?
-  echo "dotnet-install.sh failed (exit code '$exit_code')." >&2
+  Write-PipelineTelemetryError -Category 'InitializeToolset' -Message "dotnet-install.sh failed (exit code '$exit_code')." >&2
   ExitWithExitCode $exit_code
 }
 

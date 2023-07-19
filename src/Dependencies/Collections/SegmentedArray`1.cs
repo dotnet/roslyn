@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Collections
     /// collection uses segmented arrays to avoid placing objects on the Large Object Heap.
     /// </summary>
     /// <typeparam name="T">The type of elements stored in the array.</typeparam>
-    internal readonly struct SegmentedArray<T> : ICloneable, IList, IStructuralComparable, IStructuralEquatable, IList<T>, IReadOnlyList<T>
+    internal readonly struct SegmentedArray<T> : ICloneable, IList, IStructuralComparable, IStructuralEquatable, IList<T>, IReadOnlyList<T>, IEquatable<SegmentedArray<T>>
     {
         /// <summary>
         /// The number of elements in each page of the segmented array of type <typeparamref name="T"/>.
@@ -30,17 +30,35 @@ namespace Microsoft.CodeAnalysis.Collections
         /// including any padding the implementation chooses to add. Specifically, array elements lie <c>sizeof</c>
         /// bytes apart.</para>
         /// </remarks>
-        private static readonly int s_segmentSize = SegmentedArrayHelper.CalculateSegmentSize(Unsafe.SizeOf<T>());
+        private static int SegmentSize
+        {
+            get
+            {
+                return SegmentedArrayHelper.GetSegmentSize<T>();
+            }
+        }
 
         /// <summary>
         /// The bit shift to apply to an array index to get the page index within <see cref="_items"/>.
         /// </summary>
-        private static readonly int s_segmentShift = SegmentedArrayHelper.CalculateSegmentShift(s_segmentSize);
+        private static int SegmentShift
+        {
+            get
+            {
+                return SegmentedArrayHelper.GetSegmentShift<T>();
+            }
+        }
 
         /// <summary>
         /// The bit mask to apply to an array index to get the index within a page of <see cref="_items"/>.
         /// </summary>
-        private static readonly int s_offsetMask = SegmentedArrayHelper.CalculateOffsetMask(s_segmentSize);
+        private static int OffsetMask
+        {
+            get
+            {
+                return SegmentedArrayHelper.GetOffsetMask<T>();
+            }
+        }
 
         private readonly int _length;
         private readonly T[][] _items;
@@ -59,17 +77,17 @@ namespace Microsoft.CodeAnalysis.Collections
             }
             else
             {
-                _items = new T[(length + s_segmentSize - 1) >> s_segmentShift][];
+                _items = new T[(length + SegmentSize - 1) >> SegmentShift][];
                 for (var i = 0; i < _items.Length - 1; i++)
                 {
-                    _items[i] = new T[s_segmentSize];
+                    _items[i] = new T[SegmentSize];
                 }
 
                 // Make sure the last page only contains the number of elements required for the desired length. This
                 // collection is not resizeable so any additional padding would be a waste of space.
                 //
                 // Avoid using (length & s_offsetMask) because it doesn't handle a last page size of s_segmentSize.
-                var lastPageSize = length - ((_items.Length - 1) << s_segmentShift);
+                var lastPageSize = length - ((_items.Length - 1) << SegmentShift);
 
                 _items[_items.Length - 1] = new T[lastPageSize];
                 _length = length;
@@ -84,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public bool IsFixedSize => true;
 
-        public bool IsReadOnly => false;
+        public bool IsReadOnly => true;
 
         public bool IsSynchronized => false;
 
@@ -94,9 +112,10 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public ref T this[int index]
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                return ref _items[index >> s_segmentShift][index & s_offsetMask];
+                return ref _items[index >> SegmentShift][index & OffsetMask];
             }
         }
 
@@ -135,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Collections
         {
             for (var i = 0; i < _items.Length; i++)
             {
-                _items[i].CopyTo(array, index + (i * s_segmentSize));
+                _items[i].CopyTo(array, index + (i * SegmentSize));
             }
         }
 
@@ -144,12 +163,28 @@ namespace Microsoft.CodeAnalysis.Collections
             for (var i = 0; i < _items.Length; i++)
             {
                 ICollection<T> collection = _items[i];
-                collection.CopyTo(array, arrayIndex + (i * s_segmentSize));
+                collection.CopyTo(array, arrayIndex + (i * SegmentSize));
             }
         }
 
         public Enumerator GetEnumerator()
             => new(this);
+
+        public override bool Equals(object? obj)
+        {
+            return obj is SegmentedArray<T> other
+                && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return _items.GetHashCode();
+        }
+
+        public bool Equals(SegmentedArray<T> other)
+        {
+            return _items == other._items;
+        }
 
         int IList.Add(object? value)
         {
@@ -207,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 var index = list.IndexOf(value);
                 if (index >= 0)
                 {
-                    return index + i * s_segmentSize;
+                    return index + i * SegmentSize;
                 }
             }
 
@@ -222,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 var index = list.IndexOf(value);
                 if (index >= 0)
                 {
-                    return index + i * s_segmentSize;
+                    return index + i * SegmentSize;
                 }
             }
 
@@ -272,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
             // Matches System.Array
             // https://github.com/dotnet/runtime/blob/e0ec035994179e8ebd6ccf081711ee11d4c5491b/src/libraries/System.Private.CoreLib/src/System/Array.cs#L320-L323
-            if (!(other is SegmentedArray<T> o)
+            if (other is not SegmentedArray<T> o
                 || Length != o.Length)
             {
                 throw new ArgumentException(SR.ArgumentException_OtherNotArrayOfCorrectLength, nameof(other));
@@ -293,10 +328,10 @@ namespace Microsoft.CodeAnalysis.Collections
             if (other is null)
                 return false;
 
-            if (!(other is SegmentedArray<T> o))
+            if (other is not SegmentedArray<T> o)
                 return false;
 
-            if ((object)_items == o._items)
+            if (ReferenceEquals(_items, o._items))
                 return true;
 
             if (Length != o.Length)
@@ -348,10 +383,10 @@ namespace Microsoft.CodeAnalysis.Collections
                 _current = default!;
             }
 
-            public T Current => _current;
-            object? IEnumerator.Current => Current;
+            public readonly T Current => _current;
+            readonly object? IEnumerator.Current => Current;
 
-            public void Dispose()
+            public readonly void Dispose()
             {
             }
 
@@ -393,7 +428,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 _array = array;
             }
 
-            public static int SegmentSize => s_segmentSize;
+            public static int SegmentSize => SegmentedArray<T>.SegmentSize;
 
             public T[][] Items => _array._items;
         }

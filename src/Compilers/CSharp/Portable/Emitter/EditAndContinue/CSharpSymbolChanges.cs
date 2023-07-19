@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Emit;
@@ -17,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             : base(definitionMap, edits, isAddedSymbol)
         { }
 
-        protected override ISymbolInternal GetISymbolInternalOrNull(ISymbol symbol)
+        protected override ISymbolInternal? GetISymbolInternalOrNull(ISymbol symbol)
         {
             return (symbol as Symbols.PublicModel.Symbol)?.UnderlyingSymbol;
         }

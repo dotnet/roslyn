@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 namespace Microsoft.CodeAnalysis.MSBuild
 {
     internal static class ItemNames
@@ -19,5 +17,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public const string Reference = nameof(Reference);
         public const string ReferencePath = nameof(ReferencePath);
         public const string VbcCommandLineArgs = nameof(VbcCommandLineArgs);
+        public const string IntermediateAssembly = nameof(IntermediateAssembly);
     }
 }

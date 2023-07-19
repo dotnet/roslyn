@@ -4,9 +4,11 @@
 
 using System;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Editor.Implementation.AddImports;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Utilities;
 
@@ -24,14 +26,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AddImports
     // command before doing operations.
     [Order(After = PredefinedCommandHandlerNames.PasteTrackingPaste)]
     [Order(Before = PredefinedCommandHandlerNames.FormatDocument)]
-    internal class CSharpAddImportsPasteCommandHandler : AbstractAddImportsPasteCommandHandler
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class CSharpAddImportsPasteCommandHandler(IThreadingContext threadingContext, IGlobalOptionService globalOptions, IAsynchronousOperationListenerProvider listnerProvider) : AbstractAddImportsPasteCommandHandler(threadingContext, globalOptions, listnerProvider)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpAddImportsPasteCommandHandler(IThreadingContext threadingContext) : base(threadingContext)
-        {
-        }
-
         public override string DisplayName => CSharpEditorResources.Add_Missing_Usings_on_Paste;
         protected override string DialogText => CSharpEditorResources.Adding_missing_usings;
     }

@@ -3,48 +3,55 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
-    [ExportLspMethod(MSLSPMethods.WorkspacePullDiagnosticName, mutatesSolutionState: false), Shared]
-    internal class WorkspacePullDiagnosticHandler : AbstractPullDiagnosticHandler<WorkspaceDocumentDiagnosticsParams, WorkspaceDiagnosticReport>
+    [Method(VSInternalMethods.WorkspacePullDiagnosticName)]
+    internal sealed partial class WorkspacePullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport[], VSInternalWorkspaceDiagnosticReport[]>
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public WorkspacePullDiagnosticHandler(IDiagnosticService diagnosticService)
-            : base(diagnosticService)
+        public WorkspacePullDiagnosticHandler(IDiagnosticAnalyzerService analyzerService, IDiagnosticsRefresher diagnosticsRefresher, IGlobalOptionService globalOptions)
+            : base(analyzerService, diagnosticsRefresher, globalOptions)
         {
         }
 
-        public override TextDocumentIdentifier? GetTextDocumentIdentifier(WorkspaceDocumentDiagnosticsParams request)
-            => null;
+        protected override string? GetDiagnosticCategory(VSInternalWorkspaceDiagnosticsParams diagnosticsParams)
+            => diagnosticsParams.QueryingDiagnosticKind?.Value;
 
-        protected override WorkspaceDiagnosticReport CreateReport(TextDocumentIdentifier? identifier, VSDiagnostic[]? diagnostics, string? resultId)
-            => new WorkspaceDiagnosticReport
-            {
-                TextDocument = identifier,
-                Diagnostics = diagnostics,
-                ResultId = resultId,
-                // Mark these diagnostics as having come from us.  They will be superseded by any diagnostics for the
-                // same file produced by the DocumentPullDiagnosticHandler.
-                Identifier = WorkspaceDiagnosticIdentifier,
+        protected override VSInternalWorkspaceDiagnosticReport[] CreateReport(TextDocumentIdentifier identifier, VisualStudio.LanguageServer.Protocol.Diagnostic[]? diagnostics, string? resultId)
+            => new[] {
+                new VSInternalWorkspaceDiagnosticReport
+                {
+                    TextDocument = identifier,
+                    Diagnostics = diagnostics,
+                    ResultId = resultId,
+                    // Mark these diagnostics as having come from us.  They will be superseded by any diagnostics for the
+                    // same file produced by the DocumentPullDiagnosticHandler.
+                    Identifier = WorkspaceDiagnosticIdentifier,
+                }
             };
 
-        protected override IProgress<WorkspaceDiagnosticReport[]>? GetProgress(WorkspaceDocumentDiagnosticsParams diagnosticsParams)
-            => diagnosticsParams.PartialResultToken;
+        protected override VSInternalWorkspaceDiagnosticReport[] CreateRemovedReport(TextDocumentIdentifier identifier)
+            => CreateReport(identifier, diagnostics: null, resultId: null);
 
-        protected override DiagnosticParams[]? GetPreviousResults(WorkspaceDocumentDiagnosticsParams diagnosticsParams)
-            => diagnosticsParams.PreviousResults;
+        protected override VSInternalWorkspaceDiagnosticReport[] CreateUnchangedReport(TextDocumentIdentifier identifier, string resultId)
+            => CreateReport(identifier, diagnostics: null, resultId);
+
+        protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(VSInternalWorkspaceDiagnosticsParams diagnosticsParams)
+            => diagnosticsParams.PreviousResults?.Where(d => d.PreviousResultId != null).Select(d => new PreviousPullResult(d.PreviousResultId!, d.TextDocument!)).ToImmutableArray();
 
         protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
         {
@@ -53,74 +60,154 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return ConvertTags(diagnosticData, potentialDuplicate: true);
         }
 
-        protected override ImmutableArray<Document> GetOrderedDocuments(RequestContext context)
+        protected override async ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(
+            VSInternalWorkspaceDiagnosticsParams diagnosticsParams,
+            RequestContext context,
+            CancellationToken cancellationToken)
         {
             // If we're being called from razor, we do not support WorkspaceDiagnostics at all.  For razor, workspace
             // diagnostics will be handled by razor itself, which will operate by calling into Roslyn and asking for
             // document-diagnostics instead.
-            if (context.ClientName != null)
-                return ImmutableArray<Document>.Empty;
+            if (context.ServerKind == WellKnownLspServerKinds.RazorLspServer)
+                return ImmutableArray<IDiagnosticSource>.Empty;
 
-            using var _ = ArrayBuilder<Document>.GetInstance(out var result);
+            var category = diagnosticsParams.QueryingDiagnosticKind?.Value;
 
-            var solution = context.Solution;
+            if (category == PullDiagnosticCategories.Task)
+                return GetTaskListDiagnosticSources(context, GlobalOptions);
 
-            var documentTrackingService = solution.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
+            // if this request doesn't have a category at all (legacy behavior, assume they're asking about everything).
+            if (category == null || category == PullDiagnosticCategories.WorkspaceDocumentsAndProject)
+                return await GetDiagnosticSourcesAsync(context, GlobalOptions, cancellationToken).ConfigureAwait(false);
 
-            // Collect all the documents from the solution in the order we'd like to get diagnostics for.  This will
-            // prioritize the files from currently active projects, but then also include all other docs in all projects
-            // (depending on current FSA settings).
+            // if it's a category we don't recognize, return nothing.
+            return ImmutableArray<IDiagnosticSource>.Empty;
+        }
 
-            var activeDocument = documentTrackingService.GetActiveDocument(solution);
-            var visibleDocuments = documentTrackingService.GetVisibleDocuments(solution);
+        protected override VSInternalWorkspaceDiagnosticReport[]? CreateReturn(BufferedProgress<VSInternalWorkspaceDiagnosticReport[]> progress)
+        {
+            return progress.GetFlattenedValues();
+        }
 
-            // Now, prioritize the projects related to the active/visible files.
-            AddDocumentsFromProject(activeDocument?.Project, isOpen: true);
-            foreach (var doc in visibleDocuments)
-                AddDocumentsFromProject(doc.Project, isOpen: true);
+        private static IEnumerable<Project> GetProjectsInPriorityOrder(
+            Solution solution, ImmutableArray<string> supportedLanguages)
+        {
+            return GetProjectsInPriorityOrderWorker(solution)
+                .WhereNotNull()
+                .Distinct()
+                .Where(p => supportedLanguages.Contains(p.Language));
 
-            // finally, add the remainder of all documents.
-            foreach (var project in solution.Projects)
-                AddDocumentsFromProject(project, isOpen: false);
-
-            // Ensure that we only process documents once.
-            result.RemoveDuplicates();
-            return result.ToImmutable();
-
-            void AddDocumentsFromProject(Project? project, bool isOpen)
+            static IEnumerable<Project?> GetProjectsInPriorityOrderWorker(Solution solution)
             {
-                if (project == null)
-                    return;
+                var documentTrackingService = solution.Services.GetRequiredService<IDocumentTrackingService>();
 
-                // if the project doesn't necessarily have an open file in it, then only include it if the user has full
-                // solution analysis on.
-                if (!isOpen)
-                {
-                    var analysisScope = solution.Workspace.Options.GetOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, project.Language);
-                    if (analysisScope != BackgroundAnalysisScope.FullSolution)
-                        return;
-                }
+                // Collect all the documents from the solution in the order we'd like to get diagnostics for.  This will
+                // prioritize the files from currently active projects, but then also include all other docs in all projects
+                // (depending on current FSA settings).
 
-                // Otherwise, if the user has an open file from this project, or FSA is on, then include all the
-                // documents from it.
-                foreach (var document in project.Documents)
-                {
-                    // Only consider closed documents here (and only open ones in the DocumentPullDiagnosticHandler).
-                    // Each handler treats those as separate worlds that they are responsible for.
-                    if (!context.IsTracking(document.GetURI()))
-                        result.Add(document);
-                }
+                var activeDocument = documentTrackingService.GetActiveDocument(solution);
+                var visibleDocuments = documentTrackingService.GetVisibleDocuments(solution);
+
+                yield return activeDocument?.Project;
+                foreach (var doc in visibleDocuments)
+                    yield return doc.Project;
+
+                foreach (var project in solution.Projects)
+                    yield return project;
             }
         }
 
-        protected override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
-            RequestContext context, Document document, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
+        private static bool ShouldSkipDocument(RequestContext context, TextDocument document)
         {
-            // For closed files, go to the IDiagnosticService for results.  These won't necessarily be totally up to
-            // date.  However, that's fine as these are closed files and won't be in the process of being edited.  So
-            // any deviations in the spans of diagnostics shouldn't be impactful for the user.
-            var diagnostics = this.DiagnosticService.GetPullDiagnostics(document, includeSuppressedDiagnostics: false, diagnosticMode, cancellationToken);
-            return Task.FromResult(diagnostics);
+            // Only consider closed documents here (and only open ones in the DocumentPullDiagnosticHandler).
+            // Each handler treats those as separate worlds that they are responsible for.
+            if (context.IsTracking(document.GetURI()))
+            {
+                context.TraceInformation($"Skipping tracked document: {document.GetURI()}");
+                return true;
+            }
+
+            // Do not attempt to get workspace diagnostics for Razor files, Razor will directly ask us for document diagnostics
+            // for any razor file they are interested in.
+            if (document.IsRazorDocument())
+                return true;
+
+            return false;
+        }
+
+        private static ImmutableArray<IDiagnosticSource> GetTaskListDiagnosticSources(
+            RequestContext context, IGlobalOptionService globalOptions)
+        {
+            Contract.ThrowIfNull(context.Solution);
+
+            // Only compute task list items for closed files if the option is on for it.
+            var taskListEnabled = globalOptions.GetTaskListOptions().ComputeForClosedFiles;
+            if (!taskListEnabled)
+                return ImmutableArray<IDiagnosticSource>.Empty;
+
+            using var _ = ArrayBuilder<IDiagnosticSource>.GetInstance(out var result);
+
+            foreach (var project in GetProjectsInPriorityOrder(context.Solution, context.SupportedLanguages))
+            {
+                foreach (var document in project.Documents)
+                {
+                    if (!ShouldSkipDocument(context, document))
+                        result.Add(new TaskListDiagnosticSource(document, globalOptions));
+                }
+            }
+
+            return result.ToImmutable();
+        }
+
+        public static async ValueTask<ImmutableArray<IDiagnosticSource>> GetDiagnosticSourcesAsync(
+            RequestContext context, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfNull(context.Solution);
+
+            using var _ = ArrayBuilder<IDiagnosticSource>.GetInstance(out var result);
+
+            var solution = context.Solution;
+            var enableDiagnosticsInSourceGeneratedFiles = solution.Services.GetService<ISolutionCrawlerOptionsService>()?.EnableDiagnosticsInSourceGeneratedFiles == true;
+
+            foreach (var project in GetProjectsInPriorityOrder(solution, context.SupportedLanguages))
+                await AddDocumentsAndProject(project, cancellationToken).ConfigureAwait(false);
+
+            return result.ToImmutable();
+
+            async Task AddDocumentsAndProject(Project project, CancellationToken cancellationToken)
+            {
+                var fullSolutionAnalysisEnabled = globalOptions.IsFullSolutionAnalysisEnabled(project.Language, out var compilerFullSolutionAnalysisEnabled, out var analyzersFullSolutionAnalysisEnabled);
+                if (!fullSolutionAnalysisEnabled)
+                    return;
+
+                var documents = ImmutableArray<TextDocument>.Empty.AddRange(project.Documents).AddRange(project.AdditionalDocuments);
+
+                // If all features are enabled for source generated documents, then compute todo-comments/diagnostics for them.
+                if (enableDiagnosticsInSourceGeneratedFiles)
+                {
+                    var sourceGeneratedDocuments = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
+                    documents = documents.AddRange(sourceGeneratedDocuments);
+                }
+
+                Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer = !compilerFullSolutionAnalysisEnabled || !analyzersFullSolutionAnalysisEnabled
+                    ? ShouldIncludeAnalyzer : null;
+                foreach (var document in documents)
+                {
+                    if (!ShouldSkipDocument(context, document))
+                        result.Add(new WorkspaceDocumentDiagnosticSource(document, shouldIncludeAnalyzer));
+                }
+
+                // Finally, add the project source to get project specific diagnostics, not associated with any document.
+                result.Add(new ProjectDiagnosticSource(project, shouldIncludeAnalyzer));
+
+                bool ShouldIncludeAnalyzer(DiagnosticAnalyzer analyzer)
+                {
+                    if (analyzer.IsCompilerAnalyzer())
+                        return compilerFullSolutionAnalysisEnabled;
+                    else
+                        return analyzersFullSolutionAnalysisEnabled;
+                }
+            }
         }
     }
 }

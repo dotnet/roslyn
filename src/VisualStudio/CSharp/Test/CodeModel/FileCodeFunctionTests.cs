@@ -16,6 +16,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 {
+    [Trait(Traits.Feature, Traits.Features.CodeModel)]
     public class FileCodeFunctionTests : AbstractFileCodeElementTests
     {
         public FileCodeFunctionTests()
@@ -113,8 +114,7 @@ public class Ref<T> where T : Entity
             return (CodeFunction)GetCodeElement(path);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void CanOverride_False()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -122,8 +122,7 @@ public class Ref<T> where T : Entity
             Assert.False(testObject.CanOverride);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void CanOverride_True()
         {
             var testObject = GetCodeFunction("A", "MethodB");
@@ -131,8 +130,7 @@ public class Ref<T> where T : Entity
             Assert.True(testObject.CanOverride);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void FullName()
         {
             var testObject = GetCodeFunction("A", "MethodD");
@@ -140,8 +138,7 @@ public class Ref<T> where T : Entity
             Assert.Equal("A.MethodD", testObject.FullName);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void FunctionKind_Function()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -149,8 +146,7 @@ public class Ref<T> where T : Entity
             Assert.Equal(vsCMFunction.vsCMFunctionFunction, testObject.FunctionKind);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void FunctionKind_Constructor()
         {
             var testObject = GetCodeFunction("A", 1);
@@ -158,8 +154,7 @@ public class Ref<T> where T : Entity
             Assert.Equal(vsCMFunction.vsCMFunctionConstructor, testObject.FunctionKind);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void FunctionKind_Finalizer()
         {
             var testObject = GetCodeFunction("A", 2);
@@ -167,8 +162,7 @@ public class Ref<T> where T : Entity
             Assert.Equal(vsCMFunction.vsCMFunctionDestructor, testObject.FunctionKind);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void IsOverloaded_True()
         {
             var testObject = GetCodeFunction("A", "MethodE");
@@ -176,8 +170,7 @@ public class Ref<T> where T : Entity
             Assert.True(testObject.IsOverloaded);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void IsOverloaded_False()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -185,8 +178,7 @@ public class Ref<T> where T : Entity
             Assert.False(testObject.IsOverloaded);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void IsShared_False()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -194,8 +186,7 @@ public class Ref<T> where T : Entity
             Assert.False(testObject.IsShared);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void IsShared_True()
         {
             var testObject = GetCodeFunction("A", "MethodC");
@@ -203,8 +194,7 @@ public class Ref<T> where T : Entity
             Assert.True(testObject.IsShared);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void Kind()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -212,8 +202,7 @@ public class Ref<T> where T : Entity
             Assert.Equal(vsCMElement.vsCMElementFunction, testObject.Kind);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void Name()
         {
             var testObject = GetCodeFunction("A", "MethodC");
@@ -221,8 +210,7 @@ public class Ref<T> where T : Entity
             Assert.Equal("MethodC", testObject.Name);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void Parameters_Count()
         {
             var testObject = GetCodeFunction("A", "MethodD");
@@ -230,8 +218,7 @@ public class Ref<T> where T : Entity
             Assert.Equal(3, testObject.Parameters.Count);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void Parent()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -241,8 +228,7 @@ public class Ref<T> where T : Entity
             Assert.Equal("A", ((CodeClass)testObject.Parent).FullName);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void Type()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -250,8 +236,7 @@ public class Ref<T> where T : Entity
             Assert.Equal("System.Int32", testObject.Type.AsFullName);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void Comment()
         {
             var testObject = GetCodeFunction("C", "MethodB");
@@ -261,8 +246,7 @@ public class Ref<T> where T : Entity
             Assert.Equal(expected, testObject.Comment);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void DocComment()
         {
             var testObject = GetCodeFunction("C", "MethodA");
@@ -272,8 +256,7 @@ public class Ref<T> where T : Entity
             Assert.Equal(expected, testObject.DocComment);
         }
 
-        [ConditionalFact(typeof(x86), AlwaysSkip = "636860")]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact(Skip = "636860")]
         public void Overloads_Count()
         {
             var testObject = GetCodeFunction("A", "MethodE");
@@ -281,24 +264,21 @@ public class Ref<T> where T : Entity
             Assert.Equal(2, testObject.Overloads.Count);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetStartPoint_Attributes()
         {
             var testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartAttributes));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetStartPoint_AttributesWithDelimiter()
         {
             var testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<COMException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartAttributesWithDelimiter));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetStartPoint_Body()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -309,16 +289,14 @@ public class Ref<T> where T : Entity
             Assert.Equal(1, startPoint.LineCharOffset);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetStartPoint_BodyWithDelimiter()
         {
             var testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetStartPoint_Header()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -329,24 +307,21 @@ public class Ref<T> where T : Entity
             Assert.Equal(5, startPoint.LineCharOffset);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetStartPoint_HeaderWithAttributes()
         {
             var testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetStartPoint_Name()
         {
             var testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartName));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetStartPoint_Navigate()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -357,8 +332,7 @@ public class Ref<T> where T : Entity
             Assert.Equal(9, startPoint.LineCharOffset);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetStartPoint_NavigateWithBlankLine()
         {
             var testObject = GetCodeFunction("A", "MethodWithBlankLine");
@@ -369,16 +343,14 @@ public class Ref<T> where T : Entity
             Assert.Equal(9, startPoint.LineCharOffset);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetStartPoint_Whole()
         {
             var testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartWhole));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetStartPoint_WholeWithAttributes()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -389,24 +361,21 @@ public class Ref<T> where T : Entity
             Assert.Equal(5, startPoint.LineCharOffset);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetEndPoint_Attributes()
         {
             var testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartAttributes));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetEndPoint_AttributesWithDelimiter()
         {
             var testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<COMException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartAttributesWithDelimiter));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetEndPoint_Body()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -417,40 +386,35 @@ public class Ref<T> where T : Entity
             Assert.Equal(1, endPoint.LineCharOffset);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetEndPoint_BodyWithDelimiter()
         {
             var testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetEndPoint_Header()
         {
             var testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartHeader));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetEndPoint_HeaderWithAttributes()
         {
             var testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetEndPoint_Name()
         {
             var testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartName));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetEndPoint_Navigate()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -461,16 +425,14 @@ public class Ref<T> where T : Entity
             Assert.Equal(1, endPoint.LineCharOffset);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetEndPoint_Whole()
         {
             var testObject = GetCodeFunction("A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartWhole));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void GetEndPoint_WholeWithAttributes()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -481,8 +443,7 @@ public class Ref<T> where T : Entity
             Assert.Equal(6, endPoint.LineCharOffset);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void StartPoint()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -493,8 +454,7 @@ public class Ref<T> where T : Entity
             Assert.Equal(5, startPoint.LineCharOffset);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void EndPoint()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -505,8 +465,7 @@ public class Ref<T> where T : Entity
             Assert.Equal(6, endPoint.LineCharOffset);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void DynamicReturnType()
         {
             var testObject = (CodeVariable)GetCodeElement("C", "DynamicField");
@@ -518,8 +477,7 @@ public class Ref<T> where T : Entity
             Assert.Equal(vsCMTypeRef.vsCMTypeRefOther, returnType.TypeKind);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void DynamicParameter()
         {
             var testObject = GetCodeFunction("C", "DynamicMethod");
@@ -531,9 +489,7 @@ public class Ref<T> where T : Entity
             Assert.Equal(vsCMTypeRef.vsCMTypeRefOther, returnType.TypeKind);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        [WorkItem(530496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530496")]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530496")]
         public async Task TestCodeElementFromPoint()
         {
             var text = await (GetCurrentDocument()).GetTextAsync();
@@ -546,9 +502,7 @@ public class Ref<T> where T : Entity
             Assert.Equal("DynamicMethod", element.Name);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        [WorkItem(726710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/726710")]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/726710")]
         public async Task TestCodeElementFromPointBetweenMembers()
         {
             var text = await (GetCurrentDocument()).GetTextAsync();
@@ -564,17 +518,14 @@ public class Ref<T> where T : Entity
             Assert.Equal("A", element.Name);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        [WpfFact]
         public void Operator()
         {
             var functionObject = GetCodeFunction("A", 3);
             Assert.Equal("operator +", functionObject.Name);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        [WorkItem(924179, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924179")]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924179")]
         public void ConversionOperator()
         {
             var classObject = (CodeClass)GetCodeElement("Ref");

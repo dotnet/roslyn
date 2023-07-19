@@ -2,104 +2,113 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.FindUsages;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
+namespace Microsoft.CodeAnalysis.GoToDefinition
 {
-    // GoToDefinition
-    internal abstract class AbstractGoToDefinitionService : IGoToDefinitionService
+    internal abstract class AbstractAsyncGoToDefinitionService : AbstractFindDefinitionService, IAsyncGoToDefinitionService
     {
         private readonly IThreadingContext _threadingContext;
+        private readonly IStreamingFindUsagesPresenter _streamingPresenter;
 
-        /// <summary>
-        /// Used to present go to definition results in <see cref="TryGoToDefinition(Document, int, CancellationToken)"/>
-        /// This is lazily created as the LSP server only calls <see cref="FindDefinitionsAsync(Document, int, CancellationToken)"/>
-        /// and therefore never needs to construct the presenter.
-        /// </summary>
-        private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
-
-        protected AbstractGoToDefinitionService(
+        protected AbstractAsyncGoToDefinitionService(
             IThreadingContext threadingContext,
-            Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
+            IStreamingFindUsagesPresenter streamingPresenter)
         {
             _threadingContext = threadingContext;
             _streamingPresenter = streamingPresenter;
         }
 
-        public async Task<IEnumerable<INavigableItem>> FindDefinitionsAsync(
+        private static Task<INavigableLocation?> GetNavigableLocationAsync(
             Document document, int position, CancellationToken cancellationToken)
         {
-            var symbolService = document.GetLanguageService<IGoToDefinitionSymbolService>();
-            var (symbol, _) = await symbolService.GetSymbolAndBoundSpanAsync(document, position, includeType: true, cancellationToken).ConfigureAwait(false);
+            var solution = document.Project.Solution;
+            var workspace = solution.Workspace;
+            var service = workspace.Services.GetRequiredService<IDocumentNavigationService>();
 
-            // Try to compute source definitions from symbol.
-            var items = symbol != null
-                ? NavigableItemFactory.GetItemsFromPreferredSourceLocations(document.Project.Solution, symbol, displayTaggedParts: null, cancellationToken: cancellationToken)
-                : null;
-
-            // realize the list here so that the consumer await'ing the result doesn't lazily cause
-            // them to be created on an inappropriate thread.
-            return items?.ToList();
+            return service.GetLocationForPositionAsync(
+                workspace, document.Id, position, virtualSpace: 0, cancellationToken);
         }
 
-        public bool TryGoToDefinition(Document document, int position, CancellationToken cancellationToken)
+        public async Task<(INavigableLocation? location, TextSpan symbolSpan)> FindDefinitionLocationAsync(
+            Document document,
+            int position,
+            bool includeType,
+            CancellationToken cancellationToken)
         {
-            // Try to compute the referenced symbol and attempt to go to definition for the symbol.
-            var symbolService = document.GetLanguageService<IGoToDefinitionSymbolService>();
-            var (symbol, _) = symbolService.GetSymbolAndBoundSpanAsync(document, position, includeType: true, cancellationToken).WaitAndGetResult(cancellationToken);
-            if (symbol is null)
-                return false;
+            var symbolService = document.GetRequiredLanguageService<IGoToDefinitionSymbolService>();
+            var (controlFlowTarget, controlFlowSpan) = await symbolService.GetTargetIfControlFlowAsync(
+                document, position, cancellationToken).ConfigureAwait(false);
+            if (controlFlowTarget != null)
+            {
+                var location = await GetNavigableLocationAsync(
+                    document, controlFlowTarget.Value, cancellationToken).ConfigureAwait(false);
+                return (location, controlFlowSpan);
+            }
+            else
+            {
+                // Try to compute the referenced symbol and attempt to go to definition for the symbol.
+                var (symbol, project, span) = await symbolService.GetSymbolProjectAndBoundSpanAsync(
+                    document, position, includeType, cancellationToken).ConfigureAwait(false);
+                if (symbol is null)
+                    return default;
 
-            // if the symbol only has a single source location, and we're already on it,
-            // try to see if there's a better symbol we could navigate to.
-            var remapped = TryGoToAlternativeLocationIfAlreadyOnDefinition(document, position, symbol, cancellationToken);
-            if (remapped)
-                return true;
+                // if the symbol only has a single source location, and we're already on it,
+                // try to see if there's a better symbol we could navigate to.
+                var remappedLocation = await GetAlternativeLocationIfAlreadyOnDefinitionAsync(
+                    project, position, symbol, originalDocument: document, cancellationToken).ConfigureAwait(false);
+                if (remappedLocation != null)
+                    return (remappedLocation, span);
 
-            var isThirdPartyNavigationAllowed = IsThirdPartyNavigationAllowed(symbol, position, document, cancellationToken);
+                var isThirdPartyNavigationAllowed = await IsThirdPartyNavigationAllowedAsync(
+                    symbol, position, document, cancellationToken).ConfigureAwait(false);
 
-            return GoToDefinitionHelpers.TryGoToDefinition(
-                symbol,
-                document.Project.Solution,
-                _threadingContext,
-                _streamingPresenter.Value,
-                thirdPartyNavigationAllowed: isThirdPartyNavigationAllowed,
-                cancellationToken: cancellationToken);
+                var location = await GoToDefinitionHelpers.GetDefinitionLocationAsync(
+                    symbol,
+                    project.Solution,
+                    _threadingContext,
+                    _streamingPresenter,
+                    thirdPartyNavigationAllowed: isThirdPartyNavigationAllowed,
+                    cancellationToken: cancellationToken).ConfigureAwait(false);
+                return (location, span);
+            }
         }
 
-        private bool TryGoToAlternativeLocationIfAlreadyOnDefinition(
-            Document document, int position,
-            ISymbol symbol, CancellationToken cancellationToken)
+        /// <summary>
+        /// Attempts to find a better definition for the symbol, if the user is already on the definition of it.
+        /// </summary>
+        /// <param name="project">The project context to use for finding symbols</param>
+        /// <param name="originalDocument">The document the user is navigating from. This may not be part of the project supplied.</param>
+        private async Task<INavigableLocation?> GetAlternativeLocationIfAlreadyOnDefinitionAsync(
+            Project project, int position, ISymbol symbol, Document originalDocument, CancellationToken cancellationToken)
         {
-            var project = document.Project;
             var solution = project.Solution;
 
             var sourceLocations = symbol.Locations.WhereAsArray(loc => loc.IsInSource);
             if (sourceLocations.Length != 1)
-                return false;
+                return null;
 
             var definitionLocation = sourceLocations[0];
             if (!definitionLocation.SourceSpan.IntersectsWith(position))
-                return false;
+                return null;
 
             var definitionTree = definitionLocation.SourceTree;
             var definitionDocument = solution.GetDocument(definitionTree);
-            if (definitionDocument != document)
-                return false;
+            if (definitionDocument != originalDocument)
+                return null;
 
             // Ok, we were already on the definition. Look for better symbols we could show results
             // for instead. For now, just see if we're on an interface member impl. If so, we can
@@ -108,29 +117,35 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             // In the future we can expand this with other mappings if appropriate.
             var interfaceImpls = symbol.ExplicitOrImplicitInterfaceImplementations();
             if (interfaceImpls.Length == 0)
-                return false;
-
-            var definitions = interfaceImpls.SelectMany(
-                i => GoToDefinitionHelpers.GetDefinitions(
-                    i, solution, thirdPartyNavigationAllowed: false, cancellationToken)).ToImmutableArray();
+                return null;
 
             var title = string.Format(EditorFeaturesResources._0_implemented_members,
                 FindUsagesHelpers.GetDisplayName(symbol));
 
-            return _threadingContext.JoinableTaskFactory.Run(() =>
-                _streamingPresenter.Value.TryNavigateToOrPresentItemsAsync(
-                    _threadingContext, solution.Workspace, title, definitions));
+            using var _ = ArrayBuilder<DefinitionItem>.GetInstance(out var builder);
+            foreach (var impl in interfaceImpls)
+            {
+                builder.AddRange(await GoToDefinitionFeatureHelpers.GetDefinitionsAsync(
+                    impl, solution, thirdPartyNavigationAllowed: false, cancellationToken).ConfigureAwait(false));
+            }
+
+            var definitions = builder.ToImmutable();
+
+            return await _streamingPresenter.GetStreamingLocationAsync(
+                _threadingContext, solution.Workspace, title, definitions, cancellationToken).ConfigureAwait(false);
         }
 
-        private static bool IsThirdPartyNavigationAllowed(ISymbol symbolToNavigateTo, int caretPosition, Document document, CancellationToken cancellationToken)
+        private static async Task<bool> IsThirdPartyNavigationAllowedAsync(
+            ISymbol symbolToNavigateTo, int caretPosition, Document document, CancellationToken cancellationToken)
         {
-            var syntaxRoot = document.GetSyntaxRootSynchronously(cancellationToken);
-            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxRoot = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
+            var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var containingTypeDeclaration = syntaxFactsService.GetContainingTypeDeclaration(syntaxRoot, caretPosition);
 
             if (containingTypeDeclaration != null)
             {
-                var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                Debug.Assert(semanticModel != null);
 
                 // Allow third parties to navigate to all symbols except types/constructors
                 // if we are navigating from the corresponding type.

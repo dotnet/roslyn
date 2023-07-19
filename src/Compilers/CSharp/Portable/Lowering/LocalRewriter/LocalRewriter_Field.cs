@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitFieldAccess(BoundFieldAccess node)
         {
             BoundExpression? rewrittenReceiver = VisitExpression(node.ReceiverOpt);
-            return MakeFieldAccess(node.Syntax, rewrittenReceiver, node.FieldSymbol, node.ConstantValue, node.ResultKind, node.Type, node);
+            return MakeFieldAccess(node.Syntax, rewrittenReceiver, node.FieldSymbol, node.ConstantValueOpt, node.ResultKind, node.Type, node);
         }
 
         private BoundExpression MakeFieldAccess(
@@ -101,11 +101,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // fields from inferred names are not usable in C# 7.0.
             field = field.CorrespondingTupleField ?? field;
 
-            DiagnosticInfo useSiteInfo = field.GetUseSiteDiagnostic();
-            if ((object)useSiteInfo != null && useSiteInfo.Severity == DiagnosticSeverity.Error)
+            UseSiteInfo<AssemblySymbol> useSiteInfo = field.GetUseSiteInfo();
+            if (useSiteInfo.DiagnosticInfo?.Severity != DiagnosticSeverity.Error)
             {
-                Symbol.ReportUseSiteDiagnostic(useSiteInfo, _diagnostics, syntax.Location);
+                useSiteInfo = useSiteInfo.AdjustDiagnosticInfo(null);
             }
+
+            _diagnostics.Add(useSiteInfo, syntax);
 
             return MakeTupleFieldAccess(syntax, field, tuple);
         }

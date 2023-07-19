@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.MSBuild.Logging;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild
 {
@@ -27,17 +26,22 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <summary>
         /// The path to the project file for this project.
         /// </summary>
-        public string FilePath { get; }
+        public string? FilePath { get; }
+
+        /// <summary>
+        /// The path to the intermediate output file this project generates.
+        /// </summary>
+        public string? IntermediateOutputFilePath { get; }
 
         /// <summary>
         /// The path to the output file this project generates.
         /// </summary>
-        public string OutputFilePath { get; }
+        public string? OutputFilePath { get; }
 
         /// <summary>
         /// The path to the reference assembly output file this project generates.
         /// </summary>
-        public string OutputRefFilePath { get; }
+        public string? OutputRefFilePath { get; }
 
         /// <summary>
         /// The default namespace of the project ("" if not defined, which means global namespace),
@@ -50,13 +54,19 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// In the future, we might consider officially exposing "default namespace" for VB project 
         /// (e.g. through a "defaultnamespace" msbuild property)
         /// </remarks>
-        public string DefaultNamespace { get; }
+        public string? DefaultNamespace { get; }
 
         /// <summary>
         /// The target framework of this project.
         /// This takes the form of the 'short name' form used by NuGet (e.g. net46, netcoreapp2.0, etc.)
         /// </summary>
-        public string TargetFramework { get; }
+        public string? TargetFramework { get; }
+
+        /// <summary>
+        /// The target framework identifier of this project.
+        /// Used to determine if a project is targeting .net core.
+        /// </summary>
+        public string? TargetFrameworkIdentifier { get; }
 
         /// <summary>
         /// The command line args used to compile the project.
@@ -90,18 +100,20 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public DiagnosticLog Log { get; }
 
         public override string ToString()
-            => string.IsNullOrWhiteSpace(TargetFramework)
-                ? FilePath
+            => RoslynString.IsNullOrWhiteSpace(TargetFramework)
+                ? FilePath ?? string.Empty
                 : $"{FilePath} ({TargetFramework})";
 
         private ProjectFileInfo(
             bool isEmpty,
             string language,
-            string filePath,
-            string outputFilePath,
-            string outputRefFilePath,
-            string defaultNamespace,
-            string targetFramework,
+            string? filePath,
+            string? outputFilePath,
+            string? outputRefFilePath,
+            string? intermediateOutputFilePath,
+            string? defaultNamespace,
+            string? targetFramework,
+            string? targetFrameworkIdentifier,
             ImmutableArray<string> commandLineArgs,
             ImmutableArray<DocumentFileInfo> documents,
             ImmutableArray<DocumentFileInfo> additionalDocuments,
@@ -109,15 +121,17 @@ namespace Microsoft.CodeAnalysis.MSBuild
             ImmutableArray<ProjectFileReference> projectReferences,
             DiagnosticLog log)
         {
-            Debug.Assert(filePath != null);
+            RoslynDebug.Assert(filePath != null);
 
             this.IsEmpty = isEmpty;
             this.Language = language;
             this.FilePath = filePath;
             this.OutputFilePath = outputFilePath;
             this.OutputRefFilePath = outputRefFilePath;
+            this.IntermediateOutputFilePath = intermediateOutputFilePath;
             this.DefaultNamespace = defaultNamespace;
             this.TargetFramework = targetFramework;
+            this.TargetFrameworkIdentifier = targetFrameworkIdentifier;
             this.CommandLineArgs = commandLineArgs;
             this.Documents = documents;
             this.AdditionalDocuments = additionalDocuments;
@@ -128,25 +142,29 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         public static ProjectFileInfo Create(
             string language,
-            string filePath,
-            string outputFilePath,
-            string outputRefFilePath,
-            string defaultNamespace,
-            string targetFramework,
+            string? filePath,
+            string? outputFilePath,
+            string? outputRefFilePath,
+            string? intermediateOutputFilePath,
+            string? defaultNamespace,
+            string? targetFramework,
+            string? targetFrameworkIdentifier,
             ImmutableArray<string> commandLineArgs,
             ImmutableArray<DocumentFileInfo> documents,
             ImmutableArray<DocumentFileInfo> additionalDocuments,
             ImmutableArray<DocumentFileInfo> analyzerConfigDocuments,
             ImmutableArray<ProjectFileReference> projectReferences,
             DiagnosticLog log)
-            => new ProjectFileInfo(
+            => new(
                 isEmpty: false,
                 language,
                 filePath,
                 outputFilePath,
                 outputRefFilePath,
+                intermediateOutputFilePath,
                 defaultNamespace,
                 targetFramework,
+                targetFrameworkIdentifier,
                 commandLineArgs,
                 documents,
                 additionalDocuments,
@@ -154,15 +172,17 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 projectReferences,
                 log);
 
-        public static ProjectFileInfo CreateEmpty(string language, string filePath, DiagnosticLog log)
-            => new ProjectFileInfo(
+        public static ProjectFileInfo CreateEmpty(string language, string? filePath, DiagnosticLog log)
+            => new(
                 isEmpty: true,
                 language,
                 filePath,
                 outputFilePath: null,
                 outputRefFilePath: null,
+                intermediateOutputFilePath: null,
                 defaultNamespace: null,
                 targetFramework: null,
+                targetFrameworkIdentifier: null,
                 commandLineArgs: ImmutableArray<string>.Empty,
                 documents: ImmutableArray<DocumentFileInfo>.Empty,
                 additionalDocuments: ImmutableArray<DocumentFileInfo>.Empty,

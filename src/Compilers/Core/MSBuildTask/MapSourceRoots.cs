@@ -85,24 +85,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return c == Path.DirectorySeparatorChar || c == Path.AltDirectorySeparatorChar;
         }
 
-        private void MergeSourceRootMetadata(ITaskItem left, ITaskItem right)
-        {
-            foreach (string? metadataName in right.MetadataNames)
-            {
-                var leftValue = left.GetMetadata(metadataName);
-                var rightValue = right.GetMetadata(metadataName);
-
-                if (!string.IsNullOrEmpty(leftValue) && !string.IsNullOrEmpty(rightValue))
-                {
-                    Log.LogErrorFromResources("MapSourceRoots.ContainsDuplicate", Names.SourceRoot, right.ItemSpec, metadataName, leftValue, rightValue);
-                }
-                else if (string.IsNullOrEmpty(leftValue) && !string.IsNullOrEmpty(rightValue))
-                {
-                    left.SetMetadata(metadataName, rightValue);
-                }
-            }
-        }
-
         public override bool Execute()
         {
             // Merge metadata of SourceRoot items with the same identity.

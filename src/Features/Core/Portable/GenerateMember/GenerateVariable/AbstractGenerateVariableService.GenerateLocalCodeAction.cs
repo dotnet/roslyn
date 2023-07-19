@@ -18,18 +18,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 {
     internal partial class AbstractGenerateVariableService<TService, TSimpleNameSyntax, TExpressionSyntax>
     {
-        private class GenerateLocalCodeAction : CodeAction
+        private sealed class GenerateLocalCodeAction(TService service, Document document, State state, CodeGenerationOptionsProvider fallbackOptions) : CodeAction
         {
-            private readonly TService _service;
-            private readonly Document _document;
-            private readonly State _state;
-
-            public GenerateLocalCodeAction(TService service, Document document, State state)
-            {
-                _service = service;
-                _document = document;
-                _state = state;
-            }
+            private readonly TService _service = service;
+            private readonly Document _document = document;
+            private readonly State _state = state;
+            private readonly CodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
 
             public override string Title
             {
@@ -54,9 +48,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             private async Task<SyntaxNode> GetNewRootAsync(CancellationToken cancellationToken)
             {
                 var semanticModel = await _document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var documentOptions = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-                if (_service.TryConvertToLocalDeclaration(_state.LocalType, _state.IdentifierToken, documentOptions, semanticModel, cancellationToken, out var newRoot))
+                if (_service.TryConvertToLocalDeclaration(_state.LocalType, _state.IdentifierToken, semanticModel, cancellationToken, out var newRoot))
                 {
                     return newRoot;
                 }
@@ -70,13 +63,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 var localStatement = syntaxFactory.LocalDeclarationStatement(type, _state.IdentifierToken.ValueText, initializer);
                 localStatement = localStatement.WithAdditionalAnnotations(Formatter.Annotation);
 
-                var codeGenService = _document.GetLanguageService<ICodeGenerationService>();
                 var root = _state.IdentifierToken.GetAncestors<SyntaxNode>().Last();
+                var context = new CodeGenerationContext(beforeThisLocation: _state.IdentifierToken.GetLocation());
+                var info = await _document.GetCodeGenerationInfoAsync(context, _fallbackOptions, cancellationToken).ConfigureAwait(false);
 
-                return codeGenService.AddStatements(
+                return info.Service.AddStatements(
                     root,
                     SpecializedCollections.SingletonEnumerable(localStatement),
-                    options: new CodeGenerationOptions(beforeThisLocation: _state.IdentifierToken.GetLocation()),
+                    info,
                     cancellationToken: cancellationToken);
             }
         }

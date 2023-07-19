@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -22,6 +23,10 @@ namespace Microsoft.CodeAnalysis
 
         private static readonly StringComparer s_hintNameComparer = StringComparer.OrdinalIgnoreCase;
 
+        // Matches "/" at the beginning, relative path segments ("../", "./", "//"),
+        // and " /" (directories ending with space cause problems).
+        private static readonly Regex s_invalidSegmentPattern = new Regex(@"(\.{1,2}|/|^| )/", RegexOptions.Compiled);
+
         internal AdditionalSourcesCollection(string fileExtension)
         {
             Debug.Assert(fileExtension.Length > 0 && fileExtension[0] == '.');
@@ -36,7 +41,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(hintName));
             }
 
-            // allow any identifier character or [.,-_ ()[]{}]
+            // allow any identifier character or [.,-+`_ ()[]{}/\\]
             for (int i = 0; i < hintName.Length; i++)
             {
                 char c = hintName[i];
@@ -44,6 +49,8 @@ namespace Microsoft.CodeAnalysis
                     && c != '.'
                     && c != ','
                     && c != '-'
+                    && c != '+'
+                    && c != '`'
                     && c != '_'
                     && c != ' '
                     && c != '('
@@ -51,27 +58,39 @@ namespace Microsoft.CodeAnalysis
                     && c != '['
                     && c != ']'
                     && c != '{'
-                    && c != '}')
+                    && c != '}'
+                    && c != '/'
+                    && c != '\\')
                 {
-                    throw new ArgumentException(string.Format(CodeAnalysisResources.HintNameInvalidChar, c, i), nameof(hintName));
+                    throw new ArgumentException(string.Format(CodeAnalysisResources.HintNameInvalidChar, hintName, c, i), nameof(hintName));
                 }
+            }
+
+            hintName = hintName.Replace('\\', '/');
+
+            if (s_invalidSegmentPattern.Match(hintName) is { Success: true } match)
+            {
+                throw new ArgumentException(string.Format(CodeAnalysisResources.HintNameInvalidSegment, hintName, match.Value, match.Index), nameof(hintName));
             }
 
             hintName = AppendExtensionIfRequired(hintName);
             if (this.Contains(hintName))
             {
-                throw new ArgumentException(CodeAnalysisResources.HintNameUniquePerGenerator, nameof(hintName));
+                throw new ArgumentException(string.Format(CodeAnalysisResources.HintNameUniquePerGenerator, hintName), nameof(hintName));
             }
 
             if (source.Encoding is null)
             {
-                throw new ArgumentException(CodeAnalysisResources.SourceTextRequiresEncoding, nameof(source));
+                throw new ArgumentException(string.Format(CodeAnalysisResources.SourceTextRequiresEncoding, hintName), nameof(source));
+            }
+
+            if (Path.IsPathRooted(hintName) || !Path.GetFullPath(hintName).StartsWith(Environment.CurrentDirectory, _hintNameComparison))
+            {
+                throw new ArgumentException(string.Format(CodeAnalysisResources.HintNameNotWithinCurrentDirectory, hintName), nameof(hintName));
             }
 
             _sourcesAdded.Add(new GeneratedSourceText(hintName, source));
         }
-
-        public void AddRange(ImmutableArray<GeneratedSourceText> texts) => _sourcesAdded.AddRange(texts);
 
         public void RemoveSource(string hintName)
         {
@@ -99,7 +118,32 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
+        public void CopyTo(AdditionalSourcesCollection asc)
+        {
+            // we know the individual hint names are valid, but we do need to check that they
+            // don't collide with any we already have
+            if (asc._sourcesAdded.Count == 0)
+            {
+                asc._sourcesAdded.AddRange(this._sourcesAdded);
+            }
+            else
+            {
+                foreach (var source in this._sourcesAdded)
+                {
+                    if (asc.Contains(source.HintName))
+                    {
+                        throw new ArgumentException(string.Format(CodeAnalysisResources.HintNameUniquePerGenerator, source.HintName), "hintName");
+                    }
+                    asc._sourcesAdded.Add(source);
+                }
+            }
+        }
+
         internal ImmutableArray<GeneratedSourceText> ToImmutableAndFree() => _sourcesAdded.ToImmutableAndFree();
+
+        internal ImmutableArray<GeneratedSourceText> ToImmutable() => _sourcesAdded.ToImmutable();
+
+        internal void Free() => _sourcesAdded.Free();
 
         private string AppendExtensionIfRequired(string hintName)
         {

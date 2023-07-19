@@ -4,7 +4,9 @@
 
 using System;
 using System.Diagnostics;
+using System.Text;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
@@ -37,6 +39,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
         where TSyntaxNode : EmbeddedSyntaxNode<TSyntaxKind, TSyntaxNode>
     {
         public readonly TSyntaxKind Kind;
+        private TextSpan? _fullSpan;
 
         protected EmbeddedSyntaxNode(TSyntaxKind kind)
         {
@@ -47,6 +50,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
         internal abstract int ChildCount { get; }
         internal abstract EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode> ChildAt(int index);
 
+        public EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode> this[int index] => ChildAt(index);
+        public EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode> this[Index index] => this[index.GetOffset(this.ChildCount)];
+
         public TextSpan GetSpan()
         {
             var start = int.MaxValue;
@@ -55,6 +61,45 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
             this.GetSpan(ref start, ref end);
 
             return TextSpan.FromBounds(start, end);
+        }
+
+        public TextSpan? GetFullSpan()
+            => _fullSpan ??= ComputeFullSpan();
+
+        private TextSpan? ComputeFullSpan()
+        {
+            var start = ComputeStart();
+            var end = ComputeEnd();
+            if (start == null || end == null)
+                return null;
+
+            return TextSpan.FromBounds(start.Value, end.Value);
+
+            int? ComputeStart()
+            {
+                for (int i = 0, n = ChildCount; i < n; i++)
+                {
+                    var child = ChildAt(i);
+                    var span = child.GetFullSpan();
+                    if (span != null)
+                        return span.Value.Start;
+                }
+
+                return null;
+            }
+
+            int? ComputeEnd()
+            {
+                for (var i = ChildCount - 1; i >= 0; i--)
+                {
+                    var child = ChildAt(i);
+                    var span = child.GetFullSpan();
+                    if (span != null)
+                        return span.Value.End;
+                }
+
+                return null;
+            }
         }
 
         private void GetSpan(ref int start, ref int end)
@@ -98,6 +143,54 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Returns the string representation of this node, not including its leading and trailing trivia.
+        /// </summary>
+        /// <returns>The string representation of this node, not including its leading and trailing trivia.</returns>
+        /// <remarks>The length of the returned string is always the same as Span.Length</remarks>
+        public override string ToString()
+        {
+            using var _ = PooledStringBuilder.GetInstance(out var sb);
+            WriteTo(sb, leading: false, trailing: false);
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Returns full string representation of this node including its leading and trailing trivia.
+        /// </summary>
+        /// <returns>The full string representation of this node including its leading and trailing trivia.</returns>
+        /// <remarks>The length of the returned string is always the same as FullSpan.Length</remarks>
+        public string ToFullString()
+        {
+            using var _ = PooledStringBuilder.GetInstance(out var sb);
+            WriteTo(sb, leading: true, trailing: true);
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Writes the node to a stringbuilder.
+        /// </summary>
+        /// <param name="leading">If false, leading trivia will not be added</param>
+        /// <param name="trailing">If false, trailing trivia will not be added</param>
+        public void WriteTo(StringBuilder sb, bool leading, bool trailing)
+        {
+            for (var i = 0; i < this.ChildCount; i++)
+            {
+                var child = this[i];
+                var currentLeading = leading || i > 0;
+                var curentTrailing = trailing || i < (this.ChildCount - 1);
+
+                if (child.IsNode)
+                {
+                    child.Node.WriteTo(sb, currentLeading, curentTrailing);
+                }
+                else
+                {
+                    child.Token.WriteTo(sb, currentLeading, curentTrailing);
+                }
+            }
         }
 
         public Enumerator GetEnumerator()

@@ -5,16 +5,16 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.PooledObjects;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// Root type for representing the abstract semantics of C# and VB statements and expressions.
     /// </summary>
+    [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(), nq}}")]
     internal abstract partial class Operation : IOperation
     {
         protected static readonly IOperation s_unset = new EmptyOperation(semanticModel: null, syntax: null!, isImplicit: true);
@@ -29,16 +29,9 @@ namespace Microsoft.CodeAnalysis
 #if DEBUG
             if (semanticModel != null)
             {
-                Debug.Assert(semanticModel.ContainingModelOrSelf != null);
-                if (semanticModel.IsSpeculativeSemanticModel)
-                {
-                    Debug.Assert(semanticModel.ContainingModelOrSelf == semanticModel);
-                }
-                else
-                {
-                    Debug.Assert(semanticModel.ContainingModelOrSelf != semanticModel);
-                    Debug.Assert(semanticModel.ContainingModelOrSelf.ContainingModelOrSelf == semanticModel.ContainingModelOrSelf);
-                }
+                Debug.Assert(semanticModel.ContainingPublicModelOrSelf != null);
+                Debug.Assert(semanticModel.ContainingPublicModelOrSelf != semanticModel);
+                Debug.Assert(semanticModel.ContainingPublicModelOrSelf.ContainingPublicModelOrSelf == semanticModel.ContainingPublicModelOrSelf);
             }
 #endif
             _owningSemanticModelOpt = semanticModel;
@@ -111,21 +104,23 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        /// <summary>
-        /// In the compiler layer, always prefer <see cref="ChildOperations"/>.
-        /// </summary>
         IEnumerable<IOperation> IOperation.Children => this.ChildOperations;
 
-        /// <remarks>
-        /// Always prefer this over <see cref="IOperation.Children"/> in the compiler layer, as this does not introduce allocations.
-        /// </remarks>
-        // Making this public is tracked by https://github.com/dotnet/roslyn/issues/49475
-        internal Operation.Enumerable ChildOperations => new Operation.Enumerable(this);
+        /// <inheritdoc/>
+        public IOperation.OperationList ChildOperations => new IOperation.OperationList(this);
 
-        protected abstract IOperation GetCurrent(int slot, int index);
-        protected abstract (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex);
+        internal abstract int ChildOperationsCount { get; }
+        internal abstract IOperation GetCurrent(int slot, int index);
+        /// <summary>
+        /// A slot of -1 means start at the beginning.
+        /// </summary>
+        internal abstract (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex);
+        /// <summary>
+        /// A slot of int.MaxValue means start from the end.
+        /// </summary>
+        internal abstract (bool hasNext, int nextSlot, int nextIndex) MoveNextReversed(int previousSlot, int previousIndex);
 
-        SemanticModel? IOperation.SemanticModel => _owningSemanticModelOpt?.ContainingModelOrSelf;
+        SemanticModel? IOperation.SemanticModel => _owningSemanticModelOpt?.ContainingPublicModelOrSelf;
 
         /// <summary>
         /// Gets the owning semantic model for this operation node.
@@ -149,7 +144,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(parent == null || ((Operation)parent).OwningSemanticModel == OwningSemanticModel);
         }
 
-        [return: NotNullIfNotNull("operation")]
+        [return: NotNullIfNotNull(nameof(operation))]
         public static T? SetParentOperation<T>(T? operation, IOperation? parent) where T : IOperation
         {
             // For simplicity of implementation of derived types, we handle `null` children, as some children
@@ -194,7 +189,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static readonly ObjectPool<Queue<IOperation>> s_queuePool =
-            new ObjectPool<Queue<IOperation>>(() => new Queue<IOperation>(), 10);
+        private string GetDebuggerDisplay() => $"{GetType().Name} Type: {(Type is null ? "null" : Type)}";
     }
 }

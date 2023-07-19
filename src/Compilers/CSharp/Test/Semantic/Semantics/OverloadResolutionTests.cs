@@ -315,7 +315,6 @@ Diagnostic(ErrorCode.ERR_BadArgType, "nu").WithArguments("1", "uint?", "int?")
                 );
         }
 
-
         [Fact]
         public void ParametersExactlyMatchExpression()
         {
@@ -384,7 +383,13 @@ class P
   }
 }";
 
-            CompileAndVerify(source2, expectedOutput: @"2");
+            CompileAndVerify(source2, parseOptions: TestOptions.Regular9, expectedOutput: @"2");
+
+            var comp = CreateCompilation(source2);
+            comp.VerifyDiagnostics(
+                // (15,5): error CS0121: The call is ambiguous between the following methods or properties: 'P.M1(P.DA, object)' and 'P.M1(P.DB, int)'
+                //     M1(() => () => i, i);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("P.M1(P.DA, object)", "P.M1(P.DB, int)").WithLocation(15, 5));
         }
 
         [Fact]
@@ -797,9 +802,9 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll);
             compilation.VerifyDiagnostics(
-                // (6,28): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C<MyTask<int>>')
+                // (6,28): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C<MyTask<int>>')
                 //     static C<MyTask<int>>* F0;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "F0").WithArguments("C<MyTask<int>>").WithLocation(6, 28));
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "F0").WithArguments("C<MyTask<int>>").WithLocation(6, 28));
 
             var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
             var normalized = type.NormalizeTaskTypes(compilation);
@@ -1321,7 +1326,7 @@ class C
             string source = @"
 using System;
 using System.Linq.Expressions;
-class p
+class @p
 {
     static void Goo<T>(ref Func<T, T> a) { }
     static void Bar<T>(out Func<T, T> a) { a = null; }
@@ -1382,13 +1387,13 @@ class C
         public void TestConstraintViolationApplicabilityErrors()
         {
             // The rules for constraint satisfaction during overload resolution are a bit odd. If a constraint
-            // *on a formal parameter type* is not met then the candidate is not applicable. But if a constraint
+            // *on a parameter type* is not met then the candidate is not applicable. But if a constraint
             // is violated *on the method type parameter itself* then the method can be chosen as the best
             // applicable candidate, and then rejected during "final validation".
             //
             // Furthermore: most of the time a constraint violation on a formal type parameter will also 
             // be a constraint violation on the method type parameter. The latter seems like the better 
-            // error to report. We only report the violation on the formal parameter if the constraint
+            // error to report. We only report the violation on the parameter if the constraint
             // is not violated on the method type parameter.
 
             var source =
@@ -6452,7 +6457,7 @@ class Ambig
     static void overload2(byte b, goo f) { }
 }
 
-class goo
+class @goo
 {
     public static implicit operator goo(int i)
     {
@@ -6460,7 +6465,7 @@ class goo
     }
 }
 
-class bar
+class @bar
 {
     public static implicit operator bar(int i)
     {
@@ -6468,7 +6473,7 @@ class bar
     }
 }
 
-class baz
+class @baz
 {
     public static implicit operator baz(int i)
     {
@@ -6615,10 +6620,10 @@ public class Q
             // Problem 2:
             //
             // The native compiler gets the "betterness" rules wrong when lambdas are involved. The right thing
-            // to do is to first, check to see if one method has a more specific formal parameter type than the other.
-            // If betterness cannot be determined by formal parameter types, and the argument is a lambda, then 
+            // to do is to first, check to see if one method has a more specific parameter type than the other.
+            // If betterness cannot be determined by parameter types, and the argument is a lambda, then 
             // a special rule regarding the inferred return type of the lambda is used. What the native compiler does
-            // is, if there is a lambda, then it skips doing the formal parameter type check and goes straight to the
+            // is, if there is a lambda, then it skips doing the parameter type check and goes straight to the
             // lambda check.
             //
             // After some debate, we decided a while back to replicate this bug in Roslyn. 
@@ -7052,8 +7057,8 @@ class C : IA
             var source = @"
 public class Test
 {
-    public delegate dynamic nongenerics(dynamic id);
-    public delegate T generics< T>(dynamic id);
+    public delegate dynamic @nongenerics(dynamic id);
+    public delegate T @generics< T>(dynamic id);
     public dynamic Goo(nongenerics Meth, dynamic id)
     {
         return null;
@@ -7096,7 +7101,7 @@ public class Goo
     {
     }
 }
-public struct start
+public struct @start
 {
     static void M(D002<dynamic, object> d) {}
     static public void Main()
@@ -7572,22 +7577,12 @@ class Program
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-    // (8,28): error CS1513: } expected
-    //         var d = new int[] {[1] = 3 };
-    Diagnostic(ErrorCode.ERR_RbraceExpected, "[").WithLocation(8, 28),
-    // (8,36): error CS1002: ; expected
-    //         var d = new int[] {[1] = 3 };
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(8, 36),
-    // (8,37): error CS1597: Semicolon after method or accessor block is not valid
-    //         var d = new int[] {[1] = 3 };
-    Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";").WithLocation(8, 37),
-    // (10,1): error CS1022: Type or namespace definition, or end-of-file expected
-    // }
-    Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(10, 1),
-    // (2,1): info CS8019: Unnecessary using directive.
-    // using System.Collections.Generic;
-    Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;").WithLocation(2, 1)
-);
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using System.Collections.Generic;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;").WithLocation(2, 1),
+                // (8,28): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         var d = new int[] {[1] = 3 };
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[1]").WithLocation(8, 28));
         }
 
         [Fact]
@@ -8313,7 +8308,7 @@ public class C : CodeAccessSecurityAttribute
                 // (16,35): error CS1001: Identifier expected
                 //     public A(params SecurityAction)
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(16, 35),
-                // (30,22): error CS0231: A params parameter must be the last parameter in a formal parameter list
+                // (30,22): error CS0231: A params parameter must be the last parameter in a parameter list
                 //     public C(int p1, params SecurityAction p2, string p3)
                 Diagnostic(ErrorCode.ERR_ParamsLast, "params SecurityAction p2").WithLocation(30, 22),
                 // (14,14): error CS0534: 'A' does not implement inherited abstract member 'SecurityAttribute.CreatePermission()'
@@ -8340,13 +8335,13 @@ public class C : CodeAccessSecurityAttribute
                 // (8,6): error CS7048: First argument to a security attribute must be a valid SecurityAction
                 //     [C(p3: "again", p2: SecurityAction.Assert, p1: 0)]
                 Diagnostic(ErrorCode.ERR_SecurityAttributeMissingAction, "C").WithLocation(8, 6),
-                // (16,12): error CS7036: There is no argument given that corresponds to the required formal parameter 'action' of 'CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(SecurityAction)'
+                // (16,12): error CS7036: There is no argument given that corresponds to the required parameter 'action' of 'CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(SecurityAction)'
                 //     public A(params SecurityAction)
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "A").WithArguments("action", "System.Security.Permissions.CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(System.Security.Permissions.SecurityAction)").WithLocation(16, 12),
-                // (23,12): error CS7036: There is no argument given that corresponds to the required formal parameter 'action' of 'CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(SecurityAction)'
+                // (23,12): error CS7036: There is no argument given that corresponds to the required parameter 'action' of 'CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(SecurityAction)'
                 //     public B(int p1, params SecurityAction p2)
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "B").WithArguments("action", "System.Security.Permissions.CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(System.Security.Permissions.SecurityAction)").WithLocation(23, 12),
-                // (30,12): error CS7036: There is no argument given that corresponds to the required formal parameter 'action' of 'CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(SecurityAction)'
+                // (30,12): error CS7036: There is no argument given that corresponds to the required parameter 'action' of 'CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(SecurityAction)'
                 //     public C(int p1, params SecurityAction p2, string p3)
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("action", "System.Security.Permissions.CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(System.Security.Permissions.SecurityAction)").WithLocation(30, 12));
         }
@@ -8372,7 +8367,7 @@ public class A
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,28): error CS0231: A params parameter must be the last parameter in a formal parameter list
+                // (4,28): error CS0231: A params parameter must be the last parameter in a parameter list
                 //     public static void Goo(params int[] vals, bool truth)
                 Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] vals"),
                 // (12,13): error CS1503: Argument 1: cannot convert from 'int' to 'params int[]'
@@ -8862,16 +8857,16 @@ class C
     // (22,15): error CS1744: Named argument 'x' specifies a parameter for which a positional argument has already been given
     //         M6(0, x: 1);
     Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "x").WithArguments("x").WithLocation(22, 15),
-    // (24,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'w' of 'C.M7(int, int, int)'
+    // (24,9): error CS7036: There is no argument given that corresponds to the required parameter 'w' of 'C.M7(int, int, int)'
     //         M7(0, x: 1);
     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M7").WithArguments("w", "C.M7(int, int, int)").WithLocation(24, 9),
-    // (25,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'w' of 'C.M9(int, int, int)'
+    // (25,9): error CS7036: There is no argument given that corresponds to the required parameter 'w' of 'C.M9(int, int, int)'
     //         M9(0, x: 1);
     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M9").WithArguments("w", "C.M9(int, int, int)").WithLocation(25, 9),
-    // (26,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'w' of 'C.M8(int, int, int)'
+    // (26,9): error CS7036: There is no argument given that corresponds to the required parameter 'w' of 'C.M8(int, int, int)'
     //         M8(0, x: 1);
     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M8").WithArguments("w", "C.M8(int, int, int)").WithLocation(26, 9),
-    // (27,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'w' of 'C.M10(int, int, int)'
+    // (27,9): error CS7036: There is no argument given that corresponds to the required parameter 'w' of 'C.M10(int, int, int)'
     //         M10(0, x: 1);
     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M10").WithArguments("w", "C.M10(int, int, int)").WithLocation(27, 9),
     // (29,25): error CS1739: The best overload for 'M11' does not have a parameter named 'z'
@@ -8986,7 +8981,7 @@ public interface IDetail<T>
 
 }
 
-public interface IMaster<T>
+public interface IMain<T>
 {
 
 }
@@ -9017,21 +9012,22 @@ public class Permission : IDetail<Principal>
 
 }
 
-public class Principal : IMaster<Permission>
+public class Principal : IMain<Permission>
 {
 }
 
 public static class Class
 {
-    public static void RemoveDetail<TMaster, TChild>(this TMaster master, TChild child)
-        where TMaster : class, IMaster<TChild>
-        where TChild : class, IDetail<TMaster>
+    public static void RemoveDetail<TMain, TChild>(this TMain main, TChild child)
+        where TMain : class, IMain<TChild>
+        where TChild : class, IDetail<TMain>
     {
         System.Console.WriteLine(""RemoveDetail"");
     }
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput:
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            CompileAndVerify(compilation, verify: Verification.FailsILVerify, expectedOutput:
 @"RemoveDetail
 RemoveDetail
 RemoveDetail
@@ -10995,6 +10991,30 @@ class Program
         }
 
         [Fact]
+        public void GenericInferenceErrorRecovery()
+        {
+            var code = @"
+class Program
+{
+    public static void Method<T>(in T p)
+    {
+        System.Console.WriteLine(typeof(T).ToString());
+    }
+
+    static void Main()
+    {
+        Method((null, 1));
+    }
+}
+";
+            var comp = CreateCompilation(code);
+            comp.VerifyDiagnostics(
+                // (11,9): error CS0411: The type arguments for method 'Program.Method<T>(in T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Method((null, 1));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Method").WithArguments("Program.Method<T>(in T)").WithLocation(11, 9));
+        }
+
+        [Fact]
         public void GenericInferenceLambdaVariance()
         {
             var code = @"
@@ -11043,7 +11063,6 @@ public static class Extensions
 
             var libComp = CreateCompilationWithMscorlib40(librarySrc, references: new[] { TestMetadata.Net40.SystemCore }).VerifyDiagnostics();
 
-
             var code = @"
  class D
  {
@@ -11064,20 +11083,19 @@ public static class Extensions
  }
 ";
 
-
             CreateCompilation(code, references: new[] { libComp.EmitToImageReference() }).VerifyDiagnostics(
-                // (13,10): error CS8329: Cannot use variable 'in int' as a ref or out value because it is a readonly variable
+                // (13,10): error CS8329: Cannot use variable 'y' as a ref or out value because it is a readonly variable
                 //          y.R_extension(); // error 1
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "in int").WithLocation(13, 10),
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "y").WithLocation(13, 10),
                 // (14,10): error CS1510: A ref or out value must be an assignable variable
                 //          1.R_extension(); // error 2
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "1").WithLocation(14, 10)
                 );
 
             CreateCompilation(code, references: new[] { libComp.ToMetadataReference() }).VerifyDiagnostics(
-                // (13,10): error CS8329: Cannot use variable 'in int' as a ref or out value because it is a readonly variable
+                // (13,10): error CS8329: Cannot use variable 'y' as a ref or out value because it is a readonly variable
                 //          y.R_extension(); // error 1
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "in int").WithLocation(13, 10),
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "y").WithLocation(13, 10),
                 // (14,10): error CS1510: A ref or out value must be an assignable variable
                 //          1.R_extension(); // error 2
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "1").WithLocation(14, 10)
@@ -11262,7 +11280,8 @@ public static class Extensions
         throw new NotImplementedException();
 }";
 
-            CompileAndVerify(code, expectedOutput: @"2");
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            CompileAndVerify(code, verify: Verification.FailsILVerify, expectedOutput: @"2");
         }
 
         [Fact]
@@ -11410,6 +11429,62 @@ class Program
                 symbol = symbol.GetLeastOverriddenEvent(accessingTypeOpt: null);
                 Assert.Equal("event D<A, B> Base<A, B>.E", symbol.ToTestDisplayString());
             }
+        }
+
+        [Fact]
+        [WorkItem(52701, "https://github.com/dotnet/roslyn/issues/52701")]
+        public void Issue52701_01()
+        {
+            var source =
+@"
+class A
+{
+    internal void F<T>(T t) where T : class {}
+}
+class B : A
+{
+    internal new void F<T>(T t) where T : struct { }
+    void M()
+    {
+        System.Action<object> d = F<object>;
+    }
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,35): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'B.F<T>(T)'
+                //         System.Action<object> d = F<object>;
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F<object>").WithArguments("B.F<T>(T)", "T", "object").WithLocation(11, 35)
+                );
+        }
+
+        [Fact]
+        [WorkItem(52701, "https://github.com/dotnet/roslyn/issues/52701")]
+        public void Issue52701_02()
+        {
+            var source =
+@"
+class A
+{
+    internal void F<T>(T t) where T : class {}
+}
+class B : A
+{
+    internal new void F<T>(T t) where T : struct { }
+    void M()
+    {
+        F<object>(default);
+    }
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,9): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'B.F<T>(T)'
+                //         F<object>(default);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F<object>").WithArguments("B.F<T>(T)", "T", "object").WithLocation(11, 9)
+                );
         }
     }
 }

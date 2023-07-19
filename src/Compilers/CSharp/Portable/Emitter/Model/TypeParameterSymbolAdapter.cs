@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
             //We've not yet discovered a scenario in which we need this.
             //If you're hitting this exception, uncomment the code below
             //and add a unit test.
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var typeRef = moduleBeingBuilt.GetSpecialType(
                     SpecialType.System_ValueType,
-                    syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                    syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                     diagnostics: context.Diagnostics);
 
                 var modifier = CSharpCustomModifier.CreateRequired(
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                 }
                 var typeRef = moduleBeingBuilt.Translate(type.Type,
-                                                            syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                                                            syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                                                             diagnostics: context.Diagnostics);
 
                 yield return type.GetTypeRefWithAttributes(
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // Add System.ValueType constraint to comply with Dev11 output
                 var typeRef = moduleBeingBuilt.GetSpecialType(SpecialType.System_ValueType,
-                                                                syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                                                                syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                                                                 diagnostics: context.Diagnostics);
 
                 yield return new Cci.TypeReferenceWithAttributes(typeRef);

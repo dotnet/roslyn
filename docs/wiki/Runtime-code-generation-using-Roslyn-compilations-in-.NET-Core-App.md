@@ -4,14 +4,14 @@ There are two approaches to runtime code generation:
 
 ### Compile against runtime (implementation) assemblies
 
-This is what [C# Scripting API](https://github.com/dotnet/roslyn/blob/master/docs/wiki/Scripting-API-Samples.md) currently does. There are a few gotchas with this approach:
+This is what [C# Scripting API](https://github.com/dotnet/roslyn/blob/main/docs/wiki/Scripting-API-Samples.md) currently does. There are a few gotchas with this approach:
 - in .NET Core 1.x the implementation assemblies currently contain some duplicate public types (fixed in 2.0, see https://github.com/dotnet/corefx/issues/5540).
 - the implementation assemblies change with releases, so code that compiles against one version of CoreCLR might not compile against newer version.
   The APIs are backward compatible, however compiler overload resolution might prefer an API added in the new version instead of the one that it used to pick before.
 
 The Scripting APIs use Trusted Platform Assembly list to locate the implementation assemblies on CoreCLR.
 
-You can get a list of semicolon-separated paths to these .dlls like so (see [RuntimeMetadataReferenceResolver](http://source.roslyn.io/#Microsoft.CodeAnalysis.Scripting/Hosting/Resolvers/RuntimeMetadataReferenceResolver.cs,180) implementation):
+You can get a list of semicolon-separated paths to these .dlls like so (see [RuntimeMetadataReferenceResolver](http://sourceroslyn.io/#Microsoft.CodeAnalysis.Scripting/Hosting/Resolvers/RuntimeMetadataReferenceResolver.cs) implementation):
 
 ```C#
 AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")

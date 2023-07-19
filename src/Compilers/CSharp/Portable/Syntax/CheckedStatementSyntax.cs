@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public partial class CheckedStatementSyntax
     {
         public CheckedStatementSyntax Update(SyntaxToken keyword, BlockSyntax block)
-            => Update(attributeLists: default, keyword, block);
+            => Update(AttributeLists, keyword, block);
     }
 }
 

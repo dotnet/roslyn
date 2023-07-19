@@ -7,12 +7,12 @@ Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.InlineMethod
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
 
-    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(PredefinedCodeRefactoringProviderNames.InlineMethod)), [Shared]>
+    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.InlineMethod), [Shared]>
     <Export(GetType(VisualBasicInlineMethodRefactoringProvider))>
     Friend Class VisualBasicInlineMethodRefactoringProvider
         Inherits AbstractInlineMethodRefactoringProvider(Of MethodBlockSyntax, ExecutableStatementSyntax, ExpressionSyntax, InvocationExpressionSyntax)
@@ -42,6 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
                     Return throwStatement.Expression
                 End If
             End If
+
             Return Nothing
         End Function
 
@@ -50,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
         End Function
 
         Protected Overrides Function GenerateLiteralExpression(typeSymbol As ITypeSymbol, value As Object) As ExpressionSyntax
-            Return GenerateExpression(typeSymbol, value, canUseFieldReference:=True)
+            Return GenerateExpression(VisualBasicSyntaxGenerator.Instance, typeSymbol, value, canUseFieldReference:=True)
         End Function
 
         Protected Overrides Function IsFieldDeclarationSyntax(node As SyntaxNode) As Boolean

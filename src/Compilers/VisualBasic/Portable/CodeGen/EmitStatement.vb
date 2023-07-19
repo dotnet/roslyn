@@ -159,7 +159,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End If
         End Sub
 
-
         'The interesting part in the following method is the support for exception filters. 
         '=== Example:
         '
@@ -728,7 +727,6 @@ BinaryOperatorKindLogicalAnd:
                         Case BinaryOperatorKind.Equals,
                              BinaryOperatorKind.NotEquals
 BinaryOperatorKindEqualsNotEquals:
-
                             Dim reduced = TryReduce(binOp, sense)
                             If reduced IsNot Nothing Then
                                 condition = reduced
@@ -765,7 +763,6 @@ BinaryOperatorKindLessThan:
                     Else
                         GoTo OtherExpressions
                     End If
-
 
                 Case BoundKind.TypeOf
 
@@ -1426,7 +1423,10 @@ OtherExpressions:
             _builder.OpenLocalScope(ScopeType.StateMachineVariable)
 
             For Each field In scope.Fields
-                DefineUserDefinedStateMachineHoistedLocal(DirectCast(field, StateMachineFieldSymbol))
+                Dim stateMachineField = DirectCast(field, StateMachineFieldSymbol)
+                If stateMachineField.SlotIndex >= 0 Then
+                    DefineUserDefinedStateMachineHoistedLocal(stateMachineField)
+                End If
             Next
 
             EmitStatement(scope.Statement)

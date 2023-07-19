@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Public Shared Sub ReportUnprocessed(tree As SyntaxTree, filterSpanWithinTree As TextSpan?, diagnostics As DiagnosticBag, cancellationToken As CancellationToken)
                     If tree.ReportDocumentationCommentDiagnostics() Then
                         Dim finder As New MislocatedDocumentationCommentFinder(diagnostics, filterSpanWithinTree, cancellationToken)
-                        finder.Visit(tree.GetRoot())
+                        finder.Visit(tree.GetRoot(cancellationToken))
                     End If
                 End Sub
 

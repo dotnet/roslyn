@@ -283,11 +283,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             }
         }
 
-        private static int Abs(int value)
-        {
-            return value < 0 ? -value : value;
-        }
-
         private void Report(OperationAnalysisContext context, SyntaxNode syntax, DiagnosticDescriptor descriptor)
         {
             context.ReportDiagnostic(Diagnostic.Create(descriptor, syntax.GetLocation()));
@@ -303,7 +298,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         public static readonly DiagnosticDescriptor SparseSwitchDescriptor = new DiagnosticDescriptor(
             "SparseSwitchRule",
             "Sparse switch",
-            "Switch has less than one percept density",
+            "Switch has less than one percent density",
             ReliabilityCategory,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
@@ -490,7 +485,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         }
     }
 
-    /// <summary>Analyzer used to test invocaton IOperations.</summary>
+    /// <summary>Analyzer used to test invocation IOperations.</summary>
     public class InvocationTestAnalyzer : DiagnosticAnalyzer
     {
         /// <summary>Diagnostic category "Reliability".</summary>
@@ -1282,8 +1277,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
         public static readonly DiagnosticDescriptor LambdaExpressionDescriptor = new DiagnosticDescriptor(
             "LambdaExpression",
-            "Lambda expressionn found",
-            "An Lambda expression is found",
+            "Lambda expression found",
+            "A Lambda expression is found",
             ReliabilityCategory,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);

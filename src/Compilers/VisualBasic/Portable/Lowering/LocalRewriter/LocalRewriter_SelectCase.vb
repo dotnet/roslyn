@@ -47,7 +47,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ' hash table based jump table, we generate a single public string hash synthesized method (SynthesizedStringSwitchHashMethod)
     ' that is shared across the module.
 
-
     ' CONSIDER: Ideally generating the SynthesizedStringSwitchHashMethod in <PrivateImplementationDetails>
     ' CONSIDER: class must be done during code generation, as the lowering does not mention or use
     ' CONSIDER: the hash function in any way.
@@ -183,7 +182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' If we have already generated this helper method, possibly for another select case
             ' or on another thread, we don't need to regenerate it.
-            Dim privateImplClass = _emitModule.GetPrivateImplClass(node.Syntax, _diagnostics)
+            Dim privateImplClass = _emitModule.GetPrivateImplClass(node.Syntax, _diagnostics.DiagnosticBag)
             If privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedStringHashFunctionName) IsNot Nothing Then
                 Return
             End If
@@ -215,7 +214,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Else
                 endSelectResumeLabel = Nothing
             End If
-
 
             ' Rewrite select expression
             rewrittenSelectExpression = VisitExpressionNode(selectExpressionStmt.Expression)

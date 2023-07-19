@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -28,13 +26,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             /// </summary>
             [SuppressMessage("Documentation", "CA1200:Avoid using cref tags with a prefix", Justification = "Required to avoid ambiguous reference warnings.")]
             public readonly INamedTypeSymbol RangeType;
-            private readonly ConcurrentDictionary<IMethodSymbol, MemberInfo> _methodToMemberInfo;
+            public readonly INamedTypeSymbol? ExpressionOfTType;
 
-            public InfoCache(Compilation compilation)
+            private readonly ConcurrentDictionary<IMethodSymbol, MemberInfo> _methodToMemberInfo = new();
+
+            private InfoCache(INamedTypeSymbol rangeType, INamedTypeSymbol stringType, INamedTypeSymbol? expressionOfTType)
             {
-                RangeType = compilation.GetBestTypeByMetadataName("System.Range");
-
-                _methodToMemberInfo = new ConcurrentDictionary<IMethodSymbol, MemberInfo>();
+                RangeType = rangeType;
+                ExpressionOfTType = expressionOfTType;
 
                 // Always allow using System.Range indexers with System.String.Substring.  The
                 // compiler has hard-coded knowledge on how to use this type, even if there is no
@@ -42,18 +41,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 //
                 // Ensure that we can actually get the 'string' type. We may fail if there is no
                 // proper mscorlib reference (for example, while a project is loading).
-                var stringType = compilation.GetSpecialType(SpecialType.System_String);
                 if (!stringType.IsErrorType())
                 {
                     var substringMethod = stringType.GetMembers(nameof(string.Substring))
                                                     .OfType<IMethodSymbol>()
                                                     .FirstOrDefault(m => IsTwoArgumentSliceLikeMethod(m));
 
-                    _methodToMemberInfo[substringMethod] = ComputeMemberInfo(substringMethod, requireRangeMember: false);
+                    if (substringMethod is not null)
+                        _methodToMemberInfo[substringMethod] = ComputeMemberInfo(substringMethod, requireRangeMember: false);
                 }
             }
 
-            private static IMethodSymbol GetSliceLikeMethod(INamedTypeSymbol namedType)
+            public static bool TryCreate(Compilation compilation, [NotNullWhen(true)] out InfoCache? infoCache)
+            {
+                var rangeType = compilation.GetBestTypeByMetadataName(typeof(Range).FullName!);
+                if (rangeType == null || !rangeType.IsAccessibleWithin(compilation.Assembly))
+                {
+                    infoCache = null;
+                    return false;
+                }
+
+                var stringType = compilation.GetSpecialType(SpecialType.System_String);
+                infoCache = new InfoCache(rangeType, stringType, compilation.ExpressionOfTType());
+                return true;
+            }
+
+            private static IMethodSymbol? GetSliceLikeMethod(INamedTypeSymbol namedType)
                 => namedType.GetMembers()
                             .OfType<IMethodSymbol>()
                             .Where(m => IsTwoArgumentSliceLikeMethod(m))
@@ -127,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 // A Slice method can either be paired with an Range-taking indexer on the type, or
                 // an Range-taking overload, or an explicit method called .Slice that takes two ints:
                 //
-                // https://github.com/dotnet/csharplang/blob/master/proposals/csharp-8.0/ranges.md#implicit-range-support
+                // https://github.com/dotnet/csharplang/blob/main/proposals/csharp-8.0/ranges.md#implicit-range-support
                 if (sliceLikeMethod.ReturnType.Equals(containingType))
                 {
                     // it's a method like:  MyType MyType.Get(int start, int length).  Look for an

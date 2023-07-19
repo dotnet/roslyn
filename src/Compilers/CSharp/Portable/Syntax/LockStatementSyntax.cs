@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public partial class LockStatementSyntax
     {
         public LockStatementSyntax Update(SyntaxToken lockKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
-            => Update(attributeLists: default, lockKeyword, openParenToken, expression, closeParenToken, statement);
+            => Update(AttributeLists, lockKeyword, openParenToken, expression, closeParenToken, statement);
     }
 }
 

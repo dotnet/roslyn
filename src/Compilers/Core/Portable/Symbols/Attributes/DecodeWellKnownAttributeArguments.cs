@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Diagnostic bag.
         /// </summary>
-        public DiagnosticBag Diagnostics { get; set; }
+        public BindingDiagnosticBag Diagnostics { get; set; }
 
         /// <summary>
         /// Specific part of the symbol to which the attributes apply, or AttributeLocation.None if the attributes apply to the symbol itself.

@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
     {
         public static bool IsChange(this CodeModelEventType eventType)
         {
-            if (eventType == CodeModelEventType.Add || eventType == CodeModelEventType.Remove)
+            if (eventType is CodeModelEventType.Add or CodeModelEventType.Remove)
             {
                 return false;
             }

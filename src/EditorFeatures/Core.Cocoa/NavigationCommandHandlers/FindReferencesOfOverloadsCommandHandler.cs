@@ -10,11 +10,11 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -73,9 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
 
         private static async Task<ISymbol[]> GatherSymbolsAsync(ISymbol symbol, Microsoft.CodeAnalysis.Solution solution, CancellationToken token)
         {
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-            var implementations = await SymbolFinder.FindImplementationsAsync(symbol, solution, null, token);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+            var implementations = await SymbolFinder.FindImplementationsAsync(symbol, solution, null, token).ConfigureAwait(false);
             var result = new ISymbol[implementations.Count() + 1];
             result[0] = symbol;
             var i = 1;
@@ -83,19 +81,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
             {
                 result[i++] = item;
             }
+
             return result;
         }
 
         private async Task StreamingFindReferencesAsync(
-            Document document, int caretPosition,
-            IStreamingFindUsagesPresenter presenter)
+            Document document, int caretPosition, IStreamingFindUsagesPresenter presenter)
         {
             try
             {
                 // first, let's see if we even have a comment, otherwise there's no use in starting a search
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                var relevantSymbol = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, new CancellationToken());
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+                var relevantSymbol = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, new CancellationToken()).ConfigureAwait(false);
                 var symbol = relevantSymbol?.symbol;
                 if (symbol == null)
                     return; // would be useful if we could notify the user why we didn't do anything
@@ -103,54 +99,45 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
 
                 var findUsagesService = document.GetLanguageService<IFindUsagesService>();
 
-                using (var token = _asyncListener.BeginAsyncOperation(nameof(StreamingFindReferencesAsync)))
+                using var token = _asyncListener.BeginAsyncOperation(nameof(StreamingFindReferencesAsync));
+
+                var (context, cancellationToken) = presenter.StartSearch(EditorFeaturesResources.Find_References, supportsReferences: true);
+
+                using (Logger.LogBlock(
+                    FunctionId.CommandHandler_FindAllReference,
+                    KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "streaming"),
+                    cancellationToken))
                 {
-                    // Let the presented know we're starting a search.  It will give us back
-                    // the context object that the FAR service will push results into.
-                    var context = presenter.StartSearch(
-                        EditorFeaturesResources.Find_References, supportsReferences: true);
+                    var symbolsToLookup = new List<ISymbol>();
 
-                    using (Logger.LogBlock(
-                        FunctionId.CommandHandler_FindAllReference,
-                        KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "streaming"),
-                        context.CancellationToken))
+                    foreach (var curSymbol in symbol.ContainingType.GetMembers()
+                                                    .Where(m => m.Kind == symbol.Kind && m.Name == symbol.Name))
                     {
-                        var symbolsToLookup = new List<ISymbol>();
-
-                        foreach (var curSymbol in symbol.ContainingType.GetMembers()
-                                                        .Where(m => m.Kind == symbol.Kind && m.Name == symbol.Name))
+                        if (!document.Project.TryGetCompilation(out var compilation))
                         {
-                            Compilation compilation;
-                            if (!document.Project.TryGetCompilation(out compilation))
-                            {
-                                // TODO: should we do anything more here?
-                                continue;
-                            }
-
-                            foreach (var sym in SymbolFinder.FindSimilarSymbols(curSymbol, compilation, context.CancellationToken))
-                            {
-                                // assumption here is, that FindSimilarSymbols returns symbols inside same project
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                                var symbolsToAdd = await GatherSymbolsAsync(sym, document.Project.Solution, context.CancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
-                                symbolsToLookup.AddRange(symbolsToAdd);
-                            }
+                            // TODO: should we do anything more here?
+                            continue;
                         }
 
-                        foreach (var candidate in symbolsToLookup)
+                        foreach (var sym in SymbolFinder.FindSimilarSymbols(curSymbol, compilation, cancellationToken))
                         {
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                            await AbstractFindUsagesService.FindSymbolReferencesAsync(context, candidate, document.Project);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+                            // assumption here is, that FindSimilarSymbols returns symbols inside same project
+                            var symbolsToAdd = await GatherSymbolsAsync(sym, document.Project.Solution, cancellationToken).ConfigureAwait(false);
+                            symbolsToLookup.AddRange(symbolsToAdd);
                         }
-
-                        // Note: we don't need to put this in a finally.  The only time we might not hit
-                        // this is if cancellation or another error gets thrown.  In the former case,
-                        // that means that a new search has started.  We don't care about telling the
-                        // context it has completed.  In the latter case something wrong has happened
-                        // and we don't want to run any more code in this particular context.
-                        await context.OnCompletedAsync().ConfigureAwait(false);
                     }
+
+                    foreach (var candidate in symbolsToLookup)
+                    {
+                        await AbstractFindUsagesService.FindSymbolReferencesAsync(context, candidate, document.Project, cancellationToken).ConfigureAwait(false);
+                    }
+
+                    // Note: we don't need to put this in a finally.  The only time we might not hit
+                    // this is if cancellation or another error gets thrown.  In the former case,
+                    // that means that a new search has started.  We don't care about telling the
+                    // context it has completed.  In the latter case something wrong has happened
+                    // and we don't want to run any more code in this particular context.
+                    await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException)

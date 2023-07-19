@@ -6,33 +6,27 @@ using System.Collections.Immutable;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.DocumentHighlighting
 {
     internal interface IRemoteDocumentHighlightsService
     {
         ValueTask<ImmutableArray<SerializableDocumentHighlights>> GetDocumentHighlightsAsync(
-            PinnedSolutionInfo solutionInfo, DocumentId documentId, int position, ImmutableArray<DocumentId> documentIdsToSearch, CancellationToken cancellationToken);
+            Checksum solutionChecksum, DocumentId documentId, int position, ImmutableArray<DocumentId> documentIdsToSearch, HighlightingOptions options, CancellationToken cancellationToken);
     }
 
     [DataContract]
-    internal readonly struct SerializableDocumentHighlights
+    internal readonly struct SerializableDocumentHighlights(DocumentId documentId, ImmutableArray<HighlightSpan> highlightSpans)
     {
         [DataMember(Order = 0)]
-        public readonly DocumentId DocumentId;
+        public readonly DocumentId DocumentId = documentId;
 
         [DataMember(Order = 1)]
-        public readonly ImmutableArray<HighlightSpan> HighlightSpans;
+        public readonly ImmutableArray<HighlightSpan> HighlightSpans = highlightSpans;
 
-        public SerializableDocumentHighlights(DocumentId documentId, ImmutableArray<HighlightSpan> highlightSpans)
-        {
-            DocumentId = documentId;
-            HighlightSpans = highlightSpans;
-        }
-
-        public DocumentHighlights Rehydrate(Solution solution)
-            => new(solution.GetDocument(DocumentId), HighlightSpans);
+        public async ValueTask<DocumentHighlights> RehydrateAsync(Solution solution)
+            => new(await solution.GetRequiredDocumentAsync(DocumentId, includeSourceGenerated: true).ConfigureAwait(false), HighlightSpans);
 
         public static SerializableDocumentHighlights Dehydrate(DocumentHighlights highlights)
             => new(highlights.Document.Id, highlights.HighlightSpans);

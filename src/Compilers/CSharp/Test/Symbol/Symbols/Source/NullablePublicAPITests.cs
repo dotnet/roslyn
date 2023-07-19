@@ -37,7 +37,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
                 // (6,20): warning CS8619: Nullability of reference types in value of type 'C?[]' doesn't match target type 'C[]'.
                 //         C[] arr2 = (C[])arr1;
@@ -77,7 +77,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -422,14 +422,14 @@ public static class Ext
 }
 ";
 
-            var comp1 = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp1 = CreateCompilation(source, options: WithNullableEnable());
             comp1.VerifyDiagnostics(
                 // (22,34): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
                 //     public static void M10(this C? c) {}
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(22, 34));
             verifyCompilation(comp1);
 
-            var comp2 = CreateCompilation(source, options: WithNonNullTypesFalse());
+            var comp2 = CreateCompilation(source, options: WithNullableDisable());
             comp2.VerifyDiagnostics(
                 // (22,34): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
                 //     public static void M10(this C? c) {}
@@ -459,12 +459,12 @@ public static class Ext
             verifyCompilation(comp3);
 
             var comp1Emit = comp1.EmitToImageReference();
-            var comp4 = CreateCompilation("", references: new[] { comp1Emit }, options: WithNonNullTypesTrue());
+            var comp4 = CreateCompilation("", references: new[] { comp1Emit }, options: WithNullableEnable());
             comp4.VerifyDiagnostics();
             verifyCompilation(comp4);
 
             var comp2Emit = comp2.EmitToImageReference();
-            var comp5 = CreateCompilation("", references: new[] { comp2Emit }, options: WithNonNullTypesFalse());
+            var comp5 = CreateCompilation("", references: new[] { comp2Emit }, options: WithNullableDisable());
             comp5.VerifyDiagnostics();
             verifyCompilation(comp5);
 
@@ -1030,11 +1030,11 @@ class C
                                                  bool testMetadata,
                                                  params PublicNullableAnnotation[] expectedNullabilities)
         {
-            var comp1 = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp1 = CreateCompilation(source, options: WithNullableEnable());
             comp1.VerifyDiagnostics(nullableEnabledErrors);
             verifyCompilation(comp1);
 
-            var comp2 = CreateCompilation(source, options: WithNonNullTypesFalse());
+            var comp2 = CreateCompilation(source, options: WithNullableDisable());
             comp2.VerifyDiagnostics(nullableEnabledErrors);
             verifyCompilation(comp2);
 
@@ -1045,12 +1045,12 @@ class C
             if (!testMetadata) return;
 
             var comp1Emit = comp1.EmitToImageReference();
-            var comp4 = CreateCompilation("", references: new[] { comp1Emit }, options: WithNonNullTypesTrue());
+            var comp4 = CreateCompilation("", references: new[] { comp1Emit }, options: WithNullableEnable());
             comp4.VerifyDiagnostics();
             verifyCompilation(comp4);
 
             var comp2Emit = comp2.EmitToImageReference();
-            var comp5 = CreateCompilation("", references: new[] { comp2Emit }, options: WithNonNullTypesFalse());
+            var comp5 = CreateCompilation("", references: new[] { comp2Emit }, options: WithNullableDisable());
             comp5.VerifyDiagnostics();
             verifyCompilation(comp5);
 
@@ -1084,7 +1084,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -1112,7 +1112,7 @@ enum E2
     A2 = E1.A1
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
 
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
@@ -1136,7 +1136,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
 
             comp.VerifyDiagnostics();
             comp.VerifyAnalyzerDiagnostics(new[] { new NullabilityPrinter() }, null, null,
@@ -1196,7 +1196,7 @@ class E
     }
 }";
 
-            var comp = (Compilation)CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = (Compilation)CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
                 // (10,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         var d = (D)(C?)new B();
@@ -1248,7 +1248,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
                 // (6,21): error CS0246: The type or namespace name 'Undefined' could not be found (are you missing a using directive or an assembly reference?)
                 //         var x = new Undefined() ? new object() : null;
@@ -1349,7 +1349,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -1429,7 +1429,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -1501,7 +1501,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -1554,7 +1554,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
                 // (5,12): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
                 //     public C()
@@ -1608,7 +1608,7 @@ class C
     static string? GetNullableString() => null;
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
                 // (6,27): warning CS8618: Non-nullable field 's_data' is uninitialized. Consider declaring the field as nullable.
                 //     private static string s_data;
@@ -1648,7 +1648,7 @@ class C
     static string? GetNullableString() => null;
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
                 // (6,27): warning CS8618: Non-nullable field 's_data' is uninitialized. Consider declaring the field as nullable.
                 //     private static string s_data;
@@ -1694,7 +1694,7 @@ class C
     static string? GetNullableString() => null;
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
                 // (6,27): warning CS8618: Non-nullable field 's_data' is uninitialized. Consider declaring the field as nullable.
                 //     private static string s_data;
@@ -1737,7 +1737,7 @@ class C
 
             var featureFlagOff = TestOptions.Regular8.WithFeature("run-nullable-analysis", "never");
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: featureFlagOff);
+            var comp = CreateCompilation(source, options: WithNullableEnable(), parseOptions: featureFlagOff);
             comp.VerifyDiagnostics(
                 // (5,12): warning CS0414: The field 'C.field' is assigned but its value is never used
                 //     object field = null;
@@ -1746,9 +1746,9 @@ class C
                 //         object o = null;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "o").WithArguments("o").WithLocation(9, 16));
 
-            Assert.False(comp.IsNullableAnalysisEnabled);
+            Assert.False(isNullableAnalysisEnabled(comp));
 
-            comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
                 // (5,12): warning CS0414: The field 'C.field' is assigned but its value is never used
                 //     object field = null;
@@ -1763,7 +1763,13 @@ class C
                 //         object o = null;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(9, 20));
 
-            Assert.True(comp.IsNullableAnalysisEnabled);
+            Assert.True(isNullableAnalysisEnabled(comp));
+
+            static bool isNullableAnalysisEnabled(CSharpCompilation comp)
+            {
+                var tree = (CSharpSyntaxTree)comp.SyntaxTrees.Single();
+                return comp.IsNullableAnalysisEnabledIn(tree, new Text.TextSpan(0, tree.Length));
+            }
         }
 
         private class CSharp73ProvidesNullableSemanticInfo_Analyzer : DiagnosticAnalyzer
@@ -1809,7 +1815,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
+            var comp = CreateCompilation(source, options: WithNullableEnable(), parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
             comp.VerifyDiagnostics(
                 // error CS8630: Invalid 'NullableContextOptions' value: 'Enable' for C# 7.3. Please use language version '8.0' or greater.
                 Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("NullableContextOptions", "Enable", "7.3", "8.0").WithLocation(1, 1)
@@ -1836,7 +1842,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -1879,7 +1885,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -1921,7 +1927,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
                 // (10,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         s2 = null;
@@ -1971,7 +1977,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -2032,7 +2038,7 @@ class C
 
             void verifyCompilation(string source)
             {
-                var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+                var comp = CreateCompilation(source, options: WithNullableEnable());
                 comp.VerifyDiagnostics();
 
                 var syntaxTree = comp.SyntaxTrees[0];
@@ -2075,7 +2081,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -2118,7 +2124,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -2161,7 +2167,7 @@ class C : IDisposable, IAsyncDisposable
 }
 ";
 
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: WithNonNullTypesTrue());
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -2200,7 +2206,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue().WithAllowUnsafe(true));
+            var comp = CreateCompilation(source, options: WithNullableEnable().WithAllowUnsafe(true));
             comp.VerifyDiagnostics(
                 // (6,20): error CS0821: Implicitly-typed local variables cannot be fixed
                 //         fixed (var o1 = o ?? new object())
@@ -2230,7 +2236,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
                 // (8,14): error CS0819: Implicitly-typed variables cannot have multiple declarators
                 //         for (var o5 = o1, o6 = o2; false; ) {}
@@ -2268,7 +2274,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -2312,7 +2318,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -2324,7 +2330,6 @@ class C
             assertAnnotation(declarations[1], PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[2], PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[3], PublicNullableAnnotation.Annotated);
-
 
             void assertAnnotation(SingleVariableDesignationSyntax variable, PublicNullableAnnotation expectedAnnotation)
             {
@@ -2354,7 +2359,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -2399,7 +2404,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -2439,7 +2444,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -2487,7 +2492,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -2521,7 +2526,7 @@ class C
     void M(object o1, object? o2)
     {
         foreach ((var o3, object? o4) in GetList(o1)) {}
-        foreach ((var o3, object o4) in GetList(o2)) { o3.ToString(); }
+        foreach ((var o3, object o4) in GetList(o2)) { o3.ToString(); } // 1
         o1 = null;
         foreach ((var o3, object o4) in GetList(o1)) {}
         _  = o2 ?? throw null!;
@@ -2529,16 +2534,17 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics();
+            var comp = CreateCompilation(source, options: WithNullableEnable());
+            comp.VerifyDiagnostics(
+                // (10,56): warning CS8602: Dereference of a possibly null reference.
+                //         foreach ((var o3, object o4) in GetList(o2)) { o3.ToString(); } // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o3").WithLocation(10, 56));
 
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
             var model = comp.GetSemanticModel(syntaxTree);
 
             var declarations = root.DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToList();
-
-            // Some annotations are incorrect because of https://github.com/dotnet/roslyn/issues/37491
 
             assertAnnotation(declarations[0], PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[1], PublicNullableAnnotation.Annotated);
@@ -2564,6 +2570,38 @@ class C
                     Assert.Equal(CodeAnalysis.NullableAnnotation.Annotated, typeInfo.Nullability.Annotation);
                     Assert.Equal(CodeAnalysis.NullableAnnotation.Annotated, typeInfo.ConvertedNullability.Annotation);
                 }
+            }
+        }
+
+        [Fact]
+        public void GetForeachInfo()
+        {
+            var source = @"
+class C
+{
+    void M(string?[] nullableStrings, string[] strings)
+    {
+        foreach (var o in nullableStrings) {}
+        foreach (var o in strings) {}
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNullableEnable());
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var declarations = root.DescendantNodes().OfType<ForEachStatementSyntax>().ToList();
+
+            assertAnnotation(declarations[0], PublicNullableAnnotation.Annotated);
+            assertAnnotation(declarations[1], PublicNullableAnnotation.NotAnnotated);
+
+            void assertAnnotation(ForEachStatementSyntax foreachStatement, PublicNullableAnnotation expectedElementTypeAnnotation)
+            {
+                var foreachInfo = model.GetForEachStatementInfo(foreachStatement);
+                Assert.Equal(expectedElementTypeAnnotation, foreachInfo.ElementType.NullableAnnotation);
             }
         }
 
@@ -2617,7 +2655,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
 
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
@@ -2655,7 +2693,7 @@ static class ArrayExtensions
     public static U Select<T, U>(this T[] arr, string mapper) => throw null!;
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
 
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
@@ -2687,7 +2725,7 @@ class C<T>
         _ = c2.GetT;
     }
 }";
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
                     // (4,14): warning CS8618: Non-nullable property 'GetT' is uninitialized. Consider declaring the property as nullable.
                     //     public T GetT { get; }
@@ -2730,7 +2768,7 @@ class C<T>
         _ = c2.GetT;
     }
 }";
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
                     // (4,14): warning CS8618: Non-nullable field 'GetT' is uninitialized. Consider declaring the field as nullable.
                     //     public T GetT;
@@ -2779,7 +2817,7 @@ class C<T>
         c2.Event += c1.Event;
     }
 }";
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -2828,7 +2866,7 @@ class C<T>
         c2.Event = (obj, sender) => {};
     }
 }";
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -2865,7 +2903,7 @@ class C
         Event.Invoke();
     }
 }";
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
                 // (9,16): warning CS8602: Dereference of a possibly null reference.
                 //         if (b) Event.Invoke(); // 1
@@ -2910,7 +2948,7 @@ class C : IEnumerable
     }
 }
 ";
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -2952,7 +2990,7 @@ static class CExt
     public static void Add<T>(this C c, T t) => throw null!;
 }
 ";
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -2994,7 +3032,7 @@ static class CExt
     public static void Add<T, U>(this T t, U u) => throw null!;
 }
 ";
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -3042,7 +3080,7 @@ static class CExt2
     public static void Add<T>(this C c, T t) => throw null!;
 }
 ";
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
                 // (10,23): error CS0121: The call is ambiguous between the following methods or properties: 'CExt1.Add<T>(C, T)' and 'CExt2.Add<T>(C, T)'
                 //         _ = new C() { o1, Identity(o1 ??= new object()), o1, o2 };
@@ -3101,7 +3139,7 @@ static class CExt
 }
 ";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -3146,7 +3184,7 @@ static class CExt
 }
 ";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -3196,7 +3234,7 @@ static class CExt
     public static C<T, U> Create<T, U>(T t, U u) => throw null!;
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
                 // (9,19): warning CS8604: Possible null reference argument for parameter 'u' in 'object? C<object?, object>.this[object u]'.
                 //         if (b) c1[o1] = o2;
@@ -3263,7 +3301,7 @@ class C<T>
     }
 }";
 
-            var comp = CreateCompilationWithIndexAndRangeAndSpan(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -3312,7 +3350,7 @@ class C<T>
     }
 }";
 
-            var comp = CreateCompilationWithIndexAndRangeAndSpan(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -3438,7 +3476,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
                     // (9,39): warning CS8602: Dereference of a possibly null reference.
                     //         var a = Create(o, o1 => { _ = o1.ToString(); });
@@ -3490,7 +3528,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -3551,7 +3589,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -3614,7 +3652,7 @@ class C
         });
     }
 }";
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -3719,7 +3757,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
                     // (9,39): warning CS8602: Dereference of a possibly null reference.
                     //         var a = Create(o, o1 => { _ = o1.ToString(); });
@@ -3762,7 +3800,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
@@ -3804,7 +3842,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
                     // (18,18): warning CS8321: The local function 'localFunc' is declared but never used
                     //             void localFunc(out object? o)
@@ -3866,9 +3904,8 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
-
 
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
@@ -3923,7 +3960,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
                     // (12,29): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
                     //             Create(o1, (o2, object o3, object? o4) => { });
@@ -3992,7 +4029,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, options: WithNullableEnable(), parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                     // (18,18): warning CS8321: The local function 'localFunc' is declared but never used
                     //             void localFunc([A(o1)] object o3 = o2)
@@ -4065,7 +4102,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
                     // (18,18): warning CS8321: The local function 'localFunc' is declared but never used
                     //             void localFunc(out object? o)
@@ -4074,7 +4111,6 @@ class C
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
             var model = comp.GetSemanticModel(syntaxTree);
-
 
             var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().First();
             var lambdaSymbol = model.GetSymbolInfo(lambda).Symbol;
@@ -4132,7 +4168,7 @@ class D<T>
 	public T Prop { get; } = default!;
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -4150,7 +4186,7 @@ class D<T>
         }
 
         [Fact]
-        public void SpeculativeModel_InAttribute()
+        public void SpeculativeModel_InAttribute01()
         {
             var source = @"
 using System;
@@ -4167,7 +4203,7 @@ class Test
 }
 ";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
 
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
@@ -4184,6 +4220,36 @@ class Test
         }
 
         [Fact]
+        public void SpeculativeModel_InAttribute02()
+        {
+            var source =
+@"class A : System.Attribute
+{
+    internal A(object obj) { }
+}
+class Program
+{
+#nullable disable
+    [A(
+#nullable enable
+        typeof(object)]
+    static void Main()
+    {
+    }
+}";
+            var comp = CreateCompilation(source);
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+            var typeOf = syntaxTree.GetRoot().DescendantNodes().OfType<TypeOfExpressionSyntax>().Single();
+            var type = SyntaxFactory.ParseTypeName("string");
+            model.TryGetSpeculativeSemanticModel(typeOf.Type.SpanStart, type, out model, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            Assert.NotNull(model);
+
+            var symbolInfo = model.GetTypeInfo(type);
+            Assert.Equal(SpecialType.System_String, symbolInfo.Type.SpecialType);
+        }
+
+        [Fact]
         public void ParameterDefaultValue()
         {
             var source = @"
@@ -4194,7 +4260,7 @@ class Test
 }
 ";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
                 // (4,26): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //     void M0(object obj = default) { } // 1
@@ -4228,7 +4294,7 @@ class Test
 }
 ";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
                 // (9,7): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 // [Attr(default, default)] // 1
@@ -4321,7 +4387,7 @@ class C
         c2 = c;
     }
 }";
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -4379,7 +4445,7 @@ class C
         c2 = c;
     }
 }";
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -4409,7 +4475,7 @@ class C
         c2 = c;
     }
 }";
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -4439,7 +4505,7 @@ class C
         c2 = c;
     }
 }";
-            var comp = CreateCompilation(source, options: WithNonNullTypesFalse());
+            var comp = CreateCompilation(source, options: WithNullableDisable());
             comp.VerifyDiagnostics();
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -4471,7 +4537,7 @@ class C
         c2 = c;
     }
 }";
-            var comp = CreateCompilation(source, options: WithNonNullTypesFalse());
+            var comp = CreateCompilation(source, options: WithNullableDisable());
             comp.VerifyDiagnostics();
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -4504,7 +4570,7 @@ class C
         c2 = c;
     }
 }";
-            var comp = CreateCompilation(source, options: WithNonNullTypesFalse());
+            var comp = CreateCompilation(source, options: WithNullableDisable());
             comp.VerifyDiagnostics();
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -4532,7 +4598,7 @@ class C
         c2 = c;
     }
 }";
-            var comp = CreateCompilation(source, options: WithNonNullTypesFalse());
+            var comp = CreateCompilation(source, options: WithNullableDisable());
             comp.VerifyDiagnostics();
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -4565,7 +4631,7 @@ class C
         return """";
     }
 }";
-            var comp = CreateCompilation(source, options: WithNonNullTypesFalse());
+            var comp = CreateCompilation(source, options: WithNullableDisable());
             comp.VerifyDiagnostics();
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -4596,7 +4662,7 @@ class C
         return """";
     }
 }";
-            var comp = CreateCompilation(source, options: WithNonNullTypesFalse());
+            var comp = CreateCompilation(source, options: WithNullableDisable());
             comp.VerifyDiagnostics();
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -4627,7 +4693,7 @@ class C
         c2 = c;
     }
 }";
-            var comp = CreateCompilation(source, options: WithNonNullTypesFalse());
+            var comp = CreateCompilation(source, options: WithNullableDisable());
             comp.VerifyDiagnostics();
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -4742,7 +4808,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -4808,7 +4874,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var analyzer = new AutoPropInitializer_02_Analyzer();
@@ -4828,7 +4894,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -4869,6 +4935,240 @@ M();")]
             var model = comp.GetSemanticModel(tree);
 
             AssertEx.Equal("void M()", model.GetDeclaredSymbol(localFunction).ToTestDisplayString());
+        }
+
+        [Fact]
+        public void TupleNames_DifferentTernaryBranches_PrivateTupleField()
+        {
+            var source = @"
+#nullable enable
+class C
+{
+    static void M(int a, int b, bool c)
+    {
+        var (x, y) = c ? ((object)1, a) : (b, 2);
+    }
+}
+namespace System
+{
+    struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        private T2 Item2;
+        public ValueTuple(T1 item1, T2 item2) => throw null;
+    }
+}
+";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Minimal);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var ternary = tree.GetRoot().DescendantNodes().OfType<ConditionalExpressionSyntax>().Single();
+            var operation = model.GetOperation(ternary);
+            AssertEx.Equal("(System.Object, System.Int32 a)", operation.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void TupleNames_BadSignatures()
+        {
+            string source = @"
+class C
+{
+    static void M()
+    {
+        var x = (a: ""Alice"", b: ""Bob"");
+        System.Console.WriteLine($""{x.a}"");
+    }
+}
+
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public int Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item2 = 2;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, assemblyName: "comp", options: WithNullableEnable());
+            comp.VerifyDiagnostics(
+                // (7,39): error CS8128: Member 'Item1' was not found on type '(T1, T2)' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         System.Console.WriteLine($"{x.a}");
+                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "a").WithArguments("Item1", "(T1, T2)", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 39),
+                // (19,18): error CS0229: Ambiguity between '(T1, T2).Item2' and '(T1, T2).Item2'
+                //             this.Item2 = 2;
+                Diagnostic(ErrorCode.ERR_AmbigMember, "Item2").WithArguments("(T1, T2).Item2", "(T1, T2).Item2").WithLocation(19, 18)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var tupleLiteral = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
+            AssertEx.Equal("(System.String a, System.String b)", model.GetTypeInfo(tupleLiteral).Type.ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact, WorkItem(51461, "https://github.com/dotnet/roslyn/issues/51461")]
+        public void LambdaInBadExpression()
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public C(int i) {}
+
+    static void M1()
+    {
+        string s = null;
+        C c = new C(() =>
+        { 
+            M2();
+            _ = s;
+            s = """";
+            _ = s;
+        });
+    }
+
+    static void M2() {}
+}
+", options: WithNullableEnable());
+
+            comp.VerifyDiagnostics(
+                // (8,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         string s = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(8, 20),
+                // (9,21): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
+                //         C c = new C(() =>
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, @"() =>
+        { 
+            M2();
+            _ = s;
+            s = """";
+            _ = s;
+        }").WithArguments("lambda expression", "int").WithLocation(9, 21)
+            );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var constructor = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
+            AssertEx.Equal("C..ctor(System.Int32 i)", model.GetSymbolInfo(constructor).CandidateSymbols[0].ToTestDisplayString());
+
+            var assignmentsInLambda = constructor.DescendantNodes().OfType<AssignmentExpressionSyntax>().ToArray();
+            AssertEx.Equal("_ = s", assignmentsInLambda[0].ToString());
+            AssertEx.Equal("_ = s", assignmentsInLambda[2].ToString());
+            AssertEx.Equal("System.String?", model.GetTypeInfo(assignmentsInLambda[0].Right).Type.ToTestDisplayString(includeNonNullable: true));
+            AssertEx.Equal("System.String!", model.GetTypeInfo(assignmentsInLambda[2].Right).Type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void FreshSemanticModelDoesNotCacheSwitchExpressionInput()
+        {
+            var comp = CreateCompilation(@"string s = """" switch { _ => string.Empty };", options: WithNullableEnable(TestOptions.ReleaseExe));
+
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            var switchExpressionInput = tree.GetRoot().DescendantNodes().OfType<SwitchExpressionSyntax>().Single().GoverningExpression;
+
+            var model = comp.GetSemanticModel(tree);
+            AssertEx.Equal("System.String!", model.GetTypeInfo(switchExpressionInput).Type.ToTestDisplayString(includeNonNullable: true));
+
+            // New model should be able to get info, including nullability, without issue
+            model = comp.GetSemanticModel(tree);
+            AssertEx.Equal("System.String!", model.GetTypeInfo(switchExpressionInput).Type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void CondAccessLeft_NonConstantRight_FlowState_01()
+        {
+            var source = @"
+#nullable enable
+
+class C
+{
+    public object? M(object? obj) => false;
+
+    public static void M1(C? c, object? x)
+    {
+        if (c?.M(x = ""a"") == x)
+        {
+            x.ToString(); // 1
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (12,13): warning CS8602: Dereference of a possibly null reference.
+                //             x.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(12, 13));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var binaryRight = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single().Right;
+            Assert.Equal("System.Object?", model.GetTypeInfo(binaryRight).Type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void CondAccessLeft_NonConstantRight_FlowState_02()
+        {
+            var source = @"
+#nullable enable
+
+class C
+{
+    public object? M(object? obj) => false;
+
+    public static void M1(C? c)
+    {
+        object? x = ""a"";
+        if (c?.M(x = null) == x)
+        {
+            x.ToString(); // 1
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (13,13): warning CS8602: Dereference of a possibly null reference.
+                //             x.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(13, 13));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var binaryRight = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single().Right;
+            Assert.Equal("System.Object?", model.GetTypeInfo(binaryRight).Type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void CondAccessLeft_NonConstantRight_FlowState_03()
+        {
+            var source = @"
+#nullable enable
+
+class C
+{
+    public bool M(object? obj) => false;
+
+    public static void M1(C? c, object? x)
+    {
+        if (c?.M(x = ""a"") == c!.M(x))
+        {
+            x.ToString();
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var binaryRightArgument = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single().Right.DescendantNodes().OfType<ArgumentSyntax>().Single().Expression;
+            Assert.Equal("System.Object?", model.GetTypeInfo(binaryRightArgument).Type.ToTestDisplayString(includeNonNullable: true));
         }
     }
 }

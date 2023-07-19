@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.NamingStyles;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -14,42 +15,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
     internal static partial class EditorConfigNamingStyleParser
     {
-        /// <remarks>
-        /// The dictionary we get from the VS editorconfig API uses the same dictionary object if there are no changes, so we can cache based on dictionary
-        /// </remarks>
-        // TODO: revisit this cache. The assumption that the dictionary doesn't change in the exact instance is terribly fragile,
-        // and with the new .editorconfig support won't hold as well as we'd like: a single tree will have a stable instance but
-        // that won't necessarily be the same across files and projects.
-        private static readonly ConditionalWeakTable<IReadOnlyDictionary<string, string?>, NamingStylePreferences> _cache = new();
-        private static readonly object _cacheLock = new();
-
-        public static NamingStylePreferences GetNamingStylesFromDictionary(IReadOnlyDictionary<string, string?> rawOptions)
+        public static NamingStylePreferences ParseDictionary(AnalyzerConfigOptions allRawConventions)
         {
-            if (_cache.TryGetValue(rawOptions, out var value))
-            {
-                return value;
-            }
+            var trimmedDictionary = TrimDictionary(allRawConventions);
 
-            lock (_cacheLock)
-            {
-                if (!_cache.TryGetValue(rawOptions, out value))
-                {
-                    value = ParseDictionary(rawOptions);
-                    _cache.Add(rawOptions, value);
-                }
-
-                return value;
-            }
-        }
-
-        public static NamingStylePreferences ParseDictionary(IReadOnlyDictionary<string, string?> allRawConventions)
-        {
             var symbolSpecifications = ArrayBuilder<SymbolSpecification>.GetInstance();
             var namingStyles = ArrayBuilder<NamingStyle>.GetInstance();
             var namingRules = ArrayBuilder<SerializableNamingRule>.GetInstance();
             var ruleNames = new Dictionary<(Guid symbolSpecificationID, Guid namingStyleID, ReportDiagnostic enforcementLevel), string>();
-
-            var trimmedDictionary = TrimDictionary(allRawConventions);
 
             foreach (var namingRuleTitle in GetRuleTitles(trimmedDictionary))
             {
@@ -127,25 +100,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     }));
         }
 
-        private static Dictionary<string, string?> TrimDictionary(IReadOnlyDictionary<string, string?> allRawConventions)
+        internal static Dictionary<string, string> TrimDictionary(AnalyzerConfigOptions allRawConventions)
         {
-            // Keys have been lowercased, but values have not. Because values here reference key
-            // names we need any comparisons to ignore case.
-            // For example, to make a naming style called "Pascal_Case_style" match up correctly
-            // with the key "dotnet_naming_style.pascal_case_style.capitalization", we have to
-            // ignore casing for that lookup.
-            var trimmedDictionary = new Dictionary<string, string?>(allRawConventions.Count, AnalyzerConfigOptions.KeyComparer);
-            foreach (var item in allRawConventions)
+            var trimmedDictionary = new Dictionary<string, string>(AnalyzerConfigOptions.KeyComparer);
+            foreach (var key in allRawConventions.Keys)
             {
-                var key = item.Key.Trim();
-                var value = item.Value;
-                trimmedDictionary[key] = value;
+                trimmedDictionary[key.Trim()] = allRawConventions.TryGetValue(key, out var value) ? value : throw new InvalidOperationException();
             }
 
             return trimmedDictionary;
         }
 
-        private static IEnumerable<string> GetRuleTitles(IReadOnlyDictionary<string, string?> allRawConventions)
+        public static IEnumerable<string> GetRuleTitles<T>(IReadOnlyDictionary<string, T> allRawConventions)
             => (from kvp in allRawConventions
                 where kvp.Key.Trim().StartsWith("dotnet_naming_rule.", StringComparison.Ordinal)
                 let nameSplit = kvp.Key.Split('.')
@@ -220,10 +186,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 // Since modifiers are "match all", a subset of symbols is matched by a superset of modifiers
                 foreach (var modifier in y.SymbolSpecification.RequiredModifierList)
                 {
-                    if (modifier.ModifierKindWrapper == SymbolSpecification.ModifierKindEnum.IsStatic
-                        || modifier.ModifierKindWrapper == SymbolSpecification.ModifierKindEnum.IsReadOnly)
+                    if (modifier.ModifierKindWrapper is SymbolSpecification.ModifierKindEnum.IsStatic
+                        or SymbolSpecification.ModifierKindEnum.IsReadOnly)
                     {
-                        if (x.SymbolSpecification.RequiredModifierList.Any(x => x.ModifierKindWrapper == SymbolSpecification.ModifierKindEnum.IsConst))
+                        if (x.SymbolSpecification.RequiredModifierList.Any(static x => x.ModifierKindWrapper == SymbolSpecification.ModifierKindEnum.IsConst))
                         {
                             // 'const' implies both 'readonly' and 'static'
                             continue;

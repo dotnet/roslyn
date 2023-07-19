@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -12,100 +11,116 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class SourceGeneratedDocumentState : DocumentState
     {
-        public string HintName { get; }
-        public ISourceGenerator SourceGenerator { get; }
+        public SourceGeneratedDocumentIdentity Identity { get; }
+        public string HintName => Identity.HintName;
 
         public static SourceGeneratedDocumentState Create(
-            GeneratedSourceResult generatedSourceResult,
-            DocumentId documentId,
-            ISourceGenerator sourceGenerator,
-            HostLanguageServices languageServices,
-            SolutionServices solutionServices)
+            SourceGeneratedDocumentIdentity documentIdentity,
+            SourceText generatedSourceText,
+            ParseOptions parseOptions,
+            LanguageServices languageServices)
         {
-            var textAndVersion = TextAndVersion.Create(generatedSourceResult.SourceText, VersionStamp.Create());
-            ValueSource<TextAndVersion> textSource = new ConstantValueSource<TextAndVersion>(textAndVersion);
-
-            var tree = generatedSourceResult.SyntaxTree;
-
-            // Since the tree is coming directly from the generator, this tree is strongly held so GetRoot() doesn't need a CancellationToken.
-            var root = tree.GetRoot(CancellationToken.None);
-            Contract.ThrowIfNull(languageServices.SyntaxTreeFactory, "We should not have a generated syntax tree for a language that doesn't support trees.");
-
-            if (languageServices.SyntaxTreeFactory.CanCreateRecoverableTree(root))
-            {
-                // We will only create recoverable text if we can create a recoverable tree; if we created a recoverable text
-                // but not a new tree, it would mean tree.GetText() could still potentially return the non-recoverable text,
-                // but asking the document directly for it's text would give a recoverable text with a different object identity.
-                textSource = CreateRecoverableText(textAndVersion, solutionServices);
-                tree = languageServices.SyntaxTreeFactory.CreateRecoverableTree(
-                    documentId.ProjectId,
-                    filePath: tree.FilePath,
-                    tree.Options,
-                    textSource,
-                    generatedSourceResult.SourceText.Encoding,
-                    root);
-            }
-
-            var treeAndVersion = TreeAndVersion.Create(tree, textAndVersion.Version);
+            var loadTextOptions = new LoadTextOptions(generatedSourceText.ChecksumAlgorithm);
+            var textAndVersion = TextAndVersion.Create(generatedSourceText, VersionStamp.Create());
+            var textSource = new ConstantTextAndVersionSource(textAndVersion);
+            var treeSource = CreateLazyFullyParsedTree(
+                textSource,
+                loadTextOptions,
+                documentIdentity.FilePath,
+                parseOptions,
+                languageServices);
 
             return new SourceGeneratedDocumentState(
+                documentIdentity,
                 languageServices,
-                solutionServices,
-                documentServiceProvider: null,
+                documentServiceProvider: SourceGeneratedTextDocumentServiceProvider.Instance,
                 new DocumentInfo.DocumentAttributes(
-                    documentId,
-                    name: generatedSourceResult.HintName,
+                    documentIdentity.DocumentId,
+                    name: documentIdentity.HintName,
                     folders: SpecializedCollections.EmptyReadOnlyList<string>(),
-                    tree.Options.Kind,
-                    filePath: tree.FilePath,
+                    parseOptions.Kind,
+                    filePath: documentIdentity.FilePath,
                     isGenerated: true,
                     designTimeOnly: false),
-                tree.Options,
-                sourceText: null, // don't strongly hold the text
+                parseOptions,
                 textSource,
-                treeAndVersion,
-                sourceGenerator,
-                generatedSourceResult.HintName);
+                loadTextOptions,
+                treeSource);
         }
 
         private SourceGeneratedDocumentState(
-            HostLanguageServices languageServices,
-            SolutionServices solutionServices,
+            SourceGeneratedDocumentIdentity documentIdentity,
+            LanguageServices languageServices,
             IDocumentServiceProvider? documentServiceProvider,
             DocumentInfo.DocumentAttributes attributes,
-            ParseOptions? options,
-            SourceText? sourceText,
-            ValueSource<TextAndVersion> textSource,
-            TreeAndVersion treeAndVersion,
-            ISourceGenerator sourceGenerator,
-            string hintName)
-            : base(languageServices, solutionServices, documentServiceProvider, attributes, options, sourceText, textSource, new ConstantValueSource<TreeAndVersion>(treeAndVersion))
+            ParseOptions options,
+            ITextAndVersionSource textSource,
+            LoadTextOptions loadTextOptions,
+            AsyncLazy<TreeAndVersion> treeSource)
+            : base(languageServices, documentServiceProvider, attributes, options, textSource, loadTextOptions, treeSource)
         {
-            SourceGenerator = sourceGenerator;
-            HintName = hintName;
+            Identity = documentIdentity;
+        }
+
+        // The base allows for parse options to be null for non-C#/VB languages, but we'll always have parse options
+        public new ParseOptions ParseOptions => base.ParseOptions!;
+
+        protected override TextDocumentState UpdateText(ITextAndVersionSource newTextSource, PreservationMode mode, bool incremental)
+            => throw new NotSupportedException(WorkspacesResources.The_contents_of_a_SourceGeneratedDocument_may_not_be_changed);
+
+        public SourceGeneratedDocumentState WithUpdatedGeneratedContent(SourceText sourceText, ParseOptions parseOptions)
+        {
+            if (TryGetText(out var existingText) &&
+                Checksum.From(existingText.GetChecksum()) == Checksum.From(sourceText.GetChecksum()) &&
+                ParseOptions.Equals(parseOptions))
+            {
+                // We can reuse this instance directly
+                return this;
+            }
+
+            return Create(
+                Identity,
+                sourceText,
+                parseOptions,
+                LanguageServices);
         }
 
         /// <summary>
-        /// Equivalent to calling <see cref="DocumentState.GetSyntaxTree(CancellationToken)"/>, but avoids the implicit requirement of a cancellation token since
-        /// we can always get the tree right away.
+        /// This is modeled after <see cref="DefaultTextDocumentServiceProvider"/>, but sets
+        /// <see cref="IDocumentOperationService.CanApplyChange"/> to <see langword="false"/> for source generated
+        /// documents.
         /// </summary>
-        /// <remarks>
-        /// We won't expose this through <see cref="SourceGeneratedDocument"/> in case the implementation changes.
-        /// </remarks>
-        public SyntaxTree SyntaxTree
+        internal sealed class SourceGeneratedTextDocumentServiceProvider : IDocumentServiceProvider
         {
-            get
-            {
-                // We are always holding onto the SyntaxTree object with a ConstantValueSource, so we can just fetch this
-                // without any extra work. Unlike normal documents where we don't even have a tree object until we've fetched text and
-                // the tree the first time, the generated case we start with a tree and text and then wrap it.
-                return GetSyntaxTree(CancellationToken.None);
-            }
-        }
+            public static readonly SourceGeneratedTextDocumentServiceProvider Instance = new();
 
-        protected override TextDocumentState UpdateText(ValueSource<TextAndVersion> newTextSource, PreservationMode mode, bool incremental)
-        {
-            throw new NotSupportedException(WorkspacesResources.The_contents_of_a_SourceGeneratedDocument_may_not_be_changed);
+            private SourceGeneratedTextDocumentServiceProvider()
+            {
+            }
+
+            public TService? GetService<TService>()
+                where TService : class, IDocumentService
+            {
+                if (SourceGeneratedDocumentOperationService.Instance is TService documentOperationService)
+                {
+                    return documentOperationService;
+                }
+
+                if (DocumentPropertiesService.Default is TService documentPropertiesService)
+                {
+                    return documentPropertiesService;
+                }
+
+                return null;
+            }
+
+            private class SourceGeneratedDocumentOperationService : IDocumentOperationService
+            {
+                public static readonly SourceGeneratedDocumentOperationService Instance = new();
+
+                public bool CanApplyChange => false;
+                public bool SupportDiagnostics => true;
+            }
         }
     }
 }

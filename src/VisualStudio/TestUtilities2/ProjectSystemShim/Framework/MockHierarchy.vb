@@ -128,7 +128,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             ElseIf propid = __VSHPROPID.VSHPROPID_ExtObject Then
                 Dim projectItemMock As Mock(Of EnvDTE.ProjectItem) = New Mock(Of EnvDTE.ProjectItem)(MockBehavior.Strict)
                 projectItemMock.SetupGet(Function(m) m.ContainingProject).Returns(_projectMock.Object)
-                projectItemMock.SetupGet(Function(m) m.FileNames(1)).Returns(_hierarchyItems(itemid))
+                projectItemMock.Setup(Function(m) m.FileNames(1)).Returns(_hierarchyItems(itemid))
 
                 pvar = projectItemMock.Object
                 Return VSConstants.S_OK
@@ -336,13 +336,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             ElseIf pszPropName = "TargetRefPath" Then
                 pbstrPropValue = _projectRefPath
                 Return VSConstants.S_OK
-            ElseIf pszPropName = AdditionalPropertyNames.MaxSupportedLangVersion Then
+            ElseIf pszPropName = BuildPropertyNames.MaxSupportedLangVersion Then
                 pbstrPropValue = _maxSupportedLangVer
                 Return VSConstants.S_OK
-            ElseIf pszPropName = AdditionalPropertyNames.RunAnalyzers Then
+            ElseIf pszPropName = BuildPropertyNames.RunAnalyzers Then
                 pbstrPropValue = _runAnalyzers
                 Return VSConstants.S_OK
-            ElseIf pszPropName = AdditionalPropertyNames.RunAnalyzersDuringLiveAnalysis Then
+            ElseIf pszPropName = BuildPropertyNames.RunAnalyzersDuringLiveAnalysis Then
                 pbstrPropValue = _runAnalyzersDuringLiveAnalysis
                 Return VSConstants.S_OK
             End If
@@ -357,13 +357,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             ElseIf pszPropName = "TargetFileName" Then
                 _projectName = PathUtilities.GetFileName(pszPropValue, includeExtension:=False)
                 Return VSConstants.S_OK
-            ElseIf pszPropName = AdditionalPropertyNames.MaxSupportedLangVersion Then
+            ElseIf pszPropName = BuildPropertyNames.MaxSupportedLangVersion Then
                 _maxSupportedLangVer = pszPropValue
                 Return VSConstants.S_OK
-            ElseIf pszPropName = AdditionalPropertyNames.RunAnalyzers Then
+            ElseIf pszPropName = BuildPropertyNames.RunAnalyzers Then
                 _runAnalyzers = pszPropValue
                 Return VSConstants.S_OK
-            ElseIf pszPropName = AdditionalPropertyNames.RunAnalyzersDuringLiveAnalysis Then
+            ElseIf pszPropName = BuildPropertyNames.RunAnalyzersDuringLiveAnalysis Then
                 _runAnalyzersDuringLiveAnalysis = pszPropValue
                 Return VSConstants.S_OK
             End If

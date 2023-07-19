@@ -39,12 +39,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' TODO override SyntaxTree property to return correct tree. (after e.g. bugs 2174, 5848)
 
-        Friend Overrides Function BindGroupAggregationExpression(group As GroupAggregationSyntax, diagnostics As DiagnosticBag) As BoundExpression
+        Friend Overrides Function BindGroupAggregationExpression(group As GroupAggregationSyntax, diagnostics As BindingDiagnosticBag) As BoundExpression
             ' Overridden method returns a BadExpression.
             Return Me.ContainingBinder.BindGroupAggregationExpression(group, diagnostics)
         End Function
 
-        Friend Overrides Function BindFunctionAggregationExpression([function] As FunctionAggregationSyntax, diagnostics As DiagnosticBag) As BoundExpression
+        Friend Overrides Function BindFunctionAggregationExpression([function] As FunctionAggregationSyntax, diagnostics As BindingDiagnosticBag) As BoundExpression
             ' Overridden method returns a BadExpression.
             Return Me.ContainingBinder.BindFunctionAggregationExpression([function], diagnostics)
         End Function

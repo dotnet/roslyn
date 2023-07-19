@@ -60,6 +60,7 @@ namespace Microsoft.Cci
                 return;
             }
 
+            this.Visit(fieldReference.RefCustomModifiers);
             this.Visit((ITypeMemberReference)fieldReference);
             this.Visit(fieldReference.GetType(Context));
             ReserveFieldToken(fieldReference);
@@ -230,6 +231,10 @@ namespace Microsoft.Cci
 
         public override void Visit(IPropertyDefinition propertyDefinition)
         {
+            this.Visit(propertyDefinition.RefCustomModifiers);
+            this.Visit(propertyDefinition.ReturnValueCustomModifiers);
+            this.Visit(propertyDefinition.GetType(Context));
+
             this.Visit(propertyDefinition.Parameters);
         }
 
@@ -294,7 +299,6 @@ namespace Microsoft.Cci
                 VisitTypeReferencesThatNeedTokens(refWithAttributes.TypeRef);
             }
         }
-
 
         private void VisitTypeReferencesThatNeedTokens(ITypeReference typeReference)
         {

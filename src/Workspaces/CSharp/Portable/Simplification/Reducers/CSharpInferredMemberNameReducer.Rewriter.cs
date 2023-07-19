@@ -7,8 +7,8 @@
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
@@ -24,9 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 s_simplifyTupleName = SimplifyTupleName;
             }
 
-            private readonly Func<ArgumentSyntax, SemanticModel, OptionSet, CancellationToken, ArgumentSyntax> s_simplifyTupleName;
+            private readonly Func<ArgumentSyntax, SemanticModel, SimplifierOptions, CancellationToken, ArgumentSyntax> s_simplifyTupleName;
 
-            private ArgumentSyntax SimplifyTupleName(ArgumentSyntax node, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
+            private ArgumentSyntax SimplifyTupleName(ArgumentSyntax node, SemanticModel semanticModel, SimplifierOptions options, CancellationToken cancellationToken)
             {
                 if (CanSimplifyTupleElementName(node, this.ParseOptions))
                 {
@@ -36,9 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return node;
             }
 
-            private static readonly Func<AnonymousObjectMemberDeclaratorSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode> s_simplifyAnonymousTypeMemberName = SimplifyAnonymousTypeMemberName;
+            private static readonly Func<AnonymousObjectMemberDeclaratorSyntax, SemanticModel, SimplifierOptions, CancellationToken, SyntaxNode> s_simplifyAnonymousTypeMemberName = SimplifyAnonymousTypeMemberName;
 
-            private static SyntaxNode SimplifyAnonymousTypeMemberName(AnonymousObjectMemberDeclaratorSyntax node, SemanticModel semanticModel, OptionSet optionSet, CancellationToken canellationToken)
+            private static SyntaxNode SimplifyAnonymousTypeMemberName(AnonymousObjectMemberDeclaratorSyntax node, SemanticModel semanticModel, SimplifierOptions options, CancellationToken canellationToken)
             {
 
                 if (CanSimplifyAnonymousTypeMemberName(node))
@@ -57,7 +57,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 {
                     return SimplifyNode(
                         node,
-                        parentNode: node.Parent,
                         newNode: newNode,
                         simplifier: s_simplifyTupleName);
                 }
@@ -66,13 +65,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             }
 
             public override SyntaxNode VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node)
-            {
-                return SimplifyNode(
+                => SimplifyNode(
                     node,
-                    parentNode: node.Parent,
                     newNode: base.VisitAnonymousObjectMemberDeclarator(node),
                     simplifier: s_simplifyAnonymousTypeMemberName);
-            }
         }
     }
 }

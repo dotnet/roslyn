@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// Once the cursor hits the end of file, it's done.  Note: the cursor will skip any other
         /// zero length nodes in the tree.
         /// </summary>
-        private struct Cursor
+        private readonly struct Cursor
         {
             public readonly SyntaxNodeOrToken CurrentNodeOrToken;
             private readonly int _indexInParent;
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                 }
 
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             public Cursor MoveToFirstChild()

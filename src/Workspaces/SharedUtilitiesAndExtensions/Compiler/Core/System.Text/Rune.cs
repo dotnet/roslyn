@@ -26,7 +26,7 @@ namespace System.Text
     /// assuming that the underlying <see cref="Rune"/> instance is well-formed.
     /// </remarks>
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
-    internal readonly struct Rune : IComparable<Rune>, IEquatable<Rune>
+    internal readonly record struct Rune : IComparable<Rune>
     {
         private const char HighSurrogateStart = '\ud800';
         private const char LowSurrogateStart = '\udc00';
@@ -116,10 +116,6 @@ namespace System.Text
             UnicodeDebug.AssertIsValidScalar(scalarValue);
             _value = scalarValue;
         }
-
-        public static bool operator ==(Rune left, Rune right) => left._value == right._value;
-
-        public static bool operator !=(Rune left, Rune right) => left._value != right._value;
 
         public static bool operator <(Rune left, Rune right) => left._value < right._value;
 
@@ -748,12 +744,6 @@ ForwardDecode:
             return bytesWritten;
         }
 
-        public override bool Equals(object obj) => (obj is Rune other) && Equals(other);
-
-        public bool Equals(Rune other) => this == other;
-
-        public override int GetHashCode() => Value;
-
         /// <summary>
         /// Gets the <see cref="Rune"/> which begins at index <paramref name="index"/> in
         /// string <paramref name="input"/>.
@@ -774,13 +764,13 @@ ForwardDecode:
         }
 
         /// <summary>
-        /// Returns <see langword="true"/> iff <paramref name="value"/> is a valid Unicode scalar
+        /// Returns <see langword="true"/> if and only if <paramref name="value"/> is a valid Unicode scalar
         /// value, i.e., is in [ U+0000..U+D7FF ], inclusive; or [ U+E000..U+10FFFF ], inclusive.
         /// </summary>
         public static bool IsValid(int value) => IsValid((uint)value);
 
         /// <summary>
-        /// Returns <see langword="true"/> iff <paramref name="value"/> is a valid Unicode scalar
+        /// Returns <see langword="true"/> if and only if <paramref name="value"/> is a valid Unicode scalar
         /// value, i.e., is in [ U+0000..U+D7FF ], inclusive; or [ U+E000..U+10FFFF ], inclusive.
         /// </summary>
         public static bool IsValid(uint value) => UnicodeUtility.IsValidUnicodeScalar(value);

@@ -2,19 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsMoveToNamespace)]
     public class CSharpMoveToNamespaceDialog : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.CSharp;
@@ -26,7 +24,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToNamespace)]
+        [WpfFact]
         public void VerifyCancellation()
         {
             SetUpEditor(
@@ -58,7 +56,7 @@ namespace A
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToNamespace)]
+        [WpfFact]
         public void VerifyCancellationWithChange()
         {
             SetUpEditor(
@@ -91,7 +89,7 @@ namespace A
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToNamespace)]
+        [WpfFact]
         public void VerifyOkNoChange()
         {
             SetUpEditor(
@@ -123,7 +121,7 @@ namespace A
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToNamespace)]
+        [WpfFact]
         public void VerifyOkWithChange()
         {
             SetUpEditor(

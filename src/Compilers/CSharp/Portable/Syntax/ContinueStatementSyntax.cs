@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public partial class ContinueStatementSyntax
     {
         public ContinueStatementSyntax Update(SyntaxToken continueKeyword, SyntaxToken semicolonToken)
-            => Update(attributeLists: default, continueKeyword, semicolonToken);
+            => Update(AttributeLists, continueKeyword, semicolonToken);
     }
 }
 

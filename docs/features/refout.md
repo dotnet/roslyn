@@ -61,13 +61,13 @@ An additional task, called `CopyRefAssembly`, is provided along with the existin
 As a side-note, `CopyRefAssembly` uses the same assembly resolution/redirection trick as `Csc` and `Vbc`, to avoid type loading problems with `System.IO.FileSystem`.
 
 ### CodeAnalysis APIs
-Prior to C# 7.1, it was already possible to produce metadata-only assemblies by using `EmitOptions.EmitMetadataOnly`, which is used in IDE scenarios with cross-language dependencies.
+Prior to C# 7.1, it was already possible to produce metadata-only assemblies by using `EmitOptions.EmitMetadataOnly`, which is used in IDE scenarios with cross-language dependencies.  
 
-With C# 7.1, the compiler now honours the `EmitOptions.IncludePrivateMembers` flag as well. When combined with `EmitMetadataOnly` or a `metadataPeStream` in `Emit`, a ref assembly is produced.
+With C# 7.1, the compiler now honours the `EmitOptions.IncludePrivateMembers` flag as well. When combined with `EmitMetadataOnly` or a `metadataPeStream` in `Emit`, a ref assembly is produced.  
 
-The diagnostic check for emitting methods lacking a body (`void M();`) is filtered from declaration diagnostics, so such code will successfully emit with `EmitMetadataOnly`.
+Method bodies aren't compiled when using `EmitMetadataOnly`. Even the diagnostic check for emitting methods lacking a body (`void M();`) is filtered from declaration diagnostics, so such code will successfully emit with `EmitMetadataOnly`.  
 
-Later on, the `EmitOptions.TolerateErrors` flag will allow emitting error types as well.
+Later on, the `EmitOptions.TolerateErrors` flag will allow emitting error types as well.  
 `Emit` was modified to produce a new PE section called ".mvid" containing a copy of the MVID, when emitting ref assemblies. This makes it easy for `CopyRefAssembly` to extract and compare MVIDs from ref assemblies.
 
 Going back to the 4 driving scenarios:

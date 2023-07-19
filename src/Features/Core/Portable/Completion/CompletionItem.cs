@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
@@ -18,7 +18,8 @@ namespace Microsoft.CodeAnalysis.Completion
     [DebuggerDisplay("{DisplayText}")]
     public sealed class CompletionItem : IComparable<CompletionItem>
     {
-        private readonly string _filterText;
+        private readonly string? _filterText;
+        private string? _lazyEntireDisplayText;
 
         /// <summary>
         /// The text that is displayed to the user.
@@ -45,7 +46,22 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public string FilterText => _filterText ?? DisplayText;
 
+        /// <summary>
+        /// If provided, each additional string would be used in the same way as <see cref="FilterText"/> for item matching.
+        /// However, there's a key difference: matches of <see cref="AdditionalFilterTexts"/> is considered inferior than matches
+        /// of <see cref="FilterText"/> when they have identical pattern matching result.
+        /// </summary>
+        internal ImmutableArray<string> AdditionalFilterTexts { get; init; } = ImmutableArray<string>.Empty;
+
+        /// <summary>
+        /// Returns <see langword="true"/> if <see cref="DisplayText"/> is identical to  <see cref="FilterText"/>. 
+        /// Otherwise returns <see langword="false"/>.
+        /// Be aware that this value is independent from <see cref="HasAdditionalFilterTexts"/> and could return <see langword="false"/> 
+        /// even if <see cref="HasAdditionalFilterTexts"/> is <see langword="true"/>.
+        /// </summary>
         internal bool HasDifferentFilterText => _filterText != null;
+
+        internal bool HasAdditionalFilterTexts => !AdditionalFilterTexts.IsEmpty;
 
         /// <summary>
         /// The text used to determine the order that the item appears in the list.
@@ -65,6 +81,8 @@ namespace Microsoft.CodeAnalysis.Completion
         /// 
         /// The span identifies the text in the document that is used to filter the initial list presented to the user,
         /// and typically represents the region of the document that will be changed if this item is committed.
+        /// The latter is not always true because individual provider is free to make more complex changes to the document.
+        /// If this is the case, the provider should set <see cref="IsComplexTextEdit"/> to true.
         /// </summary>
         public TextSpan Span { get; internal set; }
 
@@ -85,32 +103,42 @@ namespace Microsoft.CodeAnalysis.Completion
         public CompletionItemRules Rules { get; }
 
         /// <summary>
+        /// Returns true if this item's text edit requires complex resolution.
+        /// An edit is considered complex if the span of the change is different from
+        /// specified by <see cref="Span"/>.
+        /// 
+        /// Example of an item type requiring complex resolution is C#/VB override completion.
+        /// </summary>
+        public bool IsComplexTextEdit { get; }
+
+        /// <summary>
         /// The name of the <see cref="CompletionProvider"/> that created this 
         /// <see cref="CompletionItem"/>. Not available to clients. Only used by 
         /// the Completion subsystem itself for things like getting description text
         /// and making additional change during commit.
         /// </summary>
-        internal string ProviderName { get; set; }
+        internal string? ProviderName { get; set; }
 
         /// <summary>
         /// The automation text to use when narrating the completion item. If set to
         /// null, narration will use the <see cref="DisplayText"/> instead.
         /// </summary>
-        internal string AutomationText { get; set; }
+        internal string? AutomationText { get; set; }
 
         internal CompletionItemFlags Flags { get; set; }
 
         private CompletionItem(
-            string displayText,
-            string filterText,
-            string sortText,
+            string? displayText,
+            string? filterText,
+            string? sortText,
             TextSpan span,
-            ImmutableDictionary<string, string> properties,
+            ImmutableDictionary<string, string>? properties,
             ImmutableArray<string> tags,
-            CompletionItemRules rules,
-            string displayTextPrefix,
-            string displayTextSuffix,
-            string inlineDescription)
+            CompletionItemRules? rules,
+            string? displayTextPrefix,
+            string? displayTextSuffix,
+            string? inlineDescription,
+            bool isComplexTextEdit)
         {
             DisplayText = displayText ?? "";
             DisplayTextPrefix = displayTextPrefix ?? "";
@@ -121,8 +149,9 @@ namespace Microsoft.CodeAnalysis.Completion
             Properties = properties ?? ImmutableDictionary<string, string>.Empty;
             Tags = tags.NullToEmpty();
             Rules = rules ?? CompletionItemRules.Default;
+            IsComplexTextEdit = isComplexTextEdit;
 
-            if (!DisplayText.Equals(filterText, StringComparison.Ordinal))
+            if (!DisplayText.Equals(filterText ?? "", StringComparison.Ordinal))
             {
                 _filterText = filterText;
             }
@@ -130,40 +159,58 @@ namespace Microsoft.CodeAnalysis.Completion
 
         // binary back compat overload
         public static CompletionItem Create(
-            string displayText,
-            string filterText,
-            string sortText,
-            ImmutableDictionary<string, string> properties,
+            string? displayText,
+            string? filterText,
+            string? sortText,
+            ImmutableDictionary<string, string>? properties,
             ImmutableArray<string> tags,
-            CompletionItemRules rules)
+            CompletionItemRules? rules)
         {
             return Create(displayText, filterText, sortText, properties, tags, rules, displayTextPrefix: null, displayTextSuffix: null);
         }
 
         // binary back compat overload
         public static CompletionItem Create(
-            string displayText,
-            string filterText,
-            string sortText,
-            ImmutableDictionary<string, string> properties,
+            string? displayText,
+            string? filterText,
+            string? sortText,
+            ImmutableDictionary<string, string>? properties,
             ImmutableArray<string> tags,
-            CompletionItemRules rules,
-            string displayTextPrefix,
-            string displayTextSuffix)
+            CompletionItemRules? rules,
+            string? displayTextPrefix,
+            string? displayTextSuffix)
         {
             return Create(displayText, filterText, sortText, properties, tags, rules, displayTextPrefix, displayTextSuffix, inlineDescription: null);
         }
 
+        // binary back compat overload
         public static CompletionItem Create(
-            string displayText,
-            string filterText = null,
-            string sortText = null,
-            ImmutableDictionary<string, string> properties = null,
+            string? displayText,
+            string? filterText,
+            string? sortText,
+            ImmutableDictionary<string, string>? properties,
+            ImmutableArray<string> tags,
+            CompletionItemRules? rules,
+            string? displayTextPrefix,
+            string? displayTextSuffix,
+            string? inlineDescription)
+        {
+            return Create(
+                displayText, filterText, sortText, properties, tags, rules, displayTextPrefix,
+                displayTextSuffix, inlineDescription, isComplexTextEdit: false);
+        }
+
+        public static CompletionItem Create(
+            string? displayText,
+            string? filterText = null,
+            string? sortText = null,
+            ImmutableDictionary<string, string>? properties = null,
             ImmutableArray<string> tags = default,
-            CompletionItemRules rules = null,
-            string displayTextPrefix = null,
-            string displayTextSuffix = null,
-            string inlineDescription = null)
+            CompletionItemRules? rules = null,
+            string? displayTextPrefix = null,
+            string? displayTextSuffix = null,
+            string? inlineDescription = null,
+            bool isComplexTextEdit = false)
         {
             return new CompletionItem(
                 span: default,
@@ -175,7 +222,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 rules: rules,
                 displayTextPrefix: displayTextPrefix,
                 displayTextSuffix: displayTextSuffix,
-                inlineDescription: inlineDescription);
+                inlineDescription: inlineDescription,
+                isComplexTextEdit: isComplexTextEdit);
         }
 
         /// <summary>
@@ -196,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Completion
             string filterText,
             string sortText,
             TextSpan span,
-            ImmutableDictionary<string, string> properties,
+            ImmutableDictionary<string, string>? properties,
             ImmutableArray<string> tags,
             CompletionItemRules rules)
         {
@@ -210,7 +258,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 rules: rules,
                 displayTextPrefix: null,
                 displayTextSuffix: null,
-                inlineDescription: null);
+                inlineDescription: null,
+                isComplexTextEdit: false);
         }
 
         private CompletionItem With(
@@ -218,12 +267,14 @@ namespace Microsoft.CodeAnalysis.Completion
             Optional<string> displayText = default,
             Optional<string> filterText = default,
             Optional<string> sortText = default,
-            Optional<ImmutableDictionary<string, string>> properties = default,
+            Optional<ImmutableDictionary<string, string>?> properties = default,
             Optional<ImmutableArray<string>> tags = default,
             Optional<CompletionItemRules> rules = default,
             Optional<string> displayTextPrefix = default,
             Optional<string> displayTextSuffix = default,
-            Optional<string> inlineDescription = default)
+            Optional<string> inlineDescription = default,
+            Optional<bool> isComplexTextEdit = default,
+            Optional<ImmutableArray<string>> additionalFilterTexts = default)
         {
             var newSpan = span.HasValue ? span.Value : Span;
             var newDisplayText = displayText.HasValue ? displayText.Value : DisplayText;
@@ -235,6 +286,8 @@ namespace Microsoft.CodeAnalysis.Completion
             var newRules = rules.HasValue ? rules.Value : Rules;
             var newDisplayTextPrefix = displayTextPrefix.HasValue ? displayTextPrefix.Value : DisplayTextPrefix;
             var newDisplayTextSuffix = displayTextSuffix.HasValue ? displayTextSuffix.Value : DisplayTextSuffix;
+            var newIsComplexTextEdit = isComplexTextEdit.HasValue ? isComplexTextEdit.Value : IsComplexTextEdit;
+            var newAdditionalFilterTexts = additionalFilterTexts.HasValue ? additionalFilterTexts.Value.NullToEmpty() : AdditionalFilterTexts;
 
             if (newSpan == Span &&
                 newDisplayText == DisplayText &&
@@ -245,7 +298,9 @@ namespace Microsoft.CodeAnalysis.Completion
                 newRules == Rules &&
                 newDisplayTextPrefix == DisplayTextPrefix &&
                 newDisplayTextSuffix == DisplayTextSuffix &&
-                newInlineDescription == InlineDescription)
+                newInlineDescription == InlineDescription &&
+                newIsComplexTextEdit == IsComplexTextEdit &&
+                newAdditionalFilterTexts == AdditionalFilterTexts)
             {
                 return this;
             }
@@ -260,11 +315,13 @@ namespace Microsoft.CodeAnalysis.Completion
                 rules: newRules,
                 displayTextPrefix: newDisplayTextPrefix,
                 displayTextSuffix: newDisplayTextSuffix,
-                inlineDescription: newInlineDescription)
+                inlineDescription: newInlineDescription,
+                isComplexTextEdit: newIsComplexTextEdit)
             {
                 AutomationText = AutomationText,
                 ProviderName = ProviderName,
                 Flags = Flags,
+                AdditionalFilterTexts = newAdditionalFilterTexts
             };
         }
 
@@ -350,11 +407,30 @@ namespace Microsoft.CodeAnalysis.Completion
         public CompletionItem WithRules(CompletionItemRules rules)
             => With(rules: rules);
 
-        private string _entireDisplayText;
+        /// <summary>
+        /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="IsComplexTextEdit"/> property changed.
+        /// </summary>
+        public CompletionItem WithIsComplexTextEdit(bool isComplexTextEdit)
+            => With(isComplexTextEdit: isComplexTextEdit);
 
-        int IComparable<CompletionItem>.CompareTo(CompletionItem other)
+        /// <summary>
+        /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="AdditionalFilterTexts"/> property changed.
+        /// </summary>
+        internal CompletionItem WithAdditionalFilterTexts(ImmutableArray<string> additionalFilterTexts)
+            => With(additionalFilterTexts: additionalFilterTexts);
+
+        int IComparable<CompletionItem>.CompareTo([AllowNull] CompletionItem other)
         {
-            // Make sure expanded items are listed after non-expanded ones
+            if (other == null)
+            {
+                return 1;
+            }
+
+            // Make sure expanded items are listed after non-expanded ones.
+            // Note that in our ItemManager at async-completion layer, we implicitly
+            // rely on this behavior when combining delayed expanded items list with 
+            // non-expanded items (to avoid sorting again). if this changed, we need
+            // to make sure to sort items properly in ItemManager.
             var thisIsExpandItem = Flags.IsExpanded();
             var otherIsExpandItem = other.Flags.IsExpanded();
 
@@ -379,14 +455,7 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         internal string GetEntireDisplayText()
-        {
-            if (_entireDisplayText == null)
-            {
-                _entireDisplayText = DisplayTextPrefix + DisplayText + DisplayTextSuffix;
-            }
-
-            return _entireDisplayText;
-        }
+            => _lazyEntireDisplayText ??= DisplayTextPrefix + DisplayText + DisplayTextSuffix;
 
         public override string ToString() => GetEntireDisplayText();
     }

@@ -13,20 +13,14 @@ namespace Microsoft.CodeAnalysis.PickMembers
     {
         PickMembersResult PickMembers(
             string title, ImmutableArray<ISymbol> members,
-            ImmutableArray<PickMembersOption> options = default);
+            ImmutableArray<PickMembersOption> options = default,
+            bool selectAll = true);
     }
 
-    internal class PickMembersOption
+    internal class PickMembersOption(string id, string title, bool value)
     {
-        public PickMembersOption(string id, string title, bool value)
-        {
-            Id = id;
-            Title = title;
-            Value = value;
-        }
-
-        public string Id { get; }
-        public string Title { get; }
-        public bool Value { get; set; }
+        public string Id { get; } = id;
+        public string Title { get; } = title;
+        public bool Value { get; set; } = value;
     }
 }

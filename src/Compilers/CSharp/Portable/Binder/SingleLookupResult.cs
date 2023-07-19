@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// 
     /// For more explanation of Kind, Symbol, Error - see LookupResult.
     /// </summary>
-    internal struct SingleLookupResult
+    internal readonly struct SingleLookupResult
     {
         // the kind of result.
         internal readonly LookupResultKind Kind;

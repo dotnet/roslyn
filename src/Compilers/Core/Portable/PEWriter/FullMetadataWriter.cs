@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.Cci
 {
@@ -330,14 +331,6 @@ namespace Microsoft.Cci
             }
         }
 
-        protected override void PopulateEncLogTableRows(ImmutableArray<int> rowCounts)
-        {
-        }
-
-        protected override void PopulateEncMapTableRows(ImmutableArray<int> rowCounts)
-        {
-        }
-
         protected override void PopulateEventMapTableRows()
         {
             ITypeDefinition? lastParent = null;
@@ -434,7 +427,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private struct DefinitionIndex<T> where T : class, IReference
+        private readonly struct DefinitionIndex<T> where T : class, IReference
         {
             // IReference to RowId
             private readonly Dictionary<T, int> _index;

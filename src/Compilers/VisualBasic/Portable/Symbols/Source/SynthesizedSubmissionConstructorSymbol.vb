@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             container As NamedTypeSymbol,
             isShared As Boolean,
             binder As Binder,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         )
             MyBase.New(syntaxReference, container, isShared, binder, diagnostics)
             Debug.Assert(container.TypeKind = TypeKind.Submission)
@@ -31,10 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim compilation = container.DeclaringCompilation
 
             Dim submissionArrayType = compilation.CreateArrayTypeSymbol(compilation.GetSpecialType(SpecialType.System_Object))
-            Dim useSiteDiagnostic = submissionArrayType.GetUseSiteErrorInfo()
-            If useSiteDiagnostic IsNot Nothing Then
-                diagnostics.Add(useSiteDiagnostic, NoLocation.Singleton)
-            End If
+            diagnostics.Add(submissionArrayType.GetUseSiteInfo(), NoLocation.Singleton)
 
             _parameters = ImmutableArray.Create(Of ParameterSymbol)(
                 New SynthesizedParameterSymbol(Me, submissionArrayType, 0, isByRef:=False, name:="submissionArray"))
@@ -46,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
+        Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As BindingDiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
             Dim node As SyntaxNode = Me.Syntax
             Return New BoundBlock(
                 node,
@@ -59,8 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             syntax As SyntaxNode,
             constructor As MethodSymbol,
             synthesizedFields As SynthesizedSubmissionFields,
-            compilation As VisualBasicCompilation,
-            diagnostics As DiagnosticBag) As ImmutableArray(Of BoundStatement)
+            compilation As VisualBasicCompilation) As ImmutableArray(Of BoundStatement)
 
             Debug.Assert(constructor.ParameterCount = 1)
             Dim result = New List(Of BoundStatement)()

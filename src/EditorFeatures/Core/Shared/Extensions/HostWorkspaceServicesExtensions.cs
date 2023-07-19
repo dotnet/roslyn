@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
@@ -17,14 +18,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
     internal static class HostWorkspaceServicesExtensions
     {
-        public static HostLanguageServices? GetLanguageServices(
-            this HostWorkspaceServices workspaceServices, ITextBuffer textBuffer)
+        public static CodeAnalysis.Host.LanguageServices? GetProjectServices(
+            this SolutionServices workspaceServices, ITextBuffer textBuffer)
         {
-            return workspaceServices.GetLanguageServices(textBuffer.ContentType);
+            return workspaceServices.GetProjectServices(textBuffer.ContentType);
         }
 
-        public static HostLanguageServices? GetLanguageServices(
-            this HostWorkspaceServices workspaceServices, IContentType contentType)
+        public static CodeAnalysis.Host.LanguageServices? GetProjectServices(
+            this SolutionServices workspaceServices, IContentType contentType)
         {
             foreach (var language in workspaceServices.SupportedLanguages)
             {
@@ -38,12 +39,19 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         }
 
         /// <summary>
+        /// Returns the name of the language (see <see cref="LanguageNames"/>) associated with the specified buffer. 
+        /// </summary>
+        internal static string? GetLanguageName(this ITextBuffer buffer)
+            => Workspace.TryGetWorkspace(buffer.AsTextContainer(), out var workspace) ?
+               workspace.Services.SolutionServices.GetProjectServices(buffer.ContentType)?.Language : null;
+
+        /// <summary>
         /// A cache of host services -> (language name -> content type name).
         /// </summary>
-        private static readonly ConditionalWeakTable<HostWorkspaceServices, Dictionary<string, string>> s_hostServicesToContentTypeMap
+        private static readonly ConditionalWeakTable<SolutionServices, Dictionary<string, string>> s_hostServicesToContentTypeMap
             = new();
 
-        private static string? GetDefaultContentTypeName(HostWorkspaceServices workspaceServices, string language)
+        private static string? GetDefaultContentTypeName(SolutionServices workspaceServices, string language)
         {
             if (!s_hostServicesToContentTypeMap.TryGetValue(workspaceServices, out var contentTypeMap))
             {
@@ -54,11 +62,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             return contentTypeName;
         }
 
-        private static Dictionary<string, string> CreateContentTypeMap(HostWorkspaceServices hostWorkspaceServices)
+        private static Dictionary<string, string> CreateContentTypeMap(SolutionServices hostWorkspaceServices)
         {
             // Are we being hosted in a MEF host? If so, we can get content type information directly from the 
             // metadata and avoid actually loading the assemblies
-            var mefHostServices = (IMefHostExportProvider)hostWorkspaceServices.HostServices;
+            var mefHostServices = hostWorkspaceServices.ExportProvider;
 
             if (mefHostServices != null)
             {
@@ -81,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         }
 
         internal static IList<T> SelectMatchingExtensionValues<T, TMetadata>(
-            this HostWorkspaceServices workspaceServices,
+            this SolutionServices workspaceServices,
             IEnumerable<Lazy<T, TMetadata>> items,
             IContentType contentType)
             where TMetadata : ILanguageMetadata
@@ -96,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         }
 
         internal static IList<T> SelectMatchingExtensionValues<T>(
-            this HostWorkspaceServices workspaceServices,
+            this SolutionServices workspaceServices,
             IEnumerable<Lazy<T, OrderableLanguageAndRoleMetadata>> items,
             IContentType contentType,
             ITextViewRoleSet roleSet)
@@ -118,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         private static bool LanguageMatches(
             string language,
             IContentType contentType,
-            HostWorkspaceServices workspaceServices)
+            SolutionServices workspaceServices)
         {
             var defaultContentType = GetDefaultContentTypeName(workspaceServices, language);
             return (defaultContentType != null) ? contentType.IsOfType(defaultContentType) : false;

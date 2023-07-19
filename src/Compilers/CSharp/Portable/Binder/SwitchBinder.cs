@@ -22,7 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly GeneratedLabelSymbol _breakLabel;
         private BoundExpression _switchGoverningExpression;
-        private DiagnosticBag _switchGoverningDiagnostics;
+        private ImmutableArray<Diagnostic> _switchGoverningDiagnostics;
+        private ImmutableArray<AssemblySymbol> _switchGoverningDependencies;
 
         private SwitchBinder(Binder next, SwitchStatementSyntax switchSyntax)
             : base(next)
@@ -46,14 +47,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected TypeSymbol SwitchGoverningType => SwitchGoverningExpression.Type;
 
-        protected uint SwitchGoverningValEscape => GetValEscape(SwitchGoverningExpression, LocalScopeDepth);
-
-        protected DiagnosticBag SwitchGoverningDiagnostics
+        protected ImmutableBindingDiagnostic<AssemblySymbol> SwitchGoverningDiagnostics
         {
             get
             {
                 EnsureSwitchGoverningExpressionAndDiagnosticsBound();
-                return _switchGoverningDiagnostics;
+                return new ImmutableBindingDiagnostic<AssemblySymbol>(_switchGoverningDiagnostics, _switchGoverningDependencies);
             }
         }
 
@@ -61,9 +60,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (_switchGoverningExpression == null)
             {
-                var switchGoverningDiagnostics = new DiagnosticBag();
+                var switchGoverningDiagnostics = BindingDiagnosticBag.GetInstance();
                 var boundSwitchExpression = BindSwitchGoverningExpression(switchGoverningDiagnostics);
-                _switchGoverningDiagnostics = switchGoverningDiagnostics;
+
+                var immutableSwitchGoverningDiagnostics = switchGoverningDiagnostics.ToReadOnlyAndFree();
+                ImmutableInterlocked.InterlockedInitialize(ref _switchGoverningDiagnostics, immutableSwitchGoverningDiagnostics.Diagnostics);
+                ImmutableInterlocked.InterlockedInitialize(ref _switchGoverningDependencies, immutableSwitchGoverningDiagnostics.Dependencies);
                 Interlocked.CompareExchange(ref _switchGoverningExpression, boundSwitchExpression, null);
             }
         }
@@ -175,17 +177,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // part of the label, but we do not report any diagnostics here. Diagnostics will be reported during binding.
 
             ArrayBuilder<LabelSymbol> labels = ArrayBuilder<LabelSymbol>.GetInstance();
-            DiagnosticBag tempDiagnosticBag = DiagnosticBag.GetInstance();
             foreach (var section in SwitchSyntax.Sections)
             {
                 // add switch case/default labels
-                BuildSwitchLabels(section.Labels, GetBinder(section), labels, tempDiagnosticBag);
+                BuildSwitchLabels(section.Labels, GetBinder(section), labels, BindingDiagnosticBag.Discarded);
 
                 // add regular labels from the statements in the switch section
                 BuildLabels(section.Statements, ref labels);
             }
 
-            tempDiagnosticBag.Free();
             return labels.ToImmutableAndFree();
         }
 
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void BuildSwitchLabels(SyntaxList<SwitchLabelSyntax> labelsSyntax, Binder sectionBinder, ArrayBuilder<LabelSymbol> labels, DiagnosticBag tempDiagnosticBag)
+        private void BuildSwitchLabels(SyntaxList<SwitchLabelSyntax> labelsSyntax, Binder sectionBinder, ArrayBuilder<LabelSymbol> labels, BindingDiagnosticBag tempDiagnosticBag)
         {
             // add switch case/default labels
             foreach (var labelSyntax in labelsSyntax)
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            _ = ConvertCaseExpression(labelSyntax, boundLabelExpression, sectionBinder, out boundLabelConstantOpt, tempDiagnosticBag);
+                            _ = ConvertCaseExpression(labelSyntax, boundLabelExpression, out boundLabelConstantOpt, tempDiagnosticBag);
                         }
                         break;
 
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // bind the pattern, to cause its pattern variables to be inferred if necessary
                         var matchLabel = (CasePatternSwitchLabelSyntax)labelSyntax;
                         _ = sectionBinder.BindPattern(
-                            matchLabel.Pattern, SwitchGoverningType, SwitchGoverningValEscape, permitDesignations: true, labelSyntax.HasErrors, tempDiagnosticBag);
+                            matchLabel.Pattern, SwitchGoverningType, permitDesignations: true, labelSyntax.HasErrors, tempDiagnosticBag);
                         break;
 
                     default:
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected BoundExpression ConvertCaseExpression(CSharpSyntaxNode node, BoundExpression caseExpression, Binder sectionBinder, out ConstantValue constantValueOpt, DiagnosticBag diagnostics, bool isGotoCaseExpr = false)
+        protected BoundExpression ConvertCaseExpression(CSharpSyntaxNode node, BoundExpression caseExpression, out ConstantValue constantValueOpt, BindingDiagnosticBag diagnostics, bool isGotoCaseExpr = false)
         {
             bool hasErrors = false;
             if (isGotoCaseExpr)
@@ -253,9 +253,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // but there exists an explicit conversion, Dev10 compiler generates a warning "WRN_GotoCaseShouldConvert"
                 // instead of an error. See test "CS0469_NoImplicitConversionWarning".
 
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                Conversion conversion = Conversions.ClassifyConversionFromExpression(caseExpression, SwitchGoverningType, ref useSiteDiagnostics);
-                diagnostics.Add(node, useSiteDiagnostics);
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                Conversion conversion = Conversions.ClassifyConversionFromExpression(caseExpression, SwitchGoverningType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
+                diagnostics.Add(node, useSiteInfo);
                 if (!conversion.IsValid)
                 {
                     GenerateImplicitConversionError(diagnostics, node, conversion, caseExpression, SwitchGoverningType);
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 caseExpression = CreateConversion(caseExpression, conversion, SwitchGoverningType, diagnostics);
             }
 
-            return ConvertPatternExpression(SwitchGoverningType, node, caseExpression, out constantValueOpt, hasErrors, diagnostics);
+            return ConvertPatternExpression(SwitchGoverningType, node, caseExpression, out constantValueOpt, hasErrors, diagnostics, out _);
         }
 
         private static readonly object s_nullKey = new object();
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this.Locals;
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this.LocalFunctions;
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override SyntaxNode ScopeDesignator
@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         # region "Switch statement binding methods"
 
         // Bind the switch expression
-        private BoundExpression BindSwitchGoverningExpression(DiagnosticBag diagnostics)
+        private BoundExpression BindSwitchGoverningExpression(BindingDiagnosticBag diagnostics)
         {
             // We are at present inside the switch binder, but the switch expression is not
             // bound in the context of the switch binder; it's bound in the context of the
@@ -408,9 +408,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     TypeSymbol resultantGoverningType;
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    Conversion conversion = binder.Conversions.ClassifyImplicitUserDefinedConversionForV6SwitchGoverningType(switchGoverningType, out resultantGoverningType, ref useSiteDiagnostics);
-                    diagnostics.Add(node, useSiteDiagnostics);
+                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                    Conversion conversion = binder.Conversions.ClassifyImplicitUserDefinedConversionForV6SwitchGoverningType(switchGoverningType, out resultantGoverningType, ref useSiteInfo);
+                    diagnostics.Add(node, useSiteInfo);
                     if (conversion.IsValid)
                     {
                         // Condition (2) satisfied
@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal BoundStatement BindGotoCaseOrDefault(GotoStatementSyntax node, Binder gotoBinder, DiagnosticBag diagnostics)
+        internal BoundStatement BindGotoCaseOrDefault(GotoStatementSyntax node, Binder gotoBinder, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(node.Kind() == SyntaxKind.GotoCaseStatement || node.Kind() == SyntaxKind.GotoDefaultStatement);
             BoundExpression gotoCaseExpressionOpt = null;
@@ -496,8 +496,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Bind the goto case expression
                     gotoCaseExpressionOpt = gotoBinder.BindValue(node.Expression, diagnostics, BindValueKind.RValue);
 
-                    gotoCaseExpressionOpt = ConvertCaseExpression(node, gotoCaseExpressionOpt, gotoBinder,
-                        out gotoCaseExpressionConstant, diagnostics, isGotoCaseExpr: true);
+                    gotoCaseExpressionOpt = ConvertCaseExpression(node, gotoCaseExpressionOpt, out gotoCaseExpressionConstant,
+                        diagnostics, isGotoCaseExpr: true);
 
                     // Check for bind errors
                     hasErrors = hasErrors || gotoCaseExpressionOpt.HasAnyErrors;

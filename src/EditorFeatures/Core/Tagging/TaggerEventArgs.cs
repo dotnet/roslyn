@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging
@@ -14,16 +12,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     /// </summary>
     internal class TaggerEventArgs : EventArgs
     {
-        /// <summary>
-        /// They amount of time to wait before the <see cref="AbstractAsynchronousTaggerProvider{TTag}"/>
-        /// checks for new tags and updates the user interface.
-        /// </summary>
-        public TaggerDelay Delay { get; }
+        public static new readonly TaggerEventArgs Empty = new();
 
-        /// <summary>
-        /// Creates a new <see cref="TaggerEventArgs"/>
-        /// </summary>
-        public TaggerEventArgs(TaggerDelay delay)
-            => this.Delay = delay;
+        private TaggerEventArgs()
+        {
+        }
     }
 }

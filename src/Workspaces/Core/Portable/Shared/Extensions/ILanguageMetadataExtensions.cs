@@ -41,10 +41,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return builder.Select(kvp => new KeyValuePair<string, ImmutableArray<Lazy<TInterface, TMetadata>>>(kvp.Key, kvp.Value.ToImmutableAndFree())).ToImmutableDictionary();
         }
 
-        public static Dictionary<string, List<Lazy<TInterface, TMetadata>>> ToPerLanguageMapWithMultipleLanguages<TInterface, TMetadata>(this IEnumerable<Lazy<TInterface, TMetadata>> services)
+        public static ImmutableDictionary<string, ImmutableArray<Lazy<TInterface, TMetadata>>> ToPerLanguageMapWithMultipleLanguages<TInterface, TMetadata>(this IEnumerable<Lazy<TInterface, TMetadata>> services)
             where TMetadata : ILanguagesMetadata
         {
-            var map = new Dictionary<string, List<Lazy<TInterface, TMetadata>>>();
+            using var _ = PooledDictionary<string, ArrayBuilder<Lazy<TInterface, TMetadata>>>.GetInstance(out var map);
 
             foreach (var service in services)
             {
@@ -52,13 +52,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     if (!string.IsNullOrEmpty(language))
                     {
-                        var list = map.GetOrAdd(language, _ => new List<Lazy<TInterface, TMetadata>>());
+                        var list = map.GetOrAdd(language, _ => ArrayBuilder<Lazy<TInterface, TMetadata>>.GetInstance());
                         list.Add(service);
                     }
                 }
             }
 
-            return map;
+            return map.ToImmutableDictionary(kvp => kvp.Key, kvp => kvp.Value.ToImmutableAndFree());
         }
     }
 }

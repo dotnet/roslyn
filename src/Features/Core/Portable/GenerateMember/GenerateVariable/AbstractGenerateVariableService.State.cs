@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -23,6 +23,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
     {
         private partial class State
         {
+            private readonly TService _service;
+            private readonly SemanticDocument _document;
+
             public INamedTypeSymbol ContainingType { get; private set; }
             public INamedTypeSymbol TypeToGenerateIn { get; private set; }
             public IMethodSymbol ContainingMethod { get; private set; }
@@ -52,11 +55,20 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             public bool IsInOutContext { get; private set; }
             public bool IsInMemberContext { get; private set; }
 
+            public bool IsInSourceGeneratedDocument { get; private set; }
             public bool IsInExecutableBlock { get; private set; }
             public bool IsInConditionalAccessExpression { get; private set; }
 
             public Location AfterThisLocation { get; private set; }
             public Location BeforeThisLocation { get; private set; }
+
+            private State(
+                TService service,
+                SemanticDocument document)
+            {
+                _service = service;
+                _document = document;
+            }
 
             public static async Task<State> GenerateAsync(
                 TService service,
@@ -64,8 +76,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 SyntaxNode interfaceNode,
                 CancellationToken cancellationToken)
             {
-                var state = new State();
-                if (!await state.TryInitializeAsync(service, document, interfaceNode, cancellationToken).ConfigureAwait(false))
+                var state = new State(service, document);
+                if (!await state.TryInitializeAsync(interfaceNode, cancellationToken).ConfigureAwait(false))
                 {
                     return null;
                 }
@@ -73,28 +85,49 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 return state;
             }
 
+            public Accessibility DetermineMaximalAccessibility()
+            {
+                if (this.TypeToGenerateIn.TypeKind == TypeKind.Interface)
+                    return Accessibility.NotApplicable;
+
+                var accessibility = Accessibility.Public;
+
+                // Ensure that we're not overly exposing a type.
+                var containingTypeAccessibility = this.TypeToGenerateIn.DetermineMinimalAccessibility();
+                var effectiveAccessibility = AccessibilityUtilities.Minimum(
+                    containingTypeAccessibility, accessibility);
+
+                var returnTypeAccessibility = this.TypeMemberType.DetermineMinimalAccessibility();
+
+                if (AccessibilityUtilities.Minimum(effectiveAccessibility, returnTypeAccessibility) !=
+                    effectiveAccessibility)
+                {
+                    return returnTypeAccessibility;
+                }
+
+                return accessibility;
+            }
+
             private async Task<bool> TryInitializeAsync(
-                TService service,
-                SemanticDocument document,
                 SyntaxNode node,
                 CancellationToken cancellationToken)
             {
-                if (service.IsIdentifierNameGeneration(node))
+                if (_service.IsIdentifierNameGeneration(node))
                 {
                     // Cases that we deal with currently:
                     //
                     // 1) expr.Goo
                     // 2) expr->Goo
                     // 3) Goo
-                    if (!TryInitializeSimpleName(service, document, (TSimpleNameSyntax)node, cancellationToken))
+                    if (!TryInitializeSimpleName((TSimpleNameSyntax)node, cancellationToken))
                     {
                         return false;
                     }
                 }
-                else if (service.IsExplicitInterfaceGeneration(node))
+                else if (_service.IsExplicitInterfaceGeneration(node))
                 {
                     // 4)  bool IGoo.NewProp
-                    if (!TryInitializeExplicitInterface(service, document, node, cancellationToken))
+                    if (!TryInitializeExplicitInterface(node, cancellationToken))
                     {
                         return false;
                     }
@@ -122,27 +155,29 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     return false;
                 }
 
-                TypeToGenerateIn = await SymbolFinder.FindSourceDefinitionAsync(TypeToGenerateIn, document.Project.Solution, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
+                TypeToGenerateIn = await SymbolFinder.FindSourceDefinitionAsync(
+                    TypeToGenerateIn, _document.Project.Solution, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
 
                 if (!ValidateTypeToGenerateIn(TypeToGenerateIn, IsStatic, ClassInterfaceModuleStructTypes))
                 {
                     return false;
                 }
 
-                IsContainedInUnsafeType = service.ContainingTypesOrSelfHasUnsafeKeyword(TypeToGenerateIn);
+                IsContainedInUnsafeType = _service.ContainingTypesOrSelfHasUnsafeKeyword(TypeToGenerateIn);
 
-                return CanGenerateLocal() || CodeGenerator.CanAdd(document.Project.Solution, TypeToGenerateIn, cancellationToken);
+                return CanGenerateLocal() || CodeGenerator.CanAdd(_document.Project.Solution, TypeToGenerateIn, cancellationToken);
             }
 
             internal bool CanGeneratePropertyOrField()
             {
-                return ContainingType is { IsImplicitClass: false, Name: not WellKnownMemberNames.TopLevelStatementsEntryPointTypeName };
+                return ContainingType is { IsImplicitClass: false }
+                    && ContainingType.GetMembers(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName).IsEmpty;
             }
 
             internal bool CanGenerateLocal()
             {
                 // !this.IsInMemberContext prevents us offering this fix for `x.goo` where `goo` does not exist
-                return !IsInMemberContext && IsInExecutableBlock;
+                return !IsInMemberContext && IsInExecutableBlock && !IsInSourceGeneratedDocument;
             }
 
             internal bool CanGenerateParameter()
@@ -150,18 +185,16 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 // !this.IsInMemberContext prevents us offering this fix for `x.goo` where `goo` does not exist
                 // Workaround: The compiler returns IsImplicitlyDeclared = false for <Main>$.
                 return ContainingMethod is { IsImplicitlyDeclared: false, Name: not WellKnownMemberNames.TopLevelStatementsEntryPointMethodName }
-                    && !IsInMemberContext && !IsConstant;
+                    && !IsInMemberContext && !IsConstant && !IsInSourceGeneratedDocument;
             }
 
             private bool TryInitializeExplicitInterface(
-                TService service,
-                SemanticDocument document,
                 SyntaxNode propertyDeclaration,
                 CancellationToken cancellationToken)
             {
-                if (!service.TryInitializeExplicitInterfaceState(
-                    document, propertyDeclaration, cancellationToken,
-                    out var identifierToken, out var propertySymbol, out var typeToGenerateIn))
+                if (!_service.TryInitializeExplicitInterfaceState(
+                        _document, propertyDeclaration, cancellationToken,
+                        out var identifierToken, out var propertySymbol, out var typeToGenerateIn))
                 {
                     return false;
                 }
@@ -176,7 +209,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var semanticModel = document.SemanticModel;
+                var semanticModel = _document.SemanticModel;
                 ContainingType = semanticModel.GetEnclosingNamedType(IdentifierToken.SpanStart, cancellationToken);
                 if (ContainingType == null)
                 {
@@ -199,13 +232,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             }
 
             private bool TryInitializeSimpleName(
-                TService service,
-                SemanticDocument semanticDocument,
                 TSimpleNameSyntax simpleName,
                 CancellationToken cancellationToken)
             {
-                if (!service.TryInitializeIdentifierNameState(
-                        semanticDocument, simpleName, cancellationToken,
+                if (!_service.TryInitializeIdentifierNameState(
+                        _document, simpleName, cancellationToken,
                         out var identifierToken, out var simpleNameOrMemberAccessExpression, out var isInExecutableBlock, out var isInConditionalAccessExpression))
                 {
                     return false;
@@ -223,7 +254,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                 // If we're in a type context then we shouldn't offer to generate a field or
                 // property.
-                var syntaxFacts = semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxFacts = _document.Document.GetLanguageService<ISyntaxFactsService>();
                 if (syntaxFacts.IsInNamespaceOrTypeContext(SimpleNameOrMemberAccessExpressionOpt))
                 {
                     return false;
@@ -234,7 +265,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 // If we're not in a type, don't even bother.  NOTE(cyrusn): We'll have to rethink this
                 // for C# Script.
                 cancellationToken.ThrowIfCancellationRequested();
-                var semanticModel = semanticDocument.SemanticModel;
+                var semanticModel = _document.SemanticModel;
                 ContainingType = semanticModel.GetEnclosingNamedType(IdentifierToken.SpanStart, cancellationToken);
                 if (ContainingType == null)
                 {
@@ -256,8 +287,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 // to generate a method here.  Determine where the user wants to generate the method
                 // into, and if it's valid then proceed.
                 cancellationToken.ThrowIfCancellationRequested();
-                if (!TryDetermineTypeToGenerateIn(semanticDocument, ContainingType, SimpleNameOrMemberAccessExpressionOpt, cancellationToken,
-                    out var typeToGenerateIn, out var isStatic))
+                if (!TryDetermineTypeToGenerateIn(_document, ContainingType, SimpleNameOrMemberAccessExpressionOpt, cancellationToken,
+                        out var typeToGenerateIn, out var isStatic, out _))
                 {
                     return false;
                 }
@@ -265,29 +296,31 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 TypeToGenerateIn = typeToGenerateIn;
                 IsStatic = isStatic;
 
-                DetermineFieldType(semanticDocument, cancellationToken);
+                if (!TryDetermineFieldType(cancellationToken))
+                    return false;
 
-                var semanticFacts = semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
+                var semanticFacts = _document.Document.GetLanguageService<ISemanticFactsService>();
                 IsInRefContext = semanticFacts.IsInRefContext(semanticModel, SimpleNameOrMemberAccessExpressionOpt, cancellationToken);
                 IsInInContext = semanticFacts.IsInInContext(semanticModel, SimpleNameOrMemberAccessExpressionOpt, cancellationToken);
                 IsInOutContext = semanticFacts.IsInOutContext(semanticModel, SimpleNameOrMemberAccessExpressionOpt, cancellationToken);
                 IsWrittenTo = semanticFacts.IsWrittenTo(semanticModel, SimpleNameOrMemberAccessExpressionOpt, cancellationToken);
                 IsOnlyWrittenTo = semanticFacts.IsOnlyWrittenTo(semanticModel, SimpleNameOrMemberAccessExpressionOpt, cancellationToken);
-                IsInConstructor = DetermineIsInConstructor(semanticDocument, simpleName);
+                IsInConstructor = DetermineIsInConstructor(simpleName);
                 IsInMemberContext =
                     simpleName != SimpleNameOrMemberAccessExpressionOpt ||
                     syntaxFacts.IsMemberInitializerNamedAssignmentIdentifier(SimpleNameOrMemberAccessExpressionOpt);
+                IsInSourceGeneratedDocument = _document.Document is SourceGeneratedDocument;
 
-                ContainingMethod = semanticModel.GetEnclosingSymbol<IMethodSymbol>(IdentifierToken.SpanStart, cancellationToken);
+                ContainingMethod = FindContainingMethodSymbol(IdentifierToken.SpanStart, semanticModel, cancellationToken);
 
-                CheckSurroundingContext(semanticDocument, SymbolKind.Field, cancellationToken);
-                CheckSurroundingContext(semanticDocument, SymbolKind.Property, cancellationToken);
+                CheckSurroundingContext(SymbolKind.Field, cancellationToken);
+                CheckSurroundingContext(SymbolKind.Property, cancellationToken);
 
                 return true;
             }
 
             private void CheckSurroundingContext(
-                SemanticDocument semanticDocument, SymbolKind symbolKind, CancellationToken cancellationToken)
+                SymbolKind symbolKind, CancellationToken cancellationToken)
             {
                 // See if we're being assigned to.  If so, look at the before/after statements
                 // to see if either is an assignment.  If so, we can use that to try to determine
@@ -297,7 +330,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 //
                 // Also, because users often like to keep members/assignments in the same order
                 // we can pick a good place for the new member based on the surrounding assignments.
-                var syntaxFacts = semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxFacts = _document.Document.GetLanguageService<ISyntaxFactsService>();
                 var simpleName = SimpleNameOrMemberAccessExpressionOpt;
 
                 if (syntaxFacts.IsLeftSideOfAssignment(simpleName))
@@ -315,13 +348,13 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                             var statementindex = GetStatementIndex(children, assignmentStatement);
 
-                            var previousAssignedSymbol = TryGetAssignedSymbol(semanticDocument, symbolKind, children, statementindex - 1, cancellationToken);
-                            var nextAssignedSymbol = TryGetAssignedSymbol(semanticDocument, symbolKind, children, statementindex + 1, cancellationToken);
+                            var previousAssignedSymbol = TryGetAssignedSymbol(symbolKind, children, statementindex - 1, cancellationToken);
+                            var nextAssignedSymbol = TryGetAssignedSymbol(symbolKind, children, statementindex + 1, cancellationToken);
 
                             if (symbolKind == SymbolKind.Field)
                             {
-                                OfferReadOnlyFieldFirst = FieldIsReadOnly(previousAssignedSymbol) ||
-                                                               FieldIsReadOnly(nextAssignedSymbol);
+                                OfferReadOnlyFieldFirst =
+                                    FieldIsReadOnly(previousAssignedSymbol) || FieldIsReadOnly(nextAssignedSymbol);
                             }
 
                             AfterThisLocation ??= previousAssignedSymbol?.Locations.FirstOrDefault();
@@ -332,11 +365,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             }
 
             private ISymbol TryGetAssignedSymbol(
-                SemanticDocument semanticDocument, SymbolKind symbolKind,
+                SymbolKind symbolKind,
                 ChildSyntaxList children, int index,
                 CancellationToken cancellationToken)
             {
-                var syntaxFacts = semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxFacts = _document.Document.GetLanguageService<ISyntaxFactsService>();
                 if (index >= 0 && index < children.Count)
                 {
                     var sibling = children[index];
@@ -348,7 +381,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                             syntaxFacts.GetPartsOfAssignmentStatement(
                                 siblingNode, out var left, out _);
 
-                            var symbol = semanticDocument.SemanticModel.GetSymbolInfo(left, cancellationToken).Symbol;
+                            var symbol = _document.SemanticModel.GetSymbolInfo(left, cancellationToken).Symbol;
                             if (symbol?.Kind == symbolKind &&
                                 symbol.ContainingType.Equals(ContainingType))
                             {
@@ -356,6 +389,22 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                             }
                         }
                     }
+                }
+
+                return null;
+            }
+
+            private static IMethodSymbol FindContainingMethodSymbol(int position, SemanticModel semanticModel, CancellationToken cancellationToken)
+            {
+                var symbol = semanticModel.GetEnclosingSymbol(position, cancellationToken);
+                while (symbol != null)
+                {
+                    if (symbol is IMethodSymbol method && !method.IsAnonymousFunction())
+                    {
+                        return method;
+                    }
+
+                    symbol = symbol.ContainingSymbol;
                 }
 
                 return null;
@@ -377,19 +426,27 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     index++;
                 }
 
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
-            private void DetermineFieldType(
-                SemanticDocument semanticDocument,
-                CancellationToken cancellationToken)
+            private bool TryDetermineFieldType(CancellationToken cancellationToken)
             {
-                var typeInference = semanticDocument.Document.GetLanguageService<ITypeInferenceService>();
+                var typeInference = _document.Document.GetLanguageService<ITypeInferenceService>();
                 var inferredType = typeInference.InferType(
-                    semanticDocument.SemanticModel, SimpleNameOrMemberAccessExpressionOpt, objectAsDefault: true,
+                    _document.SemanticModel, SimpleNameOrMemberAccessExpressionOpt, objectAsDefault: true,
                     name: IdentifierToken.ValueText, cancellationToken: cancellationToken);
 
-                var compilation = semanticDocument.SemanticModel.Compilation;
+                // If you have `&X` and 'X' is some delegate type, then there's no variable that can be created that
+                // will be legal there.  The only things X could be are a static method or a local function, not an
+                // arbitrary variable (field, local, etc.).
+                if (inferredType.IsDelegateType())
+                {
+                    var syntaxKinds = _document.Document.GetRequiredLanguageService<ISyntaxKindsService>();
+                    if (syntaxKinds.AddressOfExpression == SimpleNameOrMemberAccessExpressionOpt.Parent?.RawKind)
+                        return false;
+                }
+
+                var compilation = _document.SemanticModel.Compilation;
                 inferredType = inferredType.SpecialType == SpecialType.System_Void
                     ? compilation.ObjectType
                     : inferredType;
@@ -420,7 +477,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 TypeMemberType = TypeMemberType.RemoveUnavailableTypeParameters(
                     compilation, availableTypeParameters);
 
-                var enclosingMethodSymbol = semanticDocument.SemanticModel.GetEnclosingSymbol<IMethodSymbol>(SimpleNameOrMemberAccessExpressionOpt.SpanStart, cancellationToken);
+                var enclosingMethodSymbol = _document.SemanticModel.GetEnclosingSymbol<IMethodSymbol>(SimpleNameOrMemberAccessExpressionOpt.SpanStart, cancellationToken);
                 if (enclosingMethodSymbol != null && enclosingMethodSymbol.TypeParameters != null && enclosingMethodSymbol.TypeParameters.Length != 0)
                 {
                     using var _ = ArrayBuilder<ITypeParameterSymbol>.GetInstance(out var combinedTypeParameters);
@@ -432,17 +489,19 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 {
                     LocalType = TypeMemberType;
                 }
+
+                return true;
             }
 
-            private bool DetermineIsInConstructor(SemanticDocument semanticDocument, SyntaxNode simpleName)
+            private bool DetermineIsInConstructor(SyntaxNode simpleName)
             {
                 if (!ContainingType.OriginalDefinition.Equals(TypeToGenerateIn.OriginalDefinition))
                     return false;
 
                 // If we're in an lambda/local function we're not actually 'in' the constructor.
                 // i.e. we can't actually write to read-only fields here.
-                var syntaxFacts = semanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-                if (simpleName.AncestorsAndSelf().Any(n => syntaxFacts.IsAnonymousOrLocalFunction(n)))
+                var syntaxFacts = _document.Document.GetRequiredLanguageService<ISyntaxFactsService>();
+                if (simpleName.AncestorsAndSelf().Any(syntaxFacts.IsAnonymousOrLocalFunction))
                     return false;
 
                 return syntaxFacts.IsInConstructor(simpleName);

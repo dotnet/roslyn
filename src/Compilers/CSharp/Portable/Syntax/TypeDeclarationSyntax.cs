@@ -29,6 +29,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public new TypeDeclarationSyntax WithModifiers(SyntaxTokenList modifiers)
             => (TypeDeclarationSyntax)WithModifiersCore(modifiers);
+
+        internal PrimaryConstructorBaseTypeSyntax? PrimaryConstructorBaseTypeIfClass
+        {
+            get
+            {
+                if (Kind() is (SyntaxKind.RecordDeclaration or SyntaxKind.ClassDeclaration))
+                {
+                    return BaseList?.Types.FirstOrDefault() as PrimaryConstructorBaseTypeSyntax;
+                }
+
+                return null;
+            }
+        }
     }
 }
 
@@ -62,6 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InterfaceDeclaration:
                     return SyntaxKind.InterfaceKeyword;
                 case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     return SyntaxKind.RecordKeyword;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
@@ -113,9 +127,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InterfaceDeclaration:
                     return SyntaxFactory.InterfaceDeclaration(attributes, modifiers, keyword, identifier, typeParameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
                 case SyntaxKind.RecordDeclaration:
-                    return SyntaxFactory.RecordDeclaration(attributes, modifiers, keyword, identifier, typeParameterList, parameterList: null, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
+                    return SyntaxFactory.RecordDeclaration(SyntaxKind.RecordDeclaration, attributes, modifiers, keyword, classOrStructKeyword: default, identifier, typeParameterList, parameterList: null, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
+                case SyntaxKind.RecordStructDeclaration:
+                    return SyntaxFactory.RecordDeclaration(SyntaxKind.RecordStructDeclaration, attributes, modifiers, keyword, classOrStructKeyword: SyntaxFactory.Token(SyntaxKind.StructKeyword), identifier, typeParameterList, parameterList: null, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
                 default:
-                    throw new ArgumentException("kind");
+                    throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
     }

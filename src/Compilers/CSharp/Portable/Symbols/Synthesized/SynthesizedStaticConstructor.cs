@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
@@ -377,6 +377,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var containingType = (SourceMemberContainerTypeSymbol)this.ContainingType;
             return containingType.CalculateSyntaxOffsetInSynthesizedConstructor(localPosition, localTree, isStatic: true);
         }
+
+        internal sealed override bool IsNullableAnalysisEnabled() =>
+            (ContainingType as SourceMemberContainerTypeSymbol)?.IsNullableEnabledForConstructorsAndInitializers(useStatic: true) ?? false;
 
         internal bool ShouldEmit(ImmutableArray<BoundInitializer> boundInitializersOpt = default)
         {
@@ -400,14 +403,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return true;
                 }
 
-                var unusedDiagnostics = DiagnosticBag.GetInstance();
                 boundInitializersOpt = Binder.BindFieldInitializers(
                     DeclaringCompilation,
                     sourceType.IsScriptClass ? sourceType.GetScriptInitializer() : null,
                     sourceType.StaticInitializers,
-                    unusedDiagnostics,
+                    BindingDiagnosticBag.Discarded,
                     out _);
-                unusedDiagnostics.Free();
             }
 
             foreach (var initializer in boundInitializersOpt)
@@ -427,5 +428,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return false;
         }
+
+        protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
+
+        internal sealed override bool HasUnscopedRefAttribute => false;
+
+        internal sealed override bool UseUpdatedEscapeRules => false;
     }
 }

@@ -24,6 +24,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     /// </summary>
     internal abstract class EditAndContinueMethodDebugInfoReader
     {
+        // TODO: Remove, the path should match exactly. Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1830914.
+        internal static bool IgnoreCaseWhenComparingDocumentNames;
+
         public abstract bool IsPortable { get; }
         public abstract EditAndContinueMethodDebugInformation GetDebugInfo(MethodDefinitionHandle methodHandle);
         public abstract StandaloneSignatureHandle GetLocalSignature(MethodDefinitionHandle methodHandle);
@@ -81,18 +84,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 try
                 {
-                    ImmutableArray<byte> localSlots, lambdaMap;
+                    ImmutableArray<byte> localSlots, lambdaMap, stateMachineSuspensionPoints;
                     if (debugInfo != null)
                     {
                         localSlots = CustomDebugInfoReader.TryGetCustomDebugInfoRecord(debugInfo, CustomDebugInfoKind.EditAndContinueLocalSlotMap);
                         lambdaMap = CustomDebugInfoReader.TryGetCustomDebugInfoRecord(debugInfo, CustomDebugInfoKind.EditAndContinueLambdaMap);
+                        stateMachineSuspensionPoints = CustomDebugInfoReader.TryGetCustomDebugInfoRecord(debugInfo, CustomDebugInfoKind.EditAndContinueStateMachineStateMap);
                     }
                     else
                     {
-                        localSlots = lambdaMap = default;
+                        localSlots = lambdaMap = stateMachineSuspensionPoints = default;
                     }
 
-                    return EditAndContinueMethodDebugInformation.Create(localSlots, lambdaMap);
+                    return EditAndContinueMethodDebugInformation.Create(localSlots, lambdaMap, stateMachineSuspensionPoints);
                 }
                 catch (InvalidOperationException e) when (FatalError.ReportAndCatch(e)) // likely a bug in the compiler/debugger
                 {
@@ -105,12 +109,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 => TryGetDocumentChecksum(_symReader, documentPath, out checksum, out algorithmId);
         }
 
-        private sealed class Portable : EditAndContinueMethodDebugInfoReader
+        private sealed class Portable(MetadataReader pdbReader) : EditAndContinueMethodDebugInfoReader
         {
-            private readonly MetadataReader _pdbReader;
-
-            public Portable(MetadataReader pdbReader)
-                => _pdbReader = pdbReader;
+            private readonly MetadataReader _pdbReader = pdbReader;
 
             public override bool IsPortable => true;
 
@@ -120,7 +121,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             public override EditAndContinueMethodDebugInformation GetDebugInfo(MethodDefinitionHandle methodHandle)
                 => EditAndContinueMethodDebugInformation.Create(
                     compressedSlotMap: GetCdiBytes(methodHandle, PortableCustomDebugInfoKinds.EncLocalSlotMap),
-                    compressedLambdaMap: GetCdiBytes(methodHandle, PortableCustomDebugInfoKinds.EncLambdaAndClosureMap));
+                    compressedLambdaMap: GetCdiBytes(methodHandle, PortableCustomDebugInfoKinds.EncLambdaAndClosureMap),
+                    compressedStateMachineStateMap: GetCdiBytes(methodHandle, PortableCustomDebugInfoKinds.EncStateMachineStateMap));
 
             private ImmutableArray<byte> GetCdiBytes(MethodDefinitionHandle methodHandle, Guid kind)
                 => TryGetCustomDebugInformation(_pdbReader, methodHandle, kind, out var cdi) ?
@@ -155,7 +157,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 foreach (var documentHandle in _pdbReader.Documents)
                 {
                     var document = _pdbReader.GetDocument(documentHandle);
-                    if (_pdbReader.StringComparer.Equals(document.Name, documentPath))
+
+                    if (_pdbReader.StringComparer.Equals(document.Name, documentPath, IgnoreCaseWhenComparingDocumentNames))
                     {
                         checksum = _pdbReader.GetBlobContent(document.Hash);
                         algorithmId = _pdbReader.GetGuid(document.HashAlgorithm);

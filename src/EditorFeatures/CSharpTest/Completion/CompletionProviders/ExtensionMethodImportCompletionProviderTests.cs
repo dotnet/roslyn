@@ -8,11 +8,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -20,30 +20,14 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.Completion)]
     public class ExtensionMethodImportCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        private const string NonBreakingSpaceString = "\x00A0";
-
-        private bool? ShowImportCompletionItemsOptionValue { get; set; } = true;
-
-        // -1 would disable timebox, whereas 0 means always timeout.
-        private int TimeoutInMilliseconds { get; set; } = -1;
-
-        private bool IsExpandedCompletion { get; set; } = true;
-
-        private bool HideAdvancedMembers { get; set; }
-
-        protected override OptionSet WithChangedOptions(OptionSet options)
+        public ExtensionMethodImportCompletionProviderTests()
         {
-            return options
-                .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, ShowImportCompletionItemsOptionValue)
-                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
-                .WithChangedOption(CompletionOptions.HideAdvancedMembers, LanguageNames.CSharp, HideAdvancedMembers)
-                .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForExtensionMethodImportCompletion, TimeoutInMilliseconds);
+            ShowImportCompletionItemsOptionValue = true;
+            ForceExpandedCompletionIndexCreation = true;
         }
-
-        protected override TestComposition GetComposition()
-            => base.GetComposition().AddParts(typeof(TestExperimentationService));
 
         internal override Type GetCompletionProviderType()
             => typeof(ExtensionMethodImportCompletionProvider);
@@ -108,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             => CombineWithReferenceTypeData(BuiltInTypes);
 
         [MemberData(nameof(BuiltInTypesWithReferenceTypeData))]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task TestPredefinedType(string type1, string type2, ReferenceType refType)
         {
             var file1 = $@"
@@ -146,7 +130,7 @@ namespace Baz
         }
 
         [MemberData(nameof(ReferenceTypeData))]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task UsingAliasInDeclaration(ReferenceType refType)
         {
             var file1 = @"
@@ -184,7 +168,7 @@ namespace Baz
         }
 
         [MemberData(nameof(ReferenceTypeData))]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task UsingAliasInDeclaration_PrimitiveType(ReferenceType refType)
         {
             var file1 = @"
@@ -222,7 +206,7 @@ namespace Baz
         }
 
         [MemberData(nameof(ReferenceTypeData))]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task UsingAliasInDeclaration_RegularType(ReferenceType refType)
         {
             var file1 = @"
@@ -260,7 +244,7 @@ namespace Baz
         }
 
         [MemberData(nameof(ReferenceTypeData))]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task UsingAliasInDeclaration_GenericType(ReferenceType refType)
         {
             var file1 = @"
@@ -298,7 +282,7 @@ namespace Baz
         }
 
         [MemberData(nameof(ReferenceTypeData))]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task UsingAliasInDeclaration_RegularTypeWithSameSimpleName(ReferenceType refType)
         {
             var file1 = @"
@@ -335,7 +319,7 @@ namespace Baz
         }
 
         [MemberData(nameof(ReferenceTypeData))]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task UsingAliasInDeclaration_Namespace(ReferenceType refType)
         {
             var file1 = @"
@@ -374,7 +358,7 @@ namespace Baz
         }
 
         [MemberData(nameof(ReferenceTypeData))]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task UsingAliasInUsage(ReferenceType refType)
         {
             var file1 = @"
@@ -412,7 +396,7 @@ namespace Baz
         }
 
         [MemberData(nameof(AllTypeKindsWithReferenceTypeData))]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task RegularType(string typeKind, ReferenceType refType)
         {
             var file1 = $@"
@@ -450,7 +434,7 @@ namespace Baz
         }
 
         [MemberData(nameof(AllTypeKindsWithReferenceTypeData))]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task ObjectType(string typeKind, ReferenceType refType)
         {
             var file1 = $@"
@@ -496,7 +480,7 @@ namespace Baz
             }).Select(tuple => new List<object>() { tuple }));
 
         [MemberData(nameof(TupleWithRefTypeData))]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task ValueTupleType(string tupleType, ReferenceType refType)
         {
             var file1 = $@"
@@ -535,7 +519,7 @@ namespace Baz
             => CombineWithReferenceTypeData((new[] { "class", "interface", "abstract class" }).Select(kind => new List<object>() { kind }));
 
         [MemberData(nameof(DerivableTypeKindsWithReferenceTypeData))]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task RegularTypeAsBase(string baseType, ReferenceType refType)
         {
             var file1 = $@"
@@ -583,7 +567,7 @@ namespace Baz
             }).Select(tuple => new List<object>() { tuple }));
 
         [MemberData(nameof(BounedGenericTypeWithRefTypeData))]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task BoundedGenericType(string type, ReferenceType refType)
         {
             var file1 = @"
@@ -629,7 +613,7 @@ namespace Baz
             }).Select(tuple => new List<object>() { tuple }));
 
         [MemberData(nameof(TypeParameterWithRefTypeData))]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task MatchingTypeParameter(string type, ReferenceType refType)
         {
             var file1 = @"
@@ -670,7 +654,7 @@ namespace Baz
 
         [InlineData(ReferenceType.Project)]
         [InlineData(ReferenceType.Metadata)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task TestInternalExtensionMethods_NoIVT_InReference(ReferenceType refType)
         {
             var file1 = @"
@@ -705,7 +689,7 @@ namespace Baz
                  inlineDescription: "Foo");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TestInternalExtensionMethods_NoIVT_InSameProject()
         {
             var file1 = @"
@@ -744,7 +728,7 @@ namespace Baz
         // SymbolTreeInfo explicitly ignores non-public types from metadata(likely for perf reasons). So we don't need to test internals in PE reference
         [InlineData(ReferenceType.None)]
         [InlineData(ReferenceType.Project)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task TestInternalExtensionMethods_WithIVT(ReferenceType refType)
         {
             var file1 = @"
@@ -779,7 +763,7 @@ namespace Baz
         }
 
         [MemberData(nameof(ReferenceTypeData))]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task UserDefinedGenericType(ReferenceType refType)
         {
             var file1 = @"
@@ -821,7 +805,7 @@ namespace Baz
 
         [InlineData("(1 + 1)")]
         [InlineData("(new int())")]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task MethodSymbolReceiver(string expression)
         {
             var file1 = @"
@@ -887,7 +871,7 @@ namespace Baz
         }
 
         [MemberData(nameof(VBBuiltInTypes))]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task ExtensionMethodDelcaredInVBSource(string vbType, string csType)
         {
             var file1 = $@"
@@ -924,7 +908,7 @@ namespace Baz
                  inlineDescription: "NS");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ExtensionMethodDelcaredInRootNamespaceVBSource()
         {
             var file1 = @"
@@ -959,7 +943,7 @@ namespace Baz
                  inlineDescription: "Root");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ExtensionMethodDelcaredInGlobalNamespaceVBSource()
         {
             var file1 = @"
@@ -993,7 +977,7 @@ namespace Baz
                  inlineDescription: "");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task TestTriggerLocation()
         {
             var file1 = @"
@@ -1032,7 +1016,7 @@ namespace Baz
 
         [InlineData("int", "Int32Method", "Foo")]
         [InlineData("string", "StringMethod", "Bar")]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task TestIdenticalAliases(string type, string expectedMethodname, string expectedNamespace)
         {
             var file1 = @"
@@ -1082,7 +1066,7 @@ namespace Baz
 
         [InlineData("int")]
         [InlineData("Exception")]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task TestIdenticalMethodName(string type)
         {
             var file1 = @"
@@ -1122,7 +1106,7 @@ namespace Baz
                  inlineDescription: "Foo");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task DoNotTriggerOnType()
         {
             var file1 = @"
@@ -1156,8 +1140,7 @@ namespace Baz
                  inlineDescription: "Foo");
         }
 
-        [WorkItem(42325, "https://github.com/dotnet/roslyn/issues/42325")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42325")]
         public async Task TestExtensionMethodInPartialClass()
         {
             var file1 = @"
@@ -1212,8 +1195,7 @@ namespace Baz
         [InlineData(ReferenceType.Project, "public")]
         [InlineData(ReferenceType.Project, "internal")]
         [InlineData(ReferenceType.Metadata, "public")]  // We don't support internal extension method from non-source references.
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(42325, "https://github.com/dotnet/roslyn/issues/42325")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/42325")]
         public async Task TestExtensionMethodsInConflictingTypes(ReferenceType refType, string accessibility)
         {
             var refDoc = $@"
@@ -1270,8 +1252,7 @@ namespace Baz
                  inlineDescription: "Foo");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(42325, "https://github.com/dotnet/roslyn/issues/42325")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42325")]
         public async Task TestExtensionMethodsInConflictingTypesFromReferencedProjects()
         {
             var refDoc1 = @"
@@ -1328,7 +1309,7 @@ namespace Baz
         [InlineData("", "", false)]
         [InlineData("", "public", true)]
         [InlineData("public", "", false)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task TestCSharpDefaultAccessibility(string containerAccessibility, string methodAccessibility, bool isAvailable)
         {
             var file1 = $@"
@@ -1385,7 +1366,7 @@ namespace Baz
         [InlineData(ReferenceType.Metadata, "[][]", "ExtentionMethod3")]
         [InlineData(ReferenceType.Metadata, "[,]", "ExtentionMethod4")]
         [InlineData(ReferenceType.Metadata, "[][,]", "ExtentionMethod5")]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task TestExtensionMethodsForSimpleArrayType(ReferenceType refType, string rank, string expectedName)
         {
             var refDoc = $@"
@@ -1445,7 +1426,7 @@ namespace Baz
         [InlineData(ReferenceType.Metadata, "[][]", "ExtentionMethod3")]
         [InlineData(ReferenceType.Metadata, "[,]", "ExtentionMethod4")]
         [InlineData(ReferenceType.Metadata, "[][,]", "ExtentionMethod5")]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task TestExtensionMethodsForGenericArrayType(ReferenceType refType, string rank, string expectedName)
         {
             var refDoc = $@"
@@ -1500,7 +1481,7 @@ namespace Baz
 
         [InlineData(ReferenceType.Project)]
         [InlineData(ReferenceType.Metadata)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task TestGenericReceiverTypeWithConstraint(ReferenceType refType)
         {
             var refDoc = @"
@@ -1548,7 +1529,7 @@ namespace NS1
         [InlineData(ReferenceType.Project, "(int,int,int,int,int,int,int,int,int,int)")]    // more than 8 tuple elements
         [InlineData(ReferenceType.Metadata, "(int,int)")]
         [InlineData(ReferenceType.Metadata, "(int,int,int,int,int,int,int,int,int,int)")]   // more than 8 tuple elements
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task TestTupleArray(ReferenceType refType, string tupleType)
         {
             var refDoc = $@"
@@ -1591,7 +1572,7 @@ namespace NS1
         [InlineData(ReferenceType.Project, "(int[],int[],int[],int[],int[],int[],int[],int[],int[],int[])")] // more than 8 tuple elements
         [InlineData(ReferenceType.Metadata, "(int[],int[])")]
         [InlineData(ReferenceType.Metadata, "(int[],int[],int[],int[],int[],int[],int[],int[],int[],int[])")] // more than 8 tuple elements
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task TestArrayTuple(ReferenceType refType, string tupleType)
         {
             var refDoc = $@"
@@ -1632,7 +1613,7 @@ namespace NS1
 
         [InlineData(ReferenceType.Project)]
         [InlineData(ReferenceType.Metadata)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task TestDescriptionOfGenericReceiverType(ReferenceType refType)
         {
             var refDoc = @"
@@ -1675,7 +1656,7 @@ namespace NS1
 
         [InlineData(ReferenceType.Project)]
         [InlineData(ReferenceType.Metadata)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         public async Task TestDescriptionOfOverloads(ReferenceType refType)
         {
             var refDoc = @"
@@ -1730,8 +1711,7 @@ namespace NS1
 
         [InlineData(ReferenceType.Project)]
         [InlineData(ReferenceType.Metadata)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47551, "https://github.com/dotnet/roslyn/issues/47551")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/47551")]
         public async Task TestBrowsableAlways(ReferenceType refType)
         {
             var srcDoc = @"
@@ -1775,8 +1755,7 @@ namespace Foo
 
         [InlineData(ReferenceType.Project)]
         [InlineData(ReferenceType.Metadata)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47551, "https://github.com/dotnet/roslyn/issues/47551")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/47551")]
         public async Task TestBrowsableNever(ReferenceType refType)
         {
             var srcDoc = @"
@@ -1808,7 +1787,7 @@ namespace Foo
             {
                 ReferenceType.Project => (CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp), true),
                 ReferenceType.Metadata => (CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp), false),
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             if (shouldContainItem)
@@ -1832,8 +1811,7 @@ namespace Foo
         [InlineData(ReferenceType.Project, false)]
         [InlineData(ReferenceType.Metadata, true)]
         [InlineData(ReferenceType.Metadata, false)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47551, "https://github.com/dotnet/roslyn/issues/47551")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/47551")]
         public async Task TestBrowsableAdvanced(ReferenceType refType, bool hideAdvanced)
         {
             HideAdvancedMembers = hideAdvanced;
@@ -1868,7 +1846,7 @@ namespace Foo
                 (ReferenceType.Project, _) => (CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp), true),
                 (ReferenceType.Metadata, true) => (CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp), false),
                 (ReferenceType.Metadata, false) => (CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp), true),
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             if (shouldContainItem)
@@ -1888,8 +1866,10 @@ namespace Foo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestCommitWithSemicolonForMethod()
+        [Theory]
+        [InlineData('.')]
+        [InlineData(';')]
+        public async Task TestCommitWithCustomizedCharForMethod(char commitChar)
         {
             var markup = @"
 public class C
@@ -1916,132 +1896,90 @@ namespace BB
     }
 }";
 
-            var expected = @"
+            var expected = $@"
 using AA;
 
 public class C
-{
-}
+{{
+}}
 namespace AA
-{
+{{
     public static class Ext
-    {
+    {{
         public static int ToInt(this C c)
             => 1;
-    }
-}
+    }}
+}}
 
 namespace BB
-{
+{{
     public class B
-    {
+    {{
         public void M()
-        {
+        {{
             var c = new C();
-            c.ToInt();
-        }
-    }
-}";
-            await VerifyProviderCommitAsync(markup, "ToInt", expected, commitChar: ';', sourceCodeKind: SourceCodeKind.Regular);
+            c.ToInt(){commitChar}
+        }}
+    }}
+}}";
+            await VerifyProviderCommitAsync(markup, "ToInt", expected, commitChar: commitChar, sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestCommitWithSemicolonForMethodForDelegateContext()
+        [InlineData("int", true, "int a")]
+        [InlineData("int[]", true, "int a, int b")]
+        [InlineData("bool", false, null)]
+        [Theory]
+        public async Task TestTargetTypedCompletion(string targetType, bool matchTargetType, string expectedParameterList)
         {
-            var markup = @"
-public class C
-{
-}
-namespace AA
-{
-    public static class Ext
-    {
-        public static int ToInt(this C c)
-            => 1;
-    }
-}
-
-namespace BB
-{
-    public class B
-    {
-        public void M()
-        {
-            var c = new C();
-            c.$$
-        }
-    }
-}";
-
-            var expected = @"
-using AA;
-
-public class C
-{
-}
-namespace AA
-{
-    public static class Ext
-    {
-        public static int ToInt(this C c)
-            => 1;
-    }
-}
-
-namespace BB
-{
-    public class B
-    {
-        public void M()
-        {
-            var c = new C();
-            c.ToInt();
-        }
-    }
-}";
-            await VerifyProviderCommitAsync(markup, "ToInt", expected, commitChar: ';', sourceCodeKind: SourceCodeKind.Regular);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestTimeBox()
-        {
-            var file1 = @"
+            var refDoc = @"
 using System;
 
-namespace Foo
+namespace NS2
 {
-    public static class ExtensionClass
+    public static class Extensions
     {
-        public static bool ExtentionMethod(this int x)
-            => true;
+        public static int ExtentionMethod(this int t, int a) => 0;
+        public static int[] ExtentionMethod(this int t, int a, int b) => null;
+        public static string ExtentionMethod(this int t, int a, int b, int c) => false;
     }
 }";
-            var file2 = @"
-using System;
-
-namespace Baz
-{
-    public class Bat
-    {
+            var srcDoc = $@"
+namespace NS1
+{{
+    public class C
+    {{
         public void M(int x)
-        {
-            x.$$
+        {{
+            {targetType} y = x.$$
+        }}
+    }}
+}}";
+
+            ShowTargetTypedCompletionFilter = true;
+            var markup = CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp);
+
+            string expectedDescription = null;
+            var expectedFilters = new List<CompletionFilter>()
+            {
+                FilterSet.ExtensionMethodFilter
+            };
+
+            if (matchTargetType)
+            {
+                expectedFilters.Add(FilterSet.TargetTypedFilter);
+                expectedDescription = $"({CSharpFeaturesResources.extension}) {targetType} int.ExtentionMethod({expectedParameterList}) (+{NonBreakingSpaceString}2{NonBreakingSpaceString}{FeaturesResources.overloads_})";
+            }
+
+            await VerifyImportItemExistsAsync(
+                markup,
+                "ExtentionMethod",
+                expectedFilters: expectedFilters,
+                inlineDescription: "NS2",
+                expectedDescriptionOrNull: expectedDescription);
         }
-    }
-}";
 
-            IsExpandedCompletion = false;
-            TimeoutInMilliseconds = 0; //timeout immediately
-            var markup = GetMarkup(file2, file1, ReferenceType.None);
-
-            await VerifyImportItemIsAbsentAsync(
-                 markup,
-                 "ExtentionMethod",
-                 inlineDescription: "Foo");
-        }
-
-        private Task VerifyImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null)
-            => VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull);
+        private Task VerifyImportItemExistsAsync(string markup, string expectedItem, string inlineDescription, int? glyph = null, string displayTextSuffix = null, string expectedDescriptionOrNull = null, List<CompletionFilter> expectedFilters = null)
+            => VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull, isComplexTextEdit: true, matchingFilters: expectedFilters);
 
         private Task VerifyImportItemIsAbsentAsync(string markup, string expectedItem, string inlineDescription, string displayTextSuffix = null)
             => VerifyItemIsAbsentAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, inlineDescription: inlineDescription);

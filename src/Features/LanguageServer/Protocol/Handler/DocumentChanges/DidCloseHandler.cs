@@ -7,14 +7,15 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Roslyn.Utilities;
+using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
 {
-    [Shared]
-    [ExportLspMethod(LSP.Methods.TextDocumentDidCloseName, mutatesSolutionState: true)]
-    internal class DidCloseHandler : IRequestHandler<LSP.DidCloseTextDocumentParams, object?>
+    [ExportCSharpVisualBasicStatelessLspService(typeof(DidCloseHandler)), Shared]
+    [Method(LSP.Methods.TextDocumentDidCloseName)]
+    internal class DidCloseHandler : ILspServiceNotificationHandler<LSP.DidCloseTextDocumentParams>, ITextDocumentIdentifierHandler<LSP.DidCloseTextDocumentParams, TextDocumentIdentifier>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -22,13 +23,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
         {
         }
 
-        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DidCloseTextDocumentParams request) => null;
+        public bool MutatesSolutionState => true;
+        public bool RequiresLSPSolution => false;
 
-        public Task<object?> HandleRequestAsync(LSP.DidCloseTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
+        public TextDocumentIdentifier GetTextDocumentIdentifier(LSP.DidCloseTextDocumentParams request) => request.TextDocument;
+
+        public async Task HandleNotificationAsync(LSP.DidCloseTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            context.StopTracking(request.TextDocument.Uri);
+            // GetTextDocumentIdentifier returns null to avoid creating the solution, so the queue is not able to log the uri.
+            context.TraceInformation($"didClose for {request.TextDocument.Uri}");
 
-            return SpecializedTasks.Default<object>();
+            await context.StopTrackingAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
         }
     }
 }

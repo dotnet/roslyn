@@ -4,6 +4,7 @@
 
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
+Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
@@ -11,10 +12,10 @@ Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertTypeOfToNameOf
-
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.ConvertTypeOfToNameOf), [Shared]>
     Friend Class VisualBasicConvertGetTypeToNameOfCodeFixProvider
-        Inherits AbstractConvertTypeOfToNameOfCodeFixProvider
+        Inherits AbstractConvertTypeOfToNameOfCodeFixProvider(
+            Of MemberAccessExpressionSyntax)
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
@@ -25,11 +26,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertTypeOfToNameOf
             Return VisualBasicCodeFixesResources.Convert_GetType_to_NameOf
         End Function
 
-        Protected Overrides Function GetSymbolTypeExpression(semanticModel As SemanticModel, node As SyntaxNode) As SyntaxNode
-
-            Dim expression = DirectCast(node, MemberAccessExpressionSyntax).Expression
+        Protected Overrides Function GetSymbolTypeExpression(semanticModel As SemanticModel, node As MemberAccessExpressionSyntax, cancellationToken As CancellationToken) As SyntaxNode
+            Dim expression = node.Expression
             Dim type = DirectCast(expression, GetTypeExpressionSyntax).Type
-            Dim symbolType = semanticModel.GetSymbolInfo(type).Symbol.GetSymbolType()
+            Dim symbolType = semanticModel.GetSymbolInfo(type, cancellationToken).Symbol.GetSymbolType()
             Dim symbolExpression = symbolType.GenerateExpressionSyntax()
 
             If TypeOf symbolExpression Is IdentifierNameSyntax OrElse TypeOf symbolExpression Is MemberAccessExpressionSyntax Then
@@ -38,11 +38,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertTypeOfToNameOf
 
             If TypeOf symbolExpression Is QualifiedNameSyntax Then
                 Dim qualifiedName = DirectCast(symbolExpression, QualifiedNameSyntax)
-                Return SyntaxFactory.SimpleMemberAccessExpression(qualifiedName.Left, qualifiedName.Right) _
-                    .WithAdditionalAnnotations(Simplifier.Annotation)
+                Return SyntaxFactory.
+                    SimpleMemberAccessExpression(qualifiedName.Left, qualifiedName.Right).
+                    WithAdditionalAnnotations(Simplifier.Annotation)
             End If
 
-            Return Nothing
+            ' Corresponding analyzer VisualBasicConvertTypeOfToNameOfDiagnosticAnalyzer validated the above syntax
+            Throw ExceptionUtilities.Unreachable
         End Function
     End Class
 End Namespace

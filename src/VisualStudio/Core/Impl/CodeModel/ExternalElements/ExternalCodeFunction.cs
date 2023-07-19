@@ -70,8 +70,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
                 var symbol = (IMethodSymbol)LookupSymbol();
 
                 // Only methods and constructors can be overloaded
-                if (symbol.MethodKind != MethodKind.Ordinary &&
-                    symbol.MethodKind != MethodKind.Constructor)
+                if (symbol.MethodKind is not MethodKind.Ordinary and
+                    not MethodKind.Constructor)
                 {
                     return false;
                 }

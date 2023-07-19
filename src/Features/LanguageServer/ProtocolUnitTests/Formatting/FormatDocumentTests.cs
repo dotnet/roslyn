@@ -10,14 +10,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
 {
     public class FormatDocumentTests : AbstractLanguageServerProtocolTests
     {
-        [Fact]
-        public async Task TestFormatDocumentAsync()
+        public FormatDocumentTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestFormatDocumentAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -35,29 +40,89 @@ void M()
         int i = 1;
     }
 }";
-            using var workspace = CreateTestWorkspace(markup, out var locations);
-            var documentURI = locations["caret"].Single().Uri;
-            var documentText = await workspace.CurrentSolution.GetDocuments(documentURI).Single().GetTextAsync();
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+            var documentURI = testLspServer.GetLocations("caret").Single().Uri;
+            var documentText = await testLspServer.GetCurrentSolution().GetDocuments(documentURI).Single().GetTextAsync();
 
-            var results = await RunFormatDocumentAsync(workspace.CurrentSolution, documentURI);
+            var results = await RunFormatDocumentAsync(testLspServer, documentURI);
             var actualText = ApplyTextEdits(results, documentText);
             Assert.Equal(expected, actualText);
         }
 
-        private static async Task<LSP.TextEdit[]> RunFormatDocumentAsync(Solution solution, Uri uri)
+        [Theory, CombinatorialData]
+        public async Task TestFormatDocument_UseTabsAsync(bool mutatingLspWorkspace)
         {
-            var queue = CreateRequestQueue(solution);
-            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.DocumentFormattingParams, LSP.TextEdit[]>(queue, LSP.Methods.TextDocumentFormattingName,
-                           CreateDocumentFormattingParams(uri), new LSP.ClientCapabilities(), null, CancellationToken.None);
+            var markup =
+@"class A
+{
+void M()
+{
+			int i = 1;{|caret:|}
+    }
+}";
+            var expected =
+@"class A
+{
+	void M()
+	{
+		int i = 1;
+	}
+}";
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+            var documentURI = testLspServer.GetLocations("caret").Single().Uri;
+            var documentText = await testLspServer.GetCurrentSolution().GetDocuments(documentURI).Single().GetTextAsync();
+
+            var results = await RunFormatDocumentAsync(testLspServer, documentURI, insertSpaces: false, tabSize: 4);
+            var actualText = ApplyTextEdits(results, documentText);
+            Assert.Equal(expected, actualText);
         }
 
-        private static LSP.DocumentFormattingParams CreateDocumentFormattingParams(Uri uri)
+        [Theory, CombinatorialData]
+        public async Task TestFormatDocument_ModifyTabIndentSizeAsync(bool mutatingLspWorkspace)
+        {
+            var markup =
+@"class A
+{
+void M()
+{
+			int i = 1;{|caret:|}
+    }
+}";
+            var expected =
+@"class A
+{
+  void M()
+  {
+    int i = 1;
+  }
+}";
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+            var documentURI = testLspServer.GetLocations("caret").Single().Uri;
+            var documentText = await testLspServer.GetCurrentSolution().GetDocuments(documentURI).Single().GetTextAsync();
+
+            var results = await RunFormatDocumentAsync(testLspServer, documentURI, insertSpaces: true, tabSize: 2);
+            var actualText = ApplyTextEdits(results, documentText);
+            Assert.Equal(expected, actualText);
+        }
+
+        private static async Task<LSP.TextEdit[]> RunFormatDocumentAsync(
+            TestLspServer testLspServer,
+            Uri uri,
+            bool insertSpaces = true,
+            int tabSize = 4)
+        {
+            return await testLspServer.ExecuteRequestAsync<LSP.DocumentFormattingParams, LSP.TextEdit[]>(LSP.Methods.TextDocumentFormattingName,
+                CreateDocumentFormattingParams(uri, insertSpaces, tabSize), CancellationToken.None);
+        }
+
+        private static LSP.DocumentFormattingParams CreateDocumentFormattingParams(Uri uri, bool insertSpaces, int tabSize)
             => new LSP.DocumentFormattingParams()
             {
                 TextDocument = CreateTextDocumentIdentifier(uri),
                 Options = new LSP.FormattingOptions()
                 {
-                    // TODO - Format should respect formatting options.
+                    InsertSpaces = insertSpaces,
+                    TabSize = tabSize,
                 }
             };
     }

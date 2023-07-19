@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -13,7 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal sealed class TrivialTemporaryStorageService : ITemporaryStorageService
+    internal sealed class TrivialTemporaryStorageService : ITemporaryStorageServiceInternal
     {
         public static readonly TrivialTemporaryStorageService Instance = new();
 
@@ -21,15 +20,15 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        public ITemporaryStreamStorage CreateTemporaryStreamStorage(CancellationToken cancellationToken = default)
+        public ITemporaryStreamStorageInternal CreateTemporaryStreamStorage()
             => new StreamStorage();
 
-        public ITemporaryTextStorage CreateTemporaryTextStorage(CancellationToken cancellationToken = default)
+        public ITemporaryTextStorageInternal CreateTemporaryTextStorage()
             => new TextStorage();
 
-        private sealed class StreamStorage : ITemporaryStreamStorage
+        private sealed class StreamStorage : ITemporaryStreamStorageInternal
         {
-            private MemoryStream _stream;
+            private MemoryStream? _stream;
 
             public void Dispose()
             {
@@ -37,36 +36,32 @@ namespace Microsoft.CodeAnalysis
                 _stream = null;
             }
 
-            public Stream ReadStream(CancellationToken cancellationToken = default)
+            public Stream ReadStream(CancellationToken cancellationToken)
             {
-                if (_stream == null)
-                {
-                    throw new InvalidOperationException();
-                }
+                var stream = _stream ?? throw new InvalidOperationException();
 
-                _stream.Position = 0;
-                return _stream;
+                // Return a read-only view of the underlying buffer to prevent users from overwriting or directly
+                // disposing the backing storage.
+                return new MemoryStream(stream.GetBuffer(), 0, (int)stream.Length, writable: false);
             }
 
-            public Task<Stream> ReadStreamAsync(CancellationToken cancellationToken = default)
+            public Task<Stream> ReadStreamAsync(CancellationToken cancellationToken)
             {
-                if (_stream == null)
-                {
-                    throw new InvalidOperationException();
-                }
-
-                _stream.Position = 0;
-                return Task.FromResult((Stream)_stream);
+                return Task.FromResult(ReadStream(cancellationToken));
             }
 
-            public void WriteStream(Stream stream, CancellationToken cancellationToken = default)
+            public void WriteStream(Stream stream, CancellationToken cancellationToken)
             {
                 var newStream = new MemoryStream();
                 stream.CopyTo(newStream);
-                _stream = newStream;
+                var existingValue = Interlocked.CompareExchange(ref _stream, newStream, null);
+                if (existingValue is not null)
+                {
+                    throw new InvalidOperationException(WorkspacesResources.Temporary_storage_cannot_be_written_more_than_once);
+                }
             }
 
-            public async Task WriteStreamAsync(Stream stream, CancellationToken cancellationToken = default)
+            public async Task WriteStreamAsync(Stream stream, CancellationToken cancellationToken)
             {
                 var newStream = new MemoryStream();
 #if NETCOREAPP
@@ -74,29 +69,37 @@ namespace Microsoft.CodeAnalysis
 # else
                 await stream.CopyToAsync(newStream).ConfigureAwait(false);
 #endif
-                _stream = newStream;
+                var existingValue = Interlocked.CompareExchange(ref _stream, newStream, null);
+                if (existingValue is not null)
+                {
+                    throw new InvalidOperationException(WorkspacesResources.Temporary_storage_cannot_be_written_more_than_once);
+                }
             }
         }
 
-        private sealed class TextStorage : ITemporaryTextStorage
+        private sealed class TextStorage : ITemporaryTextStorageInternal
         {
-            private SourceText _sourceText;
+            private SourceText? _sourceText;
 
             public void Dispose()
                 => _sourceText = null;
 
-            public SourceText ReadText(CancellationToken cancellationToken = default)
-                => _sourceText;
+            public SourceText ReadText(CancellationToken cancellationToken)
+                => _sourceText ?? throw new InvalidOperationException();
 
-            public Task<SourceText> ReadTextAsync(CancellationToken cancellationToken = default)
+            public Task<SourceText> ReadTextAsync(CancellationToken cancellationToken)
                 => Task.FromResult(ReadText(cancellationToken));
 
-            public void WriteText(SourceText text, CancellationToken cancellationToken = default)
+            public void WriteText(SourceText text, CancellationToken cancellationToken)
             {
                 // This is a trivial implementation, indeed. Note, however, that we retain a strong
                 // reference to the source text, which defeats the intent of RecoverableTextAndVersion, but
                 // is appropriate for this trivial implementation.
-                _sourceText = text;
+                var existingValue = Interlocked.CompareExchange(ref _sourceText, text, null);
+                if (existingValue is not null)
+                {
+                    throw new InvalidOperationException(WorkspacesResources.Temporary_storage_cannot_be_written_more_than_once);
+                }
             }
 
             public Task WriteTextAsync(SourceText text, CancellationToken cancellationToken = default)

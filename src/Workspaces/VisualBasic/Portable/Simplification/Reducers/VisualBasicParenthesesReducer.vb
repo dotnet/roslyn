@@ -13,5 +13,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
         Public Sub New()
             MyBase.New(s_pool)
         End Sub
+
+        Public Overrides Function IsApplicable(options As VisualBasicSimplifierOptions) As Boolean
+            Return True
+        End Function
     End Class
 End Namespace

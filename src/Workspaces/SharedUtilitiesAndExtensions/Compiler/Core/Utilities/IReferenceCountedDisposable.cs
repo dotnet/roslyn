@@ -13,6 +13,9 @@ namespace Roslyn.Utilities
     /// </summary>
     /// <typeparam name="T"></typeparam>
     internal interface IReferenceCountedDisposable<out T> : IDisposable
+#if !CODE_STYLE
+        , IAsyncDisposable
+#endif
         where T : class
     {
         /// <summary>

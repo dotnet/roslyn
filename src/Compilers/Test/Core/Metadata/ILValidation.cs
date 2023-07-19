@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -16,9 +15,11 @@ using System.Reflection.PortableExecutable;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using System.Xml;
+using System.Xml.Linq;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.DiaSymReader.Tools;
 using Microsoft.Metadata.Tools;
 
 namespace Roslyn.Test.Utilities
@@ -320,106 +321,118 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        public static Dictionary<int, string> GetSequencePointMarkers(string pdbXml, string source = null)
-        {
-            var doc = new XmlDocument() { XmlResolver = null };
-            using (var reader = new XmlTextReader(new StringReader(pdbXml)) { DtdProcessing = DtdProcessing.Prohibit })
-            {
-                doc.Load(reader);
-            }
+        /// <summary>
+        /// Returns "method" element with a specified token.
+        /// <see cref="PdbToXmlOptions.IncludeTokens"/> must be set to include "token" attributes in "method" elements.
+        /// </summary>
+        public static XElement GetMethodElement(XElement document, int methodToken)
+            => (from e in document.DescendantsAndSelf()
+                where e.Name == "method"
+                let xmlTokenValue = e.Attribute("token")?.Value
+                where xmlTokenValue != null &&
+                      xmlTokenValue.StartsWith("0x") &&
+                      Convert.ToInt32(xmlTokenValue[2..], 16) == methodToken
+                select e).SingleOrDefault();
 
+        public static ImmutableDictionary<string, string> GetDocumentIdToPathMap(XElement document)
+            => document
+                .Descendants().Where(e => e.Name == "files").Single()
+                .Descendants().ToImmutableDictionary(e => e.Attribute("id").Value, e => e.Attribute("name").Value);
+
+        public static Dictionary<int, string> GetSequencePointMarkers(XElement methodXml)
+        {
             var result = new Dictionary<int, string>();
 
-            if (source == null)
+            void add(int key, string value)
+                => result[key] = result.TryGetValue(key, out var existing) ? existing + value : value;
+
+            foreach (var e in methodXml.Descendants())
             {
-                static void Add(Dictionary<int, string> dict, int key, string value)
-                    => dict[key] = dict.TryGetValue(key, out var found) ? found + value : value;
-
-                foreach (XmlNode entry in doc.GetElementsByTagName("sequencePoints"))
+                if (e.Name == "entry" && e.Parent.Name == "sequencePoints")
                 {
-                    foreach (XmlElement item in entry.ChildNodes)
-                    {
-                        Add(result,
-                            Convert.ToInt32(item.GetAttribute("offset"), 16),
-                            (item.GetAttribute("hidden") == "true") ? "~" : "-");
-                    }
-                }
-
-                foreach (XmlNode entry in doc.GetElementsByTagName("asyncInfo"))
-                {
-                    foreach (XmlElement item in entry.ChildNodes)
-                    {
-                        if (item.Name == "await")
-                        {
-                            Add(result, Convert.ToInt32(item.GetAttribute("yield"), 16), "<");
-                            Add(result, Convert.ToInt32(item.GetAttribute("resume"), 16), ">");
-                        }
-                        else if (item.Name == "catchHandler")
-                        {
-                            Add(result, Convert.ToInt32(item.GetAttribute("offset"), 16), "$");
-                        }
-                    }
+                    add(Convert.ToInt32(e.Attribute("offset").Value, 16), (e.Attribute("hidden")?.Value == "true") ? "~" : "-");
                 }
             }
-            else
+
+            foreach (var e in methodXml.Descendants())
             {
-                static void AddTextual(Dictionary<int, string> dict, int key, string value)
-                    => dict[key] = dict.TryGetValue(key, out var found) ? found + ", " + value : "// " + value;
-
-                foreach (XmlNode entry in doc.GetElementsByTagName("asyncInfo"))
+                if (e.Name == "await" && e.Parent.Name == "asyncInfo")
                 {
-                    foreach (XmlElement item in entry.ChildNodes)
-                    {
-                        if (item.Name == "await")
-                        {
-                            AddTextual(result, Convert.ToInt32(item.GetAttribute("yield"), 16), "async: yield");
-                            AddTextual(result, Convert.ToInt32(item.GetAttribute("resume"), 16), "async: resume");
-                        }
-                        else if (item.Name == "catchHandler")
-                        {
-                            AddTextual(result, Convert.ToInt32(item.GetAttribute("offset"), 16), "async: catch handler");
-                        }
-                    }
+                    add(Convert.ToInt32(e.Attribute("yield").Value, 16), "<");
+                    add(Convert.ToInt32(e.Attribute("resume").Value, 16), ">");
                 }
-
-                var sourceLines = source.Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.None);
-
-                foreach (XmlNode entry in doc.GetElementsByTagName("sequencePoints"))
+                else if (e.Name == "catchHandler" && e.Parent.Name == "asyncInfo")
                 {
-                    foreach (XmlElement item in entry.ChildNodes)
-                    {
-                        AddTextual(result, Convert.ToInt32(item.GetAttribute("offset"), 16), "sequence point: " + SnippetFromSpan(sourceLines, item));
-                    }
+                    add(Convert.ToInt32(e.Attribute("offset").Value, 16), "$");
                 }
             }
 
             return result;
         }
 
-        private static string SnippetFromSpan(string[] lines, XmlElement span)
+        public static Dictionary<int, string> GetSequencePointMarkers(XElement methodXml, Func<string, SourceText> getSource)
         {
-            if (span.GetAttribute("hidden") == "true")
+            var result = new Dictionary<int, string>();
+
+            void add(int key, string value)
+                => result[key] = result.TryGetValue(key, out var existing) ? existing + ", " + value : "// " + value;
+
+            foreach (var e in methodXml.Descendants())
+            {
+                if (e.Name == "await" && e.Parent.Name == "asyncInfo")
+                {
+                    add(Convert.ToInt32(e.Attribute("yield").Value, 16), "async: yield");
+                    add(Convert.ToInt32(e.Attribute("resume").Value, 16), "async: resume");
+                }
+                else if (e.Name == "catchHandler" && e.Parent.Name == "asyncInfo")
+                {
+                    add(Convert.ToInt32(e.Attribute("offset").Value, 16), "async: catch handler");
+                }
+            }
+
+            foreach (var e in methodXml.Descendants())
+            {
+                if (e.Name == "entry" && e.Parent.Name == "sequencePoints")
+                {
+                    var documentId = e.Attribute("document").Value;
+                    var source = getSource(documentId);
+
+                    add(Convert.ToInt32(e.Attribute("offset").Value, 16), "sequence point: " + SnippetFromSpan(source, e));
+                }
+            }
+
+            return result;
+        }
+
+        private static string SnippetFromSpan(SourceText text, XElement sequencePointXml)
+        {
+            if (sequencePointXml.Attribute("hidden")?.Value == "true")
             {
                 return "<hidden>";
             }
 
-            var startLine = Convert.ToInt32(span.GetAttribute("startLine"));
-            var startColumn = Convert.ToInt32(span.GetAttribute("startColumn"));
-            var endLine = Convert.ToInt32(span.GetAttribute("endLine"));
-            var endColumn = Convert.ToInt32(span.GetAttribute("endColumn"));
+            var startLine = Convert.ToInt32(sequencePointXml.Attribute("startLine").Value) - 1;
+            var startColumn = Convert.ToInt32(sequencePointXml.Attribute("startColumn").Value) - 1;
+            var endLine = Convert.ToInt32(sequencePointXml.Attribute("endLine").Value) - 1;
+            var endColumn = Convert.ToInt32(sequencePointXml.Attribute("endColumn").Value) - 1;
+
+            var lineSpan = new LinePositionSpan(new LinePosition(startLine, startColumn), new LinePosition(endLine, endColumn));
+            var span = text.Lines.GetTextSpan(lineSpan);
+            var subtext = text.GetSubText(span);
+
             if (startLine == endLine)
             {
-                return lines[startLine - 1].Substring(startColumn - 1, endColumn - startColumn);
+                return subtext.ToString();
             }
 
             static string TruncateStart(string text, int maxLength)
-                => (text.Length < maxLength) ? text : text.Substring(0, maxLength);
+                => (text.Length < maxLength) ? text : text[..maxLength];
 
             static string TruncateEnd(string text, int maxLength)
                 => (text.Length < maxLength) ? text : text.Substring(text.Length - maxLength - 1, maxLength);
 
-            var start = lines[startLine - 1].Substring(startColumn - 1);
-            var end = lines[endLine - 1].Substring(0, endColumn - 1);
+            var start = subtext.Lines[0].ToString();
+            var end = subtext.Lines[^1].ToString();
             return TruncateStart(start, 12) + " ... " + TruncateEnd(end, 12);
         }
     }

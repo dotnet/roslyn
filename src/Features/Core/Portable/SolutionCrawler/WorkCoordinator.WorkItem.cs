@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         internal partial class WorkCoordinator
         {
             // this is internal only type
-            private readonly struct WorkItem
+            internal readonly struct WorkItem
             {
                 // project related workitem
                 public readonly ProjectId ProjectId;
@@ -45,9 +45,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 public IEnumerable<IIncrementalAnalyzer> GetApplicableAnalyzers(ImmutableArray<IIncrementalAnalyzer> allAnalyzers)
                     => SpecificAnalyzers?.Count > 0 ? SpecificAnalyzers.Where(allAnalyzers.Contains) : allAnalyzers;
 
-                // retry
-                public readonly bool IsRetry;
-
                 // common
                 public readonly IAsyncToken AsyncToken;
 
@@ -71,7 +68,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     bool isLowPriority,
                     SyntaxPath? activeMember,
                     ImmutableHashSet<IIncrementalAnalyzer> specificAnalyzers,
-                    bool retry,
                     IAsyncToken asyncToken)
                 {
                     Debug.Assert(documentId == null || documentId.ProjectId == projectId);
@@ -85,50 +81,28 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     ActiveMember = activeMember;
                     SpecificAnalyzers = specificAnalyzers;
 
-                    IsRetry = retry;
-
                     AsyncToken = asyncToken;
                 }
 
                 public WorkItem(DocumentId documentId, string language, InvocationReasons invocationReasons, bool isLowPriority, SyntaxPath? activeMember, IAsyncToken asyncToken)
-                    : this(documentId, documentId.ProjectId, language, invocationReasons, isLowPriority, activeMember, ImmutableHashSet.Create<IIncrementalAnalyzer>(), retry: false, asyncToken)
+                    : this(documentId, documentId.ProjectId, language, invocationReasons, isLowPriority, activeMember, ImmutableHashSet.Create<IIncrementalAnalyzer>(), asyncToken)
                 {
                 }
 
                 public WorkItem(DocumentId documentId, string language, InvocationReasons invocationReasons, bool isLowPriority, IIncrementalAnalyzer? analyzer, IAsyncToken asyncToken)
                     : this(documentId, documentId.ProjectId, language, invocationReasons, isLowPriority, activeMember: null,
                            analyzer == null ? ImmutableHashSet.Create<IIncrementalAnalyzer>() : ImmutableHashSet.Create(analyzer),
-                           retry: false, asyncToken)
+                           asyncToken)
                 {
                 }
 
                 public object Key => DocumentId ?? (object)ProjectId;
 
-                private ImmutableHashSet<IIncrementalAnalyzer> Union(ImmutableHashSet<IIncrementalAnalyzer> analyzers)
-                {
-                    if (analyzers.IsEmpty)
-                    {
-                        return SpecificAnalyzers;
-                    }
-
-                    if (SpecificAnalyzers.IsEmpty)
-                    {
-                        return analyzers;
-                    }
-
-                    return SpecificAnalyzers.Union(analyzers);
-                }
-
-                public WorkItem Retry(IAsyncToken asyncToken)
-                {
-                    return new WorkItem(
-                        DocumentId, ProjectId, Language, InvocationReasons, IsLowPriority, ActiveMember, SpecificAnalyzers,
-                        retry: true, asyncToken: asyncToken);
-                }
-
                 public WorkItem With(
-                    InvocationReasons invocationReasons, SyntaxPath? currentMember,
-                    ImmutableHashSet<IIncrementalAnalyzer> analyzers, bool retry, IAsyncToken asyncToken)
+                    InvocationReasons invocationReasons,
+                    SyntaxPath? currentMember,
+                    ImmutableHashSet<IIncrementalAnalyzer> specificAnalyzers,
+                    IAsyncToken asyncToken)
                 {
                     // dispose old one
                     AsyncToken.Dispose();
@@ -139,16 +113,24 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         InvocationReasons.With(invocationReasons),
                         IsLowPriority,
                         ActiveMember == currentMember ? currentMember : null,
-                        Union(analyzers), IsRetry || retry,
+                        ComputeNewSpecificAnalyzers(specificAnalyzers, SpecificAnalyzers),
                         asyncToken);
+
+                    static ImmutableHashSet<IIncrementalAnalyzer> ComputeNewSpecificAnalyzers(ImmutableHashSet<IIncrementalAnalyzer> specificAnalyzers1, ImmutableHashSet<IIncrementalAnalyzer> specificAnalyzers2)
+                    {
+                        // An empty analyzer list means run all analyzers, so empty always wins over any specific
+                        if (specificAnalyzers1.IsEmpty || specificAnalyzers2.IsEmpty)
+                        {
+                            return ImmutableHashSet<IIncrementalAnalyzer>.Empty;
+                        }
+
+                        // Otherwise, if both sets have analyzers we use a union of the two
+                        return specificAnalyzers1.Union(specificAnalyzers2);
+                    }
                 }
 
                 public WorkItem WithAsyncToken(IAsyncToken asyncToken)
-                {
-                    return new WorkItem(
-                        DocumentId, ProjectId, Language, InvocationReasons, IsLowPriority, ActiveMember, SpecificAnalyzers,
-                        retry: false, asyncToken: asyncToken);
-                }
+                    => new(DocumentId, ProjectId, Language, InvocationReasons, IsLowPriority, ActiveMember, SpecificAnalyzers, asyncToken);
 
                 public WorkItem ToProjectWorkItem(IAsyncToken asyncToken)
                 {
@@ -163,18 +145,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         IsLowPriority,
                         ActiveMember,
                         SpecificAnalyzers,
-                        IsRetry,
                         asyncToken);
                 }
 
-                public WorkItem With(ImmutableHashSet<IIncrementalAnalyzer> specificAnalyzers, IAsyncToken asyncToken)
-                {
-                    return new WorkItem(DocumentId, ProjectId, Language, InvocationReasons,
-                        IsLowPriority, ActiveMember, specificAnalyzers, IsRetry, asyncToken);
-                }
-
                 public override string ToString()
-                    => $"{DocumentId?.ToString() ?? ProjectId.ToString()}, ({InvocationReasons}), LowPriority:{IsLowPriority}, ActiveMember:{ActiveMember != null}, Retry:{IsRetry}, ({string.Join("|", SpecificAnalyzers.Select(a => a.GetType().Name))})";
+                    => $"{DocumentId?.ToString() ?? ProjectId.ToString()}, ({InvocationReasons}), LowPriority:{IsLowPriority}, ActiveMember:{ActiveMember != null}, ({string.Join("|", SpecificAnalyzers.Select(a => a.GetType().Name))})";
             }
         }
     }

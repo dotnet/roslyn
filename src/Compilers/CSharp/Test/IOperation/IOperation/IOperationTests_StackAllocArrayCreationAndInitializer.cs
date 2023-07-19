@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_StackAllocArrayCreationAndInitializer : SemanticModelTestBase
     {
         [Fact]
         public void SimpleStackAllocArrayCreation_PrimitiveType()
@@ -26,7 +26,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'stackalloc int[1]')
+IOperation:  (OperationKind.None, Type: System.Int32*, IsInvalid) (Syntax: 'stackalloc int[1]')
   Children(1):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ";
@@ -54,7 +54,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'stackalloc M[1]')
+IOperation:  (OperationKind.None, Type: M*, IsInvalid) (Syntax: 'stackalloc M[1]')
   Children(1):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ";
@@ -83,7 +83,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'stackalloc M[dimension]')
+IOperation:  (OperationKind.None, Type: M*, IsInvalid) (Syntax: 'stackalloc M[dimension]')
   Children(1):
       ILocalReferenceOperation: dimension (OperationKind.LocalReference, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: 'dimension')
 ";
@@ -111,7 +111,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'stackalloc M[dimension]')
+IOperation:  (OperationKind.None, Type: M*, IsInvalid) (Syntax: 'stackalloc M[dimension]')
   Children(1):
       IParameterReferenceOperation: dimension (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'dimension')
 ";
@@ -139,7 +139,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'stackalloc M[dimension]')
+IOperation:  (OperationKind.None, Type: M*, IsInvalid) (Syntax: 'stackalloc M[dimension]')
   Children(1):
       IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'dimension')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -170,7 +170,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'stackalloc  ... )dimension]')
+IOperation:  (OperationKind.None, Type: M*, IsInvalid) (Syntax: 'stackalloc  ... )dimension]')
   Children(1):
       IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid) (Syntax: '(int)dimension')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -199,7 +199,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'stackalloc int[] { 42 }')
+IOperation:  (OperationKind.None, Type: System.Int32*, IsInvalid) (Syntax: 'stackalloc int[] { 42 }')
   Children(2):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'stackalloc int[] { 42 }')
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42, IsInvalid) (Syntax: '42')
@@ -226,7 +226,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'stackalloc int[1] { 42 }')
+IOperation:  (OperationKind.None, Type: System.Int32*, IsInvalid) (Syntax: 'stackalloc int[1] { 42 }')
   Children(2):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42, IsInvalid) (Syntax: '42')
@@ -253,7 +253,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'stackalloc int[2] { 42 }')
+IOperation:  (OperationKind.None, Type: System.Int32*, IsInvalid) (Syntax: 'stackalloc int[2] { 42 }')
   Children(2):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42, IsInvalid) (Syntax: '42')
@@ -280,7 +280,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'stackalloc  ... ion] { 42 }')
+IOperation:  (OperationKind.None, Type: System.Int32*, IsInvalid) (Syntax: 'stackalloc  ... ion] { 42 }')
   Children(2):
       IParameterReferenceOperation: dimension (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'dimension')
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
@@ -309,7 +309,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'stackalloc  ... { new M() }')
+IOperation:  (OperationKind.None, Type: M*, IsInvalid) (Syntax: 'stackalloc  ... { new M() }')
   Children(2):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'stackalloc  ... { new M() }')
       IObjectCreationOperation (Constructor: M..ctor()) (OperationKind.ObjectCreation, Type: M, IsInvalid) (Syntax: 'new M()')
@@ -341,7 +341,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'stackalloc[] { new M() }')
+IOperation:  (OperationKind.None, Type: M*, IsInvalid) (Syntax: 'stackalloc[] { new M() }')
   Children(2):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'stackalloc[] { new M() }')
       IObjectCreationOperation (Constructor: M..ctor()) (OperationKind.ObjectCreation, Type: M, IsInvalid) (Syntax: 'new M()')
@@ -371,7 +371,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'stackalloc[]/*</bind>*/')
+IOperation:  (OperationKind.None, Type: ?*, IsInvalid) (Syntax: 'stackalloc[]/*</bind>*/')
   Children(1):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid, IsImplicit) (Syntax: 'stackalloc[]/*</bind>*/')
 ";
@@ -403,7 +403,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'stackalloc[2]/*</bind>*/')
+IOperation:  (OperationKind.None, Type: ?*, IsInvalid) (Syntax: 'stackalloc[2]/*</bind>*/')
   Children(1):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid, IsImplicit) (Syntax: 'stackalloc[2]/*</bind>*/')
 ";
@@ -439,7 +439,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'stackalloc[ ... , default }')
+IOperation:  (OperationKind.None, Type: System.Int32*, IsInvalid) (Syntax: 'stackalloc[ ... , default }')
   Children(4):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsInvalid, IsImplicit) (Syntax: 'stackalloc[ ... , default }')
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
@@ -471,7 +471,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'stackalloc int[]')
+IOperation:  (OperationKind.None, Type: System.Int32*, IsInvalid) (Syntax: 'stackalloc int[]')
   Children(1):
       IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '')
         Children(0)
@@ -498,7 +498,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'stackalloc int[] { 1 }')
+IOperation:  (OperationKind.None, Type: System.Int32*, IsInvalid) (Syntax: 'stackalloc int[] { 1 }')
   Children(2):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'stackalloc int[] { 1 }')
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
@@ -525,7 +525,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'stackalloc int[b]')
+IOperation:  (OperationKind.None, Type: System.Int32*, IsInvalid) (Syntax: 'stackalloc int[b]')
   Children(1):
       IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'b')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -559,7 +559,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'stackalloc int[M()]')
+IOperation:  (OperationKind.None, Type: System.Int32*, IsInvalid) (Syntax: 'stackalloc int[M()]')
   Children(1):
       IInvocationOperation ( System.Int32 C.M()) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'M()')
         Instance Receiver: 
@@ -590,7 +590,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'stackalloc int[(int)M()]')
+IOperation:  (OperationKind.None, Type: System.Int32*, IsInvalid) (Syntax: 'stackalloc int[(int)M()]')
   Children(1):
       IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid) (Syntax: '(int)M()')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -624,7 +624,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-    IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'stackalloc int[M()]')
+    IOperation:  (OperationKind.None, Type: System.Int32*, IsInvalid) (Syntax: 'stackalloc int[M()]')
       Children(1):
           IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'M()')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -656,7 +656,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'stackalloc int[(int)M()]')
+IOperation:  (OperationKind.None, Type: System.Int32*, IsInvalid) (Syntax: 'stackalloc int[(int)M()]')
   Children(1):
       IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid) (Syntax: '(int)M()')
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -688,7 +688,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'stackalloc int[0.0]')
+IOperation:  (OperationKind.None, Type: System.Int32*, IsInvalid) (Syntax: 'stackalloc int[0.0]')
   Children(1):
       IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, Constant: 0, IsInvalid, IsImplicit) (Syntax: '0.0')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)

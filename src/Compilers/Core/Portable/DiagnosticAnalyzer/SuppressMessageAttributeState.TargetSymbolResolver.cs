@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             break;
                         }
                     }
-                    else if (nextChar == '.' || nextChar == '+')
+                    else if (nextChar is '.' or '+')
                     {
                         ++_index;
 
@@ -219,8 +219,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             else
                             {
                                 singleResult = candidateMembers.FirstOrDefault(s =>
-                                    s.Kind != SymbolKind.Namespace &&
-                                    s.Kind != SymbolKind.NamedType);
+                                    s.Kind is not SymbolKind.Namespace and
+                                    not SymbolKind.NamedType);
                             }
                             break;
 
@@ -305,11 +305,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private ParameterInfo[] ParseParameterList()
             {
                 // Consume the opening parenthesis or bracket
-                Debug.Assert(PeekNextChar() == '(' || PeekNextChar() == '[');
+                Debug.Assert(PeekNextChar() is '(' or '[');
                 ++_index;
 
                 var nextChar = PeekNextChar();
-                if (nextChar == ')' || nextChar == ']')
+                if (nextChar is ')' or ']')
                 {
                     // Empty parameter list
                     ++_index;
@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 nextChar = PeekNextChar();
-                if (nextChar == ')' || nextChar == ']')
+                if (nextChar is ')' or ']')
                 {
                     // Consume the closing parenthesis or bracket
                     ++_index;
@@ -612,7 +612,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
 
                     var nextChar = PeekNextChar();
-                    if (nextChar == '.' || nextChar == '+')
+                    if (nextChar is '.' or '+')
                     {
                         ++_index;
 
@@ -829,8 +829,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 return (INamespaceOrTypeSymbol)candidateMembers
                     .FirstOrDefault(s =>
-                        s.Kind == SymbolKind.Namespace ||
-                        s.Kind == SymbolKind.NamedType);
+                        s.Kind is SymbolKind.Namespace or
+                        SymbolKind.NamedType);
             }
 
             private static ITypeParameterSymbol GetNthTypeParameter(INamedTypeSymbol typeSymbol, int n)
@@ -841,7 +841,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return GetNthTypeParameter(typeSymbol.ContainingType, n);
                 }
 
-                return typeSymbol.TypeParameters[n - containingTypeParameterCount];
+                var index = n - containingTypeParameterCount;
+                var typeParameters = typeSymbol.TypeParameters;
+                if (index < typeParameters.Length)
+                {
+                    return typeParameters[index];
+                }
+
+                return null;
             }
 
             private static int GetTypeParameterCount(INamedTypeSymbol typeSymbol)
@@ -855,7 +862,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             [StructLayout(LayoutKind.Auto)]
-            private struct TypeInfo
+            private readonly struct TypeInfo
             {
                 // The type, may be null if unbound.
                 public readonly ITypeSymbol Type;
@@ -886,7 +893,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             [StructLayout(LayoutKind.Auto)]
-            private struct ParameterInfo
+            private readonly struct ParameterInfo
             {
                 public readonly TypeInfo Type;
                 public readonly bool IsRefOrOut;

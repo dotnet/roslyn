@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnusedParametersAndValues
+    <Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
     Partial Public Class RemoveUnusedValueAssignmentTests
         Inherits RemoveUnusedValuesTestsBase
 
@@ -31,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnusedParame
             End Get
         End Property
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
+        <Fact>
         Public Async Function TestPreferNone() As Task
             Await TestMissingInRegularAndScriptAsync(
 $"Class C
@@ -43,7 +44,7 @@ $"Class C
 End Class", options:=PreferNone)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
+        <Fact>
         Public Async Function TestPreferDiscard() As Task
             Await TestInRegularAndScriptAsync(
 $"Class C
@@ -61,7 +62,7 @@ $"Class C
 End Class", options:=PreferDiscard)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
+        <Fact>
         Public Async Function TestPreferUnusedLocal() As Task
             Await TestInRegularAndScriptAsync(
 $"Class C
@@ -79,7 +80,7 @@ $"Class C
 End Class", options:=PreferUnusedLocal)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
+        <Fact>
         Public Async Function Initialization_ConstantValue() As Task
             Await TestInRegularAndScriptAsync(
 $"Class C
@@ -97,7 +98,39 @@ $"Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48070")>
+        Public Async Function Initialization_ConstantValue_DoNotCopyLeadingTriviaDirectives() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M()
+#region """"
+
+        dim value as integer = 3
+
+#end region
+        dim [|x|] as integer? = nothing
+        dim y = value + value
+
+        x = y
+        System.Console.WriteLine(x)
+    end sub
+end class",
+"class C
+    sub M()
+#region """"
+
+        dim value as integer = 3
+
+#end region
+        dim y = value + value
+
+        Dim x As Integer? = y
+        System.Console.WriteLine(x)
+    end sub
+end class")
+        End Function
+
+        <Fact>
         Public Async Function Initialization_ConstantValue_UnusedLocal() As Task
             Await TestInRegularAndScriptAsync(
 $"Class C
@@ -115,7 +148,7 @@ $"Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
+        <Fact>
         Public Async Function Assignment_ConstantValue() As Task
             Await TestInRegularAndScriptAsync(
 $"Class C
@@ -135,7 +168,7 @@ $"Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
+        <Fact>
         Public Async Function Initialization_NonConstantValue() As Task
             Await TestInRegularAndScriptAsync(
 $"Class C
@@ -162,7 +195,7 @@ $"Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
+        <Fact>
         Public Async Function Initialization_NonConstantValue_UnusedLocal() As Task
             Await TestMissingInRegularAndScriptAsync(
 $"Class C
@@ -178,7 +211,7 @@ $"Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
+        <Fact>
         Public Async Function Assignment_NonConstantValue() As Task
             Await TestInRegularAndScriptAsync(
 $"Class C
@@ -207,7 +240,7 @@ $"Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
+        <Fact>
         Public Async Function Assignment_NonConstantValue_UnusedLocal() As Task
             Await TestMissingInRegularAndScriptAsync(
 $"Class C
@@ -224,7 +257,7 @@ $"Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
+        <Fact>
         Public Async Function UseInLambda() As Task
             Await TestMissingInRegularAndScriptAsync(
 $"Imports System
@@ -241,7 +274,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
+        <Fact>
         Public Async Function CatchClause_ExceptionVariable_01() As Task
             Await TestMissingInRegularAndScriptAsync(
 $"Imports System
@@ -255,7 +288,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
+        <Fact>
         Public Async Function CatchClause_ExceptionVariable_02() As Task
             Await TestMissingInRegularAndScriptAsync(
 $"Imports System
@@ -274,7 +307,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
+        <Fact>
         Public Async Function CatchClause_ExceptionVariable_03() As Task
             Await TestInRegularAndScriptAsync(
 $"Imports System
@@ -301,7 +334,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
+        <Fact>
         Public Async Function ForToLoopStatement_01() As Task
             Await TestMissingInRegularAndScriptAsync(
 $"Imports System
@@ -315,7 +348,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
+        <Fact>
         Public Async Function ForToLoopStatement_02() As Task
             Await TestMissingInRegularAndScriptAsync(
 $"Imports System
@@ -329,7 +362,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
+        <Fact>
         Public Async Function ForToLoopStatement_03() As Task
             Await TestMissingInRegularAndScriptAsync(
 $"Imports System
@@ -343,7 +376,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
+        <Fact>
         Public Async Function StaticLocals() As Task
             Await TestMissingInRegularAndScriptAsync(
 $"Class C
@@ -359,7 +392,7 @@ $"Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
+        <Fact>
         Public Async Function UsedAssignment_ConditionalPreprocessorDirective() As Task
             Await TestMissingInRegularAndScriptAsync(
 $"Class C
@@ -373,8 +406,7 @@ $"Class C
 End Class")
         End Function
 
-        <WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
+        <Fact, WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")>
         Public Async Function RedundantAssignment_WithLeadingAndTrailingComment() As Task
             Await TestInRegularAndScriptAsync(
 $"Class C
@@ -401,8 +433,7 @@ $"Class C
 End Class")
         End Function
 
-        <WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
+        <Fact, WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")>
         Public Async Function MultipleRedundantAssignment_WithLeadingAndTrailingComment() As Task
             Await TestInRegularAndScriptAsync(
 "Class C

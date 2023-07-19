@@ -90,6 +90,17 @@ namespace Microsoft.VisualStudio.LanguageServices
             UpdateForegroundColor(ClassificationTypeNames.RegexOtherEscape, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.RegexSelfEscapedCharacter, sourceFormatMap, targetFormatMap);
 
+            UpdateForegroundColor(ClassificationTypeNames.JsonComment, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.JsonNumber, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.JsonString, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.JsonKeyword, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.JsonText, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.JsonOperator, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.JsonArray, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.JsonObject, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.JsonPropertyName, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.JsonConstructorName, sourceFormatMap, targetFormatMap);
+
             UpdateForegroundColor(ClassificationTypeNames.PreprocessorKeyword, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.PreprocessorText, sourceFormatMap, targetFormatMap);
 
@@ -98,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             UpdateForegroundColor(ClassificationTypeNames.Punctuation, sourceFormatMap, targetFormatMap);
 
             UpdateForegroundColor(ClassificationTypeNames.ClassName, sourceFormatMap, targetFormatMap);
-            UpdateForegroundColor(ClassificationTypeNames.RecordName, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.RecordClassName, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.StructName, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.InterfaceName, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.DelegateName, sourceFormatMap, targetFormatMap);

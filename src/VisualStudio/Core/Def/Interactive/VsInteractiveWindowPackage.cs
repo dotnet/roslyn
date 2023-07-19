@@ -51,16 +51,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
             // Set both handlers to non-fatal Watson. Never fail-fast the VS process.
             // Any exception that is not recovered from shall be propagated.
-            var nonFatalHandler = new Action<Exception>(WatsonReporter.ReportNonFatal);
-            var fatalHandler = nonFatalHandler;
-
-            InteractiveHostFatalError.Handler = fatalHandler;
-            InteractiveHostFatalError.NonFatalHandler = nonFatalHandler;
-
-            // Load the Roslyn package so that its FatalError handlers are hooked up.
-            shell.LoadPackage(Guids.RoslynPackageId, out var roslynPackage);
+            FaultReporter.InitializeFatalErrorHandlers();
+            FatalError.CopyHandlerTo(typeof(InteractiveHostFatalError).Assembly);
 
             // Explicitly set up FatalError handlers for the InteractiveWindowPackage.
+            Action<Exception> fatalHandler = e => FaultReporter.ReportFault(e, VisualStudio.Telemetry.FaultSeverity.Critical, forceDump: false);
+            Action<Exception> nonFatalHandler = e => FaultReporter.ReportFault(e, VisualStudio.Telemetry.FaultSeverity.General, forceDump: false);
+
             SetErrorHandlers(typeof(IInteractiveWindow).Assembly, fatalHandler, nonFatalHandler);
             SetErrorHandlers(typeof(IVsInteractiveWindow).Assembly, fatalHandler, nonFatalHandler);
 

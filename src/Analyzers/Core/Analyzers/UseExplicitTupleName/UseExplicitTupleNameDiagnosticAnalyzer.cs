@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -35,7 +33,7 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
         private void AnalyzeOperation(OperationAnalysisContext context)
         {
             // We only create a diagnostic if the option's value is set to true.
-            var option = context.GetOption(CodeStyleOptions2.PreferExplicitTupleNames, context.Compilation.Language);
+            var option = context.GetAnalyzerOptions().PreferExplicitTupleNames;
             if (!option.Value)
             {
                 return;
@@ -58,10 +56,10 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
                     if (namedField != null)
                     {
                         var memberAccessSyntax = fieldReferenceOperation.Syntax;
-                        var nameNode = memberAccessSyntax.ChildNodesAndTokens().Reverse().FirstOrDefault();
+                        var nameNode = memberAccessSyntax.ChildNodesAndTokens().Reverse().FirstOrDefault().AsNode();
                         if (nameNode != null)
                         {
-                            var properties = ImmutableDictionary<string, string>.Empty.Add(
+                            var properties = ImmutableDictionary<string, string?>.Empty.Add(
                                 nameof(ElementName), namedField.Name);
                             context.ReportDiagnostic(DiagnosticHelper.Create(
                                 Descriptor,
@@ -75,7 +73,7 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
             }
         }
 
-        private static IFieldSymbol GetNamedField(
+        private static IFieldSymbol? GetNamedField(
             INamedTypeSymbol containingType, IFieldSymbol unnamedField, CancellationToken cancellationToken)
         {
             foreach (var member in containingType.GetMembers())

@@ -3,7 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.DocumentationComments
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.SignatureHelp
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
@@ -15,12 +15,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                                                     position As Integer,
                                                     semanticModel As SemanticModel) As SignatureHelpItem
 
-            Dim anonymousTypeDisplayService = document.GetLanguageService(Of IAnonymousTypeDisplayService)()
+            Dim structuralTypeDisplayService = document.GetLanguageService(Of IStructuralTypeDisplayService)()
             Dim documentationCommentFormattingService = document.GetLanguageService(Of IDocumentationCommentFormattingService)()
 
             Return CreateItem(
                 member, semanticModel, position,
-                anonymousTypeDisplayService,
+                structuralTypeDisplayService,
                 member.IsParams(),
                 Function(c) member.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, c),
                 GetMemberGroupPreambleParts(member, semanticModel, position),

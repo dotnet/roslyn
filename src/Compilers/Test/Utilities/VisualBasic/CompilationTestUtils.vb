@@ -19,7 +19,7 @@ Imports Xunit
 Friend Module CompilationUtils
 
     Private Function ParseSources(source As IEnumerable(Of String), parseOptions As VisualBasicParseOptions) As IEnumerable(Of SyntaxTree)
-        Return source.Select(Function(s) VisualBasicSyntaxTree.ParseText(s, parseOptions))
+        Return source.Select(Function(s) VisualBasicSyntaxTree.ParseText(SourceText.From(s, encoding:=Nothing, SourceHashAlgorithms.Default), parseOptions))
     End Function
 
     Public Function CreateCompilation(
@@ -57,9 +57,52 @@ Friend Module CompilationUtils
                                             references,
                                             options)
                                       End Function
-        CompilationExtensions.ValidateIOperations(createCompilationLambda)
+        ValidateCompilation(createCompilationLambda)
         Return createCompilationLambda()
     End Function
+
+    Private Sub ValidateCompilation(createCompilationLambda As Func(Of VisualBasicCompilation))
+        CompilationExtensions.ValidateIOperations(createCompilationLambda)
+        VerifyUsedAssemblyReferences(createCompilationLambda)
+    End Sub
+
+    Private Sub VerifyUsedAssemblyReferences(createCompilationLambda As Func(Of VisualBasicCompilation))
+
+        If Not CompilationExtensions.EnableVerifyUsedAssemblies Then
+            Return
+        End If
+
+        Dim comp = createCompilationLambda()
+        Dim used = comp.GetUsedAssemblyReferences()
+
+        Dim compileDiagnostics = comp.GetDiagnostics()
+        Dim emitDiagnostics = comp.GetEmitDiagnostics()
+
+        Dim resolvedReferences = comp.References.Where(Function(r) r.Properties.Kind = MetadataImageKind.Assembly)
+
+        If Not compileDiagnostics.Any(Function(d) d.DefaultSeverity = DiagnosticSeverity.Error) Then
+
+            If resolvedReferences.Count() > used.Length Then
+                AssertSubset(used, resolvedReferences)
+
+                If Not compileDiagnostics.Any(Function(d) d.Code = ERRID.HDN_UnusedImportClause OrElse d.Code = ERRID.HDN_UnusedImportStatement) Then
+                    Dim comp2 = comp.RemoveAllReferences().AddReferences(used.Concat(comp.References.Where(Function(r) r.Properties.Kind = MetadataImageKind.Module)))
+                    comp2.GetEmitDiagnostics().Verify(
+                        emitDiagnostics.Select(Function(d) New DiagnosticDescription(d, errorCodeOnly:=False, includeDefaultSeverity:=False, includeEffectiveSeverity:=False)).ToArray())
+                End If
+            Else
+                AssertEx.Equal(resolvedReferences, used)
+            End If
+        Else
+            AssertSubset(used, resolvedReferences)
+        End If
+    End Sub
+
+    Private Sub AssertSubset(used As ImmutableArray(Of MetadataReference), resolvedReferences As IEnumerable(Of MetadataReference))
+        For Each reference In used
+            Assert.Contains(reference, resolvedReferences)
+        Next
+    End Sub
 
     Public Function CreateEmptyCompilation(
             identity As AssemblyIdentity,
@@ -71,7 +114,7 @@ Friend Module CompilationUtils
         Dim createCompilationLambda = Function()
                                           Return VisualBasicCompilation.Create(identity.Name, trees, references, options)
                                       End Function
-        CompilationExtensions.ValidateIOperations(createCompilationLambda)
+        ValidateCompilation(createCompilationLambda)
         Dim c = createCompilationLambda()
         Assert.NotNull(c.Assembly) ' force creation of SourceAssemblySymbol
 
@@ -280,7 +323,7 @@ Friend Module CompilationUtils
         Dim createCompilationLambda = Function()
                                           Return VisualBasicCompilation.Create(If(assemblyName, GetUniqueName()), source, references, options)
                                       End Function
-        CompilationExtensions.ValidateIOperations(createCompilationLambda)
+        ValidateCompilation(createCompilationLambda)
         Return createCompilationLambda()
     End Function
 
@@ -365,8 +408,9 @@ Friend Module CompilationUtils
         Return s
     End Function
 
-    Public Function FindBindingText(Of TNode As SyntaxNode)(compilation As Compilation, fileName As String, Optional which As Integer = 0, Optional prefixMatch As Boolean = False) As TNode
-        Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
+    Public Function FindBindingText(Of TNode As SyntaxNode)(compilation As Compilation, Optional fileName As String = Nothing, Optional which As Integer = 0, Optional prefixMatch As Boolean = False) As TNode
+        Dim trees = If(fileName Is Nothing, compilation.SyntaxTrees, compilation.SyntaxTrees.Where(Function(t) t.FilePath = fileName))
+        Dim tree = trees.Single()
 
         Dim bindText As String = Nothing
         Dim bindPoint = FindBindingTextPosition(compilation, fileName, bindText, which)
@@ -396,7 +440,6 @@ Friend Module CompilationUtils
         Else
             Assert.StartsWith(bindText, node.ToString)
         End If
-
 
         Return DirectCast(node, TNode)
     End Function
@@ -546,7 +589,6 @@ Friend Module CompilationUtils
         Return summary
     End Function
 
-
     Public Function GetSemanticInfoSummary(compilation As Compilation, node As SyntaxNode) As SemanticInfoSummary
         Dim tree = node.SyntaxTree
         Dim semanticModel = DirectCast(compilation.GetSemanticModel(tree), VBSemanticModel)
@@ -578,7 +620,7 @@ Friend Module CompilationUtils
     ''' &lt;/file&gt;
     ''' </param>
     Public Function CreateParseTree(programElement As XElement) As SyntaxTree
-        Return VisualBasicSyntaxTree.ParseText(FilterString(programElement.Value), path:=If(programElement.@name, ""), encoding:=Encoding.UTF8)
+        Return VisualBasicSyntaxTree.ParseText(SourceText.From(FilterString(programElement.Value), Encoding.UTF8, SourceHashAlgorithms.Default), path:=If(programElement.@name, ""))
     End Function
 
     ''' <summary>
@@ -810,6 +852,9 @@ Friend Module CompilationUtils
     ''' <remarks></remarks>
     <Extension()>
     Public Sub AssertTheseDiagnostics(errors As ImmutableArray(Of Diagnostic), errs As XElement, Optional suppressInfos As Boolean = True)
+        If errs Is Nothing Then
+            errs = <errors/>
+        End If
         Dim expectedText = FilterString(errs.Value)
         AssertTheseDiagnostics(errors, expectedText, suppressInfos)
     End Sub
@@ -902,7 +947,7 @@ Friend Module CompilationUtils
             actualLine = actualReader.ReadLine()
         End While
 
-        Assert.Equal(expectedPooledBuilder.ToStringAndFree(), actualPooledBuilder.ToStringAndFree())
+        AssertEx.Equal(expectedPooledBuilder.ToStringAndFree(), actualPooledBuilder.ToStringAndFree())
     End Sub
 
     ' There are certain cases where multiple distinct errors are
@@ -976,13 +1021,14 @@ Friend Module CompilationUtils
         Dim diag2 = diagAndIndex2.Diagnostic
         Dim loc1 = diag1.Location
         Dim loc2 = diag2.Location
+        Dim comparer = StringComparer.Ordinal
 
         If Not (loc1.IsInSource Or loc1.IsInMetadata) Then
             If Not (loc2.IsInSource Or loc2.IsInMetadata) Then
                 ' Both have no location. Sort by code, then by message.
                 If diag1.Code < diag2.Code Then Return -1
                 If diag1.Code > diag2.Code Then Return 1
-                Return diag1.GetMessage(EnsureEnglishUICulture.PreferredOrNull).CompareTo(diag2.GetMessage(EnsureEnglishUICulture.PreferredOrNull))
+                Return comparer.Compare(diag1.GetMessage(EnsureEnglishUICulture.PreferredOrNull), diag2.GetMessage(EnsureEnglishUICulture.PreferredOrNull))
             Else
                 Return -1
             End If
@@ -993,7 +1039,7 @@ Friend Module CompilationUtils
             Dim sourceTree1 = loc1.SourceTree
             Dim sourceTree2 = loc2.SourceTree
 
-            If sourceTree1.FilePath <> sourceTree2.FilePath Then Return sourceTree1.FilePath.CompareTo(sourceTree2.FilePath)
+            If sourceTree1.FilePath <> sourceTree2.FilePath Then Return comparer.Compare(sourceTree1.FilePath, sourceTree2.FilePath)
             If loc1.SourceSpan.Start < loc2.SourceSpan.Start Then Return -1
             If loc1.SourceSpan.Start > loc2.SourceSpan.Start Then Return 1
             If loc1.SourceSpan.Length < loc2.SourceSpan.Length Then Return -1
@@ -1001,16 +1047,16 @@ Friend Module CompilationUtils
             If diag1.Code < diag2.Code Then Return -1
             If diag1.Code > diag2.Code Then Return 1
 
-            Return diag1.GetMessage(EnsureEnglishUICulture.PreferredOrNull).CompareTo(diag2.GetMessage(EnsureEnglishUICulture.PreferredOrNull))
+            Return comparer.Compare(diag1.GetMessage(EnsureEnglishUICulture.PreferredOrNull), diag2.GetMessage(EnsureEnglishUICulture.PreferredOrNull))
         ElseIf loc1.IsInMetadata AndAlso loc2.IsInMetadata Then
             ' sort by assembly name, then by error code
             Dim name1 = loc1.MetadataModule.ContainingAssembly.Name
             Dim name2 = loc2.MetadataModule.ContainingAssembly.Name
-            If name1 <> name2 Then Return name1.CompareTo(name2)
+            If name1 <> name2 Then Return comparer.Compare(name1, name2)
             If diag1.Code < diag2.Code Then Return -1
             If diag1.Code > diag2.Code Then Return 1
 
-            Return diag1.GetMessage(EnsureEnglishUICulture.PreferredOrNull).CompareTo(diag2.GetMessage(EnsureEnglishUICulture.PreferredOrNull))
+            Return comparer.Compare(diag1.GetMessage(EnsureEnglishUICulture.PreferredOrNull), diag2.GetMessage(EnsureEnglishUICulture.PreferredOrNull))
         ElseIf loc1.IsInSource Then
             Return -1
         ElseIf loc2.IsInSource Then
@@ -1099,9 +1145,9 @@ Friend Module CompilationUtils
         Loop
 
         If (isDistinct) Then
-            symType = (From temp In symType Distinct Select temp Order By temp.ToDisplayString()).ToList()
+            symType = symType.Distinct().OrderBy(Function(x) x.ToDisplayString(), StringComparer.OrdinalIgnoreCase).ToList()
         Else
-            symType = (From temp In symType Select temp Order By temp.ToDisplayString()).ToList()
+            symType = symType.OrderBy(Function(x) x.ToDisplayString(), StringComparer.OrdinalIgnoreCase).ToList()
         End If
         Return symType
 
@@ -1116,7 +1162,7 @@ Friend Module CompilationUtils
         Dim bindings1 = compilation.GetSemanticModel(tree)
         Dim symbols = GetTypeSymbol(compilation, treeName, symbolName, isDistinct)
         Assert.Equal(ExpectedDispName.Count, symbols.Count)
-        ExpectedDispName = (From temp In ExpectedDispName Select temp Order By temp).ToArray()
+        ExpectedDispName = ExpectedDispName.OrderBy(StringComparer.OrdinalIgnoreCase).ToArray()
         Dim count = 0
         For Each item In symbols
             Assert.NotNull(item)
@@ -1168,11 +1214,11 @@ Friend Module CompilationUtils
         Array.Sort(strings)
         Dim builder = PooledStringBuilderPool.Allocate()
         With builder.Builder
-            For Each str In strings
+            For Each item In strings
                 If .Length > 0 Then
                     .AppendLine()
                 End If
-                .Append(str)
+                .Append(item)
             Next
         End With
         Return builder.ToStringAndFree()

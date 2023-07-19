@@ -158,6 +158,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     break;
                 }
             }
+
             return namespaceSymbol;
         }
 

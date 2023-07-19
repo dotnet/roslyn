@@ -10,7 +10,7 @@ namespace Microsoft.Cci
     /// <summary>
     /// Represents an assembly reference with an alias (C# only, /r:Name=Reference on command line).
     /// </summary>
-    internal struct AssemblyReferenceAlias
+    internal readonly struct AssemblyReferenceAlias
     {
         /// <summary>
         /// An alias for the global namespace of the assembly.

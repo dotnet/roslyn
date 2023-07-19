@@ -18,6 +18,12 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
         Private ReadOnly _elementsById As Dictionary(Of Id(Of Element), Element) = New Dictionary(Of Id(Of Element), Element)
         Private ReadOnly _edgesByOutVertex As Dictionary(Of Vertex, List(Of Edge)) = New Dictionary(Of Vertex, List(Of Edge))
 
+        Private Sub ILsifJsonWriter_WriteAll(elements As List(Of Element)) Implements ILsifJsonWriter.WriteAll
+            For Each element In elements
+                ILsifJsonWriter_Write(element)
+            Next
+        End Sub
+
         Private Sub ILsifJsonWriter_Write(element As Element) Implements ILsifJsonWriter.Write
             SyncLock _gate
                 ' We intentionally use Add so it'll throw if we have a duplicate ID.
@@ -30,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
                     ' that an edge can only be written after all the vertices it writes to already exist.
                     Dim outVertex = GetElementById(edge.OutVertex)
 
-                    For Each inVertexId In edge.InVertices
+                    For Each inVertexId In edge.GetInVerticies()
                         ' We are ignoring the return, but this call implicitly validates the element
                         ' exists and is of the correct type.
                         GetElementById(inVertexId)
@@ -60,12 +66,19 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
         ''' Returns all the vertices linked to the given vertex by the edge type.
         ''' </summary>
         Public Function GetLinkedVertices(Of T As Vertex)(vertex As Graph.Vertex, edgeLabel As String) As ImmutableArray(Of T)
+            Return GetLinkedVertices(Of T)(vertex, Function(e) e.Label = edgeLabel)
+        End Function
+
+        ''' <summary>
+        ''' Returns all the vertices linked to the given vertex by the edge predicate.
+        ''' </summary>
+        Public Function GetLinkedVertices(Of T As Vertex)(vertex As Graph.Vertex, predicate As Func(Of Edge, Boolean)) As ImmutableArray(Of T)
             SyncLock _gate
                 Dim builder = ImmutableArray.CreateBuilder(Of T)
 
                 Dim edges As List(Of Edge) = Nothing
                 If _edgesByOutVertex.TryGetValue(vertex, edges) Then
-                    Dim inVerticesId = edges.Where(Function(e) e.Label = edgeLabel).SelectMany(Function(e) e.InVertices)
+                    Dim inVerticesId = edges.Where(predicate).SelectMany(Function(e) e.GetInVerticies())
 
                     For Each inVertexId In inVerticesId
                         ' This is an unsafe "cast" if you will converting the ID to the expected type;

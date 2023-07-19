@@ -17,7 +17,13 @@ namespace Microsoft.Cci
     /// </summary>
     internal class RootModuleType : INamespaceTypeDefinition
     {
+        private readonly IUnit _unit;
         private IReadOnlyList<IMethodDefinition>? _methods;
+
+        public RootModuleType(IUnit unit)
+        {
+            _unit = unit;
+        }
 
         public void SetStaticConstructorBody(ImmutableArray<byte> il)
         {
@@ -50,6 +56,11 @@ namespace Microsoft.Cci
         public bool MangleName
         {
             get { return false; }
+        }
+
+        public string? AssociatedFileIdentifier
+        {
+            get { return null; }
         }
 
         public string Name
@@ -184,7 +195,7 @@ namespace Microsoft.Cci
 
         IEnumerable<IGenericTypeParameter> ITypeDefinition.GenericParameters
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         ushort ITypeDefinition.GenericParameterCount
@@ -197,22 +208,22 @@ namespace Microsoft.Cci
 
         IEnumerable<SecurityAttribute> ITypeDefinition.SecurityAttributes
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         void IReference.Dispatch(MetadataVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         bool ITypeReference.IsEnum
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         bool ITypeReference.IsValueType
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         ITypeDefinition ITypeReference.GetResolvedType(EmitContext context)
@@ -222,17 +233,17 @@ namespace Microsoft.Cci
 
         PrimitiveTypeCode ITypeReference.TypeCode
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         ushort INamedTypeReference.GenericParameterCount
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         IUnitReference INamespaceTypeReference.GetUnit(EmitContext context)
         {
-            throw ExceptionUtilities.Unreachable;
+            return _unit;
         }
 
         string INamespaceTypeReference.NamespaceName
@@ -316,13 +327,13 @@ namespace Microsoft.Cci
         public sealed override bool Equals(object? obj)
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
         }
 
         public sealed override int GetHashCode()
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
         }
     }
 }

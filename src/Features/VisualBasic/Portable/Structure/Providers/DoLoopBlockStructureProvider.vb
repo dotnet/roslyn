@@ -11,9 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class DoLoopBlockStructureProvider
         Inherits AbstractSyntaxNodeStructureProvider(Of DoLoopBlockSyntax)
 
-        Protected Overrides Sub CollectBlockSpans(node As DoLoopBlockSyntax,
+        Protected Overrides Sub CollectBlockSpans(previousToken As SyntaxToken,
+                                                  node As DoLoopBlockSyntax,
                                                   ByRef spans As TemporaryArray(Of BlockSpan),
-                                                  optionProvider As BlockStructureOptionProvider,
+                                                  options As BlockStructureOptions,
                                                   cancellationToken As CancellationToken)
             spans.AddIfNotNull(CreateBlockSpanFromBlock(
                                node, node.DoStatement, autoCollapse:=False,

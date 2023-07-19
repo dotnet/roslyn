@@ -7,6 +7,8 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -25,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //actual lazily-constructed caches of built-in operators.
         private ImmutableArray<UnaryOperatorSignature>[] _builtInUnaryOperators;
         private ImmutableArray<BinaryOperatorSignature>[][] _builtInOperators;
+        private StrongBox<BinaryOperatorSignature> _builtInUtf8Concatenation;
 
         internal BuiltInOperators(CSharpCompilation compilation)
         {
@@ -278,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (kind.IsLifted())
             {
-                opType = _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(opType);
+                opType = _compilation.GetOrCreateNullableType(opType);
             }
 
             return new UnaryOperatorSignature(kind, opType, opType);
@@ -319,6 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ImmutableArray.Create<BinaryOperatorSignature>(GetSignature(BinaryOperatorKind.LogicalBoolAnd)), //and
                     ImmutableArray<BinaryOperatorSignature>.Empty, //xor
                     ImmutableArray.Create<BinaryOperatorSignature>(GetSignature(BinaryOperatorKind.LogicalBoolOr)), //or
+                    ImmutableArray<BinaryOperatorSignature>.Empty, //unsigned right shift
                 };
 
                 var nonLogicalOperators = new ImmutableArray<BinaryOperatorSignature>[]
@@ -646,6 +650,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedNUIntOr,
                         (int)BinaryOperatorKind.LiftedBoolOr,
                     }),
+                    GetSignaturesFromBinaryOperatorKinds(new []
+                    {
+                        (int)BinaryOperatorKind.IntUnsignedRightShift,
+                        (int)BinaryOperatorKind.UIntUnsignedRightShift,
+                        (int)BinaryOperatorKind.LongUnsignedRightShift,
+                        (int)BinaryOperatorKind.ULongUnsignedRightShift,
+                        (int)BinaryOperatorKind.NIntUnsignedRightShift,
+                        (int)BinaryOperatorKind.NUIntUnsignedRightShift,
+                        (int)BinaryOperatorKind.LiftedIntUnsignedRightShift,
+                        (int)BinaryOperatorKind.LiftedUIntUnsignedRightShift,
+                        (int)BinaryOperatorKind.LiftedLongUnsignedRightShift,
+                        (int)BinaryOperatorKind.LiftedULongUnsignedRightShift,
+                        (int)BinaryOperatorKind.LiftedNIntUnsignedRightShift,
+                        (int)BinaryOperatorKind.LiftedNUIntUnsignedRightShift,
+                    }),
                 };
 
                 var allOperators = new[] { nonLogicalOperators, logicalOperators };
@@ -668,6 +687,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal void GetUtf8ConcatenationBuiltInOperator(TypeSymbol readonlySpanOfByte, ArrayBuilder<BinaryOperatorSignature> operators)
+        {
+            Debug.Assert(_compilation.IsReadOnlySpanType(readonlySpanOfByte));
+            Debug.Assert(((NamedTypeSymbol)readonlySpanOfByte).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Single().Type.SpecialType is SpecialType.System_Byte);
+
+            if (_builtInUtf8Concatenation is null)
+            {
+                Interlocked.CompareExchange(ref _builtInUtf8Concatenation,
+                    new StrongBox<BinaryOperatorSignature>(
+                        new BinaryOperatorSignature(BinaryOperatorKind.Utf8Addition, readonlySpanOfByte, readonlySpanOfByte, readonlySpanOfByte)), null);
+            }
+
+            operators.Add(_builtInUtf8Concatenation.Value);
+        }
+
         internal BinaryOperatorSignature GetSignature(BinaryOperatorKind kind)
         {
             var left = LeftType(kind);
@@ -685,10 +719,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new BinaryOperatorSignature(kind, left, RightType(kind), ReturnType(kind));
                 case BinaryOperatorKind.LeftShift:
                 case BinaryOperatorKind.RightShift:
+                case BinaryOperatorKind.UnsignedRightShift:
                     TypeSymbol rightType = _compilation.GetSpecialType(SpecialType.System_Int32);
                     if (kind.IsLifted())
                     {
-                        rightType = _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(rightType);
+                        rightType = _compilation.GetOrCreateNullableType(rightType);
                     }
                     return new BinaryOperatorSignature(kind, left, rightType, left);
 
@@ -802,26 +837,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(kind.IsLifted());
 
-            var nullable = _compilation.GetSpecialType(SpecialType.System_Nullable_T);
-
-            switch (kind.OperandTypes())
+            var typeArgument = kind.OperandTypes() switch
             {
-                case BinaryOperatorKind.Int: return nullable.Construct(_compilation.GetSpecialType(SpecialType.System_Int32));
-                case BinaryOperatorKind.UInt: return nullable.Construct(_compilation.GetSpecialType(SpecialType.System_UInt32));
-                case BinaryOperatorKind.Long: return nullable.Construct(_compilation.GetSpecialType(SpecialType.System_Int64));
-                case BinaryOperatorKind.ULong: return nullable.Construct(_compilation.GetSpecialType(SpecialType.System_UInt64));
-                case BinaryOperatorKind.NInt: return nullable.Construct(_compilation.CreateNativeIntegerTypeSymbol(signed: true));
-                case BinaryOperatorKind.NUInt: return nullable.Construct(_compilation.CreateNativeIntegerTypeSymbol(signed: false));
-                case BinaryOperatorKind.Float: return nullable.Construct(_compilation.GetSpecialType(SpecialType.System_Single));
-                case BinaryOperatorKind.Double: return nullable.Construct(_compilation.GetSpecialType(SpecialType.System_Double));
-                case BinaryOperatorKind.Decimal: return nullable.Construct(_compilation.GetSpecialType(SpecialType.System_Decimal));
-                case BinaryOperatorKind.Bool: return nullable.Construct(_compilation.GetSpecialType(SpecialType.System_Boolean));
-            }
-            Debug.Assert(false, "Bad operator kind in lifted type");
-            return null;
+                BinaryOperatorKind.Int => _compilation.GetSpecialType(SpecialType.System_Int32),
+                BinaryOperatorKind.UInt => _compilation.GetSpecialType(SpecialType.System_UInt32),
+                BinaryOperatorKind.Long => _compilation.GetSpecialType(SpecialType.System_Int64),
+                BinaryOperatorKind.ULong => _compilation.GetSpecialType(SpecialType.System_UInt64),
+                BinaryOperatorKind.NInt => _compilation.CreateNativeIntegerTypeSymbol(signed: true),
+                BinaryOperatorKind.NUInt => _compilation.CreateNativeIntegerTypeSymbol(signed: false),
+                BinaryOperatorKind.Float => _compilation.GetSpecialType(SpecialType.System_Single),
+                BinaryOperatorKind.Double => _compilation.GetSpecialType(SpecialType.System_Double),
+                BinaryOperatorKind.Decimal => _compilation.GetSpecialType(SpecialType.System_Decimal),
+                BinaryOperatorKind.Bool => _compilation.GetSpecialType(SpecialType.System_Boolean),
+                var v => throw ExceptionUtilities.UnexpectedValue(v),
+            };
+
+            return _compilation.GetOrCreateNullableType(typeArgument);
         }
 
-        internal static bool IsValidObjectEquality(Conversions Conversions, TypeSymbol leftType, bool leftIsNull, bool leftIsDefault, TypeSymbol rightType, bool rightIsNull, bool rightIsDefault, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal static bool IsValidObjectEquality(Conversions Conversions, TypeSymbol leftType, bool leftIsNull, bool leftIsDefault, TypeSymbol rightType, bool rightIsNull, bool rightIsDefault, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // SPEC: The predefined reference type equality operators require one of the following:
 
@@ -851,7 +885,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                leftType = ((TypeParameterSymbol)leftType).EffectiveBaseClass(ref useSiteDiagnostics);
+                leftType = ((TypeParameterSymbol)leftType).EffectiveBaseClass(ref useSiteInfo);
                 Debug.Assert((object)leftType != null);
             }
 
@@ -862,7 +896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                rightType = ((TypeParameterSymbol)rightType).EffectiveBaseClass(ref useSiteDiagnostics);
+                rightType = ((TypeParameterSymbol)rightType).EffectiveBaseClass(ref useSiteInfo);
                 Debug.Assert((object)rightType != null);
             }
 
@@ -899,13 +933,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            var leftConversion = Conversions.ClassifyConversionFromType(leftType, rightType, ref useSiteDiagnostics);
+            var leftConversion = Conversions.ClassifyConversionFromType(leftType, rightType, isChecked: false, ref useSiteInfo);
             if (leftConversion.IsIdentity || leftConversion.IsReference)
             {
                 return true;
             }
 
-            var rightConversion = Conversions.ClassifyConversionFromType(rightType, leftType, ref useSiteDiagnostics);
+            var rightConversion = Conversions.ClassifyConversionFromType(rightType, leftType, isChecked: false, ref useSiteInfo);
             if (rightConversion.IsIdentity || rightConversion.IsReference)
             {
                 return true;

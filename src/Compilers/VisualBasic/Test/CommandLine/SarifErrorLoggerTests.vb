@@ -20,15 +20,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
         Protected MustOverride ReadOnly Property ErrorLogQualifier As String
 
         Friend MustOverride Function GetExpectedOutputForNoDiagnostics(
-            cmd As CommonCompiler) As String
+            cmd As MockVisualBasicCompiler) As String
 
         Friend MustOverride Function GetExpectedOutputForSimpleCompilerDiagnostics(
-            cmd As CommonCompiler,
+            cmd As MockVisualBasicCompiler,
             sourceFilePath As String) As String
 
         Friend MustOverride Function GetExpectedOutputForSimpleCompilerDiagnosticsSuppressed(
-            cmd As CommonCompiler,
-            sourceFilePath As String) As String
+            cmd As MockVisualBasicCompiler,
+            sourceFilePath As String,
+            ParamArray suppressionKinds As String()) As String
 
         Friend MustOverride Function GetExpectedOutputForAnalyzerDiagnosticsWithAndWithoutLocation(
             cmd As MockVisualBasicCompiler) As String
@@ -142,7 +143,7 @@ End Class
             Assert.NotEqual(0, exitCode)
 
             Dim actualOutput = File.ReadAllText(errorLogFile).Trim()
-            Dim expectedOutput = GetExpectedOutputForSimpleCompilerDiagnosticsSuppressed(cmd, sourceFilePath)
+            Dim expectedOutput = GetExpectedOutputForSimpleCompilerDiagnosticsSuppressed(cmd, sourceFilePath, "inSource")
 
             Assert.Equal(expectedOutput, actualOutput)
 

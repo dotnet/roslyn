@@ -3,18 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
 
 namespace Microsoft.CodeAnalysis.Remote.Services
 {
-    [ExportWorkspaceService(typeof(IGlobalOperationNotificationService), WorkspaceKind.RemoteWorkspace), Shared]
+    [Export(typeof(IGlobalOperationNotificationService)), Shared]
     internal sealed class RemoteGlobalOperationNotificationService : IGlobalOperationNotificationService
     {
         public event EventHandler? Started;
-        public event EventHandler<GlobalOperationEventArgs>? Stopped;
+        public event EventHandler? Stopped;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Remote.Services
         {
         }
 
-        public GlobalOperationRegistration Start(string operation)
+        public IDisposable Start(string operation)
         {
             // Currently not supported for anything on the remote side to start a global
             // operation.
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Remote.Services
         public void OnStarted()
             => Started?.Invoke(this, EventArgs.Empty);
 
-        public void OnStopped(IReadOnlyList<string> operations, bool cancelled)
-            => Stopped?.Invoke(this, new GlobalOperationEventArgs(operations, cancelled));
+        public void OnStopped()
+            => Stopped?.Invoke(this, EventArgs.Empty);
     }
 }

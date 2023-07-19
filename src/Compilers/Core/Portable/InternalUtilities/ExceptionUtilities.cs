@@ -4,6 +4,8 @@
 
 using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Threading;
 
 namespace Roslyn.Utilities
 {
@@ -23,9 +25,16 @@ namespace Roslyn.Utilities
             return new InvalidOperationException(output);
         }
 
-        internal static Exception Unreachable
-        {
-            get { return new InvalidOperationException("This program location is thought to be unreachable."); }
-        }
+        internal static Exception Unreachable([CallerFilePath] string? path = null, [CallerLineNumber] int line = 0)
+            => new InvalidOperationException($"This program location is thought to be unreachable. File='{path}' Line={line}");
+
+        /// <summary>
+        /// Determine if an exception was an <see cref="OperationCanceledException"/>, and that the provided token caused the cancellation.
+        /// </summary>
+        /// <param name="exception">The exception to test.</param>
+        /// <param name="cancellationToken">Checked to see if the provided token was cancelled.</param>
+        /// <returns><see langword="true"/> if the exception was an <see cref="OperationCanceledException" /> and the token was canceled.</returns>
+        internal static bool IsCurrentOperationBeingCancelled(Exception exception, CancellationToken cancellationToken)
+            => exception is OperationCanceledException && cancellationToken.IsCancellationRequested;
     }
 }

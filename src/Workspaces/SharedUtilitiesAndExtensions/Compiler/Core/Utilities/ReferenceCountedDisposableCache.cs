@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Roslyn.Utilities
 {
@@ -15,8 +16,7 @@ namespace Roslyn.Utilities
     internal sealed class ReferenceCountedDisposableCache<TKey, TValue> where TValue : class, IDisposable
         where TKey : notnull
     {
-        private readonly Dictionary<TKey, ReferenceCountedDisposable<Entry>.WeakReference> _cache =
-            new();
+        private readonly Dictionary<TKey, ReferenceCountedDisposable<Entry>.WeakReference> _cache = new();
         private readonly object _gate = new();
 
         public IReferenceCountedDisposable<ICacheEntry<TKey, TValue>> GetOrCreate<TArg>(TKey key, Func<TKey, TArg, TValue> valueCreator, TArg arg)
@@ -57,25 +57,17 @@ namespace Roslyn.Utilities
             }
         }
 
-        private sealed class Entry : IDisposable, ICacheEntry<TKey, TValue>
+        private sealed class Entry(ReferenceCountedDisposableCache<TKey, TValue> cache, TKey key, TValue value) : IDisposable, ICacheEntry<TKey, TValue>
         {
-            private readonly ReferenceCountedDisposableCache<TKey, TValue> _cache;
 
-            public TKey Key { get; }
-            public TValue Value { get; }
-
-            public Entry(ReferenceCountedDisposableCache<TKey, TValue> cache, TKey key, TValue value)
-            {
-                _cache = cache;
-                Key = key;
-                Value = value;
-            }
+            public TKey Key { get; } = key;
+            public TValue Value { get; } = value;
 
             public void Dispose()
             {
                 // Evict us out of the cache. We already know that cache entry is going to be expired: any further calls on the WeakReference would give nothing,
                 // but we don't want to be holding onto the key either.
-                _cache.Evict(Key);
+                cache.Evict(Key);
 
                 // Dispose the underlying value
                 Value.Dispose();

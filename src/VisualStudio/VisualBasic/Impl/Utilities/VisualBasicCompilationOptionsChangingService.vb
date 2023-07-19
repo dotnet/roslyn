@@ -21,7 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Utilities
             Return False
         End Function
 
-        Public Sub Apply(options As CompilationOptions, storage As ProjectPropertyStorage) Implements ICompilationOptionsChangingService.Apply
+        Public Sub Apply(oldOptions As CompilationOptions, newOptions As CompilationOptions, storage As ProjectPropertyStorage) Implements ICompilationOptionsChangingService.Apply
             Throw New InvalidOperationException(ServicesVSResources.This_workspace_does_not_support_updating_Visual_Basic_compilation_options)
         End Sub
     End Class

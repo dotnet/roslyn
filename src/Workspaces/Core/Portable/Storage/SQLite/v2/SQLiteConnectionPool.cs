@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.SQLite.v2.Interop;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2
 {
-    internal sealed partial class SQLiteConnectionPool : IDisposable
+    internal sealed partial class SQLiteConnectionPool(SQLiteConnectionPoolService connectionPoolService, IPersistentStorageFaultInjector? faultInjector, string databasePath, IDisposable ownershipLock) : IDisposable
     {
         // We pool connections to the DB so that we don't have to take the hit of 
         // reconnecting.  The connections also cache the prepared statements used
@@ -22,29 +22,15 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
         private readonly CancellationTokenSource _shutdownTokenSource = new();
 
-        private readonly SQLiteConnectionPoolService _connectionPoolService;
-        private readonly IPersistentStorageFaultInjector? _faultInjector;
-        private readonly string _databasePath;
-        private readonly IDisposable _ownershipLock;
-
-        public SQLiteConnectionPool(SQLiteConnectionPoolService connectionPoolService, IPersistentStorageFaultInjector? faultInjector, string databasePath, IDisposable ownershipLock)
-        {
-            _connectionPoolService = connectionPoolService;
-            _faultInjector = faultInjector;
-            _databasePath = databasePath;
-            _ownershipLock = ownershipLock;
-        }
-
         internal void Initialize(
-            Solution? bulkLoadSnapshot,
-            Action<Solution?, SqlConnection, CancellationToken> initializer,
+            Action<SqlConnection, CancellationToken> initializer,
             CancellationToken cancellationToken)
         {
             // This is our startup path.  No other code can be running.  So it's safe for us to access a connection that
             // can talk to the db without having to be on the reader/writer scheduler queue.
             using var _ = GetPooledConnection(checkScheduler: false, out var connection);
 
-            initializer(bulkLoadSnapshot, connection, cancellationToken);
+            initializer(connection, cancellationToken);
         }
 
         public void Dispose()
@@ -59,7 +45,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             finally
             {
                 // let the lock go
-                _ownershipLock.Dispose();
+                ownershipLock.Dispose();
             }
         }
 
@@ -97,7 +83,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             if (checkScheduler)
             {
                 var scheduler = TaskScheduler.Current;
-                if (scheduler != _connectionPoolService.Scheduler.ConcurrentScheduler && scheduler != _connectionPoolService.Scheduler.ExclusiveScheduler)
+                if (scheduler != connectionPoolService.Scheduler.ConcurrentScheduler && scheduler != connectionPoolService.Scheduler.ExclusiveScheduler)
                     throw new InvalidOperationException($"Cannot get a connection to the DB unless running on one of {nameof(SQLiteConnectionPoolService)}'s schedulers");
             }
 
@@ -118,7 +104,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             }
 
             // Otherwise create a new connection.
-            return SqlConnection.Create(_faultInjector, _databasePath);
+            return SqlConnection.Create(faultInjector, databasePath);
         }
 
         private void ReleaseConnection(SqlConnection connection)

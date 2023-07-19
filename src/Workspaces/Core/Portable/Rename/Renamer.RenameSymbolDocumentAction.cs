@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using System.Linq;
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Rename
             public override string GetDescription(CultureInfo? culture)
                 => string.Format(WorkspacesResources.ResourceManager.GetString("Rename_0_to_1", culture ?? WorkspacesResources.Culture)!, _analysis.OriginalDocumentName, _analysis.NewDocumentName);
 
-            internal override async Task<Solution> GetModifiedSolutionAsync(Document document, OptionSet optionSet, CancellationToken cancellationToken)
+            internal override async Task<Solution> GetModifiedSolutionAsync(Document document, DocumentRenameOptions options, CancellationToken cancellationToken)
             {
                 var solution = document.Project.Solution;
 
@@ -52,7 +52,13 @@ namespace Microsoft.CodeAnalysis.Rename
                     var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                     var symbol = semanticModel.GetRequiredDeclaredSymbol(matchingTypeDeclaration, cancellationToken);
 
-                    solution = await RenameSymbolAsync(solution, symbol, _analysis.NewSymbolName, optionSet, cancellationToken).ConfigureAwait(false);
+                    var symbolRenameOptions = new SymbolRenameOptions(
+                        RenameOverloads: false,
+                        RenameInComments: options.RenameMatchingTypeInComments,
+                        RenameInStrings: options.RenameMatchingTypeInStrings,
+                        RenameFile: false);
+
+                    solution = await RenameSymbolAsync(solution, symbol, symbolRenameOptions, _analysis.NewSymbolName, cancellationToken).ConfigureAwait(false);
                 }
 
                 return solution;
@@ -114,39 +120,31 @@ namespace Microsoft.CodeAnalysis.Rename
                     symbol.Name);
             }
 
-            private readonly struct AnalysisResult
+            private readonly struct AnalysisResult(
+                Document document,
+                string newDocumentName,
+                string newSymbolName,
+                string originalSymbolName)
             {
                 /// <summary>
                 /// Name of the document that the action was produced for.
                 /// </summary>
-                public string OriginalDocumentName { get; }
+                public string OriginalDocumentName { get; } = document.Name;
 
                 /// <summary>
                 /// The new document name that will be used.
                 /// </summary>
-                public string NewDocumentName { get; }
+                public string NewDocumentName { get; } = newDocumentName;
 
                 /// <summary>
                 /// The original name of the symbol that will be changed.
                 /// </summary>
-                public string OriginalSymbolName { get; }
+                public string OriginalSymbolName { get; } = originalSymbolName;
 
                 /// <summary>
                 /// The new name for the symbol.
                 /// </summary>
-                public string NewSymbolName { get; }
-
-                public AnalysisResult(
-                    Document document,
-                    string newDocumentName,
-                    string newSymbolName,
-                    string originalSymbolName)
-                {
-                    OriginalDocumentName = document.Name;
-                    NewDocumentName = newDocumentName;
-                    NewSymbolName = newSymbolName;
-                    OriginalSymbolName = originalSymbolName;
-                }
+                public string NewSymbolName { get; } = newSymbolName;
             }
         }
     }

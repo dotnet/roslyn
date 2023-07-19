@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 namespace Microsoft.CodeAnalysis.MSBuild
 {
     internal static class PropertyNames
@@ -62,6 +60,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public const string TargetCompactFramework = nameof(TargetCompactFramework);
         public const string TargetFramework = nameof(TargetFramework);
         public const string TargetFrameworks = nameof(TargetFrameworks);
+        public const string TargetFrameworkIdentifier = nameof(TargetFrameworkIdentifier);
         public const string TargetPath = nameof(TargetPath);
         public const string TargetRefPath = nameof(TargetRefPath);
         public const string TreatWarningsAsErrors = nameof(TreatWarningsAsErrors);
@@ -69,5 +68,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public const string WarningLevel = nameof(WarningLevel);
         public const string WarningsAsErrors = nameof(WarningsAsErrors);
         public const string WarningsNotAsErrors = nameof(WarningsNotAsErrors);
+        public const string ChecksumAlgorithm = nameof(ChecksumAlgorithm);
     }
 }

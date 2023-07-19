@@ -38,7 +38,7 @@ namespace BoundTreeGenerator
             _writer = writer;
             _tree = tree;
             _targetLang = targetLang;
-            _typeMap = tree.Types.Where(t => !(t is EnumType || t is ValueType)).ToDictionary(n => n.Name, n => n.Base);
+            _typeMap = tree.Types.Where(t => t is not (EnumType or ValueType)).ToDictionary(n => n.Name, n => n.Base);
             _typeMap.Add(tree.Root, null);
 
             InitializeValueTypes();
@@ -275,7 +275,7 @@ namespace BoundTreeGenerator
 
         private void WriteTypes()
         {
-            foreach (var node in _tree.Types.Where(n => !(n is PredefinedNode)))
+            foreach (var node in _tree.Types.Where(n => n is not PredefinedNode))
             {
                 Blank();
                 WriteType(node);
@@ -323,7 +323,7 @@ namespace BoundTreeGenerator
             }
         }
 
-        private void WriteClassFooter(TreeType node)
+        private void WriteClassFooter()
         {
             switch (_targetLang)
             {
@@ -462,17 +462,26 @@ namespace BoundTreeGenerator
 
                         foreach (var field in Fields(node))
                         {
-                            if (IsPropertyOverrides(field))
-                            {
-                                WriteLine("this._{0} = {1};", field.Name, FieldNullHandling(node, field.Name) == NullHandling.Always ? "null" : ToCamelCase(field.Name));
-                            }
-                            else
-                            {
-                                WriteLine("this.{0} = {1};", field.Name, FieldNullHandling(node, field.Name) == NullHandling.Always ? "null" : ToCamelCase(field.Name));
-                            }
+                            WriteLine("this.{0} = {1};", field.Name, FieldNullHandling(node, field.Name) == NullHandling.Always ? "null" : ToCamelCase(field.Name));
                         }
+
+                        bool hasValidate = HasValidate(node);
+
+                        if (hasValidate)
+                        {
+                            WriteLine("Validate();");
+                        }
+
                         Unbrace();
                         Blank();
+
+                        if (hasValidate)
+                        {
+                            WriteLine(@"[Conditional(""DEBUG"")]");
+                            WriteLine("private partial void Validate();");
+                            Blank();
+                        }
+
                         break;
                     }
 
@@ -589,14 +598,7 @@ namespace BoundTreeGenerator
 
                         foreach (var field in Fields(node))
                         {
-                            if (IsPropertyOverrides(field))
-                            {
-                                WriteLine("this._{0} = {1};", field.Name, FieldNullHandling(node, field.Name) == NullHandling.Always ? "null" : ToCamelCase(field.Name));
-                            }
-                            else
-                            {
-                                WriteLine("this.{0} = {1};", field.Name, FieldNullHandling(node, field.Name) == NullHandling.Always ? "null" : ToCamelCase(field.Name));
-                            }
+                            WriteLine("this.{0} = {1};", field.Name, FieldNullHandling(node, field.Name) == NullHandling.Always ? "null" : ToCamelCase(field.Name));
                         }
                         Unbrace();
                         Blank();
@@ -750,12 +752,6 @@ namespace BoundTreeGenerator
                    select f;
         }
 
-        // AlwaysNull fields are those that have Null="Always" specified (possibly in an override).
-        private IEnumerable<Field> AllAlwaysNullFields(TreeType node)
-        {
-            return from f in AllFields(node) where FieldNullHandling(node, f.Name) == NullHandling.Always select f;
-        }
-
         // Specifiable fields are those that aren't always null.
         private IEnumerable<Field> AllSpecifiableFields(TreeType node)
         {
@@ -783,9 +779,9 @@ namespace BoundTreeGenerator
 
             if (f.Null != null)
             {
-                if (_targetLang == TargetLanguage.CSharp && f.Null.ToUpperInvariant() == "ALLOW" && !f.Type.EndsWith('?') && !IsValueType(f.Type))
+                if (_targetLang == TargetLanguage.CSharp && (f.Null.ToUpperInvariant() is ("ALLOW" or "ALWAYS")) && !f.Type.EndsWith('?') && !IsValueType(f.Type))
                 {
-                    throw new ArgumentException($"Field '{fieldName}' on node '{node.Name}' should have a nullable type, since it isn't a value type and it is marked null=allow");
+                    throw new ArgumentException($"Field '{fieldName}' on node '{node.Name}' should have a nullable type, since it isn't a value type and it is marked null=allow or null=always");
                 }
 
                 switch (f.Null.ToUpperInvariant())
@@ -828,27 +824,26 @@ namespace BoundTreeGenerator
                 throw new InvalidOperationException($"Field {fieldName} not found in type {node.Name}");
         }
 
-        private void WriteField(Field field)
+        private void WriteField(TreeType node, Field field)
         {
             switch (_targetLang)
             {
                 case TargetLanguage.CSharp:
-                    Blank();
                     if (IsPropertyOverrides(field))
                     {
-                        WriteLine("private readonly {0} _{1};", field.Type, field.Name);
-                        WriteLine("public override {0}{1} {2} {{ get {{ return _{2}; }} }}", (IsNew(field) ? "new " : ""), field.Type, field.Name);
+                        WriteLine("public override {0}{1} {2} {{ get; }}", (IsNew(field) ? "new " : ""), field.Type, field.Name);
                     }
                     else if (field.Override)
                     {
                         // We emit a suppression here because the bound nodes use a pattern which is safe, but can't be tracked.
+                        var suppression = FieldNullHandling(node, field.Name) is (NullHandling.Allow or NullHandling.Always) ? "" : "!";
 
                         // The point of overriding a property is to change its nullability, usually
                         // from nullable to non-nullable. The base is annotated as nullable,
                         // but since the base property is always set via the base call in the
                         // constructor, as long as the parameter to the current class's constructor is not
                         // nullable, the base property is always non-null.
-                        WriteLine($"public new {field.Type} {field.Name} => base.{field.Name}!;");
+                        WriteLine($"public new {field.Type} {field.Name} => base.{field.Name}{suppression};");
                     }
                     else
                     {
@@ -880,6 +875,7 @@ namespace BoundTreeGenerator
             switch (_targetLang)
             {
                 case TargetLanguage.CSharp:
+                    Blank();
                     WriteLine("[DebuggerStepThrough]");
                     WriteLine("public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.Visit{0}(this);", StripBound(name));
                     break;
@@ -892,7 +888,6 @@ namespace BoundTreeGenerator
                     WriteLine("Return visitor.Visit{0}(Me)", StripBound(name));
                     Outdent();
                     WriteLine("End Function");
-
                     break;
 
                 default:
@@ -902,12 +897,12 @@ namespace BoundTreeGenerator
 
         private void WriteType(TreeType node)
         {
-            if (!(node is AbstractNode) && !(node is Node))
+            if (node is not AbstractNode and not Node)
                 return;
             WriteClassHeader(node);
 
             bool unsealed = !CanBeSealed(node);
-            bool concrete = !(node is AbstractNode);
+            bool concrete = node is not AbstractNode;
             bool hasChildNodes = AllNodeOrNodeListFields(node).Any();
 
             if (unsealed)
@@ -922,7 +917,7 @@ namespace BoundTreeGenerator
             // Only C# can express nullable reference types
             foreach (var field in (_targetLang == TargetLanguage.CSharp ? FieldsIncludingOverrides(node) : Fields(node)))
             {
-                WriteField(field);
+                WriteField(node, field);
             }
             if (node is Node)
             {
@@ -930,7 +925,7 @@ namespace BoundTreeGenerator
                 WriteUpdateMethod(node as Node);
             }
 
-            WriteClassFooter(node);
+            WriteClassFooter();
         }
 
         private void WriteUpdateMethod(Node node)
@@ -986,9 +981,9 @@ namespace BoundTreeGenerator
                         {
                             Write("If ");
                             Or(AllSpecifiableFields(node),
-                                field => IsValueType(field.Type) ?
-                                            string.Format("{0} <> Me.{1}", ToCamelCase(field.Name), field.Name) :
-                                            string.Format("{0} IsNot Me.{1}", ToCamelCase(field.Name), field.Name));
+                                field => IsValueType(field.Type)
+                                            ? string.Format("{0} <> Me.{1}", ToCamelCase(field.Name), field.Name)
+                                            : string.Format("{0} IsNot Me.{1}", ToCamelCase(field.Name), field.Name));
                             WriteLine(" Then");
                             Indent();
                             Write("Dim result = New {0}", node.Name);
@@ -1017,7 +1012,9 @@ namespace BoundTreeGenerator
                                 ? "!TypeSymbol.Equals({0}, this.{1}, TypeCompareKind.ConsiderEverything)"
                                 : TypeIsSymbol(field)
                                     ? "!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals({0}, this.{1})"
-                                    : "{0} != this.{1}";
+                                    : IsValueType(field.Type) && field.Type[^1] == '?'
+                                        ? "!{0}.Equals(this.{1})"
+                                        : "{0} != this.{1}";
 
                 return string.Format(format, ToCamelCase(field.Name), field.Name);
             }
@@ -1536,8 +1533,8 @@ namespace BoundTreeGenerator
 
                             Unbrace();
 
-                            void writeNullabilityCheck(bool inverted) =>
-                                WriteLine($"if ({(inverted ? "!" : "")}{updatedNullabilities}.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))");
+                            void writeNullabilityCheck(bool inverted)
+                                => WriteLine($"if ({(inverted ? "!" : "")}{updatedNullabilities}.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))");
 
                             void writeUpdateAndDecl(bool decl, bool updatedType)
                             {
@@ -1594,8 +1591,8 @@ namespace BoundTreeGenerator
                                 return typeIsUpdated(f.Type);
                             }
 
-                            bool immutableArrayIsPotentiallyUpdated(Field field) =>
-                                IsImmutableArray(field.Type, out var elementType) && TypeIsSymbol(elementType) && typeIsUpdated(elementType);
+                            bool immutableArrayIsPotentiallyUpdated(Field field)
+                                => IsImmutableArray(field.Type, out var elementType) && TypeIsSymbol(elementType) && typeIsUpdated(elementType);
 
                             static bool typeIsUpdated(string type)
                             {
@@ -1733,12 +1730,7 @@ namespace BoundTreeGenerator
             }
         }
 
-        private bool IsAnyList(string typeName)
-        {
-            return IsNodeList(typeName);
-        }
-
-        private bool IsValueType(string typeName) => _valueTypes.Contains(GetGenericType(typeName));
+        private bool IsValueType(string typeName) => _valueTypes.Contains(GetGenericType(typeName).TrimEnd('?'));
 
         private bool IsDerivedType(string typeName, string derivedTypeName)
         {
@@ -1751,11 +1743,6 @@ namespace BoundTreeGenerator
                 return IsDerivedType(typeName, baseType);
             }
             return false;
-        }
-
-        private static bool IsRoot(Node n)
-        {
-            return n.Root != null && string.Compare(n.Root, "true", true) == 0;
         }
 
         private bool IsNode(string typeName)

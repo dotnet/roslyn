@@ -8,6 +8,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -16,6 +17,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.Diagnostics)]
     public class DiagnosticServiceTests
     {
         private static DiagnosticService GetDiagnosticService(TestWorkspace workspace)
@@ -30,10 +32,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             return diagnosticService;
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
-        public void TestGetDiagnostics1()
+        [Fact]
+        public async Task TestGetDiagnostics1()
         {
-            using var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features);
+            using var workspace = new TestWorkspace(composition: EditorTestCompositions.EditorFeatures);
             var mutex = new ManualResetEvent(false);
             var document = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp).AddDocument("TestDocument", string.Empty);
 
@@ -46,23 +48,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var id = Tuple.Create(workspace, document);
             var diagnostic = RaiseDiagnosticEvent(mutex, source, workspace, document.Project.Id, document.Id, id);
 
-            var data1 = diagnosticService.GetPushDiagnostics(workspace, null, null, null, includeSuppressedDiagnostics: false, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None);
+            var data1 = await diagnosticService.GetDiagnosticsAsync(workspace, null, null, null, includeSuppressedDiagnostics: false, CancellationToken.None);
             Assert.Equal(diagnostic, data1.Single());
 
-            var data2 = diagnosticService.GetPushDiagnostics(workspace, document.Project.Id, null, null, includeSuppressedDiagnostics: false, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None);
+            var data2 = await diagnosticService.GetDiagnosticsAsync(workspace, document.Project.Id, null, null, includeSuppressedDiagnostics: false, CancellationToken.None);
             Assert.Equal(diagnostic, data2.Single());
 
-            var data3 = diagnosticService.GetPushDiagnostics(workspace, document.Project.Id, document.Id, null, includeSuppressedDiagnostics: false, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None);
+            var data3 = await diagnosticService.GetDiagnosticsAsync(workspace, document.Project.Id, document.Id, null, includeSuppressedDiagnostics: false, CancellationToken.None);
             Assert.Equal(diagnostic, data3.Single());
 
-            var data4 = diagnosticService.GetPushDiagnostics(workspace, document.Project.Id, document.Id, id, includeSuppressedDiagnostics: false, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None);
+            var data4 = await diagnosticService.GetDiagnosticsAsync(workspace, document.Project.Id, document.Id, id, includeSuppressedDiagnostics: false, CancellationToken.None);
             Assert.Equal(diagnostic, data4.Single());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
-        public void TestGetDiagnostics2()
+        [Fact]
+        public async Task TestGetDiagnostics2()
         {
-            using var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features);
+            using var workspace = new TestWorkspace(composition: EditorTestCompositions.EditorFeatures);
             var mutex = new ManualResetEvent(false);
             var document = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp).AddDocument("TestDocument", string.Empty);
             var document2 = document.Project.AddDocument("TestDocument2", string.Empty);
@@ -85,26 +87,26 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             RaiseDiagnosticEvent(mutex, source, workspace, document.Project.Id, null, id3);
             RaiseDiagnosticEvent(mutex, source, workspace, null, null, Tuple.Create(workspace));
 
-            var data1 = diagnosticService.GetPushDiagnostics(workspace, null, null, null, includeSuppressedDiagnostics: false, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None);
+            var data1 = await diagnosticService.GetDiagnosticsAsync(workspace, null, null, null, includeSuppressedDiagnostics: false, CancellationToken.None);
             Assert.Equal(5, data1.Count());
 
-            var data2 = diagnosticService.GetPushDiagnostics(workspace, document.Project.Id, null, null, includeSuppressedDiagnostics: false, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None);
+            var data2 = await diagnosticService.GetDiagnosticsAsync(workspace, document.Project.Id, null, null, includeSuppressedDiagnostics: false, CancellationToken.None);
             Assert.Equal(4, data2.Count());
 
-            var data3 = diagnosticService.GetPushDiagnostics(workspace, document.Project.Id, null, id3, includeSuppressedDiagnostics: false, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None);
+            var data3 = await diagnosticService.GetDiagnosticsAsync(workspace, document.Project.Id, null, id3, includeSuppressedDiagnostics: false, CancellationToken.None);
             Assert.Equal(1, data3.Count());
 
-            var data4 = diagnosticService.GetPushDiagnostics(workspace, document.Project.Id, document.Id, null, includeSuppressedDiagnostics: false, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None);
+            var data4 = await diagnosticService.GetDiagnosticsAsync(workspace, document.Project.Id, document.Id, null, includeSuppressedDiagnostics: false, CancellationToken.None);
             Assert.Equal(2, data4.Count());
 
-            var data5 = diagnosticService.GetPushDiagnostics(workspace, document.Project.Id, document.Id, id, includeSuppressedDiagnostics: false, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None);
+            var data5 = await diagnosticService.GetDiagnosticsAsync(workspace, document.Project.Id, document.Id, id, includeSuppressedDiagnostics: false, CancellationToken.None);
             Assert.Equal(1, data5.Count());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
-        public void TestCleared()
+        [Fact]
+        public async Task TestCleared()
         {
-            using var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features);
+            using var workspace = new TestWorkspace(composition: EditorTestCompositions.EditorFeatures);
             var mutex = new ManualResetEvent(false);
             var document = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp).AddDocument("TestDocument", string.Empty);
             var document2 = document.Project.AddDocument("TestDocument2", string.Empty);
@@ -128,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             RaiseDiagnosticEvent(mutex, source2, workspace, null, null, Tuple.Create(workspace));
 
             // confirm data is there.
-            var data1 = diagnosticService.GetPushDiagnostics(workspace, null, null, null, includeSuppressedDiagnostics: false, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None);
+            var data1 = await diagnosticService.GetDiagnosticsAsync(workspace, null, null, null, includeSuppressedDiagnostics: false, CancellationToken.None);
             Assert.Equal(5, data1.Count());
 
             diagnosticService.DiagnosticsUpdated -= MarkSet;
@@ -143,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             mutex.WaitOne();
 
             // confirm there are 2 data left
-            var data2 = diagnosticService.GetPushDiagnostics(workspace, null, null, null, includeSuppressedDiagnostics: false, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None);
+            var data2 = await diagnosticService.GetDiagnosticsAsync(workspace, null, null, null, includeSuppressedDiagnostics: false, CancellationToken.None);
             Assert.Equal(2, data2.Count());
 
             void MarkCalled(object sender, DiagnosticsUpdatedArgs args)
@@ -181,7 +183,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 id: "test1",
                 category: "Test",
                 message: "test1 message",
-                enuMessageForBingSearch: "test1 message format",
                 severity: DiagnosticSeverity.Info,
                 defaultSeverity: DiagnosticSeverity.Info,
                 isEnabledByDefault: false,
@@ -189,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 customTags: ImmutableArray<string>.Empty,
                 properties: ImmutableDictionary<string, string>.Empty,
                 projectId,
-                location: new DiagnosticDataLocation(documentId, null, "originalFile1", 10, 10, 20, 20));
+                location: new DiagnosticDataLocation(new("originalFile1", new(10, 10), new(20, 20)), documentId));
         }
 
         private class TestDiagnosticUpdateSource : IDiagnosticUpdateSource
@@ -207,8 +208,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
             public event EventHandler DiagnosticsCleared;
 
-            public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
-                => _support ? _diagnosticData : ImmutableArray<DiagnosticData>.Empty;
+            public ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
+                => new(_support ? _diagnosticData : ImmutableArray<DiagnosticData>.Empty);
 
             public void RaiseDiagnosticsUpdatedEvent(DiagnosticsUpdatedArgs args)
                 => DiagnosticsUpdated?.Invoke(this, args);

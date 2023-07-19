@@ -16,21 +16,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
     internal partial class CSharpSelectionResult
     {
-        private class StatementResult : CSharpSelectionResult
+        private class StatementResult(
+            OperationStatus status,
+            TextSpan originalSpan,
+            TextSpan finalSpan,
+            ExtractMethodOptions options,
+            bool selectionInExpression,
+            SemanticDocument document,
+            SyntaxAnnotation firstTokenAnnotation,
+            SyntaxAnnotation lastTokenAnnotation) : CSharpSelectionResult(status, originalSpan, finalSpan, options, selectionInExpression, document, firstTokenAnnotation, lastTokenAnnotation)
         {
-            public StatementResult(
-                OperationStatus status,
-                TextSpan originalSpan,
-                TextSpan finalSpan,
-                OptionSet options,
-                bool selectionInExpression,
-                SemanticDocument document,
-                SyntaxAnnotation firstTokenAnnotation,
-                SyntaxAnnotation lastTokenAnnotation)
-                : base(status, originalSpan, finalSpan, options, selectionInExpression, document, firstTokenAnnotation, lastTokenAnnotation)
-            {
-            }
-
             public override bool ContainingScopeHasAsyncKeyword()
             {
                 var node = GetContainingScope();
@@ -55,14 +50,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var firstToken = GetFirstTokenInSelection();
                 return firstToken.GetAncestors<SyntaxNode>().FirstOrDefault(n =>
                 {
-                    return n is AccessorDeclarationSyntax ||
-                           n is LocalFunctionStatementSyntax ||
-                           n is BaseMethodDeclarationSyntax ||
-                           n is AccessorDeclarationSyntax ||
-                           n is ParenthesizedLambdaExpressionSyntax ||
-                           n is SimpleLambdaExpressionSyntax ||
-                           n is AnonymousMethodExpressionSyntax ||
-                           n is CompilationUnitSyntax;
+                    return n is AccessorDeclarationSyntax or
+                           LocalFunctionStatementSyntax or
+                           BaseMethodDeclarationSyntax or
+                           AccessorDeclarationSyntax or
+                           ParenthesizedLambdaExpressionSyntax or
+                           SimpleLambdaExpressionSyntax or
+                           AnonymousMethodExpressionSyntax or
+                           CompilationUnitSyntax;
                 });
             }
 

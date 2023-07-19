@@ -10,11 +10,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Friend Class BoundSequencePointExpression
 
+#Disable Warning IDE0051 ' Remove unused private members - https://github.com/dotnet/roslyn/issues/61776
 #If DEBUG Then
         Private Sub Validate()
             Debug.Assert(Type Is _Expression.Type)
         End Sub
 #End If
+#Enable Warning IDE0051 ' Remove unused private members
+
         Public Overrides ReadOnly Property IsLValue As Boolean
             Get
                 Return Me.Expression.IsLValue

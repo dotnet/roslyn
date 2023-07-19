@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal override DiagnosticInfo GetInstanceWithSeverity(DiagnosticSeverity severity)
+        protected override DiagnosticInfo GetInstanceWithSeverityCore(DiagnosticSeverity severity)
         {
             return new CustomObsoleteDiagnosticInfo(this, severity);
         }
@@ -87,19 +87,11 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<string> customTags;
             if (diagnosticId is null)
             {
-                customTags = baseDescriptor.CustomTags.ToImmutableArray();
+                customTags = baseDescriptor.ImmutableCustomTags;
             }
             else
             {
-                var capacity = 1;
-                if (baseDescriptor.CustomTags is ICollection<string> { Count: int count })
-                {
-                    capacity += count;
-                }
-                var tagsBuilder = ArrayBuilder<string>.GetInstance(capacity);
-                tagsBuilder.AddRange(baseDescriptor.CustomTags);
-                tagsBuilder.Add(WellKnownDiagnosticTags.CustomObsolete);
-                customTags = tagsBuilder.ToImmutableAndFree();
+                customTags = baseDescriptor.ImmutableCustomTags.Add(WellKnownDiagnosticTags.CustomObsolete);
             }
 
             return new DiagnosticDescriptor(

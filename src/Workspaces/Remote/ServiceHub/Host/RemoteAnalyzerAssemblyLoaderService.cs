@@ -4,7 +4,9 @@
 
 using System;
 using System.Composition;
+using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
@@ -16,13 +18,18 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
     [ExportWorkspaceService(typeof(IAnalyzerAssemblyLoaderProvider), WorkspaceKind.RemoteWorkspace), Shared]
     internal sealed class RemoteAnalyzerAssemblyLoaderService : IAnalyzerAssemblyLoaderProvider
     {
-        private readonly DefaultAnalyzerAssemblyLoader _loader = new DefaultAnalyzerAssemblyLoader();
-        private readonly ShadowCopyAnalyzerAssemblyLoader _shadowCopyLoader = new ShadowCopyAnalyzerAssemblyLoader(Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader"));
+        private readonly RemoteAnalyzerAssemblyLoader _loader;
+        private readonly ShadowCopyAnalyzerAssemblyLoader _shadowCopyLoader;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RemoteAnalyzerAssemblyLoaderService()
         {
+            var baseDirectory = Path.GetDirectoryName(Path.GetFullPath(typeof(RemoteAnalyzerAssemblyLoader).GetTypeInfo().Assembly.Location));
+            Debug.Assert(baseDirectory != null);
+
+            _loader = new(baseDirectory);
+            _shadowCopyLoader = new(Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader"));
         }
 
         public IAnalyzerAssemblyLoader GetLoader(in AnalyzerAssemblyLoaderOptions options)

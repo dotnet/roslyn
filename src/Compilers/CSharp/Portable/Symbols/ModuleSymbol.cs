@@ -225,7 +225,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <returns></returns>
         internal abstract ImmutableArray<AssemblyIdentity> GetReferencedAssemblies(); // TODO: Remove this method and make ReferencedAssemblies property abstract instead.
 
-
         /// <summary>
         /// Returns an array of AssemblySymbol objects corresponding to assemblies referenced 
         /// by this module. Items at the same position from ReferencedAssemblies and 
@@ -298,6 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal abstract bool GetUnificationUseSiteDiagnostic(ref DiagnosticInfo result, TypeSymbol dependentType);
 
+#nullable enable
         /// <summary>
         /// Lookup a top level type referenced from metadata, names should be
         /// compared case-sensitively.
@@ -306,10 +306,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Full type name, possibly with generic name mangling.
         /// </param>
         /// <returns>
-        /// Symbol for the type, or MissingMetadataSymbol if the type isn't found.
+        /// Symbol for the type, or null if the type isn't found.
         /// </returns>
         /// <remarks></remarks>
-        internal abstract NamedTypeSymbol LookupTopLevelMetadataType(ref MetadataTypeName emittedName);
+        internal abstract NamedTypeSymbol? LookupTopLevelMetadataType(ref MetadataTypeName emittedName);
+#nullable disable
 
         internal abstract ICollection<string> TypeNames { get; }
 
@@ -325,6 +326,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool HasAssemblyRuntimeCompatibilityAttribute { get; }
 
+        internal abstract bool UseUpdatedEscapeRules { get; }
+
         /// <summary>
         /// Default char set for contained types, or null if not specified.
         /// </summary>
@@ -332,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal virtual ImmutableArray<byte> GetHash(AssemblyHashAlgorithm algorithmId)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         /// <summary>
@@ -345,11 +348,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 throw new ArgumentNullException(nameof(namespaceSymbol));
             }
 
-            var moduleNs = namespaceSymbol as NamespaceSymbol;
-            if ((object)moduleNs != null && moduleNs.Extent.Kind == NamespaceKind.Module && moduleNs.ContainingModule == this)
+            if (namespaceSymbol.NamespaceKind == NamespaceKind.Module)
+            {
+                var moduleNs = (namespaceSymbol as PublicModel.NamespaceSymbol)?.UnderlyingNamespaceSymbol;
+                if ((object)moduleNs != null && moduleNs.ContainingModule == this)
+                {
+                    // this is already the correct module namespace
+                    return moduleNs;
+                }
+            }
+
+            if (namespaceSymbol.IsGlobalNamespace || (object)namespaceSymbol.ContainingNamespace == null)
+            {
+                return this.GlobalNamespace;
+            }
+            else
+            {
+                var cns = GetModuleNamespace(namespaceSymbol.ContainingNamespace);
+                if ((object)cns != null)
+                {
+                    return cns.GetNestedNamespace(namespaceSymbol.Name);
+                }
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Given a namespace symbol, returns the corresponding module specific namespace symbol
+        /// </summary>
+        public NamespaceSymbol GetModuleNamespace(NamespaceSymbol namespaceSymbol)
+        {
+            if (namespaceSymbol == null)
+            {
+                throw new ArgumentNullException(nameof(namespaceSymbol));
+            }
+
+            if (namespaceSymbol.Extent.Kind == NamespaceKind.Module && namespaceSymbol.ContainingModule == this)
             {
                 // this is already the correct module namespace
-                return moduleNs;
+                return namespaceSymbol;
             }
 
             if (namespaceSymbol.IsGlobalNamespace || (object)namespaceSymbol.ContainingNamespace == null)

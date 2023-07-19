@@ -7,9 +7,6 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-
-
-
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
     ''' <summary>
@@ -126,9 +123,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
             If _reportErrorWhenReferenced Then
-                Return Me.ErrorInfo
+                Return New UseSiteInfo(Of AssemblySymbol)(Me.ErrorInfo)
             End If
 
             Return Nothing

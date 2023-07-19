@@ -48,11 +48,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Public Function GetUnmangledName(sourceTypeParameter As TypeParameterSymbol) As String
             Dim sourceName = sourceTypeParameter.Name
 
-            If sourceName.StartsWith(StringConstants.StateMachineTypeParameterPrefix, StringComparison.Ordinal) Then
+            If sourceName.StartsWith(GeneratedNameConstants.StateMachineTypeParameterPrefix, StringComparison.Ordinal) Then
                 Debug.Assert(sourceTypeParameter.ContainingSymbol.Name.
-                             StartsWith(StringConstants.StateMachineTypeNamePrefix, StringComparison.Ordinal))
-                Debug.Assert(sourceName.Length > StringConstants.StateMachineTypeParameterPrefix.Length)
-                Return sourceName.Substring(StringConstants.StateMachineTypeParameterPrefix.Length)
+                             StartsWith(GeneratedNameConstants.StateMachineTypeNamePrefix, StringComparison.Ordinal))
+                Debug.Assert(sourceName.Length > GeneratedNameConstants.StateMachineTypeParameterPrefix.Length)
+                Return sourceName.Substring(GeneratedNameConstants.StateMachineTypeParameterPrefix.Length)
             End If
 
             Return sourceName
@@ -65,12 +65,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         <Extension>
         Friend Function IsClosureType(type As TypeSymbol) As Boolean
-            Return type.Name.StartsWith(StringConstants.DisplayClassPrefix, StringComparison.Ordinal)
+            Return type.Name.StartsWith(GeneratedNameConstants.DisplayClassPrefix, StringComparison.Ordinal)
         End Function
 
         <Extension>
         Friend Function IsStateMachineType(type As TypeSymbol) As Boolean
-            Return type.Name.StartsWith(StringConstants.StateMachineTypeNamePrefix, StringComparison.Ordinal)
+            Return type.Name.StartsWith(GeneratedNameConstants.StateMachineTypeNamePrefix, StringComparison.Ordinal)
         End Function
 
         <Extension>
@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         <Extension>
         Friend Function IsAnonymousTypeField(field As FieldSymbol, <Out> ByRef unmangledName As String) As Boolean
-            If GeneratedNames.GetKind(field.ContainingType.Name) <> GeneratedNameKind.AnonymousType Then
+            If GeneratedNameParser.GetKind(field.ContainingType.Name) <> GeneratedNameKind.AnonymousType Then
                 unmangledName = Nothing
                 Return False
             End If

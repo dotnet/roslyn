@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using System.Threading;
@@ -21,7 +19,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
     {
         public abstract string Language { get; }
 
-        protected abstract ProjectFile CreateProjectFile(MSB.Evaluation.Project project, ProjectBuildManager buildManager, DiagnosticLog log);
+        protected abstract ProjectFile CreateProjectFile(MSB.Evaluation.Project? project, ProjectBuildManager buildManager, DiagnosticLog log);
 
         public async Task<IProjectFile> LoadProjectFileAsync(string path, ProjectBuildManager buildManager, CancellationToken cancellationToken)
         {
@@ -36,9 +34,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return this.CreateProjectFile(project, buildManager, log);
         }
 
-        public static IProjectFileLoader GetLoaderForProjectFileExtension(HostWorkspaceServices workspaceServices, string extension)
+        public static IProjectFileLoader? GetLoaderForProjectFileExtension(SolutionServices solutionServices, string extension)
         {
-            return workspaceServices.FindLanguageServices<IProjectFileLoader>(
+            return solutionServices.FindLanguageServices<IProjectFileLoader>(
                 d => d.GetEnumerableMetadata<string>("ProjectFileExtension").Any(e => string.Equals(e, extension, StringComparison.OrdinalIgnoreCase)))
                 .FirstOrDefault();
         }

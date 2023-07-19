@@ -8,6 +8,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Utilities;
@@ -37,29 +38,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
     [ContentType(ContentTypeNames.CSharpContentType)]
     [Name(PredefinedCommandHandlerNames.EventHookup)]
     [Order(Before = PredefinedCommandHandlerNames.AutomaticCompletion)]
-    internal partial class EventHookupCommandHandler : ForegroundThreadAffinitizedObject
+    [method: ImportingConstructor]
+    [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+    internal partial class EventHookupCommandHandler(
+        IThreadingContext threadingContext,
+        IInlineRenameService inlineRenameService,
+        EventHookupSessionManager eventHookupSessionManager,
+        IGlobalOptionService globalOptions,
+        IAsynchronousOperationListenerProvider listenerProvider)
     {
-        private readonly IInlineRenameService _inlineRenameService;
-        private readonly IAsynchronousOperationListener _asyncListener;
+        private readonly IThreadingContext _threadingContext = threadingContext;
+        private readonly IInlineRenameService _inlineRenameService = inlineRenameService;
+        private readonly IAsynchronousOperationListener _asyncListener = listenerProvider.GetListener(FeatureAttribute.EventHookup);
+        private readonly IGlobalOptionService _globalOptions = globalOptions;
 
-        internal readonly EventHookupSessionManager EventHookupSessionManager;
+        internal readonly EventHookupSessionManager EventHookupSessionManager = eventHookupSessionManager;
 
         // For testing purposes only! Will always be null except in certain tests.
         internal Mutex TESTSessionHookupMutex;
-
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public EventHookupCommandHandler(
-            IThreadingContext threadingContext,
-            IInlineRenameService inlineRenameService,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            EventHookupSessionManager eventHookupSessionManager)
-            : base(threadingContext)
-        {
-            _inlineRenameService = inlineRenameService;
-            _asyncListener = listenerProvider.GetListener(FeatureAttribute.EventHookup);
-
-            this.EventHookupSessionManager = eventHookupSessionManager;
-        }
     }
 }

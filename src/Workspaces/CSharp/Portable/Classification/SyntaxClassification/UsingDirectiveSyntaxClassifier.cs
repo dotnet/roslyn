@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -15,10 +16,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
     internal class UsingDirectiveSyntaxClassifier : AbstractSyntaxClassifier
     {
         public override void AddClassifications(
-            Workspace workspace,
             SyntaxNode syntax,
             SemanticModel semanticModel,
-            ArrayBuilder<ClassifiedSpan> result,
+            ClassificationOptions options,
+            SegmentedList<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
             if (syntax is UsingDirectiveSyntax usingDirective)
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         private static void ClassifyUsingDirectiveSyntax(
             UsingDirectiveSyntax usingDirective,
             SemanticModel semanticModel,
-            ArrayBuilder<ClassifiedSpan> result,
+            SegmentedList<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
             // For using aliases, we bind the target on the right of the equals and use that
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             {
                 var token = usingDirective.Alias.Name;
 
-                var symbolInfo = semanticModel.GetSymbolInfo(usingDirective.Name, cancellationToken);
+                var symbolInfo = semanticModel.GetSymbolInfo(usingDirective.NamespaceOrType, cancellationToken);
                 if (symbolInfo.Symbol is ITypeSymbol typeSymbol)
                 {
                     var classification = GetClassificationForType(typeSymbol);

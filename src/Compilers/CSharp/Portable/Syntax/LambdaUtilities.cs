@@ -417,6 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     // With dynamic analysis instrumentation, a type declaration can be the syntax associated
                     // with the analysis payload local of a synthesized constructor.
                     // If the synthesized constructor includes an initializer with a lambda,

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private sealed class IteratorFinallyFrame
         {
             // finalize state of this frame. This is the state we should be in when we are "between real states"
-            public readonly int finalizeState;
+            public readonly StateMachineState finalizeState;
 
             // Enclosing frame. Root frame does not have parent.
             public readonly IteratorFinallyFrame parent;
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // This is enough information to restore Try/Finally tree structure in Dispose and dispatch any valid state
             // into a corresponding try.
             // NOTE: union of all values in this map gives all nested frames.
-            public Dictionary<int, IteratorFinallyFrame> knownStates;
+            public Dictionary<StateMachineState, IteratorFinallyFrame> knownStates;
 
             // labels within this frame (branching to these labels does not go through finally).
             public readonly HashSet<LabelSymbol> labels;
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public IteratorFinallyFrame(
                 IteratorFinallyFrame parent,
-                int finalizeState,
+                StateMachineState finalizeState,
                 IteratorFinallyMethodSymbol handler,
                 HashSet<LabelSymbol> labels)
             {
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public IteratorFinallyFrame()
             {
-                this.finalizeState = StateMachineStates.NotStartedStateMachine;
+                this.finalizeState = StateMachineState.NotStartedOrRunningState;
             }
 
             public bool IsRoot()
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this.parent == null;
             }
 
-            public void AddState(int state)
+            public void AddState(StateMachineState state)
             {
                 if (parent != null)
                 {
@@ -76,12 +76,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Notifies all parents about the state recursively. 
             // All parents need to know states they recursively contain and what 
             // immediate child can handle every particular state.
-            private void AddState(int state, IteratorFinallyFrame innerHandler)
+            private void AddState(StateMachineState state, IteratorFinallyFrame innerHandler)
             {
                 var knownStates = this.knownStates;
                 if (knownStates == null)
                 {
-                    this.knownStates = knownStates = new Dictionary<int, IteratorFinallyFrame>();
+                    this.knownStates = knownStates = new Dictionary<StateMachineState, IteratorFinallyFrame>();
                 }
 
                 knownStates.Add(state, innerHandler);

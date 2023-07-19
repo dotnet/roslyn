@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override DiagnosticInfo? ErrorInfo
@@ -119,14 +119,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _unreported; }
         }
 
-        internal override DiagnosticInfo? GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
             if (_unreported)
             {
-                return this.ErrorInfo;
+                return new UseSiteInfo<AssemblySymbol>(this.ErrorInfo);
             }
 
-            return null;
+            return default;
         }
 
         public override int Arity
@@ -144,6 +144,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _arity > 0;
             }
         }
+
+        internal override bool IsFileLocal => false;
+        internal override FileIdentifier? AssociatedFileIdentifier => null;
 
         public override Symbol? ContainingSymbol
         {

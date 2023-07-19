@@ -87,20 +87,6 @@ namespace Microsoft.CodeAnalysis
                 PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences)));
         }
 
-        internal ImmutableHashSet<string> GetRemoteSupportedProjectLanguages()
-        {
-            var builder = ImmutableHashSet.CreateBuilder<string>();
-            foreach (var project in Projects)
-            {
-                if (RemoteSupportedLanguages.IsSupported(project.Language))
-                {
-                    builder.Add(project.Language);
-                }
-            }
-
-            return builder.ToImmutable();
-        }
-
         internal SolutionInfo WithTelemetryId(Guid telemetryId)
             => new(Attributes.With(telemetryId: telemetryId), Projects, AnalyzerReferences);
 
@@ -108,37 +94,29 @@ namespace Microsoft.CodeAnalysis
         /// type that contains information regarding this solution itself but
         /// no tree information such as project info
         /// </summary>
-        internal sealed class SolutionAttributes : IChecksummedObject, IObjectWritable
+        internal sealed class SolutionAttributes(SolutionId id, VersionStamp version, string? filePath, Guid telemetryId) : IChecksummedObject, IObjectWritable
         {
             private Checksum? _lazyChecksum;
 
             /// <summary>
             /// The unique Id of the solution.
             /// </summary>
-            public SolutionId Id { get; }
+            public SolutionId Id { get; } = id;
 
             /// <summary>
             /// The version of the solution.
             /// </summary>
-            public VersionStamp Version { get; }
+            public VersionStamp Version { get; } = version;
 
             /// <summary>
             /// The path to the solution file, or null if there is no solution file.
             /// </summary>
-            public string? FilePath { get; }
+            public string? FilePath { get; } = filePath;
 
             /// <summary>
             /// The id report during telemetry events.
             /// </summary>
-            public Guid TelemetryId { get; }
-
-            public SolutionAttributes(SolutionId id, VersionStamp version, string? filePath, Guid telemetryId)
-            {
-                Id = id;
-                Version = version;
-                FilePath = filePath;
-                TelemetryId = telemetryId;
-            }
+            public Guid TelemetryId { get; } = telemetryId;
 
             public SolutionAttributes With(
                 VersionStamp? version = null,
@@ -184,7 +162,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             Checksum IChecksummedObject.Checksum
-                => _lazyChecksum ??= Checksum.Create(WellKnownSynchronizationKind.SolutionAttributes, this);
+                => _lazyChecksum ??= Checksum.Create(this);
         }
     }
 }

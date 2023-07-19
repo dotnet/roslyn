@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis
     {
         /// <summary>
         /// Shows only the names of properties.
-        /// <seealso cref="SymbolDisplayMemberOptions"/>
+        /// <see cref="SymbolDisplayMemberOptions"/>
         /// </summary>
         NameOnly = 0,
 

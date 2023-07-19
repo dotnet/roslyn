@@ -6,9 +6,8 @@ param(
   [switch] $IsFeedPrivate
 )
 
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = 'Stop'
 Set-StrictMode -Version 2.0
-
 . $PSScriptRoot\tools.ps1
 
 # Sets VSS_NUGET_EXTERNAL_FEED_ENDPOINTS based on the "darc-int-*" feeds defined in NuGet.config. This is needed
@@ -21,7 +20,7 @@ function SetupCredProvider {
   )    
 
   # Install the Cred Provider NuGet plugin
-  Write-Host "Setting up Cred Provider NuGet plugin in the agent..."
+  Write-Host 'Setting up Cred Provider NuGet plugin in the agent...'
   Write-Host "Getting 'installcredprovider.ps1' from 'https://github.com/microsoft/artifacts-credprovider'..."
 
   $url = 'https://raw.githubusercontent.com/microsoft/artifacts-credprovider/master/helpers/installcredprovider.ps1'
@@ -29,28 +28,28 @@ function SetupCredProvider {
   Write-Host "Writing the contents of 'installcredprovider.ps1' locally..."
   Invoke-WebRequest $url -OutFile installcredprovider.ps1
   
-  Write-Host "Installing plugin..."
+  Write-Host 'Installing plugin...'
   .\installcredprovider.ps1 -Force
   
   Write-Host "Deleting local copy of 'installcredprovider.ps1'..."
   Remove-Item .\installcredprovider.ps1
 
   if (-Not("$env:USERPROFILE\.nuget\plugins\netcore")) {
-    Write-Host "CredProvider plugin was not installed correctly!"
+    Write-PipelineTelemetryError -Category 'Arcade' -Message 'CredProvider plugin was not installed correctly!'
     ExitWithExitCode 1  
   } 
   else {
-    Write-Host "CredProvider plugin was installed correctly!"
+    Write-Host 'CredProvider plugin was installed correctly!'
   }
 
   # Then, we set the 'VSS_NUGET_EXTERNAL_FEED_ENDPOINTS' environment variable to restore from the stable 
   # feeds successfully
 
-  $nugetConfigPath = "$RepoRoot\NuGet.config"
+  $nugetConfigPath = Join-Path $RepoRoot "NuGet.config"
 
   if (-Not (Test-Path -Path $nugetConfigPath)) {
-    Write-Host "NuGet.config file not found in repo's root!"
-    ExitWithExitCode 1  
+    Write-PipelineTelemetryError -Category 'Build' -Message 'NuGet.config file not found in repo root!'
+    ExitWithExitCode 1
   }
   
   $endpoints = New-Object System.Collections.ArrayList
@@ -64,7 +63,6 @@ function SetupCredProvider {
   }
 
   if (($endpoints | Measure-Object).Count -gt 0) {
-      # Create the JSON object. It should look like '{"endpointCredentials": [{"endpoint":"http://example.index.json", "username":"optional", "password":"accesstoken"}]}'
       $endpointCredentials = @{endpointCredentials=$endpoints} | ConvertTo-Json -Compress
 
      # Create the environment variables the AzDo way
@@ -81,13 +79,13 @@ function SetupCredProvider {
   }
   else
   {
-    Write-Host "No internal endpoints found in NuGet.config"
+    Write-Host 'No internal endpoints found in NuGet.config'
   }
 }
 
 #Workaround for https://github.com/microsoft/msbuild/issues/4430
 function InstallDotNetSdkAndRestoreArcade {
-  $dotnetTempDir = "$RepoRoot\dotnet"
+  $dotnetTempDir = Join-Path $RepoRoot "dotnet"
   $dotnetSdkVersion="2.1.507" # After experimentation we know this version works when restoring the SDK (compared to 3.0.*)
   $dotnet = "$dotnetTempDir\dotnet.exe"
   $restoreProjPath = "$PSScriptRoot\restore.proj"
@@ -99,7 +97,7 @@ function InstallDotNetSdkAndRestoreArcade {
 
   & $dotnet restore $restoreProjPath
 
-  Write-Host "Arcade SDK restored!"
+  Write-Host 'Arcade SDK restored!'
 
   if (Test-Path -Path $restoreProjPath) {
     Remove-Item $restoreProjPath
@@ -113,23 +111,22 @@ function InstallDotNetSdkAndRestoreArcade {
 try {
   Push-Location $PSScriptRoot
 
-  if ($Operation -like "setup") {
+  if ($Operation -like 'setup') {
     SetupCredProvider $AuthToken
   } 
-  elseif ($Operation -like "install-restore") {
+  elseif ($Operation -like 'install-restore') {
     InstallDotNetSdkAndRestoreArcade
   }
   else {
-    Write-Host "Unknown operation '$Operation'!"
+    Write-PipelineTelemetryError -Category 'Arcade' -Message "Unknown operation '$Operation'!"
     ExitWithExitCode 1  
   }
 } 
 catch {
-  Write-Host $_
-  Write-Host $_.Exception
   Write-Host $_.ScriptStackTrace
+  Write-PipelineTelemetryError -Category 'Arcade' -Message $_
   ExitWithExitCode 1
 } 
 finally {
-    Pop-Location
+  Pop-Location
 }

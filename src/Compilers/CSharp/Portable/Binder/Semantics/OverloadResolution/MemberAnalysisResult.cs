@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     [SuppressMessage("Performance", "CA1067", Justification = "Equality not actually implemented")]
-    internal struct MemberAnalysisResult
+    internal readonly struct MemberAnalysisResult
     {
         // put these first for better packing
         public readonly ImmutableArray<Conversion> ConversionsOpt;
@@ -50,12 +50,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override bool Equals(object obj)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override int GetHashCode()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public Conversion ConversionForArg(int arg)
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // There is a use site diagnostic to report here, but it is not reported
             // just because this member was a candidate - only if it "wins".
             return !SuppressUseSiteDiagnosticsForKind(this.Kind) &&
-                (object)symbol != null && symbol.GetUseSiteDiagnostic() != null;
+                (object)symbol != null && symbol.GetUseSiteInfo().DiagnosticInfo != null;
         }
 
         private static bool SuppressUseSiteDiagnosticsForKind(MemberResolutionKind kind)

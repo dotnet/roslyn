@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             throw ExceptionUtilities.UnexpectedValue(type);
         }
 
-        public static void WriteTo(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        public virtual void WriteAnalyzerReferenceTo(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             }
         }
 
-        public AnalyzerReference ReadAnalyzerReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
+        public virtual AnalyzerReference ReadAnalyzerReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -192,9 +192,9 @@ namespace Microsoft.CodeAnalysis.Serialization
                 modules = assemblyMetadata.GetModules();
                 return true;
             }
-            catch (Exception ex) when (ex is BadImageFormatException ||
-                                       ex is IOException ||
-                                       ex is ObjectDisposedException)
+            catch (Exception ex) when (ex is BadImageFormatException or
+                                       IOException or
+                                       ObjectDisposedException)
             {
                 modules = default;
                 return false;
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         private PortableExecutableReference ReadPortableExecutableReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
         {
             var kind = (SerializationKinds)reader.ReadInt32();
-            if (kind == SerializationKinds.Bits || kind == SerializationKinds.MemoryMapFile)
+            if (kind is SerializationKinds.Bits or SerializationKinds.MemoryMapFile)
             {
                 var properties = ReadMetadataReferencePropertiesFrom(reader, cancellationToken);
 
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             return true;
         }
 
-        private (Metadata metadata, ImmutableArray<ITemporaryStreamStorage> storages)? TryReadMetadataFrom(
+        private (Metadata metadata, ImmutableArray<ITemporaryStreamStorageInternal> storages)? TryReadMetadataFrom(
             ObjectReader reader, SerializationKinds kind, CancellationToken cancellationToken)
         {
             var imageKind = reader.ReadInt32();
@@ -377,20 +377,24 @@ namespace Microsoft.CodeAnalysis.Serialization
                         metadataKind = (MetadataImageKind)reader.ReadInt32();
                         Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
 
+#pragma warning disable CA2016 // https://github.com/dotnet/roslyn-analyzers/issues/4985
                         pooledMetadata.Object.Add(ReadModuleMetadataFrom(reader, kind));
+#pragma warning restore CA2016 
                     }
 
                     return (AssemblyMetadata.Create(pooledMetadata.Object), storages: default);
                 }
 
                 Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
+#pragma warning disable CA2016 // https://github.com/dotnet/roslyn-analyzers/issues/4985
                 return (ReadModuleMetadataFrom(reader, kind), storages: default);
+#pragma warning restore CA2016
             }
 
             if (metadataKind == MetadataImageKind.Assembly)
             {
                 using var pooledMetadata = Creator.CreateList<ModuleMetadata>();
-                using var pooledStorage = Creator.CreateList<ITemporaryStreamStorage>();
+                using var pooledStorage = Creator.CreateList<ITemporaryStreamStorageInternal>();
 
                 var count = reader.ReadInt32();
                 for (var i = 0; i < count; i++)
@@ -413,7 +417,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             return (moduleInfo.metadata, ImmutableArray.Create(moduleInfo.storage));
         }
 
-        private (ModuleMetadata metadata, ITemporaryStreamStorage storage) ReadModuleMetadataFrom(
+        private (ModuleMetadata metadata, ITemporaryStreamStorageInternal storage) ReadModuleMetadataFrom(
             ObjectReader reader, SerializationKinds kind, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -427,7 +431,8 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             // make sure we keep storageStream alive while Metadata is alive
             // we use conditional weak table since we can't control metadata liftetime
-            s_lifetimeMap.Add(metadata, lifeTimeObject);
+            if (lifeTimeObject != null)
+                s_lifetimeMap.Add(metadata, lifeTimeObject);
 
             return (metadata, storage);
         }
@@ -449,11 +454,11 @@ namespace Microsoft.CodeAnalysis.Serialization
         }
 
         private void GetTemporaryStorage(
-            ObjectReader reader, SerializationKinds kind, out ITemporaryStreamStorage storage, out long length, CancellationToken cancellationToken)
+            ObjectReader reader, SerializationKinds kind, out ITemporaryStreamStorageInternal storage, out long length, CancellationToken cancellationToken)
         {
             if (kind == SerializationKinds.Bits)
             {
-                storage = _storageService.CreateTemporaryStreamStorage(cancellationToken);
+                storage = _storageService.CreateTemporaryStreamStorage();
                 using var stream = SerializableBytes.CreateWritableStream();
 
                 CopyByteArrayToStream(reader, stream, cancellationToken);
@@ -474,7 +479,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                 var offset = reader.ReadInt64();
                 var size = reader.ReadInt64();
 
-                storage = service2.AttachTemporaryStreamStorage(name, offset, size, cancellationToken);
+                storage = service2.AttachTemporaryStreamStorage(name, offset, size);
                 length = size;
 
                 return;
@@ -483,13 +488,18 @@ namespace Microsoft.CodeAnalysis.Serialization
             throw ExceptionUtilities.UnexpectedValue(kind);
         }
 
-        private static void GetMetadata(Stream stream, long length, out ModuleMetadata metadata, out object lifeTimeObject)
+        private static void GetMetadata(Stream stream, long length, out ModuleMetadata metadata, out object? lifeTimeObject)
         {
-            if (stream is ISupportDirectMemoryAccess directAccess)
+            if (stream is UnmanagedMemoryStream unmanagedStream)
             {
-                metadata = ModuleMetadata.CreateFromMetadata(directAccess.GetPointer(), (int)length);
-                lifeTimeObject = stream;
-                return;
+                // For an unmanaged memory stream, ModuleMetadata can take ownership directly.
+                unsafe
+                {
+                    metadata = ModuleMetadata.CreateFromMetadata(
+                        (IntPtr)unmanagedStream.PositionPointer, (int)unmanagedStream.Length, unmanagedStream.Dispose);
+                    lifeTimeObject = null;
+                    return;
+                }
             }
 
             PinnedObject pinnedObject;
@@ -620,12 +630,12 @@ namespace Microsoft.CodeAnalysis.Serialization
         private sealed class SerializedMetadataReference : PortableExecutableReference, ISupportTemporaryStorage
         {
             private readonly Metadata _metadata;
-            private readonly ImmutableArray<ITemporaryStreamStorage> _storagesOpt;
+            private readonly ImmutableArray<ITemporaryStreamStorageInternal> _storagesOpt;
             private readonly DocumentationProvider _provider;
 
             public SerializedMetadataReference(
                 MetadataReferenceProperties properties, string? fullPath,
-                Metadata metadata, ImmutableArray<ITemporaryStreamStorage> storagesOpt, DocumentationProvider initialDocumentation)
+                Metadata metadata, ImmutableArray<ITemporaryStreamStorageInternal> storagesOpt, DocumentationProvider initialDocumentation)
                 : base(properties, fullPath, initialDocumentation)
             {
                 _metadata = metadata;
@@ -637,7 +647,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             protected override DocumentationProvider CreateDocumentationProvider()
             {
                 // this uses documentation provider given at the constructor
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             protected override Metadata GetMetadataImpl()
@@ -646,8 +656,8 @@ namespace Microsoft.CodeAnalysis.Serialization
             protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
                 => new SerializedMetadataReference(properties, FilePath, _metadata, _storagesOpt, _provider);
 
-            public IEnumerable<ITemporaryStreamStorage>? GetStorages()
-                => _storagesOpt.IsDefault ? (IEnumerable<ITemporaryStreamStorage>?)null : _storagesOpt;
+            public IReadOnlyList<ITemporaryStreamStorageInternal>? GetStorages()
+                => _storagesOpt.IsDefault ? null : _storagesOpt;
         }
     }
 }

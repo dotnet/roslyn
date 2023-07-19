@@ -7,6 +7,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 #if DEBUG
 using System.Diagnostics;
@@ -71,10 +72,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 #if DEBUG
                 if (lvalueFlowCaptureIdBuilder != null)
                 {
-                    foreach (var kvp in lvalueFlowCaptureIdBuilder)
-                    {
-                        Debug.Assert(kvp.Value == FlowCaptureKind.LValueAndRValueCapture || !rvalueFlowCaptureIds.Contains(kvp.Key), "Flow capture used as both an r-value and an l-value, but with incorrect flow capture kind");
-                    }
+                    foreach (var (captureId, kind) in lvalueFlowCaptureIdBuilder)
+                        Debug.Assert(kind == FlowCaptureKind.LValueAndRValueCapture || !rvalueFlowCaptureIds.Contains(captureId), "Flow capture used as both an r-value and an l-value, but with incorrect flow capture kind");
                 }
 #endif
 

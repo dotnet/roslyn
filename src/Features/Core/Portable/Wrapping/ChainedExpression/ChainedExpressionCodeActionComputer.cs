@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
                 AbstractChainedExpressionWrapper<TNameSyntax, TBaseArgumentListSyntax> service,
                 Document document,
                 SourceText originalSourceText,
-                DocumentOptionSet options,
+                SyntaxWrappingOptions options,
                 ImmutableArray<ImmutableArray<SyntaxNodeOrToken>> chunks,
                 CancellationToken cancellationToken)
                 : base(service, document, originalSourceText, options, cancellationToken)
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
                 var firstPeriod = chunks[0][0];
 
                 _firstPeriodIndentationTrivia = new SyntaxTriviaList(generator.Whitespace(
-                    OriginalSourceText.GetOffset(firstPeriod.SpanStart).CreateIndentationString(UseTabs, TabSize)));
+                    OriginalSourceText.GetOffset(firstPeriod.SpanStart).CreateIndentationString(options.FormattingOptions.UseTabs, options.FormattingOptions.TabSize)));
 
                 _smartIndentTrivia = new SyntaxTriviaList(generator.Whitespace(
                     GetSmartIndentationAfter(firstPeriod)));
@@ -116,8 +117,8 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
 
             private async Task AddWrapLongCodeActionAsync(ArrayBuilder<WrapItemsAction> actions)
             {
-                actions.Add(await TryCreateCodeActionAsync(GetWrapEdits(WrappingColumn, align: false), FeaturesResources.Wrapping, FeaturesResources.Wrap_long_call_chain).ConfigureAwait(false));
-                actions.Add(await TryCreateCodeActionAsync(GetWrapEdits(WrappingColumn, align: true), FeaturesResources.Wrapping, FeaturesResources.Wrap_and_align_long_call_chain).ConfigureAwait(false));
+                actions.Add(await TryCreateCodeActionAsync(GetWrapEdits(Options.WrappingColumn, align: false), FeaturesResources.Wrapping, FeaturesResources.Wrap_long_call_chain).ConfigureAwait(false));
+                actions.Add(await TryCreateCodeActionAsync(GetWrapEdits(Options.WrappingColumn, align: true), FeaturesResources.Wrapping, FeaturesResources.Wrap_and_align_long_call_chain).ConfigureAwait(false));
             }
 
             private ImmutableArray<Edit> GetWrapEdits(int wrappingColumn, bool align)

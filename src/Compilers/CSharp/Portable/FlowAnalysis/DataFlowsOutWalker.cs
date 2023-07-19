@@ -117,14 +117,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 switch (node.Kind)
                 {
+                    case BoundKind.ListPattern:
+                    case BoundKind.RecursivePattern:
                     case BoundKind.DeclarationPattern:
                         {
-                            return ((BoundDeclarationPattern)node).Variable as LocalSymbol;
-                        }
-
-                    case BoundKind.RecursivePattern:
-                        {
-                            return ((BoundRecursivePattern)node).Variable as LocalSymbol;
+                            return ((BoundObjectPattern)node).Variable as LocalSymbol;
                         }
 
                     case BoundKind.FieldAccess:
@@ -232,7 +229,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool FlowsOut(ParameterSymbol param)
         {
-            return (object)param != null && param.RefKind != RefKind.None && !param.IsImplicitlyDeclared && !RegionContains(param.Locations[0].SourceSpan);
+            return (object)param != null &&
+                   ((param.RefKind != RefKind.None && !param.IsImplicitlyDeclared && !RegionContains(param.GetFirstLocation().SourceSpan)) ||
+                    param.ContainingSymbol is SynthesizedPrimaryConstructor); // Primary constructor parameter can be used in other initializers and methods 
         }
 
         private ParameterSymbol Param(BoundNode node)

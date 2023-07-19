@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Debugging;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Debugging
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
             // field or event field declarations may contain multiple variable declarators. Try finding the correct one.
             // If the position does not point to one, try using the first one.
             VariableDeclaratorSyntax fieldDeclarator = null;
-            if (memberDeclaration.Kind() == SyntaxKind.FieldDeclaration || memberDeclaration.Kind() == SyntaxKind.EventFieldDeclaration)
+            if (memberDeclaration.Kind() is SyntaxKind.FieldDeclaration or SyntaxKind.EventFieldDeclaration)
             {
                 var variableDeclarators = ((BaseFieldDeclarationSyntax)memberDeclaration).Declaration.Variables;
 
@@ -50,17 +50,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
                     }
                 }
 
-                if (fieldDeclarator == null)
-                {
-                    fieldDeclarator = variableDeclarators.Count > 0 ? variableDeclarators[0] : null;
-                }
+                fieldDeclarator ??= variableDeclarators.Count > 0 ? variableDeclarators[0] : null;
             }
 
             var name = syntaxFactsService.GetDisplayName(fieldDeclarator ?? memberDeclaration,
                 DisplayNameOptions.IncludeNamespaces |
                 DisplayNameOptions.IncludeParameters);
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var lineNumber = text.Lines.GetLineFromPosition(position).LineNumber;
             var accessor = memberDeclaration.GetAncestorOrThis<AccessorDeclarationSyntax>();
             var memberLine = text.Lines.GetLineFromPosition(accessor?.SpanStart ?? memberDeclaration.SpanStart).LineNumber;

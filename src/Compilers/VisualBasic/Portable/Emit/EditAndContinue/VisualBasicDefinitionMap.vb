@@ -124,11 +124,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End If
         End Function
 
-        Protected Overrides Function TryGetStateMachineType(methodHandle As EntityHandle) As ITypeSymbolInternal
+        Protected Overrides Function TryGetStateMachineType(methodHandle As MethodDefinitionHandle) As ITypeSymbolInternal
             Dim typeName As String = Nothing
-            If _metadataDecoder.Module.HasStringValuedAttribute(methodHandle, AttributeDescription.AsyncStateMachineAttribute, typeName) OrElse
-               _metadataDecoder.Module.HasStringValuedAttribute(methodHandle, AttributeDescription.IteratorStateMachineAttribute, typeName) Then
-
+            If _metadataDecoder.Module.HasStateMachineAttribute(methodHandle, typeName) Then
                 Return _metadataDecoder.GetTypeSymbolForSerializedType(typeName)
             End If
 
@@ -152,10 +150,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Dim name = member.Name
                     Dim slotIndex As Integer
 
-                    Select Case GeneratedNames.GetKind(name)
+                    Select Case GeneratedNameParser.GetKind(name)
                         Case GeneratedNameKind.StateMachineAwaiterField
 
-                            If GeneratedNames.TryParseSlotIndex(StringConstants.StateMachineAwaiterFieldPrefix, name, slotIndex) Then
+                            If GeneratedNameParser.TryParseSlotIndex(GeneratedNameConstants.StateMachineAwaiterFieldPrefix, name, slotIndex) Then
                                 Dim field = DirectCast(member, FieldSymbol)
 
                                 ' Correct metadata won't contain duplicates, but malformed might, ignore the duplicate:
@@ -167,11 +165,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                             End If
 
                         Case GeneratedNameKind.HoistedSynthesizedLocalField,
-                             GeneratedNameKind.StateMachineHoistedUserVariableField
+                             GeneratedNameKind.HoistedWithLocalPrefix,
+                             GeneratedNameKind.StateMachineHoistedUserVariableOrDisplayClassField
 
-                            Dim _name As String = Nothing
-                            If GeneratedNames.TryParseSlotIndex(StringConstants.HoistedSynthesizedLocalPrefix, name, slotIndex) OrElse
-                               GeneratedNames.TryParseStateMachineHoistedUserVariableName(name, _name, slotIndex) Then
+                            Dim variableName As String = Nothing
+                            If GeneratedNameParser.TryParseSlotIndex(GeneratedNameConstants.HoistedSynthesizedLocalPrefix, name, slotIndex) OrElse
+                               GeneratedNameParser.TryParseSlotIndex(GeneratedNameConstants.HoistedWithLocalPrefix, name, slotIndex) OrElse
+                               GeneratedNameParser.TryParseStateMachineHoistedUserVariableOrDisplayClassName(name, variableName, slotIndex) Then
                                 Dim field = DirectCast(member, FieldSymbol)
                                 If slotIndex >= localSlotDebugInfo.Length Then
                                     ' Invalid metadata
