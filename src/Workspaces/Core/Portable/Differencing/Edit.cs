@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             Debug.Assert((oldNode == null || oldNode.Equals(null)) == (kind == EditKind.Insert));
             Debug.Assert((newNode == null || newNode.Equals(null)) == (kind == EditKind.Delete));
 
-            Debug.Assert(comparer == null || 
+            Debug.Assert(comparer == null ||
                          oldNode == null || oldNode.Equals(null) ||
                          newNode == null || newNode.Equals(null) ||
                          !comparer.TreesEqual(oldNode, newNode));

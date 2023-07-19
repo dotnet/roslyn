@@ -4300,7 +4300,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private void AnalyzeParameterType(
+        private void static AnalyzeParameterType(
             IParameterSymbol oldParameter,
             IParameterSymbol newParameter,
             EditAndContinueCapabilitiesGrantor capabilities,
@@ -4353,7 +4353,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private void AnalyzeReturnType(IMethodSymbol oldMethod, IMethodSymbol newMethod, EditAndContinueCapabilitiesGrantor capabilities, ref RudeEditKind rudeEdit, ref bool hasGeneratedReturnTypeAttributeChange, ref bool hasReturnTypeChange, CancellationToken cancellationToken)
+        private static void AnalyzeReturnType(IMethodSymbol oldMethod, IMethodSymbol newMethod, EditAndContinueCapabilitiesGrantor capabilities, ref RudeEditKind rudeEdit, ref bool hasGeneratedReturnTypeAttributeChange, ref bool hasReturnTypeChange, CancellationToken cancellationToken)
         {
             if (!ReturnTypesEquivalent(oldMethod, newMethod, exact: true))
             {
@@ -4387,7 +4387,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private void AnalyzeReturnType(IEventSymbol oldEvent, IEventSymbol newEvent, EditAndContinueCapabilitiesGrantor capabilities, ref RudeEditKind rudeEdit, ref bool hasGeneratedReturnTypeAttributeChange, ref bool hasReturnTypeChange, CancellationToken cancellationToken)
+        private static void AnalyzeReturnType(IEventSymbol oldEvent, IEventSymbol newEvent, EditAndContinueCapabilitiesGrantor capabilities, ref RudeEditKind rudeEdit, ref bool hasGeneratedReturnTypeAttributeChange, ref bool hasReturnTypeChange, CancellationToken cancellationToken)
         {
             if (!ReturnTypesEquivalent(oldEvent, newEvent, exact: true))
             {
@@ -4417,7 +4417,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private void AnalyzeReturnType(IPropertySymbol oldProperty, IPropertySymbol newProperty, EditAndContinueCapabilitiesGrantor capabilities, ref RudeEditKind rudeEdit, ref bool hasGeneratedReturnTypeAttributeChange, ref bool hasReturnTypeChange, CancellationToken cancellationToken)
+        private static void AnalyzeReturnType(IPropertySymbol oldProperty, IPropertySymbol newProperty, EditAndContinueCapabilitiesGrantor capabilities, ref RudeEditKind rudeEdit, ref bool hasGeneratedReturnTypeAttributeChange, ref bool hasReturnTypeChange, CancellationToken cancellationToken)
         {
             if (!ReturnTypesEquivalent(oldProperty, newProperty, exact: true))
             {
