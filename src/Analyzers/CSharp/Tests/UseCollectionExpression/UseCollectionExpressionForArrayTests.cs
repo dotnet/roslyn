@@ -390,17 +390,18 @@ public class UseCollectionExpressionForArray
         }.RunAsync();
     }
 
-    [Fact]
-    public async Task TestNotWithVar_ExplicitArrayType()
+    [Theory, CombinatorialData]
+    public async Task TestNotWithVar_ExplicitArrayType(
+         [CombinatorialValues(new object[] { "var", "object", "dynamic" })] string type)
     {
         await new VerifyCS.Test
         {
-            TestCode = """
+            TestCode = $$"""
                 class C
                 {
                     void M()
                     {
-                        var i = new string[] { "" };
+                        {{type}} i = new string[] { "" };
                     }
                 }
                 """,
@@ -408,17 +409,18 @@ public class UseCollectionExpressionForArray
         }.RunAsync();
     }
 
-    [Fact]
-    public async Task TestNotWithVar_ExplicitArrayType2()
+    [Theory, CombinatorialData]
+    public async Task TestNotWithVar_ExplicitArrayType2(
+        [CombinatorialValues(new object[] { "var", "object", "dynamic" })] string type)
     {
         await new VerifyCS.Test
         {
-            TestCode = """
+            TestCode = $$"""
                 class C
                 {
                     void M()
                     {
-                        var i = (new string[] { "" });
+                        {{type}} i = (new string[] { "" });
                     }
                 }
                 """,
@@ -426,17 +428,18 @@ public class UseCollectionExpressionForArray
         }.RunAsync();
     }
 
-    [Fact]
-    public async Task TestNotWithVar_ImplicitArrayType()
+    [Theory, CombinatorialData]
+    public async Task TestNotWithVar_ImplicitArrayType(
+        [CombinatorialValues(new object[] { "var", "object", "dynamic" })] string type)
     {
         await new VerifyCS.Test
         {
-            TestCode = """
+            TestCode = $$"""
                 class C
                 {
                     void M()
                     {
-                        var i = new[] { "" };
+                        {{type}} i = new[] { "" };
                     }
                 }
                 """,
@@ -444,17 +447,18 @@ public class UseCollectionExpressionForArray
         }.RunAsync();
     }
 
-    [Fact]
-    public async Task TestNotWithVar_ImplicitArrayType2()
+    [Theory, CombinatorialData]
+    public async Task TestNotWithVar_ImplicitArrayType2(
+        [CombinatorialValues(new object[] { "var", "object", "dynamic" })] string type)
     {
         await new VerifyCS.Test
         {
-            TestCode = """
+            TestCode = $$"""
                 class C
                 {
                     void M()
                     {
-                        var i = (new[] { "" });
+                        {{type}} i = (new[] { "" });
                     }
                 }
                 """,
