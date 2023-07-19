@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         [EditorBrowsable(EditorBrowsableState.Never)]
         public Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsAsync()
         {
-            return GetAllDiagnosticsAsync(cancellationToken: default);
+            return GetAllDiagnosticsAsync(CancellationToken.None);
         }
 
         /// <summary>
