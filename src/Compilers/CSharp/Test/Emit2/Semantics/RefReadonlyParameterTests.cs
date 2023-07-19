@@ -655,7 +655,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         var verifier = CompileAndVerify(source, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
             sourceSymbolValidator: verify, symbolValidator: verify,
-            expectedOutput: "<>f__AnonymousDelegate0`1[System.Int32]");
+            expectedOutput: "<>A{00000004}`1[System.Int32]");
         verifier.VerifyDiagnostics();
 
         static void verify(ModuleSymbol m)
@@ -679,7 +679,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         var verifier = CompileAndVerify(source, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
             sourceSymbolValidator: verify, symbolValidator: verify,
-            expectedOutput: "<>f__AnonymousDelegate0`1[System.Int32]");
+            expectedOutput: "<>A{00000004}`1[System.Int32]");
         verifier.VerifyDiagnostics();
 
         static void verify(ModuleSymbol m)
@@ -704,7 +704,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             System.Console.WriteLine(((object)x).GetType());
             """;
         var verifier = CompileAndVerify(source, sourceSymbolValidator: verify, symbolValidator: verify,
-            expectedOutput: "<>f__AnonymousDelegate0`1[System.Int32]");
+            expectedOutput: "<>A{00000004}`1[System.Int32]");
         verifier.VerifyDiagnostics();
 
         static void verify(ModuleSymbol m)
@@ -713,7 +713,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
 
             if (m is not SourceModuleSymbol)
             {
-                var p = m.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke").Parameters.Single();
+                var p = m.GlobalNamespace.GetMember<MethodSymbol>("<>A{00000004}.Invoke").Parameters.Single();
                 VerifyRefReadonlyParameter(p,
                     // PROTOTYPE: Invoke method is virtual but no modreq is emitted. This happens for `in` parameters, as well.
                     useSiteError: true);
@@ -3450,6 +3450,102 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
               IL_0025:  ret
             }
             """);
+    }
+
+    [Fact]
+    public void Invocation_Dynamic()
+    {
+        var source = """
+            class C
+            {
+                void M(ref readonly int p) => System.Console.Write(p);
+                static void Main()
+                {
+                    dynamic d = 1;
+                    var c = new C();
+                    try
+                    {
+                        c.M(d);
+                    }
+                    catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException)
+                    {
+                        System.Console.Write("exception");
+                    }
+
+                    int i = 2;
+                    dynamic cd = new C();
+                    cd.M(ref i);
+                }
+                void M2(dynamic p) => M(p);
+            }
+            """;
+        var verifier = CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: "exception2");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M2", """
+            {
+              // Code size       92 (0x5c)
+              .maxstack  9
+              IL_0000:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, C, dynamic>> C.<>o__2.<>p__0"
+              IL_0005:  brtrue.s   IL_0045
+              IL_0007:  ldc.i4     0x102
+              IL_000c:  ldstr      "M"
+              IL_0011:  ldnull
+              IL_0012:  ldtoken    "C"
+              IL_0017:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+              IL_001c:  ldc.i4.2
+              IL_001d:  newarr     "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo"
+              IL_0022:  dup
+              IL_0023:  ldc.i4.0
+              IL_0024:  ldc.i4.1
+              IL_0025:  ldnull
+              IL_0026:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
+              IL_002b:  stelem.ref
+              IL_002c:  dup
+              IL_002d:  ldc.i4.1
+              IL_002e:  ldc.i4.0
+              IL_002f:  ldnull
+              IL_0030:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
+              IL_0035:  stelem.ref
+              IL_0036:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)"
+              IL_003b:  call       "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, C, dynamic>> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, C, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+              IL_0040:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, C, dynamic>> C.<>o__2.<>p__0"
+              IL_0045:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, C, dynamic>> C.<>o__2.<>p__0"
+              IL_004a:  ldfld      "System.Action<System.Runtime.CompilerServices.CallSite, C, dynamic> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, C, dynamic>>.Target"
+              IL_004f:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, C, dynamic>> C.<>o__2.<>p__0"
+              IL_0054:  ldarg.0
+              IL_0055:  ldarg.1
+              IL_0056:  callvirt   "void System.Action<System.Runtime.CompilerServices.CallSite, C, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, C, dynamic)"
+              IL_005b:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void Invocation_Dynamic_In()
+    {
+        var source = """
+            class C
+            {
+                public void M(ref readonly int p) => System.Console.WriteLine(p);
+                static void Main()
+                {
+                    int x = 1;
+                    dynamic d = new C();
+                    d.M(in x);
+
+                    dynamic y = 2;
+                    C c = new C();
+                    c.M(in y);
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (8,16): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
+            //         d.M(in x);
+            Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "x").WithLocation(8, 16),
+            // (12,16): error CS1503: Argument 1: cannot convert from 'in dynamic' to 'ref readonly int'
+            //         c.M(in y);
+            Diagnostic(ErrorCode.ERR_BadArgType, "y").WithArguments("1", "in dynamic", "ref readonly int").WithLocation(12, 16));
     }
 
     [Fact]
