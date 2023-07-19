@@ -1,13 +1,62 @@
-﻿//// Licensed to the .NET Foundation under one or more agreements.
-//// The .NET Foundation licenses this file to you under the MIT license.
-//// See the LICENSE file in the project root for more information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Threading;
-//using Microsoft.CodeAnalysis.Utilities;
-//using Microsoft.VisualStudio.Utilities;
+using System;
+using System.Linq;
+using Microsoft.CodeAnalysis.Utilities;
+using Microsoft.VisualStudio.Utilities;
+
+namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+
+internal sealed class UIThreadOperationContextLongRunningOperationProgressAdapter(IUIThreadOperationContext operationContext)
+    : ILongRunningOperationProgress
+{
+    private Tuple<IUIThreadOperationScope, LongRunningOperationScope>? _lastScopePair;
+
+    public void Dispose()
+        => operationContext.Dispose();
+
+    public ILongRunningOperationScope CurrentScope
+    {
+        get
+        {
+            var lastScopePair = _lastScopePair;
+
+            var lastUIScope = operationContext.Scopes.Last();
+            if (lastUIScope != lastScopePair?.Item1)
+            {
+                lastScopePair = Tuple.Create(lastUIScope, new LongRunningOperationScope(lastUIScope));
+                _lastScopePair = lastScopePair;
+            }
+
+            return lastScopePair.Item2;
+        }
+    }
+
+    public ILongRunningOperationScope AddScope(string description)
+        => new LongRunningOperationScope(operationContext.AddScope(operationContext.AllowCancellation, description), allowDispose: true);
+
+    private sealed class LongRunningOperationScope(IUIThreadOperationScope scope, bool allowDispose) : ILongRunningOperationScope
+    {
+        public void Dispose()
+        {
+            if (!allowDispose)
+                throw new InvalidOperationException("Cannot call Dispose on a IOperationScope returned by IOperationContext.Scopes");
+
+            scope.Dispose();
+        }
+
+        public string Description
+        {
+            get => scope.Description;
+            set => scope.Description = value;
+        }
+
+        public void ReportProgress(CodeAnalysis.Utilities.ProgressInfo progressInfo)
+            => scope.Progress.Report(new VisualStudio.Utilities.ProgressInfo(progressInfo.CompletedItems, progressInfo.TotalItems));
+    }
+}
 
 //namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 //{

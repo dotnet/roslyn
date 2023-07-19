@@ -22,6 +22,6 @@ namespace Microsoft.CodeAnalysis.Utilities
         /// <summary>
         /// Progress tracker instance to report operation progress.
         /// </summary>
-        IProgress<ProgressInfo> Progress { get; }
+        void ReportProgress(ProgressInfo progressInfo);
     }
 }
