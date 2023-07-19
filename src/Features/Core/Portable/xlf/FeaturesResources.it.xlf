@@ -2535,6 +2535,16 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <target state="translated">Modifica non applicabile</target>
         <note />
       </trans-unit>
+      <trans-unit id="Run_All_Tests">
+        <source>Run All Tests</source>
+        <target state="new">Run All Tests</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run_Test">
+        <source>Run Test</source>
+        <target state="new">Run Test</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Selection_does_not_contain_a_valid_token">
         <source>Selection does not contain a valid token.</source>
         <target state="translated">La selezione non contiene un token valido.</target>

@@ -2535,6 +2535,16 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">粗略編輯</target>
         <note />
       </trans-unit>
+      <trans-unit id="Run_All_Tests">
+        <source>Run All Tests</source>
+        <target state="new">Run All Tests</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run_Test">
+        <source>Run Test</source>
+        <target state="new">Run Test</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Selection_does_not_contain_a_valid_token">
         <source>Selection does not contain a valid token.</source>
         <target state="translated">選取範圍沒有包含有效的語彙基元。</target>
