@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 namespace Microsoft.CodeAnalysis.Utilities
 {
     /// <summary>
-    /// Wrapper around an IOperationScope to bridge it to an IProgressTracker.
+    /// Wrapper around an <see cref="ILongRunningOperationScope"/> to bridge it to an <see cref="IProgressTracker"/>.
     /// </summary>
     internal sealed class LongRunningOperationScopeProgressTracker(ILongRunningOperationScope operationScope) : IProgressTracker
     {
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Utilities
                 totalItems = _totalItems;
             }
 
-            operationScope.Progress.Report(new ProgressInfo(completedItems, totalItems));
+            operationScope.Progress.Report(new LongRunningOperationProgress(completedItems, totalItems));
         }
 
         public void ItemCompleted()
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Utilities
                 totalItems = _totalItems;
             }
 
-            operationScope.Progress.Report(new ProgressInfo(completedItems, totalItems));
+            operationScope.Progress.Report(new LongRunningOperationProgress(completedItems, totalItems));
         }
 
         public void Clear()
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Utilities
                 _totalItems = 0;
             }
 
-            operationScope.Progress.Report(new ProgressInfo(0, 0));
+            operationScope.Progress.Report(new LongRunningOperationProgress(0, 0));
         }
     }
 }
