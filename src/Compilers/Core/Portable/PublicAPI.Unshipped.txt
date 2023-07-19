@@ -32,7 +32,7 @@ Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.FilterTree.get -> 
 Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext.FilterSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan?
 Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext.FilterTree.get -> Microsoft.CodeAnalysis.SyntaxTree!
 Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeAnalysisContext.FilterSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan?
-Microsoft.CodeAnalysis.RefKind.RefReadOnlyParameter = 5 -> Microsoft.CodeAnalysis.RefKind
+Microsoft.CodeAnalysis.RefKind.RefReadOnlyParameter = 4 -> Microsoft.CodeAnalysis.RefKind
 static Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode>.explicit operator Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode!>(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.SyntaxNode!> nodes) -> Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode!>
 static Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode>.op_Implicit(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.SyntaxNode!> nodes) -> Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode!>
 static Microsoft.CodeAnalysis.SyntaxList<TNode>.explicit operator Microsoft.CodeAnalysis.SyntaxList<TNode!>(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.SyntaxNode!> nodes) -> Microsoft.CodeAnalysis.SyntaxList<TNode!>
