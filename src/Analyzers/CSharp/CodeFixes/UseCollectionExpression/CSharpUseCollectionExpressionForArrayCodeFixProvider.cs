@@ -87,8 +87,8 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider : Sy
                         if (openBracket.TrailingTrivia is [(kind: SyntaxKind.WhitespaceTrivia), ..])
                             openBracket = openBracket.WithTrailingTrivia(openBracket.TrailingTrivia.Skip(1));
 
-                        if (elements is [.., var lastNodeOrToken] && lastNodeOrToken.GetTrailingTrivia() is [(kind: SyntaxKind.WhitespaceTrivia), ..])
-                            elements = elements.Replace(lastNodeOrToken, lastNodeOrToken.WithTrailingTrivia(lastNodeOrToken.GetTrailingTrivia().Skip(1)));
+                        if (elements is [.., var lastNodeOrToken] && lastNodeOrToken.GetTrailingTrivia() is [.., (kind: SyntaxKind.WhitespaceTrivia)] trailingTrivia)
+                            elements = elements.Replace(lastNodeOrToken, lastNodeOrToken.WithTrailingTrivia(trailingTrivia.Take(trailingTrivia.Count - 1)));
                     }
 
                     return CollectionExpression(openBracket, SeparatedList<CollectionElementSyntax>(elements), closeBracket);

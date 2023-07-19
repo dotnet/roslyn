@@ -55,4 +55,96 @@ public class UseCollectionExpressionForArray
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestSingleLine_TrailingComma()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i = [|{|] 1, 2, 3, };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i = [1, 2, 3,];
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSingleLine_Trivia()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i = /*x*/ [|{|] /*y*/ 1, 2, 3 /*z*/ } /*w*/;
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i = /*x*/ [/*y*/ 1, 2, 3 /*z*/] /*w*/;
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMultiLine()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i = [|{|]
+                        1, 2, 3
+                    };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i = [
+                        1, 2, 3
+                    ];
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMultiLine_TrailingComma()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i = [|{|]
+                        1, 2, 3,
+                    };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i = [
+                        1, 2, 3,
+                    ];
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
 }
