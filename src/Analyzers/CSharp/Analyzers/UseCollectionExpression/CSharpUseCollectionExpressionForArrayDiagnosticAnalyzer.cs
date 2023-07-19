@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.UseCollectionExpression;
+namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAnalyzer
@@ -33,7 +33,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
         isUnnecessary: false);
 
     private static readonly DiagnosticDescriptor s_unnecessaryCodeDescriptor = CreateDescriptorWithId(
-        IDEDiagnosticIds.UseCollectionInitializerDiagnosticId,
+        IDEDiagnosticIds.UseCollectionExpressionForArrayDiagnosticId,
         EnforceOnBuildValues.UseCollectionExpressionForArray,
         new LocalizableResourceString(nameof(AnalyzersResources.Simplify_collection_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
         new LocalizableResourceString(nameof(AnalyzersResources.Collection_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
@@ -70,8 +70,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
     private void AnalyzeArrayInitializer(SyntaxNodeAnalysisContext context)
     {
         var semanticModel = context.SemanticModel;
-        var objectCreationExpression = (InitializerExpressionSyntax)context.Node;
-        var language = objectCreationExpression.Language;
+        var initializer = (InitializerExpressionSyntax)context.Node;
         var cancellationToken = context.CancellationToken;
 
         // no point in analyzing if the option is off.
@@ -79,7 +78,26 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
         if (!option.Value)
             return;
 
+        if (initializer.Parent is ArrayCreationExpressionSyntax)
+        {
 
+        }
+        else if (initializer.Parent is ImplicitArrayCreationExpressionSyntax)
+        {
+
+        }
+        else if (initializer.Parent is EqualsValueClauseSyntax)
+        {
+            // int[] = { 1, 2, 3 };
+            //
+            // In this case, we always have a target type, so it should always be valid to convert this to a collection expression.
+            context.ReportDiagnostic(DiagnosticHelper.Create(
+                s_descriptor,
+                initializer.OpenBraceToken.GetLocation(),
+                option.Notification.Severity,
+                additionalLocations: ImmutableArray.Create(initializer.GetLocation()),
+                properties: null));
+        }
     }
 
     //private void AnalyzeNode(SyntaxNodeAnalysisContext context, INamedTypeSymbol ienumerableType)
