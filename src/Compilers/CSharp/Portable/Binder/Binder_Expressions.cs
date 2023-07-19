@@ -3299,9 +3299,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     argument.Syntax,
                                     arg + 1);
                             }
-                            else if (this.CheckValueKind(argument.Syntax, argument, BindValueKind.Assignable, checkingReceiver: false, BindingDiagnosticBag.Discarded))
+                            else if (!invokedAsExtensionMethod || arg != 0)
                             {
-                                if (!invokedAsExtensionMethod)
+                                if (this.CheckValueKind(argument.Syntax, argument, BindValueKind.Assignable, checkingReceiver: false, BindingDiagnosticBag.Discarded))
                                 {
                                     // Argument {0} should be passed with 'ref' or 'in' keyword
                                     diagnostics.Add(
@@ -3309,14 +3309,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         argument.Syntax,
                                         arg + 1);
                                 }
-                            }
-                            else
-                            {
-                                // Argument {0} should be passed with the 'in' keyword
-                                diagnostics.Add(
-                                    ErrorCode.WRN_ArgExpectedIn,
-                                    argument.Syntax,
-                                    arg + 1);
+                                else
+                                {
+                                    // Argument {0} should be passed with the 'in' keyword
+                                    diagnostics.Add(
+                                        ErrorCode.WRN_ArgExpectedIn,
+                                        argument.Syntax,
+                                        arg + 1);
+                                }
                             }
                         }
                     }

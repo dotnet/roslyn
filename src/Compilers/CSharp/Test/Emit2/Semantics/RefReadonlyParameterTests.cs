@@ -3100,9 +3100,15 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
+            // (9,14): warning CS9503: Argument 2 should be passed with 'ref' or 'in' keyword
+            //         x.M1(x);
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("2").WithLocation(9, 14),
             // (11,15): warning CS9503: Argument 2 should be passed with 'ref' or 'in' keyword
             //         M1(x, x);
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("2").WithLocation(11, 15),
+            // (13,14): warning CS9503: Argument 2 should be passed with 'ref' or 'in' keyword
+            //         x.M2(x);
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("2").WithLocation(13, 14),
             // (14,12): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
             //         M2(x, in x);
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(14, 12),
@@ -3147,12 +3153,6 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (10,15): warning CS9506: Argument 2 should be passed with the 'in' keyword
             //         M1(x, x);
             Diagnostic(ErrorCode.WRN_ArgExpectedIn, "x").WithArguments("2").WithLocation(10, 15),
-            // (11,9): warning CS9506: Argument 1 should be passed with the 'in' keyword
-            //         x.M2(in x);
-            Diagnostic(ErrorCode.WRN_ArgExpectedIn, "x").WithArguments("1").WithLocation(11, 9),
-            // (12,9): warning CS9506: Argument 1 should be passed with the 'in' keyword
-            //         x.M2(x);
-            Diagnostic(ErrorCode.WRN_ArgExpectedIn, "x").WithArguments("1").WithLocation(12, 9),
             // (12,14): warning CS9506: Argument 2 should be passed with the 'in' keyword
             //         x.M2(x);
             Diagnostic(ErrorCode.WRN_ArgExpectedIn, "x").WithArguments("2").WithLocation(12, 14),
