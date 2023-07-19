@@ -3258,12 +3258,12 @@ outerDefault:
         internal static bool AreRefsCompatibleForMethodConversion(RefKind x, RefKind y, CSharpCompilation compilation)
         {
             Debug.Assert(compilation is not null);
-            return x == y || IsRefMismatchAcceptableForMethodConversion(x, y, compilation);
-        }
 
-        // Only may be used to determine if warnings should be emitted.
-        internal static bool IsRefMismatchAcceptableForMethodConversion(RefKind x, RefKind y, CSharpCompilation compilationOpt)
-        {
+            if (x == y)
+            {
+                return true;
+            }
+
             if (x == RefKind.RefReadOnlyParameter)
             {
                 return y is RefKind.Ref or RefKind.In;
@@ -3275,7 +3275,7 @@ outerDefault:
             }
 
             return (x, y) is (RefKind.In, RefKind.Ref) or (RefKind.Ref, RefKind.In) &&
-                (compilationOpt is null || compilationOpt.IsFeatureEnabled(MessageID.IDS_FeatureRefReadonlyParameters));
+                compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefReadonlyParameters);
         }
 
         private EffectiveParameters GetEffectiveParametersInExpandedForm<TMember>(
