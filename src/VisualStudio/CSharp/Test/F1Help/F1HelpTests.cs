@@ -1915,5 +1915,47 @@ class C
                 1 >>[||]>= 2;
                 """, expectedText: ">>>=");
         }
+
+        [Fact]
+        public async Task TestPreprocessorIf()
+        {
+            await TestAsync(
+@"
+#i[||]f ANY
+#endif
+", "#if");
+        }
+
+        [Fact]
+        public async Task TestPreprocessorEndIf()
+        {
+            await TestAsync(
+@"
+#if ANY
+#en[||]dif
+", "#endif");
+        }
+
+        [Fact]
+        public async Task TestPreprocessorElse()
+        {
+            await TestAsync(
+@"
+#if ANY
+#el[||]se
+#endif
+", "#else");
+        }
+
+        [Fact]
+        public async Task TestPreprocessorElIf()
+        {
+            await TestAsync(
+@"
+#if ANY
+#el[||]if SOME
+#endif
+", "#elif");
+        }
     }
 }
