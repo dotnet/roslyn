@@ -69,31 +69,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
                 arrayBuilder.Add(new SnippetPlaceholder(expression.ToString(), expression.SpanStart));
 
             return arrayBuilder.ToImmutableArray();
+        }
 
+        protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
+        {
+            return CSharpSnippetHelpers.GetTargetCaretPositionInBlock<ForEachStatementSyntax>(
+                caretTarget,
+                static s => (BlockSyntax)s.Statement,
+                sourceText);
         }
 
         protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
         {
-            return СSharpSnippetIndentationHelpers.AddBlockIndentationToDocumentAsync<ForEachStatementSyntax>(
+            return CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync<ForEachStatementSyntax>(
                 document,
                 FindSnippetAnnotation,
                 static s => (BlockSyntax)s.Statement,
                 cancellationToken);
-        }
-
-        /// <summary>
-        /// Gets the start of the BlockSyntax of the for statement
-        /// to be able to insert the caret position at that location.
-        /// </summary>
-        protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
-        {
-            var foreachStatement = (ForEachStatementSyntax)caretTarget;
-            var blockStatement = (BlockSyntax)foreachStatement.Statement;
-
-            var triviaSpan = blockStatement.CloseBraceToken.LeadingTrivia.Span;
-            var line = sourceText.Lines.GetLineFromPosition(triviaSpan.Start);
-            // Getting the location at the end of the line before the newline.
-            return line.Span.End;
         }
 
         private static void GetPartsOfForEachStatement(SyntaxNode node, out SyntaxToken identifier, out SyntaxNode expression, out SyntaxNode statement)

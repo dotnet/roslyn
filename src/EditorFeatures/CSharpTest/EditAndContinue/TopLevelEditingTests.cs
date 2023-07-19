@@ -1068,6 +1068,25 @@ class C
         }
 
         [Fact]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1831006")]
+        public void Type_Attribute_Update_Null()
+        {
+            var attribute = @"
+using System;
+public class A : Attribute { public A1(int[] array, Type type, Type[] types) {} }
+";
+
+            var src1 = attribute + "[A(null, null, new Type[] { typeof(C) })]class C { }";
+            var src2 = attribute + "[A(null, null, null)]class C { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C")) },
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
+        }
+
+        [Fact]
         public void Type_Attribute_Change_Reloadable()
         {
             var attributeSrc = @"

@@ -200,6 +200,16 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 var argumentExpression = _syntaxFacts.GetExpressionOfArgument(argument);
                 if (ExpressionContainsValuePatternOrReferencesInitializedSymbol(argumentExpression))
                     return false;
+
+                // VB allows for a collection initializer to be an argument.  i.e. `Goo({a, b, c})`.  This argument
+                // cannot be used in an outer collection initializer as it would change meaning.  i.e.:
+                //
+                //      new List(Of IEnumerable(Of String)) { { a, b, c } }
+                //
+                // is not legal.  That's because instead of adding `{ a, b, c }` as a single element to the list, VB
+                // instead looks for an 3-argument `Add` method to invoke on `List<T>` (which clearly fails).
+                if (_syntaxFacts.SyntaxKinds.CollectionInitializerExpression == argumentExpression.RawKind)
+                    return false;
             }
 
             if (_syntaxFacts.GetExpressionOfInvocationExpression(invocationExpression) is not TMemberAccessExpressionSyntax memberAccess)

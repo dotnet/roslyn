@@ -5519,6 +5519,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void reportMembers()
             {
+                if (requiredMembersBuilder.Count == 0)
+                {
+                    // Avoid Location allocation.
+                    return;
+                }
+
                 Location location = creationSyntax switch
                 {
                     ObjectCreationExpressionSyntax { Type: { } type } => type.Location,

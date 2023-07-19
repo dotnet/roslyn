@@ -1092,17 +1092,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     delegateMethod,
                     lambdaOrMethod,
                     diagnostics,
-                    static (diagnostics, delegateMethod, lambdaOrMethod, parameter, _, typeAndLocation) =>
+                    static (diagnostics, delegateMethod, lambdaOrMethod, parameter, _, typeAndSyntax) =>
                     {
                         diagnostics.Add(
                             SourceMemberContainerTypeSymbol.ReportInvalidScopedOverrideAsError(delegateMethod, lambdaOrMethod) ?
                                 ErrorCode.ERR_ScopedMismatchInParameterOfTarget :
                                 ErrorCode.WRN_ScopedMismatchInParameterOfTarget,
-                            typeAndLocation.Location,
+                            typeAndSyntax.Syntax.Location,
                             new FormattedSymbol(parameter, SymbolDisplayFormat.ShortFormat),
-                            typeAndLocation.Type);
+                            typeAndSyntax.Type);
                     },
-                    (Type: targetType, Location: syntax.Location),
+                    (Type: targetType, Syntax: syntax),
                     allowVariance: true,
                     invokedAsExtensionMethod: invokedAsExtensionMethod);
             }

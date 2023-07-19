@@ -758,6 +758,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Enum:
                         return null;
 
+                    case TypeKindInternal.FunctionType:
+                        if (((FunctionTypeSymbol)current).GetInternalDelegateType() is not { } delegateType)
+                        {
+                            return null;
+                        }
+
+                        current = delegateType;
+                        goto case TypeKind.Delegate;
+
                     case TypeKind.Error:
                     case TypeKind.Class:
                     case TypeKind.Struct:

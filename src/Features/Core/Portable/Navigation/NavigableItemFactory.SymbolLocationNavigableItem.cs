@@ -9,7 +9,7 @@ using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
+using InterlockedOperations = Roslyn.Utilities.InterlockedOperations;
 
 namespace Microsoft.CodeAnalysis.Navigation
 {
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Navigation
             /// <summary>
             /// Lazily-initialized backing field for <see cref="Document"/>.
             /// </summary>
-            /// <seealso cref="LazyInitialization.EnsureInitialized{T, U}(ref StrongBox{T}, Func{U, T}, U)"/>
+            /// <seealso cref="InterlockedOperations.Initialize{T, U}(ref StrongBox{T}, Func{U, T}, U)"/>
             private StrongBox<INavigableItem.NavigableDocument> _lazyDocument;
 
             public bool DisplayFileLocation => true;
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Navigation
             {
                 get
                 {
-                    return LazyInitialization.EnsureInitialized(
+                    return InterlockedOperations.Initialize(
                         ref _lazyDocument,
                         static self =>
                         {
