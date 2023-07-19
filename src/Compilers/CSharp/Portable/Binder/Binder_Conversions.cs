@@ -269,27 +269,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ensureAllUnderlyingConversionsChecked(syntax, source, conversion, wasCompilerGenerated, destination, diagnostics);
                 }
 
-                var boundSource = BindToNaturalType(source, diagnostics);
-
-                if (!hasErrors && !isCast && conversion.Kind == ConversionKind.ImplicitPointer &&
-                    destination is FunctionPointerTypeSymbol { Signature: var destinationMethod } &&
-                    boundSource.Type is FunctionPointerTypeSymbol { Signature: var sourceMethod })
-                {
-                    SourceMemberContainerTypeSymbol.CheckRefReadonlyInMismatch(
-                        destinationMethod, sourceMethod, diagnostics,
-                        static (diagnostics, destinationMethod, sourceMethod, sourceParameter, _, arg) =>
-                        {
-                            var (destinationParameter, location) = arg;
-                            diagnostics.Add(ErrorCode.WRN_TargetDifferentRefness, location, sourceParameter, destinationParameter);
-                        },
-                        syntax.Location,
-                        invokedAsExtensionMethod: false,
-                        methodGroupConversion: true);
-                }
-
                 return new BoundConversion(
                     syntax,
-                    boundSource,
+                    BindToNaturalType(source, diagnostics),
                     conversion,
                     @checked: CheckOverflowAtRuntime,
                     explicitCastInCode: isCast && !wasCompilerGenerated,
