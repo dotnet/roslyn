@@ -94,7 +94,7 @@ object DebugBuild : BuildType({
 
     dependencies {
 
-        dependency(AbsoluteId("Metalama_Metalama20232_MetalamaBackstage_DebugBuild")) {
+        dependency(AbsoluteId("Metalama_Metalama20233_MetalamaBackstage_DebugBuild")) {
             snapshot {
                      onDependencyFailure = FailureAction.FAIL_TO_START
             }
@@ -172,7 +172,7 @@ object ReleaseBuild : BuildType({
 
     dependencies {
 
-        dependency(AbsoluteId("Metalama_Metalama20232_MetalamaBackstage_ReleaseBuild")) {
+        dependency(AbsoluteId("Metalama_Metalama20233_MetalamaBackstage_ReleaseBuild")) {
             snapshot {
                      onDependencyFailure = FailureAction.FAIL_TO_START
             }
@@ -259,7 +259,7 @@ object PublicBuild : BuildType({
 
     dependencies {
 
-        dependency(AbsoluteId("Metalama_Metalama20232_MetalamaBackstage_PublicBuild")) {
+        dependency(AbsoluteId("Metalama_Metalama20233_MetalamaBackstage_PublicBuild")) {
             snapshot {
                      onDependencyFailure = FailureAction.FAIL_TO_START
             }
@@ -328,7 +328,7 @@ object PublicDeployment : BuildType({
 
     dependencies {
 
-        dependency(AbsoluteId("Metalama_Metalama20232_MetalamaBackstage_PublicBuild")) {
+        dependency(AbsoluteId("Metalama_Metalama20233_MetalamaBackstage_PublicBuild")) {
             snapshot {
                      onDependencyFailure = FailureAction.FAIL_TO_START
             }
@@ -341,7 +341,7 @@ object PublicDeployment : BuildType({
 
         }
 
-        dependency(AbsoluteId("Metalama_Metalama20232_MetalamaBackstage_PublicDeployment")) {
+        dependency(AbsoluteId("Metalama_Metalama20233_MetalamaBackstage_PublicDeployment")) {
             snapshot {
                      onDependencyFailure = FailureAction.FAIL_TO_START
             }
