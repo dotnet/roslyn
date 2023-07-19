@@ -715,7 +715,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             {
                 var p = m.GlobalNamespace.GetMember<MethodSymbol>("<>A{00000004}.Invoke").Parameters.Single();
                 VerifyRefReadonlyParameter(p,
-                    // PROTOTYPE: Invoke method is virtual but no modreq is emitted. This happens for `in` parameters, as well.
+                    // Invoke method is virtual but no modreq is emitted. https://github.com/dotnet/roslyn/issues/69079
                     useSiteError: true);
             }
         }
@@ -4719,5 +4719,48 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         Assert.Equal(RefKind.RefReadOnly, methodFromCref!.Parameters.Single().RefKind);
         var methodFromClass = comp.GetMembers("C.M").Cast<MethodSymbol>().Single(m => m.Parameters.Single().RefKind == RefKind.RefReadOnly);
         Assert.Same(methodFromCref, methodFromClass.GetPublicSymbol());
+    }
+
+    [Fact]
+    public void NoPia()
+    {
+        var source1 = """
+            using System;
+            using System.Runtime.InteropServices;
+            [assembly: ImportedFromTypeLib("test.dll")]
+            [assembly: Guid("EB40B9A2-B368-4001-93E4-8571A8AB3215")]
+            [ComImport, Guid("EB40B9A2-B368-4001-93E4-8571A8AB3215")]
+            public interface Test
+            {
+                void Method(ref readonly int x);
+            }
+            """;
+        var comp1 = CreateCompilationWithMscorlib40(source1).VerifyDiagnostics();
+        var comp1Ref = comp1.ToMetadataReference(embedInteropTypes: true);
+
+        var source2 = """
+            class Program
+            {
+                public void M(Test p)
+                {
+                    var x = 1;
+                    p.Method(in x);
+                }
+            }
+            """;
+        var comp2 = CreateCompilationWithMscorlib40(source2, new[] { comp1Ref });
+        CompileAndVerify(comp2, symbolValidator: verify).VerifyDiagnostics();
+
+        static void verify(ModuleSymbol module)
+        {
+            Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>(RequiresLocationAttributeQualifiedName));
+
+            var method = module.GlobalNamespace.GetMember<MethodSymbol>("Test.Method");
+            var parameter = method.Parameters.Single();
+            // Because no attribute is embedded with the parameter, it's decoded as `ref`, not `ref readonly`,
+            // and combined with `modreq(In)` that results in a use site error. Same thing happens for `in` parameters.
+            VerifyRefReadonlyParameter(parameter, refKind: false, customModifiers: VerifyModifiers.In, useSiteError: true);
+            Assert.Equal(RefKind.Ref, parameter.RefKind);
+        }
     }
 }
