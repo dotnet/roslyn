@@ -793,25 +793,25 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
 
         CreateCompilationWithIL(new[] { source, RequiresLocationAttributeDefinition }, ilSource, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (6,13): error CS1620: Argument 1 must be passed with the 'ref' keyword
+            // 0.cs(6,13): error CS1620: Argument 1 must be passed with the 'ref' keyword
             //         c.D(x);
             Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("1", "ref").WithLocation(6, 13),
-            // (8,16): error CS1620: Argument 1 must be passed with the 'ref' keyword
+            // 0.cs(8,16): error CS1620: Argument 1 must be passed with the 'ref' keyword
             //         c.D(in x);
             Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("1", "ref").WithLocation(8, 16),
-            // (10,34): error CS0266: Cannot implicitly convert type 'delegate*<ref int, void>' to 'delegate*<int, void>'. An explicit conversion exists (are you missing a cast?)
+            // 0.cs(10,34): error CS0266: Cannot implicitly convert type 'delegate*<ref int, void>' to 'delegate*<int, void>'. An explicit conversion exists (are you missing a cast?)
             //         delegate*<int, void> v = c.D;
             Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "c.D").WithArguments("delegate*<ref int, void>", "delegate*<int, void>").WithLocation(10, 34),
-            // (12,37): error CS0266: Cannot implicitly convert type 'delegate*<ref int, void>' to 'delegate*<in int, void>'. An explicit conversion exists (are you missing a cast?)
+            // 0.cs(12,37): error CS0266: Cannot implicitly convert type 'delegate*<ref int, void>' to 'delegate*<in int, void>'. An explicit conversion exists (are you missing a cast?)
             //         delegate*<in int, void> i = c.D;
             Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "c.D").WithArguments("delegate*<ref int, void>", "delegate*<in int, void>").WithLocation(12, 37),
-            // (13,23): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // 0.cs(13,23): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //         delegate*<ref readonly int, void> rr = c.D;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(13, 23),
-            // (13,48): warning CS9510: Reference kind modifier of parameter 'ref int' doesn't match the corresponding parameter 'ref readonly int' in target.
+            // 0.cs(13,48): error CS0266: Cannot implicitly convert type 'delegate*<ref int, void>' to 'delegate*<ref readonly int, void>'. An explicit conversion exists (are you missing a cast?)
             //         delegate*<ref readonly int, void> rr = c.D;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "c.D").WithArguments("ref int", "ref readonly int").WithLocation(13, 48),
-            // (14,38): error CS0266: Cannot implicitly convert type 'delegate*<ref int, void>' to 'delegate*<out int, void>'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "c.D").WithArguments("delegate*<ref int, void>", "delegate*<ref readonly int, void>").WithLocation(13, 48),
+            // 0.cs(14,38): error CS0266: Cannot implicitly convert type 'delegate*<ref int, void>' to 'delegate*<out int, void>'. An explicit conversion exists (are you missing a cast?)
             //         delegate*<out int, void> o = c.D;
             Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "c.D").WithArguments("delegate*<ref int, void>", "delegate*<out int, void>").WithLocation(14, 38));
 
@@ -826,12 +826,12 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // 0.cs(10,34): error CS0266: Cannot implicitly convert type 'delegate*<ref int, void>' to 'delegate*<int, void>'. An explicit conversion exists (are you missing a cast?)
             //         delegate*<int, void> v = c.D;
             Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "c.D").WithArguments("delegate*<ref int, void>", "delegate*<int, void>").WithLocation(10, 34),
-            // 0.cs(12,37): warning CS9510: Reference kind modifier of parameter 'ref int' doesn't match the corresponding parameter 'in int' in target.
+            // 0.cs(12,37): error CS0266: Cannot implicitly convert type 'delegate*<ref int, void>' to 'delegate*<in int, void>'. An explicit conversion exists (are you missing a cast?)
             //         delegate*<in int, void> i = c.D;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "c.D").WithArguments("ref int", "in int").WithLocation(12, 37),
-            // 0.cs(13,48): warning CS9510: Reference kind modifier of parameter 'ref int' doesn't match the corresponding parameter 'ref readonly int' in target.
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "c.D").WithArguments("delegate*<ref int, void>", "delegate*<in int, void>").WithLocation(12, 37),
+            // 0.cs(13,48): error CS0266: Cannot implicitly convert type 'delegate*<ref int, void>' to 'delegate*<ref readonly int, void>'. An explicit conversion exists (are you missing a cast?)
             //         delegate*<ref readonly int, void> rr = c.D;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "c.D").WithArguments("ref int", "ref readonly int").WithLocation(13, 48),
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "c.D").WithArguments("delegate*<ref int, void>", "delegate*<ref readonly int, void>").WithLocation(13, 48),
             // 0.cs(14,38): error CS0266: Cannot implicitly convert type 'delegate*<ref int, void>' to 'delegate*<out int, void>'. An explicit conversion exists (are you missing a cast?)
             //         delegate*<out int, void> o = c.D;
             Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "c.D").WithArguments("delegate*<ref int, void>", "delegate*<out int, void>").WithLocation(14, 38));
@@ -5315,27 +5315,27 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // 0.cs(9,9): error CS0266: Cannot implicitly convert type 'delegate*<ref readonly int, void>' to 'delegate*<int, void>'. An explicit conversion exists (are you missing a cast?)
             //     v = rr;
             Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "rr").WithArguments("delegate*<ref readonly int, void>", "delegate*<int, void>").WithLocation(9, 9),
-            // 0.cs(10,9): warning CS9510: Reference kind modifier of parameter 'ref readonly int' doesn't match the corresponding parameter 'in int' in target.
+            // 0.cs(10,9): error CS0266: Cannot implicitly convert type 'delegate*<ref readonly int, void>' to 'delegate*<in int, void>'. An explicit conversion exists (are you missing a cast?)
             //     i = rr;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "rr").WithArguments("ref readonly int", "in int").WithLocation(10, 9),
-            // 0.cs(11,9): warning CS9510: Reference kind modifier of parameter 'ref readonly int' doesn't match the corresponding parameter 'ref int' in target.
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "rr").WithArguments("delegate*<ref readonly int, void>", "delegate*<in int, void>").WithLocation(10, 9),
+            // 0.cs(11,9): error CS0266: Cannot implicitly convert type 'delegate*<ref readonly int, void>' to 'delegate*<ref int, void>'. An explicit conversion exists (are you missing a cast?)
             //     r = rr;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "rr").WithArguments("ref readonly int", "ref int").WithLocation(11, 9),
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "rr").WithArguments("delegate*<ref readonly int, void>", "delegate*<ref int, void>").WithLocation(11, 9),
             // 0.cs(12,9): error CS0266: Cannot implicitly convert type 'delegate*<ref readonly int, void>' to 'delegate*<out int, void>'. An explicit conversion exists (are you missing a cast?)
             //     o = rr;
             Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "rr").WithArguments("delegate*<ref readonly int, void>", "delegate*<out int, void>").WithLocation(12, 9),
-            // 0.cs(13,9): warning CS9510: Reference kind modifier of parameter 'in int' doesn't match the corresponding parameter 'ref int' in target.
+            // 0.cs(13,9): error CS0266: Cannot implicitly convert type 'delegate*<in int, void>' to 'delegate*<ref int, void>'. An explicit conversion exists (are you missing a cast?)
             //     r = i;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "i").WithArguments("in int", "ref int").WithLocation(13, 9),
-            // 0.cs(14,9): warning CS9510: Reference kind modifier of parameter 'ref int' doesn't match the corresponding parameter 'in int' in target.
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "i").WithArguments("delegate*<in int, void>", "delegate*<ref int, void>").WithLocation(13, 9),
+            // 0.cs(14,9): error CS0266: Cannot implicitly convert type 'delegate*<ref int, void>' to 'delegate*<in int, void>'. An explicit conversion exists (are you missing a cast?)
             //     i = r;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "r").WithArguments("ref int", "in int").WithLocation(14, 9),
-            // 0.cs(15,10): warning CS9510: Reference kind modifier of parameter 'ref int' doesn't match the corresponding parameter 'ref readonly int' in target.
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "r").WithArguments("delegate*<ref int, void>", "delegate*<in int, void>").WithLocation(14, 9),
+            // 0.cs(15,10): error CS0266: Cannot implicitly convert type 'delegate*<ref int, void>' to 'delegate*<ref readonly int, void>'. An explicit conversion exists (are you missing a cast?)
             //     rr = r;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "r").WithArguments("ref int", "ref readonly int").WithLocation(15, 10),
-            // 0.cs(16,10): warning CS9510: Reference kind modifier of parameter 'in int' doesn't match the corresponding parameter 'ref readonly int' in target.
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "r").WithArguments("delegate*<ref int, void>", "delegate*<ref readonly int, void>").WithLocation(15, 10),
+            // 0.cs(16,10): error CS0266: Cannot implicitly convert type 'delegate*<in int, void>' to 'delegate*<ref readonly int, void>'. An explicit conversion exists (are you missing a cast?)
             //     rr = i;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "i").WithArguments("in int", "ref readonly int").WithLocation(16, 10),
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "i").WithArguments("delegate*<in int, void>", "delegate*<ref readonly int, void>").WithLocation(16, 10),
             // 0.cs(17,10): error CS0266: Cannot implicitly convert type 'delegate*<out int, void>' to 'delegate*<ref readonly int, void>'. An explicit conversion exists (are you missing a cast?)
             //     rr = o;
             Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "o").WithArguments("delegate*<out int, void>", "delegate*<ref readonly int, void>").WithLocation(17, 10),
@@ -5432,30 +5432,28 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (10,13): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     C.X2(in i);
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "i").WithArguments("ref readonly parameters").WithLocation(10, 13),
-            // (13,12): warning CS9510: Reference kind modifier of parameter 'ref readonly int' doesn't match the corresponding parameter 'in int' in target.
+            // (13,12): error CS0266: Cannot implicitly convert type 'delegate*<ref readonly int, void>' to 'delegate*<in int, void>'. An explicit conversion exists (are you missing a cast?)
             //     C.Y2 = C.X1;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.X1").WithArguments("ref readonly int", $"{modifier} int").WithLocation(13, 12),
-            // (14,12): warning CS9510: Reference kind modifier of parameter 'in int' doesn't match the corresponding parameter 'ref readonly int' in target.
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "C.X1").WithArguments("delegate*<ref readonly int, void>", $"delegate*<{modifier} int, void>").WithLocation(13, 12),
+            // (14,12): error CS0266: Cannot implicitly convert type 'delegate*<in int, void>' to 'delegate*<ref readonly int, void>'. An explicit conversion exists (are you missing a cast?)
             //     C.X2 = C.Y1;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.Y1").WithArguments($"{modifier} int", "ref readonly int").WithLocation(14, 12),
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "C.Y1").WithArguments($"delegate*<{modifier} int, void>", "delegate*<ref readonly int, void>").WithLocation(14, 12),
             // (16,13): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     C.X2(in i);
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "i").WithArguments("ref readonly parameters").WithLocation(16, 13));
 
         var expectedDiagnostics = new[]
         {
-            // 0.cs(13,12): warning CS9510: Reference kind modifier of parameter 'ref readonly int' doesn't match the corresponding parameter 'in int' in target.
+            // (13,12): error CS0266: Cannot implicitly convert type 'delegate*<ref readonly int, void>' to 'delegate*<in int, void>'. An explicit conversion exists (are you missing a cast?)
             //     C.Y2 = C.X1;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.X1").WithArguments("ref readonly int", $"{modifier} int").WithLocation(13, 12),
-            // 0.cs(14,12): warning CS9510: Reference kind modifier of parameter 'in int' doesn't match the corresponding parameter 'ref readonly int' in target.
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "C.X1").WithArguments("delegate*<ref readonly int, void>", $"delegate*<{modifier} int, void>").WithLocation(13, 12),
+            // (14,12): error CS0266: Cannot implicitly convert type 'delegate*<in int, void>' to 'delegate*<ref readonly int, void>'. An explicit conversion exists (are you missing a cast?)
             //     C.X2 = C.Y1;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.Y1").WithArguments($"{modifier} int", "ref readonly int").WithLocation(14, 12)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "C.Y1").WithArguments($"delegate*<{modifier} int, void>", "delegate*<ref readonly int, void>").WithLocation(14, 12)
         };
 
-        CompileAndVerify(source2, new[] { comp1Ref }, verify: Verification.Fails, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugExe,
-            expectedOutput: "X2 Y2 X1 Y1 Y1 X1").VerifyDiagnostics(expectedDiagnostics);
-        CompileAndVerify(source2, new[] { comp1Ref }, verify: Verification.Fails, options: TestOptions.UnsafeDebugExe,
-            expectedOutput: "X2 Y2 X1 Y1 Y1 X1").VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source2, new[] { comp1Ref }, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Fact]
@@ -5502,28 +5500,19 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
 
-        CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular11, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(
+        var expectedDiagnostics = new[]
+        {
             // (13,12): error CS0266: Cannot implicitly convert type 'delegate*<ref int, void>' to 'delegate*<in int, void>'. An explicit conversion exists (are you missing a cast?)
             //     C.Y2 = C.X1;
             Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "C.X1").WithArguments("delegate*<ref int, void>", "delegate*<in int, void>").WithLocation(13, 12),
             // (14,12): error CS0266: Cannot implicitly convert type 'delegate*<in int, void>' to 'delegate*<ref int, void>'. An explicit conversion exists (are you missing a cast?)
             //     C.X2 = C.Y1;
-            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "C.Y1").WithArguments("delegate*<in int, void>", "delegate*<ref int, void>").WithLocation(14, 12));
-
-        var expectedDiagnostics = new[]
-        {
-            // (13,12): warning CS9510: Reference kind modifier of parameter 'ref int' doesn't match the corresponding parameter 'in int' in target.
-            //     C.Y2 = C.X1;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.X1").WithArguments("ref int", "in int").WithLocation(13, 12),
-            // (14,12): warning CS9510: Reference kind modifier of parameter 'in int' doesn't match the corresponding parameter 'ref int' in target.
-            //     C.X2 = C.Y1;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.Y1").WithArguments("in int", "ref int").WithLocation(14, 12)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "C.Y1").WithArguments("delegate*<in int, void>", "delegate*<ref int, void>").WithLocation(14, 12)
         };
 
-        CompileAndVerify(source2, new[] { comp1Ref }, verify: Verification.Fails, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugExe,
-            expectedOutput: "X2 Y2 X1 Y1 Y1 X1").VerifyDiagnostics(expectedDiagnostics);
-        CompileAndVerify(source2, new[] { comp1Ref }, verify: Verification.Fails, options: TestOptions.UnsafeDebugExe,
-            expectedOutput: "X2 Y2 X1 Y1 Y1 X1").VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular11, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(expectedDiagnostics); CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular11, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source2, new[] { comp1Ref }, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Fact]
