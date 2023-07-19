@@ -1906,9 +1906,9 @@ public struct Buffer
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
-                // (5,25): error CS9179: Inline array element field cannot be declared required.
+                // (5,25): error CS9180: Inline array element field cannot be declared as required, readonly, volatile, or as a fixed size buffer.
                 //     required public int _element0;
-                Diagnostic(ErrorCode.ERR_InlineArrayRequiredElementField, "_element0").WithLocation(5, 25)
+                Diagnostic(ErrorCode.ERR_InlineArrayUnsupportedElementFieldModifier, "_element0").WithLocation(5, 25)
                 );
         }
 
@@ -1948,6 +1948,145 @@ var b = new Buffer() { _element0 = 1 };
                 // (3,13): error CS9035: Required member 'Buffer._element0' must be set in the object initializer or attribute constructor.
                 // var a = new Buffer();
                 Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Buffer").WithArguments("Buffer._element0").WithLocation(3, 13)
+                );
+        }
+
+        [Fact]
+        public void InlineArrayType_45_Readonly()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.InlineArray(4)]
+public struct Buffer1
+{
+    public readonly int _element1;
+}
+
+[System.Runtime.CompilerServices.InlineArray(4)]
+public readonly struct Buffer2
+{
+    public readonly int _element2;
+}
+
+[System.Runtime.CompilerServices.InlineArray(4)]
+public readonly struct Buffer3
+{
+    public int _element3;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics(
+                // (5,25): error CS9180: Inline array element field cannot be declared as required, readonly, volatile, or as a fixed size buffer.
+                //     public readonly int _element1;
+                Diagnostic(ErrorCode.ERR_InlineArrayUnsupportedElementFieldModifier, "_element1").WithLocation(5, 25),
+                // (11,25): error CS9180: Inline array element field cannot be declared as required, readonly, volatile, or as a fixed size buffer.
+                //     public readonly int _element2;
+                Diagnostic(ErrorCode.ERR_InlineArrayUnsupportedElementFieldModifier, "_element2").WithLocation(11, 25),
+                // (17,16): error CS8340: Instance fields of readonly structs must be readonly.
+                //     public int _element3;
+                Diagnostic(ErrorCode.ERR_FieldsInRoStruct, "_element3").WithLocation(17, 16)
+                );
+        }
+
+        [Fact]
+        public void InlineArrayType_46_Volatile()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.InlineArray(4)]
+public struct Buffer1
+{
+    public volatile int _element1;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics(
+                // (5,25): error CS9180: Inline array element field cannot be declared as required, readonly, volatile, or as a fixed size buffer.
+                //     public volatile int _element1;
+                Diagnostic(ErrorCode.ERR_InlineArrayUnsupportedElementFieldModifier, "_element1").WithLocation(5, 25)
+                );
+        }
+
+        [Fact]
+        public void InlineArrayType_47_FixedSizeBuffer()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.InlineArray(4)]
+public unsafe struct Buffer
+{
+    public fixed int x[5];
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            comp.VerifyDiagnostics(
+                // (5,22): error CS9180: Inline array element field cannot be declared as required, readonly, volatile, or as a fixed size buffer.
+                //     public fixed int x[5];
+                Diagnostic(ErrorCode.ERR_InlineArrayUnsupportedElementFieldModifier, "x").WithLocation(5, 22)
+                );
+        }
+
+        [Fact]
+        public void InlineArrayType_48_FixedSizeBuffer()
+        {
+            // [System.Runtime.CompilerServices.InlineArray(4)]
+            // public unsafe struct Buffer
+            // {
+            //     public fixed int x[5];
+            // }
+            var ilSource = @"
+.class public sequential ansi sealed beforefieldinit Buffer
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.InlineArrayAttribute::.ctor(int32) = (
+        01 00 04 00 00 00 00 00
+    )
+
+    // Nested Types
+    .class nested public sequential ansi sealed beforefieldinit '<x>e__FixedBuffer'
+        extends [mscorlib]System.ValueType
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.UnsafeValueTypeAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .pack 0
+        .size 20
+
+        // Fields
+        .field public int32 FixedElementField
+
+    } // end of class <x>e__FixedBuffer
+
+
+    // Fields
+    .field public valuetype Buffer/'<x>e__FixedBuffer' x
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.FixedBufferAttribute::.ctor(class [mscorlib]System.Type, int32) = (
+        01 00 59 53 79 73 74 65 6D 2E 49 6E 74 33 32 2C   // ..YSystem.Int32,
+        20 6D 73 63 6F 72 6C 69 62 2C 20 56 65 72 73 69   //  mscorlib, Versi
+        6F 6E 3D 34 2E 30 2E 30 2E 30 2C 20 43 75 6C 74   // on=4.0.0.0, Cult
+        75 72 65 3D 6E 65 75 74 72 61 6C 2C 20 50 75 62   // ure=neutral, Pub
+        6C 69 63 4B 65 79 54 6F 6B 65 6E 3D 62 37 37 61   // licKeyToken=b77a
+        35 63 35 36 31 39 33 34 65 30 38 39 05 00 00 00   // 5c561934e089....
+        00 00
+    )
+}
+";
+
+            var src = @"
+unsafe class Program
+{
+    static void Main()
+    {
+        var a = new Buffer();
+        int* x = a[0];
+    }
+}
+";
+            var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net80, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            comp.VerifyDiagnostics(
+                // (7,18): error CS0021: Cannot apply indexing with [] to an expression of type 'Buffer'
+                //         int* x = a[0];
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "a[0]").WithArguments("Buffer").WithLocation(7, 18)
                 );
         }
 
