@@ -2,31 +2,47 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CodeActions
+namespace Microsoft.CodeAnalysis.CodeActions;
+
+/// <summary>
+/// Priority of a particular code action produced by either a <see cref="CodeRefactoringProvider"/> or a <see
+/// cref="CodeFixProvider"/>.  Code actions use priorities to group themselves, with lower priority actions showing
+/// up after higher priority ones.  Providers should put less relevant code actions into lower priority buckets to
+/// have them appear later in the UI, allowing the user to get to important code actions more quickly.
+/// </summary>
+public enum CodeActionPriority
 {
-#pragma warning disable CA1200 // Avoid using cref tags with a prefix
     /// <summary>
-    /// Internal priority used to bluntly place items in a light bulb in strict orderings.  Priorities take
-    /// the highest precedence when ordering items so that we can ensure very important items get top prominence,
-    /// and low priority items do not.
+    /// Lowest priority code actions.  Will show up after <see cref="Low"/> priority items.
     /// </summary>
-    /// <remarks>
-    /// If <see cref="CodeActionPriority.High"/> is used, the feature that specifies that value should 
-    /// implement and return <see cref="CodeActionRequestPriority.High"/> for <see cref="IBuiltInAnalyzer.RequestPriority"/>,
-    /// <see cref="T:Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider.RequestPriority"/> and
-    /// <see cref="T:Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringProvider.RequestPriority"/>. This
-    /// will ensure that the analysis engine runs the providers that will produce those actions first,
-    /// thus allowing those actions to be computed and displayed prior to running all other providers.
-    /// </remarks>
-    internal enum CodeActionPriority
-    {
-        Lowest = 0,
-        Low = 1,
-        Medium = 2,
-        High = 3,
+    Lowest = 0,
 
-        Default = Medium
-    }
+    /// <summary>
+    /// Low priority code action.  Will show up after <see cref="Default"/> priority items.
+    /// </summary>
+    Low = 1,
+
+    /// <summary>
+    /// Medium priority code action.
+    /// </summary>
+    Default = 2,
+
+    /// <summary>
+    /// High priority code action. Note: High priority is simply a request on the part of a <see cref="CodeAction"/>.
+    /// The core engine may automatically downgrade these items to <see cref="Default"/> priority.
+    /// </summary>
+    // <remarks>
+    // If <see cref="CodeActionPriority.High"/> is used, the analyzer that specifies that value should implement and
+    // return true for <see cref="IBuiltInAnalyzer.IsHighPriority"/>, and <see cref="CodeActionRequestPriority.High> for
+    // <see cref="T:Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider.RequestPriority"/> and <see
+    // cref="T:Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringProvider.RequestPriority"/>. This will ensure that
+    // the analysis engine runs the analzyers and providers that will produce those actions first, thus allowing those
+    // actions to be computed and displayed prior to running all other providers.
+    // </remarks>
+    High = 3,
 }

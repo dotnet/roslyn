@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal abstract void ReportTopLevelSyntacticRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, Edit<SyntaxNode> edit, Dictionary<SyntaxNode, EditKind> editMap);
         internal abstract void ReportEnclosingExceptionHandlingRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, IEnumerable<Edit<SyntaxNode>> exceptionHandlingEdits, SyntaxNode oldStatement, TextSpan newStatementSpan);
         internal abstract void ReportOtherRudeEditsAroundActiveStatement(ArrayBuilder<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, SyntaxNode oldStatement, SyntaxNode newStatement, bool isNonLeaf);
-        internal abstract void ReportMemberOrLambdaBodyUpdateRudeEditsImpl(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode newDeclaration, DeclarationBody newBody, TextSpan? span);
+        internal abstract void ReportMemberOrLambdaBodyUpdateRudeEditsImpl(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode newDeclaration, DeclarationBody newBody);
         internal abstract void ReportInsertedMemberSymbolRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, ISymbol newSymbol, SyntaxNode newNode, bool insertingIntoExistingContainingType);
         internal abstract void ReportStateMachineSuspensionPointRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode);
 
@@ -1902,6 +1902,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var oldTree = topMatch.OldRoot.SyntaxTree;
             var newTree = topMatch.NewRoot.SyntaxTree;
 
+            // We enumerate tokens of the body and split them into segments. Every matched member body will have at least one segment.
+            // Each segment has sequence points mapped to the same file and also all lines the segment covers map to the same line delta.
+            // The first token of a segment must be the first token that starts on the line. If the first segment token was in the middle line 
+            // the previous token on the same line would have different line delta and we wouldn't be able to map both of them at the same time.
+            // All segments are included in the segments list regardless of their line delta (even when it's 0 - i.e. the lines did not change).
+            // This is necessary as we need to detect collisions of multiple segments with different deltas later on.
+            //
             // note: range [oldStartLine, oldEndLine] is end-inclusive
             using var _ = ArrayBuilder<(string filePath, int oldStartLine, int oldEndLine, int delta, SyntaxNode oldNode, SyntaxNode newNode)>.GetInstance(out var segments);
 
@@ -1934,20 +1941,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var newTokensEnum = newTokens.GetEnumerator();
                 var oldTokensEnum = oldTokens.GetEnumerator();
 
-                // We enumerate tokens of the body and split them into segments.
-                // Each segment has sequence points mapped to the same file and also all lines the segment covers map to the same line delta.
-                // The first token of a segment must be the first token that starts on the line. If the first segment token was in the middle line 
-                // the previous token on the same line would have different line delta and we wouldn't be able to map both of them at the same time.
-                // All segments are included in the segments list regardless of their line delta (even when it's 0 - i.e. the lines did not change).
-                // This is necessary as we need to detect collisions of multiple segments with different deltas later on.
-
                 var lastNewToken = default(SyntaxToken);
                 var lastOldStartLine = -1;
                 var lastOldFilePath = (string?)null;
                 var requiresUpdate = false;
 
                 var firstSegmentIndex = segments.Count;
-                var currentSegment = (path: (string?)null, oldStartLine: 0, delta: 0, firstOldNode: (SyntaxNode?)null, firstNewNode: (SyntaxNode?)null);
+                var currentSegment = (path: (string?)null, oldStartLine: 0, delta: 0, firstOldToken: default(SyntaxToken), firstNewToken: default(SyntaxToken));
                 var rudeEditSpan = default(TextSpan);
 
                 // Check if the breakpoint span that covers the first node of the segment can be translated from the old to the new by adding a line delta.
@@ -1955,14 +1955,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // The first node of the segment can be the first node on its line but the breakpoint span might start on the previous line.
                 bool IsCurrentSegmentBreakpointSpanMappable()
                 {
-                    var oldNode = currentSegment.firstOldNode;
-                    var newNode = currentSegment.firstNewNode;
-                    Contract.ThrowIfNull(oldNode);
-                    Contract.ThrowIfNull(newNode);
+                    var oldToken = currentSegment.firstOldToken;
+                    var newToken = currentSegment.firstNewToken;
+                    Contract.ThrowIfNull(oldToken.Parent);
+                    Contract.ThrowIfNull(newToken.Parent);
 
                     // Some nodes (e.g. const local declaration) may not be covered by a breakpoint span.
-                    if (!TryGetEnclosingBreakpointSpan(oldNode, oldNode.SpanStart, out var oldBreakpointSpan) ||
-                        !TryGetEnclosingBreakpointSpan(newNode, newNode.SpanStart, out var newBreakpointSpan))
+                    if (!TryGetEnclosingBreakpointSpan(oldToken.Parent, oldToken.SpanStart, out var oldBreakpointSpan) ||
+                        !TryGetEnclosingBreakpointSpan(newToken.Parent, newToken.SpanStart, out var newBreakpointSpan))
                     {
                         return true;
                     }
@@ -2063,7 +2063,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         }
 
                         // start new segment:
-                        currentSegment = (oldMappedSpan.Path, oldStartLine, lineDelta, oldTokensEnum.Current.Parent, newTokensEnum.Current.Parent);
+                        currentSegment = (oldMappedSpan.Path, oldStartLine, lineDelta, oldTokensEnum.Current, newTokensEnum.Current);
                     }
 
                     lastNewToken = newTokensEnum.Current;
@@ -3239,6 +3239,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                             syntaxMap = isActiveMember ? CreateSyntaxMapForEquivalentNodes(oldBody, newBody) : null;
 
+                            ReportMemberOrLambdaBodyUpdateRudeEditsImpl(diagnostics, newDeclaration, newBody);
+
                             var isConstructorWithMemberInitializers = IsConstructorWithMemberInitializers(newSymbol, cancellationToken);
                             var isDeclarationWithInitializer = IsDeclarationWithInitializer(newDeclaration);
 
@@ -3909,7 +3911,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             StateMachineInfo oldStateMachineInfo,
             StateMachineInfo newStateMachineInfo)
         {
-            ReportMemberOrLambdaBodyUpdateRudeEditsImpl(diagnostics, newDeclaration, newBody, span: null);
+            ReportMemberOrLambdaBodyUpdateRudeEditsImpl(diagnostics, newDeclaration, newBody);
 
             if (oldStateMachineInfo.IsStateMachine)
             {
@@ -5286,27 +5288,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                         // Report an error if the updated constructor's declaration is in the current document 
                         // and its body edit is disallowed (e.g. contains stackalloc).
-                        if (oldCtor != null && newDeclaration.SyntaxTree == newSyntaxTree && anyInitializerUpdatesInCurrentDocument)
+                        // If the declaration represents a primary constructor the body will be null.
+                        if (oldCtor != null &&
+                            newDeclaration.SyntaxTree == newSyntaxTree &&
+                            anyInitializerUpdatesInCurrentDocument &&
+                            TryGetDeclarationBody(newDeclaration) is { } newBody)
                         {
-                            var newBody = TryGetDeclarationBody(newDeclaration);
-
-                            // If the declaration represents a primary constructor the body will be null.
-                            if (newBody != null)
-                            {
-                                // attribute rude edit to one of the modified members
-                                var firstSpan = updatesInCurrentDocument.ChangedDeclarations.Keys.Where(IsDeclarationWithInitializer).Aggregate(
-                                    (min: int.MaxValue, span: default(TextSpan)),
-                                    (accumulate, node) => (node.SpanStart < accumulate.min) ? (node.SpanStart, node.Span) : accumulate).span;
-
-                                // span may be empty if the only edits are deletes of members with initializers
-                                if (firstSpan.IsEmpty)
-                                {
-                                    Debug.Assert(updatesInCurrentDocument.HasDeletedMemberInitializer);
-                                    firstSpan = newDeclaration.Span;
-                                }
-
-                                ReportMemberOrLambdaBodyUpdateRudeEditsImpl(diagnostics, newDeclaration, newBody, firstSpan);
-                            }
+                            ReportMemberOrLambdaBodyUpdateRudeEditsImpl(diagnostics, newDeclaration, newBody);
                         }
                     }
                     else
@@ -6632,17 +6620,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private sealed class TypedConstantComparer : IEqualityComparer<TypedConstant>
         {
-            public static TypedConstantComparer Instance = new TypedConstantComparer();
+            public static readonly TypedConstantComparer Instance = new();
 
             public bool Equals(TypedConstant x, TypedConstant y)
-                => x.Kind.Equals(y.Kind) &&
-                   x.IsNull.Equals(y.IsNull) &&
+                => x.Kind == y.Kind &&
+                   x.IsNull == y.IsNull &&
                    SymbolEquivalenceComparer.Instance.Equals(x.Type, y.Type) &&
                    x.Kind switch
                    {
-                       TypedConstantKind.Array => x.Values.SequenceEqual(y.Values, TypedConstantComparer.Instance),
-                       TypedConstantKind.Type => TypesEquivalent(x.Value as ITypeSymbol, y.Value as ITypeSymbol, exact: false),
-                       _ => object.Equals(x.Value, y.Value)
+                       TypedConstantKind.Array => x.Values.IsDefault || x.Values.SequenceEqual(y.Values, Instance),
+                       TypedConstantKind.Type => TypesEquivalent((ITypeSymbol?)x.Value, (ITypeSymbol?)y.Value, exact: false),
+                       _ => Equals(x.Value, y.Value)
                    };
 
             public int GetHashCode(TypedConstant obj)
@@ -6651,7 +6639,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private sealed class NamedArgumentComparer : IEqualityComparer<KeyValuePair<string, TypedConstant>>
         {
-            public static NamedArgumentComparer Instance = new NamedArgumentComparer();
+            public static readonly NamedArgumentComparer Instance = new();
 
             public bool Equals(KeyValuePair<string, TypedConstant> x, KeyValuePair<string, TypedConstant> y)
                 => x.Key.Equals(y.Key) &&

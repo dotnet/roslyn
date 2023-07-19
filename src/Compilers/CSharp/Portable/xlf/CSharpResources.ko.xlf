@@ -907,9 +907,9 @@
         <target state="translated">인덱스가 인라인 배열의 범위 밖에 있습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_InlineArrayRequiredElementField">
-        <source>Inline array element field cannot be declared required.</source>
-        <target state="new">Inline array element field cannot be declared required.</target>
+      <trans-unit id="ERR_InlineArrayUnsupportedElementFieldModifier">
+        <source>Inline array element field cannot be declared as required, readonly, volatile, or as a fixed size buffer.</source>
+        <target state="new">Inline array element field cannot be declared as required, readonly, volatile, or as a fixed size buffer.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">

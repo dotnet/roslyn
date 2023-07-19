@@ -2252,21 +2252,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         return;
                 }
             }
-
-            public void ClassifyDeclarationBodyRudeUpdates(DeclarationBody newBody)
-            {
-                foreach (var root in newBody.RootNodes)
-                {
-                    foreach (var node in root.DescendantNodesAndSelf(LambdaUtilities.IsNotLambda))
-                    {
-                        if (node.Kind() is SyntaxKind.StackAllocArrayCreationExpression or SyntaxKind.ImplicitStackAllocArrayCreationExpression)
-                        {
-                            ReportError(RudeEditKind.StackAllocUpdate, node, _newNode);
-                            return;
-                        }
-                    }
-                }
-            }
         }
 
         internal override void ReportTopLevelSyntacticRudeEdits(
@@ -2284,10 +2269,27 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             classifier.ClassifyEdit();
         }
 
-        internal override void ReportMemberOrLambdaBodyUpdateRudeEditsImpl(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode newDeclaration, DeclarationBody newBody, TextSpan? span)
+        internal override void ReportMemberOrLambdaBodyUpdateRudeEditsImpl(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode newDeclaration, DeclarationBody newBody)
         {
-            var classifier = new EditClassifier(this, diagnostics, oldNode: null, newDeclaration, EditKind.Update, span: span);
-            classifier.ClassifyDeclarationBodyRudeUpdates(newBody);
+            // Disallow editing the body even if the change is only in trivia.
+            // The compiler might emit extra temp local variables, which would change stack layout and cause the CLR to fail.
+
+            foreach (var root in newBody.RootNodes)
+            {
+                foreach (var node in root.DescendantNodesAndSelf(LambdaUtilities.IsNotLambda))
+                {
+                    if (node.Kind() is SyntaxKind.StackAllocArrayCreationExpression or SyntaxKind.ImplicitStackAllocArrayCreationExpression)
+                    {
+                        diagnostics.Add(new RudeEditDiagnostic(
+                            RudeEditKind.StackAllocUpdate,
+                            GetDiagnosticSpan(node, EditKind.Update),
+                            newDeclaration,
+                            arguments: new[] { GetDisplayName(newDeclaration, EditKind.Update) }));
+
+                        return;
+                    }
+                }
+            }
         }
 
         #endregion

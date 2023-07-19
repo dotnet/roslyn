@@ -2242,7 +2242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase = 9179,
 
-        ERR_InlineArrayRequiredElementField = 9180,
+        ERR_InlineArrayUnsupportedElementFieldModifier = 9180,
         ERR_CollectionBuilderAttributeMethodNotFound = 9181,
         ERR_CollectionBuilderNoElementType = 9182,
         ERR_CollectionBuilderAttributeInvalidType = 9183,

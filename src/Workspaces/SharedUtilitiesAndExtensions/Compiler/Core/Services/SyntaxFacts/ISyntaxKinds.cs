@@ -131,6 +131,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         int ArrayCreationExpression { get; }
         int AwaitExpression { get; }
         int BaseExpression { get; }
+        int CollectionInitializerExpression { get; }
         int ConditionalAccessExpression { get; }
         int ConditionalExpression { get; }
         int? ImplicitArrayCreationExpression { get; }
