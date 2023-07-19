@@ -189,4 +189,108 @@ public class UseCollectionExpressionForArray
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestNotWithIncompatibleArrays()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    object[] i = new string[] { "" };
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithCompatibleArrays1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    object[] i = [|[|new|] object[]|] { "" };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    object[] i = [""];
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithCompatibleArrays2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    object[] i = [|[|new|] object[]|]
+                    {
+                        ""
+                    };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    object[] i = [
+                        ""
+                    ];
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithCompatibleArrays_Empty()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    object[] i = [|[|new|] object[]|] { };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    object[] i = [];
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithCompatibleArrays_TrailingComma()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    object[] i = [|[|new|] object[]|] { "", };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    object[] i = ["",];
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
 }

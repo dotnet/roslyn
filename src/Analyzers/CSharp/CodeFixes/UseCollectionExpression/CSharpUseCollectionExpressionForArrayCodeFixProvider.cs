@@ -25,6 +25,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseConditionalExpression;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
@@ -40,6 +41,9 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider : Sy
     }
 
     public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(IDEDiagnosticIds.UseCollectionExpressionForArrayDiagnosticId);
+
+    protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
+        => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
 
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
@@ -63,36 +67,63 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider : Sy
             {
                 RewriteInitializerExpression(initializerExpression);
             }
+            else if (expression is ArrayCreationExpressionSyntax arrayCreationExpression)
+            {
+                RewriteArrayCreationExpression(arrayCreationExpression);
+            }
         }
 
         return;
 
+        bool IsOnSingleLine(SyntaxNode node)
+            => sourceText.AreOnSameLine(node.GetFirstToken(), node.GetLastToken());
+
         void RewriteInitializerExpression(InitializerExpressionSyntax initializer)
         {
-            // if the initializer is already on multiple lines, keep it that way.  otherwise, squash from `{ 1, 2, 3 }` to `[1, 2, 3]`
             editor.ReplaceNode(
                 initializer,
+                (current, _) => ConvertInitializerToCollectionExpression(
+                    (InitializerExpressionSyntax)current,
+                    IsOnSingleLine(initializer)));
+        }
+
+        void RewriteArrayCreationExpression(ArrayCreationExpressionSyntax arrayCreation)
+        {
+            editor.ReplaceNode(
+                arrayCreation,
                 (current, _) =>
                 {
-                    var currentInitializer = (InitializerExpressionSyntax)current;
+                    var currentArrayCreation = (ArrayCreationExpressionSyntax)current;
+                    Contract.ThrowIfNull(currentArrayCreation.Initializer);
+                    var collectionExpression = ConvertInitializerToCollectionExpression(
+                        currentArrayCreation.Initializer,
+                        IsOnSingleLine(arrayCreation));
 
-                    var openBracket = Token(SyntaxKind.OpenBracketToken).WithTriviaFrom(currentInitializer.OpenBraceToken);
-                    var elements = currentInitializer.Expressions.GetWithSeparators().SelectAsArray(
-                        i => i.IsToken ? i : ExpressionElement((ExpressionSyntax)i.AsNode()!));
-                    var closeBracket = Token(SyntaxKind.CloseBracketToken).WithTriviaFrom(currentInitializer.CloseBraceToken);
-
-                    if (sourceText.AreOnSameLine(initializer.OpenBraceToken, initializer.CloseBraceToken))
-                    {
-                        // convert '{ ' to '['
-                        if (openBracket.TrailingTrivia is [(kind: SyntaxKind.WhitespaceTrivia), ..])
-                            openBracket = openBracket.WithTrailingTrivia(openBracket.TrailingTrivia.Skip(1));
-
-                        if (elements is [.., var lastNodeOrToken] && lastNodeOrToken.GetTrailingTrivia() is [.., (kind: SyntaxKind.WhitespaceTrivia)] trailingTrivia)
-                            elements = elements.Replace(lastNodeOrToken, lastNodeOrToken.WithTrailingTrivia(trailingTrivia.Take(trailingTrivia.Count - 1)));
-                    }
-
-                    return CollectionExpression(openBracket, SeparatedList<CollectionElementSyntax>(elements), closeBracket);
+                    collectionExpression = collectionExpression.WithLeadingTrivia(currentArrayCreation.GetLeadingTrivia());
+                    return collectionExpression;
                 });
         }
+    }
+
+    private static CollectionExpressionSyntax ConvertInitializerToCollectionExpression(
+        InitializerExpressionSyntax initializer, bool wasOnSingleLine)
+    {
+        // if the initializer is already on multiple lines, keep it that way.  otherwise, squash from `{ 1, 2, 3 }` to `[1, 2, 3]`
+        var openBracket = Token(SyntaxKind.OpenBracketToken).WithTriviaFrom(initializer.OpenBraceToken);
+        var elements = initializer.Expressions.GetWithSeparators().SelectAsArray(
+            i => i.IsToken ? i : ExpressionElement((ExpressionSyntax)i.AsNode()!));
+        var closeBracket = Token(SyntaxKind.CloseBracketToken).WithTriviaFrom(initializer.CloseBraceToken);
+
+        if (wasOnSingleLine)
+        {
+            // convert '{ ' to '['
+            if (openBracket.TrailingTrivia is [(kind: SyntaxKind.WhitespaceTrivia), ..])
+                openBracket = openBracket.WithTrailingTrivia(openBracket.TrailingTrivia.Skip(1));
+
+            if (elements is [.., var lastNodeOrToken] && lastNodeOrToken.GetTrailingTrivia() is [.., (kind: SyntaxKind.WhitespaceTrivia)] trailingTrivia)
+                elements = elements.Replace(lastNodeOrToken, lastNodeOrToken.WithTrailingTrivia(trailingTrivia.Take(trailingTrivia.Count - 1)));
+        }
+
+        return CollectionExpression(openBracket, SeparatedList<CollectionElementSyntax>(elements), closeBracket);
     }
 }

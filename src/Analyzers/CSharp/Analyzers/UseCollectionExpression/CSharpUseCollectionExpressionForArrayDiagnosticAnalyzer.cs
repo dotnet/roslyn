@@ -5,6 +5,7 @@
 using System;
 using System.Collections;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -67,9 +68,10 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
         });
     }
 
-    private void AnalyzeArrayInitializer(SyntaxNodeAnalysisContext context)
+    private static void AnalyzeArrayInitializer(SyntaxNodeAnalysisContext context)
     {
         var semanticModel = context.SemanticModel;
+        var syntaxTree = semanticModel.SyntaxTree;
         var initializer = (InitializerExpressionSyntax)context.Node;
         var cancellationToken = context.CancellationToken;
 
@@ -78,9 +80,43 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
         if (!option.Value)
             return;
 
-        if (initializer.Parent is ArrayCreationExpressionSyntax)
-        {
+        if (initializer.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
+            return;
 
+        if (initializer.Parent is ArrayCreationExpressionSyntax arrayCreation)
+        {
+            // X[] = new Y[] { 1, 2, 3 }
+            //
+            // First, we don't change things if X and Y are different.  That could lead to something observable at
+            // runtime in the case of something like:  object[] x = new string[] ...
+
+            var typeInfo = semanticModel.GetTypeInfo(arrayCreation, cancellationToken);
+            if (typeInfo.Type is null or IErrorTypeSymbol ||
+                typeInfo.ConvertedType is null or IErrorTypeSymbol)
+            {
+                return;
+            }
+
+            if (!typeInfo.Type.Equals(typeInfo.ConvertedType))
+                return;
+
+            var locations = ImmutableArray.Create(initializer.GetLocation());
+            context.ReportDiagnostic(DiagnosticHelper.Create(
+                s_descriptor,
+                arrayCreation.NewKeyword.GetLocation(),
+                option.Notification.Severity,
+                additionalLocations: locations,
+                properties: null));
+
+            var additionalUnnecessaryLocations = ImmutableArray.Create(
+                syntaxTree.GetLocation(TextSpan.FromBounds(arrayCreation.SpanStart, arrayCreation.Type.Span.End)));
+
+            context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                s_unnecessaryCodeDescriptor,
+                additionalUnnecessaryLocations[0],
+                ReportDiagnostic.Default,
+                additionalLocations: locations,
+                additionalUnnecessaryLocations: additionalUnnecessaryLocations));
         }
         else if (initializer.Parent is ImplicitArrayCreationExpressionSyntax)
         {
@@ -99,84 +135,4 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
                 properties: null));
         }
     }
-
-    //private void AnalyzeNode(SyntaxNodeAnalysisContext context, INamedTypeSymbol ienumerableType)
-    //{
-    //    var semanticModel = context.SemanticModel;
-    //    var objectCreationExpression = (TObjectCreationExpressionSyntax)context.Node;
-    //    var language = objectCreationExpression.Language;
-    //    var cancellationToken = context.CancellationToken;
-
-    //    var option = context.GetAnalyzerOptions().PreferCollectionInitializer;
-    //    if (!option.Value)
-    //    {
-    //        // not point in analyzing if the option is off.
-    //        return;
-    //    }
-
-    //    // Object creation can only be converted to collection initializer if it
-    //    // implements the IEnumerable type.
-    //    var objectType = context.SemanticModel.GetTypeInfo(objectCreationExpression, cancellationToken);
-    //    if (objectType.Type == null || !objectType.Type.AllInterfaces.Contains(ienumerableType))
-    //        return;
-
-    //    var matches = UseCollectionInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
-    //        semanticModel, GetSyntaxFacts(), objectCreationExpression, cancellationToken);
-
-    //    if (matches == null || matches.Value.Length == 0)
-    //        return;
-
-    //    var containingStatement = objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
-    //    if (containingStatement == null)
-    //        return;
-
-    //    var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(matches.Value);
-    //    var syntaxFacts = GetSyntaxFacts();
-    //    if (syntaxFacts.ContainsInterleavedDirective(nodes, cancellationToken))
-    //        return;
-
-    //    var locations = ImmutableArray.Create(objectCreationExpression.GetLocation());
-
-    //    context.ReportDiagnostic(DiagnosticHelper.Create(
-    //        s_descriptor,
-    //        objectCreationExpression.GetFirstToken().GetLocation(),
-    //        option.Notification.Severity,
-    //        additionalLocations: locations,
-    //        properties: null));
-
-    //    FadeOutCode(context, matches.Value, locations);
-    //}
-
-    //private void FadeOutCode(
-    //    SyntaxNodeAnalysisContext context,
-    //    ImmutableArray<TExpressionStatementSyntax> matches,
-    //    ImmutableArray<Location> locations)
-    //{
-    //    var syntaxTree = context.Node.SyntaxTree;
-    //    var syntaxFacts = GetSyntaxFacts();
-
-    //    foreach (var match in matches)
-    //    {
-    //        var expression = syntaxFacts.GetExpressionOfExpressionStatement(match);
-
-    //        if (syntaxFacts.IsInvocationExpression(expression))
-    //        {
-    //            var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(expression);
-    //            var additionalUnnecessaryLocations = ImmutableArray.Create(
-    //                syntaxTree.GetLocation(TextSpan.FromBounds(match.SpanStart, arguments[0].SpanStart)),
-    //                syntaxTree.GetLocation(TextSpan.FromBounds(arguments.Last().FullSpan.End, match.Span.End)));
-
-    //            // Report the diagnostic at the first unnecessary location. This is the location where the code fix
-    //            // will be offered.
-    //            var location1 = additionalUnnecessaryLocations[0];
-
-    //            context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-    //                s_unnecessaryCodeDescriptor,
-    //                location1,
-    //                ReportDiagnostic.Default,
-    //                additionalLocations: locations,
-    //                additionalUnnecessaryLocations: additionalUnnecessaryLocations));
-    //        }
-    //    }
-    //}
 }
