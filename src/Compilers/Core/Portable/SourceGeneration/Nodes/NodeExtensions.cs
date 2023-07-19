@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis
 
                 CodeAnalysisEventSource.Log.NodeTransform(self.GetHashCode(),
                                                           name ?? "<anonymous>",
-                                                          typeof(TSelf).FullName,
+                                                          typeof(TSelf).FullName ?? "<unknown>",
                                                           previousTable?.GetHashCode() ?? -1,
                                                           previousTable?.GetPackedStates() ?? "",
                                                           newTableOpt?.GetHashCode() ?? -1,
