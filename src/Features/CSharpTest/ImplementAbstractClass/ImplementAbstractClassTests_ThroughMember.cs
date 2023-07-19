@@ -129,6 +129,69 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
                 """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
         }
 
+        [Fact]
+        public async Task RefParameters_Method()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                abstract class Base
+                {
+                    public abstract void Method(int a, ref int b, in int c, ref readonly int d, out int e);
+                }
+
+                class [|Derived|] : Base
+                {
+                    Derived inner;
+                }
+                """,
+                """
+                abstract class Base
+                {
+                    public abstract void Method(int a, ref int b, in int c, ref readonly int d, out int e);
+                }
+
+                class Derived : Base
+                {
+                    Derived inner;
+
+                    public override void Method(int a, ref int b, in int c, ref readonly int d, out int e)
+                    {
+                        inner.Method(a, ref b, c, in d, out e);
+                    }
+                }
+                """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
+        }
+
+        [Fact]
+        public async Task RefParameters_Indexer()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                abstract class Base
+                {
+                    public abstract int this[int a, in int b, ref readonly int c, out int d] { get; }
+                }
+
+                class [|Derived|] : Base
+                {
+                    Derived inner;
+                }
+                """,
+                """
+                abstract class Base
+                {
+                    public abstract int this[int a, in int b, ref readonly int c, out int d] { get; }
+                }
+
+                class Derived : Base
+                {
+                    Derived inner;
+
+                    public override int this[int a, in int b, ref readonly int c, out int d] => inner[a, b, in c, out d];
+                }
+                """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
         public async Task SkipInaccessibleMember()
         {
