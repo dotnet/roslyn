@@ -2909,6 +2909,38 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
     }
 
     [Fact]
+    public void RefReadonlyParameter_OverloadResolution_04()
+    {
+        var source = """
+            interface I1 { }
+            interface I2 { }
+            class C
+            {
+                static string M1(I1 o, in int i) => "1" + i;
+                static string M1(I2 o, ref readonly int i) => "2" + i;
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.WriteLine(M1(null, ref i));
+                    System.Console.WriteLine(M1(null, in i));
+                    System.Console.WriteLine(M1(null, i));
+                }
+            }
+            """;
+        // PROTOTYPE: Add betterness rule. Then verify execution.
+        CreateCompilation(source).VerifyDiagnostics(
+            // (10,34): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int)' and 'C.M1(I2, ref readonly int)'
+            //         System.Console.WriteLine(M1(null, ref i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int)", "C.M1(I2, ref readonly int)").WithLocation(10, 34),
+            // (11,34): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int)' and 'C.M1(I2, ref readonly int)'
+            //         System.Console.WriteLine(M1(null, in i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int)", "C.M1(I2, ref readonly int)").WithLocation(11, 34),
+            // (12,34): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int)' and 'C.M1(I2, ref readonly int)'
+            //         System.Console.WriteLine(M1(null, i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int)", "C.M1(I2, ref readonly int)").WithLocation(12, 34));
+    }
+
+    [Fact]
     public void RefReadonlyParameter_PlainArgument_OverloadResolution()
     {
         var source = """
@@ -5025,6 +5057,121 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (9,11): warning CS9510: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
             // y = new Y(C.X);
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.X").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(9, 11));
+    }
+
+    [Theory, CombinatorialData]
+    public void Conversion_ExplicitDelegateType([CombinatorialValues("ref", "in", "ref readonly")] string modifier)
+    {
+        var source = $$"""
+            class C
+            {
+                void M(ref readonly int x) => System.Console.Write("C");
+                void Run()
+                {
+                    D1 m1 = this.M;
+                    D2 m2 = this.M;
+
+                    var i = 1;
+                    m1(in i);
+                    m2({{(modifier == "ref readonly" ? "in" : modifier)}} i);
+                }
+                static void Main() => new C().Run();
+            }
+            static class E
+            {
+                public static void M(this C c, {{modifier}} int x) => System.Console.Write("E");
+            }
+            delegate void D1(ref readonly int x);
+            delegate void D2({{modifier}} int x);
+            """;
+        // PROTOTYPE: Add betterness rule.
+        var verifier = CompileAndVerify(source, expectedOutput: "CC");
+        if (modifier != "ref readonly")
+        {
+            verifier.VerifyDiagnostics(
+                // (7,17): warning CS9510: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in target.
+                //         D2 m2 = this.M;
+                Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "this.M").WithArguments("ref readonly int x", $"{modifier} int x").WithLocation(7, 17));
+        }
+        else
+        {
+            verifier.VerifyDiagnostics();
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public void Conversion_ExplicitDelegateType_Inverse([CombinatorialValues("ref", "in", "ref readonly")] string modifier)
+    {
+        var source = $$"""
+            class C
+            {
+                void M({{modifier}} int x) => System.Console.Write("C");
+                void Run()
+                {
+                    D1 m1 = this.M;
+                    D2 m2 = this.M;
+
+                    var i = 1;
+                    m1({{(modifier == "ref readonly" ? "in" : modifier)}} i);
+                    m2(in i);
+                }
+                static void Main() => new C().Run();
+            }
+            static class E
+            {
+                public static void M(this C c, ref readonly int x) => System.Console.Write("E");
+            }
+            delegate void D1({{modifier}} int x);
+            delegate void D2(ref readonly int x);
+            """;
+        // PROTOTYPE: Add betterness rule.
+        var verifier = CompileAndVerify(source, expectedOutput: "CC");
+        if (modifier != "ref readonly")
+        {
+            verifier.VerifyDiagnostics(
+                // (7,17): warning CS9510: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in target.
+                //         D2 m2 = this.M;
+                Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "this.M").WithArguments($"{modifier} int x", "ref readonly int x").WithLocation(7, 17));
+        }
+        else
+        {
+            verifier.VerifyDiagnostics();
+        }
+    }
+
+    [Fact]
+    public void Conversion_ExplicitDelegateType_MultipleArguments()
+    {
+        var source = """
+            class C
+            {
+                void M(I1 o, ref readonly int x) => System.Console.Write("1");
+                void M(I2 o, ref int x) => System.Console.Write("2");
+                void Run()
+                {
+                    D1 m1 = this.M;
+                    D2 m2 = this.M;
+
+                    var i = 1;
+                    m1(null, in i);
+                    m2(null, ref i);
+                }
+                static void Main() => new C().Run();
+            }
+            interface I1 { }
+            interface I2 { }
+            class X : I1, I2 { }
+            delegate void D1(X s, ref readonly int x);
+            delegate void D2(X s, ref int x);
+            """;
+        // PROTOTYPE: Add betterness rule.
+        CreateCompilation(source).VerifyDiagnostics(
+            // (7,17): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(I1, ref readonly int)' and 'C.M(I2, ref int)'
+            //         D1 m1 = this.M;
+            Diagnostic(ErrorCode.ERR_AmbigCall, "this.M").WithArguments("C.M(I1, ref readonly int)", "C.M(I2, ref int)").WithLocation(7, 17),
+            // (8,17): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(I1, ref readonly int)' and 'C.M(I2, ref int)'
+            //         D2 m2 = this.M;
+            Diagnostic(ErrorCode.ERR_AmbigCall, "this.M").WithArguments("C.M(I1, ref readonly int)", "C.M(I2, ref int)").WithLocation(8, 17));
     }
 
     [Theory, CombinatorialData]
