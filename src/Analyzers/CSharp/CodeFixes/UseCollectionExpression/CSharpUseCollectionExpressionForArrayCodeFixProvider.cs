@@ -63,13 +63,17 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider : Sy
         foreach (var diagnostic in diagnostics.OrderByDescending(d => d.Location.SourceSpan.Start))
         {
             var expression = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
-            if (expression is InitializerExpressionSyntax initializerExpression)
+            if (expression is InitializerExpressionSyntax initializer)
             {
-                RewriteInitializerExpression(initializerExpression);
+                RewriteInitializerExpression(initializer);
             }
-            else if (expression is ArrayCreationExpressionSyntax arrayCreationExpression)
+            else if (expression is ArrayCreationExpressionSyntax arrayCreation)
             {
-                RewriteArrayCreationExpression(arrayCreationExpression);
+                RewriteArrayCreationExpression(arrayCreation);
+            }
+            else if (expression is ImplicitArrayCreationExpressionSyntax implicitArrayCreation)
+            {
+                RewriteImplicitArrayCreationExpression(implicitArrayCreation);
             }
         }
 
@@ -98,6 +102,23 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider : Sy
                     var collectionExpression = ConvertInitializerToCollectionExpression(
                         currentArrayCreation.Initializer,
                         IsOnSingleLine(arrayCreation));
+
+                    collectionExpression = collectionExpression.WithLeadingTrivia(currentArrayCreation.GetLeadingTrivia());
+                    return collectionExpression;
+                });
+        }
+
+        void RewriteImplicitArrayCreationExpression(ImplicitArrayCreationExpressionSyntax implicitArrayCreation)
+        {
+            editor.ReplaceNode(
+                implicitArrayCreation,
+                (current, _) =>
+                {
+                    var currentArrayCreation = (ImplicitArrayCreationExpressionSyntax)current;
+                    Contract.ThrowIfNull(currentArrayCreation.Initializer);
+                    var collectionExpression = ConvertInitializerToCollectionExpression(
+                        currentArrayCreation.Initializer,
+                        IsOnSingleLine(implicitArrayCreation));
 
                     collectionExpression = collectionExpression.WithLeadingTrivia(currentArrayCreation.GetLeadingTrivia());
                     return collectionExpression;

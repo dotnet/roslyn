@@ -83,14 +83,16 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
         if (initializer.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
             return;
 
-        if (initializer.Parent is ArrayCreationExpressionSyntax arrayCreation)
+        if (initializer.Parent is ArrayCreationExpressionSyntax or ImplicitArrayCreationExpressionSyntax)
         {
+            var parent = (ExpressionSyntax)initializer.Parent;
+
             // X[] = new Y[] { 1, 2, 3 }
             //
             // First, we don't change things if X and Y are different.  That could lead to something observable at
             // runtime in the case of something like:  object[] x = new string[] ...
 
-            var typeInfo = semanticModel.GetTypeInfo(arrayCreation, cancellationToken);
+            var typeInfo = semanticModel.GetTypeInfo(parent, cancellationToken);
             if (typeInfo.Type is null or IErrorTypeSymbol ||
                 typeInfo.ConvertedType is null or IErrorTypeSymbol)
             {
@@ -103,13 +105,17 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
             var locations = ImmutableArray.Create(initializer.GetLocation());
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 s_descriptor,
-                arrayCreation.NewKeyword.GetLocation(),
+                parent.GetFirstToken().GetLocation(),
                 option.Notification.Severity,
                 additionalLocations: locations,
                 properties: null));
 
             var additionalUnnecessaryLocations = ImmutableArray.Create(
-                syntaxTree.GetLocation(TextSpan.FromBounds(arrayCreation.SpanStart, arrayCreation.Type.Span.End)));
+                syntaxTree.GetLocation(TextSpan.FromBounds(
+                    parent.SpanStart,
+                    parent is ArrayCreationExpressionSyntax arrayCreation
+                        ? arrayCreation.Type.Span.End
+                        : ((ImplicitArrayCreationExpressionSyntax)parent).CloseBracketToken.Span.End)));
 
             context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                 s_unnecessaryCodeDescriptor,
@@ -117,10 +123,6 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
                 ReportDiagnostic.Default,
                 additionalLocations: locations,
                 additionalUnnecessaryLocations: additionalUnnecessaryLocations));
-        }
-        else if (initializer.Parent is ImplicitArrayCreationExpressionSyntax)
-        {
-
         }
         else if (initializer.Parent is EqualsValueClauseSyntax)
         {
