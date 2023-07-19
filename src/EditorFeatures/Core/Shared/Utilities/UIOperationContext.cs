@@ -12,6 +12,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 internal sealed class UIThreadOperationContextLongRunningOperationProgressAdapter(IUIThreadOperationContext operationContext)
     : ILongRunningOperationProgress
 {
+    /// <summary>
+    /// Cached last retrieved scope information to avoid unnecessary reallocations.
+    /// </summary>
     private Tuple<IUIThreadOperationScope, LongRunningOperationScope>? _lastScopePair;
 
     public void Dispose()
@@ -26,7 +29,7 @@ internal sealed class UIThreadOperationContextLongRunningOperationProgressAdapte
             var lastUIScope = operationContext.Scopes.Last();
             if (lastUIScope != lastScopePair?.Item1)
             {
-                lastScopePair = Tuple.Create(lastUIScope, new LongRunningOperationScope(lastUIScope));
+                lastScopePair = Tuple.Create(lastUIScope, new LongRunningOperationScope(lastUIScope, allowDispose: false));
                 _lastScopePair = lastScopePair;
             }
 
@@ -39,6 +42,8 @@ internal sealed class UIThreadOperationContextLongRunningOperationProgressAdapte
 
     private sealed class LongRunningOperationScope(IUIThreadOperationScope scope, bool allowDispose) : ILongRunningOperationScope
     {
+        public IProgress<CodeAnalysis.Utilities.ProgressInfo> Progress { get; } = new Progress(scope.Progress);
+
         public void Dispose()
         {
             if (!allowDispose)
@@ -52,78 +57,11 @@ internal sealed class UIThreadOperationContextLongRunningOperationProgressAdapte
             get => scope.Description;
             set => scope.Description = value;
         }
+    }
 
-        public void ReportProgress(CodeAnalysis.Utilities.ProgressInfo progressInfo)
-            => scope.Progress.Report(new VisualStudio.Utilities.ProgressInfo(progressInfo.CompletedItems, progressInfo.TotalItems));
+    private sealed class Progress(IProgress<VisualStudio.Utilities.ProgressInfo> progress) : IProgress<CodeAnalysis.Utilities.ProgressInfo>
+    {
+        public void Report(CodeAnalysis.Utilities.ProgressInfo value)
+            => progress.Report(new VisualStudio.Utilities.ProgressInfo(value.CompletedItems, value.TotalItems));
     }
 }
-
-//namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
-//{
-//    /// <summary>
-//    /// Wrapper around a <see cref="IUIThreadOperationContext"/> adapting it to be an <see cref="IOperationContext"/>.
-//    /// </summary>
-//    internal class UIOperationContextAdapter : IOperationContext
-//    {
-//        private readonly IUIThreadOperationContext _operationContext;
-
-//        public UIOperationContextAdapter(IUIThreadOperationContext operationContext)
-//        {
-//            _operationContext = operationContext;
-//        }
-
-//        public CancellationToken CancellationToken => _operationContext.UserCancellationToken;
-
-//        public string Description => _operationContext.Description;
-
-//        public IEnumerable<IOperationScope> Scopes => _operationContext.Scopes.Select(s => new UIOperationScopeAdapter(s, allowDispose: false));
-
-//        public IOperationScope AddScope(string description)
-//            => new UIOperationScopeAdapter(_operationContext.AddScope(allowCancellation: false, description), allowDispose: true);
-
-//        public void Dispose()
-//            => _operationContext.Dispose();
-
-//        private class UIOperationScopeAdapter : IOperationScope
-//        {
-//            private readonly IUIThreadOperationScope _operationScope;
-//            private readonly bool _allowDispose;
-
-//            public UIOperationScopeAdapter(IUIThreadOperationScope operationScope, bool allowDispose)
-//            {
-//                _operationScope = operationScope;
-//                _allowDispose = allowDispose;
-//            }
-
-//            public string Description
-//            {
-//                get => _operationScope.Description;
-//                set => _operationScope.Description = value;
-//            }
-
-//            public IProgress<CodeAnalysis.Utilities.ProgressInfo> Progress
-//                => new ProgressAdapter(_operationScope.Progress);
-
-//            public void Dispose()
-//            {
-//                if (!_allowDispose)
-//                    throw new InvalidOperationException("Cannot call Dispose on a IOperationScope returned by IOperationContext.Scopes");
-
-//                _operationScope.Dispose();
-//            }
-//        }
-
-//        private class ProgressAdapter : IProgress<CodeAnalysis.Utilities.ProgressInfo>
-//        {
-//            private readonly IProgress<VisualStudio.Utilities.ProgressInfo> _progress;
-
-//            public ProgressAdapter(IProgress<VisualStudio.Utilities.ProgressInfo> progress)
-//            {
-//                _progress = progress;
-//            }
-
-//            public void Report(CodeAnalysis.Utilities.ProgressInfo value)
-//                => _progress.Report(new VisualStudio.Utilities.ProgressInfo(value.CompletedItems, value.TotalItems));
-//        }
-//    }
-//}

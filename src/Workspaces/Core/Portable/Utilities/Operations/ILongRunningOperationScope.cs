@@ -6,22 +6,23 @@ using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
-namespace Microsoft.CodeAnalysis.Utilities
+namespace Microsoft.CodeAnalysis;
+
+/// <summary>
+/// Represents a single scope of a context of executing potentially long running operation. Scopes allow multiple
+/// components running within an operation to share the same context.  They are useful when different parts of an
+/// operation may want to present a user with a distinct description with progress independent from other parts of the
+/// long running operation.
+/// </summary>
+public interface ILongRunningOperationScope : IDisposable
 {
     /// <summary>
-    /// Represents a single scope of a context of executing potentially long running operation. Scopes allow multiple
-    /// components running within an operation to share the same context.
+    /// Gets user readable operation description for this scope.
     /// </summary>
-    public interface ILongRunningOperationScope : IDisposable
-    {
-        /// <summary>
-        /// Gets user readable operation description for this scope.
-        /// </summary>
-        string Description { get; set; }
+    string Description { get; set; }
 
-        /// <summary>
-        /// Progress tracker instance to report operation progress.
-        /// </summary>
-        void ReportProgress(ProgressInfo progressInfo);
-    }
+    /// <summary>
+    /// Progress tracker instance to report operation progress.
+    /// </summary>
+    IProgress<LongRunningOperationProgress> Progress { get; }
 }
