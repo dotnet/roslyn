@@ -2507,6 +2507,16 @@
         <target state="translated">Usar la variable en este contexto puede exponer variables a las que se hace referencia fuera de su ámbito de declaración</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_HidingDifferentRefness">
+        <source>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in hidden member.</source>
+        <target state="new">Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in hidden member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_HidingDifferentRefness_Title">
+        <source>Reference kind modifier of parameter doesn't match the corresponding parameter in hidden member.</source>
+        <target state="new">Reference kind modifier of parameter doesn't match the corresponding parameter in hidden member.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_InterceptorSignatureMismatch">
         <source>Intercepting a call to '{0}' with interceptor '{1}', but the signatures do not match.</source>
         <target state="new">Intercepting a call to '{0}' with interceptor '{1}', but the signatures do not match.</target>
@@ -2605,6 +2615,16 @@
       <trans-unit id="WRN_OptionalParamValueMismatch_Title">
         <source>The default parameter value does not match in the target delegate type.</source>
         <target state="translated">El valor del parámetro predeterminado no coincide en el tipo delegado de destino.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_OverridingDifferentRefness">
+        <source>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in overridden or implemented member.</source>
+        <target state="new">Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in overridden or implemented member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_OverridingDifferentRefness_Title">
+        <source>Reference kind modifier of parameter doesn't match the corresponding parameter in overridden or implemented member.</source>
+        <target state="new">Reference kind modifier of parameter doesn't match the corresponding parameter in overridden or implemented member.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
