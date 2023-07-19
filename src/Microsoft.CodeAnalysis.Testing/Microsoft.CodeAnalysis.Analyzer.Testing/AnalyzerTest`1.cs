@@ -1149,7 +1149,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 }
                 else
                 {
-                    allDiagnostics = await compilationWithAnalyzers.GetAllDiagnosticsAsync().ConfigureAwait(false);
+                    allDiagnostics = await compilationWithAnalyzers.GetAllDiagnosticsAsync(cancellationToken).ConfigureAwait(false);
                 }
 
                 diagnostics.AddRange(generatorDiagnostics.Select(diagnostic => (project, diagnostic)));
@@ -1172,7 +1172,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 // suppressions are applied.
                 var compilerSuppressors = analyzers.Where(static analyzer => IsCompilerDiagnosticSuppressor(analyzer)).ToImmutableArray();
                 var compilationWithAnalyzers = self.CreateCompilationWithAnalyzers(compilation, compilerSuppressors, analyzerOptions, cancellationToken);
-                return await compilationWithAnalyzers.GetAllDiagnosticsAsync().ConfigureAwait(false);
+                return await compilationWithAnalyzers.GetAllDiagnosticsAsync(cancellationToken).ConfigureAwait(false);
             }
 
             static bool IsCompilerDiagnosticSuppressor(DiagnosticAnalyzer analyzer)

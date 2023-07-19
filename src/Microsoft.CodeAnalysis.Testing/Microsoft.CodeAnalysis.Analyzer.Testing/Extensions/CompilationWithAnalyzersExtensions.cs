@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Testing.Extensions
 {
     internal static class CompilationWithAnalyzersExtensions
     {
+        private static readonly Func<CompilationWithAnalyzers, CancellationToken, Task<ImmutableArray<Diagnostic>>> s_getAllDiagnosticsAsync;
         private static readonly Func<CompilationWithAnalyzers, CancellationToken, Task> s_getAnalysisResultAsync;
         private static readonly Func<Compilation, ImmutableArray<DiagnosticAnalyzer>, AnalyzerOptions, CancellationToken, CompilationWithAnalyzers> s_createCompilationWithAnalyzers;
         private static readonly Func<Task, object> s_getTaskOfAnalysisResultResult;
@@ -22,7 +23,17 @@ namespace Microsoft.CodeAnalysis.Testing.Extensions
         static CompilationWithAnalyzersExtensions()
         {
             Type? taskOfAnalysisResult;
-            var methodInfo = typeof(CompilationWithAnalyzers).GetMethod(nameof(GetAnalysisResultAsync), new[] { typeof(CancellationToken) });
+            var methodInfo = typeof(CompilationWithAnalyzers).GetMethod(nameof(GetAllDiagnosticsAsync), new[] { typeof(CancellationToken) });
+            if (methodInfo is not null)
+            {
+                s_getAllDiagnosticsAsync = (Func<CompilationWithAnalyzers, CancellationToken, Task<ImmutableArray<Diagnostic>>>)methodInfo.CreateDelegate(typeof(Func<CompilationWithAnalyzers, CancellationToken, Task<ImmutableArray<Diagnostic>>>), target: null);
+            }
+            else
+            {
+                s_getAllDiagnosticsAsync = (compilationWithAnalyzers, cancellationToken) => compilationWithAnalyzers.GetAllDiagnosticsAsync();
+            }
+
+            methodInfo = typeof(CompilationWithAnalyzers).GetMethod(nameof(GetAnalysisResultAsync), new[] { typeof(CancellationToken) });
             if (methodInfo is not null)
             {
                 s_getAnalysisResultAsync = (Func<CompilationWithAnalyzers, CancellationToken, Task>)methodInfo.CreateDelegate(typeof(Func<CompilationWithAnalyzers, CancellationToken, Task>), target: null);
@@ -65,6 +76,9 @@ namespace Microsoft.CodeAnalysis.Testing.Extensions
 
         public static CompilationWithAnalyzers Create(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, CancellationToken cancellationToken)
             => s_createCompilationWithAnalyzers(compilation, analyzers, options, cancellationToken);
+
+        public static Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsAsync(this CompilationWithAnalyzers compilationWithAnalyzers, CancellationToken cancellationToken)
+            => s_getAllDiagnosticsAsync(compilationWithAnalyzers, cancellationToken);
 
         public static async Task<AnalysisResultWrapper> GetAnalysisResultAsync(this CompilationWithAnalyzers compilationWithAnalyzers, CancellationToken cancellationToken)
         {
