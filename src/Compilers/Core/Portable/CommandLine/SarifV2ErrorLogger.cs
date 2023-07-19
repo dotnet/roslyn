@@ -11,6 +11,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -218,20 +219,24 @@ namespace Microsoft.CodeAnalysis
             // Emit the 'language' property only if it is a non-empty string to match the SARIF spec.
             if (_culture.Name.Length > 0)
                 _writer.Write("language", _culture.Name);
-            WriteRules();
+            var effectiveSeverities = WriteRules();
 
             _writer.WriteObjectEnd(); // driver
             _writer.WriteObjectEnd(); // tool
+
+            WriteInvocations(effectiveSeverities);
         }
 
-        private void WriteRules()
+        private ImmutableArray<(int DesciptorIndex, ImmutableHashSet<ReportDiagnostic> EffectiveSeverities)> WriteRules()
         {
+            var effectiveSeveritiesBuilder = ArrayBuilder<(int DesciptorIndex, ImmutableHashSet<ReportDiagnostic> EffectiveSeverities)>.GetInstance(_descriptors.Count);
+
             if (_descriptors.Count > 0)
             {
                 _writer.WriteArrayStart("rules");
 
                 var reportAnalyzerExecutionTime = !string.IsNullOrEmpty(_totalAnalyzerExecutionTime);
-                foreach (var (_, descriptor, descriptorInfo) in _descriptors.ToSortedList())
+                foreach (var (index, descriptor, descriptorInfo) in _descriptors.ToSortedList())
                 {
                     _writer.WriteObjectStart(); // rule
                     _writer.Write("id", descriptor.Id);
@@ -259,10 +264,6 @@ namespace Microsoft.CodeAnalysis
                         _writer.Write("helpUri", descriptor.HelpLinkUri);
                     }
 
-                    var defaultSeverity = descriptor.IsEnabledByDefault ? DiagnosticDescriptor.MapSeverityToReport(descriptor.DefaultSeverity) : ReportDiagnostic.Suppress;
-                    var hasNonDefaultEffectiveSeverities = descriptorInfo.EffectiveSeverities != null &&
-                        (descriptorInfo.EffectiveSeverities.Count != 1 || descriptorInfo.EffectiveSeverities.Single() != defaultSeverity);
-
                     // We report the rule as isEverSuppressed if either of the following is true:
                     // 1. If there is any external non-source suppression for the rule ID from
                     //    editorconfig, ruleset, command line options, etc. that disables the rule
@@ -275,26 +276,13 @@ namespace Microsoft.CodeAnalysis
                     Debug.Assert(reportAnalyzerExecutionTime || descriptorInfo.ExecutionTime == 0);
                     Debug.Assert(reportAnalyzerExecutionTime || descriptorInfo.ExecutionPercentage == 0);
 
-                    if (!string.IsNullOrEmpty(descriptor.Category) || hasNonDefaultEffectiveSeverities || isEverSuppressed || reportAnalyzerExecutionTime || descriptor.ImmutableCustomTags.Any())
+                    if (!string.IsNullOrEmpty(descriptor.Category) || isEverSuppressed || reportAnalyzerExecutionTime || descriptor.ImmutableCustomTags.Any())
                     {
                         _writer.WriteObjectStart("properties");
 
                         if (!string.IsNullOrEmpty(descriptor.Category))
                         {
                             _writer.Write("category", descriptor.Category);
-                        }
-
-                        if (hasNonDefaultEffectiveSeverities)
-                        {
-                            _writer.WriteArrayStart("effectiveConfigurationLevels");
-
-                            foreach (var severity in descriptorInfo.EffectiveSeverities!.OrderBy(Comparer<ReportDiagnostic>.Default))
-                            {
-                                var level = GetLevel(DiagnosticDescriptor.MapReportToSeverity(severity));
-                                _writer.Write(level);
-                            }
-
-                            _writer.WriteArrayEnd(); // effectiveConfigurationLevels
                         }
 
                         if (isEverSuppressed)
@@ -341,10 +329,77 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     _writer.WriteObjectEnd(); // rule
+
+                    var defaultSeverity = descriptor.IsEnabledByDefault ? DiagnosticDescriptor.MapSeverityToReport(descriptor.DefaultSeverity) : ReportDiagnostic.Suppress;
+                    var hasNonDefaultEffectiveSeverities = descriptorInfo.EffectiveSeverities != null &&
+                        (descriptorInfo.EffectiveSeverities.Count != 1 || descriptorInfo.EffectiveSeverities.Single() != defaultSeverity);
+                    if (hasNonDefaultEffectiveSeverities)
+                    {
+                        effectiveSeveritiesBuilder.Add((index, descriptorInfo.EffectiveSeverities!));
+                    }
                 }
 
                 _writer.WriteArrayEnd(); // rules
             }
+
+            return effectiveSeveritiesBuilder.ToImmutableAndFree();
+        }
+
+        private void WriteInvocations(ImmutableArray<(int DescriptorIndex, ImmutableHashSet<ReportDiagnostic> EffectiveSeverities)> effectiveSeverities)
+        {
+            if (effectiveSeverities.IsEmpty)
+                return;
+
+            // Emit effective severities for each overridden rule severity.
+            /*
+                "invocations": [                          # See §3.14.11.
+                  {                                       # An invocation object (§3.20).
+                    "ruleConfigurationOverrides": [       # See §3.20.5.
+                      {                                   # A configurationOverride object
+                                                          #  (§3.51).
+                        "descriptor": {                   # See §3.51.2.
+                          "index": 0
+                        },
+                        "configuration": {                # See §3.51.3.
+                          "level": "warning"
+                        }
+                      }
+                    ],
+                  ...
+                  }
+                ]
+             */
+
+            _writer.WriteArrayStart("invocations");
+            _writer.WriteObjectStart(); // invocation
+
+            _writer.WriteArrayStart("ruleConfigurationOverrides");
+
+            foreach (var (index, severities) in effectiveSeverities)
+            {
+                Debug.Assert(!severities.IsEmpty);
+
+                foreach (var severity in severities.OrderBy(Comparer<ReportDiagnostic>.Default))
+                {
+                    _writer.WriteObjectStart(); // ruleConfigurationOverride
+
+                    _writer.WriteObjectStart("descriptor");
+                    _writer.Write("index", index);
+                    _writer.WriteObjectEnd(); // descriptor
+
+                    _writer.WriteObjectStart("configuration");
+                    var level = GetLevel(DiagnosticDescriptor.MapReportToSeverity(severity));
+                    _writer.Write("level", level);
+                    _writer.WriteObjectEnd(); // configuration
+
+                    _writer.WriteObjectEnd(); // ruleConfigurationOverride
+                }
+            }
+
+            _writer.WriteArrayEnd(); // ruleConfigurationOverrides
+
+            _writer.WriteObjectEnd(); // invocation
+            _writer.WriteArrayEnd(); // invocations
         }
 
         private void WriteDefaultConfiguration(DiagnosticDescriptor descriptor)

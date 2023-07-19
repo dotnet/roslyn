@@ -21,9 +21,10 @@ This section provides a high level overview of the contents of the SARIF v2 erro
    2. `properties` section: This section contains custom key-value properties associated with the run. Following properties are currently emitted:
       1. `analyzerExecutionTime`: Execution time in seconds for execution of all analyzers, as reported with the `/reportAnalyzer` compiler switch.
    3. `tools` section: This section contains information about the compiler build and version. Additionally, it contains a `rules` array, where each rule entry corresponds to metadata or `DiagnosticDescriptor` information about each reported analyzer diagnostic. More details in [`Rule` format for each analyzer supported `DiagnosticDescriptor` instance](#rule-format-for-each-analyzer-supported-diagnosticdescriptor-instance)
-   4. `columnKind` section: This section contains information about the unit in which the tool measures columns. C# and Visual Basic compilers uses utf16 code units.
+   4. `invocations` section: This section contains information about the end user specified configurations for the rules for compiler invocation/run. We emit this section only if at least one rule had one or more severity configuration overrides for a part or whole of the compilation via options. More details in [`Rule Configuration Override` format for each rule severity override](#rule-configuration-override-format-for-each-rule-severity-override).
+   5. `columnKind` section: This section contains information about the unit in which the tool measures columns. C# and Visual Basic compilers uses utf16 code units.
 
-Example `runs` section, with stripped off `results` and `rules` sections:
+Example `runs` section, with stripped off `results`, `rules` and `ruleConfigurationOverrides` sections:
 ```json
 "runs": [
 {
@@ -43,6 +44,12 @@ Example `runs` section, with stripped off `results` and `rules` sections:
       ]
     }
   },
+  "invocations": [
+    {
+      "ruleConfigurationOverrides": [
+      ]
+    }
+  ],
   "columnKind": "utf16CodeUnits"
 }
 ]
@@ -111,13 +118,12 @@ The `rules` section contains a rule entry that corresponds to metadata or `Diagn
 5. `helpUri`: Help uri for help information associated with the descriptor.
 6. `properties`: One or more custom properties associated with the descriptor. It includes the following:
    1. `category`: `Category` associated with the descriptor, such as, `Design`, `Performance`, `Security`, etc.
-   2. `effectiveConfigurationLevels`: If a rule had one for severity configurations for a part or whole of the compilation via options, the rule metadata will contain this array of one of more effective severity levels for diagnostics associated with the descriptor, such as `error`, `warning`, `note`, `none` etc.
-   3. `isEverSuppressed` and `suppressionKinds`: If a rule had either a source suppression or was disabled for part or whole of the compilation via options, the rule metadata contains a special flag `isEverSuppressed = true` and an array `suppressionKinds` with either or both of the below suppression kinds:
+   2. `isEverSuppressed` and `suppressionKinds`: If a rule had either a source suppression or was disabled for part or whole of the compilation via options, the rule metadata contains a special flag `isEverSuppressed = true` and an array `suppressionKinds` with either or both of the below suppression kinds:
       1. `inSource` suppression kind for one or more reported diagnostic(s) that were suppressed through pragma directive, SuppressMessageAttribute or a DiagnosticSuppressor.
       2. `external` suppression kind for diagnostic ID that is disabled either for the entire compilation (via global options such as /nowarn, ruleset, globalconfig, etc.) or for certain files or folders in the compilation (via editorconfig options).
-   4. `executionTimeInSeconds`: Execution time in seconds associated with the analyzer, as reported with the `/reportAnalyzer` compiler switch. Values less than `0.001` seconds are reported as `<0.001`.
-   5. `executionTimeInPercentage`: Execution time in percentage associated with the analyzer, as reported with the `/reportAnalyzer` compiler switch. Values less than `1` are reported as `<1`.
-   6. `tags`: An array of one of more `CustomTags` associated with the descriptor.
+   3. `executionTimeInSeconds`: Execution time in seconds associated with the analyzer, as reported with the `/reportAnalyzer` compiler switch. Values less than `0.001` seconds are reported as `<0.001`.
+   4. `executionTimeInPercentage`: Execution time in percentage associated with the analyzer, as reported with the `/reportAnalyzer` compiler switch. Values less than `1` are reported as `<1`.
+   5. `tags`: An array of one of more `CustomTags` associated with the descriptor.
   
 Example `rule` entry:
 ```json
@@ -135,10 +141,6 @@ Example `rule` entry:
   "helpUri": "https://docs.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1001",
   "properties": {
     "category": "Design",
-    "effectiveConfigurationLevels": [
-      "error",
-      "none",
-    ],
     "isEverSuppressed": "true",
     "suppressionKinds": [
       "external"
@@ -150,6 +152,42 @@ Example `rule` entry:
       "Telemetry",
       "EnabledRuleInAggressiveMode"
     ]
+  }
+}
+```
+
+### `Rule Configuration Override` format for each rule severity override
+
+The `ruleConfigurationOverrides` section contains an array of entries, with an entry each for every rule severity configuration override for the whole or part of the compilation via options, i.e. editorconfig, globalconfig, command line options, ruleset, etc. Each rule configuration override entry contains the following information:
+1. `descriptor`: Property containing information to map back to the relevant `descriptor` or the `rule` in the `rules` section. Currently, it contains a single child property named `index`, which contains a zero-based index value into the `rules` array for the rule mapping.
+2. `configuration`: Configuration property for the effective overridden severity for the rule. Currently, it includes a single child property named `level` for the effective severity of the rule, such as `error`, `warning`, `note`, `none`, etc.
+
+Note that we can have multiple `ruleConfigurationOverride` entries for the same descriptor if the rule is configured to fire at different severities across different parts of the compilation. For example, editorconfig based severity configurations can specify different effective severity for the same rule ID for different files or folders in a project.
+
+Example `ruleConfigurationOverride` entry:
+```json
+{
+  "descriptor": {
+    "index": 0
+  },
+  "configuration": {
+    "level": "error"
+  }
+},
+{
+  "descriptor": {
+    "index": 0
+  },
+  "configuration": {
+    "level": "none"
+  }
+},
+{
+  "descriptor": {
+    "index": 1
+  },
+  "configuration": {
+    "level": "warning"
   }
 }
 ```

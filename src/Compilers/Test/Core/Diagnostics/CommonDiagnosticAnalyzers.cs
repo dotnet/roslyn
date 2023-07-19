@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis
                 var effectiveSeverity1 = warnAsError || Descriptor1.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning";
                 var effectiveSeverity2 = warnAsError || Descriptor2.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning";
                 var warningLevelText = warnAsError ? string.Empty : @"
-            """"warningLevel"""": 1,""";
+            ""warningLevel"": 1,";
 
                 return @"
       ""results"": [
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis
                 var effectiveSeverity1 = warnAsError || Descriptor1.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning";
                 var effectiveSeverity2 = warnAsError || Descriptor2.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning";
                 var warningLevelText = warnAsError ? string.Empty : @"
-            """"warningLevel"""": 1,""";
+            ""warningLevel"": 1,";
 
                 return
 @"      ""results"": [
@@ -380,17 +380,47 @@ namespace Microsoft.CodeAnalysis
                 return string.Empty;
             }
 
-            public static string GetExpectedV2EffectiveSeveritiesTextForRulesSection(ImmutableHashSet<ReportDiagnostic> effectiveSeverities)
+            public static string GetExpectedV2ErrorLogInvocationsText(
+                params (int DescriptorIndex, ImmutableHashSet<ReportDiagnostic> EffectiveSeverities)[] overriddenEffectiveSeveritiesWithIndex)
             {
-                if (effectiveSeverities?.Count > 0)
+                if (overriddenEffectiveSeveritiesWithIndex.Length == 0)
                 {
-                    return @",
-                ""effectiveConfigurationLevels"": [
-                  " + string.Join("," + Environment.NewLine + "                  ", effectiveSeverities.OrderBy(Comparer<ReportDiagnostic>.Default).Select(s => $"\"{GetLevel(s)}\"")) + @"
-                ]";
+                    return string.Empty;
                 }
 
-                return string.Empty;
+                var first = true;
+                var overridesContent = string.Empty;
+                foreach (var (index, effectiveSeverities) in overriddenEffectiveSeveritiesWithIndex)
+                {
+                    foreach (var effectiveSeverity in effectiveSeverities.OrderBy(Comparer<ReportDiagnostic>.Default))
+                    {
+                        if (first)
+                        {
+                            first = false;
+                        }
+                        else
+                        {
+                            overridesContent += ",";
+                        }
+
+                        overridesContent += $@"
+            {{
+              ""descriptor"": {{
+                ""index"": {index}
+              }},
+              ""configuration"": {{
+                ""level"": ""{GetLevel(effectiveSeverity)}""
+              }}
+            }}";
+                    }
+                }
+
+                return $@"""invocations"": [
+        {{
+          ""ruleConfigurationOverrides"": [{overridesContent}
+          ]
+        }}
+      ]";
             }
 
             private static string GetLevel(ReportDiagnostic severity)
@@ -420,8 +450,6 @@ namespace Microsoft.CodeAnalysis
             internal static string GetExpectedV2ErrorLogRulesText(
                 ImmutableArray<(DiagnosticDescriptor Descriptor, DiagnosticDescriptorErrorLoggerInfo Info)> descriptorsWithInfo,
                 CultureInfo culture,
-                ImmutableHashSet<ReportDiagnostic> effectiveSeverities1 = null,
-                ImmutableHashSet<ReportDiagnostic> effectiveSeverities2 = null,
                 string[] suppressionKinds1 = null,
                 string[] suppressionKinds2 = null)
             {
@@ -445,9 +473,7 @@ namespace Microsoft.CodeAnalysis
               },
               ""helpUri"": """ + Descriptor1.HelpLinkUri + @""",
               ""properties"": {
-                ""category"": """ + Descriptor1.Category + @"""" +
-                GetExpectedV2EffectiveSeveritiesTextForRulesSection(effectiveSeverities1) +
-                GetExpectedV2SuppressionTextForRulesSection(suppressionKinds1) + @",
+                ""category"": """ + Descriptor1.Category + @"""" + GetExpectedV2SuppressionTextForRulesSection(suppressionKinds1) + @",
                 ""executionTimeInSeconds"": """ + descriptor1ExecutionTime + @""",
                 ""executionTimeInPercentage"": """ + descriptor1ExecutionPercentage + @""",
                 ""tags"": [
@@ -468,9 +494,7 @@ namespace Microsoft.CodeAnalysis
               },
               ""helpUri"": """ + Descriptor2.HelpLinkUri + @""",
               ""properties"": {
-                ""category"": """ + Descriptor2.Category + @"""" +
-                GetExpectedV2EffectiveSeveritiesTextForRulesSection(effectiveSeverities2) +
-                GetExpectedV2SuppressionTextForRulesSection(suppressionKinds2) + @",
+                ""category"": """ + Descriptor2.Category + @"""" + GetExpectedV2SuppressionTextForRulesSection(suppressionKinds2) + @",
                 ""executionTimeInSeconds"": """ + descriptor2ExecutionTime + @""",
                 ""executionTimeInPercentage"": """ + descriptor2ExecutionPercentage + @""",
                 ""tags"": [

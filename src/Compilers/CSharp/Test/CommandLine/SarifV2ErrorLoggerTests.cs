@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
     {{
 {5},
       ""properties"": {{
-        ""analyzerExecutionTime"": ""{7}""
+        ""analyzerExecutionTime"": ""{8}""
       }},
       ""tool"": {{
         ""driver"": {{
@@ -359,6 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {6}
         }}
       }},
+      {7},
       ""columnKind"": ""utf16CodeUnits""
     }}
   ]
@@ -368,8 +369,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
                 cmd,
                 hasAnalyzers: true,
                 AnalyzerForErrorLogTest.GetExpectedV2ErrorLogResultsText(cmd.Compilation, warnAsError: true),
-                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(cmd.DescriptorsWithInfo, CultureInfo.InvariantCulture,
-                    effectiveSeverities1: ImmutableHashSet.Create(ReportDiagnostic.Error)));
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(cmd.DescriptorsWithInfo, CultureInfo.InvariantCulture),
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogInvocationsText((0, ImmutableHashSet.Create(ReportDiagnostic.Error))));
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
@@ -466,7 +467,7 @@ class C
       ""results"": [
       ],
       ""properties"": {{
-        ""analyzerExecutionTime"": ""{6}""
+        ""analyzerExecutionTime"": ""{7}""
       }},
       ""tool"": {{
         ""driver"": {{
@@ -478,6 +479,7 @@ class C
 {5}
         }}
       }},
+      {6},
       ""columnKind"": ""utf16CodeUnits""
     }}
   ]
@@ -486,11 +488,10 @@ class C
                 expectedOutputMarkup,
                 cmd,
                 hasAnalyzers: true,
-                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(
-                    cmd.DescriptorsWithInfo, CultureInfo.InvariantCulture,
-                    effectiveSeverities1: ImmutableHashSet.Create(ReportDiagnostic.Suppress),
-                    effectiveSeverities2: ImmutableHashSet.Create(ReportDiagnostic.Suppress),
-                    suppressionKinds1: new[] { "external" }, suppressionKinds2: new[] { "external" }));
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(cmd.DescriptorsWithInfo, CultureInfo.InvariantCulture,
+                    suppressionKinds1: new[] { "external" }, suppressionKinds2: new[] { "external" }),
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogInvocationsText(
+                    (0, ImmutableHashSet.Create(ReportDiagnostic.Suppress)), (1, ImmutableHashSet.Create(ReportDiagnostic.Suppress))));
 
             Assert.Equal(expectedOutput, actualOutput);
 
@@ -546,7 +547,7 @@ dotnet_diagnostic.ID1.severity = none
     {{
 {5},
       ""properties"": {{
-        ""analyzerExecutionTime"": ""{7}""
+        ""analyzerExecutionTime"": ""{8}""
       }},
       ""tool"": {{
         ""driver"": {{
@@ -558,6 +559,7 @@ dotnet_diagnostic.ID1.severity = none
 {6}
         }}
       }},
+      {7},
       ""columnKind"": ""utf16CodeUnits""
     }}
   ]
@@ -568,8 +570,8 @@ dotnet_diagnostic.ID1.severity = none
                 hasAnalyzers: true,
                 AnalyzerForErrorLogTest.GetExpectedV2ErrorLogWithSuppressionResultsText(cmd.Compilation, "Justification1", suppressionType: "SuppressMessageAttribute"),
                 AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(cmd.DescriptorsWithInfo, CultureInfo.InvariantCulture,
-                    effectiveSeverities1: ImmutableHashSet.Create(ReportDiagnostic.Suppress, ReportDiagnostic.Warn),
-                    suppressionKinds1: new[] { "external", "inSource" }));
+                    suppressionKinds1: new[] { "external", "inSource" }),
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogInvocationsText((0, ImmutableHashSet.Create(ReportDiagnostic.Suppress, ReportDiagnostic.Warn))));
 
             Assert.Equal(expectedOutput, actualOutput);
 
