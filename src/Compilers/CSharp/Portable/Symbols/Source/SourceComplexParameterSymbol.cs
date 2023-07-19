@@ -891,6 +891,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!value.IsBad)
             {
                 VerifyParamDefaultValueMatchesAttributeIfAny(value, syntax, diagnostics);
+
+                if (this.RefKind == RefKind.RefReadOnlyParameter && this.IsOptional && this.CSharpSyntaxNode.Default is null)
+                {
+                    // A default value is specified for 'ref readonly' parameter '{0}', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
+                    diagnostics.Add(ErrorCode.WRN_RefReadonlyParameterDefaultValue, syntax, this.Name);
+                }
             }
         }
 

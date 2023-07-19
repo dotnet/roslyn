@@ -853,6 +853,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     parameterSyntax.Identifier.ValueText);
             }
 
+            if (refKind == RefKind.RefReadOnlyParameter)
+            {
+                // A default value is specified for 'ref readonly' parameter '{0}', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
+                diagnostics.Add(ErrorCode.WRN_RefReadonlyParameterDefaultValue, parameterSyntax.Default.Value, parameterSyntax.Identifier.ValueText);
+            }
+
             return hasErrors;
         }
 
