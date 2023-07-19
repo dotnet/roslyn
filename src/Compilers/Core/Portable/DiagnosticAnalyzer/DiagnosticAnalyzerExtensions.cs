@@ -25,8 +25,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="compilation">Compilation to which analyzers are to be added.</param>
         /// <param name="analyzers">The set of analyzers to include in future analyses.</param>
         /// <param name="options">Options that are passed to analyzers.</param>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0027:API with optional parameter(s) should have the most parameters amongst its public overloads", Justification = "Correct form for source and binary compat")]
+#pragma warning disable RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
         public static CompilationWithAnalyzers WithAnalyzers(this Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions? options = null)
+#pragma warning restore RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
         {
             return new CompilationWithAnalyzers(compilation, analyzers, options);
         }

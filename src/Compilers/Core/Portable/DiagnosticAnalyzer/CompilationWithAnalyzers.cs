@@ -237,7 +237,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Returns diagnostics produced by all <see cref="Analyzers"/>.
         /// </summary>
+#pragma warning disable RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
         public async Task<ImmutableArray<Diagnostic>> GetAnalyzerDiagnosticsAsync(CancellationToken cancellationToken = default)
+#pragma warning restore RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
         {
             return await GetAnalyzerDiagnosticsCoreAsync(Analyzers, cancellationToken).ConfigureAwait(false);
         }
