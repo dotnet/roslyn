@@ -389,4 +389,76 @@ public class UseCollectionExpressionForArray
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestNotWithVar_ExplicitArrayType()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    void M()
+                    {
+                        var i = new string[] { "" };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithVar_ExplicitArrayType2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    void M()
+                    {
+                        var i = (new string[] { "" });
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithVar_ImplicitArrayType()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    void M()
+                    {
+                        var i = new[] { "" };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithVar_ImplicitArrayType2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    void M()
+                    {
+                        var i = (new[] { "" });
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
 }

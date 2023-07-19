@@ -79,6 +79,13 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
         if (initializer.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
             return;
 
+        var topmostExpression = initializer.Parent is ExpressionSyntax parentExpression
+            ? parentExpression.WalkUpParentheses()
+            : initializer.WalkUpParentheses();
+
+        if (topmostExpression.Parent is EqualsValueClauseSyntax { Parent: VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Type.IsVar: true } } })
+            return;
+
         if (initializer.Parent is ArrayCreationExpressionSyntax or ImplicitArrayCreationExpressionSyntax)
         {
             var parent = (ExpressionSyntax)initializer.Parent;
