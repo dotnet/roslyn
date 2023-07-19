@@ -1326,6 +1326,170 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void ParameterRefReadonly_01()
+        {
+            UsingNode("A(ref readonly B)");
+
+            N(SyntaxKind.NameMemberCref);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken);
+                }
+                N(SyntaxKind.CrefParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CrefParameter);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void ParameterRefReadonly_02()
+        {
+            UsingNode("A(ref readonly B, C)");
+
+            N(SyntaxKind.NameMemberCref);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken);
+                }
+                N(SyntaxKind.CrefParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CrefParameter);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.CrefParameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void ParameterRefReadonly_03()
+        {
+            UsingNode("A(B, ref readonly C)");
+
+            N(SyntaxKind.NameMemberCref);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken);
+                }
+                N(SyntaxKind.CrefParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CrefParameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.CrefParameter);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void ParameterRefReadonly_04()
+        {
+            UsingNode("A(out B, ref readonly C)");
+
+            N(SyntaxKind.NameMemberCref);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken);
+                }
+                N(SyntaxKind.CrefParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CrefParameter);
+                    {
+                        N(SyntaxKind.OutKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.CrefParameter);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+            }
+        }
+
+        [Theory, CombinatorialData]
+        public void ParameterRefReadonly_05(
+            [CombinatorialValues(LanguageVersion.CSharp11, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion)
+        {
+            UsingNode("A(readonly ref B)", TestOptions.Regular.WithLanguageVersion(languageVersion).WithDocumentationMode(DocumentationMode.Diagnose),
+                // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'A(readonly ref B)'
+                // /// <see cref="A(readonly ref B)"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "A(").WithArguments("A(readonly ref B)").WithLocation(1, 16),
+                // (1,18): warning CS1658: ) expected. See also error CS1026.
+                // /// <see cref="A(readonly ref B)"/>
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "readonly").WithArguments(") expected", "1026").WithLocation(1, 18));
+
+            N(SyntaxKind.NameMemberCref);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "A");
+                }
+                N(SyntaxKind.CrefParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    M(SyntaxKind.CloseParenToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
         public void ParameterNullableType()
         {
             UsingNode("A(B?)");

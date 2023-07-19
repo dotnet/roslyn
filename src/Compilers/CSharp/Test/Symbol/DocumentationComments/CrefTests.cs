@@ -6703,9 +6703,51 @@ class Test
 
             var parameter = cref.Parameters.Parameters.Single();
             Assert.Equal(SyntaxKind.InKeyword, parameter.RefKindKeyword.Kind());
+            Assert.Equal(SyntaxKind.None, parameter.ReadOnlyKeyword.Kind());
 
             var parameterSymbol = ((IMethodSymbol)model.GetSymbolInfo(cref).Symbol).Parameters.Single();
             Assert.Equal(RefKind.In, parameterSymbol.RefKind);
+        }
+
+        [Fact]
+        public void CRef_RefReadonlyParameter()
+        {
+            var source = """
+                class Test
+                {
+                    void M(ref readonly int x)
+                    {
+                    }
+
+                    /// <summary>
+                    /// <see cref="M(ref readonly int)"/>
+                    /// </summary>
+                    void S()
+                    {
+                    }
+                }
+                """;
+
+            verify(CreateCompilation(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(
+                // (3,16): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     void M(ref readonly int x)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 16)));
+
+            verify(CreateCompilation(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics());
+            verify(CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics());
+
+            static void verify(CSharpCompilation compilation)
+            {
+                var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
+                var cref = (NameMemberCrefSyntax)GetCrefSyntaxes(compilation).Single();
+
+                var parameter = cref.Parameters.Parameters.Single();
+                Assert.Equal(SyntaxKind.RefKeyword, parameter.RefKindKeyword.Kind());
+                Assert.Equal(SyntaxKind.ReadOnlyKeyword, parameter.ReadOnlyKeyword.Kind());
+
+                var parameterSymbol = ((IMethodSymbol)model.GetSymbolInfo(cref).Symbol).Parameters.Single();
+                Assert.Equal(RefKind.RefReadOnlyParameter, parameterSymbol.RefKind);
+            }
         }
 
         [Fact]

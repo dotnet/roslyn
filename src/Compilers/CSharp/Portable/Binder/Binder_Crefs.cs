@@ -933,6 +933,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (CrefParameterSyntax parameter in parameterListSyntax.Parameters)
             {
                 RefKind refKind = parameter.RefKindKeyword.Kind().GetRefKind();
+                Debug.Assert(parameter.ReadOnlyKeyword.IsKind(SyntaxKind.None) ||
+                    (parameter.ReadOnlyKeyword.IsKind(SyntaxKind.ReadOnlyKeyword) && refKind == RefKind.Ref));
+                if (refKind == RefKind.Ref && parameter.ReadOnlyKeyword.IsKind(SyntaxKind.ReadOnlyKeyword))
+                {
+                    refKind = RefKind.RefReadOnlyParameter;
+                }
 
                 Debug.Assert(parameterListSyntax.Parent is object);
                 TypeSymbol type = BindCrefParameterOrReturnType(parameter.Type, (MemberCrefSyntax)parameterListSyntax.Parent, diagnostics);

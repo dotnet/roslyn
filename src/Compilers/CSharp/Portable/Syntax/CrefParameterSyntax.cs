@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         [EditorBrowsable(EditorBrowsableState.Never)]
         public CrefParameterSyntax WithRefOrOutKeyword(SyntaxToken refOrOutKeyword)
         {
-            return this.Update(refOrOutKeyword, this.Type);
+            return this.Update(refKindKeyword: refOrOutKeyword, readOnlyKeyword: default, this.Type);
         }
     }
 }

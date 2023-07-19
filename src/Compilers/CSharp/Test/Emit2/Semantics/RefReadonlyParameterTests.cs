@@ -4693,7 +4693,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         Assert.Same(methodFromCref, methodFromClass.GetPublicSymbol());
     }
 
-    [Theory(Skip = "PROTOTYPE: cref parsing of ref readonly doesn't work"), CombinatorialData]
+    [Theory, CombinatorialData]
     public void CrefComparer_RefReadonly([CombinatorialValues("ref", "in")] string modifier)
     {
         var source = $$"""
@@ -4716,8 +4716,8 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         var cref = docComment.DescendantNodes().OfType<XmlCrefAttributeSyntax>().Select(attr => attr.Cref).Single();
         var info = model.GetSymbolInfo(cref);
         var methodFromCref = info.Symbol as IMethodSymbol;
-        Assert.Equal(RefKind.RefReadOnly, methodFromCref!.Parameters.Single().RefKind);
-        var methodFromClass = comp.GetMembers("C.M").Cast<MethodSymbol>().Single(m => m.Parameters.Single().RefKind == RefKind.RefReadOnly);
+        Assert.Equal(RefKind.RefReadOnlyParameter, methodFromCref!.Parameters.Single().RefKind);
+        var methodFromClass = comp.GetMembers("C.M").Cast<MethodSymbol>().Single(m => m.Parameters.Single().RefKind == RefKind.RefReadOnlyParameter);
         Assert.Same(methodFromCref, methodFromClass.GetPublicSymbol());
     }
 }

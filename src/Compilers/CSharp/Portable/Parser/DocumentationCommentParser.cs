@@ -1248,7 +1248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// Parse an element of a cref parameter list.
         /// </summary>
         /// <remarks>
-        /// "ref" and "out" work, but "params", "this", and "__arglist" don't.
+        /// "ref", "ref readonly", "in", "out" work, but "params", "this", and "__arglist" don't.
         /// </remarks>
         private CrefParameterSyntax ParseCrefParameter()
         {
@@ -1262,8 +1262,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     break;
             }
 
+            SyntaxToken readOnlyOpt = null;
+            if (CurrentToken.Kind == SyntaxKind.ReadOnlyKeyword && refKindOpt is { Kind: SyntaxKind.RefKeyword })
+            {
+                readOnlyOpt = EatToken();
+            }
+
             TypeSyntax type = ParseCrefType(typeArgumentsMustBeIdentifiers: false);
-            return SyntaxFactory.CrefParameter(refKindOpt, type);
+            return SyntaxFactory.CrefParameter(refKindKeyword: refKindOpt, readOnlyKeyword: readOnlyOpt, type);
         }
 
         /// <summary>
