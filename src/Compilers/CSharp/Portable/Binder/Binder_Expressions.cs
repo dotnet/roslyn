@@ -3276,16 +3276,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
+                        var argNumber = invokedAsExtensionMethod ? arg : arg + 1;
+
                         // Warn for `ref`/`in` or None/`ref readonly` mismatch.
                         if (argRefKind == RefKind.Ref)
                         {
                             if (GetCorrespondingParameter(ref result, parameters, arg).RefKind == RefKind.In)
                             {
+                                Debug.Assert(argNumber > 0);
                                 // The 'ref' modifier for argument {0} corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
                                 diagnostics.Add(
                                     ErrorCode.WRN_BadArgRef,
                                     argument.Syntax,
-                                    arg + 1);
+                                    argNumber);
                             }
                         }
                         else if (argRefKind == RefKind.None &&
@@ -3293,21 +3296,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (!this.CheckValueKind(argument.Syntax, argument, BindValueKind.RefersToLocation, checkingReceiver: false, BindingDiagnosticBag.Discarded))
                             {
+                                Debug.Assert(argNumber >= 0); // can be 0 for receiver of extension method
                                 // Argument {0} should be a variable because it is passed to a 'ref readonly' parameter
                                 diagnostics.Add(
                                     ErrorCode.WRN_RefReadonlyNotVariable,
                                     argument.Syntax,
-                                    arg + 1);
+                                    argNumber);
                             }
                             else if (!invokedAsExtensionMethod || arg != 0)
                             {
+                                Debug.Assert(argNumber > 0);
                                 if (this.CheckValueKind(argument.Syntax, argument, BindValueKind.Assignable, checkingReceiver: false, BindingDiagnosticBag.Discarded))
                                 {
                                     // Argument {0} should be passed with 'ref' or 'in' keyword
                                     diagnostics.Add(
                                         ErrorCode.WRN_ArgExpectedRefOrIn,
                                         argument.Syntax,
-                                        arg + 1);
+                                        argNumber);
                                 }
                                 else
                                 {
@@ -3315,7 +3320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     diagnostics.Add(
                                         ErrorCode.WRN_ArgExpectedIn,
                                         argument.Syntax,
-                                        arg + 1);
+                                        argNumber);
                                 }
                             }
                         }

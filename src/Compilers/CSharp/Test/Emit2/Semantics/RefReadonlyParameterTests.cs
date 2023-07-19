@@ -3100,15 +3100,15 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (9,14): warning CS9503: Argument 2 should be passed with 'ref' or 'in' keyword
+            // (9,14): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
             //         x.M1(x);
-            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("2").WithLocation(9, 14),
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(9, 14),
             // (11,15): warning CS9503: Argument 2 should be passed with 'ref' or 'in' keyword
             //         M1(x, x);
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("2").WithLocation(11, 15),
-            // (13,14): warning CS9503: Argument 2 should be passed with 'ref' or 'in' keyword
+            // (13,14): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
             //         x.M2(x);
-            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("2").WithLocation(13, 14),
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(13, 14),
             // (14,12): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
             //         M2(x, in x);
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(14, 12),
@@ -3147,15 +3147,15 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (8,14): warning CS9506: Argument 2 should be passed with the 'in' keyword
+            // (8,14): warning CS9506: Argument 1 should be passed with the 'in' keyword
             //         x.M1(x);
-            Diagnostic(ErrorCode.WRN_ArgExpectedIn, "x").WithArguments("2").WithLocation(8, 14),
+            Diagnostic(ErrorCode.WRN_ArgExpectedIn, "x").WithArguments("1").WithLocation(8, 14),
             // (10,15): warning CS9506: Argument 2 should be passed with the 'in' keyword
             //         M1(x, x);
             Diagnostic(ErrorCode.WRN_ArgExpectedIn, "x").WithArguments("2").WithLocation(10, 15),
-            // (12,14): warning CS9506: Argument 2 should be passed with the 'in' keyword
+            // (12,14): warning CS9506: Argument 1 should be passed with the 'in' keyword
             //         x.M2(x);
-            Diagnostic(ErrorCode.WRN_ArgExpectedIn, "x").WithArguments("2").WithLocation(12, 14),
+            Diagnostic(ErrorCode.WRN_ArgExpectedIn, "x").WithArguments("1").WithLocation(12, 14),
             // (13,12): warning CS9506: Argument 1 should be passed with the 'in' keyword
             //         M2(x, in x);
             Diagnostic(ErrorCode.WRN_ArgExpectedIn, "x").WithArguments("1").WithLocation(13, 12),
@@ -3185,9 +3185,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         var verifier = CompileAndVerify(source, expectedOutput: "5");
         verifier.VerifyDiagnostics(
-            // (6,9): warning CS9504: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
+            // (6,9): warning CS9504: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
             //         5.M();
-            Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "5").WithArguments("1").WithLocation(6, 9));
+            Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "5").WithArguments("0").WithLocation(6, 9));
         verifier.VerifyIL("C.Main", """
             {
               // Code size       10 (0xa)
@@ -3223,27 +3223,27 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (7,14): warning CS9504: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter
+            // (7,14): warning CS9504: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
             //         5.M1(111);
-            Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "111").WithArguments("2").WithLocation(7, 14),
+            Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "111").WithArguments("1").WithLocation(7, 14),
             // (8,15): warning CS9504: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter
             //         M1(5, 111);
             Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "111").WithArguments("2").WithLocation(8, 15),
-            // (9,9): warning CS9504: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
+            // (9,9): warning CS9504: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
             //         5.M2(111);
-            Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "5").WithArguments("1").WithLocation(9, 9),
-            // (9,14): warning CS9504: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter
+            Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "5").WithArguments("0").WithLocation(9, 9),
+            // (9,14): warning CS9504: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
             //         5.M2(111);
-            Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "111").WithArguments("2").WithLocation(9, 14),
+            Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "111").WithArguments("1").WithLocation(9, 14),
             // (10,12): warning CS9504: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
             //         M2(5, 111);
             Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "5").WithArguments("1").WithLocation(10, 12),
             // (10,15): warning CS9504: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter
             //         M2(5, 111);
             Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "111").WithArguments("2").WithLocation(10, 15),
-            // (11,9): warning CS9504: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
+            // (11,9): warning CS9504: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
             //         5.M2(in 111);
-            Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "5").WithArguments("1").WithLocation(11, 9),
+            Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "5").WithArguments("0").WithLocation(11, 9),
             // (11,17): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
             //         5.M2(in 111);
             Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "111").WithLocation(11, 17),
