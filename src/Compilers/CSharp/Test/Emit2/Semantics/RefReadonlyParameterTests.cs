@@ -751,12 +751,70 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         }
     }
 
+    [Fact]
+    public void FunctionPointer_Modopt_CustomAttribute_In()
+    {
+        // public class C
+        // {
+        //     public unsafe delegate*<in int modopt(MyAttribute), void> D;
+        // }
+        var ilSource = """
+            .class public auto ansi beforefieldinit C extends System.Object
+            {
+                .field public method void *(int32& modreq(System.Runtime.InteropServices.InAttribute) modopt(MyAttribute)) D
+            }
+
+            .class public auto ansi sealed beforefieldinit System.Runtime.InteropServices.InAttribute extends System.Object
+            {
+            }
+
+            .class public auto ansi sealed beforefieldinit MyAttribute extends System.Object
+            {
+            }
+            """;
+
+        var source = """
+            class D
+            {
+                unsafe void M(C c)
+                {
+                    int x = 6;
+                    c.D(x);
+                    c.D(ref x);
+                    c.D(in x);
+                }
+            }
+            """;
+
+        CreateCompilationWithIL(source, ilSource, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+            // (7,17): error CS9505: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version preview or greater.
+            //         c.D(ref x);
+            Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "preview").WithLocation(7, 17));
+
+        var comp = CreateCompilationWithIL(source, ilSource, options: TestOptions.UnsafeDebugDll);
+        comp.VerifyDiagnostics(
+            // (7,17): warning CS9502: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            //         c.D(ref x);
+            Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(7, 17));
+
+        var ptr = (FunctionPointerTypeSymbol)comp.GlobalNamespace.GetMember<FieldSymbol>("C.D").Type;
+        var p = ptr.Signature.Parameters.Single();
+        VerifyRefReadonlyParameter(p, refKind: false, attributes: false, customModifiers: VerifyModifiers.DoNotVerify);
+        Assert.Equal(RefKind.In, p.RefKind);
+        Assert.Empty(p.GetAttributes());
+        AssertEx.SetEqual(new[]
+        {
+            (false, InAttributeQualifiedName),
+            (true, "MyAttribute")
+        }, p.RefCustomModifiers.Select(m => (m.IsOptional, m.Modifier.ToTestDisplayString())));
+    }
+
     /// <summary>
     /// Demonstrates that modopt encoding of 'ref readonly' parameters in function pointers
     /// won't break older compilers (they will see the parameter as 'ref').
     /// </summary>
     [Fact]
-    public void FunctionPointer_Modopt_CustomAttribute()
+    public void FunctionPointer_Modopt_CustomAttribute_Ref()
     {
         // public class C
         // {
