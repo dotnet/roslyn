@@ -189,6 +189,7 @@ stages:
                    -pack
                    -sign
                    -publish
+                   -bootstrap
                    -binaryLog
                    -configuration $(BuildConfiguration)
                    -officialBuildId $(Build.BuildNumber)
