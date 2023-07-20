@@ -6243,6 +6243,54 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net70, expectedOutput: "(C<System.String>) [null], (C<System.Int32>) [E(1), null], ");
         }
 
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_Dictionary(bool useCompilationReference)
+        {
+            System.Collections.Immutable.ImmutableDictionary<int, int> d;
+
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyDictionaryBuilder), "Create")]
+                public class MyImmutableDictionary<K, V> : IEnumerable<KeyValuePair<K, V>>
+                {
+                    private readonly Dictionary<K, V> _d;
+                    public MyImmutableDictionary(ReadOnlySpan<KeyValuePair<K, V>> items)
+                    {
+                        _d = new();
+                        foreach (var (k, v) in items) _d.Add(k, v);
+                    }
+                    public IEnumerator<KeyValuePair<K, V>> GetEnumerator() => _d.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+                public class MyDictionaryBuilder
+                {
+                    public static MyImmutableDictionary<K, V> Create<K, V>(ReadOnlySpan<KeyValuePair<K, V>> items)
+                        => new MyImmutableDictionary<K, V>(items);
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyImmutableDictionary<string, object> x = [];
+                        x.Report();
+                        MyImmutableDictionary<string, int> y = [KeyValuePair.Create("one", 1), KeyValuePair.Create("two", 2)];
+                        y.Report();
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net70, expectedOutput: "[], [[one, 1], [two, 2]], ");
+        }
+
         [ConditionalFact(typeof(CoreClrOnly))]
         public void CollectionBuilder_MissingBuilderType()
         {
