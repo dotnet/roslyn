@@ -81,18 +81,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Compile Update="LanguageServerResources.Designer.cs">
-        <DesignTime>True</DesignTime>
-        <AutoGen>True</AutoGen>
-        <DependentUpon>LanguageServerResources.resx</DependentUpon>
-      </Compile>
-    </ItemGroup>
-
-    <ItemGroup>
-      <EmbeddedResource Update="LanguageServerResources.resx">
-        <Generator>ResXFileCodeGenerator</Generator>
-        <LastGenOutput>LanguageServerResources.Designer.cs</LastGenOutput>
-      </EmbeddedResource>
+        <EmbeddedResource Update="LanguageServerResources.resx" GenerateSource="true" />
     </ItemGroup>
 
     <Target Name="WriteRoslynVersion" AfterTargets="Build">

@@ -72,7 +72,7 @@ internal partial class TestDiscoverer(ILoggerFactory loggerFactory)
 
         // Match what we found from vs test to what we found in the document to figure out exactly which tests to run.
         var matchedTests = await MatchDiscoveredTestsToTestsInRangeAsync(testCases, potentialTestMethods, testMethodFinder, document, cancellationToken);
-        progress.Report(partialResult with { Message = string.Format(LanguageServerResources.Found_0_tests_in_1, matchedTests.Length, elapsed.ToString("g")) });
+        progress.Report(partialResult with { Message = string.Format(LanguageServerResources.Found_0_tests_in_1, matchedTests.Length, RunTestsHandler.GetShortTimespan(elapsed)) });
 
         return matchedTests;
 

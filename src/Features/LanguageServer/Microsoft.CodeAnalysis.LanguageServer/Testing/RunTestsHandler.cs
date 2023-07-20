@@ -67,6 +67,42 @@ internal class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer t
     }
 
     /// <summary>
+    /// Format a timespan as a string similar to '5m 2s', omitting any value that is not present.
+    /// </summary>
+    internal static string GetShortTimespan(TimeSpan t)
+    {
+        var shortForm = "";
+        // Only output milliseconds if less than a second duration
+        if (t.Milliseconds > 0 && t.TotalSeconds < 1)
+        {
+            shortForm += string.Format("{0}ms", t.Milliseconds.ToString());
+            return shortForm;
+        }
+
+        if (t.Days > 0)
+        {
+            shortForm += string.Format("{0}d ", t.Days.ToString());
+        }
+
+        if (t.Hours > 0)
+        {
+            shortForm += string.Format("{0}h ", t.Hours.ToString());
+        }
+
+        if (t.Minutes > 0)
+        {
+            shortForm += string.Format("{0}m ", t.Minutes.ToString());
+        }
+
+        if (t.Seconds > 0)
+        {
+            shortForm += string.Format("{0}s ", t.Seconds.ToString());
+        }
+
+        return shortForm.Trim();
+    }
+
+    /// <summary>
     /// Shells out to the .NET CLI to build the project to ensure that its relatively up to date as of this request.
     /// We can never be entirely sure that this build happens on exactly the same snapshot that this request was made on
     /// as something could have changed on the client side immediately after this request was triggered.
