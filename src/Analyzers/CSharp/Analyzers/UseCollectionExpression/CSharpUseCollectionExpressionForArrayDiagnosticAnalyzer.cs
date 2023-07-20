@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
@@ -11,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
@@ -64,6 +66,89 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
         });
     }
 
+    private static bool IsInTargetTypedLocation(SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken)
+    {
+        var topExpression = expression.WalkUpParentheses();
+        var parent = topExpression.Parent;
+        return parent switch
+        {
+            EqualsValueClauseSyntax equalsValue => IsInTargetTypedEqualsValueClause(equalsValue, topExpression),
+            CastExpressionSyntax castExpression => IsInTargetTypedCastExpression(castExpression, topExpression),
+            // a ? [1, 2, 3] : ...  is target typed if either the other side is *not* a collection,
+            // or the entire ternary is target typed itself.
+            ConditionalExpressionSyntax conditionalExpression => IsInTargetTypedConditionalExpression(conditionalExpression, topExpression),
+            // Similar rules for switches.
+            SwitchExpressionArmSyntax switchExpressionArm => IsInTargetTypedSwitchExpressionArm(switchExpressionArm, topExpression),
+            InitializerExpressionSyntax initializer => IsInTargetTypedInitializerExpression(initializer, topExpression),
+            ArgumentSyntax => true,
+            ReturnStatementSyntax => true,
+            _ => false,
+        };
+
+        bool HasType(ExpressionSyntax expression)
+            => semanticModel.GetTypeInfo(expression, cancellationToken).Type != null;
+
+        static bool IsInTargetTypedEqualsValueClause(EqualsValueClauseSyntax equalsValue, ExpressionSyntax expression)
+            // If we're after an `x = ...` and it's not `var x`, this is target typed.
+            => equalsValue.Parent is not VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Type.IsVar: true } };
+
+        static bool IsInTargetTypedCastExpression(CastExpressionSyntax castExpression, ExpressionSyntax expression)
+            // (X[])[1, 2, 3] is target typed.  `(X)[1, 2, 3]` is currently not (because it looks like indexing into an expr).
+            => castExpression.Type is not IdentifierNameSyntax;
+
+        bool IsInTargetTypedConditionalExpression(ConditionalExpressionSyntax conditionalExpression, ExpressionSyntax expression)
+        {
+            if (conditionalExpression.WhenTrue == expression)
+                return HasType(conditionalExpression.WhenFalse) || IsInTargetTypedLocation(semanticModel, conditionalExpression, cancellationToken);
+            else if (conditionalExpression.WhenFalse == expression)
+                return HasType(conditionalExpression.WhenTrue) || IsInTargetTypedLocation(semanticModel, conditionalExpression, cancellationToken);
+            else
+                return false;
+        }
+
+        bool IsInTargetTypedSwitchExpressionArm(SwitchExpressionArmSyntax switchExpressionArm, ExpressionSyntax expression)
+        {
+            var switchExpression = (SwitchExpressionSyntax)switchExpressionArm.GetRequiredParent();
+
+            // check if any other arm has a type that this would be target typed against.
+            foreach (var arm in switchExpression.Arms)
+            {
+                if (arm != switchExpressionArm && HasType(arm.Expression))
+                    return true;
+            }
+
+            // All arms do not have a type, this is target typed if the switch itself is target typed.
+            return IsInTargetTypedLocation(semanticModel, switchExpression, cancellationToken);
+        }
+
+        bool IsInTargetTypedInitializerExpression(InitializerExpressionSyntax initializerExpression, ExpressionSyntax expression)
+        {
+            // new X[] { [1, 2, 3] }.  Elements are target typed by array type.
+            if (initializerExpression.Parent is ArrayCreationExpressionSyntax)
+                return true;
+
+            // new [] { [1, 2, 3], ... }.  Elements are target typed if there's another element with real type.
+            if (initializerExpression.Parent is ImplicitArrayCreationExpressionSyntax)
+            {
+                foreach (var sibling in initializerExpression.Expressions)
+                {
+                    if (sibling != expression && HasType(sibling))
+                        return true;
+                }
+            }
+
+            // TODO: Handle these.
+            if (initializerExpression.Parent is StackAllocArrayCreationExpressionSyntax or ImplicitStackAllocArrayCreationExpressionSyntax)
+                return false;
+
+            // T[] x = [1, 2, 3];
+            if (initializerExpression.Parent is EqualsValueClauseSyntax)
+                return true;
+
+            return false;
+        }
+    }
+
     private static void AnalyzeArrayInitializer(SyntaxNodeAnalysisContext context)
     {
         var semanticModel = context.SemanticModel;
@@ -83,7 +168,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
             ? parentExpression.WalkUpParentheses()
             : initializer.WalkUpParentheses();
 
-        if (topmostExpression.Parent is EqualsValueClauseSyntax { Parent: VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Type.IsVar: true } } })
+        if (!IsInTargetTypedLocation(semanticModel, topmostExpression, cancellationToken))
             return;
 
         if (initializer.Parent is ArrayCreationExpressionSyntax or ImplicitArrayCreationExpressionSyntax)
