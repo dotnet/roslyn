@@ -86,7 +86,7 @@ internal abstract class PropertyOrIndexerAccessorDeclarationBody : MemberBody
             partnerStatement = ((PropertyOrIndexerAccessorDeclarationBody?)partnerDeclarationBody)?.HeaderActiveStatement;
             return HeaderActiveStatement;
         }
-        
+
         Debug.Assert(ExplicitBody != null);
         Debug.Assert(partnerDeclarationBody is null or PropertyOrIndexerAccessorDeclarationBody { ExplicitBody: not null });
 

@@ -12414,7 +12414,7 @@ class C
 partial class C { }
 partial class C(int P);
 ";
-        var src2 = @"
+            var src2 = @"
 partial class C(int P) { }
 partial class C;
 ";
@@ -12432,7 +12432,7 @@ partial class C;
 partial record C { }
 partial record C(int P);
 ";
-        var src2 = @"
+            var src2 = @"
 partial record C(int P) { }
 partial record C;
 ";
