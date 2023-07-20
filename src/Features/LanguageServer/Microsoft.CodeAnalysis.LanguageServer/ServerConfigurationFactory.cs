@@ -36,7 +36,7 @@ internal class ServerConfigurationFactory
 
         // Use the SharedDependenciesPath option as a proxy for whether or not devkit is running.
         var isDevkitEnabled = !string.IsNullOrEmpty(serverConfiguration.SharedDependenciesPath);
-        // Set the standalone option so other features know that devkit is not running.
+        // Set the standalone option so other features know whether devkit is running.
         _globalOptionService.SetGlobalOption(LspOptionsStorage.LspUsingDevkitFeatures, isDevkitEnabled);
     }
 }

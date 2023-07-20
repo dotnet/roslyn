@@ -24,9 +24,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <summary>
         /// This flag is turned on when the C# devkit is installed.
         /// This can cause certain LSP features to behave differently, for example we avoid returning test code lenses when devkit is running.
-        /// 
-        /// This flag is not user visible.
         /// </summary>
-        public static readonly Option2<bool> LspUsingDevkitFeatures = new("dotnet_lsp_using_devkit", defaultValue: true);
+        /// <remarks>
+        /// This flag is not user visible.
+        /// </remarks>
+        public static readonly Option2<bool> LspUsingDevkitFeatures = new("dotnet_lsp_using_devkit", defaultValue: false);
     }
 }
