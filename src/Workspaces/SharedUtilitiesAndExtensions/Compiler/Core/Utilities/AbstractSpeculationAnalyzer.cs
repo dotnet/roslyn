@@ -221,17 +221,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             var originalTypeInfo = this.OriginalSemanticModel.GetTypeInfo(originalExpression);
             var newTypeInfo = this.SpeculativeSemanticModel.GetTypeInfo(newExpression);
             if (originalTypeInfo.Type == null)
+            {
                 return false;
+            }
 
-            if (newTypeInfo.Type.IsErrorType() && !originalTypeInfo.Type.IsErrorType())
-                return true;
-
-            // It's possible a natural-typed expression converted into a target-typed one.  As long as the target type
-            // is the same as the prior expression's natural type, this is ok.
-            if (newTypeInfo.Type is null)
-                return !originalTypeInfo.Type.Equals(newTypeInfo.ConvertedType);
-
-            return false;
+            return newTypeInfo.Type == null ||
+                (newTypeInfo.Type.IsErrorType() && !originalTypeInfo.Type.IsErrorType());
         }
 
         protected bool TypesAreCompatible(TExpressionSyntax originalExpression, TExpressionSyntax newExpression)
