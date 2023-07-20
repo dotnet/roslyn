@@ -72,7 +72,7 @@ End If
             Dim m2 = MakeMethodBody(src2)
 
             Dim knownMatches = {New KeyValuePair(Of SyntaxNode, SyntaxNode)(m1.RootNodes.First(), m2.RootNodes().First())}
-            Dim match = m1.ComputeMatch(m2, knownMatches)
+            Dim match = m1.ComputeSingleRootMatch(m2, knownMatches)
             Dim actual = ToMatchingPairs(match)
 
             Dim expected = New MatchingPairs From
@@ -1398,7 +1398,7 @@ End Try
             Dim knownMatches = {New KeyValuePair(Of SyntaxNode, SyntaxNode)(b1.Statements(1), b2.Statements(0))}
 
             ' pre-matched:
-            Dim match = m1.ComputeMatch(m2, knownMatches)
+            Dim match = m1.ComputeSingleRootMatch(m2, knownMatches)
             Dim actual = ToMatchingPairs(match)
 
             Dim expected = New MatchingPairs From
@@ -1412,7 +1412,7 @@ End Try
             expected.AssertEqual(actual)
 
             ' not pre-matched:
-            match = m1.ComputeMatch(m2, knownMatches:=Nothing)
+            match = m1.ComputeSingleRootMatch(m2, knownMatches:=Nothing)
             actual = ToMatchingPairs(match)
 
             expected = New MatchingPairs From

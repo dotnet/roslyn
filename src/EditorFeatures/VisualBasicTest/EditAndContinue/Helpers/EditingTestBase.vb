@@ -196,7 +196,7 @@ End Namespace
             Dim m1 = MakeMethodBody(src1, methodKind)
             Dim m2 = MakeMethodBody(src2, methodKind)
 
-            Dim match = m1.ComputeMatch(m2, knownMatches:=Nothing)
+            Dim match = m1.ComputeSingleRootMatch(m2, knownMatches:=Nothing)
 
             Dim stateMachineInfo1 = m1.GetStateMachineInfo()
             Dim stateMachineInfo2 = m2.GetStateMachineInfo()

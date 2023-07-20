@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal abstract ImmutableArray<int> GetSupportedErrorCodes();
 
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-            => InterlockedOperations.InterlockedInitialize(
+            => InterlockedOperations.Initialize(
                 ref _supportedDiagnostics,
                 static @this =>
                 {

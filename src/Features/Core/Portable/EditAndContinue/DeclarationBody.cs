@@ -16,24 +16,39 @@ internal abstract class DeclarationBody : IEquatable<DeclarationBody>
 
     /// <summary>
     /// Root nodes of the body. Descendant nodes of these roots include all nodes of the body and no nodes that do not belong to the body.
-    /// Note: descendant nodes may include some tokens that are not part of the body.
+    /// Note: descendant nodes may include some tokens that are not part of the body and exclude some tokens that are.
     /// </summary>
     public abstract OneOrMany<SyntaxNode> RootNodes { get; }
+
+    /// <summary>
+    /// <see cref="SyntaxNode"/> that includes all active tokens (<see cref="MemberBody.GetActiveTokens"/>)
+    /// and its span covers the entire <see cref="MemberBody.Envelope"/>.
+    /// May include descendant nodes or tokens that do not belong to the body.
+    /// </summary>
+    public abstract SyntaxNode EncompassingAncestor { get; }
 
     public abstract StateMachineInfo GetStateMachineInfo();
 
     /// <summary>
     /// Computes a statement-level syntax tree match of this body with <paramref name="newBody"/>.
-    /// TODO: Consider returning <see cref="BidirectionalMap{T}"/> that includes matches of all roots of the body.
-    /// <see cref="TryMatchActiveStatement"/> might not be needed if we do so.
     /// </summary>
-    public abstract Match<SyntaxNode> ComputeMatch(DeclarationBody newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>>? knownMatches);
+    public virtual BidirectionalMap<SyntaxNode> ComputeMatch(DeclarationBody newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>>? knownMatches)
+    {
+        var primaryMatch = ComputeSingleRootMatch(newBody, knownMatches);
+        return (primaryMatch != null) ? BidirectionalMap<SyntaxNode>.FromMatch(primaryMatch) : BidirectionalMap<SyntaxNode>.Empty;
+    }
+
+    /// <summary>
+    /// If both this body and <paramref name="newBody"/> have single roots, computes a statement-level syntax tree match rooted in these roots.
+    /// Otherwise, returns null (e.g. a primary constructor with implicit initializer does not have any body to match).
+    /// </summary>
+    public abstract Match<SyntaxNode>? ComputeSingleRootMatch(DeclarationBody newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>>? knownMatches);
 
     /// <summary>
     /// Matches old active statement node to new active statement node for nodes that are not accounted for in the body match or do not match but should be mapped
     /// (e.g. constructor initializers, opening brace of block body to expression body, etc.).
     /// </summary>
-    public abstract bool TryMatchActiveStatement(DeclarationBody newBody, SyntaxNode oldStatement, int statementPart, [NotNullWhen(true)] out SyntaxNode? newStatement);
+    public abstract bool TryMatchActiveStatement(DeclarationBody newBody, SyntaxNode oldStatement, ref int statementPart, [NotNullWhen(true)] out SyntaxNode? newStatement);
 
     public bool Equals(DeclarationBody? other)
         => ReferenceEquals(this, other) ||

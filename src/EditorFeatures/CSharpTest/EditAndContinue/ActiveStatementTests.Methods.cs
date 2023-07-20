@@ -595,7 +595,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "get", FeaturesResources.code));
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "{"));
         }
 
         [Fact]
