@@ -1862,8 +1862,7 @@ namespace Microsoft.CodeAnalysis
         {
             (string?, string?) data;
             var result = TryExtractValueFromAttribute(handle, out data, s_attributeStringAndStringValueExtractor);
-            string1Value = data.Item1;
-            string2Value = data.Item2;
+            (string1Value, string2Value) = data;
             return result;
         }
 

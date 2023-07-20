@@ -780,10 +780,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReportDiagnosticsIfObsolete(diagnostics, constructMethod, syntax, hasBaseReceiver: false);
             ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, constructMethod, syntax, isDelegateConversion: false);
 
-            var spanType = (NamedTypeSymbol)constructMethod.Parameters[0].Type;
-            Debug.Assert(spanType.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions));
+            var readOnlySpanType = (NamedTypeSymbol)constructMethod.Parameters[0].Type;
+            Debug.Assert(readOnlySpanType.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions));
 
-            var elementType = spanType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+            var elementType = readOnlySpanType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
 
             var elements = node.Elements;
             if (elements.Any(e => e is BoundCollectionExpressionSpreadElement))
@@ -802,7 +802,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result.Update(result.CollectionTypeKind, result.Placeholder, result.CollectionCreation, constructMethod, result.Elements, targetType);
             }
 
-            var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, spanType) { WasCompilerGenerated = true };
+            var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, readOnlySpanType) { WasCompilerGenerated = true };
             var builder = ArrayBuilder<BoundExpression>.GetInstance(elements.Length);
             foreach (var element in elements)
             {
@@ -827,7 +827,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string? methodName,
             BindingDiagnosticBag diagnostics)
         {
-            if (!(builderType is NamedTypeSymbol { TypeKind: TypeKind.Class or TypeKind.Struct, IsGenericType: false }))
+            if (!SourceNamedTypeSymbol.IsValidCollectionBuilderType(builderType))
             {
                 return null;
             }
@@ -837,10 +837,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            var readOnlySpanType = Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T);
+
             foreach (var candidate in builderType.GetMembers(methodName))
             {
-                var method = candidate as MethodSymbol;
-                if (method is null || !method.IsStatic)
+                if (candidate is not MethodSymbol { IsStatic: true } method)
                 {
                     continue;
                 }
@@ -860,7 +861,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                if (!(method.Parameters is [var parameter] && isReadOnlySpanType(Compilation, parameter.Type)))
+                if (method.Parameters is not [{ RefKind: RefKind.None, Type: var parameterType }]
+                    || !readOnlySpanType.Equals(parameterType.OriginalDefinition, TypeCompareKind.AllIgnoreOptions))
                 {
                     continue;
                 }
@@ -891,12 +893,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
-
-            static bool isReadOnlySpanType(CSharpCompilation compilation, TypeSymbol type)
-            {
-                return type is NamedTypeSymbol { Arity: 1 } namedType
-                    && namedType.OriginalDefinition.Equals(compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions);
-            }
         }
 
         /// <summary>

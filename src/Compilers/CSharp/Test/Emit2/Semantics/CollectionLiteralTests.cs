@@ -5865,7 +5865,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [CombinatorialData]
         [ConditionalTheory(typeof(CoreClrOnly))]
-        public void CollectionBuilder_InterfaceCollection(bool useCompilationReference)
+        public void CollectionBuilder_InterfaceCollection_ReturnInterface(bool useCompilationReference)
         {
             string sourceA = """
                 using System;
@@ -5880,7 +5880,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     public static IMyCollection<T> Create<T>(ReadOnlySpan<T> items) =>
                         new MyCollection<T>(new List<T>(items.ToArray()));
-                    private sealed class MyCollection<T> : IMyCollection<T>
+                    public sealed class MyCollection<T> : IMyCollection<T>
                     {
                         private readonly List<T> _list;
                         public MyCollection(List<T> list) { _list = list; }
@@ -5905,6 +5905,55 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net70, expectedOutput: "(MyCollectionBuilder.MyCollection<System.String>) [], (MyCollectionBuilder.MyCollection<System.Int32>) [1, 2, 3], ");
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_InterfaceCollection_ReturnImplementation(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                public interface IMyCollection<T> : IEnumerable<T>
+                {
+                }
+                public sealed class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) =>
+                        new MyCollection<T>(new List<T>(items.ToArray()));
+                    public sealed class MyCollection<T> : IMyCollection<T>
+                    {
+                        private readonly List<T> _list;
+                        public MyCollection(List<T> list) { _list = list; }
+                        public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        IMyCollection<string> x = [];
+                        IMyCollection<int> y = [1, 2, 3];
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (5,35): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'IMyCollection<T>'.
+                //         IMyCollection<string> x = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "T", "IMyCollection<T>").WithLocation(5, 35),
+                // (6,32): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'IMyCollection<T>'.
+                //         IMyCollection<int> y = [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1, 2, 3]").WithArguments("Create", "T", "IMyCollection<T>").WithLocation(6, 32));
         }
 
         [CombinatorialData]
@@ -7660,9 +7709,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [CombinatorialData]
         [ConditionalTheory(typeof(CoreClrOnly))]
-        public void CollectionBuilder_UnexpectedSignature_01(bool useCompilationReference)
+        public void CollectionBuilder_UnexpectedSignature_01(
+            [CombinatorialValues(
+                "public static MyCollection<int> Create(ReadOnlySpan<int> items) => default;", // constructed parameter and return types
+                "public static MyCollection<T> Create<T>(ReadOnlySpan<int> items) => default;", // constructed parameter type
+                "public static MyCollection<int> Create<T>(ReadOnlySpan<T> items) => default;", // constructed return type
+                "public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, int index = 0) => default;", // optional parameter
+                "public static MyCollection<T> Create<T>() => default;", // no parameters
+                "public static void Create<T>(ReadOnlySpan<T> items) { }", // no return type
+                "public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, int index = 0) => default;", // optional parameter
+                "public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, params object[] args) => default;", // params
+                "public static MyCollection<T> Create<T, U>(ReadOnlySpan<T> items) => default;", // extra type parameter
+                "public static MyCollection<T> Create<T>(Span<T> items) => default;", // Span<T>
+                "public static MyCollection<T> Create<T>(T[] items) => default;", // T[]
+                "public static MyCollection<T> Create<T>(in ReadOnlySpan<T> items) => default;", // in parameter
+                "public static MyCollection<T> Create<T>(ref ReadOnlySpan<T> items) => default;", // ref parameter
+                "public static MyCollection<T> Create<T>(out ReadOnlySpan<T> items) { items = default; return default; }", // out parameter
+                "public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;")] // PROTOTYPE: valid case, remove
+            string methodDeclaration,
+            bool useCompilationReference)
         {
-            string sourceA = """
+            string sourceA = $$"""
                 using System;
                 using System.Collections;
                 using System.Collections.Generic;
@@ -7675,7 +7742,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 public class MyCollectionBuilder
                 {
-                    public static MyCollection<int> Create(ReadOnlySpan<int> items) => default;
+                    {{methodDeclaration}}
                 }
                 """;
             var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net70);
@@ -7705,187 +7772,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [CombinatorialData]
         [ConditionalTheory(typeof(CoreClrOnly))]
-        public void CollectionBuilder_UnexpectedSignature_02(bool useCompilationReference)
-        {
-            string sourceA = """
-                using System;
-                using System.Collections;
-                using System.Collections.Generic;
-                using System.Runtime.CompilerServices;
-                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
-                public struct MyCollection<T> : IEnumerable<T>
-                {
-                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => default;
-                    IEnumerator IEnumerable.GetEnumerator() => default;
-                }
-                public class MyCollectionBuilder
-                {
-                    public static MyCollection<T> Create<T>(ReadOnlySpan<int> items) => default;
-                }
-                """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net70);
-            var refA = AsReference(comp, useCompilationReference);
-
-            string sourceB = """
-                #pragma warning disable 219
-                class Program
-                {
-                    static void Main()
-                    {
-                        MyCollection<string> x = [];
-                        MyCollection<int> y = [1, 2, 3];
-                        MyCollection<object> z = new();
-                    }
-                }
-                """;
-            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
-            comp.VerifyEmitDiagnostics(
-                // (6,34): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
-                //         MyCollection<string> x = [];
-                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 34),
-                // (7,31): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
-                //         MyCollection<int> y = [1, 2, 3];
-                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1, 2, 3]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(7, 31));
-        }
-
-        [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
-        public void CollectionBuilder_UnexpectedSignature_03(bool useCompilationReference)
-        {
-            string sourceA = """
-                using System;
-                using System.Collections;
-                using System.Collections.Generic;
-                using System.Runtime.CompilerServices;
-                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
-                public struct MyCollection<T> : IEnumerable<T>
-                {
-                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => default;
-                    IEnumerator IEnumerable.GetEnumerator() => default;
-                }
-                public class MyCollectionBuilder
-                {
-                    public static MyCollection<int> Create<T>(ReadOnlySpan<T> items) => default;
-                }
-                """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net70);
-            var refA = AsReference(comp, useCompilationReference);
-
-            string sourceB = """
-                #pragma warning disable 219
-                class Program
-                {
-                    static void Main()
-                    {
-                        MyCollection<string> x = [];
-                        MyCollection<int> y = [1, 2, 3];
-                        MyCollection<object> z = new();
-                    }
-                }
-                """;
-            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
-            comp.VerifyEmitDiagnostics(
-                // (6,34): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
-                //         MyCollection<string> x = [];
-                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 34),
-                // (7,31): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
-                //         MyCollection<int> y = [1, 2, 3];
-                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1, 2, 3]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(7, 31));
-        }
-
-        [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
-        public void CollectionBuilder_UnexpectedSignature_04(bool useCompilationReference)
-        {
-            string sourceA = """
-                using System;
-                using System.Collections;
-                using System.Collections.Generic;
-                using System.Runtime.CompilerServices;
-                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
-                public struct MyCollection<T> : IEnumerable<T>
-                {
-                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => default;
-                    IEnumerator IEnumerable.GetEnumerator() => default;
-                }
-                public class MyCollectionBuilder
-                {
-                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, int index = 0) => default;
-                }
-                """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net70);
-            var refA = AsReference(comp, useCompilationReference);
-
-            string sourceB = """
-                #pragma warning disable 219
-                class Program
-                {
-                    static void Main()
-                    {
-                        MyCollection<string> x = [];
-                        MyCollection<int> y = [1, 2, 3];
-                        MyCollection<object> z = new();
-                    }
-                }
-                """;
-            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
-            comp.VerifyEmitDiagnostics(
-                // (6,34): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
-                //         MyCollection<string> x = [];
-                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 34),
-                // (7,31): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
-                //         MyCollection<int> y = [1, 2, 3];
-                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1, 2, 3]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(7, 31));
-        }
-
-        [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
-        public void CollectionBuilder_UnexpectedSignature_05(bool useCompilationReference)
-        {
-            string sourceA = """
-                using System;
-                using System.Collections;
-                using System.Collections.Generic;
-                using System.Runtime.CompilerServices;
-                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
-                public struct MyCollection<T> : IEnumerable<T>
-                {
-                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => default;
-                    IEnumerator IEnumerable.GetEnumerator() => default;
-                }
-                public class MyCollectionBuilder
-                {
-                    public static MyCollection<T> Create<T, U>(ReadOnlySpan<T> items) => default;
-                }
-                """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net70);
-            var refA = AsReference(comp, useCompilationReference);
-
-            string sourceB = """
-                #pragma warning disable 219
-                class Program
-                {
-                    static void Main()
-                    {
-                        MyCollection<string> x = [];
-                        MyCollection<int> y = [1, 2, 3];
-                        MyCollection<object> z = new();
-                    }
-                }
-                """;
-            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
-            comp.VerifyEmitDiagnostics(
-                // (6,34): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
-                //         MyCollection<string> x = [];
-                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 34),
-                // (7,31): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
-                //         MyCollection<int> y = [1, 2, 3];
-                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1, 2, 3]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(7, 31));
-        }
-
-        [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
-        public void CollectionBuilder_UnexpectedSignature_06(bool useCompilationReference)
+        public void CollectionBuilder_UnexpectedSignature_MoreTypeParameters(bool useCompilationReference)
         {
             string sourceA = """
                 using System;
@@ -7930,50 +7817,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [CombinatorialData]
         [ConditionalTheory(typeof(CoreClrOnly))]
-        public void CollectionBuilder_UnexpectedSignature_07(bool useCompilationReference)
-        {
-            string sourceA = """
-                using System;
-                using System.Collections;
-                using System.Runtime.CompilerServices;
-                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
-                public struct MyCollection : IEnumerable
-                {
-                    IEnumerator IEnumerable.GetEnumerator() => default;
-                }
-                public class MyCollectionBuilder
-                {
-                    public static void Create(ReadOnlySpan<int> items) { }
-                }
-                """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net70);
-            var refA = AsReference(comp, useCompilationReference);
-
-            string sourceB = """
-                #pragma warning disable 219
-                class Program
-                {
-                    static void Main()
-                    {
-                        MyCollection x = [];
-                        MyCollection y = [1, 2, 3];
-                        MyCollection z = new();
-                    }
-                }
-                """;
-            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
-            comp.VerifyEmitDiagnostics(
-                // (6,26): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<object>' and return type 'MyCollection'.
-                //         MyCollection x = [];
-                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "object", "MyCollection").WithLocation(6, 26),
-                // (7,26): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<object>' and return type 'MyCollection'.
-                //         MyCollection y = [1, 2, 3];
-                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1, 2, 3]").WithArguments("Create", "object", "MyCollection").WithLocation(7, 26));
-        }
-
-        [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
-        public void CollectionBuilder_UnexpectedSignature_08(bool useCompilationReference)
+        public void CollectionBuilder_UnexpectedSignature_FewerTypeParameters(bool useCompilationReference)
         {
             string sourceA = """
                 using System;

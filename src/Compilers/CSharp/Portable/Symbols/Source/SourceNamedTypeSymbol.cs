@@ -1160,7 +1160,7 @@ next:;
                 var data = attribute.DecodeCollectionBuilderAttribute();
                 arguments.GetOrCreateData<TypeWellKnownAttributeData>().CollectionBuilder = data;
 
-                if (data.BuilderType is not NamedTypeSymbol { TypeKind: TypeKind.Class or TypeKind.Struct, IsGenericType: false })
+                if (!IsValidCollectionBuilderType(data.BuilderType))
                 {
                     diagnostics.Add(ErrorCode.ERR_CollectionBuilderAttributeInvalidType, arguments.AttributeSyntaxOpt.Name.Location);
                 }
@@ -1195,6 +1195,11 @@ next:;
                     attribute.DecodeSecurityAttribute<TypeWellKnownAttributeData>(this, compilation, ref arguments);
                 }
             }
+        }
+
+        internal static bool IsValidCollectionBuilderType(TypeSymbol? builderType)
+        {
+            return builderType is NamedTypeSymbol { TypeKind: TypeKind.Class or TypeKind.Struct, IsGenericType: false };
         }
 #nullable disable
 
