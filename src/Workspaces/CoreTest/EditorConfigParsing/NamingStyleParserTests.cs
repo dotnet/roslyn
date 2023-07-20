@@ -410,6 +410,7 @@ dotnet_style_require_accessibility_modifiers = for_non_interface_members:silent
 
 # Expression-level preferences
 dotnet_style_coalesce_expression = true:suggestion
+dotnet_style_prefer_collection_expression_for_array = true:suggestion
 dotnet_style_collection_initializer = true:suggestion
 dotnet_style_explicit_tuple_names = true:suggestion
 dotnet_style_null_propagation = true:suggestion
@@ -782,6 +783,7 @@ dotnet_style_predefined_type_for_member_access = true:suggestion
 
 # Suggest more modern language features when available
 dotnet_style_object_initializer = true:suggestion
+dotnet_style_prefer_collection_expression_for_array = true:suggestion
 dotnet_style_collection_initializer = true:suggestion
 dotnet_style_coalesce_expression = true:suggestion
 dotnet_style_null_propagation = true:suggestion
