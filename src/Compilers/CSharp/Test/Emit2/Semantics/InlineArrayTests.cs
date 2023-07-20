@@ -17728,6 +17728,259 @@ struct Buffer
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
+        public void ElementPointer_01()
+        {
+            var src = @"
+unsafe class Program
+{
+    static void Main()
+    {
+        Buffer10<int> b = default;
+        b[0] = 1;
+
+        int* p1 = &b[0];
+        (*p1)++;
+        System.Console.Write(b[0]);
+
+        Buffer10<int>* p2 = &b;
+    }
+}
+" + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            CompileAndVerify(comp, expectedOutput: "2", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void ElementPointer_02()
+        {
+            var src = @"
+unsafe class Program
+{
+    static void Main()
+    {
+        Test(default);
+    }
+
+    static void Test(Buffer10<int> b)
+    {
+        b[0] = 1;
+
+        int* p1 = &b[0];
+        (*p1)++;
+        System.Console.Write(b[0]);
+
+        Buffer10<int>* p2 = &b;
+    }
+}
+" + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            CompileAndVerify(comp, expectedOutput: "2", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ElementPointer_03()
+        {
+            var src = @"
+unsafe class Program
+{
+    static void Main()
+    {
+        Buffer10<int> b = default;
+        Test(ref b);
+    }
+
+    static void Test(ref Buffer10<int> b)
+    {
+        b[0] = 1;
+
+        int* p1 = &b[0];
+        (*p1)++;
+        System.Console.Write(b[0]);
+
+        Buffer10<int>* p2 = &b;
+    }
+}
+" + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            comp.VerifyDiagnostics(
+                // (14,19): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //         int* p1 = &b[0];
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&b[0]").WithLocation(14, 19),
+                // (18,29): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //         Buffer10<int>* p2 = &b;
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&b").WithLocation(18, 29)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void ElementPointer_04()
+        {
+            var src = @"
+unsafe class Program
+{
+    static void Main()
+    {
+        Buffer10<int> b = default;
+        Test(ref b);
+    }
+
+    static void Test(ref Buffer10<int> b)
+    {
+        b[0] = 1;
+
+        fixed (int* p1 = &b[0])
+        {
+            (*p1)++;
+        }
+
+        System.Console.Write(b[0]);
+
+        fixed (Buffer10<int>* p2 = &b) {}
+    }
+}
+" + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            CompileAndVerify(comp, expectedOutput: "2", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ElementPointer_05()
+        {
+            var src = @"
+unsafe class Program
+{
+    static void Main()
+    {
+        Buffer10<int> b = default;
+        Test(b);
+    }
+
+    static void Test(Buffer10<int> b)
+    {
+        b[0] = 1;
+
+        fixed (int* p1 = &b[0])
+        {
+            (*p1)++;
+        }
+
+        System.Console.Write(b[0]);
+
+        fixed (Buffer10<int>* p2 = &b) {}
+    }
+}
+" + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            comp.VerifyDiagnostics(
+                // (14,26): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                //         fixed (int* p1 = &b[0])
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&b[0]").WithLocation(14, 26),
+                // (21,36): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                //         fixed (Buffer10<int>* p2 = &b) {}
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&b").WithLocation(21, 36)
+                );
+        }
+
+        [Fact]
+        public void ElementPointer_06()
+        {
+            var src = @"
+unsafe class Program
+{
+    static void Main()
+    {
+        fixed (int* p1 = &GetBuffer()[0])
+        {
+            (*p1)++;
+        }
+
+        int* p2 = &GetBuffer()[0];
+    }
+
+    static Buffer10<int> GetBuffer() => default;
+}
+" + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            comp.VerifyDiagnostics(
+                // (6,27): error CS0211: Cannot take the address of the given expression
+                //         fixed (int* p1 = &GetBuffer()[0])
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "GetBuffer()[0]").WithLocation(6, 27),
+                // (11,20): error CS0211: Cannot take the address of the given expression
+                //         int* p2 = &GetBuffer()[0];
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "GetBuffer()[0]").WithLocation(11, 20)
+                );
+        }
+
+        [Fact]
+        public void ElementPointer_07()
+        {
+            var src = @"
+unsafe class Program
+{
+    static void Main()
+    {
+        Buffer10<int> b = default;
+
+        fixed (void* p1 = &b[..])
+        {
+        }
+
+        void* p2 = &b[..];
+    }
+}
+" + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            comp.VerifyDiagnostics(
+                // (8,28): error CS0211: Cannot take the address of the given expression
+                //         fixed (void* p1 = &b[..])
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "b[..]").WithLocation(8, 28),
+                // (12,21): error CS0211: Cannot take the address of the given expression
+                //         void* p2 = &b[..];
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "b[..]").WithLocation(12, 21)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void ElementPointer_08()
+        {
+            var src = @"
+unsafe class Program
+{
+    static void Main()
+    {
+        S s = new S(1);
+
+        int* p1 = &s.b[0];
+        (*p1)++;
+        System.Console.Write(s.b[0]);
+
+        Buffer10<int>* p2 = &s.b;
+    }
+}
+
+struct S
+{
+    public readonly Buffer10<int> b;
+
+    public S(int x)
+    {
+        b[0] = x;
+    }
+}
+" + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            CompileAndVerify(comp, expectedOutput: "2", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Foreach_Variable_01()
         {
             var src = @"

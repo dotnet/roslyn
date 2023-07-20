@@ -6789,17 +6789,17 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureVarianceSafetyForStaticInterfaceMembers" xml:space="preserve">
     <value>variance safety for static interface members</value>
   </data>
-  <data name="IDS_FeatureCollectionLiterals" xml:space="preserve">
-    <value>collection literals</value>
+  <data name="IDS_FeatureCollectionExpressions" xml:space="preserve">
+    <value>collection expressions</value>
   </data>
-  <data name="ERR_CollectionLiteralTargetTypeNotConstructible" xml:space="preserve">
-    <value>Cannot initialize type '{0}' with a collection literal because the type is not constructible.</value>
+  <data name="ERR_CollectionExpressionTargetTypeNotConstructible" xml:space="preserve">
+    <value>Cannot initialize type '{0}' with a collection expression because the type is not constructible.</value>
   </data>
-  <data name="ERR_ExpressionTreeContainsCollectionLiteral" xml:space="preserve">
-    <value>An expression tree may not contain a collection literal.</value>
+  <data name="ERR_ExpressionTreeContainsCollectionExpression" xml:space="preserve">
+    <value>An expression tree may not contain a collection expression.</value>
   </data>
-  <data name="ERR_CollectionLiteralNoTargetType" xml:space="preserve">
-    <value>There is no target type for the collection literal.</value>
+  <data name="ERR_CollectionExpressionNoTargetType" xml:space="preserve">
+    <value>There is no target type for the collection expression.</value>
   </data>
   <data name="ERR_CollectionBuilderAttributeMethodNotFound" xml:space="preserve">
     <value>Could not find an accessible '{0}' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</value>
