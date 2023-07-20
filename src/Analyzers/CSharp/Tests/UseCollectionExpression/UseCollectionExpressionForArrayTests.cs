@@ -787,4 +787,324 @@ public class UseCollectionExpressionForArray
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestTargetTypedInitializer1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    void M(int[] x, bool b)
+                    {
+                        var c = new int[][] { [|{|] 1, 2, 3 } };
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(int[] x, bool b)
+                    {
+                        var c = new int[][] { [1, 2, 3] };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestTargetTypedInitializer2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    void M(int[] x, bool b)
+                    {
+                        var c = new[] { [|[|new|][]|] { 1, 2, 3 }, x };
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(int[] x, bool b)
+                    {
+                        var c = new[] { [1, 2, 3], x };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestTargetTypedInitializer3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    void M(int[] x, bool b)
+                    {
+                        var c = new[] { x, [|[|new|][]|] { 1, 2, 3 } };
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(int[] x, bool b)
+                    {
+                        var c = new[] { x, [1, 2, 3] };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestTargetTypedInitializer4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    void M(int[] x, bool b)
+                    {
+                        var c = new[] { new[] { 1, 2, 3 } };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestTargetTypedInitializer5()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    void M(int[] x, bool b)
+                    {
+                        int[][] c = new[] { new[] { 1, 2, 3 } };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestTargetTypedArgument1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    void M()
+                    {
+                        X([|[|new|] int[]|] { 1, 2, 3 });
+                    }
+
+                    void X(int[] x) { }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M()
+                    {
+                        X([1, 2, 3]);
+                    }
+
+                    void X(int[] x) { }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestTargetTypedAttributeArgument1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                [X([|[|new|] int[]|] { 1, 2, 3 })]
+                class C
+                {
+                }
+
+                public class XAttribute : System.Attribute
+                {
+                    public XAttribute(int[] values) { }
+                }
+                """,
+            FixedCode = """
+                [X([1, 2, 3])]
+                class C
+                {
+                }
+                
+                public class XAttribute : System.Attribute
+                {
+                    public XAttribute(int[] values) { }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestTargetTypedReturn1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] M()
+                    {
+                        return new int[] { 1, 2, 3 };
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] M()
+                    {
+                        return [1, 2, 3];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestAssignment1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    void M(int[] x)
+                    {
+                        x = [|[|new|] int[]|] { 1, 2, 3 };
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(int[] x)
+                    {
+                        x = [1, 2, 3];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestCoalesce1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    void M(int[]? x)
+                    {
+                        var y = x ?? [|[|new|] int[]|] { 1, 2, 3 };
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(int[]? x)
+                    {
+                        var y = x ?? [1, 2, 3];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLinqLet1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Linq;
+
+                class C
+                {
+                    void M(int[] x)
+                    {
+                        var y = from a in x
+                                let int[] b = [|[|new|] int[]|] { 1, 2, 3 }
+                                select b;
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Linq;
+                
+                class C
+                {
+                    void M(int[] x)
+                    {
+                        var y = from a in x
+                                let int[] b = [1, 2, 3]
+                                select b;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLinqLet2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Linq;
+
+                class C
+                {
+                    void M(int[] x)
+                    {
+                        var y = from a in x
+                                let b = [|[|new|] int[]|] { 1, 2, 3 }
+                                select b;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
 }

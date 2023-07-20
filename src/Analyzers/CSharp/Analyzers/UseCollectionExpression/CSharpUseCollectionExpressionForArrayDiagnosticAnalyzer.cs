@@ -72,14 +72,16 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
         var parent = topExpression.Parent;
         return parent switch
         {
-            EqualsValueClauseSyntax equalsValue => IsInTargetTypedEqualsValueClause(equalsValue, topExpression),
-            CastExpressionSyntax castExpression => IsInTargetTypedCastExpression(castExpression, topExpression),
+            EqualsValueClauseSyntax equalsValue => IsInTargetTypedEqualsValueClause(equalsValue),
+            CastExpressionSyntax castExpression => IsInTargetTypedCastExpression(castExpression),
             // a ? [1, 2, 3] : ...  is target typed if either the other side is *not* a collection,
             // or the entire ternary is target typed itself.
             ConditionalExpressionSyntax conditionalExpression => IsInTargetTypedConditionalExpression(conditionalExpression, topExpression),
             // Similar rules for switches.
-            SwitchExpressionArmSyntax switchExpressionArm => IsInTargetTypedSwitchExpressionArm(switchExpressionArm, topExpression),
-            InitializerExpressionSyntax initializer => IsInTargetTypedInitializerExpression(initializer, topExpression),
+            SwitchExpressionArmSyntax switchExpressionArm => IsInTargetTypedSwitchExpressionArm(switchExpressionArm),
+            InitializerExpressionSyntax initializerExpression => IsInTargetTypedInitializerExpression(initializerExpression, topExpression),
+            AssignmentExpressionSyntax assignmentExpression => IsInTargetTypedAssignmentExpression(assignmentExpression, topExpression),
+            BinaryExpressionSyntax binaryExpression => IsInTargetTypedBinaryExpression(binaryExpression, topExpression),
             ArgumentSyntax => true,
             ReturnStatementSyntax => true,
             _ => false,
@@ -88,11 +90,11 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
         bool HasType(ExpressionSyntax expression)
             => semanticModel.GetTypeInfo(expression, cancellationToken).Type != null;
 
-        static bool IsInTargetTypedEqualsValueClause(EqualsValueClauseSyntax equalsValue, ExpressionSyntax expression)
+        static bool IsInTargetTypedEqualsValueClause(EqualsValueClauseSyntax equalsValue)
             // If we're after an `x = ...` and it's not `var x`, this is target typed.
             => equalsValue.Parent is not VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Type.IsVar: true } };
 
-        static bool IsInTargetTypedCastExpression(CastExpressionSyntax castExpression, ExpressionSyntax expression)
+        static bool IsInTargetTypedCastExpression(CastExpressionSyntax castExpression)
             // (X[])[1, 2, 3] is target typed.  `(X)[1, 2, 3]` is currently not (because it looks like indexing into an expr).
             => castExpression.Type is not IdentifierNameSyntax;
 
@@ -106,7 +108,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
                 return false;
         }
 
-        bool IsInTargetTypedSwitchExpressionArm(SwitchExpressionArmSyntax switchExpressionArm, ExpressionSyntax expression)
+        bool IsInTargetTypedSwitchExpressionArm(SwitchExpressionArmSyntax switchExpressionArm)
         {
             var switchExpression = (SwitchExpressionSyntax)switchExpressionArm.GetRequiredParent();
 
@@ -146,6 +148,16 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
                 return true;
 
             return false;
+        }
+
+        bool IsInTargetTypedAssignmentExpression(AssignmentExpressionSyntax assignmentExpression, ExpressionSyntax expression)
+        {
+            return expression == assignmentExpression.Right && HasType(assignmentExpression.Left);
+        }
+
+        bool IsInTargetTypedBinaryExpression(BinaryExpressionSyntax binaryExpression, ExpressionSyntax expression)
+        {
+            return binaryExpression.Kind() == SyntaxKind.CoalesceExpression && binaryExpression.Right == expression && HasType(binaryExpression.Left);
         }
     }
 
