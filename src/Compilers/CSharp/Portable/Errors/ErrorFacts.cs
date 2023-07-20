@@ -537,6 +537,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor:
                 case ErrorCode.WRN_CapturedPrimaryConstructorParameterInFieldInitializer:
                 case ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase:
+                case ErrorCode.WRN_InlineArrayIndexerNotUsed:
+                case ErrorCode.WRN_InlineArraySliceNotUsed:
+                case ErrorCode.WRN_InlineArrayConversionOperatorNotUsed:
                     return 1;
                 default:
                     return 0;
@@ -2363,6 +2366,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_CollectionLiteralNoTargetType:
                 case ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase:
                 case ErrorCode.ERR_InlineArrayUnsupportedElementFieldModifier:
+                case ErrorCode.WRN_InlineArrayIndexerNotUsed:
+                case ErrorCode.WRN_InlineArraySliceNotUsed:
+                case ErrorCode.WRN_InlineArrayConversionOperatorNotUsed:
                 case ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound:
                 case ErrorCode.ERR_CollectionBuilderNoElementType:
                 case ErrorCode.ERR_CollectionBuilderAttributeInvalidType:

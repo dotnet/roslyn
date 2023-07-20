@@ -2243,10 +2243,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase = 9179,
 
         ERR_InlineArrayUnsupportedElementFieldModifier = 9180,
-        ERR_CollectionBuilderAttributeMethodNotFound = 9181,
-        ERR_CollectionBuilderNoElementType = 9182,
-        ERR_CollectionBuilderAttributeInvalidType = 9183,
-        ERR_CollectionBuilderAttributeInvalidMethodName = 9184,
+        WRN_InlineArrayIndexerNotUsed = 9181,
+        WRN_InlineArraySliceNotUsed = 9182,
+        WRN_InlineArrayConversionOperatorNotUsed = 9183,
+        ERR_CollectionBuilderNoElementType = 9184,
+        ERR_CollectionBuilderAttributeInvalidType = 9185,
+        ERR_CollectionBuilderAttributeInvalidMethodName = 9186,
+        ERR_CollectionBuilderAttributeMethodNotFound = 9187,
 
         #endregion
 
