@@ -1092,6 +1092,11 @@
         <target state="translated">Предпочитать строковые литералы UTF-8</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_collection_expression_for_array">
+        <source>Prefer collection expression for array</source>
+        <target state="new">Prefer collection expression for array</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
         <source>Prefer compound assignments</source>
         <target state="translated">Предпочитать составные назначения</target>

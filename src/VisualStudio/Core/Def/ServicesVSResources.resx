@@ -2022,4 +2022,7 @@ Additional information: {1}</value>
   <data name="Prefer_primary_constructors" xml:space="preserve">
     <value>Prefer primary constructors</value>
   </data>
+  <data name="Prefer_collection_expression_for_array" xml:space="preserve">
+    <value>Prefer collection expression for array</value>
+  </data>
 </root>
