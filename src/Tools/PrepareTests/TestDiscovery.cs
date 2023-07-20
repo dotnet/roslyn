@@ -10,11 +10,12 @@ using System.Linq;
 using System.IO.Pipes;
 using System.Threading.Tasks;
 using System.Threading;
+using RunTests;
 
 namespace PrepareTests;
 internal class TestDiscovery
 {
-    public static bool RunDiscovery(string repoRootDirectory, string dotnetPath, bool isUnix)
+    public static async Task<bool> RunDiscovery(string repoRootDirectory, string dotnetPath, bool isUnix)
     {
         var binDirectory = Path.Combine(repoRootDirectory, "artifacts", "bin");
         var assemblies = GetAssemblies(binDirectory, isUnix);
@@ -23,21 +24,23 @@ internal class TestDiscovery
 
         Console.WriteLine($"Found {assemblies.Count} test assemblies");
 
-        var success = true;
         var stopwatch = new Stopwatch();
         stopwatch.Start();
-        Parallel.ForEach(assemblies, assembly =>
+
+        var list = new List<Task<bool>>();
+        foreach (var assemblyPath in assemblies)
         {
-            var workerPath = assembly.Contains("net472")
+            var workerPath = assemblyPath.Contains("net472")
                 ? dotnetFrameworkWorker
                 : dotnetCoreWorker;
+            list.Add(RunWorker(dotnetPath, workerPath, assemblyPath));
+        }
 
-            success &= RunWorker(dotnetPath, workerPath, assembly);
-        });
+        await Task.WhenAll(list).ConfigureAwait(false);
         stopwatch.Stop();
 
         Console.WriteLine($"Discovered tests in {stopwatch.Elapsed}");
-        return success;
+        return list.All(x => x.Result);
     }
 
     static (string dotnetCoreWorker, string dotnetFrameworkWorker) GetWorkers(string binDirectory)
@@ -48,54 +51,28 @@ internal class TestDiscovery
                 Path.Combine(testDiscoveryWorkerFolder, configuration, "net472", "TestDiscoveryWorker.exe"));
     }
 
-    static bool RunWorker(string dotnetPath, string pathToWorker, string pathToAssembly)
+    static async Task<bool> RunWorker(string dotnetPath, string pathToWorker, string pathToAssembly)
     {
-        var success = true;
-        var pipeClient = new Process();
         var arguments = new List<string>();
+        var startInfo = new ProcessStartInfo();
         if (pathToWorker.EndsWith("dll"))
         {
             arguments.Add(pathToWorker);
-            pipeClient.StartInfo.FileName = dotnetPath;
+            startInfo.FileName = dotnetPath;
         }
         else
         {
-            pipeClient.StartInfo.FileName = pathToWorker;
+            startInfo.FileName = pathToWorker;
         }
 
-        using (var pipeServer = new AnonymousPipeServerStream(PipeDirection.Out, HandleInheritability.Inheritable))
-        {
-            // Pass the client process a handle to the server.
-            arguments.Add(pipeServer.GetClientHandleAsString());
-            pipeClient.StartInfo.Arguments = string.Join(" ", arguments);
-            pipeClient.StartInfo.UseShellExecute = false;
-            pipeClient.Start();
+        arguments.Add(pathToAssembly);
+        startInfo.Arguments = string.Join(" ", arguments);
+        startInfo.UseShellExecute = false;
 
-            pipeServer.DisposeLocalCopyOfClientHandle();
+        var result = ProcessRunner.CreateProcess(startInfo);
+        await result.Result;
 
-            try
-            {
-                // Read user input and send that to the client process.
-                using var sw = new StreamWriter(pipeServer);
-                sw.AutoFlush = true;
-                // Send a 'sync message' and wait for client to receive it.
-                sw.WriteLine("ASSEMBLY");
-                // Send the console input to the client process.
-                sw.WriteLine(pathToAssembly);
-            }
-            // Catch the IOException that is raised if the pipe is broken
-            // or disconnected.
-            catch (Exception e)
-            {
-                Console.Error.WriteLine($"Error: {e.Message}");
-                success = false;
-            }
-        }
-
-        pipeClient.WaitForExit();
-        success &= pipeClient.ExitCode == 0;
-        pipeClient.Close();
-        return success;
+        return result.Process.ExitCode == 0;
     }
 
     private static List<string> GetAssemblies(string binDirectory, bool isUnix)

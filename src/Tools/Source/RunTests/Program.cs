@@ -69,15 +69,9 @@ namespace RunTests
                     DisableRegistryDumpCollection();
                 };
 
-                int result;
-                if (options.Timeout is { } timeout)
-                {
-                    result = await RunCoreAsync(options, cts.Token);
-                }
-                else
-                {
-                    result = await RunAsync(options, cts.Token);
-                }
+                var result = options.Timeout is { } timeout
+                    ? await RunCoreAsync(options, timeout, cts.Token)
+                    : await RunAsync(options, cts.Token);
 
                 CheckTotalDumpFilesSize();
                 return result;
@@ -96,11 +90,11 @@ namespace RunTests
             }
         }
 
-        private static async Task<int> RunCoreAsync(Options options, CancellationToken cancellationToken)
+        private static async Task<int> RunCoreAsync(Options options, TimeSpan timeout, CancellationToken cancellationToken)
         {
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             var runTask = RunAsync(options, cts.Token);
-            var timeoutTask = Task.Delay(options.Timeout.Value, cancellationToken);
+            var timeoutTask = Task.Delay(timeout, cancellationToken);
 
             var finishedTask = await Task.WhenAny(timeoutTask, runTask);
             if (finishedTask == timeoutTask)

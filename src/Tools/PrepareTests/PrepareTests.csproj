@@ -9,6 +9,7 @@
     <IsShipping>false</IsShipping>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\Source\RunTests\ProcessRunner.cs" />
     <PackageReference Include="Mono.Options" Version="$(MonoOptionsVersion)" />
   </ItemGroup>
 </Project>
