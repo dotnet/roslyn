@@ -761,7 +761,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasAttribute = targetType.HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName);
             Debug.Assert(hasAttribute);
 
-            TryGetCollectionIterationType(syntax, targetType.OriginalDefinition, out TypeWithAnnotations elementTypeOriginalDefinition);
+            var targetTypeOriginalDefinition = targetType.OriginalDefinition;
+            TryGetCollectionIterationType(syntax, targetTypeOriginalDefinition, out TypeWithAnnotations elementTypeOriginalDefinition);
             if (!elementTypeOriginalDefinition.HasType)
             {
                 diagnostics.Add(ErrorCode.ERR_CollectionBuilderNoElementType, syntax, targetType);
@@ -771,7 +772,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var constructMethod = GetCollectionBuilderMethod(syntax, targetType, elementTypeOriginalDefinition.Type, builderType, methodName, diagnostics);
             if (constructMethod is null)
             {
-                diagnostics.Add(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, syntax, methodName ?? "");
+                diagnostics.Add(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, syntax, methodName ?? "", elementTypeOriginalDefinition, targetTypeOriginalDefinition);
                 return BindCollectionLiteralForErrorRecovery(node, targetType, diagnostics);
             }
 
