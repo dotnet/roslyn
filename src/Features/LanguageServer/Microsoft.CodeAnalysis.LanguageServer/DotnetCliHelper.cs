@@ -4,8 +4,6 @@
 
 using System.Composition;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.Extensions.Logging;
@@ -17,7 +15,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 internal sealed class DotnetCliHelper
 {
     internal const string DotnetRootEnvVar = "DOTNET_ROOT";
-    internal const string DotnetRootUserEnvVar = "DOTNET_ROOT_USER";
 
     private readonly ILogger _logger;
     private readonly Lazy<string> _dotnetExecutablePath;
@@ -28,47 +25,8 @@ internal sealed class DotnetCliHelper
     public DotnetCliHelper(ILoggerFactory loggerFactory)
     {
         _logger = loggerFactory.CreateLogger<DotnetCliHelper>();
-        _dotnetExecutablePath = new Lazy<string>(() => GetDotnetExecutablePath());
+        _dotnetExecutablePath = new Lazy<string>(() => GetDotNetPathOrDefault());
         _dotnetSdkFolder = new AsyncLazy<string>(GetDotnetSdkFolderFromDotnetExecutableAsync, cacheResult: true);
-    }
-
-    public string GetDotnetExecutablePath()
-    {
-        // The client can modify the value in DOTNET_ROOT to ensure that the server starts on the correct runtime.
-        // It will save the user's DOTNET_ROOT in the DOTNET_ROOT_USER environment variable, so check there instead of using the DOTNET_ROOT.
-        var dotnetPathFromDotnetRootUser = Environment.GetEnvironmentVariable(DotnetRootUserEnvVar);
-        if (TryGetDotnetExecutableFromFolder(dotnetPathFromDotnetRootUser, DotnetRootUserEnvVar, _logger, out var dotnetRootUserExecutable))
-        {
-            return dotnetRootUserExecutable;
-        }
-
-        // Neither an option or env var was provided, find the dotnet path using what is currently on the path.
-        _logger.LogInformation("Using dotnet executable configured on the PATH");
-        return "dotnet";
-
-        static bool TryGetDotnetExecutableFromFolder(string? dotnetFolder, string optionName, ILogger logger, [NotNullWhen(true)] out string? dotnetExecutablePath)
-        {
-            if (string.IsNullOrEmpty(dotnetFolder))
-            {
-                dotnetExecutablePath = null;
-                return false;
-            }
-
-            var dotnetExecutableName = $"dotnet{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ".exe" : string.Empty)}";
-            var executablePath = Path.Combine(dotnetFolder, dotnetExecutableName);
-            if (File.Exists(executablePath))
-            {
-                logger.LogInformation($"Found dotnet executable at {executablePath} using {optionName}");
-                dotnetExecutablePath = executablePath;
-                return true;
-            }
-            else
-            {
-                logger.LogInformation($"The {optionName} option {dotnetFolder} does not contain a valid dotnet executable");
-                dotnetExecutablePath = null;
-                return false;
-            }
-        }
     }
 
     /// <summary>
@@ -94,11 +52,14 @@ internal sealed class DotnetCliHelper
         };
 
         var errorOutput = new StringBuilder();
+        var stdOutput = new StringBuilder();
         process.ErrorDataReceived += (_, e) => errorOutput.AppendLine(e.Data);
+        process.OutputDataReceived += (_, e) => stdOutput.AppendLine(e.Data);
 
         process.BeginOutputReadLine();
         process.BeginErrorReadLine();
         await process.WaitForExitAsync(cancellationToken);
+        _logger.LogDebug(stdOutput.ToString());
         if (process.ExitCode != 0 || dotnetSdkFolderPath == null)
         {
             _logger.LogError(errorOutput.ToString());
@@ -127,10 +88,7 @@ internal sealed class DotnetCliHelper
 
         // If we're relying on the user's configured CLI to run this we need to remove our custom DOTNET_ROOT that we set
         // Wto start the server; otherwise we won't find the users installed sdks.
-        if (_dotnetExecutablePath.Value == "dotnet")
-        {
-            startInfo.Environment[DotnetRootEnvVar] = GetUserDotnetRoot();
-        }
+        startInfo.Environment.Remove(DotnetRootEnvVar);
 
         if (!shouldLocalizeOutput)
         {
@@ -149,24 +107,44 @@ internal sealed class DotnetCliHelper
         return process;
     }
 
-    /// <summary>
-    /// Since we change DOTNET_ROOT in order to start the process, we need to get the original value
-    /// whenever we shell out to the CLI or other processes (e.g. vstest console).
-    /// </summary>
-    /// <returns></returns>
-    public static string GetUserDotnetRoot()
-    {
-        // If the user had a valid dotnet root, set it to that, otherwise leave it empty.
-        var dotnetRootUser = Environment.GetEnvironmentVariable("DOTNET_ROOT_USER");
-        var newDotnetRootValue = Path.Exists(dotnetRootUser) ? dotnetRootUser : string.Empty;
-        return newDotnetRootValue;
-    }
-
     public async Task<string> GetVsTestConsolePathAsync(CancellationToken cancellationToken)
     {
         var dotnetSdkFolder = await _dotnetSdkFolder.GetValueAsync(cancellationToken);
         var vstestConsole = Path.Combine(dotnetSdkFolder, "vstest.console.dll");
         Contract.ThrowIfFalse(File.Exists(vstestConsole), $"VSTestConsole was not found at {vstestConsole}");
         return vstestConsole;
+    }
+
+    /// <summary>
+    /// Finds the dotnet executable path from the PATH environment variable.
+    /// Based on https://github.com/dotnet/msbuild/blob/main/src/Utilities/ToolTask.cs#L1259
+    /// We also do not include DOTNET_ROOT here, see https://github.com/dotnet/runtime/issues/88754
+    /// </summary>
+    /// <returns></returns>
+    internal string GetDotNetPathOrDefault()
+    {
+        var (fileName, sep) = PlatformInformation.IsWindows
+            ? ("dotnet.exe", ';')
+            : ("dotnet", ':');
+
+        var path = Environment.GetEnvironmentVariable("PATH") ?? "";
+        foreach (var item in path.Split(sep, StringSplitOptions.RemoveEmptyEntries))
+        {
+            try
+            {
+                var filePath = Path.Combine(item, fileName);
+                if (File.Exists(filePath))
+                {
+                    _logger.LogInformation("Using dotnet executable configured on the PATH");
+                    return filePath;
+                }
+            }
+            catch
+            {
+                // If we can't read a directory for any reason just skip it
+            }
+        }
+
+        return fileName;
     }
 }
