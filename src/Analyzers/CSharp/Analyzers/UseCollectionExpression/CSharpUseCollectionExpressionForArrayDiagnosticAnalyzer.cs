@@ -3,12 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -17,10 +19,14 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
+using static SyntaxFactory;
+
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAnalyzer
     : AbstractBuiltInCodeStyleDiagnosticAnalyzer
 {
+    private static readonly LiteralExpressionSyntax s_nullLiteralExpression = LiteralExpression(SyntaxKind.NullLiteralExpression);
+
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
@@ -176,17 +182,17 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
         if (initializer.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
             return;
 
-        var topmostExpression = initializer.Parent is ExpressionSyntax parentExpression
+        var parent = initializer.GetRequiredParent();
+        var topmostExpression = parent is ExpressionSyntax parentExpression
             ? parentExpression.WalkUpParentheses()
             : initializer.WalkUpParentheses();
 
         if (!IsInTargetTypedLocation(semanticModel, topmostExpression, cancellationToken))
             return;
 
-        if (initializer.Parent is ArrayCreationExpressionSyntax or ImplicitArrayCreationExpressionSyntax)
+        var isConcreteOrImplicitArrayCreation = parent is ArrayCreationExpressionSyntax or ImplicitArrayCreationExpressionSyntax;
+        if (isConcreteOrImplicitArrayCreation)
         {
-            var parent = (ExpressionSyntax)initializer.Parent;
-
             // X[] = new Y[] { 1, 2, 3 }
             //
             // First, we don't change things if X and Y are different.  That could lead to something observable at
@@ -201,7 +207,30 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
 
             if (!typeInfo.Type.Equals(typeInfo.ConvertedType))
                 return;
+        }
+        else if (parent is not EqualsValueClauseSyntax)
+        {
+            return;
+        }
 
+        // Looks good as something to replace.  Now check the semantics of making the replacement to see if there would
+        // any issues.  To keep things simple, all we do is replace the existing expression with the `null` literal.
+        // This is a similarly 'untyped' literal (like a collection-expression is), so it tells us if the new code will
+        // have any issues moving to something untyped.  This will also tell us if we have any ambiguities (because
+        // there are multiple destination types that could accept the collection expression).
+        var speculationAnalyzer = new SpeculationAnalyzer(
+            topmostExpression,
+            s_nullLiteralExpression,
+            semanticModel,
+            cancellationToken,
+            skipVerificationForReplacedNode: true,
+            failOnOverloadResolutionFailuresInOriginalCode: true);
+
+        if (speculationAnalyzer.ReplacementChangesSemantics())
+            return;
+
+        if (isConcreteOrImplicitArrayCreation)
+        {
             var locations = ImmutableArray.Create(initializer.GetLocation());
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 s_descriptor,
@@ -224,8 +253,9 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
                 additionalLocations: locations,
                 additionalUnnecessaryLocations: additionalUnnecessaryLocations));
         }
-        else if (initializer.Parent is EqualsValueClauseSyntax)
+        else
         {
+            Debug.Assert(parent is EqualsValueClauseSyntax);
             // int[] = { 1, 2, 3 };
             //
             // In this case, we always have a target type, so it should always be valid to convert this to a collection expression.

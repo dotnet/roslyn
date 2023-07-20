@@ -932,6 +932,28 @@ public class UseCollectionExpressionForArray
     }
 
     [Fact]
+    public async Task TestTargetTypedArgument2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+                class C
+                {
+                    void M()
+                    {
+                        X(new int[] { 1, 2, 3 });
+                    }
+
+                    void X(int[] x) { }
+                    void X(List<int> x) { }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestTargetTypedAttributeArgument1()
     {
         await new VerifyCS.Test
