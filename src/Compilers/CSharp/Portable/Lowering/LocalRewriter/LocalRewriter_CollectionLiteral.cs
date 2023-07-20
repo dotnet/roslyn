@@ -13,29 +13,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class LocalRewriter
     {
-        public override BoundNode? VisitCollectionLiteralExpression(BoundCollectionLiteralExpression node)
+        public override BoundNode? VisitCollectionExpression(BoundCollectionExpression node)
         {
             Debug.Assert(!_inExpressionLambda);
             Debug.Assert(node.Type is { });
 
-            var collectionTypeKind = ConversionsBase.GetCollectionLiteralTypeKind(_compilation, node.Type, out var elementType);
+            var collectionTypeKind = ConversionsBase.GetCollectionExpressionTypeKind(_compilation, node.Type, out var elementType);
             switch (collectionTypeKind)
             {
-                case CollectionLiteralTypeKind.CollectionInitializer:
-                    return VisitCollectionInitializerCollectionLiteralExpression(node);
-                case CollectionLiteralTypeKind.Array:
-                case CollectionLiteralTypeKind.Span:
-                case CollectionLiteralTypeKind.ReadOnlySpan:
+                case CollectionExpressionTypeKind.CollectionInitializer:
+                    return VisitCollectionInitializerCollectionExpression(node);
+                case CollectionExpressionTypeKind.Array:
+                case CollectionExpressionTypeKind.Span:
+                case CollectionExpressionTypeKind.ReadOnlySpan:
                     Debug.Assert(elementType is { });
-                    return VisitArrayOrSpanCollectionLiteralExpression(node, elementType);
-                case CollectionLiteralTypeKind.ListInterface:
-                    return VisitListInterfaceCollectionLiteralExpression(node);
+                    return VisitArrayOrSpanCollectionExpression(node, elementType);
+                case CollectionExpressionTypeKind.ListInterface:
+                    return VisitListInterfaceCollectionExpression(node);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(collectionTypeKind);
             }
         }
 
-        private BoundExpression VisitArrayOrSpanCollectionLiteralExpression(BoundCollectionLiteralExpression node, TypeSymbol elementType)
+        private BoundExpression VisitArrayOrSpanCollectionExpression(BoundCollectionExpression node, TypeSymbol elementType)
         {
             Debug.Assert(!_inExpressionLambda);
             Debug.Assert(node.Type is { });
@@ -58,14 +58,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var elements = node.Elements;
             BoundExpression array;
 
-            if (elements.Any(i => i is BoundCollectionLiteralSpreadElement))
+            if (elements.Any(i => i is BoundCollectionExpressionSpreadElement))
             {
                 // The array initializer includes at least one spread element, so we'll create an intermediate List<T> instance.
                 // https://github.com/dotnet/roslyn/issues/68785: Avoid intermediate List<T> if all spread elements have Length property.
                 // https://github.com/dotnet/roslyn/issues/68785: Emit Enumerable.TryGetNonEnumeratedCount() and avoid intermediate List<T> at runtime.
                 var listType = _compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(elementType);
                 var listToArray = ((MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray)!).AsMember(listType);
-                var list = VisitCollectionInitializerCollectionLiteralExpression(node);
+                var list = VisitCollectionInitializerCollectionExpression(node);
                 array = _factory.Call(list, listToArray);
             }
             else
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundObjectCreationExpression(syntax, spanConstructor, array);
         }
 
-        private BoundExpression VisitCollectionInitializerCollectionLiteralExpression(BoundCollectionLiteralExpression node)
+        private BoundExpression VisitCollectionInitializerCollectionExpression(BoundCollectionExpression node)
         {
             Debug.Assert(!_inExpressionLambda);
             Debug.Assert(node.Type is { });
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     BoundCollectionElementInitializer collectionInitializer => MakeCollectionInitializer(temp, collectionInitializer),
                     BoundDynamicCollectionElementInitializer dynamicInitializer => MakeDynamicCollectionInitializer(temp, dynamicInitializer),
-                    BoundCollectionLiteralSpreadElement spreadElement => MakeCollectionLiteralSpreadElement(spreadElement),
+                    BoundCollectionExpressionSpreadElement spreadElement => MakeCollectionExpressionSpreadElement(spreadElement),
                     _ => throw ExceptionUtilities.UnexpectedValue(element)
                 };
                 if (rewrittenElement != null)
@@ -144,17 +144,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.Type);
         }
 
-        private BoundExpression VisitListInterfaceCollectionLiteralExpression(BoundCollectionLiteralExpression node)
+        private BoundExpression VisitListInterfaceCollectionExpression(BoundCollectionExpression node)
         {
             Debug.Assert(!_inExpressionLambda);
             Debug.Assert(node.Type is { });
 
             // https://github.com/dotnet/roslyn/issues/68785: Emit [] as Array.Empty<T>() rather than a List<T>.
-            var list = VisitCollectionInitializerCollectionLiteralExpression(node);
+            var list = VisitCollectionInitializerCollectionExpression(node);
             return _factory.Convert(node.Type, list);
         }
 
-        private BoundExpression MakeCollectionLiteralSpreadElement(BoundCollectionLiteralSpreadElement initializer)
+        private BoundExpression MakeCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement initializer)
         {
             var enumeratorInfo = initializer.EnumeratorInfoOpt;
             var addElementPlaceholder = initializer.AddElementPlaceholder;

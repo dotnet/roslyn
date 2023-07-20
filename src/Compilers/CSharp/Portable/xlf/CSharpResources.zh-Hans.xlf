@@ -397,14 +397,14 @@
         <target state="translated">“{0}”不实现接口成员“{1}”。“{2}”无法实现“{1}”。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CollectionLiteralNoTargetType">
-        <source>There is no target type for the collection literal.</source>
-        <target state="new">There is no target type for the collection literal.</target>
+      <trans-unit id="ERR_CollectionExpressionNoTargetType">
+        <source>There is no target type for the collection expression.</source>
+        <target state="new">There is no target type for the collection expression.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CollectionLiteralTargetTypeNotConstructible">
-        <source>Cannot initialize type '{0}' with a collection literal because the type is not constructible.</source>
-        <target state="new">Cannot initialize type '{0}' with a collection literal because the type is not constructible.</target>
+      <trans-unit id="ERR_CollectionExpressionTargetTypeNotConstructible">
+        <source>Cannot initialize type '{0}' with a collection expression because the type is not constructible.</source>
+        <target state="new">Cannot initialize type '{0}' with a collection expression because the type is not constructible.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
@@ -592,9 +592,9 @@
         <target state="translated">表达式树可能不包含静态虚拟或抽象接口成员的访问权限</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExpressionTreeContainsCollectionLiteral">
-        <source>An expression tree may not contain a collection literal.</source>
-        <target state="new">An expression tree may not contain a collection literal.</target>
+      <trans-unit id="ERR_ExpressionTreeContainsCollectionExpression">
+        <source>An expression tree may not contain a collection expression.</source>
+        <target state="new">An expression tree may not contain a collection expression.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -2052,9 +2052,9 @@
         <target state="translated">选中的用户定义运算符</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureCollectionLiterals">
-        <source>collection literals</source>
-        <target state="new">collection literals</target>
+      <trans-unit id="IDS_FeatureCollectionExpressions">
+        <source>collection expressions</source>
+        <target state="new">collection expressions</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">

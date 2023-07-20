@@ -8,14 +8,14 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
-public class CollectionLiteralParsingTests : ParsingTests
+public class CollectionExpressionParsingTests : ParsingTests
 {
-    public CollectionLiteralParsingTests(ITestOutputHelper output) : base(output) { }
+    public CollectionExpressionParsingTests(ITestOutputHelper output) : base(output) { }
 
     [Theory]
     [InlineData(LanguageVersion.CSharp11)]
     [InlineData(LanguageVersion.Preview)]
-    public void CollectionLiteralParsingDoesNotProduceLangVersionError(LanguageVersion languageVersion)
+    public void CollectionExpressionParsingDoesNotProduceLangVersionError(LanguageVersion languageVersion)
     {
         UsingExpression("[A, B]", TestOptions.Regular.WithLanguageVersion(languageVersion));
 
@@ -5360,7 +5360,7 @@ public class CollectionLiteralParsingTests : ParsingTests
     public void CastVersusIndexAmbiguity24_D()
     {
         // No errors here syntactically.  But user will likely get one semantically.  Specifically, this
-        // could look like a case of a collection literal with a spread element in it, or as indexing into a
+        // could look like a case of a collection expression with a spread element in it, or as indexing into a
         // parenthesized expression with a range expression.
         //
         // We may want a dedicated error to tell them to parenthesize the brackets if they're trying to cast this as a list.
@@ -5698,7 +5698,7 @@ public class CollectionLiteralParsingTests : ParsingTests
     }
 
     [Fact]
-    public void InvokedCollectionLiteral1()
+    public void InvokedCollectionExpression1()
     {
         UsingExpression("[A, B]()");
 
@@ -5734,7 +5734,7 @@ public class CollectionLiteralParsingTests : ParsingTests
     }
 
     [Fact]
-    public void InvokedCollectionLiteral2()
+    public void InvokedCollectionExpression2()
     {
         UsingExpression("++[A, B]()");
 
