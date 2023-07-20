@@ -250,6 +250,7 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_style_allow_multiple_blank_lines_experimental", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.AllowMultipleBlankLines")},
         {"dotnet_style_allow_statement_immediately_after_block_experimental", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.AllowStatementImmediatelyAfterBlock")},
         {"dotnet_style_coalesce_expression", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.PreferCoalesceExpression")},
+        {"dotnet_style_collection_expression_for_array", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.PreferCollectionExpressionForArray")},
         {"dotnet_style_collection_initializer", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.PreferCollectionInitializer")},
         {"dotnet_style_explicit_tuple_names", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.PreferExplicitTupleNames")},
         {"dotnet_style_namespace_match_folder", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.PreferNamespaceAndFolderMatchStructure")},
