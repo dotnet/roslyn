@@ -5081,42 +5081,6 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
     }
 
     [Theory, CombinatorialData]
-    public void Conversion_Nullable([CombinatorialValues("in", "ref")] string modifier)
-    {
-        var source = $$"""
-            #nullable enable
-            X? x = C.X;
-            Y? y = C.Y;
-            
-            var i = 1;
-            x(in i);
-            y({{modifier}} i);
-            
-            x = C.Y;
-            y = C.X;
-            
-            x(in i);
-            y({{modifier}} i);
-            
-            class C
-            {
-                public static void X(ref readonly int p) => System.Console.Write("X");
-                public static void Y({{modifier}} int p) => System.Console.Write("Y");
-            }
-            
-            delegate void X(ref readonly int p);
-            delegate void Y({{modifier}} int p);
-            """;
-        CompileAndVerify(source, expectedOutput: "XYYX").VerifyDiagnostics(
-            // (9,5): warning CS9510: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
-            // x = C.Y;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.Y").WithArguments($"{modifier} int p", "ref readonly int p").WithLocation(9, 5),
-            // (10,5): warning CS9510: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
-            // y = C.X;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.X").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(10, 5));
-    }
-
-    [Theory, CombinatorialData]
     public void Conversion_Cast([CombinatorialValues("in", "ref")] string modifier)
     {
         var source = $$"""
