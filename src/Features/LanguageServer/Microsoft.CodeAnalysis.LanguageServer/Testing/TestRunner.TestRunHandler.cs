@@ -45,33 +45,32 @@ internal partial class TestRunner
             // Report the last set of tests.
             var stats = CreateReport(testRunCompleteArgs.TestRunStatistics);
             var message = CreateTestCaseReportMessage(lastChunkArgs);
-            var partialResult = new RunTestsPartialResult(StageName, message ?? string.Empty, stats);
+            var partialResult = new RunTestsPartialResult(LanguageServerResources.Running_tests, message ?? string.Empty, stats);
             _progress.Report(partialResult);
 
             // Report any errors running the tests
             if (testRunCompleteArgs.Error != null)
             {
-                _progress.Report(partialResult with { Message = $"Test run error: {testRunCompleteArgs.Error}" });
-
+                _progress.Report(partialResult with { Message = string.Format(LanguageServerResources.Test_run_error, testRunCompleteArgs.Error) });
                 return;
             }
 
-            var state = "Passed";
+            var state = LanguageServerResources.Passed;
             if (testRunCompleteArgs.IsCanceled)
             {
-                state = "Canceled";
+                state = LanguageServerResources.Canceled;
             }
             else if (testRunCompleteArgs.IsAborted)
             {
-                state = "Aborted";
+                state = LanguageServerResources.Aborted;
             }
             else if (stats?.TestsFailed != 0)
             {
-                state = "Failed";
+                state = LanguageServerResources.Failed;
             }
 
             // Report the test summary (similar to the dotnet test output).
-            message = @$"==== Summary ===={Environment.NewLine}{state}!  - Failed:    {stats?.TestsFailed}, Passed:    {stats?.TestsPassed}, Skipped:    {stats?.TestsSkipped}, Total:    {stats?.TotalTests}, Duration: {testRunCompleteArgs.ElapsedTimeInRunningTests:g}{Environment.NewLine}";
+            message = @$"==== {LanguageServerResources.Summary} ===={Environment.NewLine}{state}  - {string.Format(LanguageServerResources.Summary_count, stats?.TestsFailed, stats?.TestsPassed, stats?.TestsSkipped, stats?.TotalTests, testRunCompleteArgs.ElapsedTimeInRunningTests.ToString("g"))}{Environment.NewLine}";
 
             _progress.Report(partialResult with { Message = message });
         }
@@ -83,7 +82,7 @@ internal partial class TestRunner
             {
                 var stats = CreateReport(testRunChangedArgs.TestRunStatistics);
                 var message = CreateTestCaseReportMessage(testRunChangedArgs);
-                _progress.Report(new RunTestsPartialResult(StageName, message, stats));
+                _progress.Report(new RunTestsPartialResult(LanguageServerResources.Running_tests, message, stats));
             }
         }
 
@@ -146,13 +145,13 @@ internal partial class TestRunner
 
                 if (!string.IsNullOrWhiteSpace(result.ErrorMessage))
                 {
-                    messageBuilder.AppendLine(IndentString("Message:", 4));
+                    messageBuilder.AppendLine(IndentString($"{LanguageServerResources.Message}:", 4));
                     messageBuilder.AppendLine(IndentString(result.ErrorMessage, 8));
                 }
 
                 if (!string.IsNullOrWhiteSpace(result.ErrorStackTrace))
                 {
-                    messageBuilder.AppendLine(value: IndentString("StackTrace:", 4));
+                    messageBuilder.AppendLine(value: IndentString($"{LanguageServerResources.Stack_Trace}:", 4));
                     messageBuilder.AppendLine(IndentString(result.ErrorStackTrace, 8));
                 }
 

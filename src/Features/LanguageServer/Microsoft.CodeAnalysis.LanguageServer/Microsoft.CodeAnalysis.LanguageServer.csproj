@@ -80,6 +80,21 @@
         <FileWrites Include="@(RoslynVersionFile)" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Update="LanguageServerResources.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>LanguageServerResources.resx</DependentUpon>
+      </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Update="LanguageServerResources.resx">
+        <Generator>ResXFileCodeGenerator</Generator>
+        <LastGenOutput>LanguageServerResources.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+    </ItemGroup>
+
     <Target Name="WriteRoslynVersion" AfterTargets="Build">
         <WriteLinesToFile File="@(RoslynVersionFile)" Lines="$(MicrosoftCodeAnalysisVersion)" Overwrite="true" />
     </Target>

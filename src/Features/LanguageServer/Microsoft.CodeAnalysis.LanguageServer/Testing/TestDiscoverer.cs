@@ -23,10 +23,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Testing;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal partial class TestDiscoverer(ILoggerFactory loggerFactory)
 {
-    /// <summary>
-    /// TODO - localize messages. https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1799066/
-    /// </summary>
-    private const string StageName = "Discovering tests...";
     private readonly ILogger _logger = loggerFactory.CreateLogger<TestDiscoverer>();
 
     /// <summary>
@@ -42,7 +38,7 @@ internal partial class TestDiscoverer(ILoggerFactory loggerFactory)
         VsTestConsoleWrapper vsTestConsoleWrapper,
         CancellationToken cancellationToken)
     {
-        var partialResult = new RunTestsPartialResult(StageName, $"{Environment.NewLine}Starting test discovery", Progress: null);
+        var partialResult = new RunTestsPartialResult(LanguageServerResources.Discovering_tests, $"{Environment.NewLine}{LanguageServerResources.Starting_test_discovery}", Progress: null);
         progress.Report(partialResult);
 
         var testMethodFinder = document.GetRequiredLanguageService<ITestMethodFinder>();
@@ -51,7 +47,7 @@ internal partial class TestDiscoverer(ILoggerFactory loggerFactory)
         var potentialTestMethods = await GetPotentialTestMethodsAsync(range, document, testMethodFinder, cancellationToken);
         if (potentialTestMethods.IsEmpty)
         {
-            progress.Report(partialResult with { Message = "No test methods found in requested range" });
+            progress.Report(partialResult with { Message = LanguageServerResources.No_test_methods_found_in_requested_range });
             return ImmutableArray<TestCase>.Empty;
         }
 
@@ -67,7 +63,7 @@ internal partial class TestDiscoverer(ILoggerFactory loggerFactory)
 
         if (discoveryHandler.IsAborted())
         {
-            progress.Report(partialResult with { Message = "Test discovery aborted" });
+            progress.Report(partialResult with { Message = LanguageServerResources.Test_discovery_aborted });
             return ImmutableArray<TestCase>.Empty;
         }
 
@@ -76,7 +72,7 @@ internal partial class TestDiscoverer(ILoggerFactory loggerFactory)
 
         // Match what we found from vs test to what we found in the document to figure out exactly which tests to run.
         var matchedTests = await MatchDiscoveredTestsToTestsInRangeAsync(testCases, potentialTestMethods, testMethodFinder, document, cancellationToken);
-        progress.Report(partialResult with { Message = $"Found {matchedTests.Length} tests in {elapsed:g}" });
+        progress.Report(partialResult with { Message = string.Format(LanguageServerResources.Found_0_tests_in_1, matchedTests.Length, elapsed.ToString("g")) });
 
         return matchedTests;
 

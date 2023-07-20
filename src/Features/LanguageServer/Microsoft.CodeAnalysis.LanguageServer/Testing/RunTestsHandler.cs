@@ -101,7 +101,7 @@ internal class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer t
         {
             if (buildOutput != null)
             {
-                progress.Report(new RunTestsPartialResult("Building project...", buildOutput, Progress: null));
+                progress.Report(new RunTestsPartialResult(LanguageServerResources.Building_project, buildOutput, Progress: null));
             }
         }
     }
