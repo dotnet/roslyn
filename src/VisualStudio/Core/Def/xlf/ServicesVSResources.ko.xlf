@@ -1092,6 +1092,11 @@
         <target state="translated">UTF-8 문자열 리터럴 선호</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_collection_expression_for_array">
+        <source>Prefer collection expression for array</source>
+        <target state="new">Prefer collection expression for array</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
         <source>Prefer compound assignments</source>
         <target state="translated">복합 대입 선호</target>

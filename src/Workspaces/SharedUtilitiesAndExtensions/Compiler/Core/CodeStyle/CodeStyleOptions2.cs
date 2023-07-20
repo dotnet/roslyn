@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferCollectionExpressionForArray = CreatePerLanguageOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences,
-            "dotnet_style_collection_expression_for_array",
+            "dotnet_style_prefer_collection_expression_for_array",
             IdeCodeStyleOptions.CommonDefaults.PreferCollectionExpressionForArray);
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferSimplifiedBooleanExpressions = CreatePerLanguageOption(
