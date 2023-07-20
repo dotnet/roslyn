@@ -1263,9 +1263,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             SyntaxToken readOnlyOpt = null;
-            if (CurrentToken.Kind == SyntaxKind.ReadOnlyKeyword && refKindOpt is { Kind: SyntaxKind.RefKeyword })
+            if (CurrentToken.Kind == SyntaxKind.ReadOnlyKeyword && refKindOpt is not null)
             {
-                readOnlyOpt = EatToken();
+                if (refKindOpt.Kind != SyntaxKind.RefKeyword)
+                {
+                    // if we encounter `readonly` after `in` or `out`, we place the `readonly` as skipped trivia on the previous keyword
+                    var misplacedToken = AddError(EatToken(), ErrorCode.ERR_RefReadOnlyWrongOrdering);
+                    refKindOpt = AddTrailingSkippedSyntax(refKindOpt, misplacedToken);
+                }
+                else
+                {
+                    readOnlyOpt = EatToken();
+                }
             }
 
             TypeSyntax type = ParseCrefType(typeArgumentsMustBeIdentifiers: false);
