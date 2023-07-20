@@ -29,7 +29,7 @@ internal sealed class TopLevelCodeDeclarationBody(CompilationUnitSyntax unit) : 
     public override ImmutableArray<ISymbol> GetCapturedVariables(SemanticModel model)
         => model.AnalyzeDataFlow(((GlobalStatementSyntax)unit.Members[0]).Statement, GlobalStatements.Last().Statement)!.Captured;
 
-    public override ActiveStatementEnvelope Envelope
+    public override TextSpan Envelope
         => TextSpan.FromBounds(unit.Members[0].SpanStart, GlobalStatements.Last().Span.End);
 
     public override SyntaxNode EncompassingAncestor
@@ -47,7 +47,7 @@ internal sealed class TopLevelCodeDeclarationBody(CompilationUnitSyntax unit) : 
     public override OneOrMany<SyntaxNode> RootNodes
         => OneOrMany.Create(GlobalStatements.ToImmutableArray<SyntaxNode>());
 
-    public override Match<SyntaxNode> ComputeMatch(DeclarationBody newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>>? knownMatches)
+    public override Match<SyntaxNode>? ComputeSingleRootMatch(DeclarationBody newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>>? knownMatches)
         => CSharpEditAndContinueAnalyzer.ComputeBodyMatch(Unit, ((TopLevelCodeDeclarationBody)newBody).Unit, knownMatches);
 
     public override SyntaxNode FindStatementAndPartner(TextSpan span, MemberBody? partnerDeclarationBody, out SyntaxNode? partnerStatement, out int statementPart)
@@ -58,7 +58,7 @@ internal sealed class TopLevelCodeDeclarationBody(CompilationUnitSyntax unit) : 
             out partnerStatement,
             out statementPart);
 
-    public override bool TryMatchActiveStatement(DeclarationBody newBody, SyntaxNode oldStatement, int statementPart, [NotNullWhen(true)] out SyntaxNode? newStatement)
+    public override bool TryMatchActiveStatement(DeclarationBody newBody, SyntaxNode oldStatement, ref int statementPart, [NotNullWhen(true)] out SyntaxNode? newStatement)
     {
         newStatement = null;
         return false;
