@@ -20,24 +20,39 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 {
     internal sealed partial class RenameTrackingTaggerProvider
     {
-        private class RenameTrackingCodeAction(
-            IThreadingContext threadingContext,
-            Document document,
-            string title,
-            IEnumerable<IRefactorNotifyService> refactorNotifyServices,
-            ITextUndoHistoryRegistry undoHistoryRegistry,
-            IGlobalOptionService globalOptions) : CodeAction
+        private class RenameTrackingCodeAction : CodeAction
         {
-            private readonly string _title = title;
-            private readonly IThreadingContext _threadingContext = threadingContext;
-            private readonly Document _document = document;
-            private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices = refactorNotifyServices;
-            private readonly ITextUndoHistoryRegistry _undoHistoryRegistry = undoHistoryRegistry;
-            private readonly IGlobalOptionService _globalOptions = globalOptions;
+            private readonly string _title;
+            private readonly IThreadingContext _threadingContext;
+            private readonly Document _document;
+            private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
+            private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
+            private readonly IGlobalOptionService _globalOptions;
             private RenameTrackingCommitter _renameTrackingCommitter;
 
+            public RenameTrackingCodeAction(
+                IThreadingContext threadingContext,
+                Document document,
+                string title,
+                IEnumerable<IRefactorNotifyService> refactorNotifyServices,
+                ITextUndoHistoryRegistry undoHistoryRegistry,
+                IGlobalOptionService globalOptions)
+            {
+                _threadingContext = threadingContext;
+                _document = document;
+                _title = title;
+                _refactorNotifyServices = refactorNotifyServices;
+                _undoHistoryRegistry = undoHistoryRegistry;
+                _globalOptions = globalOptions;
+
+                // Backdoor that allows this provider to use the high-priority bucket.
+                this.CustomTags = this.CustomTags.Add(CodeAction.CanBeHighPriorityTag);
+            }
+
             public override string Title => _title;
-            internal override CodeActionPriority Priority => CodeActionPriority.High;
+
+            protected sealed override CodeActionPriority ComputePriority()
+                => CodeActionPriority.High;
 
             protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             {

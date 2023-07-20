@@ -38,18 +38,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 
         protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
         {
-            var lockStatement = (LockStatementSyntax)caretTarget;
-            var blockStatement = (BlockSyntax)lockStatement.Statement;
-
-            var triviaSpan = blockStatement.CloseBraceToken.LeadingTrivia.Span;
-            var line = sourceText.Lines.GetLineFromPosition(triviaSpan.Start);
-            // Getting the location at the end of the line before the newline.
-            return line.Span.End;
+            return CSharpSnippetHelpers.GetTargetCaretPositionInBlock<LockStatementSyntax>(
+                caretTarget,
+                static s => (BlockSyntax)s.Statement,
+                sourceText);
         }
 
         protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
         {
-            return СSharpSnippetIndentationHelpers.AddBlockIndentationToDocumentAsync<LockStatementSyntax>(
+            return CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync<LockStatementSyntax>(
                 document,
                 FindSnippetAnnotation,
                 static s => (BlockSyntax)s.Statement,

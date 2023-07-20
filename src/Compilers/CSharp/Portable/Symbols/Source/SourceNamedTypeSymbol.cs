@@ -1754,9 +1754,9 @@ next:;
 
                 if (TryGetPossiblyUnsupportedByLanguageInlineArrayElementField() is FieldSymbol elementField)
                 {
-                    if (elementField.IsRequired)
+                    if (elementField.IsRequired || elementField.IsReadOnly || elementField.IsVolatile || elementField.IsFixedSizeBuffer)
                     {
-                        diagnostics.Add(ErrorCode.ERR_InlineArrayRequiredElementField, elementField.TryGetFirstLocation() ?? GetFirstLocation());
+                        diagnostics.Add(ErrorCode.ERR_InlineArrayUnsupportedElementFieldModifier, elementField.TryGetFirstLocation() ?? GetFirstLocation());
                     }
 
                     if (TryGetInlineArrayElementField() is { TypeWithAnnotations: var elementType })

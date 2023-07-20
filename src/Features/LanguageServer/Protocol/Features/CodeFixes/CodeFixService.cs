@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // For CodeActionPriorityRequest.High, we only run compiler analyzer, which always has fixable diagnostics,
             // so we can return a null predicate here to include all diagnostics.
 
-            if (!(priorityProvider.Priority is CodeActionRequestPriority.Normal or CodeActionRequestPriority.Low))
+            if (!(priorityProvider.Priority is CodeActionRequestPriority.Default or CodeActionRequestPriority.Low))
                 return null;
 
             var hasWorkspaceFixers = TryGetWorkspaceFixersMap(document, out var workspaceFixersMap);
@@ -100,12 +100,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public async Task<FirstFixResult> GetMostSevereFixAsync(
             TextDocument document, TextSpan range, ICodeActionRequestPriorityProvider priorityProvider, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
-            using var _ = TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeFix_Summary, $"Pri{(int)priorityProvider.Priority}.{nameof(GetMostSevereFixAsync)}");
+            using var _ = TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(GetMostSevereFixAsync)}");
 
             ImmutableArray<DiagnosticData> allDiagnostics;
             bool upToDate;
 
-            using (TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeFix_Summary, $"Pri{(int)priorityProvider.Priority}.{nameof(GetMostSevereFixAsync)}.{nameof(_diagnosticService.GetDiagnosticsForSpanAsync)}"))
+            using (TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(GetMostSevereFixAsync)}.{nameof(_diagnosticService.GetDiagnosticsForSpanAsync)}"))
             {
                 (allDiagnostics, upToDate) = await _diagnosticService.TryGetDiagnosticsForSpanAsync(
                     document, range, GetShouldIncludeDiagnosticPredicate(document, priorityProvider),
@@ -171,11 +171,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Func<string, IDisposable?> addOperationScope,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            using var _ = TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeFix_Summary, $"Pri{(int)priorityProvider.Priority}");
+            using var _ = TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}");
 
             // We only need to compute suppression/configuration fixes when request priority is
-            // 'CodeActionPriorityRequest.Lowest' or 'CodeActionPriorityRequest.None'.
-            var includeSuppressionFixes = priorityProvider.Priority is CodeActionRequestPriority.Lowest or CodeActionRequestPriority.None;
+            // 'CodeActionPriorityRequest.Lowest' or no priority was provided at all (so all providers should run).
+            var includeSuppressionFixes = priorityProvider.Priority is null or CodeActionRequestPriority.Lowest;
 
             // REVIEW: this is the first and simplest design. basically, when ctrl+. is pressed, it asks diagnostic
             // service to give back current diagnostics for the given span, and it will use that to get fixes.
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // user-invoked diagnostic requests, for example, user invoked Ctrl + Dot operation for lightbulb.
             ImmutableArray<DiagnosticData> diagnostics;
 
-            using (TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeFix_Summary, $"Pri{(int)priorityProvider.Priority}.{nameof(_diagnosticService.GetDiagnosticsForSpanAsync)}"))
+            using (TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(_diagnosticService.GetDiagnosticsForSpanAsync)}"))
             {
                 diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
                     document, range, GetShouldIncludeDiagnosticPredicate(document, priorityProvider),

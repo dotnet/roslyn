@@ -63,7 +63,7 @@ End Namespace
 Class Class1
     Inherits TextBox
 
-End Class", testHost, priority:=CodeActionPriority.Medium)
+End Class", testHost, priority:=CodeActionPriority.Default)
         End Function
 
         <Theory, CombinatorialData>

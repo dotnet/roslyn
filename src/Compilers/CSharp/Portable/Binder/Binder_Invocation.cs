@@ -1743,7 +1743,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments, IEnumerable<ImmutableArray<ParameterSymbol>> parameterListList)
         {
-            var discardedDiagnostics = DiagnosticBag.GetInstance();
             int argumentCount = analyzedArguments.Arguments.Count;
             ArrayBuilder<BoundExpression> newArguments = ArrayBuilder<BoundExpression>.GetInstance(argumentCount);
             newArguments.AddRange(analyzedArguments.Arguments);
@@ -1824,7 +1823,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            discardedDiagnostics.Free();
             return newArguments.ToImmutableAndFree();
 
             TypeSymbol getCorrespondingParameterType(int i)

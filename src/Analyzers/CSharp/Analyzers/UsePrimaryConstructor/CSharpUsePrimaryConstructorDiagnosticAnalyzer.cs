@@ -204,12 +204,10 @@ internal sealed class CSharpUsePrimaryConstructorDiagnosticAnalyzer : AbstractBu
             // Ensure that any analyzers for containing types are created and they hear about any reference to their
             // fields in this nested type.
 
-            var hadContainingTypeAnalyzer = false;
             for (var containingType = startSymbol.ContainingType; containingType != null; containingType = containingType.ContainingType)
             {
                 var containgTypeAnalyzer = TryGetOrCreateAnalyzer(containingType);
                 RegisterFieldOrPropertyAnalysisIfNecessary(containgTypeAnalyzer);
-                hadContainingTypeAnalyzer = hadContainingTypeAnalyzer || containgTypeAnalyzer != null;
             }
 
             // Now try to make the analyzer for this type.
@@ -218,13 +216,6 @@ internal sealed class CSharpUsePrimaryConstructorDiagnosticAnalyzer : AbstractBu
             {
                 RegisterFieldOrPropertyAnalysisIfNecessary(analyzer);
                 context.RegisterSymbolEndAction(analyzer.OnSymbolEnd);
-            }
-            else if (hadContainingTypeAnalyzer)
-            {
-                // We didn't create an analyze for this type.  But we have containing types with analyzers. Ensure
-                // we register a symbol-end analyzer for us.  The analysis subsystem needs this to ensure that outer
-                // analyzers don't complete until its nested types are done.
-                context.RegisterSymbolEndAction(static _ => { });
             }
 
             return;

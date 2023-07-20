@@ -1053,7 +1053,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         analyzedInitializers = InitializerRewriter.RewriteConstructor(processedInitializers.BoundInitializers, methodSymbol);
                         processedInitializers.HasErrors = processedInitializers.HasErrors || analyzedInitializers.HasAnyErrors;
 
-                        RefSafetyAnalysis.Analyze(_compilation, methodSymbol, processedInitializers.BoundInitializers, diagsForCurrentMethod);
+                        RefSafetyAnalysis.Analyze(_compilation, methodSymbol,
+                                                  new BoundBlock(analyzedInitializers.Syntax, ImmutableArray<LocalSymbol>.Empty, analyzedInitializers.Statements), // The block is necessary to establish the right local scope for the analysis 
+                                                  diagsForCurrentMethod);
                     }
 
                     body = BindMethodBody(
