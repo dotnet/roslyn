@@ -793,16 +793,7 @@ public class UseCollectionExpressionForArray
                 {
                     void M(int[] x, bool b)
                     {
-                        var c = new int[][] { [|{|] 1, 2, 3 } };
-                    }
-                }
-                """,
-            FixedCode = """
-                class C
-                {
-                    void M(int[] x, bool b)
-                    {
-                        var c = new int[][] { [1, 2, 3] };
+                        var c = new int[,] { { 1, 2, 3 } };
                     }
                 }
                 """,
@@ -967,6 +958,15 @@ public class UseCollectionExpressionForArray
                     public XAttribute(int[] values) { }
                 }
                 """,
+            FixedState =
+                {
+                    // THis will tart working once https://github.com/dotnet/roslyn/issues/69133 is fixed.
+                    ExpectedDiagnostics =
+                    {
+                        // /0/Test0.cs(1,4): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                        DiagnosticResult.CompilerError("CS0182").WithSpan(1, 4, 1, 13),
+                    }
+                },
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
     }
@@ -1033,13 +1033,13 @@ public class UseCollectionExpressionForArray
             TestCode = """
                 class C
                 {
-                    public int[] X
+                    public int[] X;
 
                     void M()
                     {
                         var v = new C
                         {
-                            X = [|[|new|] int[]|] { 1, 2, 3 };
+                            X = [|[|new|] int[]|] { 1, 2, 3 },
                         };
                     }
                 }
@@ -1047,13 +1047,13 @@ public class UseCollectionExpressionForArray
             FixedCode = """
                 class C
                 {
-                    public int[] X
+                    public int[] X;
                 
                     void M()
                     {
                         var v = new C
                         {
-                            X = [1, 2, 3];
+                            X = [1, 2, 3],
                         };
                     }
                 }
@@ -1090,7 +1090,7 @@ public class UseCollectionExpressionForArray
     }
 
     [Fact]
-    public async Task TestLinqLet1()
+    public async Task TestLinqLet()
     {
         await new VerifyCS.Test
         {
@@ -1103,44 +1103,7 @@ public class UseCollectionExpressionForArray
                     void M(int[] x)
                     {
                         var y = from a in x
-                                let int[] b = [|[|new|] int[]|] { 1, 2, 3 }
-                                select b;
-                    }
-                }
-                """,
-            FixedCode = """
-                using System;
-                using System.Linq;
-                
-                class C
-                {
-                    void M(int[] x)
-                    {
-                        var y = from a in x
-                                let int[] b = [1, 2, 3]
-                                select b;
-                    }
-                }
-                """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
-        }.RunAsync();
-    }
-
-    [Fact]
-    public async Task TestLinqLet2()
-    {
-        await new VerifyCS.Test
-        {
-            TestCode = """
-                using System;
-                using System.Linq;
-
-                class C
-                {
-                    void M(int[] x)
-                    {
-                        var y = from a in x
-                                let b = [|[|new|] int[]|] { 1, 2, 3 }
+                                let b = new int[] { 1, 2, 3 }
                                 select b;
                     }
                 }
