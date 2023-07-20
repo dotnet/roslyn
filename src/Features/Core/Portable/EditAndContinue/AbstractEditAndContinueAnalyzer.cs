@@ -4300,7 +4300,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private void static AnalyzeParameterType(
+        private static void AnalyzeParameterType(
             IParameterSymbol oldParameter,
             IParameterSymbol newParameter,
             EditAndContinueCapabilitiesGrantor capabilities,

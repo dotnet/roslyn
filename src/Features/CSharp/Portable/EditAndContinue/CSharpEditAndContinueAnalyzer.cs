@@ -654,7 +654,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.ParameterList when node.Parent is TypeDeclarationSyntax typeDeclaration:
                     // The only case when an active statement is a parameter list is an active statement
-                    // for an implicit constructor initializer of a type wiht primary constructor.
+                    // for an implicit constructor initializer of a type with primary constructor.
                     // In that case the span of the active statement starts before the parameter list
                     // (it includes the type name and type parameters).
                     span = BreakpointSpans.CreateSpanForImplicitPrimaryConstructorInitializer(typeDeclaration);
