@@ -6751,6 +6751,145 @@ class Test
         }
 
         [Fact]
+        public void CRef_RefReadonlyParameter_ReadonlyRef()
+        {
+            var source = """
+                class Test
+                {
+                    void M(ref readonly int x)
+                    {
+                    }
+
+                    /// <summary>
+                    /// <see cref="M(readonly ref int)"/>
+                    /// </summary>
+                    void S()
+                    {
+                    }
+                }
+                """;
+
+            verify(CreateCompilation(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(
+                // (3,16): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     void M(ref readonly int x)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 16),
+                // (8,20): warning CS1584: XML comment has syntactically incorrect cref attribute 'M(readonly ref int)'
+                //     /// <see cref="M(readonly ref int)"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "M(").WithArguments("M(readonly ref int)").WithLocation(8, 20),
+                // (8,22): warning CS1658: ) expected. See also error CS1026.
+                //     /// <see cref="M(readonly ref int)"/>
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "readonly").WithArguments(") expected", "1026").WithLocation(8, 22)));
+
+            var expectedDiagnostics = new[]
+            {
+                // (8,20): warning CS1584: XML comment has syntactically incorrect cref attribute 'M(readonly ref int)'
+                //     /// <see cref="M(readonly ref int)"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "M(").WithArguments("M(readonly ref int)").WithLocation(8, 20),
+                // (8,22): warning CS1658: ) expected. See also error CS1026.
+                //     /// <see cref="M(readonly ref int)"/>
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "readonly").WithArguments(") expected", "1026").WithLocation(8, 22)
+            };
+
+            verify(CreateCompilation(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(expectedDiagnostics));
+            verify(CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(expectedDiagnostics));
+
+            static void verify(CSharpCompilation compilation)
+            {
+                var cref = (NameMemberCrefSyntax)GetCrefSyntaxes(compilation).Single();
+                Assert.Empty(cref.Parameters.Parameters);
+            }
+        }
+
+        [Fact]
+        public void CRef_ReadonlyRefParameter()
+        {
+            var source = """
+                class Test
+                {
+                    void M(readonly ref int x)
+                    {
+                    }
+
+                    /// <summary>
+                    /// <see cref="M(readonly ref int)"/>
+                    /// </summary>
+                    void S()
+                    {
+                    }
+                }
+                """;
+
+            var expectedDiagnostics = new[]
+            {
+                // (3,12): error CS9501: 'readonly' modifier must be specified after 'ref'.
+                //     void M(readonly ref int x)
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 12),
+                // (8,20): warning CS1584: XML comment has syntactically incorrect cref attribute 'M(readonly ref int)'
+                //     /// <see cref="M(readonly ref int)"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "M(").WithArguments("M(readonly ref int)").WithLocation(8, 20),
+                // (8,22): warning CS1658: ) expected. See also error CS1026.
+                //     /// <see cref="M(readonly ref int)"/>
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "readonly").WithArguments(") expected", "1026").WithLocation(8, 22)
+            };
+
+            verify(CreateCompilation(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(expectedDiagnostics));
+            verify(CreateCompilation(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(expectedDiagnostics));
+            verify(CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(expectedDiagnostics));
+
+            static void verify(CSharpCompilation compilation)
+            {
+                var cref = (NameMemberCrefSyntax)GetCrefSyntaxes(compilation).Single();
+                Assert.Empty(cref.Parameters.Parameters);
+            }
+        }
+
+        [Fact]
+        public void CRef_ReadonlyRefParameter_RefReadonly()
+        {
+            var source = """
+                class Test
+                {
+                    void M(readonly ref int x)
+                    {
+                    }
+
+                    /// <summary>
+                    /// <see cref="M(ref readonly int)"/>
+                    /// </summary>
+                    void S()
+                    {
+                    }
+                }
+                """;
+
+            var expectedDiagnostics = new[]
+            {
+                // (3,12): error CS9501: 'readonly' modifier must be specified after 'ref'.
+                //     void M(readonly ref int x)
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 12),
+                // (8,20): warning CS1574: XML comment has cref attribute 'M(ref readonly int)' that could not be resolved
+                //     /// <see cref="M(ref readonly int)"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "M(ref readonly int)").WithArguments("M(ref readonly int)").WithLocation(8, 20)
+            };
+
+            verify(CreateCompilation(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(expectedDiagnostics));
+            verify(CreateCompilation(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(expectedDiagnostics));
+            verify(CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(expectedDiagnostics));
+
+            static void verify(CSharpCompilation compilation)
+            {
+                var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
+                var cref = (NameMemberCrefSyntax)GetCrefSyntaxes(compilation).Single();
+
+                var parameter = cref.Parameters.Parameters.Single();
+                Assert.Equal(SyntaxKind.RefKeyword, parameter.RefKindKeyword.Kind());
+                Assert.Equal(SyntaxKind.ReadOnlyKeyword, parameter.ReadOnlyKeyword.Kind());
+
+                Assert.True(model.GetSymbolInfo(cref).IsEmpty);
+            }
+        }
+
+        [Fact]
         public void Cref_TupleType()
         {
             var source = @"
