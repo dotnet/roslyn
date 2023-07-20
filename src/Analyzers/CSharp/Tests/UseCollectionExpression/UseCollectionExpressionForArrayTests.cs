@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UseCollectionExpression;
@@ -483,12 +484,15 @@ public class UseCollectionExpressionForArray
                     }
                 }
 
-                internal static class Extensions
-                {
-                    public static ReadOnlySpan<T> AsSpan<T>(this T[] values) => default;
-                }
+                //internal static class Extensions
+                //{
+                //    public static ReadOnlySpan<T> AsSpan<T>(this T[] values) => default;
+                //}
+
+                //internal readonly struct ReadOnlySpan<T> { }
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
         }.RunAsync();
     }
 
@@ -573,7 +577,7 @@ public class UseCollectionExpressionForArray
                 {
                     void M()
                     {
-                        var c = (IntArray)[|[|new|] int[]|] { 1 };
+                        var c = (IntArray)new int[] { 1 };
                     }
                 }
                 """,
@@ -598,7 +602,7 @@ public class UseCollectionExpressionForArray
             FixedCode = """
                 class C
                 {
-                    void M()
+                    void M(int[] x)
                     {
                         var c = true ? [1] : x;
                     }
@@ -625,7 +629,7 @@ public class UseCollectionExpressionForArray
             FixedCode = """
                 class C
                 {
-                    void M()
+                    void M(int[] x)
                     {
                         var c = true ? x : [1];
                     }
@@ -672,7 +676,7 @@ public class UseCollectionExpressionForArray
                 {
                     void M(int[] x)
                     {
-                        var c = true ? null : [|[|new|] int[]|] { 1 };
+                        var c = true ? null : new int[] { 1 };
                     }
                 }
                 """,
@@ -771,16 +775,7 @@ public class UseCollectionExpressionForArray
                 {
                     void M(int[] x, bool b)
                     {
-                        var c = b switch { false => [|[|new|] int[]|] { 1 }, true => null };
-                    }
-                }
-                """,
-            FixedCode = """
-                class C
-                {
-                    void M(int[] x, bool b)
-                    {
-                        var c = b switch { false => [1], true => null };
+                        var c = b switch { false => new int[] { 1 }, true => null };
                     }
                 }
                 """,
@@ -897,7 +892,16 @@ public class UseCollectionExpressionForArray
                 {
                     void M(int[] x, bool b)
                     {
-                        int[][] c = new[] { new[] { 1, 2, 3 } };
+                        int[][] c = [|[|new|][]|] { new[] { 1, 2, 3 } };
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(int[] x, bool b)
+                    {
+                        int[][] c = [new[] { 1, 2, 3 }];
                     }
                 }
                 """,
@@ -977,7 +981,7 @@ public class UseCollectionExpressionForArray
                 {
                     int[] M()
                     {
-                        return new int[] { 1, 2, 3 };
+                        return [|[|new|] int[]|] { 1, 2, 3 };
                     }
                 }
                 """,
@@ -1022,6 +1026,43 @@ public class UseCollectionExpressionForArray
     }
 
     [Fact]
+    public async Task TestAssignment2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public int[] X
+
+                    void M()
+                    {
+                        var v = new C
+                        {
+                            X = [|[|new|] int[]|] { 1, 2, 3 };
+                        };
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    public int[] X
+                
+                    void M()
+                    {
+                        var v = new C
+                        {
+                            X = [1, 2, 3];
+                        };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestCoalesce1()
     {
         await new VerifyCS.Test
@@ -1029,7 +1070,7 @@ public class UseCollectionExpressionForArray
             TestCode = """
                 class C
                 {
-                    void M(int[]? x)
+                    void M(int[] x)
                     {
                         var y = x ?? [|[|new|] int[]|] { 1, 2, 3 };
                     }
@@ -1038,7 +1079,7 @@ public class UseCollectionExpressionForArray
             FixedCode = """
                 class C
                 {
-                    void M(int[]? x)
+                    void M(int[] x)
                     {
                         var y = x ?? [1, 2, 3];
                     }

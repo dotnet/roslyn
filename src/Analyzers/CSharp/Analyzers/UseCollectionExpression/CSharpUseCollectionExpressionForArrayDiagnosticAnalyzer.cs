@@ -82,7 +82,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
             InitializerExpressionSyntax initializerExpression => IsInTargetTypedInitializerExpression(initializerExpression, topExpression),
             AssignmentExpressionSyntax assignmentExpression => IsInTargetTypedAssignmentExpression(assignmentExpression, topExpression),
             BinaryExpressionSyntax binaryExpression => IsInTargetTypedBinaryExpression(binaryExpression, topExpression),
-            ArgumentSyntax => true,
+            ArgumentSyntax or AttributeArgumentSyntax => true,
             ReturnStatementSyntax => true,
             _ => false,
         };
