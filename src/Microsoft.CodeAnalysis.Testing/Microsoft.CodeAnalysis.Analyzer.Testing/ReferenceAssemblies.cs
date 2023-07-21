@@ -995,11 +995,11 @@ namespace Microsoft.CodeAnalysis.Testing
                         ImmutableArray.Create(
                             new PackageIdentity("Microsoft.macOS.Ref", "12.3.2372"))));
 
-        private static readonly Lazy<ReferenceAssemblies> _lazyNet70Android =
-            new Lazy<ReferenceAssemblies>(() =>
-                Net70.AddPackages(
-                    ImmutableArray.Create(
-                        new PackageIdentity("Microsoft.Android.Ref.33", "33.0.68"))));
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet70Android =
+                new Lazy<ReferenceAssemblies>(() =>
+                    Net70.AddPackages(
+                        ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.Android.Ref.33", "33.0.68"))));
 
             private static readonly Lazy<ReferenceAssemblies> _lazyNet70iOS =
                 new Lazy<ReferenceAssemblies>(() =>
