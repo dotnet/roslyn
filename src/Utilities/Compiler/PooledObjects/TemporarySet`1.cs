@@ -74,9 +74,25 @@ namespace Analyzer.Utilities.PooledObjects
             return storage.Contains(item);
         }
 
+        public readonly bool Any_NonConcurrent()
+        {
+            if (_storage is not { } storage)
+                return false;
+
+            return storage.Count > 0;
+        }
+
         public readonly Enumerator GetEnumerator_NonConcurrent()
         {
             return new Enumerator((_storage ?? EmptyHashSet).GetEnumerator());
+        }
+
+        public readonly IEnumerable<T> AsEunumerable_NonConcurrent()
+        {
+            foreach (var item in _storage ?? EmptyHashSet)
+            {
+                yield return item;
+            }
         }
 
         public readonly struct Enumerable
