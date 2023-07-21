@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 {
                     case SyntaxKind.Block:
                     case SyntaxKind.ArrowExpressionClause:
-                        return AreNullableDirectivesEquivalent(before, after, ignoreChildNode);
+                        return true;
                 }
 
                 // If we're only checking top level equivalence, then we don't have to go down into
