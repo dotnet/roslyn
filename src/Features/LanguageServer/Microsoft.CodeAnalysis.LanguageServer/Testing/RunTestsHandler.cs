@@ -73,7 +73,7 @@ internal class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer t
     {
         var shortForm = "";
         // Only output milliseconds if less than a second duration
-        if (t.Milliseconds > 0 && t.TotalSeconds < 1)
+        if (t.TotalSeconds < 1)
         {
             shortForm += string.Format("{0}ms", t.Milliseconds.ToString());
             return shortForm;
