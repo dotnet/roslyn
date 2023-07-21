@@ -266,6 +266,7 @@ static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.Net.Net60TvOS.get -> M
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.Net.Net60Windows.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.Net.Net60iOS.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.Net.Net70.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.Net.Net70Android.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.Net.Net70MacCatalyst.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.Net.Net70MacOS.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.Net.Net70TvOS.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies

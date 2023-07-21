@@ -995,6 +995,12 @@ namespace Microsoft.CodeAnalysis.Testing
                         ImmutableArray.Create(
                             new PackageIdentity("Microsoft.macOS.Ref", "12.3.2372"))));
 
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet70Android =
+                new Lazy<ReferenceAssemblies>(() =>
+                    Net70.AddPackages(
+                        ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.Android.Ref.33", "33.0.68"))));
+
             private static readonly Lazy<ReferenceAssemblies> _lazyNet70iOS =
                 new Lazy<ReferenceAssemblies>(() =>
                     Net70.AddPackages(
@@ -1032,6 +1038,8 @@ namespace Microsoft.CodeAnalysis.Testing
             public static ReferenceAssemblies Net70 => _lazyNet70.Value;
 
             public static ReferenceAssemblies Net70Windows => _lazyNet70Windows.Value;
+
+            public static ReferenceAssemblies Net70Android => _lazyNet70Android.Value;
 
             public static ReferenceAssemblies Net70iOS => _lazyNet70iOS.Value;
 
