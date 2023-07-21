@@ -4049,10 +4049,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// </summary>
         protected INamedTypeSymbol? TaskNamedType { get; }
 
+
+#pragma warning disable CA1200 // Avoid using cref tags with a prefix - cref prefix required for one of the project contexts
         /// <summary>
-        /// <see cref="INamedTypeSymbol"/> for <see cref="System.Threading.Tasks.TaskAsyncEnumerableExtensions"/>
+        /// <see cref="INamedTypeSymbol"/> for <see cref="T:System.Threading.Tasks.TaskAsyncEnumerableExtensions"/>
         /// </summary>
         private INamedTypeSymbol? TaskAsyncEnumerableExtensions { get; }
+#pragma warning restore CA1200 // Avoid using cref tags with a prefix
 
         /// <summary>
         /// <see cref="INamedTypeSymbol"/> for <see cref="System.IO.MemoryStream"/>
