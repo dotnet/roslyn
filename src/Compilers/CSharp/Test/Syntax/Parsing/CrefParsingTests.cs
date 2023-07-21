@@ -1489,6 +1489,169 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
+        [Theory, CombinatorialData]
+        public void ParameterRefReadonly_06(
+            [CombinatorialValues(LanguageVersion.CSharp11, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion)
+        {
+            UsingNode("A(readonly B)", TestOptions.Regular.WithLanguageVersion(languageVersion).WithDocumentationMode(DocumentationMode.Diagnose),
+                // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'A(readonly B)'
+                // /// <see cref="A(readonly B)"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "A(").WithArguments("A(readonly B)").WithLocation(1, 16),
+                // (1,18): warning CS1658: ) expected. See also error CS1026.
+                // /// <see cref="A(readonly B)"/>
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "readonly").WithArguments(") expected", "1026").WithLocation(1, 18));
+
+            N(SyntaxKind.NameMemberCref);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "A");
+                }
+                N(SyntaxKind.CrefParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    M(SyntaxKind.CloseParenToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory, CombinatorialData]
+        public void ParameterRefReadonly_07(
+            [CombinatorialValues(LanguageVersion.CSharp11, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion)
+        {
+            UsingNode("A(in readonly B)", TestOptions.Regular.WithLanguageVersion(languageVersion).WithDocumentationMode(DocumentationMode.Diagnose),
+                // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'A(in readonly B)'
+                // /// <see cref="A(in readonly B)"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "A(in readonly B)").WithArguments("A(in readonly B)").WithLocation(1, 16),
+                // (1,21): error CS9501: 'readonly' modifier must be specified after 'ref'.
+                // /// <see cref="A(in readonly B)"/>
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(1, 21));
+
+            N(SyntaxKind.NameMemberCref);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "A");
+                }
+                N(SyntaxKind.CrefParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CrefParameter);
+                    {
+                        N(SyntaxKind.InKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "B");
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory, CombinatorialData]
+        public void ParameterRefReadonly_08(
+            [CombinatorialValues(LanguageVersion.CSharp11, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion)
+        {
+            UsingNode("A(out readonly B)", TestOptions.Regular.WithLanguageVersion(languageVersion).WithDocumentationMode(DocumentationMode.Diagnose),
+                // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'A(out readonly B)'
+                // /// <see cref="A(out readonly B)"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "A(out readonly B)").WithArguments("A(out readonly B)").WithLocation(1, 16),
+                // (1,22): error CS9501: 'readonly' modifier must be specified after 'ref'.
+                // /// <see cref="A(out readonly B)"/>
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(1, 22));
+
+            N(SyntaxKind.NameMemberCref);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "A");
+                }
+                N(SyntaxKind.CrefParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CrefParameter);
+                    {
+                        N(SyntaxKind.OutKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "B");
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory, CombinatorialData]
+        public void ParameterRefReadonly_09(
+            [CombinatorialValues(LanguageVersion.CSharp11, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion)
+        {
+            UsingNode("A(ref readonly readonly B)", TestOptions.Regular.WithLanguageVersion(languageVersion).WithDocumentationMode(DocumentationMode.Diagnose),
+                // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'A(ref readonly readonly B)'
+                // /// <see cref="A(ref readonly readonly B)"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "A(ref readonly").WithArguments("A(ref readonly readonly B)").WithLocation(1, 16),
+                // (1,31): warning CS1658: Identifier expected; 'readonly' is a keyword. See also error CS1041.
+                // /// <see cref="A(ref readonly readonly B)"/>
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "readonly").WithArguments("Identifier expected; 'readonly' is a keyword", "1041").WithLocation(1, 31),
+                // (1,31): warning CS1658: ) expected. See also error CS1026.
+                // /// <see cref="A(ref readonly readonly B)"/>
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "readonly").WithArguments(") expected", "1026").WithLocation(1, 31));
+
+            N(SyntaxKind.NameMemberCref);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "A");
+                }
+                N(SyntaxKind.CrefParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CrefParameter);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    M(SyntaxKind.CloseParenToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory, CombinatorialData]
+        public void ParameterRefReadonly_10(
+            [CombinatorialValues(LanguageVersion.CSharp11, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion)
+        {
+            UsingNode("A(readonly ref B)", TestOptions.Regular.WithLanguageVersion(languageVersion).WithDocumentationMode(DocumentationMode.Diagnose),
+                // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'A(readonly ref B)'
+                // /// <see cref="A(readonly ref B)"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "A(").WithArguments("A(readonly ref B)").WithLocation(1, 16),
+                // (1,18): warning CS1658: ) expected. See also error CS1026.
+                // /// <see cref="A(readonly ref B)"/>
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "readonly").WithArguments(") expected", "1026").WithLocation(1, 18));
+
+            N(SyntaxKind.NameMemberCref);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "A");
+                }
+                N(SyntaxKind.CrefParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    M(SyntaxKind.CloseParenToken);
+                }
+            }
+            EOF();
+        }
+
         [Fact]
         public void ParameterNullableType()
         {
