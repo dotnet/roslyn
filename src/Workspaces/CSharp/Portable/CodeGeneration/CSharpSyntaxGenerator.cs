@@ -219,6 +219,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return SyntaxFactory.Token(SyntaxKind.OutKeyword);
                 case RefKind.Ref:
                     return SyntaxFactory.Token(SyntaxKind.RefKeyword);
+                case RefKind.RefReadOnlyParameter:
+                    return SyntaxFactory.Token(SyntaxKind.InKeyword);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(refKind);
             }
