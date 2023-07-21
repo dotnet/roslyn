@@ -6938,7 +6938,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [CombinatorialData]
         [ConditionalTheory(typeof(CoreClrOnly))]
         public void CollectionBuilder_OtherMember_01(
-            [CombinatorialValues("public MyCollection Create = null;", "public MyCollection Create => null;", "public class Create { }")] string createMember,
+            [CombinatorialValues(
+                "public MyCollection Create = null;",
+                "public MyCollection Create => null;",
+                "public class Create { }")]
+            string createMember,
             bool useCompilationReference)
         {
             string sourceA = $$"""
@@ -8489,6 +8493,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.IsType<RetargetingNamedTypeSymbol>(builderType);
             Assert.Equal("MyCollectionBuilder", builderType.ToTestDisplayString());
             Assert.Equal("Create", methodName);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void CollectionBuilder_AttributeCycle()
+        {
+            string source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                [CollectionBuilder(typeof(MyCollectionBuilder), MyCollectionBuilder.GetName([1, 2, 3]))]
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    public void Add(T t) { }
+                    public IEnumerator<T> GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+
+                static class MyCollectionBuilder
+                {
+                    public static string GetName<T>(MyCollection<T> c) => null;
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => null;
+                }
+                """;
+            var comp = CreateCompilation(new[] { source, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(6,49): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [CollectionBuilder(typeof(MyCollectionBuilder), MyCollectionBuilder.GetName([1, 2, 3]))]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "MyCollectionBuilder.GetName([1, 2, 3])").WithLocation(6, 49));
         }
 
         [ConditionalFact(typeof(DesktopOnly))]

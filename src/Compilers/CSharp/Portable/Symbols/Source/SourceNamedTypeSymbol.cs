@@ -1022,6 +1022,26 @@ next:;
                 return (null, null);
             }
 
+            if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.CollectionBuilderAttribute))
+            {
+                (attributeData, boundAttribute) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, beforeAttributePartBound: null, afterAttributePartBound: null, out hasAnyDiagnostics);
+                if (!attributeData.HasErrors)
+                {
+                    Debug.Assert(attributeData.CommonConstructorArguments[0].Kind == TypedConstantKind.Type);
+                    TypeSymbol? builderType = attributeData.CommonConstructorArguments[0].ValueInternal as TypeSymbol;
+                    string? methodName = attributeData.GetConstructorArgument<string>(1, SpecialType.System_String);
+                    var data = new CollectionBuilderAttributeData(builderType, methodName);
+                    arguments.GetOrCreateData<TypeEarlyWellKnownAttributeData>().CollectionBuilder = data;
+
+                    if (!hasAnyDiagnostics)
+                    {
+                        return (attributeData, boundAttribute);
+                    }
+                }
+
+                return (null, null);
+            }
+
             return base.EarlyDecodeWellKnownAttribute(ref arguments);
         }
 #nullable disable
@@ -1158,14 +1178,14 @@ next:;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.CollectionBuilderAttribute))
             {
-                var data = attribute.DecodeCollectionBuilderAttribute();
-                arguments.GetOrCreateData<TypeWellKnownAttributeData>().CollectionBuilder = data;
-
-                if (!IsValidCollectionBuilderType(data.BuilderType))
+                var builderType = attribute.CommonConstructorArguments[0].ValueInternal as TypeSymbol;
+                if (!IsValidCollectionBuilderType(builderType))
                 {
                     diagnostics.Add(ErrorCode.ERR_CollectionBuilderAttributeInvalidType, arguments.AttributeSyntaxOpt.Name.Location);
                 }
-                if (string.IsNullOrEmpty(data.MethodName))
+
+                string? methodName = attribute.CommonConstructorArguments[1].DecodeValue<string>(SpecialType.System_String);
+                if (string.IsNullOrEmpty(methodName))
                 {
                     diagnostics.Add(ErrorCode.ERR_CollectionBuilderAttributeInvalidMethodName, arguments.AttributeSyntaxOpt.Name.Location);
                 }
@@ -1336,7 +1356,7 @@ next:;
 #nullable enable
         internal sealed override bool HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName)
         {
-            var attributeData = GetDecodedWellKnownAttributeData()?.CollectionBuilder;
+            var attributeData = GetEarlyDecodedWellKnownAttributeData()?.CollectionBuilder;
             if (attributeData == null)
             {
                 builderType = null;
