@@ -1184,6 +1184,10 @@ next:;
                     diagnostics.Add(ErrorCode.ERR_CollectionBuilderAttributeInvalidType, arguments.AttributeSyntaxOpt.Name.Location);
                 }
 
+                // Ensure dependencies for the builder type are added here since
+                // use-site info is ignored in early attribute decoding.
+                diagnostics.AddDependencies(builderType);
+
                 string? methodName = attribute.CommonConstructorArguments[1].DecodeValue<string>(SpecialType.System_String);
                 if (string.IsNullOrEmpty(methodName))
                 {
