@@ -11,7 +11,6 @@ Microsoft.CodeAnalysis.CSharp.Syntax.CollectionExpressionSyntax.WithElements(Mic
 Microsoft.CodeAnalysis.CSharp.Syntax.CollectionExpressionSyntax.WithOpenBracketToken(Microsoft.CodeAnalysis.SyntaxToken openBracketToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.CollectionExpressionSyntax!
 Microsoft.CodeAnalysis.CSharp.Syntax.CollectionElementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax.ReadOnlyKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
-*REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken refKindKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax! type) -> Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax!
 Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken refKindKeyword, Microsoft.CodeAnalysis.SyntaxToken readOnlyKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax! type) -> Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax!
 Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax.WithReadOnlyKeyword(Microsoft.CodeAnalysis.SyntaxToken readOnlyKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax!
 Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionElementSyntax
