@@ -15,14 +15,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
     /// </summary>
     public sealed class PointsToAnalysisData : AnalysisEntityBasedPredicateAnalysisData<PointsToAbstractValue>
     {
-        internal PointsToAnalysisData()
+        private readonly Func<ITypeSymbol?, bool> _isDisposable;
+
+        internal PointsToAnalysisData(Func<ITypeSymbol?, bool> isDisposable)
         {
+            _isDisposable = isDisposable;
         }
 
-        internal PointsToAnalysisData(IDictionary<AnalysisEntity, PointsToAbstractValue> fromData)
+        internal PointsToAnalysisData(IDictionary<AnalysisEntity, PointsToAbstractValue> fromData, Func<ITypeSymbol?, bool> isDisposable)
             : base(fromData)
         {
-            AssertValidPointsToAnalysisData(fromData);
+            _isDisposable = isDisposable;
+
+            AssertValidPointsToAnalysisData(fromData, isDisposable);
         }
 
         internal PointsToAnalysisData(
@@ -30,22 +35,29 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             PredicatedAnalysisData<AnalysisEntity, PointsToAbstractValue> predicatedData1,
             PredicatedAnalysisData<AnalysisEntity, PointsToAbstractValue> predicatedData2,
             bool isReachableData,
-            MapAbstractDomain<AnalysisEntity, PointsToAbstractValue> coreDataAnalysisDomain)
+            MapAbstractDomain<AnalysisEntity, PointsToAbstractValue> coreDataAnalysisDomain,
+            Func<ITypeSymbol?, bool> isDisposable)
             : base(mergedCoreAnalysisData, predicatedData1, predicatedData2, isReachableData, coreDataAnalysisDomain)
         {
-            AssertValidPointsToAnalysisData(mergedCoreAnalysisData);
+            _isDisposable = isDisposable;
+
+            AssertValidPointsToAnalysisData(mergedCoreAnalysisData, isDisposable);
             AssertValidPointsToAnalysisData();
         }
 
         private PointsToAnalysisData(PointsToAnalysisData fromData)
             : base(fromData)
         {
+            _isDisposable = fromData._isDisposable;
+
             fromData.AssertValidPointsToAnalysisData();
         }
 
         private PointsToAnalysisData(PointsToAnalysisData data1, PointsToAnalysisData data2, MapAbstractDomain<AnalysisEntity, PointsToAbstractValue> coreDataAnalysisDomain)
             : base(data1, data2, coreDataAnalysisDomain)
         {
+            _isDisposable = data1._isDisposable;
+
             data1.AssertValidPointsToAnalysisData();
             data2.AssertValidPointsToAnalysisData();
             AssertValidPointsToAnalysisData();
@@ -67,7 +79,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
         public override void SetAbstractValue(AnalysisEntity key, PointsToAbstractValue value)
         {
-            AssertValidPointsToAnalysisKeyValuePair(key, value);
+            AssertValidPointsToAnalysisKeyValuePair(key, value, _isDisposable);
             base.SetAbstractValue(key, value);
         }
 
@@ -98,14 +110,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         [Conditional("DEBUG")]
         internal void AssertValidPointsToAnalysisData()
         {
-            AssertValidPointsToAnalysisData(CoreAnalysisData);
+            AssertValidPointsToAnalysisData(CoreAnalysisData, _isDisposable);
 #pragma warning disable IDE0200 // Remove unnecessary lambda expression - https://github.com/dotnet/roslyn/issues/63464
-            AssertValidPredicatedAnalysisData(map => AssertValidPointsToAnalysisData(map));
+            AssertValidPredicatedAnalysisData(map => AssertValidPointsToAnalysisData(map, _isDisposable));
 #pragma warning restore IDE0200 // Remove unnecessary lambda expression
         }
 
         [Conditional("DEBUG")]
-        internal static void AssertValidPointsToAnalysisData(IDictionary<AnalysisEntity, PointsToAbstractValue> map)
+        internal static void AssertValidPointsToAnalysisData(IDictionary<AnalysisEntity, PointsToAbstractValue> map, Func<ITypeSymbol?, bool> isDisposable)
         {
             if (map is CorePointsToAnalysisData corePointsToAnalysisData)
             {
@@ -114,18 +126,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             foreach (var kvp in map)
             {
-                AssertValidPointsToAnalysisKeyValuePair(kvp.Key, kvp.Value);
+                AssertValidPointsToAnalysisKeyValuePair(kvp.Key, kvp.Value, isDisposable);
             }
         }
 
         [Conditional("DEBUG")]
         internal static void AssertValidPointsToAnalysisKeyValuePair(
             AnalysisEntity key,
-            PointsToAbstractValue value)
+            PointsToAbstractValue value,
+            Func<ITypeSymbol?, bool> isDisposable)
         {
             Debug.Assert(value.Kind != PointsToAbstractValueKind.Undefined);
             Debug.Assert(!key.IsLValueFlowCaptureEntity || value.Kind == PointsToAbstractValueKind.KnownLValueCaptures);
-            Debug.Assert(PointsToAnalysis.ShouldBeTracked(key, PointsToAnalysisKind.Complete));
+            Debug.Assert(PointsToAnalysis.ShouldBeTracked(key, PointsToAnalysisKind.Complete, isDisposable));
         }
     }
 }

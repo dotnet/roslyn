@@ -302,6 +302,7 @@ namespace Analyzer.Utilities
         public const string SystemRuntimeCompilerServicesCallerArgumentExpressionAttribute = "System.Runtime.CompilerServices.CallerArgumentExpressionAttribute";
         public const string SystemRuntimeCompilerServicesCompilerGeneratedAttribute = "System.Runtime.CompilerServices.CompilerGeneratedAttribute";
         public const string SystemRuntimeCompilerServicesConfiguredAsyncDisposable = "System.Runtime.CompilerServices.ConfiguredAsyncDisposable";
+        public const string SystemRuntimeCompilerServicesConfiguredValueTaskAwaitable = "System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable";
         public const string SystemRuntimeCompilerServicesConfiguredValueTaskAwaitable1 = "System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable`1";
         public const string SystemRuntimeCompilerServicesDisableRuntimeMarshallingAttribute = "System.Runtime.CompilerServices.DisableRuntimeMarshallingAttribute";
         public const string SystemRuntimeCompilerServicesICriticalNotifyCompletion = "System.Runtime.CompilerServices.ICriticalNotifyCompletion";
@@ -408,6 +409,7 @@ namespace Analyzer.Utilities
         public const string SystemThreadingMonitor = "System.Threading.Monitor";
         public const string SystemThreadingSpinLock = "System.Threading.SpinLock";
         public const string SystemThreadingTasksConfigureAwaitOptions = "System.Threading.Tasks.ConfigureAwaitOptions";
+        public const string SystemThreadingTasksTaskAsyncEnumerableExtensions = "System.Threading.Tasks.TaskAsyncEnumerableExtensions";
         public const string SystemThreadingTasksTask = "System.Threading.Tasks.Task";
         public const string SystemThreadingTasksTask1 = "System.Threading.Tasks.Task`1";
         public const string SystemThreadingTasksTaskCompletionSource = "System.Threading.Tasks.TaskCompletionSource";

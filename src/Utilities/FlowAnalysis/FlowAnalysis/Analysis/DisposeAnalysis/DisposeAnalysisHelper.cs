@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -42,8 +43,10 @@ namespace Analyzer.Utilities
         private ConcurrentDictionary<INamedTypeSymbol, ImmutableHashSet<IFieldSymbol>>? _lazyDisposableFieldsMap;
         public INamedTypeSymbol? IDisposable { get; }
         public INamedTypeSymbol? IAsyncDisposable { get; }
+        public INamedTypeSymbol? ConfiguredAsyncDisposable { get; }
         public INamedTypeSymbol? Task { get; }
         public INamedTypeSymbol? ValueTask { get; }
+        public INamedTypeSymbol? ConfiguredValueTaskAwaitable { get; }
         public INamedTypeSymbol? StringReader { get; }
         public INamedTypeSymbol? MemoryStream { get; }
 
@@ -53,8 +56,10 @@ namespace Analyzer.Utilities
 
             IDisposable = _wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIDisposable);
             IAsyncDisposable = _wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIAsyncDisposable);
+            ConfiguredAsyncDisposable = _wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemRuntimeCompilerServicesConfiguredAsyncDisposable);
             Task = _wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksTask);
             ValueTask = _wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksValueTask);
+            ConfiguredValueTaskAwaitable = _wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemRuntimeCompilerServicesConfiguredValueTaskAwaitable);
             StringReader = _wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIOStringReader);
             MemoryStream = _wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIOMemoryStream);
 
@@ -100,6 +105,16 @@ namespace Analyzer.Utilities
             // Local functions
             static DisposeAnalysisHelper CreateDisposeAnalysisHelper(Compilation compilation)
                 => new(compilation);
+        }
+
+        public static Func<ITypeSymbol?, bool> GetIsDisposableDelegate(Compilation compilation)
+        {
+            if (TryGetOrCreate(compilation, out var disposeAnalysisHelper))
+            {
+                return disposeAnalysisHelper.IsDisposable;
+            }
+
+            return _ => false;
         }
 
         public bool TryGetOrComputeResult(
@@ -169,7 +184,7 @@ namespace Analyzer.Utilities
                 return disposableFields;
             }
 
-            if (!namedType.IsDisposable(IDisposable, IAsyncDisposable))
+            if (!namedType.IsDisposable(IDisposable, IAsyncDisposable, ConfiguredAsyncDisposable))
             {
                 disposableFields = ImmutableHashSet<IFieldSymbol>.Empty;
             }
@@ -200,9 +215,9 @@ namespace Analyzer.Utilities
         }
 
         public bool IsDisposable([NotNullWhen(returnValue: true)] ITypeSymbol? type)
-            => type != null && type.IsDisposable(IDisposable, IAsyncDisposable);
+            => type != null && type.IsDisposable(IDisposable, IAsyncDisposable, ConfiguredAsyncDisposable);
 
         public DisposeMethodKind GetDisposeMethodKind(IMethodSymbol method)
-            => method.GetDisposeMethodKind(IDisposable, IAsyncDisposable, Task, ValueTask);
+            => method.GetDisposeMethodKind(IDisposable, IAsyncDisposable, ConfiguredAsyncDisposable, Task, ValueTask, ConfiguredValueTaskAwaitable);
     }
 }
