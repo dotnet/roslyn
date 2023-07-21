@@ -254,7 +254,14 @@ namespace Test
     }
 }
 ";
-        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions
+        {
+            ClientCapabilities = CapabilitiesWithVSExtensions,
+            OptionUpdater = (globalOptions) =>
+            {
+                globalOptions.SetGlobalOption(LspOptionsStorage.LspUsingDevkitFeatures, false);
+            }
+        });
         await VerifyTestCodeLensAsync(testLspServer, FeaturesResources.Run_Test);
     }
 
@@ -280,7 +287,47 @@ namespace Test
     }
 }
 ";
-        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions
+        {
+            ClientCapabilities = CapabilitiesWithVSExtensions,
+            OptionUpdater = (globalOptions) =>
+            {
+                globalOptions.SetGlobalOption(LspOptionsStorage.LspUsingDevkitFeatures, false);
+            }
+        });
         await VerifyTestCodeLensAsync(testLspServer, FeaturesResources.Run_All_Tests);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestDoesNotHaveTestCommandWhenDisabledAsync(bool mutatingLspWorkspace)
+    {
+        var markup =
+@"using System;
+namespace Xunit
+{
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+    public class FactAttribute : Attribute { }
+}
+namespace Test
+{
+    using Xunit;
+    class A
+    {
+        [Fact]
+        public void {|codeLens:M|}()
+        {
+        }
+    }
+}
+";
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions
+        {
+            ClientCapabilities = CapabilitiesWithVSExtensions,
+            OptionUpdater = (globalOptions) =>
+            {
+                globalOptions.SetGlobalOption(LspOptionsStorage.LspUsingDevkitFeatures, true);
+            }
+        });
+        await VerifyTestCodeLensMissingAsync(testLspServer);
     }
 }
