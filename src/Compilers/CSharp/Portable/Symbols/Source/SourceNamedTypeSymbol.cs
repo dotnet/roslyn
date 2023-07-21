@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -1197,7 +1198,7 @@ next:;
             }
         }
 
-        internal static bool IsValidCollectionBuilderType(TypeSymbol? builderType)
+        internal static bool IsValidCollectionBuilderType([NotNullWhen(true)] TypeSymbol? builderType)
         {
             return builderType is NamedTypeSymbol { TypeKind: TypeKind.Class or TypeKind.Struct, IsGenericType: false };
         }

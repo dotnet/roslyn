@@ -5666,7 +5666,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 using System.Collections;
                 using System.Collections.Generic;
                 using System.Runtime.CompilerServices;
-                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
                 public struct MyCollection<T> : IEnumerable<T>
                 {
                     private readonly List<T> _list;
@@ -7724,8 +7724,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "public static MyCollection<T> Create<T>(T[] items) => default;", // T[]
                 "public static MyCollection<T> Create<T>(in ReadOnlySpan<T> items) => default;", // in parameter
                 "public static MyCollection<T> Create<T>(ref ReadOnlySpan<T> items) => default;", // ref parameter
-                "public static MyCollection<T> Create<T>(out ReadOnlySpan<T> items) { items = default; return default; }", // out parameter
-                "public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;")] // PROTOTYPE: valid case, remove
+                "public static MyCollection<T> Create<T>(out ReadOnlySpan<T> items) { items = default; return default; }")] // out parameter
             string methodDeclaration,
             bool useCompilationReference)
         {
