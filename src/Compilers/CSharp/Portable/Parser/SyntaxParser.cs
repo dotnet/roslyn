@@ -727,6 +727,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         protected TNode AddErrorAsWarning<TNode>(TNode node, ErrorCode code, params object[] args) where TNode : GreenNode
         {
+            Debug.Assert(!node.IsMissing);
             return AddError(node, ErrorCode.WRN_ErrorOverride, MakeError(node, code, args), (int)code);
         }
 
