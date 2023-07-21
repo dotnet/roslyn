@@ -8496,6 +8496,186 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
+        public void CollectionBuilder_Async()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                public struct MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    public MyCollection(List<T> list) { _list = list; }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+                    {
+                        return new MyCollection<T>(new List<T>(items.ToArray()));
+                    }
+                }
+                """;
+            string sourceB = """
+                using System.Collections.Generic;
+                using System.Threading.Tasks;
+                class Program
+                {
+                    static async Task Main()
+                    {
+                        (await CreateCollection()).Report();
+                    }
+                    static async Task<MyCollection<int>> CreateCollection()
+                    {
+                        return [await F(1), 2, await F(3)];
+                    }
+                    static async Task<int> F(int i)
+                    {
+                        await Task.Yield();
+                        return i;
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(new[] { sourceA, sourceB, CollectionBuilderAttributeDefinition, s_collectionExtensions }, targetFramework: TargetFramework.Net70, expectedOutput: "[1, 2, 3], ");
+            verifier.VerifyIL("Program.<CreateCollection>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
+                """
+                {
+                  // Code size      285 (0x11d)
+                  .maxstack  4
+                  .locals init (int V_0,
+                                MyCollection<int> V_1,
+                                int V_2,
+                                System.Runtime.CompilerServices.TaskAwaiter<int> V_3,
+                                System.Exception V_4)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldfld      "int Program.<CreateCollection>d__1.<>1__state"
+                  IL_0006:  stloc.0
+                  .try
+                  {
+                    IL_0007:  ldloc.0
+                    IL_0008:  brfalse.s  IL_0049
+                    IL_000a:  ldloc.0
+                    IL_000b:  ldc.i4.1
+                    IL_000c:  beq        IL_00a7
+                    IL_0011:  ldc.i4.1
+                    IL_0012:  call       "System.Threading.Tasks.Task<int> Program.F(int)"
+                    IL_0017:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()"
+                    IL_001c:  stloc.3
+                    IL_001d:  ldloca.s   V_3
+                    IL_001f:  call       "bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get"
+                    IL_0024:  brtrue.s   IL_0065
+                    IL_0026:  ldarg.0
+                    IL_0027:  ldc.i4.0
+                    IL_0028:  dup
+                    IL_0029:  stloc.0
+                    IL_002a:  stfld      "int Program.<CreateCollection>d__1.<>1__state"
+                    IL_002f:  ldarg.0
+                    IL_0030:  ldloc.3
+                    IL_0031:  stfld      "System.Runtime.CompilerServices.TaskAwaiter<int> Program.<CreateCollection>d__1.<>u__1"
+                    IL_0036:  ldarg.0
+                    IL_0037:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder<MyCollection<int>> Program.<CreateCollection>d__1.<>t__builder"
+                    IL_003c:  ldloca.s   V_3
+                    IL_003e:  ldarg.0
+                    IL_003f:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<MyCollection<int>>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<CreateCollection>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<CreateCollection>d__1)"
+                    IL_0044:  leave      IL_011c
+                    IL_0049:  ldarg.0
+                    IL_004a:  ldfld      "System.Runtime.CompilerServices.TaskAwaiter<int> Program.<CreateCollection>d__1.<>u__1"
+                    IL_004f:  stloc.3
+                    IL_0050:  ldarg.0
+                    IL_0051:  ldflda     "System.Runtime.CompilerServices.TaskAwaiter<int> Program.<CreateCollection>d__1.<>u__1"
+                    IL_0056:  initobj    "System.Runtime.CompilerServices.TaskAwaiter<int>"
+                    IL_005c:  ldarg.0
+                    IL_005d:  ldc.i4.m1
+                    IL_005e:  dup
+                    IL_005f:  stloc.0
+                    IL_0060:  stfld      "int Program.<CreateCollection>d__1.<>1__state"
+                    IL_0065:  ldarg.0
+                    IL_0066:  ldloca.s   V_3
+                    IL_0068:  call       "int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()"
+                    IL_006d:  stfld      "int Program.<CreateCollection>d__1.<>7__wrap1"
+                    IL_0072:  ldc.i4.3
+                    IL_0073:  call       "System.Threading.Tasks.Task<int> Program.F(int)"
+                    IL_0078:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()"
+                    IL_007d:  stloc.3
+                    IL_007e:  ldloca.s   V_3
+                    IL_0080:  call       "bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get"
+                    IL_0085:  brtrue.s   IL_00c3
+                    IL_0087:  ldarg.0
+                    IL_0088:  ldc.i4.1
+                    IL_0089:  dup
+                    IL_008a:  stloc.0
+                    IL_008b:  stfld      "int Program.<CreateCollection>d__1.<>1__state"
+                    IL_0090:  ldarg.0
+                    IL_0091:  ldloc.3
+                    IL_0092:  stfld      "System.Runtime.CompilerServices.TaskAwaiter<int> Program.<CreateCollection>d__1.<>u__1"
+                    IL_0097:  ldarg.0
+                    IL_0098:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder<MyCollection<int>> Program.<CreateCollection>d__1.<>t__builder"
+                    IL_009d:  ldloca.s   V_3
+                    IL_009f:  ldarg.0
+                    IL_00a0:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<MyCollection<int>>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<CreateCollection>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<CreateCollection>d__1)"
+                    IL_00a5:  leave.s    IL_011c
+                    IL_00a7:  ldarg.0
+                    IL_00a8:  ldfld      "System.Runtime.CompilerServices.TaskAwaiter<int> Program.<CreateCollection>d__1.<>u__1"
+                    IL_00ad:  stloc.3
+                    IL_00ae:  ldarg.0
+                    IL_00af:  ldflda     "System.Runtime.CompilerServices.TaskAwaiter<int> Program.<CreateCollection>d__1.<>u__1"
+                    IL_00b4:  initobj    "System.Runtime.CompilerServices.TaskAwaiter<int>"
+                    IL_00ba:  ldarg.0
+                    IL_00bb:  ldc.i4.m1
+                    IL_00bc:  dup
+                    IL_00bd:  stloc.0
+                    IL_00be:  stfld      "int Program.<CreateCollection>d__1.<>1__state"
+                    IL_00c3:  ldloca.s   V_3
+                    IL_00c5:  call       "int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()"
+                    IL_00ca:  stloc.2
+                    IL_00cb:  ldc.i4.3
+                    IL_00cc:  newarr     "int"
+                    IL_00d1:  dup
+                    IL_00d2:  ldc.i4.0
+                    IL_00d3:  ldarg.0
+                    IL_00d4:  ldfld      "int Program.<CreateCollection>d__1.<>7__wrap1"
+                    IL_00d9:  stelem.i4
+                    IL_00da:  dup
+                    IL_00db:  ldc.i4.1
+                    IL_00dc:  ldc.i4.2
+                    IL_00dd:  stelem.i4
+                    IL_00de:  dup
+                    IL_00df:  ldc.i4.2
+                    IL_00e0:  ldloc.2
+                    IL_00e1:  stelem.i4
+                    IL_00e2:  newobj     "System.ReadOnlySpan<int>..ctor(int[])"
+                    IL_00e7:  call       "MyCollection<int> MyCollectionBuilder.Create<int>(System.ReadOnlySpan<int>)"
+                    IL_00ec:  stloc.1
+                    IL_00ed:  leave.s    IL_0108
+                  }
+                  catch System.Exception
+                  {
+                    IL_00ef:  stloc.s    V_4
+                    IL_00f1:  ldarg.0
+                    IL_00f2:  ldc.i4.s   -2
+                    IL_00f4:  stfld      "int Program.<CreateCollection>d__1.<>1__state"
+                    IL_00f9:  ldarg.0
+                    IL_00fa:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder<MyCollection<int>> Program.<CreateCollection>d__1.<>t__builder"
+                    IL_00ff:  ldloc.s    V_4
+                    IL_0101:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<MyCollection<int>>.SetException(System.Exception)"
+                    IL_0106:  leave.s    IL_011c
+                  }
+                  IL_0108:  ldarg.0
+                  IL_0109:  ldc.i4.s   -2
+                  IL_010b:  stfld      "int Program.<CreateCollection>d__1.<>1__state"
+                  IL_0110:  ldarg.0
+                  IL_0111:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder<MyCollection<int>> Program.<CreateCollection>d__1.<>t__builder"
+                  IL_0116:  ldloc.1
+                  IL_0117:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<MyCollection<int>>.SetResult(MyCollection<int>)"
+                  IL_011c:  ret
+                }
+                """);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void CollectionBuilder_AttributeCycle()
         {
             string source = """
