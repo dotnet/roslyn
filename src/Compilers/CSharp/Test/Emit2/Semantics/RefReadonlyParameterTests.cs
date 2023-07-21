@@ -3411,6 +3411,254 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """);
     }
 
+    [Theory, CombinatorialData]
+    public void Invocation_ExtensionMethod([CombinatorialValues("ref readonly", "ref", "in")] string modifier)
+    {
+        var source = $$"""
+            static class C
+            {
+                static void M(this {{modifier}} int x) => System.Console.Write(x);
+                static void Main()
+                {
+                    var x = 1;
+                    x.M();
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(source, expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.Main", $$"""
+            {
+              // Code size       10 (0xa)
+              .maxstack  1
+              .locals init (int V_0) //x
+              IL_0000:  ldc.i4.1
+              IL_0001:  stloc.0
+              IL_0002:  ldloca.s   V_0
+              IL_0004:  call       "void C.M({{modifier}} int)"
+              IL_0009:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void Invocation_ExtensionMethod_SecondParameter()
+    {
+        var source = """
+            static class C
+            {
+                static void M1(this int x, ref readonly int y) { }
+                static void M2(this ref readonly int x, ref readonly int y) { }
+                static void M3()
+                {
+                    var x = 1;
+                    x.M1(in x);
+                    x.M1(x);
+                    M1(x, in x);
+                    M1(x, x);
+                    x.M2(in x);
+                    x.M2(x);
+                    M2(x, in x);
+                    M2(x, x);
+                    M2(in x, in x);
+                    M2(in x, x);
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (9,14): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            //         x.M1(x);
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(9, 14),
+            // (11,15): warning CS9503: Argument 2 should be passed with 'ref' or 'in' keyword
+            //         M1(x, x);
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("2").WithLocation(11, 15),
+            // (13,14): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            //         x.M2(x);
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(13, 14),
+            // (14,12): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            //         M2(x, in x);
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(14, 12),
+            // (15,12): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            //         M2(x, x);
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(15, 12),
+            // (15,15): warning CS9503: Argument 2 should be passed with 'ref' or 'in' keyword
+            //         M2(x, x);
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("2").WithLocation(15, 15),
+            // (17,18): warning CS9503: Argument 2 should be passed with 'ref' or 'in' keyword
+            //         M2(in x, x);
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("2").WithLocation(17, 18));
+    }
+
+    [Fact]
+    public void Invocation_ExtensionMethod_SecondParameter_ReadOnly()
+    {
+        var source = """
+            static class C
+            {
+                static void M1(this int x, ref readonly int y) { }
+                static void M2(this ref readonly int x, ref readonly int y) { }
+                static void M3(ref readonly int x)
+                {
+                    x.M1(in x);
+                    x.M1(x);
+                    M1(x, in x);
+                    M1(x, x);
+                    x.M2(in x);
+                    x.M2(x);
+                    M2(x, in x);
+                    M2(x, x);
+                    M2(in x, in x);
+                    M2(in x, x);
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (8,14): warning CS9506: Argument 1 should be passed with the 'in' keyword
+            //         x.M1(x);
+            Diagnostic(ErrorCode.WRN_ArgExpectedIn, "x").WithArguments("1").WithLocation(8, 14),
+            // (10,15): warning CS9506: Argument 2 should be passed with the 'in' keyword
+            //         M1(x, x);
+            Diagnostic(ErrorCode.WRN_ArgExpectedIn, "x").WithArguments("2").WithLocation(10, 15),
+            // (12,14): warning CS9506: Argument 1 should be passed with the 'in' keyword
+            //         x.M2(x);
+            Diagnostic(ErrorCode.WRN_ArgExpectedIn, "x").WithArguments("1").WithLocation(12, 14),
+            // (13,12): warning CS9506: Argument 1 should be passed with the 'in' keyword
+            //         M2(x, in x);
+            Diagnostic(ErrorCode.WRN_ArgExpectedIn, "x").WithArguments("1").WithLocation(13, 12),
+            // (14,12): warning CS9506: Argument 1 should be passed with the 'in' keyword
+            //         M2(x, x);
+            Diagnostic(ErrorCode.WRN_ArgExpectedIn, "x").WithArguments("1").WithLocation(14, 12),
+            // (14,15): warning CS9506: Argument 2 should be passed with the 'in' keyword
+            //         M2(x, x);
+            Diagnostic(ErrorCode.WRN_ArgExpectedIn, "x").WithArguments("2").WithLocation(14, 15),
+            // (16,18): warning CS9506: Argument 2 should be passed with the 'in' keyword
+            //         M2(in x, x);
+            Diagnostic(ErrorCode.WRN_ArgExpectedIn, "x").WithArguments("2").WithLocation(16, 18));
+    }
+
+    [Fact]
+    public void Invocation_ExtensionMethod_RValue()
+    {
+        var source = """
+            static class C
+            {
+                static void M(this ref readonly int x) => System.Console.Write(x);
+                static void Main()
+                {
+                    5.M();
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(source, expectedOutput: "5");
+        verifier.VerifyDiagnostics(
+            // (6,9): warning CS9504: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+            //         5.M();
+            Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "5").WithArguments("0").WithLocation(6, 9));
+        verifier.VerifyIL("C.Main", """
+            {
+              // Code size       10 (0xa)
+              .maxstack  1
+              .locals init (int V_0)
+              IL_0000:  ldc.i4.5
+              IL_0001:  stloc.0
+              IL_0002:  ldloca.s   V_0
+              IL_0004:  call       "void C.M(ref readonly int)"
+              IL_0009:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void Invocation_ExtensionMethod_RValue_SecondParameter()
+    {
+        var source = """
+            static class C
+            {
+                static void M1(this int x, ref readonly int y) { }
+                static void M2(this ref readonly int x, ref readonly int y) => System.Console.Write(x + y);
+                static void M3()
+                {
+                    5.M1(111);
+                    M1(5, 111);
+                    5.M2(111);
+                    M2(5, 111);
+                    5.M2(in 111);
+                    M2(in 5, 111);
+                    M2(in 5, in 111);
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (7,14): warning CS9504: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
+            //         5.M1(111);
+            Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "111").WithArguments("1").WithLocation(7, 14),
+            // (8,15): warning CS9504: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter
+            //         M1(5, 111);
+            Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "111").WithArguments("2").WithLocation(8, 15),
+            // (9,9): warning CS9504: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+            //         5.M2(111);
+            Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "5").WithArguments("0").WithLocation(9, 9),
+            // (9,14): warning CS9504: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
+            //         5.M2(111);
+            Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "111").WithArguments("1").WithLocation(9, 14),
+            // (10,12): warning CS9504: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
+            //         M2(5, 111);
+            Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "5").WithArguments("1").WithLocation(10, 12),
+            // (10,15): warning CS9504: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter
+            //         M2(5, 111);
+            Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "111").WithArguments("2").WithLocation(10, 15),
+            // (11,9): warning CS9504: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+            //         5.M2(in 111);
+            Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "5").WithArguments("0").WithLocation(11, 9),
+            // (11,17): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+            //         5.M2(in 111);
+            Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "111").WithLocation(11, 17),
+            // (12,15): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+            //         M2(in 5, 111);
+            Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "5").WithLocation(12, 15),
+            // (12,18): warning CS9504: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter
+            //         M2(in 5, 111);
+            Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "111").WithArguments("2").WithLocation(12, 18),
+            // (13,15): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+            //         M2(in 5, in 111);
+            Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "5").WithLocation(13, 15),
+            // (13,21): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+            //         M2(in 5, in 111);
+            Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "111").WithLocation(13, 21));
+    }
+
+    [Theory, CombinatorialData]
+    public void Invocation_ExtensionMethod_Pointer([CombinatorialValues("ref readonly", "ref", "in")] string modifier)
+    {
+        var source = $$"""
+            static class C
+            {
+                static void M(this {{modifier}} int x) => System.Console.Write(x);
+                static unsafe void Main()
+                {
+                    var x = 1;
+                    (&x)->M();
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(source, expectedOutput: "1",
+            options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.Main", $$"""
+            {
+              // Code size       11 (0xb)
+              .maxstack  1
+              .locals init (int V_0) //x
+              IL_0000:  ldc.i4.1
+              IL_0001:  stloc.0
+              IL_0002:  ldloca.s   V_0
+              IL_0004:  conv.u
+              IL_0005:  call       "void C.M({{modifier}} int)"
+              IL_000a:  ret
+            }
+            """);
+    }
+
     [Fact]
     public void Invocation_Delegate()
     {

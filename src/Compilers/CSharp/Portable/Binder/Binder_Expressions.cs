@@ -3244,7 +3244,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             MemberResolutionResult<TMember> methodResult,
             AnalyzedArguments analyzedArguments,
             BindingDiagnosticBag diagnostics,
-            BoundExpression? receiver)
+            BoundExpression? receiver,
+            bool invokedAsExtensionMethod)
             where TMember : Symbol
         {
             var result = methodResult.Result;
@@ -3275,16 +3276,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
+                        var argNumber = invokedAsExtensionMethod ? arg : arg + 1;
+
                         // Warn for `ref`/`in` or None/`ref readonly` mismatch.
                         if (argRefKind == RefKind.Ref)
                         {
                             if (GetCorrespondingParameter(ref result, parameters, arg).RefKind == RefKind.In)
                             {
+                                Debug.Assert(argNumber > 0);
                                 // The 'ref' modifier for argument {0} corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
                                 diagnostics.Add(
                                     ErrorCode.WRN_BadArgRef,
                                     argument.Syntax,
-                                    arg + 1);
+                                    argNumber);
                             }
                         }
                         else if (argRefKind == RefKind.None &&
@@ -3292,27 +3296,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (!this.CheckValueKind(argument.Syntax, argument, BindValueKind.RefersToLocation, checkingReceiver: false, BindingDiagnosticBag.Discarded))
                             {
+                                Debug.Assert(argNumber >= 0); // can be 0 for receiver of extension method
                                 // Argument {0} should be a variable because it is passed to a 'ref readonly' parameter
                                 diagnostics.Add(
                                     ErrorCode.WRN_RefReadonlyNotVariable,
                                     argument.Syntax,
-                                    arg + 1);
+                                    argNumber);
                             }
-                            else if (this.CheckValueKind(argument.Syntax, argument, BindValueKind.Assignable, checkingReceiver: false, BindingDiagnosticBag.Discarded))
+                            else if (!invokedAsExtensionMethod || arg != 0)
                             {
-                                // Argument {0} should be passed with 'ref' or 'in' keyword
-                                diagnostics.Add(
-                                    ErrorCode.WRN_ArgExpectedRefOrIn,
-                                    argument.Syntax,
-                                    arg + 1);
-                            }
-                            else
-                            {
-                                // Argument {0} should be passed with the 'in' keyword
-                                diagnostics.Add(
-                                    ErrorCode.WRN_ArgExpectedIn,
-                                    argument.Syntax,
-                                    arg + 1);
+                                Debug.Assert(argNumber > 0);
+                                if (this.CheckValueKind(argument.Syntax, argument, BindValueKind.Assignable, checkingReceiver: false, BindingDiagnosticBag.Discarded))
+                                {
+                                    // Argument {0} should be passed with 'ref' or 'in' keyword
+                                    diagnostics.Add(
+                                        ErrorCode.WRN_ArgExpectedRefOrIn,
+                                        argument.Syntax,
+                                        argNumber);
+                                }
+                                else
+                                {
+                                    // Argument {0} should be passed with the 'in' keyword
+                                    diagnostics.Add(
+                                        ErrorCode.WRN_ArgExpectedIn,
+                                        argument.Syntax,
+                                        argNumber);
+                                }
                             }
                         }
                     }
@@ -6338,7 +6347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (succeededIgnoringAccessibility)
             {
-                this.CheckAndCoerceArguments<MethodSymbol>(result.ValidResult, analyzedArguments, diagnostics, receiver: null);
+                this.CheckAndCoerceArguments<MethodSymbol>(result.ValidResult, analyzedArguments, diagnostics, receiver: null, invokedAsExtensionMethod: false);
             }
 
             // Fill in the out parameter with the result, if there was one; it might be inaccessible.
@@ -8995,7 +9004,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 receiver = ReplaceTypeOrValueReceiver(receiver, property.IsStatic, diagnostics);
 
-                this.CheckAndCoerceArguments<PropertySymbol>(resolutionResult, analyzedArguments, diagnostics, receiver);
+                this.CheckAndCoerceArguments<PropertySymbol>(resolutionResult, analyzedArguments, diagnostics, receiver, invokedAsExtensionMethod: false);
 
                 if (!gotError && receiver != null && receiver.Kind == BoundKind.ThisReference && receiver.WasCompilerGenerated)
                 {
