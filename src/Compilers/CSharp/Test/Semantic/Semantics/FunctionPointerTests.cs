@@ -1094,9 +1094,9 @@ unsafe class C
 }");
 
             comp.VerifyDiagnostics(
-                // (6,43): warning CS9510: Reference kind modifier of parameter 'ref object' doesn't match the corresponding parameter 'in object' in target.
+                // (6,43): error CS0266: Cannot implicitly convert type 'delegate*<ref object, void>' to 'delegate*<in object, void>'. An explicit conversion exists (are you missing a cast?)
                 //         delegate*<in object, void> ptr1 = param1;
-                Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "param1").WithArguments("ref object", "in object").WithLocation(6, 43),
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<ref object, void>", "delegate*<in object, void>").WithLocation(6, 43),
                 // (7,40): error CS0266: Cannot implicitly convert type 'delegate*<ref object, void>' to 'delegate*<object, void>'. An explicit conversion exists (are you missing a cast?)
                 //         delegate*<object, void> ptr2 = param1;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<ref object, void>", "delegate*<object, void>").WithLocation(7, 40),
@@ -1127,17 +1127,17 @@ unsafe class C
             Assert.Equal(8, decls.Length);
 
             VerifyDeclarationConversion(comp, model, decls[0],
-                expectedConversionKind: ConversionKind.ImplicitPointer, expectedImplicit: true,
+                expectedConversionKind: ConversionKind.ExplicitPointerToPointer, expectedImplicit: false,
                 expectedOriginalType: "delegate*<ref System.Object, System.Void>",
                 expectedConvertedType: "delegate*<in modreq(System.Runtime.InteropServices.InAttribute) System.Object, System.Void>",
                 expectedOperationTree: @"
-IVariableDeclaratorOperation (Symbol: delegate*<in modreq(System.Runtime.InteropServices.InAttribute) System.Object, System.Void> ptr1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'ptr1 = param1')
-  Initializer:
-    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= param1')
-      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<in modreq(System.Runtime.InteropServices.InAttribute) System.Object, System.Void>, IsImplicit) (Syntax: 'param1')
+IVariableDeclaratorOperation (Symbol: delegate*<in modreq(System.Runtime.InteropServices.InAttribute) System.Object, System.Void> ptr1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr1 = param1')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= param1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<in modreq(System.Runtime.InteropServices.InAttribute) System.Object, System.Void>, IsInvalid, IsImplicit) (Syntax: 'param1')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand:
-          IParameterReferenceOperation: param1 (OperationKind.ParameterReference, Type: delegate*<ref System.Object, System.Void>) (Syntax: 'param1')
+        Operand: 
+          IParameterReferenceOperation: param1 (OperationKind.ParameterReference, Type: delegate*<ref System.Object, System.Void>, IsInvalid) (Syntax: 'param1')
 ");
 
             VerifyDeclarationConversion(comp, model, decls[1],
