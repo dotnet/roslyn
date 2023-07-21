@@ -112,10 +112,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var openBrace = EnsureToken(typeDeclaration.OpenBraceToken, SyntaxKind.OpenBraceToken);
             var closeBrace = EnsureToken(typeDeclaration.CloseBraceToken, SyntaxKind.CloseBraceToken, appendNewLineIfMissing: true);
 
+            // Don't make any changes if the type already has both braces.
+            if (openBrace == typeDeclaration.OpenBraceToken && closeBrace == typeDeclaration.CloseBraceToken)
+                return typeDeclaration;
+
+            // If we are adding braces, then remove any semicolon to we cconvert something like `record class X();` to
+            // `record class X { }`
             if (typeDeclaration.SemicolonToken.IsKind(SyntaxKind.SemicolonToken))
-            {
                 typeDeclaration = typeDeclaration.WithSemicolonToken(default).WithTrailingTrivia(typeDeclaration.SemicolonToken.TrailingTrivia);
-            }
 
             if (!hasMembers)
             {
