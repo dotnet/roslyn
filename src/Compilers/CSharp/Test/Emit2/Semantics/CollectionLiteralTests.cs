@@ -6723,7 +6723,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [CombinatorialData]
         [ConditionalTheory(typeof(CoreClrOnly))]
         public void CollectionBuilder_InvalidBuilderType_04(
-            [CombinatorialValues("int[]", "int*")] string builderTypeName)
+            [CombinatorialValues("int[]", "int*", "(object, object)")] string builderTypeName)
         {
             string sourceA = $$"""
                 using System.Collections;
