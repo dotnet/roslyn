@@ -495,6 +495,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                    DirectCast(modifiedIdentifier.Parent, VariableDeclaratorSyntax).Names.Count > 1
         End Function
 
+        Protected Overrides Function AreEquivalentImpl(oldToken As SyntaxToken, newToken As SyntaxToken) As Boolean
+            Return SyntaxFactory.AreEquivalent(oldToken, newToken)
+        End Function
+
         Friend Overrides Function IsInterfaceDeclaration(node As SyntaxNode) As Boolean
             Return node.IsKind(SyntaxKind.InterfaceBlock)
         End Function

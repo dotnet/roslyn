@@ -180,6 +180,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </remarks>
         protected abstract bool AreEquivalentActiveStatements(SyntaxNode oldStatement, SyntaxNode newStatement, int statementPart);
 
+        protected abstract bool AreEquivalentImpl(SyntaxToken oldToken, SyntaxToken newToken);
+
+        /// <summary>
+        /// Determines if two syntax tokens are the same, disregarding trivia differences.
+        /// </summary>
+        private bool AreEquivalent(SyntaxToken oldToken, SyntaxToken newToken)
+            => oldToken.RawKind == newToken.RawKind && oldToken.Span.Length == newToken.Span.Length && AreEquivalentImpl(oldToken, newToken);
+
         protected abstract bool IsNamespaceDeclaration(SyntaxNode node);
         protected abstract bool IsCompilationUnitWithGlobalStatements(SyntaxNode node);
         protected abstract bool IsGlobalStatement(SyntaxNode node);
@@ -2000,7 +2008,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // This may happen when active tokens of member bodies overlap with nodes that do not represent a body.
                     // For example, in VB an initializer of a variable declarator node is included in the bodies of each modified identifier listed in the declarator,
                     // the declarator itself doesn't represent a body.
-                    if (oldHasToken != newHasToken || oldHasToken && !AreEqualIgnoringTrivia(oldTokensEnum.Current, newTokensEnum.Current))
+                    if (oldHasToken != newHasToken || oldHasToken && !AreEquivalent(oldTokensEnum.Current, newTokensEnum.Current))
                     {
                         requiresUpdate = false;
                         break;
@@ -6475,18 +6483,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         #endregion
 
         #region Helpers
-
-        private static bool AreEqualIgnoringTrivia(SyntaxToken oldToken, SyntaxToken newToken)
-        {
-            if (oldToken.Span.Length != newToken.Span.Length)
-            {
-                return false;
-            }
-
-            // TODO: avoid allocations
-            return oldToken.WithLeadingTrivia(trivia: null).WithTrailingTrivia(trivia: null).IsEquivalentTo(
-                newToken.WithLeadingTrivia(trivia: null).WithTrailingTrivia(trivia: null));
-        }
 
         private static SyntaxNode? FindPartner(OneOrMany<SyntaxNode> rootNodes, OneOrMany<SyntaxNode> otherRootNodes, SyntaxNode otherNode)
         {
