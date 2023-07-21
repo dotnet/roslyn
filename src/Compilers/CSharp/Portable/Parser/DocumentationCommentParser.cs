@@ -1268,7 +1268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (refKindOpt.Kind != SyntaxKind.RefKeyword)
                 {
                     // if we encounter `readonly` after `in` or `out`, we place the `readonly` as skipped trivia on the previous keyword
-                    var misplacedToken = AddError(EatToken(), ErrorCode.ERR_RefReadOnlyWrongOrdering);
+                    var misplacedToken = AddErrorAsWarning(EatToken(), ErrorCode.ERR_RefReadOnlyWrongOrdering);
                     refKindOpt = AddTrailingSkippedSyntax(refKindOpt, misplacedToken);
                 }
                 else

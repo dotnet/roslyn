@@ -6732,9 +6732,9 @@ class Test
                 // (3,16): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     void M(ref readonly int x)
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 16),
-                // (8,26): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,26): warning CS1658: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
                 //     /// <see cref="M(ref readonly int)"/>
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(8, 26)));
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "readonly").WithArguments("The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(8, 26)));
 
             verify(CreateCompilation(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics());
             verify(CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics());
@@ -6872,9 +6872,9 @@ class Test
                 // (8,20): warning CS1574: XML comment has cref attribute 'M(ref readonly int)' that could not be resolved
                 //     /// <see cref="M(ref readonly int)"/>
                 Diagnostic(ErrorCode.WRN_BadXMLRef, "M(ref readonly int)").WithArguments("M(ref readonly int)").WithLocation(8, 20),
-                // (8,26): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,26): warning CS1658: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
                 //     /// <see cref="M(ref readonly int)"/>
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(8, 26)));
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "readonly").WithArguments("The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(8, 26)));
 
             var expectedDiagnostics = new[]
             {

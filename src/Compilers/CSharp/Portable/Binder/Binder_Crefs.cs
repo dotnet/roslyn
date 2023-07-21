@@ -935,7 +935,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 RefKind refKind = parameter.RefKindKeyword.Kind().GetRefKind();
                 if (refKind == RefKind.Ref && parameter.ReadOnlyKeyword.IsKind(SyntaxKind.ReadOnlyKeyword))
                 {
-                    CheckFeatureAvailability(parameter.ReadOnlyKeyword, MessageID.IDS_FeatureRefReadonlyParameters, diagnostics);
+                    CheckFeatureAvailability(parameter.ReadOnlyKeyword, MessageID.IDS_FeatureRefReadonlyParameters, diagnostics, forceWarning: true);
                     refKind = RefKind.RefReadOnlyParameter;
                 }
 

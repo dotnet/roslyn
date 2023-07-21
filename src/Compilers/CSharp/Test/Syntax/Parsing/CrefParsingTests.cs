@@ -1524,9 +1524,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'A(in readonly B)'
                 // /// <see cref="A(in readonly B)"/>
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "A(in readonly B)").WithArguments("A(in readonly B)").WithLocation(1, 16),
-                // (1,21): error CS9501: 'readonly' modifier must be specified after 'ref'.
+                // (1,21): warning CS1658: 'readonly' modifier must be specified after 'ref'.. See also error CS9501.
                 // /// <see cref="A(in readonly B)"/>
-                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(1, 21));
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "readonly").WithArguments("'readonly' modifier must be specified after 'ref'.", "9501").WithLocation(1, 21));
 
             N(SyntaxKind.NameMemberCref);
             {
@@ -1559,9 +1559,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'A(out readonly B)'
                 // /// <see cref="A(out readonly B)"/>
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "A(out readonly B)").WithArguments("A(out readonly B)").WithLocation(1, 16),
-                // (1,22): error CS9501: 'readonly' modifier must be specified after 'ref'.
+                // (1,22): warning CS1658: 'readonly' modifier must be specified after 'ref'.. See also error CS9501.
                 // /// <see cref="A(out readonly B)"/>
-                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(1, 22));
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "readonly").WithArguments("'readonly' modifier must be specified after 'ref'.", "9501").WithLocation(1, 22));
 
             N(SyntaxKind.NameMemberCref);
             {
