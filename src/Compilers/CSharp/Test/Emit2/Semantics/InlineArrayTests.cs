@@ -998,7 +998,10 @@ class C
             comp.VerifyDiagnostics(
                 // (6,13): error CS0021: Cannot apply indexing with [] to an expression of type 'Buffer'
                 //         _ = b[0];
-                Diagnostic(ErrorCode.ERR_BadIndexLHS, "b[0]").WithArguments("Buffer").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "b[0]").WithArguments("Buffer").WithLocation(6, 13),
+                // (13,21): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                //     private ref int _element0;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element0").WithLocation(13, 21)
                 );
 
             verify(comp);
@@ -1082,7 +1085,10 @@ class C
             comp.VerifyDiagnostics(
                 // (6,13): error CS0021: Cannot apply indexing with [] to an expression of type 'Buffer'
                 //         _ = b[0];
-                Diagnostic(ErrorCode.ERR_BadIndexLHS, "b[0]").WithArguments("Buffer").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "b[0]").WithArguments("Buffer").WithLocation(6, 13),
+                // (13,30): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                //     private ref readonly int _element0;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element0").WithLocation(13, 30)
                 );
 
             verify(comp);
@@ -1533,7 +1539,10 @@ unsafe struct Buffer
             comp.VerifyDiagnostics(
                 // (7,9): error CS0306: The type 'void*' may not be used as a type argument
                 //         x[0] = null;
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "x[0]").WithArguments("void*").WithLocation(7, 9)
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "x[0]").WithArguments("void*").WithLocation(7, 9),
+                // (14,19): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                //     private void* _element0;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element0").WithLocation(14, 19)
                 );
         }
 
@@ -2087,6 +2096,45 @@ unsafe class Program
                 // (7,18): error CS0021: Cannot apply indexing with [] to an expression of type 'Buffer'
                 //         int* x = a[0];
                 Diagnostic(ErrorCode.ERR_BadIndexLHS, "a[0]").WithArguments("Buffer").WithLocation(7, 18)
+                );
+        }
+
+        [Fact]
+        public void InlineArrayType_49_UnsupportedElementType()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.InlineArray(10)]
+unsafe struct Buffer
+{
+    private delegate*<void> _element0;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            comp.VerifyDiagnostics(
+                // (5,29): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                //     private delegate*<void> _element0;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element0").WithLocation(5, 29)
+                );
+        }
+
+        [Fact]
+        public void InlineArrayType_50_UnsupportedElementType()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.InlineArray(10)]
+struct Buffer
+{
+    private System.ArgIterator _element0;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            comp.VerifyDiagnostics(
+                // (5,13): error CS0610: Field or property cannot be of type 'ArgIterator'
+                //     private System.ArgIterator _element0;
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(5, 13),
+                // (5,32): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                //     private System.ArgIterator _element0;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element0").WithLocation(5, 32)
                 );
         }
 
@@ -8876,7 +8924,10 @@ public ref struct Buffer10
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "M3(xx)[0]").WithArguments("System.Span<int>").WithLocation(24, 16),
                 // (29,18): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         var yy = M3(xx)[0];
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M3(xx)[0]").WithArguments("System.Span<int>").WithLocation(29, 18)
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M3(xx)[0]").WithArguments("System.Span<int>").WithLocation(29, 18),
+                // (37,30): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                //     private System.Span<int> _element0;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element0").WithLocation(37, 30)
                 );
         }
 
@@ -18817,7 +18868,10 @@ public ref struct Buffer10
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(9, 20),
                 // (17,28): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         foreach (var yy in GetBuffer(xx))
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "GetBuffer(xx)").WithArguments("System.Span<int>").WithLocation(17, 28)
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "GetBuffer(xx)").WithArguments("System.Span<int>").WithLocation(17, 28),
+                // (34,30): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                //     private System.Span<int> _element0;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element0").WithLocation(34, 30)
                 );
         }
 
@@ -19385,7 +19439,10 @@ unsafe struct Buffer
             comp.VerifyDiagnostics(
                 // (6,26): error CS0306: The type 'void*' may not be used as a type argument
                 //         foreach(var s in GetBuffer())
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "GetBuffer()").WithArguments("void*").WithLocation(6, 26)
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "GetBuffer()").WithArguments("void*").WithLocation(6, 26),
+                // (17,19): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                //     private void* _element0;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element0").WithLocation(17, 19)
                 );
         }
 
@@ -21237,7 +21294,11 @@ ref struct Buffer4
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
-            CompileAndVerify(comp, expectedOutput: "int").VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "int").VerifyDiagnostics(
+                // (8,21): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                //     private ref int _element0;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element0").WithLocation(8, 21)
+                );
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]

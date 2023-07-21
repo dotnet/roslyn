@@ -2246,6 +2246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_InlineArrayIndexerNotUsed = 9181,
         WRN_InlineArraySliceNotUsed = 9182,
         WRN_InlineArrayConversionOperatorNotUsed = 9183,
+        WRN_InlineArrayNotSupportedByLanguage = 9184,
 
         #endregion
 

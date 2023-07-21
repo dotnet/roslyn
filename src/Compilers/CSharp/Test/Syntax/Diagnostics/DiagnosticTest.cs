@@ -312,6 +312,7 @@ class X
                         case ErrorCode.WRN_InlineArrayIndexerNotUsed:
                         case ErrorCode.WRN_InlineArraySliceNotUsed:
                         case ErrorCode.WRN_InlineArrayConversionOperatorNotUsed:
+                        case ErrorCode.WRN_InlineArrayNotSupportedByLanguage:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
