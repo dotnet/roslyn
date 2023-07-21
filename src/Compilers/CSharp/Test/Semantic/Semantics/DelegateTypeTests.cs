@@ -1327,16 +1327,9 @@ static class B
             yield return getData("internal static void F(this object x) { }", "internal static void F(this object y) { }", "this.F", "F", null, "A.F", "System.Action"); // different parameter name
             yield return getData("internal static void F(this object x) { }", "internal static void F(this string x) { }", "string.Empty.F", "F", null, "A.F", "System.Action"); // different parameter type
             yield return getData("internal static void F(this object x) { }", "internal static void F(this string x) { }", "this.F", "F", null, "A.F", "System.Action"); // different parameter type
-            yield return getData("internal static void F(this object x) { }", "internal static void F(this object x, object y) { }", "this.F", "F"); // different number of parameters
-            yield return getData("internal static void F(this object x, object y) { }", "internal static void F(this object x, ref object y) { }", "this.F", "F"); // different parameter ref kind
-            yield return getData("internal static void F(this object x, ref object y) { }", "internal static void F(this object x, object y) { }", "this.F", "F"); // different parameter ref kind
-            yield return getData("internal static object F(this object x) => throw null;", "internal static ref object F(this object x) => throw null;", "this.F", "F"); // different return ref kind
-            yield return getData("internal static ref object F(this object x) => throw null;", "internal static object F(this object x) => throw null;", "this.F", "F"); // different return ref kind
             yield return getData("internal static void F(this object x, System.IntPtr y) { }", "internal static void F(this object x, nint y) { }", "this.F", "F", null, "A.F", "System.Action<System.IntPtr>"); // System.IntPtr/nint
             yield return getData("internal static nint F(this object x) => throw null;", "internal static System.IntPtr F(this object x) => throw null;", "this.F", "F", null, "A.F", "System.Func<System.IntPtr>"); // System.IntPtr/nint
-            yield return getData("internal static void F(this object x, object y) { }", "internal static void F<T>(this object x, T y) { }", "this.F", "F"); // different arity
             yield return getData("internal static void F(this object x, object y) { }", "internal static void F<T>(this object x, T y) { }", "this.F<int>", "F<int>", null, "N.B.F", "System.Action<System.Int32>"); // different arity
-            yield return getData("internal static void F<T>(this object x) { }", "internal static void F(this object x) { }", "this.F", "F"); // different arity
             yield return getData("internal static void F<T>(this object x) { }", "internal static void F(this object x) { }", "this.F<int>", "F<int>", null, "A.F", "System.Action"); // different arity
             yield return getData("internal static void F<T>(this T t) where T : class { }", "internal static void F<T>(this T t) { }", "this.F<object>", "F<object>", null, "A.F", "System.Action"); // different type parameter constraints
             yield return getData("internal static void F<T>(this T t) { }", "internal static void F<T>(this T t) where T : class { }", "this.F<object>", "F<object>", null, "A.F", "System.Action"); // different type parameter constraints
@@ -1372,7 +1365,7 @@ static class B
 $@"using N;
 class Program
 {{
-    void M()
+   void M()
     {{
         System.Delegate d = {methodGroupExpression};
         System.Console.Write(""{{0}}: {{1}}"", d.GetDelegateMethodName(), d.GetDelegateTypeName());
@@ -1414,6 +1407,952 @@ namespace N
             var symbolInfo = model.GetSymbolInfo(expr);
             // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
             Assert.Null(symbolInfo.Symbol);
+        }
+
+        [Fact]
+        public void MethodGroup_ExtensionMethodsDifferentScope_2()
+        {
+            var source = """
+using N;
+
+new Program().M();
+
+partial class Program
+{
+    public void M()
+    {
+        System.Delegate d = this.F;
+        System.Console.Write("{0}: {1}", d.GetDelegateMethodName(), d.GetDelegateTypeName());
+    }
+}
+
+static class A
+{
+    internal static void F(this object x) { }
+}
+namespace N
+{
+    static class B
+    {
+        internal static void F(this object x, object y) { }
+    }
+}
+""";
+            var comp = CreateCompilation(new[] { source, s_utils });
+            comp.VerifyDiagnostics(
+                // 0.cs(1,1): hidden CS8019: Unnecessary using directive.
+                // using N;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1)
+                );
+
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "A.F: System.Action");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer!.Value;
+            var typeInfo = model.GetTypeInfo(expr);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal(SpecialType.System_Delegate, typeInfo.ConvertedType!.SpecialType);
+
+            var symbolInfo = model.GetSymbolInfo(expr);
+            // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
+            Assert.Null(symbolInfo.Symbol);
+        }
+
+        [Fact]
+        public void MethodGroup_ExtensionMethodsDifferentScope_3()
+        {
+            var source = """
+using N;
+
+new Program().M();
+
+partial class Program
+{
+    public void M()
+    {
+        System.Delegate d = this.F;
+        System.Console.Write("{0}: {1}", d.GetDelegateMethodName(), d.GetDelegateTypeName());
+    }
+}
+
+static class A
+{
+    internal static void F(this object x, object y) { }
+}
+namespace N
+{
+    static class B
+    {
+        internal static void F(this object x, ref object y) { }
+    }
+}
+""";
+            var comp = CreateCompilation(new[] { source, s_utils });
+            comp.VerifyDiagnostics(
+                // 0.cs(1,1): hidden CS8019: Unnecessary using directive.
+                // using N;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1)
+                );
+
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "A.F: System.Action<System.Object>");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer!.Value;
+            var typeInfo = model.GetTypeInfo(expr);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal(SpecialType.System_Delegate, typeInfo.ConvertedType!.SpecialType);
+
+            var symbolInfo = model.GetSymbolInfo(expr);
+            // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
+            Assert.Null(symbolInfo.Symbol);
+        }
+
+        [Fact]
+        public void MethodGroup_ExtensionMethodsDifferentScope_4()
+        {
+            var source = """
+using N;
+
+new Program().M();
+
+partial class Program
+{
+    public void M()
+    {
+        System.Delegate d = this.F;
+        System.Console.Write("{0}: {1}", d.GetDelegateMethodName(), d.GetDelegateTypeName());
+    }
+}
+
+static class A
+{
+    internal static void F(this object x, ref object y) { }
+}
+namespace N
+{
+    static class B
+    {
+        internal static void F(this object x, object y) { }
+    }
+}
+""";
+            var comp = CreateCompilation(new[] { source, s_utils });
+            comp.VerifyDiagnostics(
+                // 0.cs(1,1): hidden CS8019: Unnecessary using directive.
+                // using N;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1)
+                );
+
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "A.F: <>A{00000001}<System.Object>");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer!.Value;
+            var typeInfo = model.GetTypeInfo(expr);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal(SpecialType.System_Delegate, typeInfo.ConvertedType!.SpecialType);
+
+            var symbolInfo = model.GetSymbolInfo(expr);
+            // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
+            Assert.Null(symbolInfo.Symbol);
+        }
+
+        [Fact]
+        public void MethodGroup_ExtensionMethodsDifferentScope_5()
+        {
+            var source = """
+using N;
+
+new Program().M();
+
+partial class Program
+{
+    public void M()
+    {
+        System.Delegate d = this.F;
+        System.Console.Write("{0}: {1}", d.GetDelegateMethodName(), d.GetDelegateTypeName());
+    }
+}
+
+static class A
+{
+    internal static object F(this object x) => throw null;
+}
+namespace N
+{
+    static class B
+    {
+        internal static ref object F(this object x) => throw null;
+    }
+}
+""";
+            var comp = CreateCompilation(new[] { source, s_utils });
+            comp.VerifyDiagnostics(
+                // 0.cs(1,1): hidden CS8019: Unnecessary using directive.
+                // using N;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1)
+                );
+
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "A.F: System.Func<System.Object>");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer!.Value;
+            var typeInfo = model.GetTypeInfo(expr);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal(SpecialType.System_Delegate, typeInfo.ConvertedType!.SpecialType);
+
+            var symbolInfo = model.GetSymbolInfo(expr);
+            // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
+            Assert.Null(symbolInfo.Symbol);
+        }
+
+        [Fact]
+        public void MethodGroup_ExtensionMethodsDifferentScope_6()
+        {
+            var source = """
+using N;
+
+new Program().M();
+
+partial class Program
+{
+    public void M()
+    {
+        System.Delegate d = this.F;
+        System.Console.Write("{0}: {1}", d.GetDelegateMethodName(), d.GetDelegateTypeName());
+    }
+}
+
+static class A
+{
+    internal static ref object F(this object x) => throw null;
+}
+namespace N
+{
+    static class B
+    {
+        internal static object F(this object x) => throw null;
+    }
+}
+""";
+            var comp = CreateCompilation(new[] { source, s_utils });
+            comp.VerifyDiagnostics(
+                // 0.cs(1,1): hidden CS8019: Unnecessary using directive.
+                // using N;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1)
+                );
+
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "A.F: <>F{00000001}<System.Object>");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer!.Value;
+            var typeInfo = model.GetTypeInfo(expr);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal(SpecialType.System_Delegate, typeInfo.ConvertedType!.SpecialType);
+
+            var symbolInfo = model.GetSymbolInfo(expr);
+            // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
+            Assert.Null(symbolInfo.Symbol);
+        }
+
+        [Fact]
+        public void MethodGroup_ExtensionMethodsDifferentScope_7()
+        {
+            var source = """
+using N;
+
+new Program().M();
+
+partial class Program
+{
+    public void M()
+    {
+        System.Delegate d = this.F;
+        System.Console.Write("{0}: {1}", d.GetDelegateMethodName(), d.GetDelegateTypeName());
+    }
+}
+
+static class A
+{
+    internal static void F(this object x, object y) { }
+}
+namespace N
+{
+    static class B
+    {
+        internal static void F<T>(this object x, T y) { }
+    }
+}
+""";
+            var comp = CreateCompilation(new[] { source, s_utils });
+            comp.VerifyDiagnostics(
+                // 0.cs(1,1): hidden CS8019: Unnecessary using directive.
+                // using N;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1)
+                );
+
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "A.F: System.Action<System.Object>");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer!.Value;
+            var typeInfo = model.GetTypeInfo(expr);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal(SpecialType.System_Delegate, typeInfo.ConvertedType!.SpecialType);
+
+            var symbolInfo = model.GetSymbolInfo(expr);
+            // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
+            Assert.Null(symbolInfo.Symbol);
+        }
+
+        [Fact]
+        public void MethodGroup_ExtensionMethodsDifferentScope_8()
+        {
+            var source = """
+using N;
+
+new Program().M();
+
+partial class Program
+{
+    public void M()
+    {
+        System.Delegate d = this.F;
+        System.Console.Write("{0}: {1}", d.GetDelegateMethodName(), d.GetDelegateTypeName());
+    }
+}
+
+static class A
+{
+    internal static void F<T>(this object x) { }
+}
+namespace N
+{
+    static class B
+    {
+        internal static void F(this object x) { }
+    }
+}
+""";
+            var comp = CreateCompilation(new[] { source, s_utils });
+            comp.VerifyDiagnostics(
+                // 0.cs(1,1): hidden CS8019: Unnecessary using directive.
+                // using N;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1),
+                // 0.cs(9,34): error CS8917: The delegate type could not be inferred.
+                //         System.Delegate d = this.F;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F").WithLocation(9, 34)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer!.Value;
+            var typeInfo = model.GetTypeInfo(expr);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal(SpecialType.System_Delegate, typeInfo.ConvertedType!.SpecialType);
+
+            var symbolInfo = model.GetSymbolInfo(expr);
+            // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
+            Assert.Null(symbolInfo.Symbol);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
+        public void MethodGroup_ScopeByScope_InstanceBeforeExtensions()
+        {
+            // Instance method takes priority over extensions for method group natural type
+            var source = """
+System.Action x = new C().M;
+x();
+
+System.Action<object> y = new C().M;
+y(42);
+
+var z = new C().M;
+z();
+
+public class C
+{
+    public void M()
+    {
+        System.Console.Write("C.M ");
+    }
+}
+
+public static class E
+{
+    public static void M(this C c, object o)
+    {
+        System.Console.Write("E.M ");
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "C.M E.M C.M");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new C().M").Last();
+            var typeInfo = model.GetTypeInfo(memberAccess);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("System.Action", typeInfo.ConvertedType!.ToTestDisplayString());
+            Assert.Equal("void C.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+            Assert.Equal(new[] { "void C.M()", "void C.M(System.Object o)" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
+        public void MethodGroup_ScopeByScope_AmbiguityWithScope_SameSignature()
+        {
+            // All extensions in a given scope are considered together for method group natural type
+            // Multiple extension methods in inner scope having the same signature means
+            // we can pick a natural type for the method group
+            var source = """
+using N;
+
+System.Action x = new C().M;
+var z = new C().M;
+
+public class C { }
+
+public static class E1
+{
+    public static void M(this C c) { }
+}
+
+public static class E2
+{
+    public static void M(this C c) { }
+}
+
+namespace N
+{
+    public static class E3
+    {
+        public static void M(this C c, object o) { } // ignored
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using N;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1),
+                // (3,19): error CS0121: The call is ambiguous between the following methods or properties: 'E1.M(C)' and 'E2.M(C)'
+                // System.Action x = new C().M;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "new C().M").WithArguments("E1.M(C)", "E2.M(C)").WithLocation(3, 19),
+                // (4,9): error CS0121: The call is ambiguous between the following methods or properties: 'E1.M(C)' and 'E2.M(C)'
+                // var z = new C().M;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "new C().M").WithArguments("E1.M(C)", "E2.M(C)").WithLocation(4, 9)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new C().M").Last();
+            var typeInfo = model.GetTypeInfo(memberAccess);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("System.Action", typeInfo.ConvertedType!.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+            Assert.Equal(new[] { "void C.M()", "void C.M()", "void C.M(System.Object o)" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
+        public void MethodGroup_ScopeByScope_AmbiguityWithScope_DifferentSignature()
+        {
+            // All extensions in a given scope are considered together for method group natural type
+            // Two inner scope extension with different signatures means
+            // we can't determine the natural type of the method group
+            var source = """
+using N;
+
+System.Action x = new C().M;
+var z = new C().M;
+
+public class C { }
+
+public static class E1
+{
+    public static void M(this C c) { }
+}
+
+public static class E2
+{
+    public static void M(this C c, object o) { }
+}
+
+namespace N
+{
+    public static class E3
+    {
+        public static void M(this C c, object o) { } // ignored
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using N;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1),
+                // (4,9): error CS8917: The delegate type could not be inferred.
+                // var z = new C().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(4, 9)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new C().M").Last();
+            var typeInfo = model.GetTypeInfo(memberAccess);
+            Assert.Null(typeInfo.Type);
+            Assert.True(typeInfo.ConvertedType!.IsErrorType());
+            Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+
+            Assert.Equal(new[] { "void C.M()", "void C.M(System.Object o)", "void C.M(System.Object o)" },
+                model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
+        public void MethodGroup_ScopeByScope_InnerScopeBeforeOuterScope()
+        {
+            // Extensions in inner scopes take precedence over those in outer scopes
+            var source = """
+using N;
+
+System.Action x = new C().M;
+x();
+
+var z = new C().M;
+z();
+
+public class C { }
+
+public static class E1
+{
+    public static void M(this C c)
+    {
+        System.Console.Write("E1.M ");
+    }
+}
+
+namespace N
+{
+    public static class E2
+    {
+        public static void M(this C c, object o) { } // ignored
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using N;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1)
+                );
+
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "E1.M E1.M");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new C().M").Last();
+            var typeInfo = model.GetTypeInfo(memberAccess);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("System.Action", typeInfo.ConvertedType!.ToTestDisplayString());
+            Assert.Equal("void C.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+            Assert.Equal(new[] { "void C.M()", "void C.M(System.Object o)" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
+        public void MethodGroup_ScopeByScope_InaccessibleInInnerScope()
+        {
+            // Inaccessible extension method in inner scope is ignored
+            var source = """
+using N;
+
+System.Action x = new C().M;
+x();
+
+var z = new C().M;
+z();
+
+public class C { }
+
+public static class E1
+{
+    private static void M(this C c) { } // ignored
+}
+
+namespace N
+{
+    public static class E2
+    {
+        public static void M(this C c)
+        {
+            System.Console.Write("E2.M ");
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "E2.M E2.M");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new C().M").Last();
+            var typeInfo = model.GetTypeInfo(memberAccess);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("System.Action", typeInfo.ConvertedType!.ToTestDisplayString());
+            Assert.Equal("void C.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+            Assert.Equal(new[] { "void C.M()" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
+        public void MethodGroup_ScopeByScope_InstanceReceiver()
+        {
+            // Static method is ignored on instance receiver
+            var source = """
+System.Action x = new C().M;
+x();
+
+var z = new C().M;
+z();
+
+public class C
+{
+    static void M() { } // ignored
+}
+
+public static class E
+{
+    public static void M(this C c)
+    {
+        System.Console.Write("E.M ");
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "E.M E.M");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new C().M").Last();
+            var typeInfo = model.GetTypeInfo(memberAccess);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("System.Action", typeInfo.ConvertedType!.ToTestDisplayString());
+            // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
+            Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+            Assert.Equal(new[] { "void C.M()" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
+        public void MethodGroup_ScopeByScope_TypeReceiver()
+        {
+            // Instance method and extension methods are ignored on type receiver
+            var source = """
+System.Action x = C.M;
+x();
+
+var z = C.M;
+z();
+
+public class C
+{
+    public void M(C c) { } // ignored
+}
+
+public static class E
+{
+    public static void M(this C c) { }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (1,21): error CS0123: No overload for 'M' matches delegate 'Action'
+                // System.Action x = C.M;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "System.Action").WithLocation(1, 21),
+                // (4,9): error CS8917: The delegate type could not be inferred.
+                // var z = C.M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "C.M").WithLocation(4, 9)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "C.M").Last();
+            var typeInfo = model.GetTypeInfo(memberAccess);
+            Assert.Null(typeInfo.Type);
+            Assert.True(typeInfo.ConvertedType!.IsErrorType());
+            Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+            Assert.Equal(new[] { "void C.M(C c)" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
+        public void MethodGroup_ScopeByScope_NoTypeArguments_ExtensionMethodHasZeroArity()
+        {
+            var source = """
+System.Action x = new C().M;
+x();
+
+var z = new C().M;
+z();
+
+public class C
+{
+    public void M<T>() { }
+}
+
+public static class E
+{
+    public static void M(this C c)
+    {
+        System.Console.Write("E.M ");
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,9): error CS8917: The delegate type could not be inferred.
+                // var z = new C().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(4, 9)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new C().M").Last();
+            var typeInfo = model.GetTypeInfo(memberAccess);
+            Assert.Null(typeInfo.Type);
+            Assert.True(typeInfo.ConvertedType!.IsErrorType());
+            Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+            Assert.Equal(new[] { "void C.M<T>()", "void C.M()" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
+        public void MethodGroup_ScopeByScope_NoTypeArguments_OuterExtensionMethodHasZeroArity()
+        {
+            var source = """
+using N;
+
+System.Action x = new C().M;
+x();
+
+var z = new C().M;
+z();
+
+public class C { }
+
+public static class E1
+{
+    public static void M<T>(this C c) => throw null;
+}
+
+namespace N
+{
+    public static class E2
+    {
+        public static void M(this C c) => throw null;
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8917: The delegate type could not be inferred.
+                // var z = new C().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(6, 9)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new C().M").Last();
+            var typeInfo = model.GetTypeInfo(memberAccess);
+            Assert.Null(typeInfo.Type);
+            Assert.True(typeInfo.ConvertedType!.IsErrorType());
+            Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+            Assert.Equal(new[] { "void C.M<T>()", "void C.M()" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
+        public void MethodGroup_ScopeByScope_NoTypeArguments_InnerExtensionMethodHasArityOne()
+        {
+            var source = """
+using N;
+
+System.Action x = new C().M;
+x();
+
+var z = new C().M;
+z();
+
+public class C { }
+
+public static class E1
+{
+    public static void M<T>(this T c) => throw null;
+}
+
+namespace N
+{
+    public static class E2
+    {
+        public static void M(this C c) => throw null;
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using N;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1),
+                // (6,9): error CS8917: The delegate type could not be inferred.
+                // var z = new C().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(6, 9)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new C().M").Last();
+            var typeInfo = model.GetTypeInfo(memberAccess);
+            Assert.Null(typeInfo.Type);
+            Assert.True(typeInfo.ConvertedType!.IsErrorType());
+            Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+            Assert.Equal(new[] { "void C.M<C>()", "void C.M()" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
+        public void MethodGroup_ScopeByScope_TypeArgumentsDoNotMatchInstanceMethod()
+        {
+            // An instance method differing from requested non-zero arity is ignored
+            var source = """
+System.Action x = new C().M<int, int>;
+x();
+
+var z = new C().M<int, int>;
+z();
+
+public class C
+{
+    public void M<T>(C c) { }
+}
+
+public static class E
+{
+    public static void M<T, U>(this C c)
+    {
+        System.Console.Write("E.M<T, U> ");
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "E.M<T, U> E.M<T, U>");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new C().M<int, int>").Last();
+            var typeInfo = model.GetTypeInfo(memberAccess);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("System.Action", typeInfo.ConvertedType!.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+            Assert.Equal(new[] { "void C.M<System.Int32, System.Int32>()" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
+        public void MethodGroup_ScopeByScope_TypeArgumentsDoNotMatchInnerScopeExtensionMethod()
+        {
+            // An extension method in inner scope differing from requested non-zero arity is ignored
+            var source = """
+using N;
+
+System.Action x = new C().M<int, int>;
+x();
+
+var z = new C().M<int, int>;
+z();
+
+public class C { }
+
+public static class E1
+{
+    public static void M<T>(this C c) => throw null;
+}
+
+namespace N
+{
+    public static class E2
+    {
+        public static void M<T, U>(this C c)
+        {
+            System.Console.Write("E2.M<T, U> ");
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "E2.M<T, U> E2.M<T, U>");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new C().M<int, int>").Last();
+            var typeInfo = model.GetTypeInfo(memberAccess);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("System.Action", typeInfo.ConvertedType!.ToTestDisplayString());
+            Assert.Equal("void C.M<System.Int32, System.Int32>()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+            Assert.Equal(new[] { "void C.M<System.Int32, System.Int32>()" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
+        public void MethodGroup_ScopeByScope_NoTypeArguments()
+        {
+            var source = """
+System.Action x = new C().M;
+var z = new C().M;
+
+public class C
+{
+    public void M<T>() => throw null;
+}
+
+public static class E
+{
+    public static void M<T, U>(this C c) => throw null;
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (1,19): error CS0411: The type arguments for method 'C.M<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                // System.Action x = new C().M;
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "new C().M").WithArguments("C.M<T>()").WithLocation(1, 19),
+                // (2,9): error CS8917: The delegate type could not be inferred.
+                // var z = new C().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(2, 9)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new C().M").Last();
+            var typeInfo = model.GetTypeInfo(memberAccess);
+            Assert.Null(typeInfo.Type);
+            Assert.True(typeInfo.ConvertedType!.IsErrorType());
+            Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+            Assert.Equal(new[] { "void C.M<T>()", "void C.M<T, U>()" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
         [Fact]
@@ -1789,10 +2728,26 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
-                // (14,15): error CS8917: The delegate type could not be inferred.
-                //         d = p.F2;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F2").WithLocation(14, 15));
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var f1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "p.F1");
+            var typeInfo1 = model.GetTypeInfo(f1);
+            Assert.Null(typeInfo1.Type);
+            Assert.Equal("System.Delegate", typeInfo1.ConvertedType!.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(f1).Symbol);
+            Assert.Equal(new[] { "void System.Object.F1(System.Int32 y)" }, model.GetMemberGroup(f1).ToTestDisplayStrings());
+
+            var f2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "p.F2");
+            var typeInfo2 = model.GetTypeInfo(f2);
+            Assert.Null(typeInfo2.Type);
+            Assert.Equal("System.Delegate", typeInfo2.ConvertedType!.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(f2).Symbol);
+
+            Assert.Equal(new[] { "void Program.F2(System.Int32 x)", "void System.Object.F2()" },
+                model.GetMemberGroup(f2).ToTestDisplayStrings());
         }
 
         [Fact]
@@ -1857,7 +2812,7 @@ class Program
         System.Delegate d;
         var p = new Program();
         d = p.F1;
-        d = p.F2;
+        d = p.F2; // 1
         d = p.F3;
         d = E1.F1;
         d = E2.F1;
@@ -1865,11 +2820,8 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (22,15): error CS8917: The delegate type could not be inferred.
-                //         d = p.F1;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F1").WithLocation(22, 15),
                 // (23,15): error CS8917: The delegate type could not be inferred.
-                //         d = p.F2;
+                //         d = p.F2; // 1
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F2").WithLocation(23, 15));
         }
 
@@ -1941,8 +2893,8 @@ class Program
     static void F<T>(T t) where T : class
     {
         System.Delegate d;
-        d = t.F1;
-        d = t.F2;
+        d = t.F1; // 1
+        d = t.F2; // 2
         d = t.F1<int>;
         d = t.F1<T>;
         d = t.F2<T, object>;
@@ -1952,10 +2904,10 @@ class Program
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (11,15): error CS8917: The delegate type could not be inferred.
-                //         d = t.F1;
+                //         d = t.F1; // 1
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F1").WithLocation(11, 15),
                 // (12,15): error CS8917: The delegate type could not be inferred.
-                //         d = t.F2;
+                //         d = t.F2; // 2
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F2").WithLocation(12, 15));
         }
 

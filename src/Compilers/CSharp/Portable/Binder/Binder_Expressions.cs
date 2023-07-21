@@ -7663,16 +7663,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations,
             BindingDiagnosticBag diagnostics)
         {
-            int arity;
-            if (typeArgumentsWithAnnotations.IsDefault)
-            {
-                arity = 0;
-            }
-            else
-            {
-                arity = typeArgumentsWithAnnotations.Length;
-            }
-
+            int arity = typeArgumentsWithAnnotations.IsDefault ? 0 : typeArgumentsWithAnnotations.Length;
             var lookupResult = LookupResult.GetInstance();
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             this.LookupExtensionMethods(lookupResult, scope, rightName, arity, ref useSiteInfo);
@@ -9629,64 +9620,29 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns one of the methods from the method group if all methods in the method group
-        /// have the same signature, ignoring parameter names and custom modifiers. The particular
-        /// method returned is not important since the caller is interested in the signature only.
+        /// Returns one of the methods from the method group if all instance methods, or extension methods
+        /// in the nearest scope, have the same signature ignoring parameter names and custom modifiers.
+        /// The particular method returned is not important since the caller is interested in the signature only.
         /// </summary>
         private MethodSymbol? GetUniqueSignatureFromMethodGroup(BoundMethodGroup node)
         {
-            MethodSymbol? method = null;
-            foreach (var m in node.Methods)
-            {
-                switch (node.ReceiverOpt)
-                {
-                    case BoundTypeExpression:
-                    case null: // if `using static Class` is in effect, the receiver is missing
-                        if (!m.IsStatic) continue;
-                        break;
-                    case BoundThisReference { WasCompilerGenerated: true }:
-                        break;
-                    default:
-                        if (m.IsStatic) continue;
-                        break;
-                }
-                if (!isCandidateUnique(ref method, m))
-                {
-                    return null;
-                }
-            }
-            if (node.SearchExtensionMethods)
-            {
-                var receiver = node.ReceiverOpt!;
-                foreach (var scope in new ExtensionMethodScopes(this))
-                {
-                    var methodGroup = MethodGroup.GetInstance();
-                    PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, node.Syntax, receiver, node.Name, node.TypeArgumentsOpt, BindingDiagnosticBag.Discarded);
-                    foreach (var m in methodGroup.Methods)
-                    {
-                        if (m.ReduceExtensionMethod(receiver.Type, Compilation) is { } reduced &&
-                            !isCandidateUnique(ref method, reduced))
-                        {
-                            methodGroup.Free();
-                            return null;
-                        }
-                    }
-                    methodGroup.Free();
-                }
-            }
+            var method = selectMethodForSignature(node);
+
             if (method is null)
             {
                 return null;
             }
-            int n = node.TypeArgumentsOpt.IsDefaultOrEmpty ? 0 : node.TypeArgumentsOpt.Length;
-            if (method.Arity != n)
+
+            int arity = node.TypeArgumentsOpt.IsDefaultOrEmpty ? 0 : node.TypeArgumentsOpt.Length;
+            if (method.Arity != arity)
             {
                 return null;
             }
-            else if (n > 0)
+            else if (arity > 0)
             {
-                method = method.ConstructedFrom.Construct(node.TypeArgumentsOpt);
+                return method.ConstructedFrom.Construct(node.TypeArgumentsOpt);
             }
+
             return method;
 
             static bool isCandidateUnique(ref MethodSymbol? method, MethodSymbol candidate)
@@ -9702,6 +9658,66 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 method = null;
                 return false;
+            }
+
+            MethodSymbol? selectMethodForSignature(BoundMethodGroup node)
+            {
+                MethodSymbol? method = null;
+                if (node.ResultKind == LookupResultKind.Viable)
+                {
+                    foreach (var m in node.Methods)
+                    {
+                        switch (node.ReceiverOpt)
+                        {
+                            case BoundTypeExpression:
+                            case null: // if `using static Class` is in effect, the receiver is missing
+                                if (!m.IsStatic) continue;
+                                break;
+                            case BoundThisReference { WasCompilerGenerated: true }:
+                                break;
+                            default:
+                                if (m.IsStatic) continue;
+                                break;
+                        }
+
+                        if (!isCandidateUnique(ref method, m))
+                        {
+                            return null;
+                        }
+                    }
+
+                    if (method is not null)
+                    {
+                        return method;
+                    }
+                }
+
+                if (node.SearchExtensionMethods)
+                {
+                    var receiver = node.ReceiverOpt!;
+                    foreach (var scope in new ExtensionMethodScopes(this))
+                    {
+                        var methodGroup = MethodGroup.GetInstance();
+                        PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, node.Syntax, receiver, node.Name, node.TypeArgumentsOpt, BindingDiagnosticBag.Discarded);
+                        foreach (var m in methodGroup.Methods)
+                        {
+                            if (m.ReduceExtensionMethod(receiver.Type, Compilation) is { } reduced &&
+                                !isCandidateUnique(ref method, reduced))
+                            {
+                                methodGroup.Free();
+                                return null;
+                            }
+                        }
+                        methodGroup.Free();
+
+                        if (method is not null)
+                        {
+                            return method;
+                        }
+                    }
+                }
+
+                return null;
             }
         }
 
