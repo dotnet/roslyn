@@ -913,6 +913,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return DeclareSameIdentifiers(oldTokens.ToArray(), newTokens.ToArray());
         }
 
+        protected override bool AreEquivalentImpl(SyntaxToken oldToken, SyntaxToken newToken)
+            => SyntaxFactory.AreEquivalent(oldToken, newToken);
+
         internal override bool IsInterfaceDeclaration(SyntaxNode node)
             => node.IsKind(SyntaxKind.InterfaceDeclaration);
 
