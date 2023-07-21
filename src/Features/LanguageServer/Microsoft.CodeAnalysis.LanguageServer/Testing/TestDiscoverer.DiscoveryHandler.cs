@@ -39,7 +39,7 @@ internal partial class TestDiscoverer
         {
             if (message != null)
             {
-                _progress.Report(new RunTestsPartialResult(StageName, message, Progress: null));
+                _progress.Report(new RunTestsPartialResult(LanguageServerResources.Discovering_tests, message, Progress: null));
             }
         }
 

@@ -19,11 +19,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Testing;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal partial class TestRunner(ILoggerFactory loggerFactory)
 {
-    /// <summary>
-    /// TODO - localize messages. https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1799066/
-    /// </summary>
-    private const string StageName = "Running tests...";
-
     private readonly ILogger _logger = loggerFactory.CreateLogger<TestRunner>();
 
     public async Task RunTestsAsync(
@@ -36,7 +31,7 @@ internal partial class TestRunner(ILoggerFactory loggerFactory)
         {
             TotalTests = testCases.Length
         };
-        progress.Report(new RunTestsPartialResult(StageName, $"{Environment.NewLine}Starting test run", initialProgress));
+        progress.Report(new RunTestsPartialResult(LanguageServerResources.Running_tests, $"{Environment.NewLine}{LanguageServerResources.Starting_test_run}", initialProgress));
 
         var handler = new TestRunHandler(progress, initialProgress, _logger);
 
