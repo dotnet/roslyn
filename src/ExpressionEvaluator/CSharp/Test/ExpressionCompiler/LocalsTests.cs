@@ -1453,6 +1453,7 @@ class C
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69117")]
         public void CapturedParameters()
         {
             var source = @"
