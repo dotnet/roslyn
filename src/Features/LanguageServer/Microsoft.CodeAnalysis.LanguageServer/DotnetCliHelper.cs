@@ -145,6 +145,7 @@ internal sealed class DotnetCliHelper
             }
         }
 
+        _logger.LogInformation("Could not find dotnet executable from PATH");
         return fileName;
     }
 }
