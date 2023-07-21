@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         internal PointsToAnalysisData(IDictionary<AnalysisEntity, PointsToAbstractValue> fromData, Func<ITypeSymbol?, bool> isDisposable)
             : base(fromData)
         {
-            AssertValidPointsToAnalysisData(fromData, isDisposable);
-
             _isDisposable = isDisposable;
+
+            AssertValidPointsToAnalysisData(fromData, isDisposable);
         }
 
         internal PointsToAnalysisData(
@@ -39,28 +39,28 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             Func<ITypeSymbol?, bool> isDisposable)
             : base(mergedCoreAnalysisData, predicatedData1, predicatedData2, isReachableData, coreDataAnalysisDomain)
         {
+            _isDisposable = isDisposable;
+
             AssertValidPointsToAnalysisData(mergedCoreAnalysisData, isDisposable);
             AssertValidPointsToAnalysisData();
-
-            _isDisposable = isDisposable;
         }
 
         private PointsToAnalysisData(PointsToAnalysisData fromData)
             : base(fromData)
         {
-            fromData.AssertValidPointsToAnalysisData();
-
             _isDisposable = fromData._isDisposable;
+
+            fromData.AssertValidPointsToAnalysisData();
         }
 
         private PointsToAnalysisData(PointsToAnalysisData data1, PointsToAnalysisData data2, MapAbstractDomain<AnalysisEntity, PointsToAbstractValue> coreDataAnalysisDomain)
             : base(data1, data2, coreDataAnalysisDomain)
         {
+            _isDisposable = data1._isDisposable;
+
             data1.AssertValidPointsToAnalysisData();
             data2.AssertValidPointsToAnalysisData();
             AssertValidPointsToAnalysisData();
-
-            _isDisposable = data1._isDisposable;
         }
 
         protected override AbstractValueDomain<PointsToAbstractValue> ValueDomain => PointsToAnalysis.ValueDomainInstance;
