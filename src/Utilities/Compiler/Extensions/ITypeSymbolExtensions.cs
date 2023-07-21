@@ -140,12 +140,17 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         public static bool IsDisposable(this ITypeSymbol type,
             INamedTypeSymbol? iDisposable,
-            INamedTypeSymbol? iAsyncDisposable)
+            INamedTypeSymbol? iAsyncDisposable,
+            INamedTypeSymbol? configuredAsyncDisposable)
         {
             if (type.IsReferenceType)
             {
                 return IsInterfaceOrImplementsInterface(type, iDisposable)
                     || IsInterfaceOrImplementsInterface(type, iAsyncDisposable);
+            }
+            else if (SymbolEqualityComparer.Default.Equals(type, configuredAsyncDisposable))
+            {
+                return true;
             }
 
 #if CODEANALYSIS_V3_OR_BETTER
