@@ -33,12 +33,16 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
         int SingleLineDocCommentTrivia { get; }
         int? MultiLineDocCommentTrivia { get; }
-        int? ShebangDirectiveTrivia { get; }
 
         int IfDirectiveTrivia { get; }
         int ElifDirectiveTrivia { get; }
+        int ElseDirectiveTrivia { get; }
+        int EndIfDirectiveTrivia { get; }
+        int EndRegionDirectiveTrivia { get; }
         int DefineDirectiveTrivia { get; }
         int? UndefDirectiveTrivia { get; }
+        int RegionDirectiveTrivia { get; }
+        int? ShebangDirectiveTrivia { get; }
 
         #endregion
 
@@ -81,6 +85,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         int GreaterThanToken { get; }
         int IdentifierToken { get; }
         int InterpolatedStringTextToken { get; }
+        int LessThanSlashToken { get; }
         int LessThanToken { get; }
         int OpenBraceToken { get; }
         int? OpenBracketToken { get; }
@@ -123,10 +128,12 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
         #region expressions
 
+        int AddressOfExpression { get; }
         int AnonymousObjectCreationExpression { get; }
         int ArrayCreationExpression { get; }
         int AwaitExpression { get; }
         int BaseExpression { get; }
+        int CollectionInitializerExpression { get; }
         int ConditionalAccessExpression { get; }
         int ConditionalExpression { get; }
         int? ImplicitArrayCreationExpression { get; }
@@ -160,6 +167,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         int? AndPattern { get; }
         int? ConstantPattern { get; }
         int? DeclarationPattern { get; }
+        int? ListPattern { get; }
         int? NotPattern { get; }
         int? OrPattern { get; }
         int? ParenthesizedPattern { get; }
@@ -174,6 +182,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
         int ExpressionStatement { get; }
         int ForEachStatement { get; }
+        int ForStatement { get; }
         int IfStatement { get; }
         int LocalDeclarationStatement { get; }
         int? LocalFunctionStatement { get; }
@@ -191,6 +200,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         int Attribute { get; }
         int ClassDeclaration { get; }
         int ConstructorDeclaration { get; }
+        int EnumDeclaration { get; }
         int InterfaceDeclaration { get; }
         int? StructDeclaration { get; }
         int Parameter { get; }

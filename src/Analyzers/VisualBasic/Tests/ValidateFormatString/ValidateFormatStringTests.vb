@@ -27,7 +27,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(42764, "https://github.com/dotnet/roslyn/issues/42764")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42764")>
         Public Async Function LiteralArray() As Task
             Await TestDiagnosticMissingAsync("
 Class C

@@ -37,23 +37,13 @@ internal static class PublicOptionFactory
 #pragma warning restore
 #else
 #pragma warning disable RS0030 // Do not used banned APIs: Option<T>, PerLanguageOption<T>
-    private sealed class StorageMapping : OptionStorageMapping
+    private sealed class StorageMapping(IOption2 internalOption, Func<object?, object?> toPublicValue, Func<object?, object?> toInternalValue) : OptionStorageMapping(internalOption)
     {
-        private readonly Func<object?, object?> _toPublicValue;
-        private readonly Func<object?, object?> _toInternalValue;
-
-        public StorageMapping(IOption2 internalOption, Func<object?, object?> toPublicValue, Func<object?, object?> toInternalValue)
-            : base(internalOption)
-        {
-            _toPublicValue = toPublicValue;
-            _toInternalValue = toInternalValue;
-        }
-
         public override object? ToPublicOptionValue(object? internalValue)
-            => _toPublicValue(internalValue);
+            => toPublicValue(internalValue);
 
         public override object? UpdateInternalOptionValue(object? currentInternalValue, object? newPublicValue)
-            => _toInternalValue(newPublicValue);
+            => toInternalValue(newPublicValue);
     }
 
     private static OptionDefinition<TPublicValue> ToPublicOptionDefinition<T, TPublicValue>(this OptionDefinition<T> definition, IOption2 internalOption, Func<T, TPublicValue> toPublicValue, Func<TPublicValue, T> toInternalValue)

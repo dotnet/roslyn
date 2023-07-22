@@ -505,7 +505,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
                 """);
         }
 
-        [Fact, WorkItem(48899, "https://github.com/dotnet/roslyn/issues/48899")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48899")]
         public async Task TestAbstractMethod()
         {
             await VerifyCS.VerifyCodeFixAsync("""
@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
                 """);
         }
 
-        [Fact, WorkItem(48899, "https://github.com/dotnet/roslyn/issues/48899")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48899")]
         public async Task TestOverriddenMethod()
         {
             await VerifyCS.VerifyCodeFixAsync("""
@@ -568,7 +568,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
             }.RunAsync();
         }
 
-        [Fact, WorkItem(55703, "https://github.com/dotnet/roslyn/issues/55703")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55703")]
         public async Task TestPartial_WithExistingModifier()
         {
             var source = """
@@ -600,7 +600,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
             await test.RunAsync();
         }
 
-        [Fact, WorkItem(58914, "https://github.com/dotnet/roslyn/issues/58914")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58914")]
         public async Task TestStaticOperatorInInterface()
         {
             var source = """
@@ -636,7 +636,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
         [InlineData("record struct")]
         [InlineData("interface")]
         [InlineData("enum")]
-        [WorkItem(62259, "https://github.com/dotnet/roslyn/issues/62259")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/62259")]
         public async Task TestFileDeclaration(string declarationKind)
         {
             var source = $"file {declarationKind} C {{ }}";
@@ -649,7 +649,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
             }.RunAsync();
         }
 
-        [Fact, WorkItem(62259, "https://github.com/dotnet/roslyn/issues/62259")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62259")]
         public async Task TestFileDelegate()
         {
             var source = "file delegate void M();";
@@ -669,7 +669,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
         [InlineData("record struct")]
         [InlineData("interface")]
         [InlineData("enum")]
-        [WorkItem(62259, "https://github.com/dotnet/roslyn/issues/62259")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/62259")]
         public async Task TestNestedFileDeclaration(string declarationKind)
         {
             var source = $$"""
@@ -694,7 +694,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
             }.RunAsync();
         }
 
-        [Fact, WorkItem(29633, "https://github.com/dotnet/roslyn/issues/29633")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29633")]
         public async Task TestTitle1()
         {
             var source = """
@@ -721,7 +721,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
             await test.RunAsync();
         }
 
-        [Fact, WorkItem(29633, "https://github.com/dotnet/roslyn/issues/29633")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29633")]
         public async Task TestTitle2()
         {
             var source = """

@@ -1178,7 +1178,7 @@ class D : C, I
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, WorkItem(43664, "https://github.com/dotnet/roslyn/issues/43664")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43664")]
         public async Task AddParameterOnUnparenthesizedLambda()
         {
             var markup = @"
@@ -1225,7 +1225,7 @@ namespace ConsoleApp426
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, WorkItem(44126, "https://github.com/dotnet/roslyn/issues/44126")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44126")]
         public async Task AddAndReorderImplicitObjectCreationParameter()
         {
             var markup = @"
@@ -1261,7 +1261,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, WorkItem(44558, "https://github.com/dotnet/roslyn/issues/44558")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44558")]
         public async Task AddParameters_Record()
         {
             var markup = @"

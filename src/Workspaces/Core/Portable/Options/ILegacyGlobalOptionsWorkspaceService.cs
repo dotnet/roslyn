@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.Options
         public int RazorTabSize { get; }
 
         public bool GenerateOverrides { get; set; }
-        public bool InlineHintsOptionsDisplayAllOverride { get; set; }
 
         public bool GetGenerateEqualsAndGetHashCodeFromMembersGenerateOperators(string language);
         public void SetGenerateEqualsAndGetHashCodeFromMembersGenerateOperators(string language, bool value);

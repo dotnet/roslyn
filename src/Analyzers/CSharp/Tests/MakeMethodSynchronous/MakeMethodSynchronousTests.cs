@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeMethodSynchronous
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
-        [WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13961")]
         public async Task TestRemoveAwaitFromCaller1()
         {
             var source =
@@ -493,7 +493,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeMethodSynchronous
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
-        [WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13961")]
         public async Task TestRemoveAwaitFromCaller2()
         {
             var source =
@@ -542,7 +542,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeMethodSynchronous
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
-        [WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13961")]
         public async Task TestRemoveAwaitFromCaller3()
         {
             var source =
@@ -591,7 +591,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeMethodSynchronous
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
-        [WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13961")]
         public async Task TestRemoveAwaitFromCaller4()
         {
             var source =
@@ -640,7 +640,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeMethodSynchronous
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
-        [WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13961")]
         public async Task TestRemoveAwaitFromCallerNested1()
         {
             var source =
@@ -691,7 +691,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeMethodSynchronous
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
-        [WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13961")]
         public async Task TestRemoveAwaitFromCallerNested()
         {
             var source =
@@ -742,7 +742,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeMethodSynchronous
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
-        [WorkItem(14133, "https://github.com/dotnet/roslyn/issues/14133")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14133")]
         public async Task RemoveAsyncInLocalFunction()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -780,7 +780,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeMethodSynchronous
         [InlineData("Task", "void")]
         [InlineData("void", "void")]
         [Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
-        [WorkItem(18307, "https://github.com/dotnet/roslyn/issues/18307")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18307")]
         public async Task RemoveAsyncInLocalFunctionKeepsTrivia(string asyncReturn, string expectedReturn)
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -825,7 +825,7 @@ class C
         [InlineData("public", "Task", " void")]
         [InlineData("public", "void", " void")]
         [Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
-        [WorkItem(18307, "https://github.com/dotnet/roslyn/issues/18307")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/18307")]
         public async Task RemoveAsyncKeepsTrivia(string modifiers, string asyncReturn, string expectedReturn)
         {
             await VerifyCS.VerifyCodeFixAsync(

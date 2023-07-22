@@ -669,7 +669,7 @@ End Interface")
 
 #Region "Constructors"
 
-        <Fact, WorkItem(44944, "https://github.com/dotnet/roslyn/issues/44944")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44944")>
         Public Async Function TestNextConstructorInChain1() As Task
             Await TestAsync("
 class C
@@ -683,7 +683,7 @@ end class
 ")
         End Function
 
-        <Fact, WorkItem(44944, "https://github.com/dotnet/roslyn/issues/44944")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44944")>
         Public Async Function TestNextConstructorInChain2() As Task
             Await TestAsync("
 class Base
@@ -701,7 +701,7 @@ end sub
 ")
         End Function
 
-        <Fact, WorkItem(44944, "https://github.com/dotnet/roslyn/issues/44944")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44944")>
         Public Async Function TestNextConstructorInChain3() As Task
             Await TestAsync("
 class [|Base|]
@@ -716,7 +716,7 @@ end class
 ")
         End Function
 
-        <Fact, WorkItem(44944, "https://github.com/dotnet/roslyn/issues/44944")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44944")>
         Public Async Function TestNextConstructorInChain4() As Task
             Await TestAsync("
 class Base
@@ -734,7 +734,7 @@ end class
 ")
         End Function
 
-        <Fact, WorkItem(44944, "https://github.com/dotnet/roslyn/issues/44944")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44944")>
         Public Async Function TestNextConstructorInChain5() As Task
             Await TestAsync("
 class Base
@@ -751,7 +751,7 @@ end class
 ")
         End Function
 
-        <Fact, WorkItem(44944, "https://github.com/dotnet/roslyn/issues/44944")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44944")>
         Public Async Function TestNextConstructorInChain6() As Task
             Await TestAsync("
 class Base

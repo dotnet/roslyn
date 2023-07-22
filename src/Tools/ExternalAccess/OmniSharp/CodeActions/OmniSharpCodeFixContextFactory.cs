@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions
             Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
             OmniSharpCodeActionOptions options,
             CancellationToken cancellationToken)
-            => new(document, span, diagnostics, registerCodeFix, new DelegatingCodeActionOptionsProvider(options.GetCodeActionOptions), isBlocking: false, cancellationToken);
+            => new(document, span, diagnostics, registerCodeFix, new DelegatingCodeActionOptionsProvider(options.GetCodeActionOptions), cancellationToken);
 
         public static CodeAnalysis.CodeRefactorings.CodeRefactoringContext CreateCodeRefactoringContext(
             Document document,
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions
             Action<CodeAction, TextSpan?> registerRefactoring,
             OmniSharpCodeActionOptions options,
             CancellationToken cancellationToken)
-            => new(document, span, registerRefactoring, new DelegatingCodeActionOptionsProvider(options.GetCodeActionOptions), isBlocking: false, cancellationToken);
+            => new(document, span, registerRefactoring, new DelegatingCodeActionOptionsProvider(options.GetCodeActionOptions), cancellationToken);
 
         public static FixAllContext CreateFixAllContext(
             Document? document,

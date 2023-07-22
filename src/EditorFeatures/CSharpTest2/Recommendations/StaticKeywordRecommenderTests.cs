@@ -57,7 +57,7 @@ $$");
 @"global using Goo = $$");
         }
 
-        [Fact, WorkItem(32174, "https://github.com/dotnet/roslyn/issues/32174")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32174")]
         public async Task TestInEmptyStatement()
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -111,7 +111,7 @@ $$");
 $$");
         }
 
-        [Fact, WorkItem(66319, "https://github.com/dotnet/roslyn/issues/66319")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
         public async Task TestFileKeywordInsideNamespace()
         {
             await VerifyKeywordAsync(
@@ -120,7 +120,7 @@ file $$
 }");
         }
 
-        [Fact, WorkItem(66319, "https://github.com/dotnet/roslyn/issues/66319")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
         public async Task TestFileKeywordInsideNamespaceBeforeClass()
         {
             await VerifyKeywordAsync(
@@ -276,7 +276,7 @@ $$");
 @"public $$");
         }
 
-        [Fact, WorkItem(66319, "https://github.com/dotnet/roslyn/issues/66319")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
         public async Task TestAfterFile()
         {
             await VerifyKeywordAsync(SourceCodeKind.Regular,
@@ -325,7 +325,7 @@ $$");
         public async Task TestNotAfterDelegate()
             => await VerifyAbsenceAsync(@"delegate $$");
 
-        [Fact, WorkItem(32214, "https://github.com/dotnet/roslyn/issues/32214")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32214")]
         public async Task TestNotBetweenUsings()
         {
             var source = @"using Goo;
@@ -338,7 +338,7 @@ using Bar;";
             //await VerifyWorkerAsync(source, absent: true, Options.Script);
         }
 
-        [Fact, WorkItem(32214, "https://github.com/dotnet/roslyn/issues/32214")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32214")]
         public async Task TestNotBetweenGlobalUsings_01()
         {
             var source = @"global using Goo;
@@ -351,7 +351,7 @@ using Bar;";
             //await VerifyWorkerAsync(source, absent: true, Options.Script);
         }
 
-        [Fact, WorkItem(32214, "https://github.com/dotnet/roslyn/issues/32214")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32214")]
         public async Task TestNotBetweenGlobalUsings_02()
         {
             var source = @"global using Goo;
@@ -464,7 +464,7 @@ global using Bar;";
         using $$");
         }
 
-        [Fact, WorkItem(32174, "https://github.com/dotnet/roslyn/issues/32174")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32174")]
         public async Task TestLocalFunction()
             => await VerifyKeywordAsync(AddInsideMethod(@" $$ void local() { }"));
 

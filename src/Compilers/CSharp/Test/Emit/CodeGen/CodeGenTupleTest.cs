@@ -5400,24 +5400,22 @@ class C
             var source = @"
 using VT2 = (int, int);
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics(
-                // (2,13): error CS1001: Identifier expected
+            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (2,13): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // using VT2 = (int, int);
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(2, 13),
-                // (2,13): error CS1002: ; expected
-                // using VT2 = (int, int);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(2, 13),
-                // (2,14): error CS1525: Invalid expression term 'int'
-                // using VT2 = (int, int);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(2, 14),
-                // (2,19): error CS1525: Invalid expression term 'int'
-                // using VT2 = (int, int);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(2, 19),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int, int)").WithArguments("using type alias").WithLocation(2, 13),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1),
                 // (2,1): hidden CS8019: Unnecessary using directive.
                 // using VT2 = (int, int);
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using VT2 = ").WithLocation(2, 1)
-                );
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using VT2 = (int, int);").WithLocation(2, 1));
+
+            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1),
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using VT2 = (int, int);
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using VT2 = (int, int);").WithLocation(2, 1));
         }
 
         [Fact]

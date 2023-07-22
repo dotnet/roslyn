@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void AppendAliasNames(IEnumerable<BaseNamespaceDeclarationSyntax> namespaces, ImmutableHashSet<string>.Builder builder, CancellationToken cancellationToken)
+        private static void AppendAliasNames(IEnumerable<BaseNamespaceDeclarationSyntax> namespaces, ImmutableHashSet<string>.Builder builder, CancellationToken cancellationToken)
         {
             foreach (var @namespace in namespaces)
             {

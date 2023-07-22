@@ -140,7 +140,7 @@ $${|hint1:using {|textspan1:System;|}|}
                 Region("span2", "// Goo ...", autoCollapse: true));
         }
 
-        [Fact, WorkItem(539359, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539359")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539359")]
         public async Task TestUsingKeywordWithSpace()
         {
             const string code = @"

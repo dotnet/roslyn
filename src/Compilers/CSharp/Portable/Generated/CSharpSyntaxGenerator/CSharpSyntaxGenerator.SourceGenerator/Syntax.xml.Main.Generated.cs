@@ -216,6 +216,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Called when the visitor visits a ImplicitStackAllocArrayCreationExpressionSyntax node.</summary>
         public virtual TResult? VisitImplicitStackAllocArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
 
+        /// <summary>Called when the visitor visits a CollectionExpressionSyntax node.</summary>
+        public virtual TResult? VisitCollectionExpression(CollectionExpressionSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a ExpressionElementSyntax node.</summary>
+        public virtual TResult? VisitExpressionElement(ExpressionElementSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a SpreadElementSyntax node.</summary>
+        public virtual TResult? VisitSpreadElement(SpreadElementSyntax node) => this.DefaultVisit(node);
+
         /// <summary>Called when the visitor visits a QueryExpressionSyntax node.</summary>
         public virtual TResult? VisitQueryExpression(QueryExpressionSyntax node) => this.DefaultVisit(node);
 
@@ -932,6 +941,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>Called when the visitor visits a ImplicitStackAllocArrayCreationExpressionSyntax node.</summary>
         public virtual void VisitImplicitStackAllocArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a CollectionExpressionSyntax node.</summary>
+        public virtual void VisitCollectionExpression(CollectionExpressionSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a ExpressionElementSyntax node.</summary>
+        public virtual void VisitExpressionElement(ExpressionElementSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a SpreadElementSyntax node.</summary>
+        public virtual void VisitSpreadElement(SpreadElementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a QueryExpressionSyntax node.</summary>
         public virtual void VisitQueryExpression(QueryExpressionSyntax node) => this.DefaultVisit(node);
@@ -1650,6 +1668,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override SyntaxNode? VisitImplicitStackAllocArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax node)
             => node.Update(VisitToken(node.StackAllocKeyword), VisitToken(node.OpenBracketToken), VisitToken(node.CloseBracketToken), (InitializerExpressionSyntax?)Visit(node.Initializer) ?? throw new ArgumentNullException("initializer"));
 
+        public override SyntaxNode? VisitCollectionExpression(CollectionExpressionSyntax node)
+            => node.Update(VisitToken(node.OpenBracketToken), VisitList(node.Elements), VisitToken(node.CloseBracketToken));
+
+        public override SyntaxNode? VisitExpressionElement(ExpressionElementSyntax node)
+            => node.Update((ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
+
+        public override SyntaxNode? VisitSpreadElement(SpreadElementSyntax node)
+            => node.Update(VisitToken(node.OperatorToken), (ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
+
         public override SyntaxNode? VisitQueryExpression(QueryExpressionSyntax node)
             => node.Update((FromClauseSyntax?)Visit(node.FromClause) ?? throw new ArgumentNullException("fromClause"), (QueryBodySyntax?)Visit(node.Body) ?? throw new ArgumentNullException("body"));
 
@@ -1894,7 +1921,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node.Update(VisitToken(node.ExternKeyword), VisitToken(node.AliasKeyword), VisitToken(node.Identifier), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode? VisitUsingDirective(UsingDirectiveSyntax node)
-            => node.Update(VisitToken(node.GlobalKeyword), VisitToken(node.UsingKeyword), VisitToken(node.StaticKeyword), (NameEqualsSyntax?)Visit(node.Alias), (NameSyntax?)Visit(node.Name) ?? throw new ArgumentNullException("name"), VisitToken(node.SemicolonToken));
+            => node.Update(VisitToken(node.GlobalKeyword), VisitToken(node.UsingKeyword), VisitToken(node.StaticKeyword), VisitToken(node.UnsafeKeyword), (NameEqualsSyntax?)Visit(node.Alias), (TypeSyntax?)Visit(node.NamespaceOrType) ?? throw new ArgumentNullException("namespaceOrType"), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode? VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.NamespaceKeyword), (NameSyntax?)Visit(node.Name) ?? throw new ArgumentNullException("name"), VisitToken(node.OpenBraceToken), VisitList(node.Externs), VisitList(node.Usings), VisitList(node.Members), VisitToken(node.CloseBraceToken), VisitToken(node.SemicolonToken));
@@ -3321,6 +3348,37 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ImplicitStackAllocArrayCreationExpressionSyntax ImplicitStackAllocArrayCreationExpression(InitializerExpressionSyntax initializer)
             => SyntaxFactory.ImplicitStackAllocArrayCreationExpression(SyntaxFactory.Token(SyntaxKind.StackAllocKeyword), SyntaxFactory.Token(SyntaxKind.OpenBracketToken), SyntaxFactory.Token(SyntaxKind.CloseBracketToken), initializer);
 
+        /// <summary>Creates a new CollectionExpressionSyntax instance.</summary>
+        public static CollectionExpressionSyntax CollectionExpression(SyntaxToken openBracketToken, SeparatedSyntaxList<CollectionElementSyntax> elements, SyntaxToken closeBracketToken)
+        {
+            if (openBracketToken.Kind() != SyntaxKind.OpenBracketToken) throw new ArgumentException(nameof(openBracketToken));
+            if (closeBracketToken.Kind() != SyntaxKind.CloseBracketToken) throw new ArgumentException(nameof(closeBracketToken));
+            return (CollectionExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.CollectionExpression((Syntax.InternalSyntax.SyntaxToken)openBracketToken.Node!, elements.Node.ToGreenSeparatedList<Syntax.InternalSyntax.CollectionElementSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBracketToken.Node!).CreateRed();
+        }
+
+        /// <summary>Creates a new CollectionExpressionSyntax instance.</summary>
+        public static CollectionExpressionSyntax CollectionExpression(SeparatedSyntaxList<CollectionElementSyntax> elements = default)
+            => SyntaxFactory.CollectionExpression(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), elements, SyntaxFactory.Token(SyntaxKind.CloseBracketToken));
+
+        /// <summary>Creates a new ExpressionElementSyntax instance.</summary>
+        public static ExpressionElementSyntax ExpressionElement(ExpressionSyntax expression)
+        {
+            if (expression == null) throw new ArgumentNullException(nameof(expression));
+            return (ExpressionElementSyntax)Syntax.InternalSyntax.SyntaxFactory.ExpressionElement((Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
+        }
+
+        /// <summary>Creates a new SpreadElementSyntax instance.</summary>
+        public static SpreadElementSyntax SpreadElement(SyntaxToken operatorToken, ExpressionSyntax expression)
+        {
+            if (operatorToken.Kind() != SyntaxKind.DotDotToken) throw new ArgumentException(nameof(operatorToken));
+            if (expression == null) throw new ArgumentNullException(nameof(expression));
+            return (SpreadElementSyntax)Syntax.InternalSyntax.SyntaxFactory.SpreadElement((Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
+        }
+
+        /// <summary>Creates a new SpreadElementSyntax instance.</summary>
+        public static SpreadElementSyntax SpreadElement(ExpressionSyntax expression)
+            => SyntaxFactory.SpreadElement(SyntaxFactory.Token(SyntaxKind.DotDotToken), expression);
+
         /// <summary>Creates a new QueryExpressionSyntax instance.</summary>
         public static QueryExpressionSyntax QueryExpression(FromClauseSyntax fromClause, QueryBodySyntax body)
         {
@@ -4664,7 +4722,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SyntaxFactory.ExternAliasDirective(SyntaxFactory.Token(SyntaxKind.ExternKeyword), SyntaxFactory.Token(SyntaxKind.AliasKeyword), SyntaxFactory.Identifier(identifier), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
         /// <summary>Creates a new UsingDirectiveSyntax instance.</summary>
-        public static UsingDirectiveSyntax UsingDirective(SyntaxToken globalKeyword, SyntaxToken usingKeyword, SyntaxToken staticKeyword, NameEqualsSyntax? alias, NameSyntax name, SyntaxToken semicolonToken)
+        public static UsingDirectiveSyntax UsingDirective(SyntaxToken globalKeyword, SyntaxToken usingKeyword, SyntaxToken staticKeyword, SyntaxToken unsafeKeyword, NameEqualsSyntax? alias, TypeSyntax namespaceOrType, SyntaxToken semicolonToken)
         {
             switch (globalKeyword.Kind())
             {
@@ -4673,18 +4731,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(globalKeyword));
             }
             if (usingKeyword.Kind() != SyntaxKind.UsingKeyword) throw new ArgumentException(nameof(usingKeyword));
-            if (name == null) throw new ArgumentNullException(nameof(name));
+            switch (staticKeyword.Kind())
+            {
+                case SyntaxKind.StaticKeyword:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(staticKeyword));
+            }
+            switch (unsafeKeyword.Kind())
+            {
+                case SyntaxKind.UnsafeKeyword:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(unsafeKeyword));
+            }
+            if (namespaceOrType == null) throw new ArgumentNullException(nameof(namespaceOrType));
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
-            return (UsingDirectiveSyntax)Syntax.InternalSyntax.SyntaxFactory.UsingDirective((Syntax.InternalSyntax.SyntaxToken?)globalKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)usingKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken?)staticKeyword.Node, alias == null ? null : (Syntax.InternalSyntax.NameEqualsSyntax)alias.Green, (Syntax.InternalSyntax.NameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
+            return (UsingDirectiveSyntax)Syntax.InternalSyntax.SyntaxFactory.UsingDirective((Syntax.InternalSyntax.SyntaxToken?)globalKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)usingKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken?)staticKeyword.Node, (Syntax.InternalSyntax.SyntaxToken?)unsafeKeyword.Node, alias == null ? null : (Syntax.InternalSyntax.NameEqualsSyntax)alias.Green, (Syntax.InternalSyntax.TypeSyntax)namespaceOrType.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
         /// <summary>Creates a new UsingDirectiveSyntax instance.</summary>
-        public static UsingDirectiveSyntax UsingDirective(SyntaxToken staticKeyword, NameEqualsSyntax? alias, NameSyntax name)
-            => SyntaxFactory.UsingDirective(default, SyntaxFactory.Token(SyntaxKind.UsingKeyword), staticKeyword, alias, name, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+        public static UsingDirectiveSyntax UsingDirective(NameEqualsSyntax? alias, TypeSyntax namespaceOrType)
+            => SyntaxFactory.UsingDirective(default, SyntaxFactory.Token(SyntaxKind.UsingKeyword), default, default, alias, namespaceOrType, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
         /// <summary>Creates a new UsingDirectiveSyntax instance.</summary>
-        public static UsingDirectiveSyntax UsingDirective(NameSyntax name)
-            => SyntaxFactory.UsingDirective(default, SyntaxFactory.Token(SyntaxKind.UsingKeyword), default, default, name, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+        public static UsingDirectiveSyntax UsingDirective(TypeSyntax namespaceOrType)
+            => SyntaxFactory.UsingDirective(default, SyntaxFactory.Token(SyntaxKind.UsingKeyword), default, default, default, namespaceOrType, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
         /// <summary>Creates a new NamespaceDeclarationSyntax instance.</summary>
         public static NamespaceDeclarationSyntax NamespaceDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken namespaceKeyword, NameSyntax name, SyntaxToken openBraceToken, SyntaxList<ExternAliasDirectiveSyntax> externs, SyntaxList<UsingDirectiveSyntax> usings, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)

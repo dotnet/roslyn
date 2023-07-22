@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -23,42 +24,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             public readonly string Language;
             public readonly DiagnosticAnalyzer Analyzer;
-            public readonly string ErrorSourceName;
-
-            private readonly PersistentNames _persistentNames;
 
             private readonly ConcurrentDictionary<DocumentId, ActiveFileState> _activeFileStates;
             private readonly ConcurrentDictionary<ProjectId, ProjectState> _projectStates;
 
-            public StateSet(string language, DiagnosticAnalyzer analyzer, string errorSourceName)
+            public StateSet(string language, DiagnosticAnalyzer analyzer)
             {
                 Language = language;
                 Analyzer = analyzer;
-                ErrorSourceName = errorSourceName;
-
-                _persistentNames = PersistentNames.Create(Analyzer);
 
                 _activeFileStates = new ConcurrentDictionary<DocumentId, ActiveFileState>(concurrencyLevel: 2, capacity: 10);
                 _projectStates = new ConcurrentDictionary<ProjectId, ProjectState>(concurrencyLevel: 2, capacity: 1);
-            }
-
-            public string StateName => _persistentNames.StateName;
-            public string SyntaxStateName => _persistentNames.SyntaxStateName;
-            public string SemanticStateName => _persistentNames.SemanticStateName;
-            public string NonLocalStateName => _persistentNames.NonLocalStateName;
-
-            [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/34761", AllowCaptures = false, AllowGenericEnumeration = false)]
-            public bool ContainsAnyDocumentOrProjectDiagnostics(ProjectId projectId)
-            {
-                foreach (var (documentId, state) in _activeFileStates)
-                {
-                    if (documentId.ProjectId == projectId && !state.IsEmpty)
-                    {
-                        return true;
-                    }
-                }
-
-                return _projectStates.TryGetValue(projectId, out var projectState) && !projectState.IsEmpty();
             }
 
             public IEnumerable<ProjectId> GetProjectsWithDiagnostics()
@@ -139,12 +115,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 var result = await projectState.GetAnalysisDataAsync(document, avoidLoadingData: false, CancellationToken.None).ConfigureAwait(false);
+                var text = await document.GetValueTextAsync(CancellationToken.None).ConfigureAwait(false);
 
                 // store analysis result to active file state:
                 var activeFileState = GetOrCreateActiveFileState(document.Id);
 
-                activeFileState.Save(AnalysisKind.Syntax, new DocumentAnalysisData(result.Version, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Syntax)));
-                activeFileState.Save(AnalysisKind.Semantic, new DocumentAnalysisData(result.Version, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Semantic)));
+                activeFileState.Save(AnalysisKind.Syntax, new DocumentAnalysisData(result.Version, text.Lines.Count, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Syntax)));
+                activeFileState.Save(AnalysisKind.Semantic, new DocumentAnalysisData(result.Version, text.Lines.Count, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Semantic)));
 
                 return true;
             }
@@ -218,35 +195,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // TODO: we do this since InMemoryCache is static type. we might consider making it instance object
                 //       of something.
                 InMemoryStorage.DropCache(Analyzer);
-            }
-
-            private sealed class PersistentNames
-            {
-                private const string UserDiagnosticsPrefixTableName = "<UserDiagnostics2>";
-
-                private static readonly ConcurrentDictionary<string, PersistentNames> s_analyzerStateNameCache
-                    = new(concurrencyLevel: 2, capacity: 10);
-
-                private PersistentNames(string assemblyQualifiedName)
-                {
-                    StateName = UserDiagnosticsPrefixTableName + "_" + assemblyQualifiedName;
-                    SyntaxStateName = StateName + ".Syntax";
-                    SemanticStateName = StateName + ".Semantic";
-                    NonLocalStateName = StateName + ".NonLocal";
-                }
-
-                /// <summary>
-                /// Get the unique state name for the given analyzer.
-                /// Note that this name is used by the underlying persistence stream of the corresponding <see cref="ProjectState"/> to Read/Write diagnostic data into the stream.
-                /// If any two distinct analyzer have the same diagnostic state name, we will end up sharing the persistence stream between them, leading to duplicate/missing/incorrect diagnostic data.
-                /// </summary>
-                public string StateName { get; }
-                public string SyntaxStateName { get; }
-                public string SemanticStateName { get; }
-                public string NonLocalStateName { get; }
-
-                public static PersistentNames Create(DiagnosticAnalyzer diagnosticAnalyzer)
-                    => s_analyzerStateNameCache.GetOrAdd(diagnosticAnalyzer.GetAnalyzerId(), t => new PersistentNames(t));
             }
         }
     }

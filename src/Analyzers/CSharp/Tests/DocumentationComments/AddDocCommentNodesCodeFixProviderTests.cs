@@ -821,7 +821,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
-        [WorkItem(52738, "https://github.com/dotnet/roslyn/issues/52738")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/52738")]
         public async Task AddsParamTag_Record()
         {
             var initial = """

@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 RefKind.None,
                 backingParameter.Name,
                 indexerNameAttributeLists: new SyntaxList<AttributeListSyntax>(),
-                backingParameter.Locations[0],
+                backingParameter.GetFirstLocation(),
                 diagnostics)
         {
             BackingParameter = (SourceParameterSymbol)backingParameter;
@@ -88,10 +88,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (BackingParameter.TypeWithAnnotations,
                     ImmutableArray<ParameterSymbol>.Empty);
         }
-
-        protected override bool HasPointerTypeSyntactically
-            // Since we already bound the type, don't bother looking at syntax
-            => TypeWithAnnotations.DefaultType.IsPointerOrFunctionPointer();
 
         public static bool HaveCorrespondingSynthesizedRecordPropertySymbol(SourceParameterSymbol parameter)
         {

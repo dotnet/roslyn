@@ -84,6 +84,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_run_code_analysis_in_separate_process
             => ServicesVSResources.Run_code_analysis_in_separate_process_requires_restart;
 
+        public static string Option_run_code_analysis_on_dotnet
+            => ServicesVSResources.Run_code_analysis_on_latest_dotnet_requires_restart;
+
         public static string Option_analyze_source_generated_files
             => ServicesVSResources.Analyze_source_generated_files;
 
@@ -224,9 +227,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Quick_Actions
             => ServicesVSResources.Quick_Actions;
-
-        public static string Option_Compute_Quick_Actions_asynchronously_experimental
-            => ServicesVSResources.Compute_Quick_Actions_asynchronously_experimental;
 
         public static string Option_Outlining
             => ServicesVSResources.Outlining;
@@ -398,5 +398,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Show_UI_as_dashboard_in_top_right
             => ServicesVSResources.Show_UI_as_dashboard_in_top_right;
+
+        public static string Document_Outline
+            => ServicesVSResources.Document_Outline;
+
+        public static string Option_Enable_document_outline_experimental_requires_restart
+            => ServicesVSResources.Enable_document_outline_experimental_requires_restart;
     }
 }

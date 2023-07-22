@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.Remote.Testing
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     <Trait(Traits.Feature, Traits.Features.FindReferences)>
     Partial Public Class FindReferencesTests
-        <WorkItem(539174, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539174")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539174")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestVisualBasic_OperatorError1(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -149,7 +149,7 @@ class A
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(52654, "https://github.com/dotnet/roslyn/issues/52654")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/52654")>
         Public Async Function TestCSharpFindReferencesOnEqualsOperator(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -171,7 +171,7 @@ class A
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(52654, "https://github.com/dotnet/roslyn/issues/52654")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/52654")>
         Public Async Function TestCSharpFindReferencesOnNotEqualsOperator(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -193,7 +193,7 @@ class A
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(52654, "https://github.com/dotnet/roslyn/issues/52654")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/52654")>
         Public Async Function TestCSharpFindReferencesOnGreaterThanOperator(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -215,7 +215,7 @@ class A
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(52654, "https://github.com/dotnet/roslyn/issues/52654")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/52654")>
         Public Async Function TestCSharpFindReferencesOnLessThanOperator(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -237,7 +237,7 @@ class A
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(52654, "https://github.com/dotnet/roslyn/issues/52654")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/52654")>
         Public Async Function TestCSharpFindReferencesOnGreaterThanOrEqualsOperator(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -259,7 +259,7 @@ class A
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(52654, "https://github.com/dotnet/roslyn/issues/52654")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/52654")>
         Public Async Function TestCSharpFindReferencesOnLessThanOrEqualsOperator(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -366,7 +366,7 @@ End Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(30642, "https://github.com/dotnet/roslyn/issues/30642")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/30642")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpFindReferencesOnBuiltInOperatorWithUserDefinedEquivalent(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -388,7 +388,7 @@ class A
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(30642, "https://github.com/dotnet/roslyn/issues/30642")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/30642")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestVisualBasicFindReferencesOnBuiltInOperatorWithUserDefinedEquivalent(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -408,7 +408,7 @@ end class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(30642, "https://github.com/dotnet/roslyn/issues/30642")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/30642")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestCrossLanguageFindReferencesOnBuiltInOperatorWithUserDefinedEquivalent_FromCSharp(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -441,7 +441,7 @@ end class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(30642, "https://github.com/dotnet/roslyn/issues/30642")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/30642")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestCrossLanguageFindReferencesOnBuiltInOperatorWithUserDefinedEquivalent_FromVisualBasic(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -474,7 +474,7 @@ end class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/44288")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestOperatorReferenceInGlobalSuppression_01(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -899,7 +899,7 @@ class C4_2 : I4<C4_2>
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(60216, "https://github.com/dotnet/roslyn/issues/60216")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/60216")>
         Public Async Function TestCSharpFindReferencesOnCheckedAdditionOperator(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -923,7 +923,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(60216, "https://github.com/dotnet/roslyn/issues/60216")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/60216")>
         Public Async Function TestCSharpFindReferencesOnCheckedDecrementOperator(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -948,7 +948,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(60216, "https://github.com/dotnet/roslyn/issues/60216")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/60216")>
         Public Async Function TestCSharpFindReferencesOnCheckedDivisionOperator(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -972,7 +972,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(60216, "https://github.com/dotnet/roslyn/issues/60216")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/60216")>
         Public Async Function TestCSharpFindReferencesOnCheckedIncrementOperator(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -997,7 +997,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(60216, "https://github.com/dotnet/roslyn/issues/60216")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/60216")>
         Public Async Function TestCSharpFindReferencesOnCheckedMultiplyOperator(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1021,7 +1021,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(60216, "https://github.com/dotnet/roslyn/issues/60216")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/60216")>
         Public Async Function TestCSharpFindReferencesOnCheckedSubtractionOperator(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1045,7 +1045,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(60216, "https://github.com/dotnet/roslyn/issues/60216")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/60216")>
         Public Async Function TestCSharpFindReferencesOnCheckedUnaryNegationOperator(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1097,7 +1097,7 @@ class C4_2 : I4<C4_2>
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(7311, "https://github.com/dotnet/roslyn/issues/7311")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/7311")>
         Public Async Function TestCSharpBitwiseLogicalAndOperator1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1137,7 +1137,7 @@ struct Program
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(7311, "https://github.com/dotnet/roslyn/issues/7311")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/7311")>
         Public Async Function TestCSharpBitwiseLogicalAndOperator2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1177,7 +1177,7 @@ struct Program
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(7311, "https://github.com/dotnet/roslyn/issues/7311")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/7311")>
         Public Async Function TestCSharpBitwiseLogicalAndOperator3(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1217,7 +1217,7 @@ struct Program
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(7311, "https://github.com/dotnet/roslyn/issues/7311")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/7311")>
         Public Async Function TestCSharpBitwiseLogicalOrOperator1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1257,7 +1257,7 @@ struct Program
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(7311, "https://github.com/dotnet/roslyn/issues/7311")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/7311")>
         Public Async Function TestCSharpBitwiseLogicalOrOperator2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1297,7 +1297,7 @@ struct Program
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(7311, "https://github.com/dotnet/roslyn/issues/7311")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/7311")>
         Public Async Function TestCSharpBitwiseLogicalOrOperator3(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>

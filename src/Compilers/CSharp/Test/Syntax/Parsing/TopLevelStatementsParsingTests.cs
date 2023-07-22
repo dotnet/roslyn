@@ -1609,27 +1609,19 @@ this[double E] { get { return /*<bind>*/E/*</bind>*/; } }
             EOF();
         }
 
-        [Fact]
-        public void TupleUnsupportedInUsingStatement()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp9)]
+        [InlineData(LanguageVersion.Preview)]
+        public void TupleUnsupportedInUsingStatement(LanguageVersion version)
         {
             var test = @"
 using VT2 = (int, int);
 ";
 
-            UsingTree(test,
-                // (2,13): error CS1001: Identifier expected
-                // using VT2 = (int, int);
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(2, 13),
-                // (2,13): error CS1002: ; expected
-                // using VT2 = (int, int);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(2, 13),
-                // (2,14): error CS1525: Invalid expression term 'int'
-                // using VT2 = (int, int);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(2, 14),
-                // (2,19): error CS1525: Invalid expression term 'int'
-                // using VT2 = (int, int);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(2, 19)
-                );
+            var tree = UsingTree(test, TestOptions.RegularPreview.WithLanguageVersion(version));
+
+            // No parse errors here regardless of version.  Errors are just semantic.
+            tree.GetDiagnostics().Verify();
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1644,38 +1636,27 @@ using VT2 = (int, int);
                         }
                         N(SyntaxKind.EqualsToken);
                     }
-                    M(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.TupleType);
                     {
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.ExpressionStatement);
-                    {
-                        N(SyntaxKind.TupleExpression);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.TupleElement);
                         {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.Argument);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.PredefinedType);
-                                {
-                                    N(SyntaxKind.IntKeyword);
-                                }
+                                N(SyntaxKind.IntKeyword);
                             }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.Argument);
-                            {
-                                N(SyntaxKind.PredefinedType);
-                                {
-                                    N(SyntaxKind.IntKeyword);
-                                }
-                            }
-                            N(SyntaxKind.CloseParenToken);
                         }
-                        N(SyntaxKind.SemicolonToken);
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.TupleElement);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
                     }
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -2686,14 +2667,7 @@ e
         {
             var test = @"using s = delegate*<void>;";
 
-            UsingTree(test,
-                // (1,11): error CS1041: Identifier expected; 'delegate' is a keyword
-                // using s = delegate*<void>;
-                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "delegate").WithArguments("", "delegate").WithLocation(1, 11),
-                // (1,26): error CS1001: Identifier expected
-                // using s = delegate*<void>;
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 26)
-                );
+            UsingTree(test);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2708,42 +2682,24 @@ e
                         }
                         N(SyntaxKind.EqualsToken);
                     }
-                    M(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.FunctionPointerType);
                     {
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.LocalDeclarationStatement);
-                    {
-                        N(SyntaxKind.VariableDeclaration);
+                        N(SyntaxKind.DelegateKeyword);
+                        N(SyntaxKind.AsteriskToken);
+                        N(SyntaxKind.FunctionPointerParameterList);
                         {
-                            N(SyntaxKind.FunctionPointerType);
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
                             {
-                                N(SyntaxKind.DelegateKeyword);
-                                N(SyntaxKind.AsteriskToken);
-                                N(SyntaxKind.FunctionPointerParameterList);
+                                N(SyntaxKind.PredefinedType);
                                 {
-                                    N(SyntaxKind.LessThanToken);
-                                    N(SyntaxKind.FunctionPointerParameter);
-                                    {
-                                        N(SyntaxKind.PredefinedType);
-                                        {
-                                            N(SyntaxKind.VoidKeyword);
-                                        }
-                                    }
-                                    N(SyntaxKind.GreaterThanToken);
+                                    N(SyntaxKind.VoidKeyword);
                                 }
                             }
-                            M(SyntaxKind.VariableDeclarator);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
+                            N(SyntaxKind.GreaterThanToken);
                         }
-                        N(SyntaxKind.SemicolonToken);
                     }
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }

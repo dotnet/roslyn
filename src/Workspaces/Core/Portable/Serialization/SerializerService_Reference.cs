@@ -656,7 +656,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
                 => new SerializedMetadataReference(properties, FilePath, _metadata, _storagesOpt, _provider);
 
-            public IEnumerable<ITemporaryStreamStorageInternal>? GetStorages()
+            public IReadOnlyList<ITemporaryStreamStorageInternal>? GetStorages()
                 => _storagesOpt.IsDefault ? null : _storagesOpt;
         }
     }

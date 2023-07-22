@@ -201,7 +201,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(1365014, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1365014")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1365014")]
         public async Task TestRemoteHostSynchronizeIncrementalUpdate(bool applyInBatch)
         {
             using var workspace = CreateWorkspace();
@@ -238,7 +238,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 await remoteWorkspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None));
         }
 
-        [Fact, WorkItem(52578, "https://github.com/dotnet/roslyn/issues/52578")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52578")]
         public async Task TestIncrementalUpdateHandlesReferenceReversal()
         {
             using var workspace = CreateWorkspace();

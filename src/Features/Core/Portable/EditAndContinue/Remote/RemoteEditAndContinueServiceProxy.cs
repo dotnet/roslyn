@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     /// Encapsulates all RPC logic as well as dispatching to the local service if the remote service is disabled.
     /// THe facade is useful for targeted testing of serialization/deserialization of EnC service calls.
     /// </summary>
-    internal readonly partial struct RemoteEditAndContinueServiceProxy
+    internal readonly partial struct RemoteEditAndContinueServiceProxy(Workspace workspace)
     {
         [ExportRemoteServiceCallbackDispatcher(typeof(IRemoteEditAndContinueService)), Shared]
         internal sealed class CallbackDispatcher : RemoteServiceCallbackDispatcher, IRemoteEditAndContinueService.ICallback
@@ -53,16 +53,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 => ((DebuggingSessionCallback)GetCallback(callbackId)).PrepareModuleForUpdateAsync(mvid, cancellationToken);
         }
 
-        private sealed class DebuggingSessionCallback
+        private sealed class DebuggingSessionCallback(IManagedHotReloadService debuggerService, IPdbMatchingSourceTextProvider sourceTextProvider)
         {
-            private readonly IManagedHotReloadService _debuggerService;
-            private readonly IPdbMatchingSourceTextProvider _sourceTextProvider;
-
-            public DebuggingSessionCallback(IManagedHotReloadService debuggerService, IPdbMatchingSourceTextProvider sourceTextProvider)
-            {
-                _debuggerService = debuggerService;
-                _sourceTextProvider = sourceTextProvider;
-            }
+            private readonly IManagedHotReloadService _debuggerService = debuggerService;
+            private readonly IPdbMatchingSourceTextProvider _sourceTextProvider = sourceTextProvider;
 
             public async ValueTask<string?> TryGetMatchingSourceTextAsync(string filePath, ImmutableArray<byte> requiredChecksum, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken)
             {
@@ -125,15 +119,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        public readonly Workspace Workspace;
+        public readonly Workspace Workspace = workspace;
 
-        public RemoteEditAndContinueServiceProxy(Workspace workspace)
-        {
-            Workspace = workspace;
-        }
-
-        private IEditAndContinueWorkspaceService GetLocalService()
-            => Workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
+        private IEditAndContinueService GetLocalService()
+            => Workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
 
         public async ValueTask<RemoteDebuggingSessionProxy?> StartDebuggingSessionAsync(
             Solution solution,

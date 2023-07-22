@@ -43,12 +43,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// the remote process, and it can map that same memory in directly, instead of needing the host to send the
         /// entire contents of the assembly over the channel to the OOP process.
         /// </summary>
-        private static readonly ConditionalWeakTable<ValueSource<AssemblyMetadata>, IReadOnlyList<TemporaryStorageService.TemporaryStreamStorage>> s_valueSourceToStorages = new();
+        private static readonly ConditionalWeakTable<AssemblyMetadata, IReadOnlyList<TemporaryStorageService.TemporaryStreamStorage>> s_metadataToStorages = new();
 
         private readonly MetadataCache _metadataCache = new();
         private readonly ImmutableArray<string> _runtimeDirectories;
         private readonly TemporaryStorageService _temporaryStorageService;
-        private readonly IWorkspaceConfigurationService _configurationService;
 
         internal IVsXMLMemberIndexService XmlMemberIndexService { get; }
 
@@ -63,8 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal VisualStudioMetadataReferenceManager(
             IServiceProvider serviceProvider,
-            TemporaryStorageService temporaryStorageService,
-            IWorkspaceConfigurationService configurationService)
+            TemporaryStorageService temporaryStorageService)
         {
             _runtimeDirectories = GetRuntimeDirectories();
 
@@ -75,7 +73,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Assumes.Present(SmartOpenScopeServiceOpt);
 
             _temporaryStorageService = temporaryStorageService;
-            _configurationService = configurationService;
             Assumes.Present(_temporaryStorageService);
         }
 
@@ -89,12 +86,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        public IEnumerable<ITemporaryStreamStorageInternal>? GetStorages(string fullPath, DateTime snapshotTimestamp)
+        public IReadOnlyList<ITemporaryStreamStorageInternal>? GetStorages(string fullPath, DateTime snapshotTimestamp)
         {
             var key = new FileKey(fullPath, snapshotTimestamp);
             // check existing metadata
-            if (_metadataCache.TryGetSource(key, out var source) &&
-                s_valueSourceToStorages.TryGetValue(source, out var storages))
+            if (_metadataCache.TryGetMetadata(key, out var source) &&
+                s_metadataToStorages.TryGetValue(source, out var storages))
             {
                 return storages;
             }
@@ -140,19 +137,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (_metadataCache.TryGetMetadata(key, out var metadata))
                 return metadata;
 
-            var (newMetadata, newMetadataValueSource) = GetMetadataWorker();
+            var newMetadata = GetMetadataWorker();
 
-            if (!_metadataCache.GetOrAddMetadata(key, newMetadataValueSource, out metadata))
+            if (!_metadataCache.GetOrAddMetadata(key, newMetadata, out metadata))
                 newMetadata.Dispose();
 
             return metadata;
 
-            (AssemblyMetadata newMetadata, ValueSource<AssemblyMetadata> newMetadataValueSource) GetMetadataWorker()
+            AssemblyMetadata GetMetadataWorker()
             {
                 if (VsSmartScopeCandidate(key.FullPath))
                 {
                     var newMetadata = CreateAssemblyMetadataFromMetadataImporter(key);
-                    return (newMetadata, ValueSource.Constant(newMetadata));
+                    return newMetadata;
                 }
                 else
                 {
@@ -169,13 +166,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                     var storagesArray = storages.ToImmutable();
 
-                    var valueSource = _configurationService.Options.DisableReferenceManagerRecoverableMetadata
-                        ? ValueSource.Constant(newMetadata)
-                        : new RecoverableMetadataValueSource(newMetadata, storagesArray);
+                    s_metadataToStorages.Add(newMetadata, storagesArray);
 
-                    s_valueSourceToStorages.Add(valueSource, storagesArray);
-
-                    return (newMetadata, valueSource);
+                    return newMetadata;
                 }
             }
         }

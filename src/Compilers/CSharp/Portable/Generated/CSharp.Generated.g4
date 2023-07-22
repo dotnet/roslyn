@@ -10,7 +10,7 @@ extern_alias_directive
   ;
 
 using_directive
-  : 'global'? 'using' ('static' | name_equals)? name ';'
+  : 'global'? 'using' ('static' | ('unsafe'? name_equals))? type ';'
   ;
 
 name_equals
@@ -20,6 +20,18 @@ name_equals
 identifier_name
   : 'global'
   | identifier_token
+  ;
+
+attribute_list
+  : '[' attribute_target_specifier? attribute (',' attribute)* ']'
+  ;
+
+attribute_target_specifier
+  : syntax_token ':'
+  ;
+
+attribute
+  : name attribute_argument_list?
   ;
 
 name
@@ -47,18 +59,6 @@ type_argument_list
 
 qualified_name
   : name '.' simple_name
-  ;
-
-attribute_list
-  : '[' attribute_target_specifier? attribute (',' attribute)* ']'
-  ;
-
-attribute_target_specifier
-  : syntax_token ':'
-  ;
-
-attribute
-  : name attribute_argument_list?
   ;
 
 attribute_argument_list
@@ -727,6 +727,7 @@ expression
   | binary_expression
   | cast_expression
   | checked_expression
+  | collection_expression
   | conditional_access_expression
   | conditional_expression
   | declaration_expression
@@ -834,6 +835,23 @@ cast_expression
 checked_expression
   : 'checked' '(' expression ')'
   | 'unchecked' '(' expression ')'
+  ;
+
+collection_expression
+  : '[' (collection_element (',' collection_element)* ','?)? ']'
+  ;
+
+collection_element
+  : expression_element
+  | spread_element
+  ;
+
+expression_element
+  : expression
+  ;
+
+spread_element
+  : '..' expression
   ;
 
 conditional_access_expression

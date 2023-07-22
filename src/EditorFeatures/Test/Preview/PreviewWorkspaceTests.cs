@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             Assert.Equal(0, previewWorkspace.CurrentSolution.Projects.First().DocumentIds.Count);
         }
 
-        [WorkItem(923121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923121")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923121")]
         [WpfFact]
         public void TestPreviewOpenCloseFile()
         {
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             Assert.Equal(0, rightSpans.Count);
         }
 
-        [WorkItem(28639, "https://github.com/dotnet/roslyn/issues/28639")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/28639")]
         [Fact]
         public void TestPreviewWorkspaceDoesNotLeakSolution()
         {
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         }
 
         [Fact]
-        [WorkItem(67142, "https://github.com/dotnet/roslyn/pull/67142")]
+        [WorkItem("https://github.com/dotnet/roslyn/pull/67142")]
         public void TestPreviewWorkspaceDoesNotLeakItself()
         {
             var composition = EditorTestCompositions.EditorFeatures;

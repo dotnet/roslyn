@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
         {
         }
 
-        [Fact]
-        public async Task TestGotoDefinitionAsync()
+        [Theory, CombinatorialData]
+        public async Task TestGotoDefinitionAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -34,14 +34,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
         var len = {|caret:|}aString.Length;
     }
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
         }
 
-        [Fact]
-        public async Task TestGotoDefinitionAsync_DifferentDocument()
+        [Theory, CombinatorialData]
+        public async Task TestGotoDefinitionAsync_DifferentDocument(bool mutatingLspWorkspace)
         {
             var markups = new string[]
             {
@@ -61,14 +61,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
 }"
             };
 
-            await using var testLspServer = await CreateTestLspServerAsync(markups);
+            await using var testLspServer = await CreateTestLspServerAsync(markups, mutatingLspWorkspace);
 
             var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
         }
 
-        [Fact]
-        public async Task TestGotoDefinitionAsync_MappedFile()
+        [Theory, CombinatorialData]
+        public async Task TestGotoDefinitionAsync_MappedFile(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
         var len = aString.Length;
     }
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(string.Empty);
+            await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace);
 
             AddMappedDocument(testLspServer.TestWorkspace, markup);
 
@@ -92,8 +92,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
             AssertLocationsEqual(ImmutableArray.Create(TestSpanMapper.MappedFileLocation), results);
         }
 
-        [Fact]
-        public async Task TestGotoDefinitionAsync_InvalidLocation()
+        [Theory, CombinatorialData]
+        public async Task TestGotoDefinitionAsync_InvalidLocation(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -103,14 +103,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
         var len = aString.Length;
     }
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             Assert.Empty(results);
         }
 
-        [Fact, WorkItem(1264627, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1264627")]
-        public async Task TestGotoDefinitionAsync_NoResultsOnNamespace()
+        [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1264627")]
+        public async Task TestGotoDefinitionAsync_NoResultsOnNamespace(bool mutatingLspWorkspace)
         {
             var markup =
 @"namespace {|caret:M|}
@@ -119,14 +119,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
     {
     }
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             Assert.Empty(results);
         }
 
-        [Fact]
-        public async Task TestGotoDefinitionCrossLanguage()
+        [Theory, CombinatorialData]
+        public async Task TestGotoDefinitionCrossLanguage(bool mutatingLspWorkspace)
         {
             var markup =
 @"<Workspace>
@@ -146,7 +146,34 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
         </Document>
     </Project>
 </Workspace>";
-            await using var testLspServer = await CreateXmlTestLspServerAsync(markup);
+            await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
+
+            var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+            AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/vscode-csharp/issues/5740")]
+        public async Task TestGotoDefinitionPartialMethods(bool mutatingLspWorkspace)
+        {
+            var markup =
+                """
+                using System;
+
+                public partial class C
+                {
+                    partial void {|caret:|}P();
+                }
+
+                public partial class C
+                {
+                    partial void {|definition:P|}()
+                    {
+                        Console.WriteLine(");
+                    }
+                }
+                """;
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             AssertLocationsEqual(testLspServer.GetLocations("definition"), results);

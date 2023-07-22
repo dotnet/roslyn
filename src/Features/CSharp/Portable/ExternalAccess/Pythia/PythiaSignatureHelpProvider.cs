@@ -21,14 +21,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia
     /// </summary>
     [ExportSignatureHelpProvider(nameof(PythiaSignatureHelpProvider), LanguageNames.CSharp), Shared]
     [ExtensionOrder(Before = nameof(InvocationExpressionSignatureHelpProvider))]
-    internal sealed class PythiaSignatureHelpProvider : InvocationExpressionSignatureHelpProviderBase
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class PythiaSignatureHelpProvider(Lazy<IPythiaSignatureHelpProviderImplementation> implementation) : InvocationExpressionSignatureHelpProviderBase
     {
-        private readonly Lazy<IPythiaSignatureHelpProviderImplementation> _lazyImplementation;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public PythiaSignatureHelpProvider(Lazy<IPythiaSignatureHelpProviderImplementation> implementation)
-            => _lazyImplementation = implementation;
+        private readonly Lazy<IPythiaSignatureHelpProviderImplementation> _lazyImplementation = implementation;
 
         internal override async Task<(ImmutableArray<SignatureHelpItem> items, int? selectedItemIndex)> GetMethodGroupItemsAndSelectionAsync(
             ImmutableArray<IMethodSymbol> accessibleMethods,

@@ -280,7 +280,7 @@ class BaseType
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(541658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541658")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541658")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestAttribute1(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -303,7 +303,7 @@ internal class {|Definition:$$AttClassAttribute|} : Attribute
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(541658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541658")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541658")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestAttribute2(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -326,7 +326,7 @@ internal class {|Definition:$$AttClassAttribute|} : Attribute
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(541658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541658")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541658")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestAttribute3(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -347,7 +347,7 @@ internal class {|Definition:$$AttClassAttribute|} : Attribute
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(541658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541658")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541658")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestAttribute4(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -473,7 +473,7 @@ class Program
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(542218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542218")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542218")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestAttributeConstructor_ThroughAlias3(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -501,7 +501,7 @@ class Program
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(542218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542218")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542218")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestAttributeConstructor_ThroughAlias4(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -529,7 +529,7 @@ class Program
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(542218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542218")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542218")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestAttributeConstructor_ThroughAlias5(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -557,7 +557,7 @@ class Program
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(542218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542218")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542218")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestAttributeConstructor_ThroughAlias6(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -585,7 +585,7 @@ class Program
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(542218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542218")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542218")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestAttributeConstructor_ThroughAlias7(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -613,7 +613,7 @@ class Program
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(542218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542218")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542218")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestAttributeConstructor_ThroughAlias8(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -641,7 +641,7 @@ class Program
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(542218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542218")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542218")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestAttributeConstructor_ThroughAlias9(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -669,7 +669,7 @@ class Program
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(542979, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542979")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542979")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestAttributeConstructor_ThroughAlias10(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -711,7 +711,7 @@ class C { }
         End Sub
 #End If
 
-        <WorkItem(542386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542386")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542386")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestClassCalledNew1(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -737,7 +737,7 @@ End Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(531200, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531200")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531200")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpCascadeFromTypeToConstructorsAndDestructors(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -767,7 +767,7 @@ namespace Tester
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(531200, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531200")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531200")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestVBCascadeFromTypeToConstructorsAndDestructors(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -795,7 +795,7 @@ End Namespace
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(652809, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/652809")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/652809")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestCSharpStaticCtorVsInstanceCtorReferences(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -821,7 +821,7 @@ class Program
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(25655, "https://github.com/dotnet/roslyn/issues/25655")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/25655")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestNoCompilationProjectReferencingCSharp(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -922,7 +922,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(47987, "https://github.com/dotnet/roslyn/issues/47987")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/47987")>
         Public Async Function DoNotCountInstantiationTwiceWhenTargetTypedNewExists(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -949,7 +949,7 @@ public class Foo
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/44288")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestConstructorReferenceInGlobalSuppression(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -968,7 +968,7 @@ class D
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/44288")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestStaticConstructorReferenceInGlobalSuppression(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -1228,7 +1228,7 @@ class D
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(40848, "https://github.com/dotnet/roslyn/issues/40848")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/40848")>
         Public Async Function TestDottedConstructorUsage(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>

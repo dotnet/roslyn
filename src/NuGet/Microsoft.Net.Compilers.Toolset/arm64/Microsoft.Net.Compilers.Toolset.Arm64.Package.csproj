@@ -1,0 +1,59 @@
+﻿<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+
+    <RoslynPackageArch>arm64</RoslynPackageArch>
+    <IsPackable>true</IsPackable>
+    <NuspecPackageId>Microsoft.Net.Compilers.Toolset.Arm64</NuspecPackageId>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+    <PackageDescription>
+      .NET Compilers Toolset Package.
+      Referencing this package will cause the project to be built using the C# and Visual Basic compilers contained in the package, as opposed to the version installed with MSBuild.
+
+      This package is primarily intended as a method for rapidly shipping hotfixes to customers. Using it as a long term solution for providing newer compilers on older MSBuild installations is explicitly not supported. That can and will break on a regular basis.
+
+      The supported mechanism for providing new compilers in a build enviroment is updating to the newer .NET SDK or Visual Studio Build Tools SKU.
+
+      This package requires either MSBuild 16.3 and .NET Desktop 4.7.2+ or .NET Core 2.1+
+
+      $(RoslynPackageDescriptionDetails)
+    </PackageDescription>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_GetFilesToPackage</TargetsForTfmSpecificContentInPackage>
+    <!-- Remove NU5128 once https://github.com/NuGet/Home/issues/8583 is fixed -->
+    <NoWarn>$(NoWarn);NU5100;NU5128</NoWarn>
+
+    <_DependsOn>InitializeDesktopCompilerArtifacts</_DependsOn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Compilers\CSharp\csc\arm64\csc-arm64.csproj" PrivateAssets="All"/>
+    <ProjectReference Include="..\..\..\Compilers\VisualBasic\vbc\arm64\vbc-arm64.csproj" PrivateAssets="All"/>
+    <ProjectReference Include="..\..\..\Interactive\csi\csi.csproj" PrivateAssets="All"/>
+    <ProjectReference Include="..\..\..\Compilers\Core\MSBuildTask\Microsoft.Build.Tasks.CodeAnalysis.csproj" PrivateAssets="All"/>
+    <ProjectReference Include="..\..\..\Compilers\Server\VBCSCompiler\arm64\VBCSCompiler-arm64.csproj" PrivateAssets="All"/>
+
+    <ProjectReference Update="@(ProjectReference)"
+                      Targets="Publish"
+                      ReferenceOutputAssembly="false"
+                      SkipGetTargetFrameworkProperties="true"
+                      Condition="'$(TargetFramework)' == 'net6.0'"
+                      SetTargetFramework="TargetFramework=net6.0" />
+  </ItemGroup>
+
+  <Target Name="_GetFilesToPackage" DependsOnTargets="$(_DependsOn)">
+    <ItemGroup>
+      <_File Include="@(DesktopCompilerArtifact)" TargetDir="tasks/net472"/>
+      <_File Include="@(DesktopCompilerResourceArtifact)" TargetDir="tasks/net472"/>
+     
+      <_File Include="$(MSBuildProjectDirectory)\build\**\*.*" Condition="'$(TargetFramework)' == 'net472'" TargetDir="build" />
+      <_File Include="$(MSBuildProjectDirectory)\buildMultiTargeting\**\*.*" Condition="'$(TargetFramework)' == 'net472'" TargetDir="buildMultiTargeting" />
+     
+      <TfmSpecificPackageFile Include="@(_File)" PackagePath="%(_File.TargetDir)/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
+    </ItemGroup>
+  </Target>
+
+  <Import Project="..\DesktopCompilerArtifacts.targets" />
+</Project>

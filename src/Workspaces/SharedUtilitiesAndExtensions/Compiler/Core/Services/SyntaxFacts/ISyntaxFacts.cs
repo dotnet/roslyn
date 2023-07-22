@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
@@ -204,7 +203,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         void GetPartsOfTupleExpression<TArgumentSyntax>(SyntaxNode node,
             out SyntaxToken openParen, out SeparatedSyntaxList<TArgumentSyntax> arguments, out SyntaxToken closeParen) where TArgumentSyntax : SyntaxNode;
 
-        bool IsVerbatimInterpolatedStringExpression(SyntaxNode node);
+        bool IsVerbatimInterpolatedStringExpression([NotNullWhen(true)] SyntaxNode? node);
 
         // Left side of = assignment.
         bool IsLeftSideOfAssignment([NotNullWhen(true)] SyntaxNode? node);
@@ -496,6 +495,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         bool IsBinaryExpression([NotNullWhen(true)] SyntaxNode? node);
         bool IsLiteralExpression([NotNullWhen(true)] SyntaxNode? node);
         bool IsMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node);
+        bool IsMethodDeclaration([NotNullWhen(true)] SyntaxNode? node);
         bool IsSimpleName([NotNullWhen(true)] SyntaxNode? node);
 
         bool IsNamedMemberInitializer([NotNullWhen(true)] SyntaxNode? node);

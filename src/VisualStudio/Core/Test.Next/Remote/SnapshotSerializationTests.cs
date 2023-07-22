@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             _ = CloneAsset(serializer, assetFromFile);
         }
 
-        [Fact, WorkItem(1107294, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1107294")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1107294")]
         public async Task SnapshotWithIdenticalAnalyzerFiles()
         {
             using var workspace = CreateWorkspace();
@@ -705,8 +705,8 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
         private class MissingAnalyzerLoader : AnalyzerAssemblyLoader
         {
-            protected override string PreparePathToLoad(string fullPath) =>
-                throw new FileNotFoundException(fullPath);
+            protected override string PreparePathToLoad(string fullPath)
+                => throw new FileNotFoundException(fullPath);
         }
 
         private class MissingMetadataReference : PortableExecutableReference

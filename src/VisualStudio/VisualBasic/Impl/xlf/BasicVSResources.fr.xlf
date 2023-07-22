@@ -312,11 +312,6 @@
         <target state="translated">Local inutilisé</target>
         <note />
       </trans-unit>
-      <trans-unit id="VB_Coding_Conventions">
-        <source>VB Coding Conventions</source>
-        <target state="translated">Conventions de codage VB</target>
-        <note />
-      </trans-unit>
       <trans-unit id="nothing_checking_colon">
         <source>'nothing' checking:</source>
         <target state="translated">'Contrôle de 'nothing' :</target>

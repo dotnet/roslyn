@@ -12,6 +12,10 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
 {
@@ -103,10 +107,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
         {
             int numberFluentCalls = (IntPtr.Size, ExecutionConditionUtil.Configuration) switch
             {
-                (4, ExecutionConfiguration.Debug) => 520, // 510
-                (4, ExecutionConfiguration.Release) => 1400, // 1310
-                (8, ExecutionConfiguration.Debug) => 250, // 225,
-                (8, ExecutionConfiguration.Release) => 700, // 620
+                (4, ExecutionConfiguration.Debug) => 4000,
+                (4, ExecutionConfiguration.Release) => 4000,
+                (8, ExecutionConfiguration.Debug) => 4000,
+                (8, ExecutionConfiguration.Release) => 4000,
                 _ => throw new Exception($"Unexpected configuration {IntPtr.Size * 8}-bit {ExecutionConditionUtil.Configuration}")
             };
 
@@ -128,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
         @"class C {
     C M(string x) { return this; }
     void M2() {
-        new C()
+        global::C.GetC()
 ");
                 for (int i = 0; i < depth; i++)
                 {
@@ -137,7 +141,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
                 builder.AppendLine(
                    @"            .M(""test"");
     }
-}");
+
+    static C GetC() => new C();
+}
+");
 
                 var source = builder.ToString();
                 RunInThread(() =>
@@ -313,6 +320,122 @@ $@"        if (F({i}))
                     Assert.True(typeParameter.IsReferenceType);
                     comp.VerifyDiagnostics(diagnostics);
                 });
+            }
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1819416")]
+        public void LongInitializerList()
+        {
+            CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+            int iterations = 0;
+            try
+            {
+                initializerTest(cts.Token, ref iterations);
+            }
+            catch (Exception e) when (e is OperationCanceledException or TaskCanceledException)
+            {
+                Assert.True(false, $"Test timed out while getting all semantic info for long initializer list. Got to {iterations} iterations.");
+            }
+
+            static void initializerTest(CancellationToken ct, ref int iterationReached)
+            {
+                var sb = new StringBuilder();
+                sb.AppendLine("""
+                    _ = new System.Collections.Generic.Dictionary<string, string>
+                    {
+                    """);
+
+                for (int i = 0; i < 50000; i++)
+                {
+                    sb.AppendLine("""    { "a", "b" },""");
+                }
+
+                sb.AppendLine("};");
+
+                var comp = CreateCompilation(sb.ToString());
+                comp.VerifyEmitDiagnostics();
+
+                var tree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(tree);
+
+                // If we regress perf here, this test will time out. The original condition here was a O(n^2) algorithm because the syntactic parent of each literal
+                // was being rebound on every call to GetTypeInfo.
+                iterationReached = 0;
+                foreach (var literal in tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>())
+                {
+                    ct.ThrowIfCancellationRequested();
+                    iterationReached++;
+                    var type = model.GetTypeInfo(literal).Type;
+                    Assert.Equal(SpecialType.System_String, type.SpecialType);
+                }
+            }
+        }
+
+        [Fact]
+        public void Interceptors()
+        {
+            const int numberOfInterceptors = 10000;
+
+            // write a program which has many intercepted calls.
+            // each interceptor is in a different file.
+            var files = ArrayBuilder<(string source, string path)>.GetInstance();
+
+            // Build a top-level-statements main like:
+            //    C.M();
+            //    C.M();
+            //    C.M();
+            //    ...
+            var builder = new StringBuilder();
+            for (int i = 0; i < numberOfInterceptors; i++)
+            {
+                builder.AppendLine("C.M();");
+            }
+
+            files.Add((builder.ToString(), "Program.cs"));
+
+            files.Add(("""
+                class C
+                {
+                    public static void M() => throw null!;
+                }
+
+                namespace System.Runtime.CompilerServices
+                {
+                    public class InterceptsLocationAttribute : Attribute
+                    {
+                        public InterceptsLocationAttribute(string path, int line, int column) { }
+                    }
+                }
+                """, "C.cs"));
+
+            for (int i = 0; i < numberOfInterceptors; i++)
+            {
+                files.Add(($$"""
+                    using System;
+                    using System.Runtime.CompilerServices;
+
+                    class C{{i}}
+                    {
+                        [InterceptsLocation("Program.cs", {{i + 1}}, 3)]
+                        public static void M()
+                        {
+                            Console.WriteLine({{i}});
+                        }
+                    }
+                    """, $"C{i}.cs"));
+            }
+
+            var verifier = CompileAndVerify(files.ToArrayAndFree(), parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreview"), expectedOutput: makeExpectedOutput());
+            verifier.VerifyDiagnostics();
+
+            string makeExpectedOutput()
+            {
+                builder.Clear();
+                for (int i = 0; i < numberOfInterceptors; i++)
+                {
+                    builder.AppendLine($"{i}");
+                }
+                return builder.ToString();
             }
         }
     }

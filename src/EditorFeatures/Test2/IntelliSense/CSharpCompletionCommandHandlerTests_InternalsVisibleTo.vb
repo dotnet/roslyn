@@ -590,7 +590,7 @@ using System.Reflection;
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/29447")>
         Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_1(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
@@ -609,7 +609,7 @@ using System.Reflection;
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/29447")>
         Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_2(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
@@ -628,7 +628,7 @@ using System.Reflection;
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/29447")>
         Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_3(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
@@ -647,7 +647,7 @@ using System.Reflection;
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/29447")>
         Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_4(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
@@ -666,7 +666,7 @@ using System.Reflection;
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/29447")>
         Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_Verbatim_1(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
@@ -685,7 +685,7 @@ using System.Reflection;
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/29447")>
         Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_Verbatim_2(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
@@ -704,7 +704,7 @@ using System.Reflection;
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/29447")>
         Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_EscapeSequence_1(showCompletionInArgumentLists As Boolean) As Task
             ' Escaped double quotes are not handled properly: The selection is expanded from the cursor position until
             ' a double quote or new line is reached. But because double quotes are not allowed in this context this 
@@ -727,7 +727,7 @@ using System.Reflection;
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/29447")>
         Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_OpenEnded(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
@@ -746,7 +746,7 @@ using System.Reflection;
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/29447")>
         Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_AndPublicKey_OpenEnded(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
@@ -765,7 +765,7 @@ using System.Reflection;
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/29447")>
         Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_AndPublicKey_LineBreakExampleFromMSDN(showCompletionInArgumentLists As Boolean) As Task
             ' Source https://msdn.microsoft.com/de-de/library/system.runtime.compilerservices.internalsvisibletoattribute(v=vs.110).aspx
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
@@ -795,7 +795,7 @@ using System.Reflection;
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/29447")>
         Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_OpenEndedStringFollowedByEOF(showCompletionInArgumentLists As Boolean) As Task
             ' Source https://msdn.microsoft.com/de-de/library/system.runtime.compilerservices.internalsvisibletoattribute(v=vs.110).aspx
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
@@ -814,7 +814,7 @@ using System.Reflection;
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(29447, "https://github.com/dotnet/roslyn/pull/29447")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/29447")>
         Public Async Function CodeCompletionReplacesExisitingAssemblyNameWithDots_OpenEndedStringFollowedByNewLines(showCompletionInArgumentLists As Boolean) As Task
             ' Source https://msdn.microsoft.com/de-de/library/system.runtime.compilerservices.internalsvisibletoattribute(v=vs.110).aspx
             Using state = TestStateFactory.CreateTestStateFromWorkspace(

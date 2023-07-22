@@ -39,9 +39,9 @@ class Program
 }";
             var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithDeterministic(true));
             comp.VerifyDiagnostics(
-                // (2,55): error CS7034: The specified version string does not conform to the required format - major[.minor[.build[.revision]]]
+                // (2,55): error CS7034: The specified version string '<null>' does not conform to the required format - major[.minor[.build[.revision]]]
                 // [assembly: System.Reflection.AssemblyVersionAttribute(null)]
-                Diagnostic(ErrorCode.ERR_InvalidVersionFormat, "null").WithLocation(2, 55)
+                Diagnostic(ErrorCode.ERR_InvalidVersionFormat, "null").WithArguments("<null>").WithLocation(2, 55)
                 );
         }
 
@@ -10518,7 +10518,7 @@ class C { }
         }
 
         [Fact]
-        public void GenericAttributeRestrictedTypeArgument()
+        public void GenericAttributeRestrictedTypeArgument_NoUnsafeContext()
         {
             var source = @"
 using System;
@@ -10535,15 +10535,111 @@ class C3 { }
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (5,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [Attr<int*>] // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(5, 7),
                 // (5,7): error CS0306: The type 'int*' may not be used as a type argument
                 // [Attr<int*>] // 1
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*").WithLocation(5, 7),
+                // (8,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [Attr<delegate*<int, void>>] // 2
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(8, 7),
                 // (8,7): error CS0306: The type 'delegate*<int, void>' may not be used as a type argument
                 // [Attr<delegate*<int, void>>] // 2
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "delegate*<int, void>").WithArguments("delegate*<int, void>").WithLocation(8, 7),
                 // (11,7): error CS0306: The type 'TypedReference' may not be used as a type argument
                 // [Attr<TypedReference>] // 3
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference").WithArguments("System.TypedReference").WithLocation(11, 7));
+        }
+
+        [Fact]
+        public void GenericAttributeRestrictedTypeArgument_UnsafeContext()
+        {
+            var source = @"
+using System;
+class Attr<T> : Attribute { }
+
+unsafe class Outer
+{
+    [Attr<int*>] // 1
+    class C1 { }
+
+    [Attr<delegate*<int, void>>] // 2
+    class C2 { }
+
+    [Attr<TypedReference>] // 3
+    class C3 { }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (7,11): error CS0306: The type 'int*' may not be used as a type argument
+                //     [Attr<int*>] // 1
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*").WithLocation(7, 11),
+                // (10,11): error CS0306: The type 'delegate*<int, void>' may not be used as a type argument
+                //     [Attr<delegate*<int, void>>] // 2
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "delegate*<int, void>").WithArguments("delegate*<int, void>").WithLocation(10, 11),
+                // (13,11): error CS0306: The type 'TypedReference' may not be used as a type argument
+                //     [Attr<TypedReference>] // 3
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference").WithArguments("System.TypedReference").WithLocation(13, 11));
+        }
+
+        [Fact]
+        public void GenericAttributePointerArray()
+        {
+            var source = @"
+using System;
+class Attr<T> : Attribute { }
+
+[Attr<int*[]>] // 1
+class C1 { }
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (5,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [Attr<int*[]>] // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(5, 7));
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(
+                // (5,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [Attr<int*[]>] // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(5, 7));
+
+            // Legal in C#11.  Allowed for back compat
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericAttributePointerArray_OnUnsafeType()
+        {
+            var source = @"
+using System;
+class Attr<T> : Attribute { }
+
+[Attr<int*[]>] // 1
+unsafe class C1 { }
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericAttributePointerArray_InUnsafeType()
+        {
+            var source = @"
+using System;
+class Attr<T> : Attribute { }
+
+unsafe class C
+{
+    [Attr<int*[]>] // 1
+    class C1 { }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -11169,6 +11265,98 @@ class A<T>
                 // (4,2): error CS8970: Type '(int A, int B)' cannot be used in this context because it cannot be represented in metadata.
                 // [AB]
                 Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "AB").WithArguments("(int A, int B)").WithLocation(4, 2));
+        }
+
+        [Fact]
+        public void GenericAttribute_Unsafe()
+        {
+            var source = @"
+[A<int*[]>] // 1
+class C
+{
+}
+
+[A<int*[]>]
+unsafe class D
+{
+}
+
+class A<T> : System.Attribute
+{
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (2,4): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [A<int*[]>] // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 4));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68370")]
+        public void AvoidCascadingDiagnosticsOnMissingAttribute()
+        {
+            var source = """
+[assembly: /*<bind>*/Inexistent(SomeProperty = 1, F = null, G = 0 switch { _ => 1 })/*</bind>*/]
+""";
+
+            string expectedOperationTree = """
+IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'Inexistent( ... { _ => 1 })')
+  IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'Inexistent( ... { _ => 1 })')
+    Children(3):
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?) (Syntax: 'SomeProperty = 1')
+          Left:
+            IInvalidOperation (OperationKind.Invalid, Type: ?) (Syntax: 'SomeProperty')
+              Children(0)
+          Right:
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?) (Syntax: 'F = null')
+          Left:
+            IInvalidOperation (OperationKind.Invalid, Type: ?) (Syntax: 'F')
+              Children(0)
+          Right:
+            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?) (Syntax: 'G = 0 switch { _ => 1 }')
+          Left:
+            IInvalidOperation (OperationKind.Invalid, Type: ?) (Syntax: 'G')
+              Children(0)
+          Right:
+            ISwitchExpressionOperation (1 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32) (Syntax: '0 switch { _ => 1 }')
+              Value:
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+              Arms(1):
+                  ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: '_ => 1')
+                    Pattern:
+                      IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: System.Int32, NarrowedType: System.Int32)
+                    Value:
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+""";
+            var expectedDiagnostics = new[]
+            {
+                // (1,22): error CS0246: The type or namespace name 'InexistentAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [assembly: /*<bind>*/Inexistent(SomeProperty = 1, F = null, G = 0 switch { _ => 1 })/*</bind>*/]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Inexistent").WithArguments("InexistentAttribute").WithLocation(1, 22),
+                // (1,22): error CS0246: The type or namespace name 'Inexistent' could not be found (are you missing a using directive or an assembly reference?)
+                // [assembly: /*<bind>*/Inexistent(SomeProperty = 1, F = null, G = 0 switch { _ => 1 })/*</bind>*/]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Inexistent").WithArguments("Inexistent").WithLocation(1, 22)
+            };
+
+            var comp = CreateCompilation(source);
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var firstArgument = tree.GetRoot().DescendantNodes().OfType<AttributeArgumentSyntax>().First();
+            Assert.Equal("SomeProperty = 1", firstArgument.ToString());
+            Assert.Equal("System.Int32", model.GetTypeInfo(firstArgument.Expression).Type.ToTestDisplayString());
+
+            var secondArgument = tree.GetRoot().DescendantNodes().OfType<AttributeArgumentSyntax>().Skip(1).First();
+            Assert.Equal("F = null", secondArgument.ToString());
+            Assert.Null(model.GetTypeInfo(secondArgument.Expression).Type);
+
+            var thirdArgument = tree.GetRoot().DescendantNodes().OfType<AttributeArgumentSyntax>().Skip(2).Single();
+            Assert.Equal("G = 0 switch { _ => 1 }", thirdArgument.ToString());
+            Assert.Equal("System.Int32", model.GetTypeInfo(thirdArgument.Expression).Type.ToTestDisplayString());
         }
         #endregion
     }

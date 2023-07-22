@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.ConvertTypeOfToNameOf;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -249,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTypeOfToNameOf
             await VerifyCS.VerifyCodeFixAsync(text, text);
         }
 
-        [Fact, WorkItem(47129, "https://github.com/dotnet/roslyn/issues/47129")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47129")]
         public async Task NestedInGenericType()
         {
             var text = """
@@ -285,7 +286,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTypeOfToNameOf
             await VerifyCS.VerifyCodeFixAsync(text, expected);
         }
 
-        [Fact, WorkItem(47129, "https://github.com/dotnet/roslyn/issues/47129")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47129")]
         public async Task NestedInGenericType2()
         {
             var text = """
@@ -315,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTypeOfToNameOf
             await VerifyCS.VerifyCodeFixAsync(text, expected);
         }
 
-        [Fact, WorkItem(54233, "https://github.com/dotnet/roslyn/issues/54233")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54233")]
         public async Task NotOnVoid()
         {
             var text = """
@@ -328,6 +329,37 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTypeOfToNameOf
                 }
                 """;
             await VerifyCS.VerifyCodeFixAsync(text, text);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47128")]
+        public async Task TestNint()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    using System;
+
+                    class C
+                    {
+                        void M()
+                        {
+                            Console.WriteLine([|typeof(nint).Name|]);
+                        }
+                    }
+                    """,
+                FixedCode = """
+                    using System;
+
+                    class C
+                    {
+                        void M()
+                        {
+                            Console.WriteLine(nameof(IntPtr));
+                        }
+                    }
+                    """,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
         }
     }
 }

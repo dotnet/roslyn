@@ -19,12 +19,12 @@ public class LspWorkspaceRegistrationServiceTests : AbstractLanguageServerProtoc
     {
     }
 
-    [Fact]
-    public async Task TestDisposedWorkspaceDeregistered()
+    [Theory, CombinatorialData]
+    public async Task TestDisposedWorkspaceDeregistered(bool mutatingLspWorkspace)
     {
         var markup = "";
         TestWorkspaceRegistrationService registrationService;
-        await using (var testLspServer = await CreateTestLspServerAsync(markup))
+        await using (var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace))
         {
             registrationService = (TestWorkspaceRegistrationService)testLspServer.TestWorkspace.ExportProvider.GetExportedValue<LspWorkspaceRegistrationService>();
         }

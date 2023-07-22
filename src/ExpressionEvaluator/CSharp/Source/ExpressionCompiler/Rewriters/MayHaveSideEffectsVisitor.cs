@@ -39,9 +39,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         // Calls are treated as having side effects, but properties and
         // indexers are not. (Since this visitor is run on the bound tree
         // before lowering, properties are not represented as calls.)
-        public override BoundNode VisitCall(BoundCall node)
+        protected override void VisitArguments(BoundCall node)
         {
-            return this.SetMayHaveSideEffects();
+            this.SetMayHaveSideEffects();
         }
 
         public override BoundNode VisitDynamicInvocation(BoundDynamicInvocation node)

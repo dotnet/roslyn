@@ -24,20 +24,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
 {
     internal abstract partial class AbstractGenerateParameterizedMemberService<TService, TSimpleNameSyntax, TExpressionSyntax, TInvocationExpressionSyntax>
     {
-        internal abstract class SignatureInfo
+        internal abstract class SignatureInfo(
+            SemanticDocument document,
+            State state)
         {
-            protected readonly SemanticDocument Document;
-            protected readonly State State;
+            protected readonly SemanticDocument Document = document;
+            protected readonly State State = state;
             private ImmutableArray<ITypeParameterSymbol> _typeParameters;
             private IDictionary<ITypeSymbol, ITypeParameterSymbol> _typeArgumentToTypeParameterMap;
-
-            public SignatureInfo(
-                SemanticDocument document,
-                State state)
-            {
-                Document = document;
-                State = state;
-            }
 
             public ImmutableArray<ITypeParameterSymbol> DetermineTypeParameters(CancellationToken cancellationToken)
             {

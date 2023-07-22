@@ -1798,6 +1798,32 @@
       <summary>Creates an ImplicitStackAllocArrayCreationExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
+  <Node Name="CollectionExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="CollectionExpression"/>
+    <Field Name="OpenBracketToken" Type="SyntaxToken">
+      <Kind Name="OpenBracketToken"/>
+    </Field>
+    <Field Name="Elements" Type="SeparatedSyntaxList&lt;CollectionElementSyntax&gt;" AllowTrailingSeparator="true">
+      <PropertyComment>
+        <summary>SeparatedSyntaxList of CollectionElementSyntax representing the list of elements in the collection expression.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="CloseBracketToken" Type="SyntaxToken">
+      <Kind Name="CloseBracketToken"/>
+    </Field>
+  </Node>
+  <AbstractNode Name="CollectionElementSyntax" Base="CSharpSyntaxNode" />
+  <Node Name="ExpressionElementSyntax" Base="CollectionElementSyntax">
+    <Kind Name="ExpressionElement"/>
+    <Field Name="Expression" Type="ExpressionSyntax" />
+  </Node>
+  <Node Name="SpreadElementSyntax" Base="CollectionElementSyntax">
+    <Kind Name="SpreadElement"/>
+    <Field Name="OperatorToken" Type="SyntaxToken">
+      <Kind Name="DotDotToken"/>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax" />
+  </Node>
   <AbstractNode Name="QueryClauseSyntax" Base="CSharpSyntaxNode">
   </AbstractNode>
   <AbstractNode Name="SelectOrGroupClauseSyntax" Base="CSharpSyntaxNode">
@@ -3075,10 +3101,17 @@
       <Kind Name="UsingKeyword"/>
     </Field>
     <Choice Optional="true">
-      <Field Name="StaticKeyword" Type="SyntaxToken"/>
-      <Field Name="Alias" Type="NameEqualsSyntax"/>
+      <Field Name="StaticKeyword" Type="SyntaxToken">
+        <Kind Name="StaticKeyword"/>
+      </Field>
+      <Sequence>
+        <Field Name="UnsafeKeyword" Type="SyntaxToken" Optional="true">
+          <Kind Name="UnsafeKeyword"/>
+        </Field>
+        <Field Name="Alias" Type="NameEqualsSyntax"/>
+      </Sequence>
     </Choice>
-    <Field Name="Name" Type="NameSyntax"/>
+    <Field Name="NamespaceOrType" Type="TypeSyntax"/>
     <Field Name="SemicolonToken" Type="SyntaxToken">
       <Kind Name="SemicolonToken"/>
     </Field>

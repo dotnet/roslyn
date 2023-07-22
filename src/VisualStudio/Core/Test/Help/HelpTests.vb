@@ -1518,7 +1518,7 @@ Module Program
 End Module]]></a>.Value, HelpKeywords.XmlDocComment)
         End Function
 
-        <Fact, WorkItem(864194, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864194")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864194")>
         Public Async Function TestAnonymousType() As Task
             Await TestAsync(<a><![CDATA[Public Class Test
     Sub Subroutine()
@@ -1527,7 +1527,7 @@ End Module]]></a>.Value, HelpKeywords.XmlDocComment)
 End Class]]></a>.Value, "vb.AnonymousType")
         End Function
 
-        <Fact, WorkItem(864189, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864189")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864189")>
         Public Async Function TestAnonymousProperty() As Task
             Await TestAsync(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -1543,7 +1543,7 @@ Module Program
 End Module]]></a>.Value, "vb.AnonymousType")
         End Function
 
-        <Fact, WorkItem(863684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863684")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863684")>
         Public Async Function TestByVal() As Task
             Await TestAsync(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -1556,7 +1556,7 @@ Module Program
 End Module]]></a>.Value, "vb.ByVal")
         End Function
 
-        <Fact, WorkItem(864207, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864207")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864207")>
         Public Async Function TestOf() As Task
             Await TestAsync(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -1569,7 +1569,7 @@ Module Program
 End Module]]></a>.Value, "vb.Of")
         End Function
 
-        <Fact, WorkItem(863680, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863680")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863680")>
         Public Async Function TestCompoundAssign() As Task
             Await TestAsync(<a><![CDATA[Public Class Test
     Sub Subroutine()
@@ -1583,7 +1583,7 @@ End Class
 ]]></a>.Value, "vb.+=")
         End Function
 
-        <Fact, WorkItem(863661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863661")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863661")>
         Public Async Function TestGeneric() As Task
             Await TestAsync(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -1597,7 +1597,7 @@ Module Program
 End Module]]></a>.Value, "System.Collections.Generic.IEnumerable`1")
         End Function
 
-        <Fact, WorkItem(863652, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863652")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863652")>
         Public Async Function TestSub() As Task
             Await TestAsync(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -1610,7 +1610,7 @@ Module Program
 End Module]]></a>.Value, "vb.Sub")
         End Function
 
-        <Fact, WorkItem(863340, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863340")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863340")>
         Public Async Function TestAsNew() As Task
             Await TestAsync(<a><![CDATA[Imports System.Text
 Public Class Test
@@ -1622,7 +1622,7 @@ End Class
 
         End Function
 
-        <Fact, WorkItem(863305, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863305")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863305")>
         Public Async Function TestAwait() As Task
             Await TestAsync(<a><![CDATA[Public Class Test
     Async Sub AsyncSub()
@@ -1634,14 +1634,14 @@ End Class
 ]]></a>.Value, "vb.Await")
         End Function
 
-        <Fact, WorkItem(864243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864243")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864243")>
         Public Async Function TestProperty() As Task
             Await TestAsync(<a><![CDATA[Class Program
     Prope[||]rty prop As Integer
 End Class]]></a>.Value, "vb.AutoImplementedProperty")
         End Function
 
-        <Fact, WorkItem(864226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864226")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864226")>
         Public Async Function TestPredefinedTypeMember() As Task
             Await TestAsync(<a><![CDATA[Module Program
     Sub Main(args As String())
@@ -1650,7 +1650,7 @@ End Class]]></a>.Value, "vb.AutoImplementedProperty")
 End Module]]></a>.Value, "System.Int32.MaxValue")
         End Function
 
-        <Fact, WorkItem(864237, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864237")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864237")>
         Public Async Function TestModuleModifier() As Task
             Await TestAsync(<a><![CDATA[Publi[||]c Module M
     Public Class C
@@ -1668,7 +1668,7 @@ Public Delegate Sub Dele()
 ]]></a>.Value, "vb.Public")
         End Function
 
-        <Fact, WorkItem(864237, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864237")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864237")>
         Public Async Function TestDelegateModifiers() As Task
             Await TestAsync(<a><![CDATA[Public Module M
     Public Class C
@@ -1686,7 +1686,7 @@ Publi[||]c Delegate Sub Dele()
 ]]></a>.Value, "vb.Public")
         End Function
 
-        <Fact, WorkItem(863273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863273")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863273")>
         Public Async Function TestAssignment() As Task
             Await TestAsync(<a><![CDATA[Public Class Test
     Sub Subroutine()
@@ -1696,7 +1696,7 @@ End Class
 ]]></a>.Value, "vb.=")
         End Function
 
-        <Fact, WorkItem(863228, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863228")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863228")>
         Public Async Function TestRem() As Task
             Await TestAsync(<a><![CDATA[Module Program
     Sub Main(args As String())
@@ -1705,7 +1705,7 @@ End Class
 End Module]]></a>.Value, "vb.Rem")
         End Function
 
-        <Fact, WorkItem(863228, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863228")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863228")>
         Public Async Function TestTodo() As Task
             Await TestAsync(<a><![CDATA[Module Program
     Sub Main(args As String())
@@ -1714,7 +1714,7 @@ End Module]]></a>.Value, "vb.Rem")
 End Module]]></a>.Value, HelpKeywords.TaskListUserComments)
         End Function
 
-        <Fact, WorkItem(863220, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863220")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863220")>
         Public Async Function TestMethodInvocation() As Task
             Await TestAsync(<a><![CDATA[Public Class Test
     Sub Subroutine()
@@ -1726,12 +1726,12 @@ End Class
 ]]></a>.Value, "vb.Call")
         End Function
 
-        <Fact, WorkItem(864202, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864202")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864202")>
         Public Async Function TestImportsXmlns() As Task
             Await TestAsync(<a><![CDATA[Imports <xmln[||]s:ns="goo">]]></a>.Value, "vb.ImportsXmlns")
         End Function
 
-        <Fact, WorkItem(862420, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862420")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862420")>
         Public Async Function TestParameter() As Task
             Await TestAsync(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -1744,7 +1744,7 @@ Module Program
 End Module]]></a>.Value, "System.String()")
         End Function
 
-        <Fact, WorkItem(862396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862396")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862396")>
         Public Async Function TestNoToken() As Task
             Await TestAsync(<a><![CDATA[Module Program
     Sub Main(args As String())
@@ -1753,7 +1753,7 @@ End Module]]></a>.Value, "System.String()")
 End Module]]></a>.Value, "")
         End Function
 
-        <Fact, WorkItem(863293, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863293")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863293")>
         Public Async Function TestMemberAccess() As Task
             Await TestAsync(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -1766,7 +1766,7 @@ Module Program
 End Module]]></a>.Value, "System.Int32.Parse")
         End Function
 
-        <Fact, WorkItem(864661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864661")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864661")>
         Public Async Function TestCtype2() As Task
             Await TestAsync(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -1780,7 +1780,7 @@ Module Program
 End Module]]></a>.Value, "vb.CType")
         End Function
 
-        <Fact, WorkItem(864661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864661")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864661")>
         Public Async Function TestNothing() As Task
             Await TestAsync(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -1794,7 +1794,7 @@ Module Program
 End Module]]></a>.Value, "vb.Nothing")
         End Function
 
-        <Fact, WorkItem(864658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864658")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864658")>
         Public Async Function TestNullable() As Task
             Await TestAsync(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -1807,7 +1807,7 @@ Module Program
 End Module]]></a>.Value, "vb.Nullable")
         End Function
 
-        <Fact, WorkItem(864209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864209")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864209")>
         Public Async Function TestRegionTrivia() As Task
             Await TestAsync(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -1823,7 +1823,7 @@ Module Program
 End Module]]></a>.Value, "vb.String")
         End Function
 
-        <Fact, WorkItem(865034, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/865034")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/865034")>
         Public Async Function TestTypeCharacter() As Task
             Await TestAsync(<a><![CDATA[Public Module M
     Sub M1()
@@ -1834,14 +1834,14 @@ End Module]]></a>.Value, "vb.String")
 End Module]]></a>.Value, "vb.UInteger")
         End Function
 
-        <Fact, WorkItem(865061, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/865061")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/865061")>
         Public Async Function TestStructure() As Task
             Await TestAsync(<a><![CDATA[Structure S[||]1
 End Structure
 ]]></a>.Value, "vb.Structure")
         End Function
 
-        <Fact, WorkItem(865047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/865047")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/865047")>
         Public Async Function TestXmlLiteralDocument() As Task
             Await TestAsync(<a><![CDATA[Public Module M
     Sub M1()
@@ -1858,7 +1858,7 @@ End Module
 ]]></a>.Value, "vb.XmlLiteralDocument")
         End Function
 
-        <Fact, WorkItem(865047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/865047")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/865047")>
         Public Async Function TestXmlEmptyElement() As Task
             Await TestAsync(<a><![CDATA[Public Module M
     Sub M1()
@@ -1875,7 +1875,7 @@ End Module
 ]]></a>.Value, "vb.XmlLiteralElement")
         End Function
 
-        <Fact, WorkItem(865047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/865047")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/865047")>
         Public Async Function TestXmlLiteralComment() As Task
             Await TestAsync(<a><![CDATA[Public Module M
     Sub M1()
@@ -1892,7 +1892,7 @@ End Module
 ]]></a>.Value, "vb.XmlLiteralComment")
         End Function
 
-        <Fact, WorkItem(865088, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/865088")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/865088")>
         Public Async Function TestWhile() As Task
             Await TestAsync(<a><![CDATA[Class C
     Sub M()
@@ -1905,7 +1905,7 @@ End Module
 End Class]]></a>.Value, "vb.While")
         End Function
 
-        <Fact, WorkItem(865326, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/865326")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/865326")>
         Public Async Function TestImplements() As Task
             Await TestAsync(<a><![CDATA[Interface I1
 Sub M()
@@ -1918,7 +1918,7 @@ End Class
 ]]></a>.Value, "vb.ImplementsClause")
         End Function
 
-        <Fact, WorkItem(865306, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/865306")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/865306")>
         Public Async Function TestAddressOf() As Task
             Await TestAsync(<a><![CDATA[Delegate Sub mydele()
 Class C
@@ -1932,57 +1932,57 @@ End Class
 ]]></a>.Value, "vb.AddressOf")
         End Function
 
-        <Fact, WorkItem(898157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898157")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898157")>
         Public Async Function TestShared() As Task
             Await TestAsync(<a><![CDATA[[|Shared|]]]></a>.Value, "vb.Shared")
         End Function
 
-        <Fact, WorkItem(898157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898157")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898157")>
         Public Async Function TestWidening() As Task
             Await TestAsync(<a><![CDATA[[|Widening|]]]></a>.Value, "vb.Widening")
         End Function
 
-        <Fact, WorkItem(898157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898157")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898157")>
         Public Async Function TestCType() As Task
             Await TestAsync(<a><![CDATA[[|CType|]]]></a>.Value, "vb.CType")
         End Function
 
-        <Fact, WorkItem(898157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898157")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898157")>
         Public Async Function TestNarrowing() As Task
             Await TestAsync(<a><![CDATA[[|Narrowing|]]]></a>.Value, "vb.Narrowing")
         End Function
 
-        <Fact, WorkItem(898157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898157")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898157")>
         Public Async Function TestOperator() As Task
             Await TestAsync(<a><![CDATA[[|Operator|]]]></a>.Value, "vb.Operator")
         End Function
 
-        <Fact, WorkItem(898157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898157")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898157")>
         Public Async Function TestAddHandler() As Task
             Await TestAsync(<a><![CDATA[[|AddHandler|]]]></a>.Value, "vb.AddHandler")
         End Function
 
-        <Fact, WorkItem(898157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898157")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898157")>
         Public Async Function TestAnsi() As Task
             Await TestAsync(<a><![CDATA[Declare [|Ansi|]]]></a>.Value, "vb.Ansi")
         End Function
 
-        <Fact, WorkItem(898157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898157")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898157")>
         Public Async Function TestAuto() As Task
             Await TestAsync(<a><![CDATA[Declare [|Auto|]]]></a>.Value, "vb.Auto")
         End Function
 
-        <Fact, WorkItem(898157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898157")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898157")>
         Public Async Function TestUnicode() As Task
             Await TestAsync(<a><![CDATA[Declare [|Unicode|]]]></a>.Value, "vb.Unicode")
         End Function
 
-        <Fact, WorkItem(898157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898157")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898157")>
         Public Async Function TestHandles() As Task
             Await TestAsync(<a><![CDATA[[|Handles|]]]></a>.Value, "vb.Handles")
         End Function
 
-        <Fact, WorkItem(867738, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867738")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867738")>
         Public Async Function TestImplementsIDisposable() As Task
             Await TestAsync(<a><![CDATA[Imports System
 Class C
@@ -2024,7 +2024,7 @@ End Class]]></a>.Value, "vb.Not")
 End Class]]></a>.Value, "vb.Integer")
         End Function
 
-        <Fact, WorkItem(866074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/866074")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/866074")>
         Public Async Function TestGroupJoin() As Task
             Await TestAsync(<a><![CDATA[Module LINQ
     Sub Linq()
@@ -2047,7 +2047,7 @@ End Class]]></a>.Value, "vb.Integer")
 End Module]]></a>.Value, "vb.QueryGroupJoin")
         End Function
 
-        <Fact, WorkItem(866074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/866074")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/866074")>
         Public Async Function TestGroupJoinIn() As Task
             Await TestAsync(<a><![CDATA[Module LINQ
     Sub Linq()
@@ -2070,7 +2070,7 @@ End Module]]></a>.Value, "vb.QueryGroupJoin")
 End Module]]></a>.Value, "vb.QueryGroupJoinIn")
         End Function
 
-        <Fact, WorkItem(866074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/866074")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/866074")>
         Public Async Function TestLinqEquals() As Task
             Await TestAsync(<a><![CDATA[Module LINQ
     Sub Linq()
@@ -2093,7 +2093,7 @@ End Module]]></a>.Value, "vb.QueryGroupJoinIn")
 End Module]]></a>.Value, "vb.Equals")
         End Function
 
-        <Fact, WorkItem(866074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/866074")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/866074")>
         Public Async Function TestSelect() As Task
             Await TestAsync(<a><![CDATA[Module LINQ
     Sub Linq()
@@ -2116,7 +2116,7 @@ End Module]]></a>.Value, "vb.Equals")
 End Module]]></a>.Value, "vb.QuerySelect")
         End Function
 
-        <Fact, WorkItem(866074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/866074")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/866074")>
         Public Async Function TestCountLinq() As Task
             Await TestAsync(<a><![CDATA[Module LINQ
     Sub Linq()
@@ -2139,7 +2139,7 @@ End Module]]></a>.Value, "vb.QuerySelect")
 End Module]]></a>.Value, "System.Linq.Enumerable.Count")
         End Function
 
-        <Fact, WorkItem(867747, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867747")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867747")>
         Public Async Function TestOperatorOverload() As Task
             Await TestAsync(<a><![CDATA[Class C
     Public Shared Operator IsTr[||]ue(ByVal a As C) As Boolean
@@ -2148,7 +2148,7 @@ End Module]]></a>.Value, "System.Linq.Enumerable.Count")
 End Class]]></a>.Value, "vb.IsTrue")
         End Function
 
-        <Fact, WorkItem(866058, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/866058")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/866058")>
         Public Async Function TestAnonymousLocal() As Task
             Await TestAsync(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -2161,7 +2161,7 @@ Module Program
 End Module]]></a>.Value, "vb.AnonymousType")
         End Function
 
-        <Fact, WorkItem(866046, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/866046")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/866046")>
         Public Async Function TestNoEscaping() As Task
             Await TestAsync(<a><![CDATA[Imports System
 Class C
@@ -2172,7 +2172,7 @@ Class C
 End Class]]></a>.Value, "System.Object.GetType")
         End Function
 
-        <Fact, WorkItem(4150, "https://github.com/dotnet/roslyn/issues/4150")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4150")>
         Public Async Function TestPropertyFromMemberAccess() As Task
             Await TestAsync(<a><![CDATA[Imports System
 Imports System.Collections.Generic

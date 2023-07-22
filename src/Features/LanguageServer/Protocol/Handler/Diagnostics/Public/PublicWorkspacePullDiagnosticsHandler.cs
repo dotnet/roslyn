@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
 using WorkspaceDiagnosticPartialReport = SumType<WorkspaceDiagnosticReport, WorkspaceDiagnosticReportPartialResult>;
 
 [Method(Methods.WorkspaceDiagnosticName)]
-internal class PublicWorkspacePullDiagnosticsHandler : AbstractPullDiagnosticHandler<WorkspaceDiagnosticParams, WorkspaceDiagnosticPartialReport, WorkspaceDiagnosticReport?>, IDisposable
+internal sealed class PublicWorkspacePullDiagnosticsHandler : AbstractPullDiagnosticHandler<WorkspaceDiagnosticParams, WorkspaceDiagnosticPartialReport, WorkspaceDiagnosticReport?>, IDisposable
 {
     private readonly LspWorkspaceRegistrationService _workspaceRegistrationService;
     private readonly LspWorkspaceManager _workspaceManager;
@@ -39,14 +39,14 @@ internal class PublicWorkspacePullDiagnosticsHandler : AbstractPullDiagnosticHan
         LspWorkspaceManager workspaceManager,
         LspWorkspaceRegistrationService registrationService,
         IDiagnosticAnalyzerService analyzerService,
-        EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource,
+        IDiagnosticsRefresher diagnosticRefresher,
         IGlobalOptionService globalOptions)
-        : base(analyzerService, editAndContinueDiagnosticUpdateSource, globalOptions)
+        : base(analyzerService, diagnosticRefresher, globalOptions)
     {
-        _workspaceRegistrationService = registrationService;
-        _workspaceRegistrationService.LspSolutionChanged += OnLspSolutionChanged;
-
         _workspaceManager = workspaceManager;
+        _workspaceRegistrationService = registrationService;
+
+        _workspaceRegistrationService.LspSolutionChanged += OnLspSolutionChanged;
         _workspaceManager.LspTextChanged += OnLspTextChanged;
     }
 

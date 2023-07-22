@@ -10,15 +10,9 @@ using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
-    internal class RenameClassificationTagger : AbstractRenameTagger<IClassificationTag>
+    internal class RenameClassificationTagger(ITextBuffer buffer, InlineRenameService renameService, IClassificationType classificationType) : AbstractRenameTagger<IClassificationTag>(buffer, renameService)
     {
-        private readonly IClassificationType _classificationType;
-
-        public RenameClassificationTagger(ITextBuffer buffer, InlineRenameService renameService, IClassificationType classificationType)
-            : base(buffer, renameService)
-        {
-            _classificationType = classificationType;
-        }
+        private readonly IClassificationType _classificationType = classificationType;
 
         protected override bool TryCreateTagSpan(SnapshotSpan span, RenameSpanKind type, out TagSpan<IClassificationTag> tagSpan)
         {

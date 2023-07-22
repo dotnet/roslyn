@@ -211,7 +211,7 @@ $@"class C
                 """, optionName);
         }
 
-        [Theory, WorkItem(33073, "https://github.com/dotnet/roslyn/issues/33073")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/33073")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task ExpressionStatement_SemanticError_02(string optionName)
@@ -230,7 +230,7 @@ $@"class C
                 """, optionName);
         }
 
-        [Theory, WorkItem(33073, "https://github.com/dotnet/roslyn/issues/33073")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/33073")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task ExpressionStatement_SemanticError_03(string optionName)
@@ -250,7 +250,7 @@ $@"class C
                 """, optionName);
         }
 
-        [Theory, WorkItem(33073, "https://github.com/dotnet/roslyn/issues/33073")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/33073")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task ExpressionStatement_SemanticError_04(string optionName)
@@ -632,7 +632,7 @@ $@"class C
                 """, options: PreferUnusedLocal);
         }
 
-        [Theory, WorkItem(32942, "https://github.com/dotnet/roslyn/issues/32942")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/32942")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task ExpressionBodiedMember_01(string optionName)
@@ -647,7 +647,7 @@ $@"class C
                 """, optionName);
         }
 
-        [Theory, WorkItem(32942, "https://github.com/dotnet/roslyn/issues/32942")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/32942")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task ExpressionBodiedMember_02(string optionName)
@@ -666,7 +666,7 @@ $@"class C
                 """, optionName);
         }
 
-        [Theory, WorkItem(32942, "https://github.com/dotnet/roslyn/issues/32942")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/32942")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task ExpressionBodiedMember_03(string optionName)
@@ -688,7 +688,7 @@ $@"class C
                 """, optionName);
         }
 
-        [Theory, WorkItem(43648, "https://github.com/dotnet/roslyn/issues/43648")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/43648")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task ExpressionStatement_Dynamic(string optionName)

@@ -43,7 +43,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal readonly TypeMap TypeMap;
         internal readonly MethodSymbol SubstitutedSourceMethod;
         internal readonly ImmutableArray<LocalSymbol> Locals;
-        internal readonly ImmutableArray<LocalSymbol> LocalsForBinding;
+
+        /// <summary>
+        /// Display class variables declared outside of the current source method.
+        /// They are shadowed by source method parameters and locals declared within the method.
+        /// </summary>
+        internal readonly ImmutableArray<LocalSymbol> LocalsForBindingOutside;
+
+        /// <summary>
+        /// Locals and display class variables declared within the current source method.
+        /// They shadow the source method parameters. In other words, display class variables
+        /// created for method parameters shadow the parameters.
+        /// </summary>
+        internal readonly ImmutableArray<LocalSymbol> LocalsForBindingInside;
 
         private readonly EENamedTypeSymbol _container;
         private readonly string _name;
@@ -71,7 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             Location location,
             MethodSymbol sourceMethod,
             ImmutableArray<LocalSymbol> sourceLocals,
-            ImmutableArray<LocalSymbol> sourceLocalsForBinding,
+            ImmutableArray<LocalSymbol> sourceLocalsForBindingOutside,
+            ImmutableArray<LocalSymbol> sourceLocalsForBindingInside,
             ImmutableDictionary<string, DisplayClassVariable> sourceDisplayClassVariables,
             GenerateMethodBody generateMethodBody)
         {
@@ -149,18 +162,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 localsBuilder.Add(local);
             }
             this.Locals = localsBuilder.ToImmutableAndFree();
-            localsBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
-            foreach (var sourceLocal in sourceLocalsForBinding)
-            {
-                LocalSymbol local;
-                if (!localsMap.TryGetValue(sourceLocal, out local))
-                {
-                    local = sourceLocal.ToOtherMethod(this, this.TypeMap);
-                    localsMap.Add(sourceLocal, local);
-                }
-                localsBuilder.Add(local);
-            }
-            this.LocalsForBinding = localsBuilder.ToImmutableAndFree();
+
+            this.LocalsForBindingInside = remapLocalsForBinding(sourceLocalsForBindingInside, localsMap);
+            this.LocalsForBindingOutside = remapLocalsForBinding(sourceLocalsForBindingOutside, localsMap);
 
             // Create a map from variable name to display class field.
             var displayClassVariables = PooledDictionary<string, DisplayClassVariable>.GetInstance();
@@ -185,6 +189,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             localsMap.Free();
 
             _generateMethodBody = generateMethodBody;
+
+            ImmutableArray<LocalSymbol> remapLocalsForBinding(
+                ImmutableArray<LocalSymbol> sourceLocalsForBinding,
+                Dictionary<LocalSymbol, LocalSymbol> localsMap)
+            {
+                var localsBuilder = ArrayBuilder<LocalSymbol>.GetInstance(sourceLocalsForBinding.Length);
+                foreach (var sourceLocal in sourceLocalsForBinding)
+                {
+                    LocalSymbol local;
+                    if (!localsMap.TryGetValue(sourceLocal, out local))
+                    {
+                        local = sourceLocal.ToOtherMethod(this, this.TypeMap);
+                        localsMap.Add(sourceLocal, local);
+                    }
+                    localsBuilder.Add(local);
+                }
+
+                return localsBuilder.ToImmutableAndFree();
+            }
         }
 
         private ParameterSymbol MakeParameterSymbol(int ordinal, string name, ParameterSymbol sourceParameter)
@@ -526,12 +549,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 try
                 {
                     var localsBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
-                    foreach (var local in this.LocalsForBinding)
+                    foreach (var local in this.LocalsForBindingOutside)
                     {
                         Debug.Assert(!localsSet.Contains(local));
                         localsBuilder.Add(local);
                         localsSet.Add(local);
                     }
+
+                    foreach (var local in this.LocalsForBindingInside)
+                    {
+                        Debug.Assert(!localsSet.Contains(local));
+                        localsBuilder.Add(local);
+                        localsSet.Add(local);
+                    }
+
                     foreach (var local in this.Locals)
                     {
                         if (localsSet.Add(local))

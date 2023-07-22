@@ -198,7 +198,7 @@ class C
           select $$", LanguageVersion.CSharp9);
         }
 
-        [Fact, WorkItem(907052, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907052")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907052")]
         public async Task TestInFinally()
         {
             await VerifyKeywordAsync(@"
@@ -211,7 +211,7 @@ finally { $$ }  }
 }", LanguageVersion.CSharp9);
         }
 
-        [Fact, WorkItem(907052, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907052")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907052")]
         public async Task TestInFinally_TopLevel()
         {
             await VerifyKeywordAsync(
@@ -219,7 +219,7 @@ finally { $$ }  }
 finally { $$ }", LanguageVersion.CSharp9);
         }
 
-        [Fact, WorkItem(907052, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907052")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907052")]
         public async Task TestInCatch()
         {
             await VerifyKeywordAsync(@"
@@ -232,7 +232,7 @@ catch { $$ }  }
 }", LanguageVersion.CSharp9);
         }
 
-        [Fact, WorkItem(907052, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907052")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907052")]
         public async Task TestInCatch_TopLevel()
         {
             await VerifyKeywordAsync(
@@ -558,7 +558,7 @@ static class Program
         }
 
         [Fact(Skip = "Fails because speculative binding can't figure out that local is a Task.")]
-        [WorkItem(56245, "https://github.com/dotnet/roslyn/issues/56245")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/56245")]
         public async Task TestDotAwaitSuggestBeforeLocalFunction()
         {
             // Speculative binding a local as expression finds the local as ILocalSymbol, but the type is ErrorType.
@@ -895,7 +895,7 @@ static class Program
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(58921, "https://github.com/dotnet/roslyn/issues/58921")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/58921")]
         public async Task TestInCastExpressionThatMightBeParenthesizedExpression(bool hasNewline)
         {
             var code = $@"

@@ -1283,7 +1283,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseSystemHashCode
                 """);
         }
 
-        [Fact, WorkItem(39916, "https://github.com/dotnet/roslyn/issues/39916")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39916")]
         public async Task TestManyFields_ImplicitType()
         {
             await TestInRegularAndScript1Async(
@@ -1337,7 +1337,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseSystemHashCode
                 """, new TestParameters(options: UseVarTestExtensions.PreferImplicitTypeWithInfo(this)));
         }
 
-        [Fact, WorkItem(39916, "https://github.com/dotnet/roslyn/issues/39916")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39916")]
         public async Task TestManyFields_ExplicitType()
         {
             await TestInRegularAndScript1Async(

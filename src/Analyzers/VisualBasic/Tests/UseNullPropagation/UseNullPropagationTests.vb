@@ -611,7 +611,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestWithNullableTypeAndReferenceEquals1() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -632,7 +632,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestWithNullableTypeAndReferenceEquals1_IfStatement() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -655,7 +655,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestWithNullableTypeAndReferenceEquals2() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -676,7 +676,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestWithNullableTypeAndReferenceEqualsOtherValue1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -689,7 +689,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestWithNullableTypeAndReferenceEqualsOtherValue2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -702,7 +702,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestWithNullableTypeAndReferenceEqualsWithObject1() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -723,7 +723,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestWithNullableTypeAndReferenceEqualsWithObject2() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -744,7 +744,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestWithNullableTypeAndReferenceEqualsOtherValueWithObject1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -757,7 +757,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestWithNullableTypeAndReferenceEqualsOtherValueWithObject2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -770,7 +770,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestWithNullableTypeAndReferenceEqualsWithOmittedArgument1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -783,7 +783,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestWithNullableTypeAndReferenceEqualsWithOmittedArgument2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -796,7 +796,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestWithNullableTypeAndLogicalNotReferenceEquals1() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -817,7 +817,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestWithNullableTypeAndLogicalNotReferenceEquals2() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -838,7 +838,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestWithNullableTypeAndLogicalNotReferenceEqualsOtherValue1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -851,7 +851,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestWithNullableTypeAndLogicalNotReferenceEqualsOtherValue2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -864,7 +864,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestWithNullableTypeAndLogicalNotReferenceEqualsWithObject1() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -885,7 +885,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestWithNullableTypeAndLogicalNotReferenceEqualsWithObject2() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -906,7 +906,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestWithNullableTypeAndLogicalNotReferenceEqualsOtherValueWithObject1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -919,7 +919,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestWithNullableTypeAndLogicalNotReferenceEqualsOtherValueWithObject2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -932,7 +932,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestEqualsWithLogicalNot() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -953,7 +953,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestEqualsWithLogicalNot_IfStatement() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -976,7 +976,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestNotEqualsWithLogicalNot() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -997,7 +997,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestEqualsOtherValueWithLogicalNot() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -1010,7 +1010,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(23043, "https://github.com/dotnet/roslyn/issues/23043")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23043")>
         Public Async Function TestNotEqualsOtherValueWithLogicalNot() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -1023,7 +1023,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(33992, "https://github.com/dotnet/roslyn/issues/33992")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33992")>
         Public Async Function TestExpressionTree1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -1039,7 +1039,7 @@ Public Class Class1
 End Class")
         End Function
 
-        <Fact, WorkItem(33992, "https://github.com/dotnet/roslyn/issues/33992")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33992")>
         Public Async Function TestExpressionTree2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -1056,7 +1056,7 @@ Public Class Class1
 End Class")
         End Function
 
-        <Fact, WorkItem(33992, "https://github.com/dotnet/roslyn/issues/33992")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33992")>
         Public Async Function TestExpressionTree3() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -1073,7 +1073,7 @@ Public Class Class1
 End Class")
         End Function
 
-        <Fact, WorkItem(63557, "https://github.com/dotnet/roslyn/issues/63557")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63557")>
         Public Async Function TestNotWithColorColorStaticCase() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -1097,7 +1097,7 @@ public class C
 end class")
         End Function
 
-        <Fact, WorkItem(63557, "https://github.com/dotnet/roslyn/issues/63557")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63557")>
         Public Async Function TestWithColorColorInstanceCase() As Task
             Await TestInRegularAndScript1Async(
 "

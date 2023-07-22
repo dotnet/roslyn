@@ -12,32 +12,22 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
 {
-    internal abstract partial class StringSplitter
+    internal abstract partial class StringSplitter(
+        ParsedDocument document, int position,
+        in IndentationOptions indentationOptions,
+        CancellationToken cancellationToken)
     {
         protected readonly SyntaxAnnotation RightNodeAnnotation = new();
 
-        protected readonly ParsedDocument Document;
-        protected readonly int CursorPosition;
-        protected readonly IndentationOptions IndentationOptions;
-        protected readonly CancellationToken CancellationToken;
-        protected readonly SyntaxToken PlusNewLineToken;
-
-        public StringSplitter(
-            ParsedDocument document, int position,
-            in IndentationOptions indentationOptions,
-            CancellationToken cancellationToken)
-        {
-            Document = document;
-            CursorPosition = position;
-            IndentationOptions = indentationOptions;
-            CancellationToken = cancellationToken;
-
-            PlusNewLineToken = SyntaxFactory.Token(
+        protected readonly ParsedDocument Document = document;
+        protected readonly int CursorPosition = position;
+        protected readonly IndentationOptions IndentationOptions = indentationOptions;
+        protected readonly CancellationToken CancellationToken = cancellationToken;
+        protected readonly SyntaxToken PlusNewLineToken = SyntaxFactory.Token(
                 leading: default,
                 SyntaxKind.PlusToken,
                 SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(
                     indentationOptions.FormattingOptions.NewLine)));
-        }
 
         protected int TabSize => IndentationOptions.FormattingOptions.TabSize;
         protected bool UseTabs => IndentationOptions.FormattingOptions.UseTabs;

@@ -33,6 +33,7 @@ param (
   # Options
   [switch]$bootstrap,
   [string]$bootstrapConfiguration = "Release",
+  [string]$bootstrapToolset = "",
   [switch][Alias('bl')]$binaryLog,
   [string]$binaryLogName = "",
   [switch]$ci,
@@ -67,6 +68,7 @@ param (
   [switch]$sequential,
   [switch]$helix,
   [string]$helixQueueName = "",
+  [string]$helixApiAccessToken = "",
 
   [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
 
@@ -254,38 +256,46 @@ function BuildSolution() {
   $generateDocumentationFile = if ($skipDocumentation) { "/p:GenerateDocumentationFile=false" } else { "" }
   $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
 
-  # Temporarily disable RestoreUseStaticGraphEvaluation to work around this NuGet issue 
+ # Temporarily disable RestoreUseStaticGraphEvaluation to work around this NuGet issue 
   # in our CI builds
   # https://github.com/NuGet/Home/issues/12373
   $restoreUseStaticGraphEvaluation = if ($ci) { $false } else { $true }
+  
+  $isNpmAvailable = IsNpmAvailable
 
-  MSBuild $toolsetBuildProj `
-    $bl `
-    /p:Configuration=$configuration `
-    /p:Projects=$projects `
-    /p:RepoRoot=$RepoRoot `
-    /p:Restore=$restore `
-    /p:Build=$build `
-    /p:Rebuild=$rebuild `
-    /p:Pack=$pack `
-    /p:Sign=$sign `
-    /p:Publish=$publish `
-    /p:ContinuousIntegrationBuild=$ci `
-    /p:OfficialBuildId=$officialBuildId `
-    /p:RunAnalyzersDuringBuild=$runAnalyzers `
-    /p:BootstrapBuildPath=$bootstrapDir `
-    /p:TreatWarningsAsErrors=$warnAsError `
-    /p:EnableNgenOptimization=$applyOptimizationData `
-    /p:IbcOptimizationDataDir=$ibcDir `
-    /p:RestoreUseStaticGraphEvaluation=$restoreUseStaticGraphEvaluation `
-    /p:VisualStudioIbcDrop=$ibcDropName `
-    /p:VisualStudioDropAccessToken=$officialVisualStudioDropAccessToken `
-    $suppressExtensionDeployment `
-    $msbuildWarnAsError `
-    $buildFromSource `
-    $generateDocumentationFile `
-    $roslynUseHardLinks `
-    @properties
+  try {
+    MSBuild $toolsetBuildProj `
+      $bl `
+      /p:Configuration=$configuration `
+      /p:Projects=$projects `
+      /p:RepoRoot=$RepoRoot `
+      /p:Restore=$restore `
+      /p:Build=$build `
+      /p:Rebuild=$rebuild `
+      /p:Pack=$pack `
+      /p:Sign=$sign `
+      /p:Publish=$publish `
+      /p:ContinuousIntegrationBuild=$ci `
+      /p:OfficialBuildId=$officialBuildId `
+      /p:RunAnalyzersDuringBuild=$runAnalyzers `
+      /p:BootstrapBuildPath=$bootstrapDir `
+      /p:TreatWarningsAsErrors=$warnAsError `
+      /p:EnableNgenOptimization=$applyOptimizationData `
+      /p:IbcOptimizationDataDir=$ibcDir `
+      /p:RestoreUseStaticGraphEvaluation=$restoreUseStaticGraphEvaluation `
+      /p:VisualStudioIbcDrop=$ibcDropName `
+      /p:VisualStudioDropAccessToken=$officialVisualStudioDropAccessToken `
+      /p:IsNpmPackable=$isNpmAvailable `
+      $suppressExtensionDeployment `
+      $msbuildWarnAsError `
+      $buildFromSource `
+      $generateDocumentationFile `
+      $roslynUseHardLinks `
+      @properties
+  }
+  finally {
+    ${env:ROSLYNCOMMANDLINELOGFILE} = $null
+  }
 }
 
 # Get the branch that produced the IBC data this build is going to consume.
@@ -395,7 +405,7 @@ function TestUsingRunTests() {
   $args += " --configuration $configuration"
 
   if ($testCoreClr) {
-    $args += " --tfm net6.0 --tfm net7.0"
+    $args += " --tfm net6.0 --tfm net7.0 --tfm net8.0"
     $args += " --timeout 90"
     if ($testCompilerOnly) {
       $args += GetCompilerTestAssembliesIncludePaths
@@ -453,6 +463,10 @@ function TestUsingRunTests() {
 
   if ($helixQueueName) {
     $args += " --helixQueueName $helixQueueName"
+  }
+
+  if ($helixApiAccessToken) {
+    $args += " --helixApiAccessToken $helixApiAccessToken"
   }
 
   try {
@@ -567,6 +581,7 @@ function Deploy-VsixViaTool() {
   $orderedVsixFileNames = @(
     "Roslyn.Compilers.Extension.vsix",
     "Roslyn.VisualStudio.Setup.vsix",
+    "Roslyn.VisualStudio.ServiceHub.Setup.x64.vsix",
     "Roslyn.VisualStudio.Setup.Dependencies.vsix",
     "ExpressionEvaluatorPackage.vsix",
     "Roslyn.VisualStudio.DiagnosticsWindow.vsix",
@@ -607,9 +622,9 @@ function Deploy-VsixViaTool() {
   $oop64bitValue = [int]$oop64bit.ToBool()
   &$vsRegEdit set "$vsDir" $hive HKCU "Roslyn\Internal\OnOff\Features" OOP64Bit dword $oop64bitValue
 
-  # Configure RemoteHostOptions.OOPCoreClrFeatureFlag for testing
-  $oopCoreClrFeatureFlagValue = [int]$oopCoreClr.ToBool()
-  &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Roslyn\ServiceHubCore" Value dword $oopCoreClrFeatureFlagValue
+  # Configure RemoteHostOptions.OOPCoreClr for testing
+  $oopCoreClrValue = [int]$oopCoreClr.ToBool()
+  &$vsRegEdit set "$vsDir" $hive HKCU "Roslyn\Internal\OnOff\Features" OOPCoreClr dword $oopCoreClrValue
 }
 
 # Ensure that procdump is available on the machine.  Returns the path to the directory that contains
@@ -698,15 +713,18 @@ function List-Processes() {
   Get-Process -Name "devenv" -ErrorAction SilentlyContinue | Out-Host
 }
 
+function IsNpmAvailable() {
+  if (Get-Command "npm" -ErrorAction SilentlyContinue) {
+    return $true
+  }
+
+  return $false;
+}
+
 try {
   if ($PSVersionTable.PSVersion.Major -lt "5") {
     Write-Host "PowerShell version must be 5 or greater (version $($PSVersionTable.PSVersion) detected)"
     exit 1
-  }
-
-  $regKeyProperty = Get-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem -Name "LongPathsEnabled" -ErrorAction Ignore
-  if (($null -eq $regKeyProperty) -or ($regKeyProperty.LongPathsEnabled -ne 1)) {
-    Write-Host "LongPath is not enabled, you may experience build errors. You can avoid these by enabling LongPath with `"reg ADD HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1`""
   }
 
   Process-Arguments
@@ -740,8 +758,7 @@ try {
   try
   {
     if ($bootstrap) {
-      $force32 = $testArch -eq "x86"
-      $bootstrapDir = Make-BootstrapBuild -force32:$force32
+      $bootstrapDir = Make-BootstrapBuild $bootstrapToolset
     }
   }
   catch

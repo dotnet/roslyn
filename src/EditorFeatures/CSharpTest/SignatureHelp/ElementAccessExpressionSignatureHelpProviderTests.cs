@@ -51,7 +51,7 @@ class D
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, WorkItem(24311, "https://github.com/dotnet/roslyn/issues/24311")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24311")]
         public async Task TestInvocationWithParametersOn1_WithRefReturn()
         {
             var markup = @"
@@ -73,7 +73,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, WorkItem(24311, "https://github.com/dotnet/roslyn/issues/24311")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24311")]
         public async Task TestInvocationWithParametersOn1_WithRefReadonlyReturn()
         {
             var markup = @"
@@ -95,7 +95,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, WorkItem(636117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/636117")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/636117")]
         public async Task TestInvocationOnExpression()
         {
             var markup = @"
@@ -657,7 +657,7 @@ public class Goo
 
         #region Indexed Property tests
 
-        [Fact, WorkItem(530811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530811")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530811")]
         public async Task IndexedProperty()
         {
             var markup = @"class Program
@@ -792,7 +792,7 @@ class C
             internal override Type GetSignatureHelpProviderType()
                 => typeof(ElementAccessExpressionSignatureHelpProvider);
 
-            [Fact, WorkItem(636117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/636117")]
+            [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/636117")]
             public async Task TestInvocation()
             {
                 var markup = @"
@@ -820,7 +820,7 @@ class D
                 await TestAsync(markup, expectedOrderedItems);
             }
 
-            [Fact, WorkItem(939417, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939417")]
+            [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939417")]
             public async Task ConditionalIndexer()
             {
                 var markup = @"
@@ -848,7 +848,7 @@ public class P
                 await TestAsync(markup, expectedOrderedItems);
             }
 
-            [Fact, WorkItem(32, "https://github.com/dotnet/roslyn/issues/32")]
+            [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32")]
             public async Task NonIdentifierConditionalIndexer()
             {
                 var expected = new[] { new SignatureHelpTestItem("char string[int index]") };
@@ -891,7 +891,7 @@ public class P
 }", new[] { new SignatureHelpTestItem("int System.Collections.Generic.List<int>[int index]") });
             }
 
-            [Fact, WorkItem(1067933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
+            [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
             public async Task InvokedWithNoToken()
             {
                 var markup = @"
@@ -900,7 +900,7 @@ public class P
                 await TestAsync(markup);
             }
 
-            [Fact, WorkItem(2482, "https://github.com/dotnet/roslyn/issues/2482")]
+            [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2482")]
             public async Task WhereExpressionLooksLikeArrayTypeSyntaxOfQualifiedName()
             {
                 var markup = @"
@@ -923,7 +923,7 @@ class TestClass
                 await TestAsync(markup, new[] { new SignatureHelpTestItem("int WithIndexer[int index]") }, usePreviousCharAsTrigger: true);
             }
 
-            [Fact, WorkItem(20507, "https://github.com/dotnet/roslyn/issues/20507")]
+            [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20507")]
             public async Task InConditionalIndexingFollowedByMemberAccess()
             {
                 var markup = @"
@@ -943,7 +943,7 @@ class Indexable
                 await TestAsync(markup, new[] { new SignatureHelpTestItem("Indexable Indexable[int x]") }, usePreviousCharAsTrigger: false);
             }
 
-            [Fact, WorkItem(20507, "https://github.com/dotnet/roslyn/issues/20507")]
+            [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20507")]
             public async Task InConditionalIndexingFollowedByConditionalAccess()
             {
                 var markup = @"

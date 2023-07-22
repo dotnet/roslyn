@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestOnSimpleReturn_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestOnSimpleReturn_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestNotWithTwoThrows()
         {
             await TestMissingAsync(
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestNotOnSimpleReturn_Throw1_CSharp6()
         {
             await TestMissingAsync(
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """, parameters: new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestNotWithSimpleThrow()
         {
             await TestMissingAsync(
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestMissingReturnValue1_Throw()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestMissingReturnValue2_Throw()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestWithNoElseBlockButFollowingReturn_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestWithNoElseBlockButFollowingReturn_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestMissingWithoutElse_Throw()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -540,7 +540,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """, parseOptions: CSharp9);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestConversion1_Throw1_CSharp8()
         {
             await TestInRegularAndScriptAsync(
@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """, parseOptions: CSharp8);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestConversion1_Throw1_CSharp9()
         {
             await TestInRegularAndScriptAsync(
@@ -602,7 +602,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """, parseOptions: CSharp9);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestConversion1_Throw2_CSharp8()
         {
             await TestInRegularAndScriptAsync(
@@ -633,7 +633,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """, parseOptions: CSharp8);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestConversion1_Throw2_CSharp9()
         {
             await TestInRegularAndScriptAsync(
@@ -695,7 +695,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Theory, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         [InlineData(LanguageVersion.CSharp8, "(string)null")]
         [InlineData(LanguageVersion.CSharp9, "null")]
         public async Task TestConversion2_Throw1(LanguageVersion languageVersion, string expectedFalseExpression)
@@ -730,7 +730,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """, parameters: new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(languageVersion)));
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestConversion2_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -796,7 +796,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """, parameters: new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(languageVersion)));
         }
 
-        [Theory, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         [InlineData(LanguageVersion.CSharp8, "(string)null")]
         [InlineData(LanguageVersion.CSharp9, "null")]
         public async Task TestConversion3_Throw1(LanguageVersion languageVersion, string expectedFalseExpression)
@@ -831,7 +831,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """, parameters: new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(languageVersion)));
         }
 
-        [Theory, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         [InlineData(LanguageVersion.CSharp8, "(string)null")]
         [InlineData(LanguageVersion.CSharp9, "null")]
         public async Task TestConversion3_Throw2(LanguageVersion languageVersion, string expectedTrue)
@@ -1086,7 +1086,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestElseIfWithBlock_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -1126,7 +1126,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestElseIfWithBlock_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -1224,7 +1224,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestRefReturns1_Throw1()
         {
             await TestMissingAsync(
@@ -1246,7 +1246,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestRefReturns1_Throw2()
         {
             await TestMissingAsync(
@@ -1268,7 +1268,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27960")]
         public async Task TestOnYieldReturn()
         {
             await TestInRegularAndScript1Async(
@@ -1299,8 +1299,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27960")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestOnYieldReturn_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -1331,8 +1331,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27960")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestOnYieldReturn_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -1363,7 +1363,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27960")]
         public async Task TestOnYieldReturn_IEnumerableReturnType()
         {
             await TestInRegularAndScript1Async(
@@ -1398,7 +1398,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27960")]
         public async Task TestNotOnMixedYields()
         {
             await TestMissingAsync(
@@ -1420,8 +1420,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27960")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestNotOnMixedYields_Throw1()
         {
             await TestMissingAsync(
@@ -1443,7 +1443,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27960")]
         public async Task TestNotOnMixedYields_IEnumerableReturnType()
         {
             await TestMissingAsync(
@@ -1467,7 +1467,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27960")]
         public async Task TestNotWithNoElseBlockButFollowingYieldReturn()
         {
             await TestMissingAsync(
@@ -1487,8 +1487,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27960")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestWithNoElseBlockButFollowingYieldReturn_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -1518,8 +1518,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27960")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestNotWithNoElseBlockButFollowingYieldReturn_Throw2()
         {
             await TestMissingAsync(
@@ -1539,7 +1539,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27960")]
         public async Task TestNotWithNoElseBlockButFollowingYieldReturn_IEnumerableReturnType()
         {
             await TestMissingAsync(
@@ -1592,7 +1592,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestReturnTrueFalse1_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -1623,7 +1623,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestReturnTrueFalse1_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -1685,7 +1685,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestReturnTrueFalse2_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -1716,7 +1716,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestReturnTrueFalse2_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -1776,7 +1776,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestReturnTrueFalse3_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -1805,7 +1805,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestReturnTrueFalse3_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -1869,7 +1869,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestReturnTrueFalse4_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -1904,7 +1904,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestReturnTrueFalse4_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -1939,7 +1939,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(36117, "https://github.com/dotnet/roslyn/issues/36117")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36117")]
         public async Task TestMissingWhenCrossingPreprocessorDirective()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1959,7 +1959,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(39260, "https://github.com/dotnet/roslyn/issues/39260")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39260")]
         public async Task TestTitleWhenSimplifying()
         {
             await TestInRegularAndScriptAsync(

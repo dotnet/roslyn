@@ -49,7 +49,7 @@ parameters:
 
 steps:
   - checkout: none
-
+  
   - task: NuGetCommand@2
     displayName: 'Install RIT from Azure Artifacts'
     inputs:

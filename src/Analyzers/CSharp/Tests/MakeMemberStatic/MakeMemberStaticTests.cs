@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeMemberStatic
                 """);
         }
 
-        [Fact, WorkItem(54202, "https://github.com/dotnet/roslyn/issues/54202")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54202")]
         public async Task TestTrivia()
         {
             await VerifyCS.VerifyCodeFixAsync(

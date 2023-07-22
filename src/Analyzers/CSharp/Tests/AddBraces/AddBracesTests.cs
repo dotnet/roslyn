@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
                 expectDiagnostic);
         }
 
-        [Theory, WorkItem(57770, "https://github.com/dotnet/roslyn/issues/57770")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/57770")]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
         [InlineData((int)PreferBracesPreference.Always, true)]
@@ -1437,7 +1437,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
         [InlineData((int)PreferBracesPreference.None)]
         [InlineData((int)PreferBracesPreference.WhenMultiline)]
         [InlineData((int)PreferBracesPreference.Always)]
-        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32480")]
         public async Task DoNotFireForIfWhenIntercedingDirectiveBefore(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1461,7 +1461,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
         [InlineData((int)PreferBracesPreference.None)]
         [InlineData((int)PreferBracesPreference.WhenMultiline)]
         [InlineData((int)PreferBracesPreference.Always)]
-        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32480")]
         public async Task DoNotFireForIfWithIntercedingDirectiveAfter(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1485,7 +1485,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
         [InlineData((int)PreferBracesPreference.None)]
         [InlineData((int)PreferBracesPreference.WhenMultiline)]
         [InlineData((int)PreferBracesPreference.Always)]
-        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32480")]
         public async Task DoNotFireForIfElseWithIntercedingDirectiveInBoth(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1511,7 +1511,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
         [InlineData((int)PreferBracesPreference.Always, true)]
-        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32480")]
         public async Task OnlyFireForIfWithIntercedingDirectiveInElseAroundIf(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
@@ -1556,7 +1556,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
         [InlineData((int)PreferBracesPreference.Always, true)]
-        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32480")]
         public async Task OnlyFireForElseWithIntercedingDirectiveInIfAroundElse(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
@@ -1601,7 +1601,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
         [InlineData((int)PreferBracesPreference.Always, true)]
-        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32480")]
         public async Task OnlyFireForElseWithIntercedingDirectiveInIf(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
@@ -1646,7 +1646,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
         [InlineData((int)PreferBracesPreference.Always, true)]
-        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32480")]
         public async Task OnlyFireForIfWithIntercedingDirectiveInElse(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
@@ -1691,7 +1691,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, true)]
         [InlineData((int)PreferBracesPreference.Always, true)]
-        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32480")]
         public async Task FireForIfElseWithDirectiveAroundIf(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
@@ -1740,7 +1740,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, true)]
         [InlineData((int)PreferBracesPreference.Always, true)]
-        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32480")]
         public async Task FireForIfElseWithDirectiveAroundElse(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
@@ -1789,7 +1789,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
         [InlineData((int)PreferBracesPreference.Always, true)]
-        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32480")]
         public async Task FireForIfWithoutIntercedingDirective(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
@@ -1830,7 +1830,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
         [InlineData((int)PreferBracesPreference.Always, true)]
-        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32480")]
         public async Task FireForIfWithDirectiveAfterEmbeddedStatement(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
@@ -1871,7 +1871,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
         [InlineData((int)PreferBracesPreference.Always, true)]
-        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32480")]
         public async Task FireForInnerNestedStatementWhenDirectiveEntirelyInside(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(
@@ -1914,7 +1914,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, true)]
         [InlineData((int)PreferBracesPreference.Always, true)]
-        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/32480")]
         public async Task FireForOuterNestedStatementWhenDirectiveEntirelyInside(int bracesPreference, bool expectDiagnostic)
         {
             await TestAsync(

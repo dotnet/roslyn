@@ -3214,7 +3214,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddExplicit
                 """);
         }
 
-        [Fact, WorkItem(50493, "https://github.com/dotnet/roslyn/issues/50493")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50493")]
         public async Task ArrayAccess()
         {
             await TestInRegularAndScriptAsync(

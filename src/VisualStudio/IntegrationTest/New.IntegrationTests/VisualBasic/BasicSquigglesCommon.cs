@@ -20,7 +20,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic
 
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        [WorkItem(1825, "https://github.com/dotnet/roslyn-project-system/issues/1825")]
+        [WorkItem("https://github.com/dotnet/roslyn-project-system/issues/1825")]
         [IdeFact]
         public virtual async Task VerifySyntaxErrorSquiggles()
         {
@@ -33,7 +33,7 @@ End Class", HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.ErrorTagsAsync(new[] { ("syntax error", TextSpan.FromBounds(50, 51), "\r", "BC30201: Expression expected.") }, HangMitigatingCancellationToken);
         }
 
-        [WorkItem(1825, "https://github.com/dotnet/roslyn-project-system/issues/1825")]
+        [WorkItem("https://github.com/dotnet/roslyn-project-system/issues/1825")]
         [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/61367")]
         public virtual async Task VerifySemanticErrorSquiggles()
         {

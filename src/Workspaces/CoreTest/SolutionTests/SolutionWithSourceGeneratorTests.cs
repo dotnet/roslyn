@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        [WorkItem(1655835, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1655835")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1655835")]
         public async Task WithReferencesMethodCorrectlyUpdatesWithEqualReferences()
         {
             using var workspace = CreateWorkspace();
@@ -722,7 +722,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.False(generatorRan);
         }
 
-        [Fact, WorkItem(56702, "https://github.com/dotnet/roslyn/issues/56702")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56702")]
         public async Task ForkAfterFreezeNoLongerRunsGenerators()
         {
             using var workspace = CreateWorkspaceWithPartialSemantics();

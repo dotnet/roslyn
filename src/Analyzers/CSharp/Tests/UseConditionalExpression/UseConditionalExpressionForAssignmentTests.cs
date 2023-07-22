@@ -3,18 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.UseConditionalExpression;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpression
 {
@@ -96,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestOnSimpleAssignment_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -127,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestOnSimpleAssignment_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -158,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestNotWithTwoThrows()
         {
             await TestMissingAsync(
@@ -180,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestNotOnSimpleAssignment_Throw1_CSharp6()
         {
             await TestMissingAsync(
@@ -202,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """, LanguageVersion.CSharp6);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestWithSimpleThrow()
         {
             await TestMissingAsync(
@@ -333,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestOnAssignmentToUndefinedField_Throw()
         {
             await TestInRegularAndScript1Async(
@@ -466,7 +462,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestOnAssignmentToAboveLocalNoInitializer_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -498,7 +494,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestOnAssignmentToAboveLocalNoInitializer_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -906,7 +902,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestMissingWithoutElseWithThrowStatementAfterwards()
         {
             await TestMissingAsync(
@@ -960,7 +956,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """, options: PreferImplicitTypeAlways);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestConversionWithUseVarForAll_CastInsertedToKeepTypeSame_Throw1_CSharp8()
         {
             await TestInRegularAndScript1Async(
@@ -992,7 +988,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """, LanguageVersion.CSharp8, PreferImplicitTypeAlways);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestConversionWithUseVarForAll_CastInsertedToKeepTypeSame_Throw1_CSharp9()
         {
             await TestInRegularAndScript1Async(
@@ -1088,7 +1084,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """, options: PreferImplicitTypeAlways);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestConversionWithUseVarForAll_CanUseVarBecauseConditionalTypeMatches_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -1120,7 +1116,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """, options: PreferImplicitTypeAlways);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestConversionWithUseVarForAll_CanUseVarBecauseConditionalTypeMatches_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -1451,7 +1447,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestElseIfWithBlock_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -1491,7 +1487,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestElseIfWithBlock_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -1602,7 +1598,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestRefAssignment1_Throw1()
         {
             await TestMissingAsync(
@@ -1625,7 +1621,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestRefAssignment1_Throw2()
         {
             await TestMissingAsync(
@@ -1679,7 +1675,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestTrueFalse_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -1710,7 +1706,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestTrueFalse_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -1772,7 +1768,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestFalseTrue_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -1803,7 +1799,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestFalseTrue_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -1834,7 +1830,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
-        [Fact, WorkItem(58898, "https://github.com/dotnet/roslyn/issues/58898")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58898")]
         public async Task TestRemoveRedundantCast()
         {
             await TestInRegularAndScript1Async(
@@ -1871,7 +1867,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """, options: PreferImplicitTypeAlways);
         }
 
-        [Fact, WorkItem(33284, "https://github.com/dotnet/roslyn/issues/33284")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33284")]
         public async Task TestConditionalWithLambdas()
         {
             await TestInRegularAndScript1Async(
@@ -1908,7 +1904,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """, LanguageVersion.CSharp9);
         }
 
-        [Fact, WorkItem(39260, "https://github.com/dotnet/roslyn/issues/39260")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39260")]
         public async Task TestTitleWhenSimplifying()
         {
             await TestInRegularAndScript1Async(
@@ -1952,6 +1948,159 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                     }
                 }
                 """, LanguageVersion.CSharp9, equivalenceKey: nameof(AnalyzersResources.Simplify_check));
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/67649")]
+        [InlineData("int", "int")]
+        [InlineData("string", "string")]
+        [InlineData("string", "object")]
+        [InlineData("object", "string")]
+        [InlineData("int", "long")]
+        [InlineData("long", "int")]
+        public async Task TestForDiscardsWithMatchingOrConvertibleExpressionTypes(string originalFirstType, string originalSecondType)
+        {
+            await TestInRegularAndScript1Async($$"""
+                class MyClass
+                {
+                    void M(bool flag)
+                    {
+                        [|if|] (flag)
+                        {
+                            _ = A();
+                        }
+                        else
+                        {
+                            _ = B();
+                        }
+                    }
+
+                    {{originalFirstType}} A() => default;
+                    {{originalSecondType}} B() => default;
+                }
+                """, $$"""
+                class MyClass
+                {
+                    void M(bool flag)
+                    {
+                        _ = flag ? A() : B();
+                    }
+                
+                    {{originalFirstType}} A() => default;
+                    {{originalSecondType}} B() => default;
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67649")]
+        public async Task TestMissingForDiscardsWithDifferentTypes()
+        {
+            await TestMissingAsync("""
+                class MyClass
+                {
+                    void M(bool flag)
+                    {
+                        if (flag)
+                        {
+                            _ = A();
+                        }
+                        else
+                        {
+                            _ = B();
+                        }
+                    }
+                
+                    int A() => default;
+                    string B() => default;
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67649")]
+        public async Task TestMissingForDiscardsWithBothImplicitConversions()
+        {
+            await TestMissingAsync("""
+                class MyClass
+                {
+                    void M(bool flag)
+                    {
+                        if (flag)
+                        {
+                            _ = GetC();
+                        }
+                        else
+                        {
+                            _ = GetString();
+                        }
+                    }
+
+                    C GetC() => new C();
+                    string GetString() => "";
+                }
+
+                class C
+                {
+                    public static implicit operator C(string c) => new C();
+                    public static implicit operator string(C c) => "";
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68578")]
+        public async Task TestMissingWhenAssignmentReferencesPatternVariable()
+        {
+            await TestMissingAsync("""
+                using System;
+
+                public class Class1
+                {
+                    public int i;
+                }
+
+                public class Program
+                {
+                    public static void Test(object obj)
+                    {
+                        if (obj is Class1 c)
+                        {
+                            c.i = 1;
+                        }
+                        else
+                        {
+                            throw new Exception();
+                        }
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68578")]
+        public async Task TestMissingWhenAssignmentReferencesOutVariable()
+        {
+            await TestMissingAsync("""
+                using System;
+
+                public class Class1
+                {
+                    public int i;
+                }
+
+                public class Program
+                {
+                    public static void Test(object obj)
+                    {
+                        if (TryGetValue(out var c))
+                        {
+                            c.i = 1;
+                        }
+                        else    
+                        {
+                            throw new Exception();
+                        }
+                    }
+
+                    private static bool TryGetValue(out Class1 c) => throw new NotImplementedException();
+                }
+                """);
         }
     }
 }

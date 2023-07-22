@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 @"if (e is >= 0 $$"));
         }
 
-        [Theory, WorkItem(61184, "https://github.com/dotnet/roslyn/issues/61184")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/61184")]
         [InlineData("and")]
         [InlineData("or")]
         public async Task TestAfterIdentifierPatternKeyword(string precedingKeyword)

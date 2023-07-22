@@ -690,7 +690,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsingDirective
             return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
         }
 
-        [Fact, WorkItem(61773, "https://github.com/dotnet/roslyn/issues/61773")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61773")]
         public Task WhenOutsidePreferred_MoveGlobalUsing1()
         {
             var testCode = """
@@ -1105,7 +1105,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsingDirective
             return TestInRegularAndScriptAsync(testCode, fixedTestCode, InsideNamespaceOption, placeSystemNamespaceFirst: true);
         }
 
-        [Fact, WorkItem(61773, "https://github.com/dotnet/roslyn/issues/61773")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61773")]
         public Task WhenInsidePreferred_DoNotMoveGlobalUsings1()
         {
             var testCode = """
@@ -1119,7 +1119,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsingDirective
             return TestMissingAsync(testCode, InsideNamespaceOption);
         }
 
-        [Fact, WorkItem(61773, "https://github.com/dotnet/roslyn/issues/61773")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61773")]
         public Task WhenInsidePreferred_DoNotMoveGlobalUsings2()
         {
             var testCode = """

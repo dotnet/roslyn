@@ -36,9 +36,8 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             ICodeFixService codeFixService,
             TextDocument document,
             TextSpan selection,
-            CodeActionRequestPriority priority,
+            ICodeActionRequestPriorityProvider priorityProvider,
             CodeActionOptionsProvider fallbackOptions,
-            bool isBlocking,
             Func<string, IDisposable?> addOperationScope,
             CancellationToken cancellationToken)
         {
@@ -49,14 +48,13 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             var fixes = await Task.Run(() => codeFixService.GetFixesAsync(
                 document,
                 selection,
-                priority,
+                priorityProvider,
                 fallbackOptions,
-                isBlocking,
                 addOperationScope,
                 cancellationToken), cancellationToken).ConfigureAwait(false);
 
             var filteredFixes = fixes.WhereAsArray(c => c.Fixes.Length > 0);
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var organizedFixes = await OrganizeFixesAsync(workspace, originalSolution, text, filteredFixes, cancellationToken).ConfigureAwait(false);
 
             return organizedFixes;
@@ -183,13 +181,14 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             ArrayBuilder<CodeFixGroupKey> order)
         {
             var groupKey = GetGroupKey(fix);
-            if (!map.ContainsKey(groupKey))
+            if (!map.TryGetValue(groupKey, out var suggestedActions))
             {
                 order.Add(groupKey);
-                map[groupKey] = ImmutableArray.CreateBuilder<IUnifiedSuggestedAction>();
+                suggestedActions = ImmutableArray.CreateBuilder<IUnifiedSuggestedAction>();
+                map[groupKey] = suggestedActions;
             }
 
-            map[groupKey].Add(suggestedAction);
+            suggestedActions.Add(suggestedAction);
             return;
 
             static CodeFixGroupKey GetGroupKey(CodeFix fix)
@@ -273,7 +272,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         /// <remarks>
         /// Fix groups are returned in priority order determined based on <see cref="ExtensionOrderAttribute"/>.
         /// Priority for all <see cref="UnifiedSuggestedActionSet"/>s containing fixes is set to <see
-        /// cref="CodeActionPriority.Medium"/> by default. The only exception is the case where a <see
+        /// cref="CodeActionPriority.Default"/> by default. The only exception is the case where a <see
         /// cref="UnifiedSuggestedActionSet"/> only contains suppression fixes - the priority of such <see
         /// cref="UnifiedSuggestedActionSet"/>s is set to <see cref="CodeActionPriority.Lowest"/> so that suppression
         /// fixes always show up last after all other fixes (and refactorings) for the selected line of code.
@@ -438,9 +437,8 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             ICodeRefactoringService codeRefactoringService,
             TextDocument document,
             TextSpan selection,
-            CodeActionRequestPriority priority,
+            CodeActionRequestPriority? priority,
             CodeActionOptionsProvider options,
-            bool isBlocking,
             Func<string, IDisposable?> addOperationScope,
             bool filterOutsideSelection,
             CancellationToken cancellationToken)
@@ -451,7 +449,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             // the UI thread.
             var refactorings = await Task.Run(
                 () => codeRefactoringService.GetRefactoringsAsync(
-                    document, selection, priority, options, isBlocking, addOperationScope,
+                    document, selection, priority, options, addOperationScope,
                     cancellationToken), cancellationToken).ConfigureAwait(false);
 
             var filteredRefactorings = FilterOnAnyThread(refactorings, selection, filterOutsideSelection);

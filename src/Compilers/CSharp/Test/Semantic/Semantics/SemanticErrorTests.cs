@@ -15401,7 +15401,7 @@ public unsafe class C
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,39): error CS1637: Iterators cannot have unsafe parameters or yield types
+                // (6,39): error CS1637: Iterators cannot have pointer type parameters
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "p"));
         }
 
@@ -23249,7 +23249,7 @@ class Program
             );
         }
 
-        [WorkItem(542419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542419")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542419")]
         [Fact]
         public void EmptyAngleBrackets_Events()
         {
@@ -23273,35 +23273,6 @@ class Program
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // Parser
-
-                // (12,11): error CS1525: Invalid expression term '>'
-                //         E<> += null; //parse error
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(12, 11),
-                // (12,13): error CS1525: Invalid expression term '+='
-                //         E<> += null; //parse error
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "+=").WithArguments("+=").WithLocation(12, 13),
-                // (13,11): error CS1525: Invalid expression term '>'
-                //         F<> += null; //parse error
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(13, 11),
-                // (13,13): error CS1525: Invalid expression term '+='
-                //         F<> += null; //parse error
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "+=").WithArguments("+=").WithLocation(13, 13),
-                // (15,16): error CS1525: Invalid expression term '>'
-                //         this.E<> += null; //parse error
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(15, 16),
-                // (15,18): error CS1525: Invalid expression term '+='
-                //         this.E<> += null; //parse error
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "+=").WithArguments("+=").WithLocation(15, 18),
-                // (16,16): error CS1525: Invalid expression term '>'
-                //         this.F<> += null; //parse error
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(16, 16),
-                // (16,18): error CS1525: Invalid expression term '+='
-                //         this.F<> += null; //parse error
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "+=").WithArguments("+=").WithLocation(16, 18),
-
-                // Binder
-
                 // (9,14): error CS0307: The event 'Program.E' cannot be used with type arguments
                 //         Test(E<>);
                 Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "E<>").WithArguments("Program.E", "event").WithLocation(9, 14),
@@ -23311,12 +23282,24 @@ class Program
                 // (10,19): error CS0307: The event 'Program.E' cannot be used with type arguments
                 //         Test(this.E<>);
                 Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "E<>").WithArguments("Program.E", "event").WithLocation(10, 19),
-                // (13,9): error CS0079: The event 'Program.F' can only appear on the left hand side of += or -=
+                // (12,9): error CS0307: The event 'Program.E' cannot be used with type arguments
+                //         E<> += null; //parse error
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "E<>").WithArguments("Program.E", "event").WithLocation(12, 9),
+                // (13,9): error CS0307: The event 'Program.F' cannot be used with type arguments
                 //         F<> += null; //parse error
-                Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "F").WithArguments("Program.F").WithLocation(13, 9),
-                // (16,14): error CS0079: The event 'Program.F' can only appear on the left hand side of += or -=
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "F<>").WithArguments("Program.F", "event").WithLocation(13, 9),
+                // (15,9): error CS8389: Omitting the type argument is not allowed in the current context
+                //         this.E<> += null; //parse error
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "this.E<>").WithLocation(15, 9),
+                // (15,14): error CS0307: The event 'Program.E' cannot be used with type arguments
+                //         this.E<> += null; //parse error
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "E<>").WithArguments("Program.E", "event").WithLocation(15, 14),
+                // (16,9): error CS8389: Omitting the type argument is not allowed in the current context
                 //         this.F<> += null; //parse error
-                Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "F").WithArguments("Program.F").WithLocation(16, 14));
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "this.F<>").WithLocation(16, 9),
+                // (16,14): error CS0307: The event 'Program.F' cannot be used with type arguments
+                //         this.F<> += null; //parse error
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "F<>").WithArguments("Program.F", "event").WithLocation(16, 14));
         }
 
         [WorkItem(542419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542419")]
@@ -24685,6 +24668,180 @@ unsafe class C<T, U, V, X, Y, Z> where T : byte*
                     // (1,22): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
                     // class A<T> where T : object[] {}
                     Diagnostic(ErrorCode.ERR_BadConstraintType, "object[]").WithLocation(1, 22));
+        }
+
+        [Fact]
+        public void BestType_NestedError_ArrayCreation()
+        {
+            var source = """
+                public class C {
+                    public void M0() {
+                        M1(new[] { ERROR, 1 });
+                        M2(new[] { (ERROR, 1), (1, 2) });
+                    }
+
+                    public void M1(int[] arr) { }
+                    public void M2((int, int)[] arr) { }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,20): error CS0103: The name 'ERROR' does not exist in the current context
+                //         M1(new[] { ERROR, 1 });
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(3, 20),
+                // (4,21): error CS0103: The name 'ERROR' does not exist in the current context
+                //         M2(new[] { (ERROR, 1), (1, 2) });
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(4, 21));
+        }
+
+        [Fact]
+        public void BestType_NestedError_StackallocArrayCreation()
+        {
+            var source = """
+                using System;
+
+                public class C {
+                    public void M0() {
+                        M1(stackalloc int[] { ERROR, 1 });
+                        M2(stackalloc (int, int)[] { (ERROR, 1), (1, 2) });
+                    }
+
+                    public void M1(Span<int> arr) { }
+                    public void M2(Span<(int, int)> arr) { }
+                }
+                """;
+            var comp = CreateCompilationWithSpan(source);
+            comp.VerifyDiagnostics(
+                // (5,31): error CS0103: The name 'ERROR' does not exist in the current context
+                //         M1(stackalloc int[] { ERROR, 1 });
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(5, 31),
+                // (6,39): error CS0103: The name 'ERROR' does not exist in the current context
+                //         M2(stackalloc (int, int)[] { (ERROR, 1), (1, 2) });
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(6, 39));
+        }
+
+        [Fact]
+        public void BestType_NestedError_SwitchExpr()
+        {
+            var source = """
+                public class C {
+                    public int M0() {
+                        return 1 switch
+                        {
+                            1 => ERROR,
+                            _ => 1
+                        };
+                    }
+
+                    public (int, int) M1() {
+                        return 1 switch
+                        {
+                            1 => (ERROR, 1),
+                            _ => (1, 2)
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,18): error CS0103: The name 'ERROR' does not exist in the current context
+                //             1 => ERROR,
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(5, 18),
+                // (13,19): error CS0103: The name 'ERROR' does not exist in the current context
+                //             1 => (ERROR, 1),
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(13, 19));
+        }
+
+        [Fact]
+        public void BestType_NestedError_ConditionalExpr()
+        {
+            var source = """
+                public class C {
+                    public int M0() {
+                        return 1 == 1 ? ERROR : 1;
+                    }
+
+                    public (int, int) M1() {
+                        return 1 == 1 ? (ERROR, 1) : (1, 2);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,25): error CS0103: The name 'ERROR' does not exist in the current context
+                //         return 1 == 1 ? ERROR : 1;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(3, 25),
+                // (7,26): error CS0103: The name 'ERROR' does not exist in the current context
+                //         return 1 == 1 ? (ERROR, 1) : (1, 2);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(7, 26));
+        }
+
+        [Fact]
+        public void BestType_NestedError_LambdaReturns()
+        {
+            var source = """
+                using System;
+
+                public class C {
+                    public void M0() {
+                        Func<bool, int> fn1 = flag =>
+                        {
+                            if (flag) return ERROR;
+                            return 1;
+                        };
+
+                        Func<bool, (int, int)> fn2 = flag =>
+                        {
+                            if (flag) return (ERROR, 1);
+                            return (1, 2);
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,30): error CS0103: The name 'ERROR' does not exist in the current context
+                //             if (flag) return ERROR;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(7, 30),
+                // (13,31): error CS0103: The name 'ERROR' does not exist in the current context
+                //             if (flag) return (ERROR, 1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(13, 31));
+        }
+
+        [Fact]
+        public void BestType_NestedError_LambdaReturns_NoTargetType()
+        {
+            var source = """
+                public class C {
+                    public void M0(bool flag) {
+                        var fn1 = () =>
+                        {
+                            if (flag) return ERROR;
+                            return 1;
+                        };
+
+                        var fn2 = () =>
+                        {
+                            if (flag) return (ERROR, 1);
+                            return (1, 2);
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,30): error CS0103: The name 'ERROR' does not exist in the current context
+                //             if (flag) return ERROR;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(5, 30),
+                // (6,20): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //             return 1;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "1").WithArguments("lambda expression").WithLocation(6, 20),
+                // (11,31): error CS0103: The name 'ERROR' does not exist in the current context
+                //             if (flag) return (ERROR, 1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(11, 31),
+                // (12,20): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //             return (1, 2);
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "(1, 2)").WithArguments("lambda expression").WithLocation(12, 20));
         }
     }
 }

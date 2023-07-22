@@ -81,5 +81,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
             return builder.RealizedIL;
         }
+
+        public bool IsPrimaryConstructor => false;
     }
 }

@@ -14,8 +14,6 @@ internal abstract class LspWorkspaceRegistrationService : IDisposable
     private readonly object _gate = new();
     private ImmutableArray<Workspace> _registrations = ImmutableArray.Create<Workspace>();
 
-    public abstract string GetHostWorkspaceKind();
-
     public ImmutableArray<Workspace> GetAllRegistrations()
     {
         lock (_gate)
@@ -24,8 +22,11 @@ internal abstract class LspWorkspaceRegistrationService : IDisposable
         }
     }
 
-    public virtual void Register(Workspace workspace)
+    public virtual void Register(Workspace? workspace)
     {
+        if (workspace is null)
+            return;
+
         Logger.Log(FunctionId.RegisterWorkspace, KeyValueLogMessage.Create(LogType.Trace, m =>
         {
             m["WorkspaceKind"] = workspace.Kind;
@@ -43,8 +44,11 @@ internal abstract class LspWorkspaceRegistrationService : IDisposable
         workspace.WorkspaceChanged += OnLspWorkspaceChanged;
     }
 
-    public void Deregister(Workspace workspace)
+    public void Deregister(Workspace? workspace)
     {
+        if (workspace is null)
+            return;
+
         workspace.WorkspaceChanged -= OnLspWorkspaceChanged;
         lock (_gate)
         {

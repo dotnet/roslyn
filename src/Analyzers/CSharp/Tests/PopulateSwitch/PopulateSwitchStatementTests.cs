@@ -1014,7 +1014,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
                 """, index: 2);
         }
 
-        [Fact, WorkItem(13455, "https://github.com/dotnet/roslyn/issues/13455")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13455")]
         public async Task AllMissingTokens()
         {
             await TestInRegularAndScriptAsync(
@@ -1052,7 +1052,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
             """);
         }
 
-        [Fact, WorkItem(40240, "https://github.com/dotnet/roslyn/issues/40240")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40240")]
         public async Task TestAddMissingCasesForNullableEnum()
         {
             await TestInRegularAndScriptAsync(
@@ -1110,7 +1110,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
                 """);
         }
 
-        [Fact, WorkItem(61594, "https://github.com/dotnet/roslyn/issues/61594")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61594")]
         public async Task TestForNullableEnum_NullableEnabled()
         {
             await TestInRegularAndScript1Async(
@@ -1158,7 +1158,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
                 """);
         }
 
-        [Fact, WorkItem(61594, "https://github.com/dotnet/roslyn/issues/61594")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61594")]
         public async Task TestForNullableEnum_NullableEnabled_NotGenerateNullArmIfItAlreadyExists()
         {
             await TestInRegularAndScript1Async(
@@ -1208,7 +1208,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
                 """);
         }
 
-        [Fact, WorkItem(61594, "https://github.com/dotnet/roslyn/issues/61594")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61594")]
         public async Task TestForNullableEnum_NullableDisabled()
         {
             await TestInRegularAndScript1Async(
@@ -1256,7 +1256,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
                 """);
         }
 
-        [Fact, WorkItem(61594, "https://github.com/dotnet/roslyn/issues/61594")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61594")]
         public async Task TestForNullableEnum_NullableDisabled_NotGenerateNullArmIfItAlreadyExists()
         {
             await TestInRegularAndScript1Async(
@@ -1306,7 +1306,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
                 """);
         }
 
-        [Fact, WorkItem(61809, "https://github.com/dotnet/roslyn/pull/61809")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/61809")]
         public async Task TestNotInSwitchWithUnknownType1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1321,7 +1321,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
                 """);
         }
 
-        [Fact, WorkItem(61809, "https://github.com/dotnet/roslyn/pull/61809")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/61809")]
         public async Task TestNotInSwitchWithUnknownType2()
         {
             // Parser currently treats "var v = null switch" as:
@@ -1342,7 +1342,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
                 """);
         }
 
-        [Fact, WorkItem(48876, "https://github.com/dotnet/roslyn/issues/48876")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48876")]
         public async Task NotOnCompleteBoolean1()
         {
             await TestMissingAsync(
@@ -1361,7 +1361,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
                 """);
         }
 
-        [Fact, WorkItem(48876, "https://github.com/dotnet/roslyn/issues/48876")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48876")]
         public async Task NotOnCompleteBoolean2()
         {
             await TestMissingAsync(
@@ -1381,7 +1381,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
                 """);
         }
 
-        [Fact, WorkItem(48876, "https://github.com/dotnet/roslyn/issues/48876")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48876")]
         public async Task OnIncompleteBoolean1()
         {
             await TestInRegularAndScript1Async(
@@ -1413,7 +1413,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
                 """);
         }
 
-        [Fact, WorkItem(48876, "https://github.com/dotnet/roslyn/issues/48876")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48876")]
         public async Task OnIncompleteBoolean2()
         {
             await TestInRegularAndScript1Async(

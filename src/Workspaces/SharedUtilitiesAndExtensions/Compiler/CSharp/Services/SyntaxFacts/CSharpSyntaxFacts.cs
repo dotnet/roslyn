@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -19,7 +18,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 
 #if CODE_STYLE
 using Microsoft.CodeAnalysis.Internal.Editing;
@@ -194,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
 
         public bool IsUsingDirectiveName([NotNullWhen(true)] SyntaxNode? node)
             => node?.Parent is UsingDirectiveSyntax usingDirective &&
-               usingDirective.Name == node;
+               usingDirective.NamespaceOrType == node;
 
         public bool IsUsingAliasDirective([NotNullWhen(true)] SyntaxNode? node)
             => node is UsingDirectiveSyntax usingDirectiveNode && usingDirectiveNode.Alias != null;
@@ -204,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             var usingDirective = (UsingDirectiveSyntax)node;
             globalKeyword = usingDirective.GlobalKeyword;
             alias = usingDirective.Alias!.Name.Identifier;
-            name = usingDirective.Name;
+            name = usingDirective.NamespaceOrType;
         }
 
         public bool IsDeconstructionForEachStatement([NotNullWhen(true)] SyntaxNode? node)
@@ -1065,7 +1063,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             return constructors;
         }
 
-        private void AppendConstructors(SyntaxList<MemberDeclarationSyntax> members, List<SyntaxNode> constructors, CancellationToken cancellationToken)
+        private static void AppendConstructors(SyntaxList<MemberDeclarationSyntax> members, List<SyntaxNode> constructors, CancellationToken cancellationToken)
         {
             foreach (var member in members)
             {
@@ -1361,7 +1359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         {
             var tupleExpression = (TupleExpressionSyntax)node;
             openParen = tupleExpression.OpenParenToken;
-            arguments = (SeparatedSyntaxList<SyntaxNode>)tupleExpression.Arguments;
+            arguments = (SeparatedSyntaxList<TArgumentSyntax>)(SeparatedSyntaxList<SyntaxNode>)tupleExpression.Arguments;
             closeParen = tupleExpression.CloseParenToken;
         }
 
@@ -1516,9 +1514,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public SyntaxNode GetTypeOfTypePattern(SyntaxNode node)
             => ((TypePatternSyntax)node).Type;
 
-        public bool IsVerbatimInterpolatedStringExpression(SyntaxNode node)
-            => node is InterpolatedStringExpressionSyntax interpolatedString &&
-                interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken);
+        public bool IsVerbatimInterpolatedStringExpression([NotNullWhen(true)] SyntaxNode? node)
+            => node is InterpolatedStringExpressionSyntax { StringStartToken: (kind: SyntaxKind.InterpolatedVerbatimStringStartToken) } interpolatedString;
 
         public bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
@@ -1546,6 +1543,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
 
         public bool IsMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node)
             => node is MemberAccessExpressionSyntax;
+
+        public bool IsMethodDeclaration([NotNullWhen(true)] SyntaxNode? node)
+            => node is MethodDeclarationSyntax;
 
         public bool IsSimpleName([NotNullWhen(true)] SyntaxNode? node)
             => node is SimpleNameSyntax;
