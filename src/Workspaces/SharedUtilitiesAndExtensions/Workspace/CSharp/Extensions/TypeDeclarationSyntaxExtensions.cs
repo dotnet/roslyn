@@ -74,25 +74,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             if (typeNode.Modifiers.Any(SyntaxKind.PartialKeyword))
             {
-                using var _ = ArrayBuilder<BaseTypeSyntax>.GetInstance(out var baseListTypes);
-
                 var typeSymbol = model.GetRequiredDeclaredSymbol(typeNode, cancellationToken);
-                foreach (var syntaxRef in typeSymbol.DeclaringSyntaxReferences)
+                if (typeSymbol.DeclaringSyntaxReferences.Length >= 2)
                 {
-                    if (syntaxRef.GetSyntax(cancellationToken) is TypeDeclarationSyntax { BaseList.Types: var baseTypes })
-                        baseListTypes.AddRange(baseTypes);
-                }
+                    using var _ = ArrayBuilder<BaseTypeSyntax>.GetInstance(out var baseListTypes);
 
-                return baseListTypes.ToImmutable();
+                    foreach (var syntaxRef in typeSymbol.DeclaringSyntaxReferences)
+                    {
+                        if (syntaxRef.GetSyntax(cancellationToken) is TypeDeclarationSyntax { BaseList.Types: var baseTypes })
+                            baseListTypes.AddRange(baseTypes);
+                    }
+
+                    return baseListTypes.ToImmutable();
+                }
             }
-            else if (typeNode.BaseList != null)
-            {
+
+            if (typeNode.BaseList != null)
                 return typeNode.BaseList.Types;
-            }
-            else
-            {
-                return SpecializedCollections.EmptyEnumerable<BaseTypeSyntax>();
-            }
+
+            return SpecializedCollections.EmptyEnumerable<BaseTypeSyntax>();
         }
 
         private static SyntaxToken EnsureToken(SyntaxToken token, SyntaxKind kind, bool prependNewLineIfMissing = false, bool appendNewLineIfMissing = false)
