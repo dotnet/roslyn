@@ -17,6 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class Binder
     {
+        private ImmutableArray<MethodSymbol> _lazyExtensionMethods;
+
         /// <summary>
         /// Performs name lookup for simple generic or non-generic name
         /// within an optional qualifier namespace or type symbol.
@@ -459,17 +461,29 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void LookupExtensionMethodsInSingleBinder(ExtensionMethodScope scope, LookupResult result, string name, int arity, LookupOptions options, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            var methods = ArrayBuilder<MethodSymbol>.GetInstance();
-            var binder = scope.Binder;
-            binder.GetCandidateExtensionMethods(methods, name, arity, options, this);
-
+            var methods = scope.Binder.GetAllExtensionMethods();
             foreach (var method in methods)
             {
-                SingleLookupResult resultOfThisMember = this.CheckViability(method, arity, options, null, diagnose: true, useSiteInfo: ref useSiteInfo);
-                result.MergeEqual(resultOfThisMember);
+                if (name is null || name == method.Name)
+                {
+                    SingleLookupResult resultOfThisMember = this.CheckViability(method, arity, options, null, diagnose: true, useSiteInfo: ref useSiteInfo);
+                    result.MergeEqual(resultOfThisMember);
+                }
+            }
+        }
+
+        private ImmutableArray<MethodSymbol> GetAllExtensionMethods()
+        {
+            if (!_lazyExtensionMethods.IsDefault)
+            {
+                return _lazyExtensionMethods;
             }
 
-            methods.Free();
+
+            var methods = ArrayBuilder<MethodSymbol>.GetInstance();
+            GetCandidateExtensionMethods(methods, name: null, arity: 0, LookupOptions.AllMethodsOnArityZero, this);
+            ImmutableInterlocked.InterlockedInitialize(ref _lazyExtensionMethods, methods.ToImmutableAndFree());
+            return _lazyExtensionMethods;
         }
 
         #region "AttributeTypeLookup"

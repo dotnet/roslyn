@@ -752,10 +752,12 @@ namespace N4
 }";
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
-                // (22,17): error CS0121: The call is ambiguous between the following methods or properties: 'N1.N2.S.E(object, double, N1.A)' and 'N1.N2.S.E(object, double, N1.B)'
-                Diagnostic(ErrorCode.ERR_AmbigCall, "E").WithArguments("N1.N2.S.E(object, double, N1.A)", "N1.N2.S.E(object, double, N1.B)").WithLocation(22, 19),
-                // (23,26): error CS1503: Argument 3: cannot convert from 'double' to 'N1.A'
-                Diagnostic(ErrorCode.ERR_BadArgType, "2.0").WithArguments("3", "double", "N1.A").WithLocation(23, 26));
+                // (22,19): error CS0121: The call is ambiguous between the following methods or properties: 'S.E(object, double, B)' and 'S.E(object, double, A)'
+                //                 o.E(1, null); // ambiguous
+                Diagnostic(ErrorCode.ERR_AmbigCall, "E").WithArguments("N1.N2.S.E(object, double, N1.B)", "N1.N2.S.E(object, double, N1.A)").WithLocation(22, 19),
+                // (23,26): error CS1503: Argument 3: cannot convert from 'double' to 'N1.B'
+                //                 o.E(1.0, 2.0); // N2.S.E(object, double, A)
+                Diagnostic(ErrorCode.ERR_BadArgType, "2.0").WithArguments("3", "double", "N1.B").WithLocation(23, 26));
         }
 
         [Fact(Skip = "528425")]
