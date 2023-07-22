@@ -1598,7 +1598,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (typeOrValue.Data.ValueExpression.ExpressionSymbol is SourceFieldSymbolWithSyntaxReference sourceField
                             && sourceField.IsConst)
                         {
-                            ConstantFieldsInProgress.AddDependency(sourceField);
+                            if (!ConstantFieldsInProgress.IsEmpty)
+                            {
+                                ConstantFieldsInProgress.AddDependency(sourceField);
+                            }
                         }
 
                         diagnostics.AddRange(typeOrValue.Data.ValueDiagnostics);
