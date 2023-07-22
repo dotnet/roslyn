@@ -2729,16 +2729,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!containsFunctionTypes(exact));
             Debug.Assert(!containsFunctionTypes(upper));
 
+            Predicate<TypeWithAnnotations> lowerPredicate;
             // Function types are dropped if there are any non-function types.
             if (containsFunctionTypes(lower) &&
                 (containsNonFunctionTypes(lower) || containsNonFunctionTypes(exact) || containsNonFunctionTypes(upper)))
             {
-                removeTypes(lower, static type => isFunctionType(type, out _));
+                lowerPredicate = static type => isFunctionType(type, out _);
             }
             else
             {
                 // Remove any function types with no delegate type.
-                removeTypes(lower, static type => isFunctionType(type, out var functionType) && functionType.GetInternalDelegateType() is null);
+                lowerPredicate = static type => isFunctionType(type, out var functionType) && functionType.GetInternalDelegateType() is null;
             }
 
             // Optimization: if we have one exact bound then we need not add any
@@ -2749,18 +2750,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (lower != null)
                 {
                     // Lower bounds represent co-variance.
-                    AddAllCandidates(candidates, lower, VarianceKind.Out, conversions);
+                    AddAllCandidates(candidates, lower, lowerPredicate, VarianceKind.Out, conversions);
                 }
                 if (upper != null)
                 {
                     // Upper bounds represent contra-variance.
-                    AddAllCandidates(candidates, upper, VarianceKind.In, conversions);
+                    AddAllCandidates(candidates, upper, predicate: null, VarianceKind.In, conversions);
                 }
             }
             else
             {
                 // Exact bounds represent invariance.
-                AddAllCandidates(candidates, exact, VarianceKind.None, conversions);
+                AddAllCandidates(candidates, exact, predicate: null, VarianceKind.None, conversions);
                 if (candidates.Count >= 2)
                 {
                     return default;
@@ -2781,7 +2782,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (lower != null)
             {
-                MergeOrRemoveCandidates(candidates, lower, initialCandidates, conversions, VarianceKind.Out, ref useSiteInfo);
+                MergeOrRemoveCandidates(candidates, lower, lowerPredicate, initialCandidates, conversions, VarianceKind.Out, ref useSiteInfo);
             }
 
             // SPEC:   For each upper bound U of Xi all types from which there is not an
@@ -2789,7 +2790,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (upper != null)
             {
-                MergeOrRemoveCandidates(candidates, upper, initialCandidates, conversions, VarianceKind.In, ref useSiteInfo);
+                MergeOrRemoveCandidates(candidates, upper, predicate: null, initialCandidates, conversions, VarianceKind.In, ref useSiteInfo);
             }
 
             initialCandidates.Clear();
@@ -2878,11 +2879,6 @@ OuterBreak:
                     type = type.BaseTypeNoUseSiteDiagnostics;
                 }
                 return false;
-            }
-
-            static void removeTypes(HashSet<TypeWithAnnotations>? types, Predicate<TypeWithAnnotations> predicate)
-            {
-                types?.RemoveWhere(predicate);
             }
         }
 
@@ -3159,11 +3155,17 @@ OuterBreak:
         private static void AddAllCandidates(
             Dictionary<TypeWithAnnotations, TypeWithAnnotations> candidates,
             HashSet<TypeWithAnnotations> bounds,
+            Predicate<TypeWithAnnotations>? predicate,
             VarianceKind variance,
             ConversionsBase conversions)
         {
             foreach (var candidate in bounds)
             {
+                if (predicate is not null && !predicate(candidate))
+                {
+                    continue;
+                }
+
                 var type = candidate;
                 if (!conversions.IncludeNullability)
                 {
@@ -3197,6 +3199,7 @@ OuterBreak:
         private static void MergeOrRemoveCandidates(
             Dictionary<TypeWithAnnotations, TypeWithAnnotations> candidates,
             HashSet<TypeWithAnnotations> bounds,
+            Predicate<TypeWithAnnotations>? predicate,
             ArrayBuilder<TypeWithAnnotations> initialCandidates,
             ConversionsBase conversions,
             VarianceKind variance,
@@ -3208,6 +3211,11 @@ OuterBreak:
             var comparison = conversions.IncludeNullability ? TypeCompareKind.ConsiderEverything : TypeCompareKind.IgnoreNullableModifiersForReferenceTypes;
             foreach (var bound in bounds)
             {
+                if (predicate is not null && !predicate(bound))
+                {
+                    continue;
+                }
+
                 foreach (var candidate in initialCandidates)
                 {
                     if (bound.Equals(candidate, comparison))
