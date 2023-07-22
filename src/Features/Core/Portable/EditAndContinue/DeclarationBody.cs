@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Differencing;
 using Roslyn.Utilities;
@@ -28,6 +29,12 @@ internal abstract class DeclarationBody : IEquatable<DeclarationBody>
     public abstract SyntaxNode EncompassingAncestor { get; }
 
     public abstract StateMachineInfo GetStateMachineInfo();
+
+    /// <summary>
+    /// Analyzes data flow in the member body represented by the specified node and returns all captured variables and parameters (including "this").
+    /// If the body is a field/property initializer analyzes the initializer expression only.
+    /// </summary>
+    public abstract ImmutableArray<ISymbol> GetCapturedVariables(SemanticModel model);
 
     /// <summary>
     /// Computes a statement-level syntax tree match of this body with <paramref name="newBody"/>.

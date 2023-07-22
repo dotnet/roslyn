@@ -86,6 +86,7 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
                 "groupby clause" => CSharpFeaturesResources.groupby_clause,
                 "top-level statement" => CSharpFeaturesResources.top_level_statement,
                 "top-level code" => CSharpFeaturesResources.top_level_code,
+                "class with explicit or sequential layout" => string.Format(FeaturesResources.class_with_explicit_or_sequential_layout),
                 _ => null
             };
 

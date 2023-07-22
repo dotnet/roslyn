@@ -10512,13 +10512,15 @@ class C
         [Fact]
         public void Constructor_Parameter_Delete_Primary_Record()
         {
-            var src1 = "record C(int X, int Y) { }";
-            var src2 = "record C(int X) { }";
-
+            var src1 = "record C(int X, int Y);";
+            var src2 = "record C(int X);";
             var edits = GetTopEdits(src1, src2);
 
+            // Note: We do not report rude edits when deleting auto-properties of a type with a sequential or explicit layout.
+            // The properties are updated to throw and the backing field remains in the type.
+            // The deleted field will remain unused since adding the property back is a rude edit.
             edits.VerifySemantics(
-                new[]
+                semanticEdits: new[]
                 {
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_Y"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_Y"), deletedSymbolContainerProvider: c => c.GetMember("C")),
@@ -10528,6 +10530,67 @@ class C
                     SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C")),
+                },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
+        }
+
+        [Fact]
+        public void Constructor_Parameter_Delete_Primary_Record_LayoutClass()
+        {
+            var src1 = @"
+using System.Runtime.InteropServices;
+[StructLayoutAttribute(LayoutKind.Sequential)]
+record C(int X, int Y);
+";
+            var src2 = @"
+using System.Runtime.InteropServices;
+[StructLayoutAttribute(LayoutKind.Sequential)]
+record C(int X);
+";
+            var edits = GetTopEdits(src1, src2);
+
+            // Note: We do not report rude edits when deleting auto-properties of a type with a sequential or explicit layout.
+            // The properties are updated to throw and the backing field remains in the type.
+            // The deleted field will remain unused since adding the property back is a rude edit.
+            edits.VerifySemantics(
+                semanticEdits: new[]
+                {
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_Y"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_Y"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryDeconstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryDeconstructor("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C")),
+                },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
+        }
+
+        [Fact]
+        public void Constructor_Parameter_Delete_Primary_Record_Struct()
+        {
+            var src1 = "record struct C(int X, int Y);";
+            var src2 = "record struct C(int X);";
+            var edits = GetTopEdits(src1, src2);
+
+            // Note: We do not report rude edits when deleting auto-properties of a type with a sequential or explicit layout.
+            // The properties are updated to throw and the backing field remains in the type.
+            // The deleted field will remain unused since adding the property back is a rude edit.
+            edits.VerifySemantics(
+                semanticEdits: new[]
+                {
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_Y"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_Y"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryDeconstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryDeconstructor("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C")),
                 },
@@ -10757,6 +10820,63 @@ class C
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
+        [Fact]
+        public void Constructor_Parameter_Delete_Primary_LayoutClass_NotCaptured()
+        {
+            var src1 = @"
+using System.Runtime.InteropServices;
+
+[StructLayoutAttribute(LayoutKind.Sequential)]
+class C(int x, int y) 
+{ 
+}
+";
+            var src2 = @"
+using System.Runtime.InteropServices;
+
+[StructLayoutAttribute(LayoutKind.Sequential)]
+class C(int x)
+{ 
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                semanticEdits: new[]
+                {
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C"))
+                },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
+        }
+
+        [Fact]
+        public void Constructor_Parameter_Delete_Primary_LayoutClass_Captured()
+        {
+            var src1 = @"
+using System.Runtime.InteropServices;
+
+[StructLayoutAttribute(LayoutKind.Sequential)]
+class C(int x, int y) 
+{
+    public int M() => x + y;
+}
+";
+            var src2 = @"
+using System.Runtime.InteropServices;
+
+[StructLayoutAttribute(LayoutKind.Sequential)]
+class C(int x)
+{
+    public int M() => x;
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingPrimaryConstructorParameter, "M", GetResource("class with explicit or sequential layout"), "y"));
+        }
+
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/743552")]
         public void Constructor_Parameter_Insert()
         {
@@ -10781,16 +10901,18 @@ class C
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
-        [Fact]
-        public void Constructor_Parameter_Insert_Primary()
+        [Theory]
+        [InlineData("class ")]
+        [InlineData("struct")]
+        public void Constructor_Parameter_Insert_Primary_Uncaptured(string keyword)
         {
-            var src1 = "class C(int a) { }";
-            var src2 = "class C(int a, int b) { }";
+            var src1 = keyword + " C(int a) { }";
+            var src2 = keyword + " C(int a, int b) { }";
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [(int a)]@7 -> [(int a, int b)]@7",
-                "Insert [int b]@15");
+                "Update [(int a)]@8 -> [(int a, int b)]@8",
+                "Insert [int b]@16");
 
             edits.VerifySemantics(
                 new[]
@@ -10803,6 +10925,40 @@ class C
             edits.VerifySemanticDiagnostics(
                 new[] { Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "int b", FeaturesResources.parameter) },
                 capabilities: EditAndContinueCapabilities.Baseline);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69159")]
+        public void Constructor_Parameter_Insert_Primary_Captured_Class()
+        {
+            var src1 = "class C(int a) { int X => a; }";
+            var src2 = "class C(int a, int b) { int X => a + b; }";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_X")),
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C")),
+                },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
+
+            // TODO: should report rude edit https://github.com/dotnet/roslyn/issues/69159
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
+        }
+
+        [Fact]
+        public void Constructor_Parameter_Insert_Primary_Captured_Struct()
+        {
+            var src1 = "struct C(int a) { int X => a; }";
+            var src2 = "struct C(int a, int b) { int X => a + b; }";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.CapturingPrimaryConstructorParameter, "b", GetResource("struct"), "b") },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
         [Fact]
@@ -10829,6 +10985,48 @@ class C
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.U")),
                 },
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
+        }
+
+        [Fact]
+        public void Constructor_Parameter_Insert_Primary_Record_ClassWithLayout()
+        {
+            var src1 = @"
+using System.Runtime.InteropServices;
+
+[StructLayoutAttribute(LayoutKind.Sequential)]
+record C(int X) { }
+";
+
+            var src2 = @"
+using System.Runtime.InteropServices;
+
+[StructLayoutAttribute(LayoutKind.Sequential)]
+record C(int X, int Y) { }
+";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "int Y", GetResource("parameter"), GetResource("record")));
+        }
+
+        [Fact]
+        public void Constructor_Parameter_Insert_Primary_Record_Struct()
+        {
+            var src1 = @"
+record struct C(int x) 
+{
+}
+";
+            var src2 = @"
+record struct C(int x, int y)
+{
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.InsertIntoStruct, "int y", GetResource("parameter"), GetResource("record struct")));
         }
 
         [Fact]
@@ -10971,6 +11169,282 @@ class C
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryDeconstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                 },
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
+        }
+
+        [Fact]
+        public void Constructor_Parameter_Insert_Primary_IntoLayoutClass_NotLifted()
+        {
+            var src1 = @"
+using System.Runtime.InteropServices;
+
+[StructLayoutAttribute(LayoutKind.Sequential)]
+class C(int x) 
+{ 
+}
+";
+            var src2 = @"
+using System.Runtime.InteropServices;
+
+[StructLayoutAttribute(LayoutKind.Sequential)]
+class C(int x, int y)
+{ 
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                semanticEdits: new[]
+                {
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C"))
+                },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
+        }
+
+        [Fact]
+        public void Constructor_Parameter_Insert_Primary_IntoLayoutClass_Lifted()
+        {
+            var src1 = @"
+using System.Runtime.InteropServices;
+
+[StructLayoutAttribute(LayoutKind.Sequential)]
+class C(int x) 
+{
+    public int M() => x;
+}
+";
+            var src2 = @"
+using System.Runtime.InteropServices;
+
+[StructLayoutAttribute(LayoutKind.Sequential)]
+class C(int x, int y)
+{
+    public int M() => x + y;
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingPrimaryConstructorParameter, "y", GetResource("class with explicit or sequential layout"), "y"));
+        }
+
+        [Fact]
+        public void Constructor_Parameter_Insert_Primary_IntoLayoutClass_LiftedInLambda()
+        {
+            var src1 = @"
+using System;
+using System.Runtime.InteropServices;
+
+[StructLayoutAttribute(LayoutKind.Sequential)]
+class C(int x) 
+{
+    public Func<int> M() => () => x;
+}
+";
+            var src2 = @"
+using System;
+using System.Runtime.InteropServices;
+
+[StructLayoutAttribute(LayoutKind.Sequential)]
+class C(int x, int y)
+{
+    public Func<int> M() => () => x + y;
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingPrimaryConstructorParameter, "y", GetResource("class with explicit or sequential layout"), "y"));
+        }
+
+        [Theory(Skip = "https://github.com/dotnet/roslyn/issues/68708")]
+        [InlineData("struct")]
+        [InlineData("class")]
+        [InlineData("record")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68708")]
+        public void Constructor_Parameter_Reorder_Primary_NotLifted(string keyword)
+        {
+            var src1 = keyword + " C(int x, byte y) { }";
+            var src2 = keyword + " C(byte y, int x) { }";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C")));
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/68708")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68708")]
+        public void Constructor_Parameter_Reorder_Primary_NotLifted_Record_Struct()
+        {
+            var src1 = "record struct C(int x, byte y) { }";
+            var src2 = "record struct C(byte y, int x) { }";
+            var edits = GetTopEdits(src1, src2);
+
+            // TODO: type layout changes
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Theory(Skip = "https://github.com/dotnet/roslyn/issues/68708")]
+        [InlineData("struct")]
+        [InlineData("record struct")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68708")]
+        public void Constructor_Parameter_Reorder_Primary_Lifted_Struct(string keyword)
+        {
+            var src1 = keyword + " C(int x, byte y) { int M() => x + y; }";
+            var src2 = keyword + " C(byte y, int x) { int M() => x + y; }";
+            var edits = GetTopEdits(src1, src2);
+
+            // TODO: type layout changes
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Theory(Skip = "https://github.com/dotnet/roslyn/issues/68708")]
+        [InlineData("class")]
+        [InlineData("record")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68708")]
+        public void Constructor_Parameter_Reorder_Primary_Lifted_Class(string keyword)
+        {
+            var src1 = keyword + " C(int x, byte y) { int M() => x + y; }";
+            var src2 = keyword + " C(byte y, int x) { int M() => x + y; }";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C")));
+        }
+
+        [Fact]
+        public void Constructor_Parameter_Capture_Primary_Class()
+        {
+            var src1 = @"
+class C(int x) 
+{
+    public int M() => 1;
+}
+";
+            var src2 = @"
+class C(int x)
+{
+    public int M() => x;
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M")));
+        }
+
+        [Fact]
+        public void Constructor_Parameter_Capture_Primary_Struct()
+        {
+            var src1 = @"
+struct C(int x, int y) 
+{
+    public int M1() => 1;
+    public int M2() => y;
+}
+";
+            var src2 = @"
+struct C(int x, int y)
+{
+    public int M1() => y;
+    public int M2() => x;
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            // note: 'y' is not reported since it is still captured
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingPrimaryConstructorParameter, "x", GetResource("struct"), "x"));
+        }
+
+        [Fact]
+        public void Constructor_Parameter_Capture_Primary_ClassWithLayout()
+        {
+            var src1 = @"
+using System.Runtime.InteropServices;
+
+[StructLayoutAttribute(LayoutKind.Sequential)]
+class C(int x, int y) 
+{
+    public int M1() => 1;
+    public int M2() => y;
+}
+";
+            var src2 = @"
+using System.Runtime.InteropServices;
+
+[StructLayoutAttribute(LayoutKind.Sequential)]
+class C(int x, int y)
+{
+    public int M1() => y;
+    public int M2() => x;
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            // note: 'y' is not reported since it is still captured
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingPrimaryConstructorParameter, "x", GetResource("class with explicit or sequential layout"), "x"));
+        }
+
+        [Fact]
+        public void Constructor_Parameter_CeaseCapturing_Primary_Struct()
+        {
+            var src1 = @"
+struct C(int x, int y) 
+{
+    public int M1() => 1;
+    public int M2() => x;
+    public int M3() => y;
+}
+";
+            var src2 = @"
+struct C(int x, int y)
+{
+    public int M1() => y;
+    public int M2() => 1;
+    public int M3() => 2;
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            // note: 'y' is not reported since it is still captured
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingPrimaryConstructorParameter, "M2", GetResource("struct"), "x"));
+        }
+
+        [Fact]
+        public void Constructor_Parameter_CeaseCapturing_Primary_ClassWithLayout()
+        {
+            var src1 = @"
+using System.Runtime.InteropServices;
+
+[StructLayoutAttribute(LayoutKind.Sequential)]
+class C(int x, int y) 
+{
+    public int M1() => 1;
+    public int M2() => x;
+    public int M3() => y;
+}
+";
+            var src2 = @"
+using System.Runtime.InteropServices;
+
+[StructLayoutAttribute(LayoutKind.Sequential)]
+class C(int x, int y)
+{
+    public int M1() => y;
+    public int M2() => 1;
+    public int M3() => 2;
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            // note: 'y' is not reported since it is still captured
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingPrimaryConstructorParameter, "M2", GetResource("class with explicit or sequential layout"), "x"));
         }
 
         [Fact]
@@ -12255,6 +12729,17 @@ class C
         }
 
         [Fact]
+        public void Constructor_Instance_Delete_Primary_Struct_CeasingCapture()
+        {
+            var src1 = "class C(int a) { int A => a; }";
+            var src2 = "class C { int A => 1; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
         public void Constructor_Instance_Delete_Public_PartialWithInitializerUpdate()
         {
             var srcA1 = "partial class C { public C() { } }";
@@ -13476,6 +13961,19 @@ public class C
                     SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true)
                 },
                 capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
+        }
+
+        [Theory]
+        [InlineData("class")]
+        [InlineData("struct")]
+        public void FieldInitializer_Update_AccessPrimaryConstructorParameter(string keyword)
+        {
+            var src1 = keyword + " C(int x) { public int F = 1; }";
+            var src2 = keyword + " C(int x) { public int F = 1 + x; }";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -14991,6 +15489,20 @@ partial class C
                 });
         }
 
+        [Theory]
+        [InlineData("class")]
+        [InlineData("struct")]
+        public void FieldInitializerUpdate_Lambdas_InsertPrimaryConstructorParameterUse(string keyword)
+        {
+            var src1 = keyword + " C(int x, int y) { public System.Func<int> F = new(() => x); }";
+            var src2 = keyword + " C(int x, int y) { public System.Func<int> F = new(() => x + y); }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "y", "y"));
+        }
+
         [Fact]
         public void FieldInitializerUpdate_ActiveStatements1()
         {
@@ -16455,10 +16967,45 @@ class C
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
-        [Fact]
-        public void PropertyDelete()
+        [Theory]
+        [InlineData("class")]
+        [InlineData("struct")]
+        public void Property_Delete(string keyword)
         {
-            var src1 = "class C { int P { get { return 1; } set { } } }";
+            var src1 = keyword + " C { int P { get { return 1; } set { } } }";
+            var src2 = keyword + " C { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                },
+                capabilities: EditAndContinueCapabilities.Baseline);
+        }
+
+        [Fact]
+        public void Property_Delete_GetOnly()
+        {
+            var src1 = "class C { int P { get { return 1; } } }";
+            var src2 = "class C { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), deletedSymbolContainerProvider: c => c.GetMember("C"))
+                },
+                capabilities: EditAndContinueCapabilities.Baseline);
+        }
+
+        [Fact]
+        public void Property_Delete_Auto_Class()
+        {
+            var src1 = "class C { int P { get; set; } }";
             var src2 = "class C { }";
 
             var edits = GetTopEdits(src1, src2);
@@ -16473,17 +17020,21 @@ class C
         }
 
         [Fact]
-        public void PropertyDelete_GetOnly()
+        public void Property_Delete_Auto_Struct()
         {
-            var src1 = "class C { int P { get { return 1; } } }";
-            var src2 = "class C { }";
+            var src1 = "struct C { int P { get; set; } }";
+            var src2 = "struct C { }";
 
             var edits = GetTopEdits(src1, src2);
 
+            // We do not report rude edits when deleting auto-properties/events of a type with a sequential or explicit layout.
+            // The properties are updated to throw and the backing field remains in the type.
+            // The deleted field will remain unused since adding the property/event back is a rude edit.
             edits.VerifySemantics(
                 new[]
                 {
-                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), deletedSymbolContainerProvider: c => c.GetMember("C"))
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                 },
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
@@ -16521,7 +17072,7 @@ class C
         }
 
         [Fact]
-        public void PropertyReorder1()
+        public void Property_Reorder1()
         {
             var src1 = "class C { int P { get { return 1; } } int Q { get { return 1; } }  }";
             var src2 = "class C { int Q { get { return 1; } } int P { get { return 1; } }  }";
@@ -16537,7 +17088,7 @@ class C
         }
 
         [Fact]
-        public void PropertyReorder2()
+        public void Property_Reorder_Auto_Class()
         {
             var src1 = "class C { int P { get; set; } int Q { get; set; }  }";
             var src2 = "class C { int Q { get; set; } int P { get; set; }  }";
@@ -16549,6 +17100,21 @@ class C
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Move, "int Q", FeaturesResources.auto_property));
+        }
+
+        [Fact]
+        public void Property_Reorder_Auto_Struct()
+        {
+            var src1 = "struct C { int P { get; set; } byte Q { get; set; }  }";
+            var src2 = "struct C { byte Q { get; set; } int P { get; set; }  }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Reorder [byte Q { get; set; }]@31 -> @11");
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Move, "byte Q", FeaturesResources.auto_property));
         }
 
         [Fact]

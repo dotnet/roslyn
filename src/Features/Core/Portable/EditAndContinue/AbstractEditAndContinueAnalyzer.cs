@@ -251,6 +251,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 SymbolKind.Method => GetDisplayName((IMethodSymbol)symbol),
                 SymbolKind.NamedType => GetDisplayName((INamedTypeSymbol)symbol),
                 SymbolKind.Parameter => FeaturesResources.parameter,
+                SymbolKind.Local => FeaturesResources.local_variable,
                 SymbolKind.Property => GetDisplayName((IPropertySymbol)symbol),
                 SymbolKind.TypeParameter => FeaturesResources.type_parameter,
                 _ => throw ExceptionUtilities.UnexpectedValue(symbol.Kind)
@@ -2351,8 +2352,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var oldCompilation = oldModel?.Compilation ?? await oldProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var newCompilation = newModel.Compilation;
 
-                INamedTypeSymbol? lazyLayoutAttribute = null;
-
                 foreach (var edit in editScript.Edits)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
@@ -2589,7 +2588,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                         // We allow deleting parameters, by issuing delete and insert edits for the old and new method
                                         if (oldSymbol is IParameterSymbol oldParameter)
                                         {
-                                            if (TryAddParameterInsertOrDeleteEdits(semanticEdits, oldParameter, oldModel, newModel, capabilities, syntaxMap, editScript, processedSymbols, cancellationToken, out var notSupportedByRuntime))
+                                            if (TryAddParameterInsertOrDeleteEdits(
+                                                semanticEdits,
+                                                oldParameter,
+                                                oldModel,
+                                                newModel,
+                                                capabilities,
+                                                syntaxMap,
+                                                editScript,
+                                                processedSymbols,
+                                                cancellationToken,
+                                                out var notSupportedByRuntime))
                                             {
                                                 continue;
                                             }
@@ -2644,6 +2653,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                                         continue;
                                     }
+
+                                    // Note: We do not report rude edits when deleting auto-properties/events of a type with a sequential or explicit layout.
+                                    // The properties are updated to throw and the backing field remains in the type.
+                                    // The deleted field will remain unused since adding the property/event back is a rude edit.
 
                                     if (IsDeclarationWithInitializer(oldDeclaration))
                                     {
@@ -2728,13 +2741,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                         {
                                             Contract.ThrowIfNull(oldDeclaration);
 
-                                            // Handles partial methods and explicitly implemented properties that implement positional parameters of records
-
-                                            // TODO: update, should this require declaring syntax refs? https://github.com/dotnet/roslyn/issues/68738
-                                            // We ignore partial method definition parts when processing edits (GetSymbolForEdit).
-                                            // The only declaration in compilation without syntax errors that can have multiple declaring references is a type declaration.
-                                            // We can therefore ignore any symbols that have more than one declaration.
-                                            ReportTypeLayoutUpdateRudeEdits(diagnostics, newSymbol, newDeclaration, newModel, ref lazyLayoutAttribute);
+                                            // Handles cases when a data member explicit declaration is moved, which may change the type layout
+                                            ReportTypeLayoutUpdateRudeEdits(diagnostics, newSymbol, newDeclaration, newModel);
 
                                             var oldBody = TryGetDeclarationBody(oldDeclaration, oldSymbol);
                                             if (oldBody != null)
@@ -2806,13 +2814,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                     }
                                     else if (newSymbol is IParameterSymbol newParameter)
                                     {
-                                        if (!TryAddParameterInsertOrDeleteEdits(semanticEdits, newParameter, newModel, oldModel, capabilities, syntaxMap, editScript, processedSymbols, cancellationToken, out var notSupportedByRuntime))
+                                        if (!TryAddParameterInsertOrDeleteEdits(
+                                            semanticEdits,
+                                            newParameter,
+                                            newModel,
+                                            oldModel,
+                                            capabilities,
+                                            syntaxMap,
+                                            editScript,
+                                            processedSymbols,
+                                            cancellationToken,
+                                            out var notSupportedByRuntime))
                                         {
                                             diagnostics.Add(new RudeEditDiagnostic(
-                                               notSupportedByRuntime ? RudeEditKind.InsertNotSupportedByRuntime : RudeEditKind.Insert,
-                                               GetDiagnosticSpan(newDeclaration, EditKind.Insert),
-                                               newDeclaration,
-                                               arguments: new[] { GetDisplayName(newDeclaration, EditKind.Insert) }));
+                                                notSupportedByRuntime ? RudeEditKind.InsertNotSupportedByRuntime : RudeEditKind.Insert,
+                                                GetDiagnosticSpan(newDeclaration, EditKind.Insert),
+                                                newDeclaration,
+                                                arguments: new[] { GetDisplayName(newDeclaration, EditKind.Insert) }));
                                         }
 
                                         continue;
@@ -2846,7 +2864,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                         // Report rude edits for changes to data member changes of a type with an explicit layout.
                                         // We disallow moving a data member of a partial type with explicit layout even when it actually does not change the layout.
                                         // We could compare the exact order of the members but the scenario is unlikely to occur.
-                                        ReportTypeLayoutUpdateRudeEdits(diagnostics, newSymbol, newDeclaration, newModel, ref lazyLayoutAttribute);
+                                        ReportTypeLayoutUpdateRudeEdits(diagnostics, newSymbol, newDeclaration, newModel);
 
                                         // If a property or field is inserted into a record the synthesized members may change
                                         // (PrintMembers print all properties and fields, Equals and GHC compare all data members, etc.)
@@ -3445,7 +3463,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             var containingTypeKey = SymbolKey.Create(oldContainingSymbol.ContainingType, cancellationToken);
-            AddSynthesizedMemberEditsForParameterChange(semanticEdits, parameterSymbol, otherMember, containingTypeKey, model, otherModel, syntaxMap, processedSymbols, isParameterDelete, cancellationToken);
+
+            if (member.ContainingType.IsRecord &&
+                otherMember.ContainingType.IsRecord &&
+                IsPrimaryConstructor(member, cancellationToken) &&
+                IsPrimaryConstructor(otherMember, cancellationToken))
+            {
+                AddSynthesizedMemberEditsForRecordParameterChange(semanticEdits, parameterSymbol, otherMember, containingTypeKey, model, otherModel, syntaxMap, processedSymbols, isParameterDelete, cancellationToken);
+            }
 
             AddDeleteAndInsertEditsForMemberAndAccessors(semanticEdits, oldContainingSymbol, newContainingSymbol, containingTypeKey, syntaxMap, processedSymbols, cancellationToken);
             return true;
@@ -3455,7 +3480,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Adds edits of synthesized members that may be affected by a <paramref name="parameterSymbol"/> change.
         /// </summary>
         /// <param name="otherMember">Is the member in the other compilation corresponding to the member whose <paramref name="parameterSymbol"/> is being changed.</param>
-        private void AddSynthesizedMemberEditsForParameterChange(
+        private void AddSynthesizedMemberEditsForRecordParameterChange(
             ArrayBuilder<SemanticEditInfo> semanticEdits,
             IParameterSymbol parameterSymbol,
             ISymbol otherMember,
@@ -3469,14 +3494,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             var member = parameterSymbol.ContainingSymbol;
             Debug.Assert(member is IPropertySymbol or IMethodSymbol);
-
-            if (!member.ContainingType.IsRecord ||
-                !otherMember.ContainingType.IsRecord ||
-                !IsPrimaryConstructor(member, cancellationToken) ||
-                !IsPrimaryConstructor(otherMember, cancellationToken))
-            {
-                return;
-            }
 
             // Parameter deleted from or inserted into a primary constructor of a record type.
             //
@@ -5023,13 +5040,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ArrayBuilder<RudeEditDiagnostic> diagnostics,
             ISymbol newSymbol,
             SyntaxNode newSyntax,
-            SemanticModel newModel,
-            ref INamedTypeSymbol? lazyLayoutAttribute)
+            SemanticModel newModel)
         {
             switch (newSymbol.Kind)
             {
                 case SymbolKind.Field:
-                    if (HasExplicitOrSequentialLayout(newSymbol.ContainingType, newModel, ref lazyLayoutAttribute))
+                    if (HasExplicitOrSequentialLayout(newSymbol.ContainingType, newModel))
                     {
                         ReportTypeLayoutUpdateRudeEdits(diagnostics, newSymbol, newSyntax);
                     }
@@ -5037,8 +5053,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     break;
 
                 case SymbolKind.Property:
-                    if (HasExplicitOrSequentialLayout(newSymbol.ContainingType, newModel, ref lazyLayoutAttribute) &&
-                        newSymbol.IsAutoProperty())
+                    if (newSymbol.IsAutoProperty() &&
+                        HasExplicitOrSequentialLayout(newSymbol.ContainingType, newModel))
                     {
                         ReportTypeLayoutUpdateRudeEdits(diagnostics, newSymbol, newSyntax);
                     }
@@ -5047,7 +5063,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 case SymbolKind.Event:
                     if (HasBackingField((IEventSymbol)newSymbol) &&
-                        HasExplicitOrSequentialLayout(newSymbol.ContainingType, newModel, ref lazyLayoutAttribute))
+                        HasExplicitOrSequentialLayout(newSymbol.ContainingType, newModel))
                     {
                         ReportTypeLayoutUpdateRudeEdits(diagnostics, newSymbol, newSyntax);
                     }
@@ -5079,10 +5095,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 && !@event.IsAbstract;
         }
 
-        private static bool HasExplicitOrSequentialLayout(
-            INamedTypeSymbol type,
-            SemanticModel model,
-            ref INamedTypeSymbol? lazyLayoutAttribute)
+        private static bool HasExplicitOrSequentialLayout(INamedTypeSymbol type, SemanticModel model)
         {
             if (type.TypeKind == TypeKind.Struct)
             {
@@ -5101,8 +5114,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return false;
             }
 
-            lazyLayoutAttribute ??= model.Compilation.GetTypeByMetadataName(typeof(StructLayoutAttribute).FullName!);
-            if (lazyLayoutAttribute == null)
+            var layoutAttribute = model.Compilation.GetTypeByMetadataName(typeof(StructLayoutAttribute).FullName!);
+            if (layoutAttribute == null)
             {
                 return false;
             }
@@ -5110,12 +5123,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             foreach (var attribute in attributes)
             {
                 RoslynDebug.Assert(attribute.AttributeClass is object);
-                if (attribute.AttributeClass.Equals(lazyLayoutAttribute) && attribute.ConstructorArguments.Length == 1)
+                if (attribute.AttributeClass.Equals(layoutAttribute) && attribute.ConstructorArguments.Length == 1)
                 {
-                    var layoutValue = attribute.ConstructorArguments.Single().Value;
-                    return (layoutValue is int ? (int)layoutValue :
-                            layoutValue is short ? (short)layoutValue :
-                            (int)LayoutKind.Auto) != (int)LayoutKind.Auto;
+                    return attribute.ConstructorArguments.Single().Value switch
+                    {
+                        int value => value != (int)LayoutKind.Auto,
+                        short value => value != (short)LayoutKind.Auto,
+                        _ => false
+                    };
                 }
             }
 
@@ -5548,37 +5563,79 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            using var oldLambdaBodyEnumerator = GetLambdaBodies(oldMemberBody).GetEnumerator();
-            using var newLambdaBodyEnumerator = GetLambdaBodies(newMemberBody).GetEnumerator();
-            var oldHasLambdasOrLocalFunctions = oldLambdaBodyEnumerator.MoveNext();
-            var newHasLambdasOrLocalFunctions = newLambdaBodyEnumerator.MoveNext();
+            var oldPrimaryConstructor = IsPrimaryConstructorDeclaration(oldDeclaration)
+                ? (IMethodSymbol)oldMember
+                : GetPrimaryConstructor(oldMember.ContainingType, cancellationToken);
 
-            // Exit early if there are no lambdas in the method to avoid expensive data flow analysis:
+            var newPrimaryConstructor = IsPrimaryConstructorDeclaration(newDeclaration)
+                ? (IMethodSymbol)newMember
+                : GetPrimaryConstructor(newMember.ContainingType, cancellationToken);
+
+            // If type layout is changed another rude edit is reported, so we can assume the layouts match.
+            // We don't need to analyze primary parameter captures unless type layout disallows captures.
+            var typeLayoutDisallowsNewCaptures =
+                (newPrimaryConstructor != null || oldPrimaryConstructor != null) && HasExplicitOrSequentialLayout(newMember.ContainingType, newModel);
+
+            // The primary constructor if its parameters are lifted into fields when accessed from this member, otherwise null.
+            var oldLiftingPrimaryConstructor = oldMember != oldPrimaryConstructor && !IsDeclarationWithInitializer(oldDeclaration) ? oldPrimaryConstructor : null;
+            var newLiftingPrimaryConstructor = newMember != newPrimaryConstructor && !IsDeclarationWithInitializer(newDeclaration) ? newPrimaryConstructor : null;
+
+            GetCapturedVariables(
+                oldMemberBody,
+                oldModel,
+                oldLiftingPrimaryConstructor,
+                ignorePrimaryParameterCaptures: !typeLayoutDisallowsNewCaptures,
+                out var oldHasLambdasOrLocalFunctions,
+                out var oldInLambdaCaptures,
+                out var oldPrimaryCaptures);
+
+            GetCapturedVariables(
+                newMemberBody,
+                newModel,
+                newLiftingPrimaryConstructor,
+                ignorePrimaryParameterCaptures: !typeLayoutDisallowsNewCaptures,
+                out var newHasLambdasOrLocalFunctions,
+                out var newInLambdaCaptures,
+                out var newPrimaryCaptures);
+
+            // Analyze primary parameter captures:
+
+            ReportPrimaryParameterCaptureRudeEdits(
+                diagnostics,
+                oldLiftingPrimaryConstructor,
+                oldPrimaryCaptures,
+                newLiftingPrimaryConstructor,
+                newPrimaryCaptures,
+                newMember,
+                cancellationToken);
+
+            // Analyze captures in lambda bodies:
+
             if (!oldHasLambdasOrLocalFunctions && !newHasLambdasOrLocalFunctions)
             {
                 return;
             }
 
-            var oldCaptures = oldMemberBody.GetCapturedVariables(oldModel);
-            var newCaptures = newMemberBody.GetCapturedVariables(newModel);
+            syntaxMapRequired = newHasLambdasOrLocalFunctions;
 
             // { new capture index -> old capture index }
-            using var _1 = ArrayBuilder<int>.GetInstance(newCaptures.Length, fillWithValue: 0, out var reverseCapturesMap);
+            using var _1 = ArrayBuilder<int>.GetInstance(newInLambdaCaptures.Length, fillWithValue: 0, out var reverseCapturesMap);
 
             // { new capture index -> new closure scope or null for "this" }
-            using var _2 = ArrayBuilder<SyntaxNode?>.GetInstance(newCaptures.Length, fillWithValue: null, out var newCapturesToClosureScopes);
+            using var _2 = ArrayBuilder<SyntaxNode?>.GetInstance(newInLambdaCaptures.Length, fillWithValue: null, out var newCapturesToClosureScopes);
 
             // Can be calculated from other maps but it's simpler to just calculate it upfront.
             // { old capture index -> old closure scope or null for "this" }
-            using var _3 = ArrayBuilder<SyntaxNode?>.GetInstance(oldCaptures.Length, fillWithValue: null, out var oldCapturesToClosureScopes);
+            using var _3 = ArrayBuilder<SyntaxNode?>.GetInstance(oldInLambdaCaptures.Length, fillWithValue: null, out var oldCapturesToClosureScopes);
 
             CalculateCapturedVariablesMaps(
-                oldCaptures,
-                oldMember,
+                oldInLambdaCaptures,
                 oldDeclaration,
-                newCaptures,
+                oldPrimaryConstructor,
+                newInLambdaCaptures,
                 newMember,
                 newDeclaration,
+                newPrimaryConstructor,
                 map,
                 reverseCapturesMap,
                 newCapturesToClosureScopes,
@@ -5601,11 +5658,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // - Lambda methods are generated to the same frame as before, so they can be updated in-place.
             // - "Parent" links between closure scopes are preserved.
 
-            using var _11 = PooledDictionary<ISymbol, int>.GetInstance(out var oldCapturesIndex);
-            using var _12 = PooledDictionary<ISymbol, int>.GetInstance(out var newCapturesIndex);
+            using var _11 = PooledDictionary<VariableCapture, int>.GetInstance(out var oldCapturesIndex);
+            using var _12 = PooledDictionary<VariableCapture, int>.GetInstance(out var newCapturesIndex);
 
-            BuildIndex(oldCapturesIndex, oldCaptures);
-            BuildIndex(newCapturesIndex, newCaptures);
+            BuildIndex(oldCapturesIndex, oldInLambdaCaptures);
+            BuildIndex(newCapturesIndex, newInLambdaCaptures);
 
             if (matchedLambdas != null)
             {
@@ -5618,24 +5675,24 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // a rude edit would be reported in syntax analysis phase.
                     RoslynDebug.Assert(newLambdaInfo.Match != null && newLambdaBody != null);
 
-                    var accessedOldCaptures = GetAccessedCaptures(oldLambdaBody, oldModel, oldCaptures, oldCapturesIndex);
-                    var accessedNewCaptures = GetAccessedCaptures(newLambdaBody, newModel, newCaptures, newCapturesIndex);
+                    var accessedOldCaptures = GetAccessedCaptures(oldLambdaBody, oldModel, oldInLambdaCaptures, oldCapturesIndex, oldLiftingPrimaryConstructor);
+                    var accessedNewCaptures = GetAccessedCaptures(newLambdaBody, newModel, newInLambdaCaptures, newCapturesIndex, newLiftingPrimaryConstructor);
 
                     // Requirement: 
                     // (new(ReadInside) \/ new(WrittenInside)) /\ new(Captured) == (old(ReadInside) \/ old(WrittenInside)) /\ old(Captured)
-                    for (var newCaptureIndex = 0; newCaptureIndex < newCaptures.Length; newCaptureIndex++)
+                    for (var newCaptureIndex = 0; newCaptureIndex < newInLambdaCaptures.Length; newCaptureIndex++)
                     {
                         var newAccessed = accessedNewCaptures[newCaptureIndex];
                         var oldAccessed = accessedOldCaptures[reverseCapturesMap[newCaptureIndex]];
 
                         if (newAccessed != oldAccessed)
                         {
-                            var newCapture = newCaptures[newCaptureIndex];
+                            var newCapture = newInLambdaCaptures[newCaptureIndex];
 
                             var rudeEdit = newAccessed ? RudeEditKind.AccessingCapturedVariableInLambda : RudeEditKind.NotAccessingCapturedVariableInLambda;
                             var arguments = new[] { newCapture.Name, GetDisplayName(newLambdaBody.GetLambda()) };
 
-                            if (newCapture.IsThisParameter() || oldAccessed)
+                            if (newCapture.IsThis || oldAccessed)
                             {
                                 // changed accessed to "this", or captured variable accessed in old lambda is not accessed in the new lambda
                                 diagnostics.Add(new RudeEditDiagnostic(rudeEdit, GetDiagnosticSpan(newLambdaBody.GetLambda(), EditKind.Update), null, arguments));
@@ -5644,7 +5701,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             {
                                 // captured variable accessed in new lambda is not accessed in the old lambda
                                 var hasUseSites = false;
-                                foreach (var useSite in GetVariableUseSites(newLambdaBody.GetExpressionsAndStatements(), newCapture, newModel, cancellationToken))
+                                foreach (var useSite in GetVariableUseSites(newLambdaBody.GetExpressionsAndStatements(), newCapture.Symbol, newModel, cancellationToken))
                                 {
                                     hasUseSites = true;
                                     diagnostics.Add(new RudeEditDiagnostic(rudeEdit, useSite.Span, null, arguments));
@@ -5667,24 +5724,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // Removal: We don't allow removal of lambda that has captures from multiple scopes.
 
             var oldHasLambdas = false;
-            var oldHasMoreLambdas = oldHasLambdasOrLocalFunctions;
-            while (oldHasMoreLambdas)
+            foreach (var (oldLambda, oldLambdaBody1, oldLambdaBody2) in GetLambdaBodies(oldMemberBody))
             {
-                var (oldLambda, oldLambdaBody1, oldLambdaBody2) = oldLambdaBodyEnumerator.Current;
-
                 oldHasLambdas |= !IsLocalFunction(oldLambda);
 
                 if (!map.Forward.ContainsKey(oldLambda))
                 {
-                    ReportMultiScopeCaptures(oldLambdaBody1, oldModel, oldCaptures, newCaptures, oldCapturesToClosureScopes, oldCapturesIndex, reverseCapturesMap, diagnostics, isInsert: false, cancellationToken: cancellationToken);
+                    ReportMultiScopeCaptures(oldLambdaBody1, oldModel, oldInLambdaCaptures, newInLambdaCaptures, oldCapturesToClosureScopes, oldCapturesIndex, oldLiftingPrimaryConstructor, reverseCapturesMap, diagnostics, isInsert: false, cancellationToken: cancellationToken);
 
                     if (oldLambdaBody2 != null)
                     {
-                        ReportMultiScopeCaptures(oldLambdaBody2, oldModel, oldCaptures, newCaptures, oldCapturesToClosureScopes, oldCapturesIndex, reverseCapturesMap, diagnostics, isInsert: false, cancellationToken: cancellationToken);
+                        ReportMultiScopeCaptures(oldLambdaBody2, oldModel, oldInLambdaCaptures, newInLambdaCaptures, oldCapturesToClosureScopes, oldCapturesIndex, oldLiftingPrimaryConstructor, reverseCapturesMap, diagnostics, isInsert: false, cancellationToken: cancellationToken);
                     }
                 }
-
-                oldHasMoreLambdas = oldLambdaBodyEnumerator.MoveNext();
             }
 
             // Report rude edits for lambdas added to the method.
@@ -5709,16 +5761,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // 
             // We currently allow #1, #2, and #3 and report a rude edit for the other cases.
             // In future we might be able to enable more.
-
             var containingTypeDeclaration = TryGetContainingTypeDeclaration(newDeclaration);
             var isInInterfaceDeclaration = containingTypeDeclaration != null && IsInterfaceDeclaration(containingTypeDeclaration);
             var isNewMemberInGenericContext = InGenericContext(newMember);
 
-            var newHasLambdaBodies = newHasLambdasOrLocalFunctions;
-            while (newHasLambdaBodies)
+            foreach (var (newLambda, newLambdaBody1, newLambdaBody2) in GetLambdaBodies(newMemberBody))
             {
-                var (newLambda, newLambdaBody1, newLambdaBody2) = newLambdaBodyEnumerator.Current;
-
                 if (!map.Reverse.ContainsKey(newLambda))
                 {
                     if (!CanAddNewLambda(newLambda, newLambdaBody1, newLambdaBody2))
@@ -5734,18 +5782,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, GetDiagnosticSpan(newLambda, EditKind.Insert), newLambda, new string[] { GetDisplayName(newLambda, EditKind.Insert) }));
                     }
 
-                    ReportMultiScopeCaptures(newLambdaBody1, newModel, newCaptures, newCaptures, newCapturesToClosureScopes, newCapturesIndex, reverseCapturesMap, diagnostics, isInsert: true, cancellationToken: cancellationToken);
+                    ReportMultiScopeCaptures(newLambdaBody1, newModel, newInLambdaCaptures, newInLambdaCaptures, newCapturesToClosureScopes, newCapturesIndex, newLiftingPrimaryConstructor, reverseCapturesMap, diagnostics, isInsert: true, cancellationToken: cancellationToken);
 
                     if (newLambdaBody2 != null)
                     {
-                        ReportMultiScopeCaptures(newLambdaBody2, newModel, newCaptures, newCaptures, newCapturesToClosureScopes, newCapturesIndex, reverseCapturesMap, diagnostics, isInsert: true, cancellationToken: cancellationToken);
+                        ReportMultiScopeCaptures(newLambdaBody2, newModel, newInLambdaCaptures, newInLambdaCaptures, newCapturesToClosureScopes, newCapturesIndex, newLiftingPrimaryConstructor, reverseCapturesMap, diagnostics, isInsert: true, cancellationToken: cancellationToken);
                     }
                 }
-
-                newHasLambdaBodies = newLambdaBodyEnumerator.MoveNext();
             }
-
-            syntaxMapRequired = newHasLambdasOrLocalFunctions;
 
             bool CanAddNewLambda(SyntaxNode newLambda, LambdaBody newLambdaBody1, LambdaBody? newLambdaBody2)
             {
@@ -5780,8 +5824,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var isLambdaCachedInField =
                     !inGenericLocalContext &&
                     !isLocalFunction &&
-                    (GetAccessedCaptures(newLambdaBody1, newModel, newCaptures, newCapturesIndex).Equals(BitVector.Empty) ||
-                        newLambdaBody2 != null && GetAccessedCaptures(newLambdaBody2, newModel, newCaptures, newCapturesIndex).Equals(BitVector.Empty));
+                    (GetAccessedCaptures(newLambdaBody1, newModel, newInLambdaCaptures, newCapturesIndex, newLiftingPrimaryConstructor).Equals(BitVector.Empty) ||
+                        newLambdaBody2 != null && GetAccessedCaptures(newLambdaBody2, newModel, newInLambdaCaptures, newCapturesIndex, newLiftingPrimaryConstructor).Equals(BitVector.Empty));
 
                 if (isLambdaCachedInField)
                 {
@@ -5821,13 +5865,158 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
+        private enum VariableCaptureKind
+        {
+            This,
+            LocalOrParameter,
+        }
+
+        /// <summary>
+        /// Represents a captured local variable or a parameter of the current member.
+        /// Primary constructor parameters that are accessed via "this" are represented as
+        /// <see cref="VariableCaptureKind.This"/>.
+        /// 
+        /// Equality ignores <paramref name="Symbol"/> if <paramref name="Kind"/> is <see cref="VariableCaptureKind.This"/>.
+        /// </summary>
+        private readonly record struct VariableCapture(VariableCaptureKind Kind, ISymbol Symbol)
+        {
+            public bool IsThis => Kind == VariableCaptureKind.This;
+            public string Name => Symbol.Name;
+
+            public bool Equals(VariableCapture other)
+                => Kind == other.Kind && (Kind == VariableCaptureKind.This || ReferenceEquals(Symbol, other.Symbol));
+
+            public override int GetHashCode()
+                => Hash.Combine((int)Kind, (Kind == VariableCaptureKind.This) ? 0 : Symbol.GetHashCode());
+
+            public static VariableCapture Create(ISymbol variable, IMethodSymbol? liftingPrimaryConstructor)
+                => new(GetCaptureKind(variable, liftingPrimaryConstructor), variable);
+        }
+
+        private static VariableCaptureKind GetCaptureKind(ISymbol variable, IMethodSymbol? liftingPrimaryConstructor)
+            => variable is IParameterSymbol parameter && (parameter.IsThis || parameter.ContainingSymbol == liftingPrimaryConstructor)
+               ? VariableCaptureKind.This : VariableCaptureKind.LocalOrParameter;
+
+        private void GetCapturedVariables(
+            MemberBody memberBody,
+            SemanticModel model,
+            IMethodSymbol? liftingPrimaryConstructor,
+            bool ignorePrimaryParameterCaptures,
+            out bool hasLambdaBodies,
+            out ImmutableArray<VariableCapture> variablesCapturedInLambdas,
+            out ImmutableArray<IParameterSymbol> primaryParametersCapturedViaThis)
+        {
+            PooledHashSet<VariableCapture>? inLambdaCapturesSet = null;
+            ArrayBuilder<VariableCapture>? inLambdaCaptures = null;
+            hasLambdaBodies = false;
+
+            foreach (var (lambda, lambdaBody1, lambdaBody2) in GetLambdaBodies(memberBody))
+            {
+                hasLambdaBodies = true;
+
+                AddCaptures(lambdaBody1);
+                if (lambdaBody2 != null)
+                {
+                    AddCaptures(lambdaBody2);
+                }
+
+                void AddCaptures(LambdaBody lambdaBody)
+                {
+                    var captures = lambdaBody.GetCapturedVariables(model);
+                    if (!captures.IsEmpty)
+                    {
+                        inLambdaCapturesSet ??= PooledHashSet<VariableCapture>.GetInstance();
+                        inLambdaCaptures ??= ArrayBuilder<VariableCapture>.GetInstance();
+
+                        foreach (var capture in captures)
+                        {
+                            var variableCapture = VariableCapture.Create(capture, liftingPrimaryConstructor);
+                            if (inLambdaCapturesSet.Add(variableCapture))
+                            {
+                                inLambdaCaptures.Add(variableCapture);
+                            }
+                        }
+                    }
+                }
+            }
+
+            variablesCapturedInLambdas = inLambdaCaptures.ToImmutableOrEmptyAndFree();
+
+            // only primary constructor parameters can be captured outside of lambda bodies:
+            if (liftingPrimaryConstructor != null && !ignorePrimaryParameterCaptures)
+            {
+                primaryParametersCapturedViaThis = memberBody.GetCapturedVariables(model).SelectAsArray(
+                    predicate: (capture, liftingPrimaryConstructor) => capture.ContainingSymbol == liftingPrimaryConstructor,
+                    selector: (capture, _) => (IParameterSymbol)capture,
+                    liftingPrimaryConstructor);
+            }
+            else
+            {
+                primaryParametersCapturedViaThis = ImmutableArray<IParameterSymbol>.Empty;
+            }
+
+            inLambdaCapturesSet?.Free();
+        }
+
+        private void ReportPrimaryParameterCaptureRudeEdits(
+            ArrayBuilder<RudeEditDiagnostic> diagnostics,
+            IMethodSymbol? oldLiftingPrimaryConstructor,
+            ImmutableArray<IParameterSymbol> oldPrimaryCaptures,
+            IMethodSymbol? newLiftingPrimaryConstructor,
+            ImmutableArray<IParameterSymbol> newPrimaryCaptures,
+            ISymbol newMember,
+            CancellationToken cancellationToken)
+        {
+            foreach (var newCapture in newPrimaryCaptures)
+            {
+                if (oldLiftingPrimaryConstructor == null || !IsCapturedPrimaryParameterCapturedInType(newCapture, oldLiftingPrimaryConstructor.ContainingType))
+                {
+                    diagnostics.Add(new RudeEditDiagnostic(
+                        RudeEditKind.CapturingPrimaryConstructorParameter,
+                        GetSymbolLocationSpan(newCapture, cancellationToken),
+                        node: null,
+                        new[] { GetLayoutKindDisplay(newCapture), newCapture.Name }));
+                }
+            }
+
+            // Disallow uncapturing primary parameters. We could allow it but would need to be sure the compiler is going to reuse
+            // the backing field if the parameter is later captured again, rather then emitting a new one of the same name.
+
+            foreach (var oldCapture in oldPrimaryCaptures)
+            {
+                if (newLiftingPrimaryConstructor == null || !IsCapturedPrimaryParameterCapturedInType(oldCapture, newLiftingPrimaryConstructor.ContainingType))
+                {
+                    diagnostics.Add(new RudeEditDiagnostic(
+                        RudeEditKind.NotCapturingPrimaryConstructorParameter,
+                        GetSymbolLocationSpan(newMember, cancellationToken),
+                        node: null,
+                        new[] { GetLayoutKindDisplay(oldCapture), oldCapture.Name }));
+                }
+            }
+
+            static bool IsCapturedPrimaryParameterCapturedInType(IParameterSymbol capture, INamedTypeSymbol otherType)
+            {
+                var oldBackingField = capture.GetPrimaryParameterBackingField();
+
+                // captured parameter must have a backing field:
+                Contract.ThrowIfNull(oldBackingField);
+
+                // The backing field still exists in the new type:
+                return otherType.GetMembers(oldBackingField.Name).Any();
+            }
+
+            static string GetLayoutKindDisplay(IParameterSymbol parameter)
+                => (parameter.ContainingType.TypeKind == TypeKind.Struct) ? FeaturesResources.struct_ : FeaturesResources.class_with_explicit_or_sequential_layout;
+        }
+
         private void ReportMultiScopeCaptures(
             LambdaBody lambdaBody,
             SemanticModel model,
-            ImmutableArray<ISymbol> captures,
-            ImmutableArray<ISymbol> newCaptures,
+            ImmutableArray<VariableCapture> captures,
+            ImmutableArray<VariableCapture> newCaptures,
             ArrayBuilder<SyntaxNode?> newCapturesToClosureScopes,
-            PooledDictionary<ISymbol, int> capturesIndex,
+            PooledDictionary<VariableCapture, int> capturesIndex,
+            IMethodSymbol? liftingPrimaryConstructor,
             ArrayBuilder<int> reverseCapturesMap,
             ArrayBuilder<RudeEditDiagnostic> diagnostics,
             bool isInsert,
@@ -5838,11 +6027,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return;
             }
 
-            var accessedCaptures = GetAccessedCaptures(lambdaBody, model, captures, capturesIndex);
+            var accessedCaptures = GetAccessedCaptures(lambdaBody, model, captures, capturesIndex, liftingPrimaryConstructor);
 
             var firstAccessedCaptureIndex = -1;
             for (var i = 0; i < captures.Length; i++)
             {
+                var capture = captures[i];
+
                 if (accessedCaptures[i])
                 {
                     if (firstAccessedCaptureIndex == -1)
@@ -5857,20 +6048,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         RudeEditKind rudeEdit;
                         if (isInsert)
                         {
-                            if (captures[i].IsThisParameter())
+                            if (capture.IsThis)
                             {
                                 errorSpan = GetDiagnosticSpan(lambdaBody.GetLambda(), EditKind.Insert);
                             }
                             else
                             {
-                                errorSpan = GetVariableUseSites(lambdaBody.GetExpressionsAndStatements(), captures[i], model, cancellationToken).First().Span;
+                                errorSpan = GetVariableUseSites(lambdaBody.GetExpressionsAndStatements(), capture.Symbol, model, cancellationToken).First().Span;
                             }
 
                             rudeEdit = RudeEditKind.InsertLambdaWithMultiScopeCapture;
                         }
                         else
                         {
-                            errorSpan = GetSymbolLocationSpan(newCaptures[reverseCapturesMap.IndexOf(i)], cancellationToken);
+                            errorSpan = GetSymbolLocationSpan(newCaptures[reverseCapturesMap.IndexOf(i)].Symbol, cancellationToken);
                             rudeEdit = RudeEditKind.DeleteLambdaWithMultiScopeCapture;
                         }
 
@@ -5878,7 +6069,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             rudeEdit,
                             errorSpan,
                             null,
-                            new[] { GetDisplayName(lambdaBody.GetLambda()), captures[firstAccessedCaptureIndex].Name, captures[i].Name }));
+                            new[] { GetDisplayName(lambdaBody.GetLambda()), captures[firstAccessedCaptureIndex].Name, capture.Name }));
 
                         break;
                     }
@@ -5886,29 +6077,35 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private static BitVector GetAccessedCaptures(LambdaBody lambdaBody, SemanticModel model, ImmutableArray<ISymbol> captures, PooledDictionary<ISymbol, int> capturesIndex)
+        private static BitVector GetAccessedCaptures(
+            LambdaBody lambdaBody,
+            SemanticModel model,
+            ImmutableArray<VariableCapture> captures,
+            PooledDictionary<VariableCapture, int> capturesIndex,
+            IMethodSymbol? liftingPrimaryConstructor)
         {
             var result = BitVector.Create(captures.Length);
 
             foreach (var expressionOrStatement in lambdaBody.GetExpressionsAndStatements())
             {
                 var dataFlow = model.AnalyzeDataFlow(expressionOrStatement);
-                MarkVariables(ref result, dataFlow.ReadInside, capturesIndex);
-                MarkVariables(ref result, dataFlow.WrittenInside, capturesIndex);
+                MarkVariables(dataFlow.ReadInside);
+                MarkVariables(dataFlow.WrittenInside);
+
+                void MarkVariables(ImmutableArray<ISymbol> variables)
+                {
+                    foreach (var variable in variables)
+                    {
+                        if (capturesIndex.TryGetValue(VariableCapture.Create(variable, liftingPrimaryConstructor), out var newCaptureIndex))
+                        {
+                            result[newCaptureIndex] = true;
+                        }
+                    }
+                }
+
             }
 
             return result;
-        }
-
-        private static void MarkVariables(ref BitVector mask, ImmutableArray<ISymbol> variables, Dictionary<ISymbol, int> index)
-        {
-            foreach (var variable in variables)
-            {
-                if (index.TryGetValue(variable, out var newCaptureIndex))
-                {
-                    mask[newCaptureIndex] = true;
-                }
-            }
         }
 
         private static void BuildIndex<TKey>(Dictionary<TKey, int> index, ImmutableArray<TKey> array)
@@ -6042,12 +6239,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private readonly record struct CapturedParameterKey(ParameterKind Kind, SyntaxNode? Syntax = null, SyntaxNode? ContainingLambda = null);
 
         private void CalculateCapturedVariablesMaps(
-            ImmutableArray<ISymbol> oldCaptures,
-            ISymbol oldMember,
+            ImmutableArray<VariableCapture> oldCaptures,
             SyntaxNode oldDeclaration,
-            ImmutableArray<ISymbol> newCaptures,
+            IMethodSymbol? oldPrimaryConstructor,
+            ImmutableArray<VariableCapture> newCaptures,
             ISymbol newMember,
             SyntaxNode newDeclaration,
+            IMethodSymbol? newPrimaryConstructor,
             BidirectionalMap<SyntaxNode> bodyMap,
             [Out] ArrayBuilder<int> reverseCapturesMap,                  // {new capture index -> old capture index}
             [Out] ArrayBuilder<SyntaxNode?> newCapturesToClosureScopes,  // {new capture index -> new closure scope}
@@ -6060,13 +6258,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             var parameterMap = ComputeParameterMap(oldDeclaration, newDeclaration);
 
-            var oldEncompassingPrimaryConstructor = GetEncompassingPrimaryConstructor(oldDeclaration, oldMember, cancellationToken);
-            var newEncompassingPrimaryConstructor = GetEncompassingPrimaryConstructor(newDeclaration, newMember, cancellationToken);
-            if (oldEncompassingPrimaryConstructor != null && newEncompassingPrimaryConstructor != null)
+            // In context where primary parameters are accessed directly but they are not part of the member body match (i.e. in initializers),
+            // calculate mapping of the primary constructor parameters and merge it into parameter map.
+            if (oldPrimaryConstructor != null &&
+                newPrimaryConstructor != null &&
+                IsDeclarationWithInitializer(oldDeclaration) &&
+                IsDeclarationWithInitializer(newDeclaration))
             {
                 var primaryParameterMap = ComputeParameterMap(
-                    GetSymbolDeclarationSyntax(oldEncompassingPrimaryConstructor, cancellationToken),
-                    GetSymbolDeclarationSyntax(newEncompassingPrimaryConstructor, cancellationToken));
+                    GetSymbolDeclarationSyntax(oldPrimaryConstructor, cancellationToken),
+                    GetSymbolDeclarationSyntax(newPrimaryConstructor, cancellationToken));
 
                 Contract.ThrowIfNull(primaryParameterMap);
 
@@ -6105,28 +6306,24 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             using var _1 = PooledDictionary<SyntaxNode, int>.GetInstance(out var oldLocalCaptures);
             using var _2 = PooledDictionary<CapturedParameterKey, int>.GetInstance(out var oldParameterCaptures);
 
-            IParameterSymbol? oldCapturedThisParameter = null;
-            IParameterSymbol? newCapturedThisParameter = null;
+            ISymbol? oldCapturedThisParameter = null;
+            ISymbol? newCapturedThisParameter = null;
 
-            for (var i = 0; i < oldCaptures.Length; i++)
+            for (var oldCaptureIndex = 0; oldCaptureIndex < oldCaptures.Length; oldCaptureIndex++)
             {
-                var oldCapture = oldCaptures[i];
+                var oldCapture = oldCaptures[oldCaptureIndex];
 
-                if (oldCapture is IParameterSymbol oldParameterCapture)
+                if (oldCapture.IsThis)
                 {
-                    // Primary constructor parameter is accessed via "this" from non-primary constructor.
-                    if (oldParameterCapture.IsThis || oldEncompassingPrimaryConstructor is null && IsPrimaryConstructor(oldCapture.ContainingSymbol, cancellationToken))
-                    {
-                        oldCapturedThisParameter ??= oldParameterCapture;
-                    }
-                    else
-                    {
-                        oldParameterCaptures.Add(GetParameterKey(oldParameterCapture, cancellationToken), i);
-                    }
+                    oldCapturedThisParameter ??= oldCapture.Symbol;
+                }
+                else if (oldCapture.Symbol is IParameterSymbol oldParameterCapture)
+                {
+                    oldParameterCaptures.Add(GetParameterKey(oldParameterCapture, cancellationToken), oldCaptureIndex);
                 }
                 else
                 {
-                    oldLocalCaptures.Add(GetSymbolDeclarationSyntax(oldCapture, cancellationToken), i);
+                    oldLocalCaptures.Add(GetSymbolDeclarationSyntax(oldCapture.Symbol, cancellationToken), oldCaptureIndex);
                 }
             }
 
@@ -6135,24 +6332,24 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var newCapture = newCaptures[newCaptureIndex];
                 int oldCaptureIndex;
 
-                if (newCapture is IParameterSymbol newParameterCapture)
+                if (newCapture.IsThis)
                 {
-                    if (newParameterCapture.IsThis || newEncompassingPrimaryConstructor is null && IsPrimaryConstructor(newCapture.ContainingSymbol, cancellationToken))
-                    {
-                        newCapturedThisParameter ??= newParameterCapture;
-                        continue;
-                    }
+                    newCapturedThisParameter ??= newCapture.Symbol;
+                    continue;
+                }
 
+                if (newCapture.Symbol is IParameterSymbol newParameterCapture)
+                {
                     var newParameterKey = GetParameterKey(newParameterCapture, cancellationToken);
                     if (!TryMapParameter(newParameterKey, parameterMap?.Reverse, bodyMap.Reverse, out var oldParameterKey) ||
                         !oldParameterCaptures.TryGetValue(oldParameterKey, out oldCaptureIndex))
                     {
-                        // parameter has not been captured prior the edit:
+                        // parameter doesn't exist or is not captured prior to the edit:
                         diagnostics.Add(new RudeEditDiagnostic(
                             RudeEditKind.CapturingVariable,
-                            GetSymbolLocationSpan(newCapture, cancellationToken),
+                            GetSymbolLocationSpan(newParameterCapture, cancellationToken),
                             node: null,
-                            new[] { newCapture.Name }));
+                            new[] { newParameterCapture.Name }));
 
                         hasErrors = true;
                         continue;
@@ -6164,7 +6361,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
                 else
                 {
-                    var newCaptureSyntax = GetSymbolDeclarationSyntax(newCapture, cancellationToken);
+                    var local = newCapture.Symbol;
+                    var newCaptureSyntax = GetSymbolDeclarationSyntax(local, cancellationToken);
 
                     // variable doesn't exists in the old method or has not been captured prior the edit:
                     if (!bodyMap.Reverse.TryGetValue(newCaptureSyntax, out var mappedOldSyntax) ||
@@ -6172,9 +6370,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     {
                         diagnostics.Add(new RudeEditDiagnostic(
                             RudeEditKind.CapturingVariable,
-                            GetSymbolLocationSpan(newCapture, cancellationToken),
+                            GetSymbolLocationSpan(local, cancellationToken),
                             node: null,
-                            new[] { newCapture.Name }));
+                            new[] { local.Name }));
 
                         hasErrors = true;
                         continue;
@@ -6188,11 +6386,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 reverseCapturesMap[newCaptureIndex] = oldCaptureIndex;
 
                 var oldCapture = oldCaptures[oldCaptureIndex];
+                Contract.ThrowIfTrue(oldCapture.IsThis);
 
                 // If new parameter/local capture and does not have a corresponding old parameter/local capture a rude edit is reported above.
                 // Also range variables can't be mapped to other variables since they have 
                 // different kinds of declarator syntax nodes.
                 Debug.Assert(oldCapture.Kind == newCapture.Kind);
+
+                var oldSymbol = oldCapture.Symbol;
+                var newSymbol = newCapture.Symbol;
 
                 // Range variables don't have types. Each transparent identifier (range variable use)
                 // might have a different type. Changing these types is ok as long as the containing lambda
@@ -6201,7 +6403,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // The scope of a transparent identifier is the containing lambda body. Since we verify that
                 // each lambda body accesses the same captured variables (including range variables) 
                 // the corresponding scopes are guaranteed to be preserved as well.
-                if (oldCapture.Kind == SymbolKind.RangeVariable)
+                if (oldSymbol.Kind == SymbolKind.RangeVariable)
                 {
                     continue;
                 }
@@ -6209,46 +6411,46 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // rename:
                 // Note that the name has to match exactly even in VB, since we can't rename a field.
                 // Consider: We could allow rename by emitting some special debug info for the field.
-                if (newCapture.Name != oldCapture.Name)
+                if (newSymbol.Name != oldSymbol.Name)
                 {
                     diagnostics.Add(new RudeEditDiagnostic(
                         RudeEditKind.RenamingCapturedVariable,
-                        GetSymbolLocationSpan(newCapture, cancellationToken),
+                        GetSymbolLocationSpan(newSymbol, cancellationToken),
                         null,
-                        new[] { oldCapture.Name, newCapture.Name }));
+                        new[] { oldSymbol.Name, newSymbol.Name }));
 
                     hasErrors = true;
                     continue;
                 }
 
                 // type check
-                var oldType = GetType(oldCapture);
-                var newType = GetType(newCapture);
+                var oldType = GetType(oldSymbol);
+                var newType = GetType(newSymbol);
 
                 if (!TypesEquivalent(oldType, newType, exact: false))
                 {
                     diagnostics.Add(new RudeEditDiagnostic(
                         RudeEditKind.ChangingCapturedVariableType,
-                        GetSymbolLocationSpan(newCapture, cancellationToken),
+                        GetSymbolLocationSpan(newSymbol, cancellationToken),
                         node: null,
-                        new[] { newCapture.Name, oldType.ToDisplayString(ErrorDisplayFormat) }));
+                        new[] { newSymbol.Name, oldType.ToDisplayString(ErrorDisplayFormat) }));
 
                     hasErrors = true;
                     continue;
                 }
 
                 // scope check for local variables (parameters can't change scope):
-                if (oldCapture.Kind != SymbolKind.Parameter)
+                if (oldSymbol.Kind != SymbolKind.Parameter)
                 {
-                    var oldScope = GetCapturedLocalScope(oldCapture, cancellationToken);
-                    var newScope = GetCapturedLocalScope(newCapture, cancellationToken);
+                    var oldScope = GetCapturedLocalScope(oldSymbol, cancellationToken);
+                    var newScope = GetCapturedLocalScope(newSymbol, cancellationToken);
                     if (!AreEquivalentClosureScopes(oldScope, newScope, bodyMap.Reverse))
                     {
                         diagnostics.Add(new RudeEditDiagnostic(
                             RudeEditKind.ChangingCapturedVariableScope,
-                            GetSymbolLocationSpan(newCapture, cancellationToken),
+                            GetSymbolLocationSpan(newSymbol, cancellationToken),
                             node: null,
-                            new[] { newCapture.Name }));
+                            new[] { newSymbol.Name }));
 
                         hasErrors = true;
                         continue;
@@ -6261,9 +6463,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             if (oldCapturedThisParameter is null != newCapturedThisParameter is null)
             {
-                if (oldCapturedThisParameter is null)
+                if (oldCapturedThisParameter == null)
                 {
-                    Contract.ThrowIfNull(newCapturedThisParameter);
+                    Debug.Assert(newCapturedThisParameter != null);
 
                     diagnostics.Add(new RudeEditDiagnostic(
                         RudeEditKind.CapturingVariable,
@@ -6447,7 +6649,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return reverseMap.TryGetValue(newScope, out var mappedScope) && mappedScope == oldScope;
         }
 
-        #endregion
+#endregion
 
         #region State Machines
 
@@ -6487,7 +6689,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         #endregion
 
-        #endregion
+#endregion
 
         #region Helpers
 

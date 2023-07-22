@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Differencing;
@@ -30,6 +31,9 @@ internal sealed class CSharpLambdaBody(SyntaxNode node) : LambdaBody
             IsAsync: SyntaxUtilities.IsAsyncDeclaration(node.Parent!),
             IsIterator: SyntaxUtilities.IsIterator(node),
             HasSuspensionPoints: SyntaxUtilities.GetSuspensionPoints(node).Any());
+
+    public override ImmutableArray<ISymbol> GetCapturedVariables(SemanticModel model)
+        => model.AnalyzeDataFlow(node).Captured;
 
     public override Match<SyntaxNode>? ComputeSingleRootMatch(DeclarationBody newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>>? knownMatches)
         => CSharpEditAndContinueAnalyzer.ComputeBodyMatch(node, ((CSharpLambdaBody)newBody).Node, knownMatches);
