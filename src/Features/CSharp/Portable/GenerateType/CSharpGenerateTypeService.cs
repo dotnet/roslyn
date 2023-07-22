@@ -703,15 +703,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 {
                     if (node.Parent is TypeDeclarationSyntax typeDecl)
                     {
-                        if (typeDecl.GetModifiers().Any(m => m.Kind() == SyntaxKind.PublicKeyword))
-                        {
-                            return IsAllContainingTypeDeclsPublic(typeDecl);
-                        }
-                        else
-                        {
-                            // The Type Decl which contains the BaseList does not contain Public
-                            return false;
-                        }
+                        // The Type Decl which contains the BaseList does not contain Public
+                        return typeDecl.GetModifiers().Any(SyntaxKind.PublicKeyword) && IsAllContainingTypeDeclsPublic(typeDecl);
                     }
 
                     throw ExceptionUtilities.Unreachable();
@@ -728,12 +721,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                     }
 
                     // Make sure that Event Declaration themselves are Public in the first place
-                    if (!node.GetModifiers().Any(m => m.Kind() == SyntaxKind.PublicKeyword))
-                    {
-                        return false;
-                    }
-
-                    return IsAllContainingTypeDeclsPublic(node);
+                    return node.GetModifiers().Any(SyntaxKind.PublicKeyword) && IsAllContainingTypeDeclsPublic(node);
                 }
 
                 previousNode = node;
@@ -753,7 +741,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             }
             else
             {
-                return containingTypeDeclarations.All(typedecl => typedecl.GetModifiers().Any(m => m.Kind() == SyntaxKind.PublicKeyword));
+                return containingTypeDeclarations.All(typedecl => typedecl.GetModifiers().Any(SyntaxKind.PublicKeyword));
             }
         }
 
