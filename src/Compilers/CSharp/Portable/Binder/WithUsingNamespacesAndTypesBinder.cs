@@ -74,11 +74,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             string name,
             int arity,
             LookupOptions options,
-            Binder originalBinder)
+            bool isSemanticModelBinder)
         {
             Debug.Assert(methods.Count == 0);
-
-            bool callerIsSemanticModel = originalBinder.IsSemanticModelBinder;
 
             // We need to avoid collecting multiple candidates for an extension method imported both through a namespace and a static class
             // We will look for duplicates only if both of the following flags are set to true
@@ -97,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // If we found any extension methods, then consider this using as used.
                             if (methods.Count != count)
                             {
-                                MarkImportDirective(nsOrType.UsingDirectiveReference, callerIsSemanticModel);
+                                MarkImportDirective(nsOrType.UsingDirectiveReference, isSemanticModelBinder);
                                 seenNamespaceWithExtensionMethods = true;
                             }
 
@@ -112,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // If we found any extension methods, then consider this using as used.
                             if (methods.Count != count)
                             {
-                                MarkImportDirective(nsOrType.UsingDirectiveReference, callerIsSemanticModel);
+                                MarkImportDirective(nsOrType.UsingDirectiveReference, isSemanticModelBinder);
                                 seenStaticClassWithExtensionMethods = true;
                             }
 

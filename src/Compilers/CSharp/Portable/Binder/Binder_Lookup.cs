@@ -461,14 +461,31 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void LookupExtensionMethodsInSingleBinder(ExtensionMethodScope scope, LookupResult result, string name, int arity, LookupOptions options, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            var methods = scope.Binder.GetAllExtensionMethods();
-            foreach (var method in methods)
+            Debug.Assert(this.IsSemanticModelBinder == scope.Binder.IsSemanticModelBinder);
+            if (arity == 0 && options == LookupOptions.AllMethodsOnArityZero)
             {
-                if (name is null || name == method.Name)
+                var methods = scope.Binder.GetAllExtensionMethods();
+                foreach (var method in methods)
+                {
+                    if (name is null || name == method.Name)
+                    {
+                        SingleLookupResult resultOfThisMember = this.CheckViability(method, arity, options, null, diagnose: true, useSiteInfo: ref useSiteInfo);
+                        result.MergeEqual(resultOfThisMember);
+                    }
+                }
+            }
+            else
+            {
+                var methods = ArrayBuilder<MethodSymbol>.GetInstance();
+                scope.Binder.GetCandidateExtensionMethods(methods, name, arity, options, this.IsSemanticModelBinder);
+
+                foreach (var method in methods)
                 {
                     SingleLookupResult resultOfThisMember = this.CheckViability(method, arity, options, null, diagnose: true, useSiteInfo: ref useSiteInfo);
                     result.MergeEqual(resultOfThisMember);
                 }
+
+                methods.Free();
             }
         }
 
@@ -479,9 +496,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return _lazyExtensionMethods;
             }
 
-
             var methods = ArrayBuilder<MethodSymbol>.GetInstance();
-            GetCandidateExtensionMethods(methods, name: null, arity: 0, LookupOptions.AllMethodsOnArityZero, this);
+            GetCandidateExtensionMethods(methods, name: null, arity: 0, LookupOptions.AllMethodsOnArityZero, this.IsSemanticModelBinder);
             ImmutableInterlocked.InterlockedInitialize(ref _lazyExtensionMethods, methods.ToImmutableAndFree());
             return _lazyExtensionMethods;
         }
@@ -769,7 +785,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string name,
             int arity,
             LookupOptions options,
-            Binder originalBinder)
+            bool isSemanticModelBinder)
         {
         }
 

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string name,
             int arity,
             LookupOptions options,
-            Binder originalBinder)
+            bool isSemanticModelBinder)
         {
             for (var submission = this.Compilation; submission != null; submission = submission.PreviousSubmission)
             {

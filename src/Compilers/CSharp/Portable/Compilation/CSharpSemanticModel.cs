@@ -4631,7 +4631,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                              name,
                                                              arity,
                                                              options,
-                                                             originalBinder: binder);
+                                                             isSemanticModelBinder: true);
 
                     foreach (var method in extensionMethods)
                     {

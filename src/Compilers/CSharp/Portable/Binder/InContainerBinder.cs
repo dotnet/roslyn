@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string name,
             int arity,
             LookupOptions options,
-            Binder originalBinder)
+            bool isSemanticModelBinder)
         {
             if (_container.Kind == SymbolKind.Namespace)
             {
