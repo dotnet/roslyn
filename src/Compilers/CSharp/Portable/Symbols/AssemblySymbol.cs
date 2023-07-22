@@ -60,6 +60,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                if (this != _corLibrary)
+                {
+                    return _corLibrary.TypeConversions;
+                }
+
                 if (_lazyTypeConversions is null)
                 {
                     Interlocked.CompareExchange(ref _lazyTypeConversions, new TypeConversions(this), null);
