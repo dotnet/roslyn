@@ -928,13 +928,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // attributes are requested.
                 if (!_packedFlags.IsExtensionMethodIsPopulated)
                 {
-                    bool isExtensionMethod = false;
-                    if (this.MethodKind == MethodKind.Ordinary && IsValidExtensionMethodSignature()
-                        && this.ContainingType.MightContainExtensionMethods)
-                    {
-                        var moduleSymbol = _containingType.ContainingPEModule;
-                        isExtensionMethod = moduleSymbol.Module.HasExtensionAttribute(_handle, ignoreCase: false);
-                    }
+                    bool isExtensionMethod = this.MethodKind == MethodKind.Ordinary && IsValidExtensionMethodSignature() && this.ContainingType.MightContainExtensionMethods;
                     _packedFlags.InitializeIsExtensionMethod(isExtensionMethod);
                 }
                 return _packedFlags.IsExtensionMethod;
