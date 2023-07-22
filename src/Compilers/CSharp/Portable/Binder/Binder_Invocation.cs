@@ -1580,6 +1580,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (useType)
                     {
                         diagnostics.AddRange(typeOrValue.Data.TypeDiagnostics);
+
+                        foreach (Diagnostic d in typeOrValue.Data.ValueDiagnostics.Diagnostics)
+                        {
+                            if (d.Code == (int)ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase &&
+                                !(d.Arguments is [ParameterSymbol shadowedParameter] && shadowedParameter.Type.Equals(typeOrValue.Data.ValueExpression.Type, TypeCompareKind.AllIgnoreOptions))) // If the type and the name match, we would resolve to the same type rather than a value at the end.
+                            {
+                                diagnostics.Add(d);
+                            }
+                        }
+
                         return typeOrValue.Data.TypeExpression;
                     }
                     else
@@ -1740,7 +1750,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments, IEnumerable<ImmutableArray<ParameterSymbol>> parameterListList)
         {
-            var discardedDiagnostics = DiagnosticBag.GetInstance();
             int argumentCount = analyzedArguments.Arguments.Count;
             ArrayBuilder<BoundExpression> newArguments = ArrayBuilder<BoundExpression>.GetInstance(argumentCount);
             newArguments.AddRange(analyzedArguments.Arguments);
@@ -1821,7 +1830,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            discardedDiagnostics.Free();
             return newArguments.ToImmutableAndFree();
 
             TypeSymbol getCorrespondingParameterType(int i)

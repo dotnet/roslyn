@@ -1130,6 +1130,26 @@ class C
             await VerifyItemIsAbsentAsync(markup, "ConsoleColor");
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68240")]
+        public async Task TestNotCompilerGeneratedField()
+        {
+            var markup = """
+                class Sample
+                {
+                    public static Sample Instance { get; } = new Sample();
+
+                    private sealed class Nested
+                    {
+                        Sample A()
+                        {
+                            return $$
+                        }
+                    }
+                }
+                """;
+            await VerifyItemIsAbsentAsync(markup, "Sample.<Instance>k__BackingField");
+        }
+
         #region enum members
 
         [Fact]

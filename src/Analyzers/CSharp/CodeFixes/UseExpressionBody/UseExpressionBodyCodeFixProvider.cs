@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
             var priority = diagnostic.Severity == DiagnosticSeverity.Hidden
                 ? CodeActionPriority.Low
-                : CodeActionPriority.Medium;
+                : CodeActionPriority.Default;
 
             var title = diagnostic.GetMessage();
 

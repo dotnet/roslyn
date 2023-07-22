@@ -46,19 +46,13 @@ namespace Microsoft.CodeAnalysis.Classification
     /// second and third ints encode the span.
     /// </summary>
     [DataContract]
-    internal sealed class SerializableClassifiedSpans
+    internal sealed class SerializableClassifiedSpans(ImmutableArray<string> classificationTypes, ImmutableArray<int> classificationTriples)
     {
         [DataMember(Order = 0)]
-        public readonly ImmutableArray<string> ClassificationTypes;
+        public readonly ImmutableArray<string> ClassificationTypes = classificationTypes;
 
         [DataMember(Order = 1)]
-        public readonly ImmutableArray<int> ClassificationTriples;
-
-        public SerializableClassifiedSpans(ImmutableArray<string> classificationTypes, ImmutableArray<int> classificationTriples)
-        {
-            ClassificationTypes = classificationTypes;
-            ClassificationTriples = classificationTriples;
-        }
+        public readonly ImmutableArray<int> ClassificationTriples = classificationTriples;
 
         internal static SerializableClassifiedSpans Dehydrate(ImmutableArray<ClassifiedSpan> classifiedSpans)
         {

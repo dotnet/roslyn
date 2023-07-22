@@ -9058,6 +9058,28 @@ namespace N
             await VerifyItemExistsAsync(markup, "M");
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67985")]
+        public async Task UsingDirectives7()
+        {
+            var markup = @"
+using static unsafe $$
+
+class A { }
+static class B { }
+
+namespace N
+{
+    class C { }
+    static class D { }
+
+    namespace M { }
+}";
+
+            await VerifyItemExistsAsync(markup, "A");
+            await VerifyItemExistsAsync(markup, "B");
+            await VerifyItemExistsAsync(markup, "N");
+        }
+
         [Fact]
         public async Task UsingStaticDoesNotShowDelegates1()
         {
@@ -9102,9 +9124,32 @@ namespace N
             await VerifyItemExistsAsync(markup, "M");
         }
 
-        [Fact]
-        public async Task UsingStaticDoesNotShowInterfaces1()
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67985")]
+        public async Task UsingStaticDoesNotShowDelegates3()
         {
+            var markup = @"
+using static unsafe $$
+
+class A { }
+delegate void B();
+
+namespace N
+{
+    class C { }
+    static class D { }
+
+    namespace M { }
+}";
+
+            await VerifyItemExistsAsync(markup, "A");
+            await VerifyItemIsAbsentAsync(markup, "B");
+            await VerifyItemExistsAsync(markup, "N");
+        }
+
+        [Fact]
+        public async Task UsingStaticShowInterfaces1()
+        {
+            // Interfaces can have implemented static methods
             var markup = @"
 using static N.$$
 
@@ -9120,13 +9165,14 @@ namespace N
 }";
 
             await VerifyItemExistsAsync(markup, "C");
-            await VerifyItemIsAbsentAsync(markup, "I");
+            await VerifyItemExistsAsync(markup, "I");
             await VerifyItemExistsAsync(markup, "M");
         }
 
         [Fact]
-        public async Task UsingStaticDoesNotShowInterfaces2()
+        public async Task UsingStaticShowInterfaces2()
         {
+            // Interfaces can have implemented static methods
             var markup = @"
 using static $$
 
@@ -9142,7 +9188,30 @@ namespace N
 }";
 
             await VerifyItemExistsAsync(markup, "A");
-            await VerifyItemIsAbsentAsync(markup, "I");
+            await VerifyItemExistsAsync(markup, "I");
+            await VerifyItemExistsAsync(markup, "N");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67985")]
+        public async Task UsingStaticShowInterfaces3()
+        {
+            // Interfaces can have implemented static methods
+            var markup = @"
+using static unsafe $$
+
+class A { }
+interface I { }
+
+namespace N
+{
+    class C { }
+    static class D { }
+
+    namespace M { }
+}";
+
+            await VerifyItemExistsAsync(markup, "A");
+            await VerifyItemExistsAsync(markup, "I");
             await VerifyItemExistsAsync(markup, "N");
         }
 

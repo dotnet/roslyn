@@ -693,6 +693,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasPrimaryConstructor;
+
+                foreach (var attributeListSyntax in node.AttributeLists)
+                {
+                    if (attributeListSyntax.Target?.Identifier.ToAttributeLocation() == AttributeLocation.Method)
+                    {
+                        declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.AnyMemberHasAttributes;
+                        break;
+                    }
+                }
             }
 
             var memberNames = GetNonTypeMemberNames(

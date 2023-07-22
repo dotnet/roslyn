@@ -1523,13 +1523,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (lookupResult.IsMultiViable)
                     {
-                        var conversions = Conversions;
-
                         foreach (var symbol in lookupResult.Symbols)
                         {
                             var method = (MethodSymbol)symbol;
-                            var conversion = conversions.ConvertExtensionMethodThisArg(method.Parameters[0].Type, receiverType, ref useSiteInfo);
-                            if (conversion.Exists)
+                            if (method.ReduceExtensionMethod(receiverType, Compilation) is not null)
                             {
                                 haveInstanceCandidates = true;
                                 break;
@@ -2480,7 +2477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static BestSymbolLocation GetLocation(CSharpCompilation compilation, Symbol symbol)
         {
-            if (symbol is SourceMemberContainerTypeSymbol { IsFileLocal: true })
+            if (symbol is NamedTypeSymbol { IsFileLocal: true })
             {
                 return BestSymbolLocation.FromFile;
             }
@@ -2696,11 +2693,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool CheckFeatureAvailability(SyntaxNode syntax, MessageID feature, BindingDiagnosticBag diagnostics, Location? location = null)
             => CheckFeatureAvailability(syntax, feature, diagnostics.DiagnosticBag, location);
 
-        internal static bool CheckFeatureAvailability(SyntaxToken syntax, MessageID feature, BindingDiagnosticBag diagnostics, Location? location = null)
-            => CheckFeatureAvailability(syntax, feature, diagnostics.DiagnosticBag, location);
-
-        internal static bool CheckFeatureAvailability(SyntaxNodeOrToken syntax, MessageID feature, BindingDiagnosticBag diagnostics, Location? location = null)
-            => CheckFeatureAvailability(syntax, feature, diagnostics.DiagnosticBag, location);
+        internal static bool CheckFeatureAvailability(SyntaxToken syntax, MessageID feature, BindingDiagnosticBag diagnostics)
+            => CheckFeatureAvailability(syntax, feature, diagnostics.DiagnosticBag);
 
         internal static bool CheckFeatureAvailability(SyntaxTree tree, MessageID feature, BindingDiagnosticBag diagnostics, Location location)
             => CheckFeatureAvailability(tree, feature, diagnostics.DiagnosticBag, location);
@@ -2708,11 +2702,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool CheckFeatureAvailability(SyntaxNode syntax, MessageID feature, DiagnosticBag? diagnostics, Location? location = null)
             => CheckFeatureAvailability(syntax.SyntaxTree, feature, diagnostics, (location, syntax), static tuple => tuple.location ?? tuple.syntax.GetLocation());
 
-        private static bool CheckFeatureAvailability(SyntaxToken syntax, MessageID feature, DiagnosticBag? diagnostics, Location? location = null)
-            => CheckFeatureAvailability(syntax.SyntaxTree!, feature, diagnostics, (location, syntax), static tuple => tuple.location ?? tuple.syntax.GetLocation());
-
-        private static bool CheckFeatureAvailability(SyntaxNodeOrToken syntax, MessageID feature, DiagnosticBag? diagnostics, Location? location = null)
-            => CheckFeatureAvailability(syntax.SyntaxTree!, feature, diagnostics, (location, syntax), static tuple => tuple.location ?? tuple.syntax.GetLocation()!);
+        private static bool CheckFeatureAvailability(SyntaxToken syntax, MessageID feature, DiagnosticBag? diagnostics)
+            => CheckFeatureAvailability(syntax.SyntaxTree!, feature, diagnostics, syntax, static syntax => syntax.GetLocation());
 
         private static bool CheckFeatureAvailability(SyntaxTree tree, MessageID feature, DiagnosticBag? diagnostics, Location location)
             => CheckFeatureAvailability(tree, feature, diagnostics, location, static location => location);

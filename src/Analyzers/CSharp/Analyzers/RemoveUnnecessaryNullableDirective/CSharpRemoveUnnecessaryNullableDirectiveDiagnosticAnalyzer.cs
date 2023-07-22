@@ -259,9 +259,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryNullableDirective
             }
         }
 
-        private class AnalyzerImpl
+        private class AnalyzerImpl(CSharpRemoveUnnecessaryNullableDirectiveDiagnosticAnalyzer analyzer)
         {
-            private readonly CSharpRemoveUnnecessaryNullableDirectiveDiagnosticAnalyzer _analyzer;
+            private readonly CSharpRemoveUnnecessaryNullableDirectiveDiagnosticAnalyzer _analyzer = analyzer;
 
             /// <summary>
             /// Tracks the analysis state of syntax trees in a compilation.
@@ -269,12 +269,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryNullableDirective
             private readonly ConcurrentDictionary<SyntaxTree, SyntaxTreeState> _codeBlockIntervals
                 = new();
 
-            public AnalyzerImpl(CSharpRemoveUnnecessaryNullableDirectiveDiagnosticAnalyzer analyzer)
-                => _analyzer = analyzer;
-
             public void AnalyzeCodeBlock(CodeBlockAnalysisContext context)
             {
                 if (IsIgnoredCodeBlock(context.CodeBlock))
+                    return;
+
+                var root = context.GetAnalysisRoot(findInTrivia: true);
+
+                // Bail out if the root contains no nullable directives.
+                if (!root.ContainsDirective(SyntaxKind.NullableDirectiveTrivia))
                     return;
 
                 var syntaxTreeState = GetOrCreateSyntaxTreeState(context.CodeBlock.SyntaxTree, defaultCompleted: false, context.SemanticModel, context.CancellationToken);

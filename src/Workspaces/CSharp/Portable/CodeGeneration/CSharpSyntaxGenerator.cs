@@ -397,8 +397,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override SyntaxNode GetAccessorDeclaration(Accessibility accessibility, IEnumerable<SyntaxNode>? statements)
             => AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, accessibility, statements);
 
-        public override SyntaxNode SetAccessorDeclaration(Accessibility accessibility, IEnumerable<SyntaxNode>? statements)
-            => AccessorDeclaration(SyntaxKind.SetAccessorDeclaration, accessibility, statements);
+        private protected override SyntaxNode SetAccessorDeclaration(Accessibility accessibility, bool isInitOnly, IEnumerable<SyntaxNode>? statements)
+            => AccessorDeclaration(isInitOnly ? SyntaxKind.InitAccessorDeclaration : SyntaxKind.SetAccessorDeclaration, accessibility, statements);
 
         private static SyntaxNode AccessorDeclaration(
             SyntaxKind kind, Accessibility accessibility, IEnumerable<SyntaxNode>? statements)
@@ -1820,12 +1820,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static ExplicitInterfaceSpecifierSyntax CreateExplicitInterfaceSpecifier(ImmutableArray<ISymbol> explicitInterfaceImplementations)
             => SyntaxFactory.ExplicitInterfaceSpecifier(explicitInterfaceImplementations[0].ContainingType.GenerateNameSyntax());
 
-        public override SyntaxNode WithTypeConstraint(SyntaxNode declaration, string typeParameterName, SpecialTypeConstraintKind kinds, IEnumerable<SyntaxNode>? types)
+        private protected override SyntaxNode WithTypeConstraint(
+            SyntaxNode declaration, string typeParameterName, SpecialTypeConstraintKind kinds, bool isUnmanagedType, IEnumerable<SyntaxNode>? types)
             => declaration switch
             {
-                MethodDeclarationSyntax method => method.WithConstraintClauses(WithTypeConstraints(method.ConstraintClauses, typeParameterName, kinds, types)),
-                TypeDeclarationSyntax type => type.WithConstraintClauses(WithTypeConstraints(type.ConstraintClauses, typeParameterName, kinds, types)),
-                DelegateDeclarationSyntax @delegate => @delegate.WithConstraintClauses(WithTypeConstraints(@delegate.ConstraintClauses, typeParameterName, kinds, types)),
+                MethodDeclarationSyntax method => method.WithConstraintClauses(WithTypeConstraints(method.ConstraintClauses, typeParameterName, kinds, isUnmanagedType, types)),
+                TypeDeclarationSyntax type => type.WithConstraintClauses(WithTypeConstraints(type.ConstraintClauses, typeParameterName, kinds, isUnmanagedType, types)),
+                DelegateDeclarationSyntax @delegate => @delegate.WithConstraintClauses(WithTypeConstraints(@delegate.ConstraintClauses, typeParameterName, kinds, isUnmanagedType, types)),
                 _ => declaration,
             };
 
@@ -1837,7 +1838,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static SyntaxList<TypeParameterConstraintClauseSyntax> WithTypeConstraints(
-            SyntaxList<TypeParameterConstraintClauseSyntax> clauses, string typeParameterName, SpecialTypeConstraintKind kinds, IEnumerable<SyntaxNode>? types)
+            SyntaxList<TypeParameterConstraintClauseSyntax> clauses,
+            string typeParameterName,
+            SpecialTypeConstraintKind kinds,
+            bool isUnmanagedType,
+            IEnumerable<SyntaxNode>? types)
         {
             var constraints = types != null
                 ? SyntaxFactory.SeparatedList<TypeParameterConstraintSyntax>(types.Select(t => SyntaxFactory.TypeConstraint((TypeSyntax)t)))
@@ -1849,11 +1854,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
 
             var isReferenceType = (kinds & SpecialTypeConstraintKind.ReferenceType) != 0;
-            var isValueType = (kinds & SpecialTypeConstraintKind.ValueType) != 0;
+            var isValueType = (kinds & SpecialTypeConstraintKind.ValueType) != 0 && !isUnmanagedType;
 
             if (isReferenceType || isValueType)
             {
                 constraints = constraints.Insert(0, SyntaxFactory.ClassOrStructConstraint(isReferenceType ? SyntaxKind.ClassConstraint : SyntaxKind.StructConstraint));
+            }
+            else if (isUnmanagedType)
+            {
+                constraints = constraints.Insert(0, SyntaxFactory.TypeConstraint(SyntaxFactory.IdentifierName("unmanaged")));
             }
 
             var clause = clauses.FirstOrDefault(c => c.Name.Identifier.ToString() == typeParameterName);

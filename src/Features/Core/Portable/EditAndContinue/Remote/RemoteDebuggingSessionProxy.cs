@@ -17,18 +17,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal sealed class RemoteDebuggingSessionProxy : IActiveStatementSpanProvider, IDisposable
+    internal sealed class RemoteDebuggingSessionProxy(Workspace workspace, IDisposable? connection, DebuggingSessionId sessionId) : IActiveStatementSpanProvider, IDisposable
     {
-        private readonly IDisposable? _connection;
-        private readonly DebuggingSessionId _sessionId;
-        private readonly Workspace _workspace;
-
-        public RemoteDebuggingSessionProxy(Workspace workspace, IDisposable? connection, DebuggingSessionId sessionId)
-        {
-            _connection = connection;
-            _sessionId = sessionId;
-            _workspace = workspace;
-        }
+        private readonly IDisposable? _connection = connection;
+        private readonly DebuggingSessionId _sessionId = sessionId;
+        private readonly Workspace _workspace = workspace;
 
         public void Dispose()
         {

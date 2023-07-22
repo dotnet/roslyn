@@ -758,6 +758,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Enum:
                         return null;
 
+                    case TypeKindInternal.FunctionType:
+                        if (((FunctionTypeSymbol)current).GetInternalDelegateType() is not { } delegateType)
+                        {
+                            return null;
+                        }
+
+                        current = delegateType;
+                        goto case TypeKind.Delegate;
+
                     case TypeKind.Error:
                     case TypeKind.Class:
                     case TypeKind.Struct:
@@ -1366,7 +1375,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool HasFileLocalTypes(this TypeSymbol type)
         {
-            var foundType = type.VisitType(predicate: (type, _, _) => type is SourceMemberContainerTypeSymbol { IsFileLocal: true }, arg: (object?)null);
+            var foundType = type.VisitType(predicate: (type, _, _) => type is NamedTypeSymbol { IsFileLocal: true }, arg: (object?)null);
             return foundType is not null;
         }
 

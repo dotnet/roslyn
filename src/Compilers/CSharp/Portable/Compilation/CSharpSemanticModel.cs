@@ -2183,6 +2183,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                         conversion = Conversion.Identity;
                     }
                 }
+                else if (boundExpr is BoundCollectionExpression convertedCollection)
+                {
+                    type = null;
+                    if (highestBoundExpr is BoundConversion { ConversionKind: ConversionKind.CollectionExpression or ConversionKind.NoConversion, Conversion: var convertedCollectionConversion })
+                    {
+                        convertedType = highestBoundExpr.Type;
+                        convertedNullability = convertedCollection.TopLevelNullability;
+                        conversion = convertedCollectionConversion;
+                    }
+                    else
+                    {
+                        // There was an explicit cast on top of this.
+                        (convertedType, convertedNullability) = (convertedCollection.Type, nullability);
+                        conversion = convertedCollection.CollectionTypeKind == CollectionExpressionTypeKind.None
+                            ? Conversion.NoConversion
+                            : Conversion.CollectionExpression;
+                    }
+                }
                 else if (highestBoundExpr != null && highestBoundExpr != boundExpr && highestBoundExpr.HasExpressionType())
                 {
                     (convertedType, convertedNullability) = getTypeAndNullability(highestBoundExpr);
@@ -4689,8 +4707,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref LookupResultKind resultKind,
             CSharpCompilation compilation)
         {
-            Debug.Assert(singleResult.Kind != LookupResultKind.Empty);
-            Debug.Assert((object)singleResult.Symbol != null);
+            if (singleResult.Symbol is null)
+            {
+                return;
+            }
+
             Debug.Assert(singleResult.Symbol.Kind == SymbolKind.Method);
 
             var singleKind = singleResult.Kind;
@@ -5149,13 +5170,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this.GetDeclaredSymbols(field, cancellationToken);
             }
 
-            var symbol = GetDeclaredSymbolCore(declaration, cancellationToken);
-            if (symbol != null)
+            // If the type decl has a primary constructor, return that symbol as well.  This is needed so that if the
+            // 'suppression' or 'generated code' attribute is on the primary constructor (i.e. by using `[method:
+            // SuppressMessage(...)]`, it will be found when walking up to the type declaration.
+            if (declaration is TypeDeclarationSyntax typeDeclaration)
             {
-                return ImmutableArray.Create(symbol);
+                var namedType = GetDeclaredSymbol(typeDeclaration, cancellationToken);
+                var primaryConstructor = TryGetSynthesizedPrimaryConstructor(
+                    typeDeclaration, namedType.GetSymbol<NamedTypeSymbol>());
+
+                return primaryConstructor is null
+                    ? ImmutableArray.Create<ISymbol>(namedType)
+                    : ImmutableArray.Create<ISymbol>(namedType, primaryConstructor.GetPublicSymbol());
             }
 
-            return ImmutableArray.Create<ISymbol>();
+            var symbol = GetDeclaredSymbolCore(declaration, cancellationToken);
+            return symbol != null
+                ? ImmutableArray.Create(symbol)
+                : ImmutableArray<ISymbol>.Empty;
+        }
+
+        protected static SynthesizedPrimaryConstructor TryGetSynthesizedPrimaryConstructor(TypeDeclarationSyntax node, NamedTypeSymbol type)
+        {
+            if (type is SourceMemberContainerTypeSymbol { PrimaryConstructor: { } primaryConstructor }
+                && primaryConstructor.SyntaxRef.SyntaxTree == node.SyntaxTree
+                && primaryConstructor.GetSyntax() == node)
+            {
+                return primaryConstructor;
+            }
+
+            return null;
         }
 
         internal override void ComputeDeclarationsInSpan(TextSpan span, bool getSymbol, ArrayBuilder<DeclarationInfo> builder, CancellationToken cancellationToken)

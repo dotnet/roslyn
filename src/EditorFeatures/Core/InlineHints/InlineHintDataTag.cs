@@ -16,23 +16,16 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
     /// The simple tag that only holds information regarding the associated parameter name
     /// for the argument
     /// </summary>
-    internal sealed class InlineHintDataTag : ITag, IEquatable<InlineHintDataTag>
+    internal sealed class InlineHintDataTag(InlineHintsDataTaggerProvider provider, ITextSnapshot snapshot, InlineHint hint) : ITag, IEquatable<InlineHintDataTag>
     {
-        private readonly InlineHintsDataTaggerProvider _provider;
+        private readonly InlineHintsDataTaggerProvider _provider = provider;
 
         /// <summary>
         /// The snapshot this tag was created against.
         /// </summary>
-        private readonly ITextSnapshot _snapshot;
+        private readonly ITextSnapshot _snapshot = snapshot;
 
-        public readonly InlineHint Hint;
-
-        public InlineHintDataTag(InlineHintsDataTaggerProvider provider, ITextSnapshot snapshot, InlineHint hint)
-        {
-            _provider = provider;
-            _snapshot = snapshot;
-            Hint = hint;
-        }
+        public readonly InlineHint Hint = hint;
 
         // Intentionally throwing, we have never supported this facility, and there is no contract around placing
         // these tags in sets or maps.

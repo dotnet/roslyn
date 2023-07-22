@@ -8,6 +8,7 @@ docs/compilers @dotnet/roslyn-compiler
 docs/ide @dotnet/roslyn-ide
 
 eng/ @dotnet/roslyn-infrastructure
+eng/SourceBuild* @dotnet/source-build-internal
 scripts/ @dotnet/roslyn-infrastructure
 
 src/Analyzers/ @dotnet/roslyn-ide
@@ -52,3 +53,4 @@ src/EditorFeatures/**/PublicAPI.Unshipped.txt @dotnet/roslyn-api-owners
 
 src/Tools/ExternalAccess/OmniSharp*/ @333fred @dibarbet
 src/Tools/ExternalAccess/RazorCompiler*/ @dotnet/roslyn-compiler
+src/Tools/ExternalAccess/CompilerDeveloperSDK/ @333fred

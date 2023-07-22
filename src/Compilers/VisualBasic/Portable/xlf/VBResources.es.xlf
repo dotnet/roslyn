@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotInheritFromTypeWithRequiredMembers">
         <source>Cannot inherit from '{0}' because it has required members.</source>
-        <target state="new">Cannot inherit from '{0}' because it has required members.</target>
+        <target state="translated">No se puede heredar de '{0}' porque tiene miembros necesarios.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="ERR_DoNotUseRequiredMember">
         <source>'System.Runtime.CompilerServices.RequiredMemberAttribute' is reserved for compiler usage only.</source>
-        <target state="new">'System.Runtime.CompilerServices.RequiredMemberAttribute' is reserved for compiler usage only.</target>
+        <target state="translated">'System.Runtime.CompilerServices.RequiredMemberAttribute' está reservado solo para uso del compilador.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="ERR_NewConstraintCannotHaveRequiredMembers">
         <source>'{2}' cannot satisfy the 'New' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</source>
-        <target state="new">'{2}' cannot satisfy the 'New' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</target>
+        <target state="translated">'{2}' no puede satisfacer la restricción 'New' en el parámetro '{1}' en el tipo o método genérico '{0}' porque '{2}' tiene miembros necesarios.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverridingInitOnlyProperty">
@@ -69,12 +69,12 @@
       </trans-unit>
       <trans-unit id="ERR_RequiredMemberMustBeSet">
         <source>Required member '{0}' must be set in the object initializer or attribute arguments.</source>
-        <target state="new">Required member '{0}' must be set in the object initializer or attribute arguments.</target>
+        <target state="translated">El miembro requerido '{0}' debe establecerse en el inicializador de objeto o en los argumentos de atributo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RequiredMembersInvalid">
         <source>The required members list for '{0}' is malformed and cannot be interpreted.</source>
-        <target state="new">The required members list for '{0}' is malformed and cannot be interpreted.</target>
+        <target state="translated">La lista de miembros necesarios para '{0}' tiene un formato incorrecto y no se puede interpretar.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
@@ -92,6 +92,11 @@
         <target state="translated">Los métodos no pueden controlar los eventos de variables WithEvents compartidas en un tipo distinto.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SymbolDefinedInAssembly">
+        <source>'{0}' is defined in assembly '{1}'.</source>
+        <target state="translated">'{0}' se define en el ensamblado '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
         <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract or virtual '{2}'.</source>
         <target state="translated">{0} '{1}' no puede implementar la interfaz '{3}' porque contiene abstracto compartido o '{2}' virtual.</target>
@@ -105,6 +110,11 @@
       <trans-unit id="ERR_UnsupportedCompilerFeature">
         <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the Visual Basic compiler.</source>
         <target state="translated">'{0}' requiere la característica del compilador '{1}', que no es compatible con esta versión del compilador de Visual Basic.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedRefReturningCallInWithStatement">
+        <source>A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.</source>
+        <target state="translated">Una llamada a un método o propiedad que devuelve por referencia no se puede usar como expresión de instrucción 'With' en un método asincrónico o iterador, o si se hace referencia implícitamente en una expresión lambda.</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CallerArgumentExpression">
@@ -282,6 +292,9 @@
                                   AnyCPU32BitPreferred or anycpu (default).
 -preferreduilang                  Specify the preferred output language name.
 -nosdkpath                        Disable searching the default SDK path for standard library assemblies.
+-reportivts[+|-]                  Output information on all IVTs granted to this
+                                  assembly by all dependencies, and annotate foreign assembly
+                                  accessibility errors with what assembly they came from.
 -sdkpath:&lt;path&gt;                   Location of the .NET Framework SDK directory
                                   (mscorlib.dll).
 -subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
@@ -448,6 +461,9 @@
                                   AnyCPU32BitPreferred o anycpu (valor predeterminado).
 -preferreduilang                  Especifique el nombre del idioma de salida preferido.
 -nosdkpath                        Deshabilita la búsqueda de rutas de acceso SDK predeterminadas para la biblioteca estándar.
+-reportivts[+|-]                  Información de salida sobre todos los IVT concedidos a este
+                                  ensamblado por todas las dependencias y anotar los errores de accesibilidad de ensamblados
+                                  externos con el ensamblado del que proceden.
 -sdkpath:&lt;path&gt;                   Ubicación del directorio de .NET Framework SDK
                                   (mscorlib.dll).
 -subsystemversion:&lt;version&gt;       Especificar versión del subsistema del PE de salida.
