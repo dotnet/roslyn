@@ -45,6 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // lazily created, does not need to be unique
         private ConcurrentCache<string, ImmutableArray<Symbol>> _lazyMembersByNameCache;
 
+        private ImmutableArray<Symbol> _lazyMembers;
+
         protected SubstitutedNamedTypeSymbol(Symbol newContainer, TypeMap map, NamedTypeSymbol originalDefinition, NamedTypeSymbol constructedFrom = null, bool unbound = false, TupleExtraData tupleData = null)
             : base(originalDefinition, tupleData)
         {
@@ -209,6 +211,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override ImmutableArray<Symbol> GetMembers()
         {
+            if (!_lazyMembers.IsDefault)
+            {
+                return _lazyMembers;
+            }
+
             var builder = ArrayBuilder<Symbol>.GetInstance();
 
             if (_unbound)
@@ -232,7 +239,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             builder = AddOrWrapTupleMembersIfNecessary(builder);
 
-            return builder.ToImmutableAndFree();
+            var result = builder.ToImmutableAndFree();
+            ImmutableInterlocked.InterlockedInitialize(ref _lazyMembers, result);
+            return _lazyMembers;
         }
 
         private ArrayBuilder<Symbol> AddOrWrapTupleMembersIfNecessary(ArrayBuilder<Symbol> builder)
@@ -258,6 +267,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override ImmutableArray<Symbol> GetMembersUnordered()
         {
+            if (!_lazyMembers.IsDefault)
+            {
+                // If we already calculated the ordered members, return it directly.
+                return _lazyMembers;
+            }
+
             var builder = ArrayBuilder<Symbol>.GetInstance();
 
             if (_unbound)
