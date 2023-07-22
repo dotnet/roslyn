@@ -248,31 +248,6 @@ namespace Microsoft.CodeAnalysis.LanguageService
         private static bool SpansPreprocessorDirective(this ISyntaxFacts syntaxFacts, SyntaxTriviaList list)
             => list.Any(syntaxFacts.IsPreprocessorDirective);
 
-        public static bool SpansIfOrElseIfPreprocessorDirective(this ISyntaxFacts syntaxFacts, SyntaxToken token)
-        {
-            var parent = token.Parent;
-            return syntaxFacts.SpansIfOrElseIfPreprocessorDirective(parent);
-        }
-        public static bool SpansIfOrElseIfPreprocessorDirective(this ISyntaxFacts syntaxFacts, SyntaxNode? node)
-        {
-            var kinds = syntaxFacts.SyntaxKinds;
-
-            var ifDirectiveKind = kinds.IfDirectiveTrivia;
-            var elseIfDirectiveKind = kinds.ElifDirectiveTrivia;
-
-            while (node is not null)
-            {
-                if (node.RawKind == ifDirectiveKind)
-                    return true;
-                if (node.RawKind == elseIfDirectiveKind)
-                    return true;
-
-                node = node.Parent;
-            }
-
-            return false;
-        }
-
         public static bool IsLegalIdentifier(this ISyntaxFacts syntaxFacts, string name)
         {
             if (name.Length == 0)

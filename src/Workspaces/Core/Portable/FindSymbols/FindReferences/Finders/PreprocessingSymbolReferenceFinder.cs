@@ -26,48 +26,10 @@ internal class PreprocessingSymbolReferenceFinder : AbstractReferenceFinder<IPre
 
         var normalReferences = await FindPreprocessingReferencesInTokensAsync(
             symbol, state,
-            tokens.WhereAsArray(MatchesPreprocessingReference, state),
+            tokens,
             cancellationToken).ConfigureAwait(false);
 
         return normalReferences;
-
-        static bool MatchesPreprocessingReference(SyntaxToken token, FindReferencesDocumentState state)
-        {
-            var syntaxFacts = state.SyntaxFacts;
-
-            var tokenParent = token.Parent;
-            Debug.Assert(tokenParent is not null);
-
-            // Quickly evaluate the common case that the parent is a #define or #undef directive
-            var parentKind = tokenParent.RawKind;
-            if (parentKind == syntaxFacts.SyntaxKinds.DefineDirectiveTrivia)
-                return true;
-
-            if (parentKind == syntaxFacts.SyntaxKinds.UndefDirectiveTrivia)
-                return true;
-
-            // In VB, a #Const directive assigns a value that can also
-            // derive from preprocessing symbols
-            if (state.Document.Project.Language is LanguageNames.VisualBasic)
-            {
-                var extendedTokenParent = tokenParent;
-                while (true)
-                {
-                    extendedTokenParent = extendedTokenParent.Parent;
-
-                    if (extendedTokenParent is null)
-                        break;
-
-                    if (extendedTokenParent.RawKind == syntaxFacts.SyntaxKinds.DefineDirectiveTrivia)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            // Otherwise, only inside an #if or #elif directive are preprocessing symbols used
-            return syntaxFacts.SpansIfOrElseIfPreprocessorDirective(tokenParent);
-        }
     }
 
     protected override bool CanFind(IPreprocessingSymbol symbol) => true;
@@ -135,7 +97,7 @@ internal class PreprocessingSymbolReferenceFinder : AbstractReferenceFinder<IPre
     private static async ValueTask<bool> PreprocessingSymbolsMatchAsync(
         IPreprocessingSymbol searchSymbol, FindReferencesDocumentState state, SyntaxToken token, CancellationToken cancellationToken)
     {
-        var symbol = state.SemanticModel.Compilation.CreatePreprocessingSymbol(token.ValueText);
+        var symbol = state.SemanticModel.GetPreprocessingSymbolInfo(token.Parent!).Symbol;
         return await SymbolFinder.OriginalSymbolsMatchAsync(state.Solution, searchSymbol, symbol, cancellationToken).ConfigureAwait(false);
     }
 
