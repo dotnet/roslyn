@@ -52,8 +52,8 @@ internal class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer t
             TraceLevel = GetTraceLevel(serverConfiguration),
             EnvironmentVariables = new()
             {
-                // Reset dotnet root to the user's original configuration so that vs test console can find the right runtimes.
-                { DotnetCliHelper.DotnetRootEnvVar, DotnetCliHelper.GetUserDotnetRoot() },
+                // Reset dotnet root so that vs test console can find the right runtimes.
+                { DotnetCliHelper.DotnetRootEnvVar, string.Empty },
             }
         });
 
