@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 foreach (var syntaxRef in typeSymbol.DeclaringSyntaxReferences)
                 {
                     if (syntaxRef.GetSyntax(cancellationToken) is TypeDeclarationSyntax { BaseList.Types: var baseTypes })
-                        baseListTypes.AddRange(baseTypes;
+                        baseListTypes.AddRange(baseTypes);
                 }
 
                 return baseListTypes.ToImmutable();
