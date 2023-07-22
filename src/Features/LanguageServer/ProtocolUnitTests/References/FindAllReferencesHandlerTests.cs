@@ -292,8 +292,8 @@ class C
             Assert.Equal(9, textRuns.Count());
         }
 
-        [Fact]
-        public async Task TestFindAllReferencesAsync_PreprocessingSymbol()
+        [Theory, CombinatorialData]
+        public async Task TestFindAllReferencesAsync_PreprocessingSymbol(bool mutatingLspWorkspace)
         {
             var markup =
 @"#define {|reference:PREPROCESSING_SYMBOL|}
@@ -314,7 +314,7 @@ class PREPROCESSING_SYMBOL
 {
 }
 ";
-            await using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
 
             var results = await RunFindAllReferencesAsync<LSP.VSInternalReferenceItem>(testLspServer, testLspServer.GetLocations("caret").First());
 
