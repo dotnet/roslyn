@@ -96,6 +96,31 @@ class Class
 
         <WorkItem(66009, "https://github.com/dotnet/roslyn/issues/66009")>
         <WpfTheory, CombinatorialData>
+        Public Async Function TestPreprocessingSymbolPragmaWarning(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+#define PREPROCESSING_SYMBOL
+
+class Class
+{
+    #pragma warning disable PREPROCESSING_SYMBOL
+    public void Method() { }
+    #pragma warning restore PREPROC$$ESSING_SYMBOL
+}
+
+#if NOT_PREPROCESSING_SYMBOL
+#elif PREPROCESSING_SYMBOL
+#endif
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(66009, "https://github.com/dotnet/roslyn/issues/66009")>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestPreprocessingSymbolMultipleDocuments(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
