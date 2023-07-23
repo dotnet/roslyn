@@ -8656,6 +8656,219 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
+        public void CollectionBuilder_ExtensionMethodGetEnumerator_01()
+        {
+            string source = """
+                using System;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                class MyCollection<T>
+                {
+                }
+                class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
+                }
+                namespace N
+                {
+                    static class Extensions
+                    {
+                        public static IEnumerator<T> GetEnumerator<T>(this MyCollection<T> c) => default;
+                        static MyCollection<T> F<T>() => [];
+                    }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> c = [];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { source, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(24,31): error CS9184: 'MyCollection<int>' has a CollectionBuilderAttribute but no element type.
+                //         MyCollection<int> c = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderNoElementType, "[]").WithArguments("MyCollection<int>").WithLocation(24, 31));
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void CollectionBuilder_ExtensionMethodGetEnumerator_02()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                public class MyCollection<T>
+                {
+                }
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
+                }
+                static class Extensions
+                {
+                    public static IEnumerator<T> GetEnumerator<T>(this MyCollection<T> c) => default;
+                    static MyCollection<T> F<T>() => [];
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics();
+            var refA = comp.EmitToImageReference();
+
+            string sourceB = """
+                #pragma warning disable 219
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> c = [];
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (6,31): error CS9184: 'MyCollection<int>' has a CollectionBuilderAttribute but no element type.
+                //         MyCollection<int> c = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderNoElementType, "[]").WithArguments("MyCollection<int>").WithLocation(6, 31));
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void CollectionBuilder_InaccessibleGetEnumerator()
+        {
+            string source = """
+                using System;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                class MyCollection<T>
+                {
+                    internal IEnumerator<T> GetEnumerator() => default;
+                    public static MyCollection<T> F() => [];
+                }
+                class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> c = [];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { source, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(8,42): error CS9184: 'MyCollection<T>' has a CollectionBuilderAttribute but no element type.
+                //     public static MyCollection<T> F() => [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderNoElementType, "[]").WithArguments("MyCollection<T>").WithLocation(8, 42),
+                // 0.cs(18,31): error CS9184: 'MyCollection<int>' has a CollectionBuilderAttribute but no element type.
+                //         MyCollection<int> c = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderNoElementType, "[]").WithArguments("MyCollection<int>").WithLocation(18, 31));
+        }
+
+        [InlineData("", "", false)]
+        [InlineData("", "", true)]
+        [InlineData("scoped", "", false)]
+        [InlineData("scoped", "", true)]
+        [InlineData("scoped", "scoped", false)]
+        [InlineData("scoped", "scoped", true)]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_Scoped(string constructorParameterModifier, string builderParameterModifier, bool useCompilationReference)
+        {
+            string sourceA = $$"""
+                using System;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                public ref struct MyCollection<T>
+                {
+                    private readonly List<T> _list;
+                    public MyCollection({{constructorParameterModifier}} ReadOnlySpan<T> items)
+                    {
+                        _list = new List<T>(items.ToArray());
+                    }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                }
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>({{builderParameterModifier}} ReadOnlySpan<T> items) => new(items);
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics();
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<string> x = [];
+                        GetItems(x).Report();
+                        MyCollection<int> y = [1, 2, 3];
+                        GetItems(y).Report();
+                    }
+                    static List<T> GetItems<T>(MyCollection<T> c)
+                    {
+                        var list = new List<T>();
+                        foreach (var i in c) list.Add(i);
+                        return list;
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net70, expectedOutput: "[], [1, 2, 3], ");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void CollectionBuilder_ScopedBuilderParameterOnly()
+        {
+            string sourceA = $$"""
+                using System;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                public ref struct MyCollection<T>
+                {
+                    private readonly List<T> _list;
+                    public MyCollection(ReadOnlySpan<T> items)
+                    {
+                        _list = new List<T>(items.ToArray());
+                    }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                }
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(scoped ReadOnlySpan<T> items) => new(items);
+                }
+                """;
+            string sourceB = """
+                #pragma warning disable 219
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<string> x = [];
+                        MyCollection<int> y = [1, 2, 3];
+                        MyCollection<string> z = new();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, sourceB, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(16,78): error CS8347: Cannot use a result of 'MyCollection<T>.MyCollection(ReadOnlySpan<T>)' in this context because it may expose variables referenced by parameter 'items' outside of their declaration scope
+                //     public static MyCollection<T> Create<T>(scoped ReadOnlySpan<T> items) => new(items);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new(items)").WithArguments("MyCollection<T>.MyCollection(System.ReadOnlySpan<T>)", "items").WithLocation(16, 78),
+                // 0.cs(16,82): error CS8352: Cannot use variable 'scoped ReadOnlySpan<T> items' in this context because it may expose referenced variables outside of their declaration scope
+                //     public static MyCollection<T> Create<T>(scoped ReadOnlySpan<T> items) => new(items);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "items").WithArguments("scoped System.ReadOnlySpan<T> items").WithLocation(16, 82));
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void CollectionBuilder_Async()
         {
             string sourceA = """
