@@ -6649,7 +6649,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return reverseMap.TryGetValue(newScope, out var mappedScope) && mappedScope == oldScope;
         }
 
-#endregion
+        #endregion
 
         #region State Machines
 
@@ -6689,7 +6689,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         #endregion
 
-#endregion
+        #endregion
 
         #region Helpers
 
