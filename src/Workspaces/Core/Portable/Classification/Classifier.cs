@@ -168,6 +168,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 ClassificationTypeNames.DelegateName => SymbolDisplayPartKind.DelegateName,
                 ClassificationTypeNames.EnumName => SymbolDisplayPartKind.EnumName,
                 ClassificationTypeNames.TypeParameterName => SymbolDisplayPartKind.TypeParameterName,
+                ClassificationTypeNames.PreprocessingName => SymbolDisplayPartKind.PreprocessingName,
                 ClassificationTypeNames.ModuleName => SymbolDisplayPartKind.ModuleName,
                 ClassificationTypeNames.VerbatimStringLiteral => SymbolDisplayPartKind.StringLiteral,
                 ClassificationTypeNames.FieldName => SymbolDisplayPartKind.FieldName,
