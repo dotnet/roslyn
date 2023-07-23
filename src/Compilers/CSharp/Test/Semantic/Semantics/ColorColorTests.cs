@@ -2367,7 +2367,7 @@ public class Tree2 : Tree1
             compilation.VerifyDiagnostics();
         }
 
-        [WorkItem(45739, "https://github.com/dotnet/roslyn/issues/45739")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/45739")]
         [Fact]
         public void ConstFieldEnum()
         {
@@ -2402,7 +2402,7 @@ class Program
                 .VerifyDiagnostics();
         }
 
-        [WorkItem(45739, "https://github.com/dotnet/roslyn/issues/45739")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/45739")]
         [Fact]
         public void ConstFieldPrimitives()
         {
@@ -2430,7 +2430,7 @@ class Program
                 .VerifyDiagnostics();
         }
 
-        [WorkItem(45739, "https://github.com/dotnet/roslyn/issues/45739")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/45739")]
         [Fact]
         public void ConstFieldPrimitivesActualCircular()
         {
