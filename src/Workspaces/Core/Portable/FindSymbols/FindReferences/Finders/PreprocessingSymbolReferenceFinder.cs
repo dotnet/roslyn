@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
 internal class PreprocessingSymbolReferenceFinder : AbstractReferenceFinder<IPreprocessingSymbol>
 {
+    protected override bool CanFind(IPreprocessingSymbol symbol) => true;
+
     protected sealed override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
         IPreprocessingSymbol symbol,
         FindReferencesDocumentState state,
@@ -31,8 +33,6 @@ internal class PreprocessingSymbolReferenceFinder : AbstractReferenceFinder<IPre
 
         return normalReferences;
     }
-
-    protected override bool CanFind(IPreprocessingSymbol symbol) => true;
 
     protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
         IPreprocessingSymbol symbol,
@@ -64,7 +64,7 @@ internal class PreprocessingSymbolReferenceFinder : AbstractReferenceFinder<IPre
     }
 
     private static async ValueTask<ImmutableArray<FinderLocation>> FindPreprocessingReferencesInTokensAsync(
-        ISymbol symbol,
+        IPreprocessingSymbol symbol,
         FindReferencesDocumentState state,
         ImmutableArray<SyntaxToken> tokens,
         CancellationToken cancellationToken)
@@ -78,7 +78,7 @@ internal class PreprocessingSymbolReferenceFinder : AbstractReferenceFinder<IPre
                 symbol, state, token, cancellationToken).ConfigureAwait(false);
             if (matched)
             {
-                var finderLocation = CreateFinderLocation(state, token, cancellationToken);
+                var finderLocation = CreateFinderLocation(state, token, CandidateReason.None, cancellationToken);
 
                 locations.Add(finderLocation);
             }
@@ -94,13 +94,11 @@ internal class PreprocessingSymbolReferenceFinder : AbstractReferenceFinder<IPre
 
         return await PreprocessingSymbolsMatchAsync(preprocessingSearchSymbol, state, token, cancellationToken).ConfigureAwait(false);
     }
+
     private static async ValueTask<bool> PreprocessingSymbolsMatchAsync(
         IPreprocessingSymbol searchSymbol, FindReferencesDocumentState state, SyntaxToken token, CancellationToken cancellationToken)
     {
         var symbol = state.SemanticModel.GetPreprocessingSymbolInfo(token.Parent!).Symbol;
         return await SymbolFinder.OriginalSymbolsMatchAsync(state.Solution, searchSymbol, symbol, cancellationToken).ConfigureAwait(false);
     }
-
-    private static FinderLocation CreateFinderLocation(FindReferencesDocumentState state, SyntaxToken token, CancellationToken cancellationToken)
-        => CreateFinderLocation(state, token, CandidateReason.None, cancellationToken);
 }

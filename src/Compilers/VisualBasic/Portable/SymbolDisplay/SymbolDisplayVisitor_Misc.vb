@@ -4,11 +4,6 @@
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class SymbolDisplayVisitor
-        Private Sub AddPreprocessingName(preprocessing As IPreprocessingSymbol)
-            Dim part = New SymbolDisplayPart(SymbolDisplayPartKind.PreprocessingName, preprocessing, preprocessing.Name)
-            builder.Add(part)
-        End Sub
-
         ''' <summary>
         ''' Visits a symbol, and specifically handles symbol types that do not support visiting.
         ''' </summary>
@@ -16,7 +11,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub VisitSymbol(symbol As ISymbol)
             Dim preprocessingSymbol = TryCast(symbol, IPreprocessingSymbol)
             If preprocessingSymbol IsNot Nothing Then
-                AddPreprocessingName(preprocessingSymbol)
+                Dim part = New SymbolDisplayPart(SymbolDisplayPartKind.PreprocessingName, preprocessingSymbol, preprocessingSymbol.Name)
+                builder.Add(part)
                 Return
             End If
 

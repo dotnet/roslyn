@@ -8,12 +8,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class SymbolDisplayVisitor
     {
-        private void AddPreprocessingName(IPreprocessingSymbol preprocessing)
-        {
-            var part = new SymbolDisplayPart(SymbolDisplayPartKind.PreprocessingName, preprocessing, preprocessing.Name);
-            builder.Add(part);
-        }
-
         /// <summary>
         /// Visits a symbol, and specifically handles symbol types that do not support visiting.
         /// </summary>
@@ -22,7 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (symbol is IPreprocessingSymbol preprocessingSymbol)
             {
-                AddPreprocessingName(preprocessingSymbol);
+                var part = new SymbolDisplayPart(SymbolDisplayPartKind.PreprocessingName, preprocessingSymbol, preprocessingSymbol.Name);
+                builder.Add(part);
                 return;
             }
 

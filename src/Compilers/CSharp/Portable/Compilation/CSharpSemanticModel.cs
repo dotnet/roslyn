@@ -4856,20 +4856,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return PreprocessingSymbolInfo.None;
         }
+
         /// <summary>
         /// Gets the preprocessing symbol info for the preprocessing symbol defined in the #define directive.
         /// </summary>
         /// <param name="node">A #define directive trivia node.</param>
-        public PreprocessingSymbolInfo GetPreprocessingSymbolInfo(DefineDirectiveTriviaSyntax node)
+        private PreprocessingSymbolInfo GetPreprocessingSymbolInfo(DefineDirectiveTriviaSyntax node)
         {
             CheckSyntaxNode(node);
             return CreatePreprocessingSymbolInfo(node.Name);
         }
+
         /// <summary>
         /// Gets the preprocessing symbol info for the preprocessing symbol undefined in the #undef directive.
         /// </summary>
         /// <param name="node">An #undef directive trivia node.</param>
-        public PreprocessingSymbolInfo GetPreprocessingSymbolInfo(UndefDirectiveTriviaSyntax node)
+        private PreprocessingSymbolInfo GetPreprocessingSymbolInfo(UndefDirectiveTriviaSyntax node)
         {
             CheckSyntaxNode(node);
             return CreatePreprocessingSymbolInfo(node.Name);
@@ -4881,12 +4883,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var preprocessingSymbol = CreatePreprocessingSymbol(identifier);
             return new(preprocessingSymbol, isDefined);
         }
+
         private Symbols.PublicModel.PreprocessingSymbol CreatePreprocessingSymbol(in SyntaxToken identifier)
         {
-            return new(
+            return new Symbols.PublicModel.PreprocessingSymbol(
                 identifier.ValueText,
-                Compilation.Assembly.ISymbol as IAssemblySymbol,
-                Compilation.SourceModule.ISymbol as IModuleSymbol);
+                Compilation.Assembly.GetPublicSymbol(),
+                Compilation.SourceModule.GetPublicSymbol());
         }
 
         /// <summary>
