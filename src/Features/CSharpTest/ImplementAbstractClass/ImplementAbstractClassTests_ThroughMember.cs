@@ -928,5 +928,38 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
                 }
                 """, new[] { FeaturesResources.Implement_abstract_class, string.Format(FeaturesResources.Implement_through_0, "B") });
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
+        public async Task TestImplementThroughPrimaryConstructorParam4()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                abstract class Base
+                {
+                    public abstract int Method();
+                }
+
+                class [|Program|](Base base1) : Base
+                {
+                    private readonly int base1Hash = base1.GetHashCode();
+                }
+                """,
+                """
+                abstract class Base
+                {
+                    public abstract int Method();
+                }
+
+                class Program(Base base1) : Base
+                {
+                    private readonly int base1Hash = base1.GetHashCode();
+
+                    public override int Method()
+                    {
+                        return base1.Method();
+                    }
+                }
+                """, index: 1);
+        }
     }
 }
