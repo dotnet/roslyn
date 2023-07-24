@@ -88,6 +88,7 @@ namespace Microsoft.CodeAnalysis
         private delegate bool AttributeValueExtractor<T>(out T value, ref BlobReader sigReader);
         private static readonly AttributeValueExtractor<string?> s_attributeStringValueExtractor = CrackStringInAttributeValue;
         private static readonly AttributeValueExtractor<StringAndInt> s_attributeStringAndIntValueExtractor = CrackStringAndIntInAttributeValue;
+        private static readonly AttributeValueExtractor<(string?, string?)> s_attributeStringAndStringValueExtractor = CrackStringAndStringInAttributeValue;
         private static readonly AttributeValueExtractor<bool> s_attributeBooleanValueExtractor = CrackBooleanInAttributeValue;
         private static readonly AttributeValueExtractor<byte> s_attributeByteValueExtractor = CrackByteInAttributeValue;
         private static readonly AttributeValueExtractor<short> s_attributeShortValueExtractor = CrackShortInAttributeValue;
@@ -1035,6 +1036,19 @@ namespace Microsoft.CodeAnalysis
             return FindTargetAttribute(token, AttributeDescription.RequiredAttributeAttribute).HasValue;
         }
 
+        internal bool HasCollectionBuilderAttribute(EntityHandle token, out string builderTypeName, out string methodName)
+        {
+            AttributeInfo info = FindTargetAttribute(token, AttributeDescription.CollectionBuilderAttribute);
+            if (info.HasValue)
+            {
+                return TryExtractStringAndStringValueFromAttribute(info.Handle, out builderTypeName, out methodName);
+            }
+
+            builderTypeName = null;
+            methodName = null;
+            return false;
+        }
+
         internal bool HasAttribute(EntityHandle token, AttributeDescription description)
         {
             return FindTargetAttribute(token, description).HasValue;
@@ -1844,6 +1858,14 @@ namespace Microsoft.CodeAnalysis
             return result;
         }
 
+        private bool TryExtractStringAndStringValueFromAttribute(CustomAttributeHandle handle, out string? string1Value, out string? string2Value)
+        {
+            (string?, string?) data;
+            var result = TryExtractValueFromAttribute(handle, out data, s_attributeStringAndStringValueExtractor);
+            (string1Value, string2Value) = data;
+            return result;
+        }
+
         private bool TryExtractBoolArrayValueFromAttribute(CustomAttributeHandle handle, out ImmutableArray<bool> value)
         {
             return TryExtractValueFromAttribute(handle, out value, s_attributeBoolArrayValueExtractor);
@@ -2043,6 +2065,19 @@ namespace Microsoft.CodeAnalysis
             return
                 CrackStringInAttributeValue(out value.StringValue, ref sig) &&
                 CrackIntInAttributeValue(out value.IntValue, ref sig);
+        }
+
+        private static bool CrackStringAndStringInAttributeValue(out (string?, string?) value, ref BlobReader sig)
+        {
+            if (CrackStringInAttributeValue(out string? string1, ref sig) &&
+                CrackStringInAttributeValue(out string? string2, ref sig))
+            {
+                value = (string1, string2);
+                return true;
+            }
+
+            value = default;
+            return false;
         }
 
         internal static bool CrackStringInAttributeValue(out string? value, ref BlobReader sig)

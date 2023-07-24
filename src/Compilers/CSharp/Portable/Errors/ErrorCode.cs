@@ -2247,6 +2247,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_InlineArraySliceNotUsed = 9182,
         WRN_InlineArrayConversionOperatorNotUsed = 9183,
         WRN_InlineArrayNotSupportedByLanguage = 9184,
+        ERR_CollectionBuilderAttributeInvalidType = 9185,
+        ERR_CollectionBuilderAttributeInvalidMethodName = 9186,
+        ERR_CollectionBuilderAttributeMethodNotFound = 9187,
+        ERR_CollectionBuilderNoElementType = 9188,
 
         #endregion
 
