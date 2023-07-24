@@ -540,6 +540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_InlineArrayIndexerNotUsed:
                 case ErrorCode.WRN_InlineArraySliceNotUsed:
                 case ErrorCode.WRN_InlineArrayConversionOperatorNotUsed:
+                case ErrorCode.WRN_InlineArrayNotSupportedByLanguage:
                     return 1;
                 default:
                     return 0;
@@ -2369,10 +2370,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_InlineArrayIndexerNotUsed:
                 case ErrorCode.WRN_InlineArraySliceNotUsed:
                 case ErrorCode.WRN_InlineArrayConversionOperatorNotUsed:
+                case ErrorCode.WRN_InlineArrayNotSupportedByLanguage:
                 case ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound:
-                case ErrorCode.ERR_CollectionBuilderNoElementType:
                 case ErrorCode.ERR_CollectionBuilderAttributeInvalidType:
                 case ErrorCode.ERR_CollectionBuilderAttributeInvalidMethodName:
+                case ErrorCode.ERR_CollectionBuilderNoElementType:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

@@ -6111,10 +6111,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (6,34): error CS9184: 'MyCollection<object>' has a CollectionBuilderAttribute but no element type.
+                // (6,34): error CS9188: 'MyCollection<object>' has a CollectionBuilderAttribute but no element type.
                 //         MyCollection<object> x = [];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderNoElementType, "[]").WithArguments("MyCollection<object>").WithLocation(6, 34),
-                // (7,31): error CS9184: 'MyCollection<int>' has a CollectionBuilderAttribute but no element type.
+                // (7,31): error CS9188: 'MyCollection<int>' has a CollectionBuilderAttribute but no element type.
                 //         MyCollection<int> y = [1, 2, 3];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderNoElementType, "[1, 2, 3]").WithArguments("MyCollection<int>").WithLocation(7, 31));
         }
@@ -8688,7 +8688,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(new[] { source, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // 0.cs(24,31): error CS9184: 'MyCollection<int>' has a CollectionBuilderAttribute but no element type.
+                // 0.cs(24,31): error CS9188: 'MyCollection<int>' has a CollectionBuilderAttribute but no element type.
                 //         MyCollection<int> c = [];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderNoElementType, "[]").WithArguments("MyCollection<int>").WithLocation(24, 31));
         }
@@ -8730,7 +8730,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (6,31): error CS9184: 'MyCollection<int>' has a CollectionBuilderAttribute but no element type.
+                // (6,31): error CS9188: 'MyCollection<int>' has a CollectionBuilderAttribute but no element type.
                 //         MyCollection<int> c = [];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderNoElementType, "[]").WithArguments("MyCollection<int>").WithLocation(6, 31));
         }
@@ -8762,10 +8762,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(new[] { source, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // 0.cs(8,42): error CS9184: 'MyCollection<T>' has a CollectionBuilderAttribute but no element type.
+                // 0.cs(8,42): error CS9188: 'MyCollection<T>' has a CollectionBuilderAttribute but no element type.
                 //     public static MyCollection<T> F() => [];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderNoElementType, "[]").WithArguments("MyCollection<T>").WithLocation(8, 42),
-                // 0.cs(18,31): error CS9184: 'MyCollection<int>' has a CollectionBuilderAttribute but no element type.
+                // 0.cs(18,31): error CS9188: 'MyCollection<int>' has a CollectionBuilderAttribute but no element type.
                 //         MyCollection<int> c = [];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderNoElementType, "[]").WithArguments("MyCollection<int>").WithLocation(18, 31));
         }

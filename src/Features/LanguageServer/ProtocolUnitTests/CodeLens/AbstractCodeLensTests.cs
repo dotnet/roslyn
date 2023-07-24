@@ -66,4 +66,20 @@ public abstract class AbstractCodeLensTests : AbstractLanguageServerProtocolTest
         Assert.Single(matchingCodeLenses);
         Assert.Equal(commandTitle, matchingCodeLenses.Single().Command!.Title);
     }
+
+    private protected static async Task VerifyTestCodeLensMissingAsync(TestLspServer testLspServer)
+    {
+        var expectedCodeLens = testLspServer.GetLocations("codeLens").Single();
+
+        var textDocument = CreateTextDocumentIdentifier(testLspServer.GetCurrentSolution().Projects.Single().Documents.Single().GetURI());
+        var codeLensParams = new LSP.CodeLensParams
+        {
+            TextDocument = textDocument
+        };
+
+        var actualCodeLenses = await testLspServer.ExecuteRequestAsync<LSP.CodeLensParams, LSP.CodeLens[]?>(LSP.Methods.TextDocumentCodeLensName, codeLensParams, CancellationToken.None);
+        AssertEx.NotNull(actualCodeLenses);
+        Assert.NotEmpty(actualCodeLenses);
+        Assert.All(actualCodeLenses, actualCodeLens => Assert.NotEqual(CodeLensHandler.RunTestsCommandIdentifier, actualCodeLens.Command?.CommandIdentifier));
+    }
 }

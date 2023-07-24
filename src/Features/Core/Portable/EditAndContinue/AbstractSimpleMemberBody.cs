@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
@@ -19,7 +20,7 @@ internal abstract class AbstractSimpleMemberBody(SyntaxNode node) : MemberBody
     public sealed override OneOrMany<SyntaxNode> RootNodes
         => OneOrMany.Create(node);
 
-    public sealed override ActiveStatementEnvelope Envelope
+    public sealed override TextSpan Envelope
         => node.Span;
 
     public sealed override SyntaxNode EncompassingAncestor

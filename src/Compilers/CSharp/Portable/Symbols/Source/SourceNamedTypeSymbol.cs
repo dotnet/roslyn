@@ -1817,9 +1817,12 @@ next:;
 
                 if (TryGetPossiblyUnsupportedByLanguageInlineArrayElementField() is FieldSymbol elementField)
                 {
+                    bool reported_ERR_InlineArrayUnsupportedElementFieldModifier = false;
+
                     if (elementField.IsRequired || elementField.IsReadOnly || elementField.IsVolatile || elementField.IsFixedSizeBuffer)
                     {
                         diagnostics.Add(ErrorCode.ERR_InlineArrayUnsupportedElementFieldModifier, elementField.TryGetFirstLocation() ?? GetFirstLocation());
+                        reported_ERR_InlineArrayUnsupportedElementFieldModifier = true;
                     }
 
                     if (TryGetInlineArrayElementField() is { TypeWithAnnotations: var elementType })
@@ -1864,6 +1867,15 @@ next:;
                                 diagnostics.Add(ErrorCode.WRN_InlineArrayConversionOperatorNotUsed, conversion.TryGetFirstLocation() ?? GetFirstLocation());
                             }
                         }
+
+                        if (elementType.Type.IsPointerOrFunctionPointer() || elementType.IsRestrictedType())
+                        {
+                            diagnostics.Add(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, elementField.TryGetFirstLocation() ?? GetFirstLocation());
+                        }
+                    }
+                    else if (!reported_ERR_InlineArrayUnsupportedElementFieldModifier)
+                    {
+                        diagnostics.Add(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, elementField.TryGetFirstLocation() ?? GetFirstLocation());
                     }
                 }
                 else

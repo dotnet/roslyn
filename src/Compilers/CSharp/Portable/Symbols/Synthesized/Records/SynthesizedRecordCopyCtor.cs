@@ -39,7 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void GenerateMethodBodyStatements(SyntheticBoundNodeFactory F, ArrayBuilder<BoundStatement> statements, BindingDiagnosticBag diagnostics)
         {
-            // Tracking issue for copy constructor in inheritance scenario: https://github.com/dotnet/roslyn/issues/44902
             // Write assignments to fields
             // .ctor(DerivedRecordType original) : base((BaseRecordType)original)
             // {
