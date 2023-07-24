@@ -6658,8 +6658,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeCtorInParameter">
-        <source>Cannot use attribute constructor '{0}' because it has 'in' parameters.</source>
-        <target state="translated">Impossible d'utiliser le constructeur d'attribut '{0}' parce qu'il a des paramètres 'in'.</target>
+        <source>Cannot use attribute constructor '{0}' because it has 'in' or 'ref readonly' parameters.</source>
+        <target state="needs-review-translation">Impossible d'utiliser le constructeur d'attribut '{0}' parce qu'il a des paramètres 'in'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideWithConstraints">

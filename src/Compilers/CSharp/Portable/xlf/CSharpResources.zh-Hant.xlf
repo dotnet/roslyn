@@ -6658,8 +6658,8 @@ strument:TestCoverage      產生檢測要收集
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeCtorInParameter">
-        <source>Cannot use attribute constructor '{0}' because it has 'in' parameters.</source>
-        <target state="translated">因為屬性建構函式 '{0}' 包含 'in' 參數，所以無法使用。</target>
+        <source>Cannot use attribute constructor '{0}' because it has 'in' or 'ref readonly' parameters.</source>
+        <target state="needs-review-translation">因為屬性建構函式 '{0}' 包含 'in' 參數，所以無法使用。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideWithConstraints">

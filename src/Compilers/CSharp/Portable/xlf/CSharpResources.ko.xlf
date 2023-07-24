@@ -6658,8 +6658,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeCtorInParameter">
-        <source>Cannot use attribute constructor '{0}' because it has 'in' parameters.</source>
-        <target state="translated">특성 생성자 '{0}'은(는) 'in' 매개 변수가 있으므로 사용할 수 없습니다.</target>
+        <source>Cannot use attribute constructor '{0}' because it has 'in' or 'ref readonly' parameters.</source>
+        <target state="needs-review-translation">특성 생성자 '{0}'은(는) 'in' 매개 변수가 있으므로 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideWithConstraints">

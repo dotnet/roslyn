@@ -548,6 +548,37 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
     }
 
     [Fact]
+    public void AttributeConstructor()
+    {
+        var source = """
+            [A(1)]
+            class A : System.Attribute
+            {
+                A(ref readonly int x) { }
+            }
+            
+            [B()]
+            class B : System.Attribute
+            {
+                B(ref readonly int x = 2) { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (1,2): error CS8358: Cannot use attribute constructor 'A.A(ref readonly int)' because it has 'in' or 'ref readonly' parameters.
+            // [A(1)]
+            Diagnostic(ErrorCode.ERR_AttributeCtorInParameter, "A(1)").WithArguments("A.A(ref readonly int)").WithLocation(1, 2),
+            // (1,4): warning CS9504: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
+            // [A(1)]
+            Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "1").WithArguments("1").WithLocation(1, 4),
+            // (7,2): error CS8358: Cannot use attribute constructor 'B.B(ref readonly int)' because it has 'in' or 'ref readonly' parameters.
+            // [B()]
+            Diagnostic(ErrorCode.ERR_AttributeCtorInParameter, "B()").WithArguments("B.B(ref readonly int)").WithLocation(7, 2),
+            // (10,28): warning CS9521: A default value is specified for 'ref readonly' parameter 'x', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
+            //     B(ref readonly int x = 2) { }
+            Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "2").WithArguments("x").WithLocation(10, 28));
+    }
+
+    [Fact]
     public void PrimaryConstructor_Class()
     {
         var source = """

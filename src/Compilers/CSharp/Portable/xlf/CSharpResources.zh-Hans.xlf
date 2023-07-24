@@ -6658,8 +6658,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeCtorInParameter">
-        <source>Cannot use attribute constructor '{0}' because it has 'in' parameters.</source>
-        <target state="translated">无法使用特性构造函数 "{0}"，因为它具有 "in" 参数。</target>
+        <source>Cannot use attribute constructor '{0}' because it has 'in' or 'ref readonly' parameters.</source>
+        <target state="needs-review-translation">无法使用特性构造函数 "{0}"，因为它具有 "in" 参数。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideWithConstraints">
