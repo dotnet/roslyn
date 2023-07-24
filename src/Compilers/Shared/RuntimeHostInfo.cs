@@ -49,40 +49,15 @@ namespace Microsoft.CodeAnalysis
 
         internal static bool IsCoreClrRuntime => true;
 
+        private const string DotNetHostPathEnvironmentName = "DOTNET_HOST_PATH";
+
         /// <summary>
-        /// Get the path to the dotnet executable. In the case the host did not provide this information
+        /// Get the path to the dotnet executable. In the case the .NET SDK did not provide this information
         /// in the environment this will return simply "dotnet".
         /// </summary>
-        /// <remarks>
-        /// See the following issue for rationale why only %PATH% is considered
-        /// https://github.com/dotnet/runtime/issues/88754
-        /// </remarks>
-        internal static string GetDotNetPathOrDefault()
-        {
-            var (fileName, sep) = PlatformInformation.IsWindows
-                ? ("dotnet.exe", ';')
-                : ("dotnet", ':');
-
-            var path = Environment.GetEnvironmentVariable("PATH") ?? "";
-            foreach (var item in path.Split(sep, StringSplitOptions.RemoveEmptyEntries))
-            {
-                try
-                {
-                    var filePath = Path.Combine(item, fileName);
-                    if (File.Exists(filePath))
-                    {
-                        return filePath;
-                    }
-                }
-                catch
-                {
-                    // If we can't read a directory for any reason just skip it
-                }
-            }
-
-            return fileName;
-        }
-
+        internal static string GetDotNetPathOrDefault() =>
+            Environment.GetEnvironmentVariable(DotNetHostPathEnvironmentName) ??
+                (PlatformInformation.IsWindows ? "dotnet.exe" : "dotnet");
 #else
 
         internal static bool IsCoreClrRuntime => false;
