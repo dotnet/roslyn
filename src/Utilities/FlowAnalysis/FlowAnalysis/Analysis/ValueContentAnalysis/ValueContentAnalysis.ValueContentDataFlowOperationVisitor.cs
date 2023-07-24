@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 => CurrentAnalysisData.TryGetValue(analysisEntity, out var value) ? value : ValueDomain.UnknownOrMayBeValue;
 
             protected override ValueContentAbstractValue GetAbstractDefaultValue(ITypeSymbol? type)
-                => type != null ?
+                => type != null && !type.HasReferenceTypeSemantics() ?
                    ValueContentAbstractValue.DoesNotContainLiteralOrNonLiteralState :
                    ValueContentAbstractValue.ContainsNullLiteralState;
 
