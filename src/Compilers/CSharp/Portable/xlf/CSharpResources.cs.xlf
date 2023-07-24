@@ -882,6 +882,11 @@
         <target state="translated">Výraz nejde převést na {0}, protože se nejedná o přiřaditelnou proměnnou.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InlineArrayForEachNotSupported">
+        <source>foreach statement on an inline array of type '{0}' is not supported</source>
+        <target state="new">foreach statement on an inline array of type '{0}' is not supported</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InlineArrayIndexOutOfRange">
         <source>Index is outside the bounds of the inline array</source>
         <target state="translated">Index je mimo hranice vloženého pole.</target>

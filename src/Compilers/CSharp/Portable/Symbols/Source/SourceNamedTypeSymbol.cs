@@ -1762,34 +1762,36 @@ next:;
                         reported_ERR_InlineArrayUnsupportedElementFieldModifier = true;
                     }
 
-                    if (TryGetInlineArrayElementField() is { TypeWithAnnotations: var elementType })
+                    NamedTypeSymbol? index = null;
+                    NamedTypeSymbol? range = null;
+
+                    foreach (PropertySymbol indexer in Indexers)
                     {
-                        NamedTypeSymbol? index = null;
-                        NamedTypeSymbol? range = null;
-
-                        foreach (PropertySymbol indexer in Indexers)
+                        if (indexer.Parameters is [{ Type: { } type }] &&
+                            (type.SpecialType == SpecialType.System_Int32 ||
+                                type.Equals(index ??= DeclaringCompilation.GetWellKnownType(WellKnownType.System_Index), TypeCompareKind.AllIgnoreOptions) ||
+                                type.Equals(range ??= DeclaringCompilation.GetWellKnownType(WellKnownType.System_Range), TypeCompareKind.AllIgnoreOptions)))
                         {
-                            if (indexer.Parameters is [{ Type: { } type }] &&
-                                (type.SpecialType == SpecialType.System_Int32 ||
-                                 type.Equals(index ??= DeclaringCompilation.GetWellKnownType(WellKnownType.System_Index), TypeCompareKind.AllIgnoreOptions) ||
-                                 type.Equals(range ??= DeclaringCompilation.GetWellKnownType(WellKnownType.System_Range), TypeCompareKind.AllIgnoreOptions)))
-                            {
-                                diagnostics.Add(ErrorCode.WRN_InlineArrayIndexerNotUsed, indexer.TryGetFirstLocation() ?? GetFirstLocation());
-                            }
+                            diagnostics.Add(ErrorCode.WRN_InlineArrayIndexerNotUsed, indexer.TryGetFirstLocation() ?? GetFirstLocation());
                         }
+                    }
 
-                        foreach (var slice in GetMembers(WellKnownMemberNames.SliceMethodName).OfType<MethodSymbol>())
+                    foreach (var slice in GetMembers(WellKnownMemberNames.SliceMethodName).OfType<MethodSymbol>())
+                    {
+                        if (Binder.MethodHasValidSliceSignature(slice))
                         {
-                            if (Binder.MethodHasValidSliceSignature(slice))
-                            {
-                                diagnostics.Add(ErrorCode.WRN_InlineArraySliceNotUsed, slice.TryGetFirstLocation() ?? GetFirstLocation());
-                                break;
-                            }
+                            diagnostics.Add(ErrorCode.WRN_InlineArraySliceNotUsed, slice.TryGetFirstLocation() ?? GetFirstLocation());
+                            break;
                         }
+                    }
 
-                        NamedTypeSymbol? span = null;
-                        NamedTypeSymbol? readOnlySpan = null;
+                    NamedTypeSymbol? span = null;
+                    NamedTypeSymbol? readOnlySpan = null;
+                    TypeWithAnnotations elementType = elementField.TypeWithAnnotations;
 
+                    bool fieldSupported = TypeSymbol.IsInlineArrayElementFieldSupported(elementField);
+                    if (fieldSupported)
+                    {
                         foreach (var conversion in GetMembers().OfType<SourceUserDefinedConversionSymbol>())
                         {
                             TypeSymbol returnType = conversion.ReturnType;
@@ -1798,19 +1800,16 @@ next:;
                             if (conversion.ParameterCount == 1 &&
                                 conversion.Parameters[0].Type.Equals(this, TypeCompareKind.AllIgnoreOptions) &&
                                 (returnTypeOriginalDefinition.Equals(span ??= DeclaringCompilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.AllIgnoreOptions) ||
-                                 returnTypeOriginalDefinition.Equals(readOnlySpan ??= DeclaringCompilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions)) &&
+                                    returnTypeOriginalDefinition.Equals(readOnlySpan ??= DeclaringCompilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions)) &&
                                 Conversions.HasIdentityConversion(((NamedTypeSymbol)returnTypeOriginalDefinition).Construct(ImmutableArray.Create(elementType)), returnType))
                             {
                                 diagnostics.Add(ErrorCode.WRN_InlineArrayConversionOperatorNotUsed, conversion.TryGetFirstLocation() ?? GetFirstLocation());
                             }
                         }
-
-                        if (elementType.Type.IsPointerOrFunctionPointer() || elementType.IsRestrictedType())
-                        {
-                            diagnostics.Add(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, elementField.TryGetFirstLocation() ?? GetFirstLocation());
-                        }
                     }
-                    else if (!reported_ERR_InlineArrayUnsupportedElementFieldModifier)
+
+                    if (!reported_ERR_InlineArrayUnsupportedElementFieldModifier &&
+                        (!fieldSupported || elementType.Type.IsPointerOrFunctionPointer() || elementType.IsRestrictedType()))
                     {
                         diagnostics.Add(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, elementField.TryGetFirstLocation() ?? GetFirstLocation());
                     }
