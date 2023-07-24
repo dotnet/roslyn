@@ -74,7 +74,8 @@ namespace Microsoft.CodeAnalysis
 
         internal static Func<TInput, CancellationToken, ImmutableArray<TOutput>> WrapUserFunctionAsImmutableArray<TInput, TOutput>(this Func<TInput, CancellationToken, IEnumerable<TOutput>> userFunction)
         {
-            return (input, token) => userFunction.WrapUserFunction()(input, token).ToImmutableArrayOrEmpty();
+            var wrappedUserFunction = userFunction.WrapUserFunction();
+            return (input, token) => wrappedUserFunction(input, token).ToImmutableArrayOrEmpty();
         }
 
         internal static Action<TInput, CancellationToken> WrapUserAction<TInput>(this Action<TInput> userAction)
@@ -109,7 +110,20 @@ namespace Microsoft.CodeAnalysis
 
         internal static IEqualityComparer<T> WrapUserComparer<T>(this IEqualityComparer<T> comparer)
         {
-            return new WrappedUserComparer<T>(comparer);
+            if (comparer is not WrappedUserComparer<T> wrappedComparer)
+                wrappedComparer = new WrappedUserComparer<T>(comparer);
+
+            return wrappedComparer;
+        }
+
+        internal static Func<TSource, CancellationToken, ImmutableArray<TSource>> WrapPredicateForSelectMany<TSource>(this Func<TSource, bool> predicate)
+        {
+            return (item, _) => predicate(item) ? ImmutableArray.Create(item) : ImmutableArray<TSource>.Empty;
+        }
+
+        internal static Func<TSource, CancellationToken, ImmutableArray<TSource>> WrapPredicateForSelectMany<TSource>(this Func<TSource, CancellationToken, bool> predicate)
+        {
+            return (item, cancellationToken) => predicate(item, cancellationToken) ? ImmutableArray.Create(item) : ImmutableArray<TSource>.Empty;
         }
     }
 }

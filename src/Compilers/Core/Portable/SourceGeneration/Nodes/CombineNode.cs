@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -25,6 +26,8 @@ namespace Microsoft.CodeAnalysis
             _comparer = comparer;
             _name = name;
         }
+
+        public TransformFactory TransformFactory => _input1.TransformFactory;
 
         public NodeStateTable<(TInput1, TInput2)> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<(TInput1, TInput2)>? previousTable, CancellationToken cancellationToken)
         {
@@ -95,15 +98,39 @@ namespace Microsoft.CodeAnalysis
             return builder.ToImmutableAndFree();
         }
 
-        public IIncrementalGeneratorNode<(TInput1, TInput2)> WithComparer(IEqualityComparer<(TInput1, TInput2)> comparer) => new CombineNode<TInput1, TInput2>(_input1, _input2, comparer, _name);
+        public IIncrementalGeneratorNode<(TInput1, TInput2)> WithComparer(IEqualityComparer<(TInput1, TInput2)> comparer)
+        {
+            return TransformFactory.WithComparerAndTrackingName(this, ApplyComparer, ApplyTrackingName, comparer, _name);
+        }
 
-        public IIncrementalGeneratorNode<(TInput1, TInput2)> WithTrackingName(string name) => new CombineNode<TInput1, TInput2>(_input1, _input2, _comparer, name);
+        public IIncrementalGeneratorNode<(TInput1, TInput2)> WithTrackingName(string name)
+        {
+            return TransformFactory.WithComparerAndTrackingName(this, ApplyComparer, ApplyTrackingName, _comparer, name);
+        }
 
-        public void RegisterOutput(IIncrementalGeneratorOutputNode output)
+        private static IIncrementalGeneratorNode<(TInput1, TInput2)> ApplyComparer(IIncrementalGeneratorNode<(TInput1, TInput2)> node, IEqualityComparer<(TInput1, TInput2)>? comparer)
+        {
+            var combineNode = (CombineNode<TInput1, TInput2>)node;
+            if (combineNode._comparer == comparer)
+                return combineNode;
+
+            return new CombineNode<TInput1, TInput2>(combineNode._input1, combineNode._input2, comparer, combineNode._name);
+        }
+
+        private static IIncrementalGeneratorNode<(TInput1, TInput2)> ApplyTrackingName(IIncrementalGeneratorNode<(TInput1, TInput2)> node, string? name)
+        {
+            var combineNode = (CombineNode<TInput1, TInput2>)node;
+            if (combineNode._name == name)
+                return combineNode;
+
+            return new CombineNode<TInput1, TInput2>(combineNode._input1, combineNode._input2, combineNode._comparer, name);
+        }
+
+        public void RegisterOutput(ArrayBuilder<IIncrementalGeneratorOutputNode> outputNodes, IIncrementalGeneratorOutputNode output)
         {
             // We have to call register on both branches of the join, as they may chain up to different input nodes
-            _input1.RegisterOutput(output);
-            _input2.RegisterOutput(output);
+            _input1.RegisterOutput(outputNodes, output);
+            _input2.RegisterOutput(outputNodes, output);
         }
 
     }

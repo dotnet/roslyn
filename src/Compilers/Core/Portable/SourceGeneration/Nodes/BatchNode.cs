@@ -24,9 +24,35 @@ namespace Microsoft.CodeAnalysis
             _name = name;
         }
 
-        public IIncrementalGeneratorNode<ImmutableArray<TInput>> WithComparer(IEqualityComparer<ImmutableArray<TInput>> comparer) => new BatchNode<TInput>(_sourceNode, comparer, _name);
+        public TransformFactory TransformFactory => _sourceNode.TransformFactory;
 
-        public IIncrementalGeneratorNode<ImmutableArray<TInput>> WithTrackingName(string name) => new BatchNode<TInput>(_sourceNode, _comparer, name);
+        public IIncrementalGeneratorNode<ImmutableArray<TInput>> WithComparer(IEqualityComparer<ImmutableArray<TInput>> comparer)
+        {
+            return TransformFactory.WithComparerAndTrackingName(this, ApplyComparer, ApplyTrackingName, comparer, _name);
+        }
+
+        public IIncrementalGeneratorNode<ImmutableArray<TInput>> WithTrackingName(string name)
+        {
+            return TransformFactory.WithComparerAndTrackingName(this, ApplyComparer, ApplyTrackingName, _comparer, name);
+        }
+
+        private static IIncrementalGeneratorNode<ImmutableArray<TInput>> ApplyComparer(IIncrementalGeneratorNode<ImmutableArray<TInput>> node, IEqualityComparer<ImmutableArray<TInput>>? comparer)
+        {
+            var batchNode = (BatchNode<TInput>)node;
+            if (batchNode._comparer == comparer)
+                return batchNode;
+
+            return new BatchNode<TInput>(batchNode._sourceNode, comparer, batchNode._name);
+        }
+
+        private static IIncrementalGeneratorNode<ImmutableArray<TInput>> ApplyTrackingName(IIncrementalGeneratorNode<ImmutableArray<TInput>> node, string? name)
+        {
+            var batchNode = (BatchNode<TInput>)node;
+            if (batchNode._name == name)
+                return batchNode;
+
+            return new BatchNode<TInput>(batchNode._sourceNode, batchNode._comparer, name);
+        }
 
         private (ImmutableArray<TInput>, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)>) GetValuesAndInputs(
             NodeStateTable<TInput> sourceTable,
@@ -143,6 +169,6 @@ namespace Microsoft.CodeAnalysis
             return newTable.ToImmutableAndFree();
         }
 
-        public void RegisterOutput(IIncrementalGeneratorOutputNode output) => _sourceNode.RegisterOutput(output);
+        public void RegisterOutput(ArrayBuilder<IIncrementalGeneratorOutputNode> outputNodes, IIncrementalGeneratorOutputNode output) => _sourceNode.RegisterOutput(outputNodes, output);
     }
 }

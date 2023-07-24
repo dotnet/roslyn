@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Text;
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis
@@ -13,34 +12,92 @@ namespace Microsoft.CodeAnalysis
     public static class IncrementalValueProviderExtensions
     {
         // 1 => 1 transform 
-        public static IncrementalValueProvider<TResult> Select<TSource, TResult>(this IncrementalValueProvider<TSource> source, Func<TSource, CancellationToken, TResult> selector) => new IncrementalValueProvider<TResult>(new TransformNode<TSource, TResult>(source.Node, selector.WrapUserFunction()));
+        public static IncrementalValueProvider<TResult> Select<TSource, TResult>(this IncrementalValueProvider<TSource> source, Func<TSource, CancellationToken, TResult> selector)
+        {
+            var wrappedUserFunction = source.Node.TransformFactory.WrapUserFunction(selector);
+            var transformNode = source.Node.TransformFactory.Select(source.Node, wrappedUserFunction);
+            return new IncrementalValueProvider<TResult>(transformNode);
+        }
 
-        public static IncrementalValuesProvider<TResult> Select<TSource, TResult>(this IncrementalValuesProvider<TSource> source, Func<TSource, CancellationToken, TResult> selector) => new IncrementalValuesProvider<TResult>(new TransformNode<TSource, TResult>(source.Node, selector.WrapUserFunction()));
+        public static IncrementalValuesProvider<TResult> Select<TSource, TResult>(this IncrementalValuesProvider<TSource> source, Func<TSource, CancellationToken, TResult> selector)
+        {
+            var wrappedUserFunction = source.Node.TransformFactory.WrapUserFunction(selector);
+            var transformNode = source.Node.TransformFactory.Select(source.Node, wrappedUserFunction);
+            return new IncrementalValuesProvider<TResult>(transformNode);
+        }
 
         // 1 => many (or none) transform
-        public static IncrementalValuesProvider<TResult> SelectMany<TSource, TResult>(this IncrementalValueProvider<TSource> source, Func<TSource, CancellationToken, ImmutableArray<TResult>> selector) => new IncrementalValuesProvider<TResult>(new TransformNode<TSource, TResult>(source.Node, selector.WrapUserFunction()));
+        public static IncrementalValuesProvider<TResult> SelectMany<TSource, TResult>(this IncrementalValueProvider<TSource> source, Func<TSource, CancellationToken, ImmutableArray<TResult>> selector)
+        {
+            var wrappedUserFunction = source.Node.TransformFactory.WrapUserFunction(selector);
+            var transformNode = source.Node.TransformFactory.SelectMany(source.Node, wrappedUserFunction);
+            return new IncrementalValuesProvider<TResult>(transformNode);
+        }
 
-        public static IncrementalValuesProvider<TResult> SelectMany<TSource, TResult>(this IncrementalValueProvider<TSource> source, Func<TSource, CancellationToken, IEnumerable<TResult>> selector) => new IncrementalValuesProvider<TResult>(new TransformNode<TSource, TResult>(source.Node, selector.WrapUserFunctionAsImmutableArray()));
+        public static IncrementalValuesProvider<TResult> SelectMany<TSource, TResult>(this IncrementalValueProvider<TSource> source, Func<TSource, CancellationToken, IEnumerable<TResult>> selector)
+        {
+            var wrappedUserFunctionAsImmutableArray = source.Node.TransformFactory.WrapUserFunctionAsImmutableArray(selector);
+            var transformNode = source.Node.TransformFactory.SelectMany(source.Node, wrappedUserFunctionAsImmutableArray);
+            return new IncrementalValuesProvider<TResult>(transformNode);
+        }
 
-        public static IncrementalValuesProvider<TResult> SelectMany<TSource, TResult>(this IncrementalValuesProvider<TSource> source, Func<TSource, CancellationToken, ImmutableArray<TResult>> selector) => new IncrementalValuesProvider<TResult>(new TransformNode<TSource, TResult>(source.Node, selector.WrapUserFunction()));
+        public static IncrementalValuesProvider<TResult> SelectMany<TSource, TResult>(this IncrementalValuesProvider<TSource> source, Func<TSource, CancellationToken, ImmutableArray<TResult>> selector)
+        {
+            var wrappedUserFunction = source.Node.TransformFactory.WrapUserFunction(selector);
+            var transformNode = source.Node.TransformFactory.SelectMany(source.Node, wrappedUserFunction);
+            return new IncrementalValuesProvider<TResult>(transformNode);
+        }
 
-        public static IncrementalValuesProvider<TResult> SelectMany<TSource, TResult>(this IncrementalValuesProvider<TSource> source, Func<TSource, CancellationToken, IEnumerable<TResult>> selector) => new IncrementalValuesProvider<TResult>(new TransformNode<TSource, TResult>(source.Node, selector.WrapUserFunctionAsImmutableArray()));
+        public static IncrementalValuesProvider<TResult> SelectMany<TSource, TResult>(this IncrementalValuesProvider<TSource> source, Func<TSource, CancellationToken, IEnumerable<TResult>> selector)
+        {
+            var wrappedUserFunctionAsImmutableArray = source.Node.TransformFactory.WrapUserFunctionAsImmutableArray(selector);
+            var transformNode = source.Node.TransformFactory.SelectMany(source.Node, wrappedUserFunctionAsImmutableArray);
+            return new IncrementalValuesProvider<TResult>(transformNode);
+        }
 
-        public static IncrementalValueProvider<ImmutableArray<TSource>> Collect<TSource>(this IncrementalValuesProvider<TSource> source) => new IncrementalValueProvider<ImmutableArray<TSource>>(new BatchNode<TSource>(source.Node));
+        public static IncrementalValueProvider<ImmutableArray<TSource>> Collect<TSource>(this IncrementalValuesProvider<TSource> source)
+        {
+            var batchNode = source.Node.TransformFactory.Collect(source.Node);
+            return new IncrementalValueProvider<ImmutableArray<TSource>>(batchNode);
+        }
 
-        public static IncrementalValuesProvider<(TLeft Left, TRight Right)> Combine<TLeft, TRight>(this IncrementalValuesProvider<TLeft> provider1, IncrementalValueProvider<TRight> provider2) => new IncrementalValuesProvider<(TLeft, TRight)>(new CombineNode<TLeft, TRight>(provider1.Node, provider2.Node));
+        public static IncrementalValuesProvider<(TLeft Left, TRight Right)> Combine<TLeft, TRight>(this IncrementalValuesProvider<TLeft> provider1, IncrementalValueProvider<TRight> provider2)
+        {
+            var combineNode = provider1.Node.TransformFactory.Combine(provider1.Node, provider2.Node);
+            return new IncrementalValuesProvider<(TLeft, TRight)>(combineNode);
+        }
 
-        public static IncrementalValueProvider<(TLeft Left, TRight Right)> Combine<TLeft, TRight>(this IncrementalValueProvider<TLeft> provider1, IncrementalValueProvider<TRight> provider2) => new IncrementalValueProvider<(TLeft, TRight)>(new CombineNode<TLeft, TRight>(provider1.Node, provider2.Node));
+        public static IncrementalValueProvider<(TLeft Left, TRight Right)> Combine<TLeft, TRight>(this IncrementalValueProvider<TLeft> provider1, IncrementalValueProvider<TRight> provider2)
+        {
+            var combineNode = provider1.Node.TransformFactory.Combine(provider1.Node, provider2.Node);
+            return new IncrementalValueProvider<(TLeft, TRight)>(combineNode);
+        }
 
         // helper for filtering
-        public static IncrementalValuesProvider<TSource> Where<TSource>(this IncrementalValuesProvider<TSource> source, Func<TSource, bool> predicate) => source.SelectMany((item, _) => predicate(item) ? ImmutableArray.Create(item) : ImmutableArray<TSource>.Empty);
+        public static IncrementalValuesProvider<TSource> Where<TSource>(this IncrementalValuesProvider<TSource> source, Func<TSource, bool> predicate)
+        {
+            var selectManyForFilter = source.Node.TransformFactory.WrapPredicateForSelectMany(predicate);
+            return source.SelectMany(selectManyForFilter);
+        }
 
-        internal static IncrementalValuesProvider<TSource> Where<TSource>(this IncrementalValuesProvider<TSource> source, Func<TSource, CancellationToken, bool> predicate) => source.SelectMany((item, c) => predicate(item, c) ? ImmutableArray.Create(item) : ImmutableArray<TSource>.Empty);
+        internal static IncrementalValuesProvider<TSource> Where<TSource>(this IncrementalValuesProvider<TSource> source, Func<TSource, CancellationToken, bool> predicate)
+        {
+            var selectManyForFilter = source.Node.TransformFactory.WrapPredicateForSelectMany(predicate);
+            return source.SelectMany(selectManyForFilter);
+        }
 
         // custom comparer for given node
-        public static IncrementalValueProvider<TSource> WithComparer<TSource>(this IncrementalValueProvider<TSource> source, IEqualityComparer<TSource> comparer) => new IncrementalValueProvider<TSource>(source.Node.WithComparer(comparer.WrapUserComparer()));
+        public static IncrementalValueProvider<TSource> WithComparer<TSource>(this IncrementalValueProvider<TSource> source, IEqualityComparer<TSource> comparer)
+        {
+            var wrappedComparer = source.Node.TransformFactory.WrapUserComparer(comparer);
+            return new IncrementalValueProvider<TSource>(source.Node.WithComparer(wrappedComparer));
+        }
 
-        public static IncrementalValuesProvider<TSource> WithComparer<TSource>(this IncrementalValuesProvider<TSource> source, IEqualityComparer<TSource> comparer) => new IncrementalValuesProvider<TSource>(source.Node.WithComparer(comparer.WrapUserComparer()));
+        public static IncrementalValuesProvider<TSource> WithComparer<TSource>(this IncrementalValuesProvider<TSource> source, IEqualityComparer<TSource> comparer)
+        {
+            var wrappedComparer = source.Node.TransformFactory.WrapUserComparer(comparer);
+            return new IncrementalValuesProvider<TSource>(source.Node.WithComparer(wrappedComparer));
+        }
 
         // custom node name for incremental testing support
         public static IncrementalValueProvider<TSource> WithTrackingName<TSource>(this IncrementalValueProvider<TSource> source, string name) => new IncrementalValueProvider<TSource>(source.Node.WithTrackingName(name));

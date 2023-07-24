@@ -33,6 +33,8 @@ namespace Microsoft.CodeAnalysis
             _sourceExtension = sourceExtension;
         }
 
+        public TransformFactory TransformFactory => _source.TransformFactory;
+
         public IncrementalGeneratorOutputKind Kind => _outputKind;
 
         public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<TOutput>? previousTable, CancellationToken cancellationToken)
@@ -88,7 +90,7 @@ namespace Microsoft.CodeAnalysis
 
         public IIncrementalGeneratorNode<(IEnumerable<GeneratedSourceText>, IEnumerable<Diagnostic>)> WithTrackingName(string name) => throw ExceptionUtilities.Unreachable();
 
-        void IIncrementalGeneratorNode<TOutput>.RegisterOutput(IIncrementalGeneratorOutputNode output) => throw ExceptionUtilities.Unreachable();
+        void IIncrementalGeneratorNode.RegisterOutput(ArrayBuilder<IIncrementalGeneratorOutputNode> outputNodes, IIncrementalGeneratorOutputNode output) => throw ExceptionUtilities.Unreachable();
 
         public void AppendOutputs(IncrementalExecutionContext context, CancellationToken cancellationToken)
         {

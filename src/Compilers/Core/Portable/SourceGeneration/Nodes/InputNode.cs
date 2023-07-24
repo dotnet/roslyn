@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -19,24 +20,28 @@ namespace Microsoft.CodeAnalysis
     internal sealed class InputNode<T> : IIncrementalGeneratorNode<T>
     {
         private readonly Func<DriverStateTable.Builder, ImmutableArray<T>> _getInput;
-        private readonly Action<IIncrementalGeneratorOutputNode> _registerOutput;
+        private readonly Action<ArrayBuilder<IIncrementalGeneratorOutputNode>, IIncrementalGeneratorOutputNode> _registerOutput;
         private readonly IEqualityComparer<T> _inputComparer;
+        private readonly TransformFactory? _transformFactory;
         private readonly IEqualityComparer<T> _comparer;
         private readonly string? _name;
 
         public InputNode(Func<DriverStateTable.Builder, ImmutableArray<T>> getInput, IEqualityComparer<T>? inputComparer = null)
-            : this(getInput, registerOutput: null, inputComparer: inputComparer, comparer: null)
+            : this(getInput, transformFactory: null, registerOutput: null, inputComparer: inputComparer, comparer: null)
         {
         }
 
-        private InputNode(Func<DriverStateTable.Builder, ImmutableArray<T>> getInput, Action<IIncrementalGeneratorOutputNode>? registerOutput, IEqualityComparer<T>? inputComparer = null, IEqualityComparer<T>? comparer = null, string? name = null)
+        private InputNode(Func<DriverStateTable.Builder, ImmutableArray<T>> getInput, TransformFactory? transformFactory, Action<ArrayBuilder<IIncrementalGeneratorOutputNode>, IIncrementalGeneratorOutputNode>? registerOutput, IEqualityComparer<T>? inputComparer = null, IEqualityComparer<T>? comparer = null, string? name = null)
         {
             _getInput = getInput;
             _comparer = comparer ?? EqualityComparer<T>.Default;
             _inputComparer = inputComparer ?? EqualityComparer<T>.Default;
-            _registerOutput = registerOutput ?? (o => throw ExceptionUtilities.Unreachable());
+            _transformFactory = transformFactory;
+            _registerOutput = registerOutput ?? ((_, _) => throw ExceptionUtilities.Unreachable());
             _name = name;
         }
+
+        public TransformFactory TransformFactory => _transformFactory ?? throw ExceptionUtilities.Unreachable();
 
         public NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T>? previousTable, CancellationToken cancellationToken)
         {
@@ -97,12 +102,44 @@ namespace Microsoft.CodeAnalysis
             return builder.ToImmutableAndFree();
         }
 
-        public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => new InputNode<T>(_getInput, _registerOutput, _inputComparer, comparer, _name);
+        public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer)
+        {
+            return TransformFactory.WithComparerAndTrackingName(this, ApplyComparer, ApplyTrackingName, comparer, _name);
+        }
 
-        public IIncrementalGeneratorNode<T> WithTrackingName(string name) => new InputNode<T>(_getInput, _registerOutput, _inputComparer, _comparer, name);
+        public IIncrementalGeneratorNode<T> WithTrackingName(string name)
+        {
+            return TransformFactory.WithComparerAndTrackingName(this, ApplyComparer, ApplyTrackingName, _comparer, name);
+        }
 
-        public InputNode<T> WithRegisterOutput(Action<IIncrementalGeneratorOutputNode> registerOutput) => new InputNode<T>(_getInput, registerOutput, _inputComparer, _comparer, _name);
+        public InputNode<T> WithContext(TransformFactory transformFactory, Action<ArrayBuilder<IIncrementalGeneratorOutputNode>, IIncrementalGeneratorOutputNode> registerOutput)
+        {
+            return transformFactory.WithContext(this, ApplyContext, registerOutput);
+        }
 
-        public void RegisterOutput(IIncrementalGeneratorOutputNode output) => _registerOutput(output);
+        public void RegisterOutput(ArrayBuilder<IIncrementalGeneratorOutputNode> outputNodes, IIncrementalGeneratorOutputNode output) => _registerOutput(outputNodes, output);
+
+        private static IIncrementalGeneratorNode<T> ApplyComparer(IIncrementalGeneratorNode<T> node, IEqualityComparer<T>? comparer)
+        {
+            var inputNode = (InputNode<T>)node;
+            if (inputNode._comparer == (comparer ?? EqualityComparer<T>.Default))
+                return inputNode;
+
+            return new InputNode<T>(inputNode._getInput, inputNode.TransformFactory, inputNode._registerOutput, inputNode._inputComparer, comparer, inputNode._name);
+        }
+
+        private static IIncrementalGeneratorNode<T> ApplyTrackingName(IIncrementalGeneratorNode<T> node, string? name)
+        {
+            var inputNode = (InputNode<T>)node;
+            if (inputNode._name == name)
+                return inputNode;
+
+            return new InputNode<T>(inputNode._getInput, inputNode.TransformFactory, inputNode._registerOutput, inputNode._inputComparer, inputNode._comparer, name);
+        }
+
+        private static InputNode<T> ApplyContext(InputNode<T> node, TransformFactory transformFactory, Action<ArrayBuilder<IIncrementalGeneratorOutputNode>, IIncrementalGeneratorOutputNode> registerOutput)
+        {
+            return new InputNode<T>(node._getInput, transformFactory, registerOutput, node._inputComparer, node._comparer, node._name);
+        }
     }
 }

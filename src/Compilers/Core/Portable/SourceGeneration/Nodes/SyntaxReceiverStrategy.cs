@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SourceGeneration;
 using Roslyn.Utilities;
 
@@ -14,12 +15,12 @@ namespace Microsoft.CodeAnalysis
     internal sealed class SyntaxReceiverStrategy<T> : ISyntaxSelectionStrategy<T>
     {
         private readonly SyntaxContextReceiverCreator _receiverCreator;
-        private readonly Action<IIncrementalGeneratorOutputNode> _registerOutput;
+        private readonly Action<ArrayBuilder<IIncrementalGeneratorOutputNode>, IIncrementalGeneratorOutputNode> _registerOutput;
         private readonly ISyntaxHelper _syntaxHelper;
 
         public SyntaxReceiverStrategy(
             SyntaxContextReceiverCreator receiverCreator,
-            Action<IIncrementalGeneratorOutputNode> registerOutput,
+            Action<ArrayBuilder<IIncrementalGeneratorOutputNode>, IIncrementalGeneratorOutputNode> registerOutput,
             ISyntaxHelper syntaxHelper)
         {
             _receiverCreator = receiverCreator;

@@ -33,11 +33,35 @@ namespace Microsoft.CodeAnalysis
             _name = name;
         }
 
+        public TransformFactory TransformFactory => _sourceNode.TransformFactory;
+
         public IIncrementalGeneratorNode<TOutput> WithComparer(IEqualityComparer<TOutput> comparer)
-            => new TransformNode<TInput, TOutput>(_sourceNode, _func, comparer, _name);
+        {
+            return TransformFactory.WithComparerAndTrackingName(this, ApplyComparer, ApplyTrackingName, comparer, _name);
+        }
 
         public IIncrementalGeneratorNode<TOutput> WithTrackingName(string name)
-            => new TransformNode<TInput, TOutput>(_sourceNode, _func, _comparer, name);
+        {
+            return TransformFactory.WithComparerAndTrackingName(this, ApplyComparer, ApplyTrackingName, _comparer, name);
+        }
+
+        private static IIncrementalGeneratorNode<TOutput> ApplyComparer(IIncrementalGeneratorNode<TOutput> node, IEqualityComparer<TOutput>? comparer)
+        {
+            var transformNode = (TransformNode<TInput, TOutput>)node;
+            if (transformNode._comparer == (comparer ?? EqualityComparer<TOutput>.Default))
+                return transformNode;
+
+            return new TransformNode<TInput, TOutput>(transformNode._sourceNode, transformNode._func, comparer, transformNode._name);
+        }
+
+        private static IIncrementalGeneratorNode<TOutput> ApplyTrackingName(IIncrementalGeneratorNode<TOutput> node, string? name)
+        {
+            var transformNode = (TransformNode<TInput, TOutput>)node;
+            if (transformNode._name == name)
+                return transformNode;
+
+            return new TransformNode<TInput, TOutput>(transformNode._sourceNode, transformNode._func, transformNode._comparer, name);
+        }
 
         public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder builder, NodeStateTable<TOutput>? previousTable, CancellationToken cancellationToken)
         {
@@ -86,6 +110,6 @@ namespace Microsoft.CodeAnalysis
             return newTable.ToImmutableAndFree();
         }
 
-        public void RegisterOutput(IIncrementalGeneratorOutputNode output) => _sourceNode.RegisterOutput(output);
+        public void RegisterOutput(ArrayBuilder<IIncrementalGeneratorOutputNode> outputNodes, IIncrementalGeneratorOutputNode output) => _sourceNode.RegisterOutput(outputNodes, output);
     }
 }

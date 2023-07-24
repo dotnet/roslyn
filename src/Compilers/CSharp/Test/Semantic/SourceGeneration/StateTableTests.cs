@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
@@ -475,7 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         public void Batch_Node_Steps_Records_Removed_Steps_As_Inputs()
         {
             var inputValue = ImmutableArray.Create(1, 2, 3);
-            var inputNode = new InputNode<int>((_) => inputValue).WithTrackingName("Input");
+            var inputNode = new InputNode<int>((_) => inputValue).WithDefaultContext().WithTrackingName("Input");
             BatchNode<int> batchNode = new BatchNode<int>(inputNode, name: "Batch");
 
             // first time through will always be added (because it's not been run before)
@@ -772,7 +773,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         public void InputNode_With_Different_Element_Count_Records_Add_Remove_For_Replaced_Items()
         {
             ImmutableArray<int> inputNodeValue = ImmutableArray.Create(1, 2, 3);
-            var inputNode = new InputNode<int>((_) => inputNodeValue).WithTrackingName("TestStep");
+            var inputNode = new InputNode<int>((_) => inputNodeValue).WithDefaultContext().WithTrackingName("TestStep");
 
             // first time through will always be added (because it's not been run before)
             DriverStateTable.Builder dstBuilder = GetBuilder(DriverStateTable.Empty);
@@ -825,7 +826,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         public void TransformNode_Records_Removed_Outputs_Of_Removed_Inputs()
         {
             ImmutableArray<int> inputNodeValue = ImmutableArray.Create(1, 2, 3);
-            var inputNode = new InputNode<int>((_) => inputNodeValue);
+            var inputNode = new InputNode<int>((_) => inputNodeValue).WithDefaultContext();
             var transformNode = new TransformNode<int, int>(inputNode, (i, ct) => ImmutableArray.Create(i)).WithTrackingName("TestStep");
 
             // first time through will always be added (because it's not been run before)
@@ -859,8 +860,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         public void CombineNode_Records_Removed_Outputs_Of_Removed_First_Input()
         {
             ImmutableArray<int> inputNodeValue = ImmutableArray.Create(1, 2, 3);
-            var inputNode = new InputNode<int>((_) => inputNodeValue);
-            var input2Node = new InputNode<int>((_) => ImmutableArray.Create(0));
+            var inputNode = new InputNode<int>((_) => inputNodeValue).WithDefaultContext();
+            var input2Node = new InputNode<int>((_) => ImmutableArray.Create(0)).WithContextFrom(inputNode);
             var combineNode = new CombineNode<int, int>(inputNode, input2Node).WithTrackingName("TestStep");
 
             // first time through will always be added (because it's not been run before)
@@ -916,7 +917,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         [Fact]
         public void User_Comparer_Is_Not_Used_To_Determine_Inputs()
         {
-            var inputNode = new InputNode<int>((_) => ImmutableArray.Create(1, 2, 3))
+            var inputNode = new InputNode<int>((_) => ImmutableArray.Create(1, 2, 3)).WithDefaultContext()
                                 .WithComparer(new LambdaComparer<int>((a, b) => false));
 
             // first time through will always be added (because it's not been run before)
@@ -934,7 +935,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         public void RecordedStep_Tree_Includes_Most_Recent_Recording_Of_Run_Even_When_All_Inputs_Cached()
         {
             int thirdValue = 3;
-            var inputNode = new InputNode<int>((_) => ImmutableArray.Create(1, 2, thirdValue)).WithTrackingName("Input");
+            var inputNode = new InputNode<int>((_) => ImmutableArray.Create(1, 2, thirdValue)).WithDefaultContext().WithTrackingName("Input");
             var batchNode = new BatchNode<int>(inputNode, name: "Batch");
             var transformNode = new TransformNode<ImmutableArray<int>, int>(batchNode, (arr, ct) => arr, name: "Transform");
             var filterNode = new TransformNode<int, int>(transformNode, (i, ct) => i <= 2 ? ImmutableArray.Create(i) : ImmutableArray<int>.Empty, name: "Filter");
@@ -968,7 +969,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         public void Modified_Entry_Removing_Outputs_Records_Removed_Step_State()
         {
             ImmutableArray<int> values = ImmutableArray.Create(1, 2, 3);
-            var inputNode = new InputNode<ImmutableArray<int>>(_ => ImmutableArray.Create(values)).WithTrackingName("Input");
+            var inputNode = new InputNode<ImmutableArray<int>>(_ => ImmutableArray.Create(values)).WithDefaultContext().WithTrackingName("Input");
             var transformNode = new TransformNode<ImmutableArray<int>, int>(inputNode, (arr, ct) => arr, name: "SelectMany");
 
             DriverStateTable.Builder dstBuilder = GetBuilder(DriverStateTable.Empty, trackIncrementalGeneratorSteps: true);
@@ -997,7 +998,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         public void Modified_Entry_Adding_Outputs_Records_Added_Step_State()
         {
             ImmutableArray<int> values = ImmutableArray<int>.Empty;
-            var inputNode = new InputNode<ImmutableArray<int>>(_ => ImmutableArray.Create(values)).WithTrackingName("Input");
+            var inputNode = new InputNode<ImmutableArray<int>>(_ => ImmutableArray.Create(values)).WithDefaultContext().WithTrackingName("Input");
             var transformNode = new TransformNode<ImmutableArray<int>, int>(inputNode, (arr, ct) => arr, name: "SelectMany");
 
             DriverStateTable.Builder dstBuilder = GetBuilder(DriverStateTable.Empty, trackIncrementalGeneratorSteps: true);
@@ -1026,7 +1027,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         public void Node_Table_When_Previous_Was_Larger()
         {
             ImmutableArray<ImmutableArray<string>> values = ImmutableArray.Create(ImmutableArray.Create("class1"), ImmutableArray.Create("class2"));
-            var inputNode = new InputNode<ImmutableArray<string>>(_ => values).WithTrackingName("Input");
+            var inputNode = new InputNode<ImmutableArray<string>>(_ => values).WithDefaultContext().WithTrackingName("Input");
             var transformNode = new TransformNode<ImmutableArray<string>, string>(inputNode, (arr, ct) => arr[0] == "class3" ? ImmutableArray<string>.Empty : arr, name: "SelectMany");
 
             DriverStateTable.Builder dstBuilder = GetBuilder(DriverStateTable.Empty, trackIncrementalGeneratorSteps: false);
@@ -1067,7 +1068,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         public void Node_Table_When_Previous_Was_Larger_Multi()
         {
             ImmutableArray<ImmutableArray<string>> values = ImmutableArray.Create(ImmutableArray.Create("class1", "class1.1"), ImmutableArray.Create("class2", "class2.1"));
-            var inputNode = new InputNode<ImmutableArray<string>>(_ => values).WithTrackingName("Input");
+            var inputNode = new InputNode<ImmutableArray<string>>(_ => values).WithDefaultContext().WithTrackingName("Input");
             var transformNode = new TransformNode<ImmutableArray<string>, string>(inputNode, (arr, ct) => arr[0] == "class3" ? ImmutableArray<string>.Empty : arr, name: "SelectMany");
 
             DriverStateTable.Builder dstBuilder = GetBuilder(DriverStateTable.Empty, trackIncrementalGeneratorSteps: false);
@@ -1368,6 +1369,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
                 _callback = callback;
             }
 
+            public TransformFactory TransformFactory => throw new NotSupportedException();
+
             public NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T>? previousTable, CancellationToken cancellationToken)
             {
                 previousTable ??= NodeStateTable<T>.Empty;
@@ -1378,7 +1381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 
             public IIncrementalGeneratorNode<T> WithTrackingName(string name) => this;
 
-            public void RegisterOutput(IIncrementalGeneratorOutputNode output) { }
+            public void RegisterOutput(ArrayBuilder<IIncrementalGeneratorOutputNode> outputNodes, IIncrementalGeneratorOutputNode output) { }
         }
     }
 }

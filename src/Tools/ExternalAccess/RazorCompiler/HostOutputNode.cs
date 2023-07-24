@@ -26,6 +26,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler
             _action = action;
         }
 
+        TransformFactory IIncrementalGeneratorNode.TransformFactory => _source.TransformFactory;
+
         public IncrementalGeneratorOutputKind Kind => GeneratorDriver.HostKind;
 
         public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<TOutput>? previousTable, CancellationToken cancellationToken)
@@ -87,6 +89,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler
 
         public IIncrementalGeneratorNode<TOutput> WithTrackingName(string name) => throw ExceptionUtilities.Unreachable();
 
-        void IIncrementalGeneratorNode<TOutput>.RegisterOutput(IIncrementalGeneratorOutputNode output) => throw ExceptionUtilities.Unreachable();
+        void IIncrementalGeneratorNode.RegisterOutput(ArrayBuilder<IIncrementalGeneratorOutputNode> outputNodes, IIncrementalGeneratorOutputNode output) => throw ExceptionUtilities.Unreachable();
     }
 }

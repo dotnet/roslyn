@@ -204,6 +204,7 @@ namespace Microsoft.CodeAnalysis
             var stateBuilder = ArrayBuilder<GeneratorState>.GetInstance(state.Generators.Length);
             var constantSourcesBuilder = ArrayBuilder<SyntaxTree>.GetInstance();
             var syntaxInputNodes = ArrayBuilder<SyntaxInputNode>.GetInstance();
+            var transformFactory = new TransformFactory();
 
             for (int i = 0; i < state.IncrementalGenerators.Length; i++)
             {
@@ -218,7 +219,7 @@ namespace Microsoft.CodeAnalysis
                     var inputBuilder = ArrayBuilder<SyntaxInputNode>.GetInstance();
                     var postInitSources = ImmutableArray<GeneratedSyntaxTree>.Empty;
                     var pipelineContext = new IncrementalGeneratorInitializationContext(
-                        inputBuilder, outputBuilder, this.SyntaxHelper, this.SourceExtension);
+                        inputBuilder, outputBuilder, this.SyntaxHelper, transformFactory, this.SourceExtension);
 
                     Exception? ex = null;
                     try

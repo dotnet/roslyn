@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
@@ -20,7 +21,7 @@ public partial struct SyntaxValueProvider
             if (x == y)
                 return true;
 
-            return x.SequenceEqual(y, 0, static (a, b, _) => EqualityComparer<T>.Default.Equals(a, b));
+            return x.SequenceEqual(y);
         }
 
         public int GetHashCode(ImmutableArray<T> obj)

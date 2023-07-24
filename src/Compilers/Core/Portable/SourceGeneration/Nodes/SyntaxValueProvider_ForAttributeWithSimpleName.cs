@@ -30,6 +30,15 @@ public partial struct SyntaxValueProvider
 {
     private static readonly ObjectPool<Stack<string>> s_stringStackPool = new ObjectPool<Stack<string>>(static () => new Stack<string>());
     private static readonly ObjectPool<Stack<SyntaxNode>> s_nodeStackPool = new ObjectPool<Stack<SyntaxNode>>(static () => new Stack<SyntaxNode>());
+    private static ImmutableDictionary<ISyntaxHelper, Func<Compilation, CancellationToken, ISyntaxHelper>> s_syntaxHelperSelector = ImmutableDictionary<ISyntaxHelper, Func<Compilation, CancellationToken, ISyntaxHelper>>.Empty;
+
+    private static Func<Compilation, CancellationToken, ISyntaxHelper> GetOrCreateSyntaxHelperSelector(ISyntaxHelper syntaxHelper)
+    {
+        return ImmutableInterlocked.GetOrAdd(
+            ref s_syntaxHelperSelector,
+            syntaxHelper,
+            static syntaxHelper => (_, _) => syntaxHelper);
+    }
 
     /// <summary>
     /// Returns all syntax nodes of that match <paramref name="predicate"/> if that node has an attribute on it that
@@ -56,20 +65,22 @@ public partial struct SyntaxValueProvider
         string simpleName,
         Func<SyntaxNode, CancellationToken, bool> predicate)
     {
-        var syntaxHelper = _context.SyntaxHelper;
+        var syntaxHelper = _context.CompilationProvider.Select(GetOrCreateSyntaxHelperSelector(_context.SyntaxHelper));
 
         // Create a provider over all the syntax trees in the compilation.  This is better than CreateSyntaxProvider as
         // using SyntaxTrees is purely syntax and will not update the incremental node for a tree when another tree is
         // changed. CreateSyntaxProvider will have to rerun all incremental nodes since it passes along the
         // SemanticModel, and that model is updated whenever any tree changes (since it is tied to the compilation).
         var syntaxTreesProvider = _context.CompilationProvider
-            .SelectMany((compilation, cancellationToken) => GetSourceGeneratorInfo(syntaxHelper, compilation, cancellationToken))
+            .Combine(syntaxHelper)
+            .SelectMany(static (compilationAndSyntaxHelper, cancellationToken) => GetSourceGeneratorInfo(compilationAndSyntaxHelper.Right, compilationAndSyntaxHelper.Left, cancellationToken))
             .WithTrackingName("compilationUnit_ForAttribute");
 
         // Create a provider that provides (and updates) the global aliases for any particular file when it is edited.
         var individualFileGlobalAliasesProvider = syntaxTreesProvider
-            .Where((info, _) => info.Info.HasFlag(SourceGeneratorSyntaxTreeInfo.ContainsGlobalAliases))
-            .Select((info, cancellationToken) => getGlobalAliasesInCompilationUnit(syntaxHelper, info.Tree.GetRoot(cancellationToken)))
+            .Where(static (info, _) => info.Info.HasFlag(SourceGeneratorSyntaxTreeInfo.ContainsGlobalAliases))
+            .Combine(syntaxHelper)
+            .Select(static (infoAndSyntaxHelper, cancellationToken) => getGlobalAliasesInCompilationUnit(infoAndSyntaxHelper.Right, infoAndSyntaxHelper.Left.Tree.GetRoot(cancellationToken)))
             .WithTrackingName("individualFileGlobalAliases_ForAttribute");
 
         // Create an aggregated view of all global aliases across all files.  This should only update when an individual
@@ -85,9 +96,11 @@ public partial struct SyntaxValueProvider
 
         // Regenerate our data if the compilation options changed.  VB can supply global aliases with compilation options,
         // so we have to reanalyze everything if those changed.
-        var compilationGlobalAliases = _context.CompilationOptionsProvider.Select(
-            (o, _) =>
+        var compilationGlobalAliases = _context.CompilationOptionsProvider
+            .Combine(syntaxHelper)
+            .Select(static (optionsAndSyntaxHelper, _) =>
             {
+                var (o, syntaxHelper) = optionsAndSyntaxHelper;
                 var aliases = Aliases.GetInstance();
                 syntaxHelper.AddAliases(o, aliases);
                 return GlobalAliases.Create(aliases.ToImmutableAndFree());
@@ -95,18 +108,19 @@ public partial struct SyntaxValueProvider
 
         allUpGlobalAliasesProvider = allUpGlobalAliasesProvider
             .Combine(compilationGlobalAliases)
-            .Select((tuple, _) => GlobalAliases.Concat(tuple.Left, tuple.Right))
+            .Select(static (tuple, _) => GlobalAliases.Concat(tuple.Left, tuple.Right))
             .WithTrackingName("allUpIncludingCompilationGlobalAliases_ForAttribute");
 
         // Combine the two providers so that we reanalyze every file if the global aliases change, or we reanalyze a
         // particular file when it's compilation unit changes.
         var syntaxTreeAndGlobalAliasesProvider = syntaxTreesProvider
-            .Where((info, _) => info.Info.HasFlag(SourceGeneratorSyntaxTreeInfo.ContainsAttributeList))
+            .Where(static (info, _) => info.Info.HasFlag(SourceGeneratorSyntaxTreeInfo.ContainsAttributeList))
             .Combine(allUpGlobalAliasesProvider)
             .WithTrackingName("compilationUnitAndGlobalAliases_ForAttribute");
 
+        var capturedSyntaxHelper = _context.SyntaxHelper;
         return syntaxTreeAndGlobalAliasesProvider
-            .Select((tuple, c) => (tuple.Left.Tree, GetMatchingNodes(syntaxHelper, tuple.Right, tuple.Left.Tree, simpleName, predicate, c)))
+            .Select((tuple, c) => (tuple.Left.Tree, GetMatchingNodes(capturedSyntaxHelper, tuple.Right, tuple.Left.Tree, simpleName, predicate, c)))
             .Where(tuple => tuple.Item2.Length > 0)
             .WithTrackingName("result_ForAttributeInternal");
 
