@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!_lazyMembers.IsDefault)
             {
                 // If we already calculated the ordered members, return it directly.
-                return _lazyMembers;
+                return _lazyMembers.ConditionallyDeOrder();
             }
 
             var builder = ArrayBuilder<Symbol>.GetInstance();
