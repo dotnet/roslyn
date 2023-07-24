@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return !conversion.IsInterpolatedString &&
                        !conversion.IsInterpolatedStringHandler &&
                        !conversion.IsSwitchExpression &&
-                       !conversion.IsCollectionLiteral &&
+                       !conversion.IsCollectionExpression &&
                        !(conversion.IsTupleLiteralConversion || (conversion.IsNullable && conversion.UnderlyingConversions[0].IsTupleLiteralConversion)) &&
                        (!conversion.IsUserDefined || filterConversion(conversion.UserDefinedFromConversion));
             }
@@ -231,11 +231,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ConvertObjectCreationExpression(syntax, (BoundUnconvertedObjectCreationExpression)source, conversion, isCast, destination, conversionGroupOpt, wasCompilerGenerated, diagnostics);
                 }
 
-                if (source.Kind == BoundKind.UnconvertedCollectionLiteralExpression)
+                if (source.Kind == BoundKind.UnconvertedCollectionExpression)
                 {
-                    Debug.Assert(conversion.IsCollectionLiteral || !conversion.Exists);
-                    source = ConvertCollectionLiteralExpression(
-                        (BoundUnconvertedCollectionLiteralExpression)source,
+                    Debug.Assert(conversion.IsCollectionExpression || !conversion.Exists);
+                    source = ConvertCollectionExpression(
+                        (BoundUnconvertedCollectionExpression)source,
                         destination,
                         wasCompilerGenerated,
                         diagnostics);
@@ -526,36 +526,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression ConvertCollectionLiteralExpression(
-            BoundUnconvertedCollectionLiteralExpression node,
+        private BoundExpression ConvertCollectionExpression(
+            BoundUnconvertedCollectionExpression node,
             TypeSymbol targetType,
             bool wasCompilerGenerated,
             BindingDiagnosticBag diagnostics)
         {
             TypeSymbol? elementType;
-            var collectionTypeKind = ConversionsBase.GetCollectionLiteralTypeKind(Compilation, targetType, out elementType);
+            var collectionTypeKind = ConversionsBase.GetCollectionExpressionTypeKind(Compilation, targetType, out elementType);
             switch (collectionTypeKind)
             {
-                case CollectionLiteralTypeKind.CollectionInitializer:
-                    return BindCollectionInitializerCollectionLiteral(node, collectionTypeKind, targetType, wasCompilerGenerated: wasCompilerGenerated, diagnostics);
-                case CollectionLiteralTypeKind.Array:
-                case CollectionLiteralTypeKind.Span:
-                case CollectionLiteralTypeKind.ReadOnlySpan:
-                    return BindArrayOrSpanCollectionLiteral(node, targetType, wasCompilerGenerated: wasCompilerGenerated, collectionTypeKind, elementType!, diagnostics);
-                case CollectionLiteralTypeKind.ListInterface:
-                    return BindListInterfaceCollectionLiteral(node, targetType, wasCompilerGenerated: wasCompilerGenerated, elementType!, diagnostics);
-                case CollectionLiteralTypeKind.None:
-                    return BindCollectionLiteralForErrorRecovery(node, targetType, diagnostics);
+                case CollectionExpressionTypeKind.CollectionInitializer:
+                    return BindCollectionInitializerCollectionExpression(node, collectionTypeKind, targetType, wasCompilerGenerated: wasCompilerGenerated, diagnostics);
+                case CollectionExpressionTypeKind.Array:
+                case CollectionExpressionTypeKind.Span:
+                case CollectionExpressionTypeKind.ReadOnlySpan:
+                    return BindArrayOrSpanCollectionExpression(node, targetType, wasCompilerGenerated: wasCompilerGenerated, collectionTypeKind, elementType!, diagnostics);
+                case CollectionExpressionTypeKind.ListInterface:
+                    return BindListInterfaceCollectionExpression(node, targetType, wasCompilerGenerated: wasCompilerGenerated, elementType!, diagnostics);
+                case CollectionExpressionTypeKind.None:
+                    return BindCollectionExpressionForErrorRecovery(node, targetType, diagnostics);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(collectionTypeKind);
             }
         }
 
-        private BoundCollectionLiteralExpression BindArrayOrSpanCollectionLiteral(
-            BoundUnconvertedCollectionLiteralExpression node,
+        private BoundCollectionExpression BindArrayOrSpanCollectionExpression(
+            BoundUnconvertedCollectionExpression node,
             TypeSymbol targetType,
             bool wasCompilerGenerated,
-            CollectionLiteralTypeKind collectionTypeKind,
+            CollectionExpressionTypeKind collectionTypeKind,
             TypeSymbol elementType,
             BindingDiagnosticBag diagnostics)
         {
@@ -563,21 +563,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             switch (collectionTypeKind)
             {
-                case CollectionLiteralTypeKind.Span:
+                case CollectionExpressionTypeKind.Span:
                     _ = GetWellKnownTypeMember(WellKnownMember.System_Span_T__ctor_Array, diagnostics, syntax: syntax);
                     break;
-                case CollectionLiteralTypeKind.ReadOnlySpan:
+                case CollectionExpressionTypeKind.ReadOnlySpan:
                     _ = GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array, diagnostics, syntax: syntax);
                     break;
             }
 
             var elements = node.Elements;
-            if (elements.Any(e => e is BoundCollectionLiteralSpreadElement))
+            if (elements.Any(e => e is BoundCollectionExpressionSpreadElement))
             {
                 // The array initializer includes at least one spread element, so we'll create an intermediate List<T> instance.
                 // https://github.com/dotnet/roslyn/issues/68785: Avoid intermediate List<T> if all spread elements have Length property.
                 _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray, diagnostics, syntax: syntax);
-                var result = BindCollectionInitializerCollectionLiteral(
+                var result = BindCollectionInitializerCollectionExpression(
                     node,
                     collectionTypeKind,
                     GetWellKnownType(WellKnownType.System_Collections_Generic_List_T, diagnostics, syntax).Construct(elementType),
@@ -592,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 builder.Add(convertArrayElement(element, elementType, diagnostics));
             }
-            return new BoundCollectionLiteralExpression(
+            return new BoundCollectionExpression(
                 syntax,
                 collectionTypeKind,
                 implicitReceiver,
@@ -628,9 +628,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundCollectionLiteralExpression BindCollectionInitializerCollectionLiteral(
-            BoundUnconvertedCollectionLiteralExpression node,
-            CollectionLiteralTypeKind collectionTypeKind,
+        private BoundCollectionExpression BindCollectionInitializerCollectionExpression(
+            BoundUnconvertedCollectionExpression node,
+            CollectionExpressionTypeKind collectionTypeKind,
             TypeSymbol targetType,
             bool wasCompilerGenerated,
             BindingDiagnosticBag diagnostics,
@@ -666,7 +666,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = element switch
                 {
                     BoundBadExpression => element,
-                    BoundCollectionLiteralSpreadElement spreadElement => BindCollectionInitializerSpreadElementAddMethod(
+                    BoundCollectionExpressionSpreadElement spreadElement => BindCollectionInitializerSpreadElementAddMethod(
                             (SpreadElementSyntax)spreadElement.Syntax,
                             spreadElement,
                             collectionInitializerAddMethodBinder,
@@ -683,7 +683,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result.WasCompilerGenerated = true;
                 builder.Add(result);
             }
-            return new BoundCollectionLiteralExpression(
+            return new BoundCollectionExpression(
                 syntax,
                 collectionTypeKind,
                 implicitReceiver,
@@ -694,25 +694,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = wasCompilerGenerated };
         }
 
-        private BoundCollectionLiteralExpression BindListInterfaceCollectionLiteral(
-            BoundUnconvertedCollectionLiteralExpression node,
+        private BoundCollectionExpression BindListInterfaceCollectionExpression(
+            BoundUnconvertedCollectionExpression node,
             TypeSymbol targetType,
             bool wasCompilerGenerated,
             TypeSymbol elementType,
             BindingDiagnosticBag diagnostics)
         {
             // https://github.com/dotnet/roslyn/issues/68785: Emit [] as Array.Empty<T>() rather than a List<T>.
-            var result = BindCollectionInitializerCollectionLiteral(
+            var result = BindCollectionInitializerCollectionExpression(
                 node,
-                CollectionLiteralTypeKind.ListInterface,
+                CollectionExpressionTypeKind.ListInterface,
                 GetWellKnownType(WellKnownType.System_Collections_Generic_List_T, diagnostics, node.Syntax).Construct(elementType),
                 wasCompilerGenerated: wasCompilerGenerated,
                 diagnostics);
             return result.Update(result.CollectionTypeKind, result.Placeholder, result.CollectionCreation, result.Elements, targetType);
         }
 
-        private BoundCollectionLiteralExpression BindCollectionLiteralForErrorRecovery(
-            BoundUnconvertedCollectionLiteralExpression node,
+        private BoundCollectionExpression BindCollectionExpressionForErrorRecovery(
+            BoundUnconvertedCollectionExpression node,
             TypeSymbol targetType,
             BindingDiagnosticBag diagnostics)
         {
@@ -722,9 +722,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 builder.Add(BindToNaturalType(element, diagnostics, reportNoTargetType: !targetType.IsErrorType()));
             }
-            return new BoundCollectionLiteralExpression(
+            return new BoundCollectionExpression(
                 syntax,
-                collectionTypeKind: CollectionLiteralTypeKind.None,
+                collectionTypeKind: CollectionExpressionTypeKind.None,
                 placeholder: null,
                 collectionCreation: null,
                 elements: builder.ToImmutableAndFree(),
@@ -1092,17 +1092,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     delegateMethod,
                     lambdaOrMethod,
                     diagnostics,
-                    static (diagnostics, delegateMethod, lambdaOrMethod, parameter, _, typeAndLocation) =>
+                    static (diagnostics, delegateMethod, lambdaOrMethod, parameter, _, typeAndSyntax) =>
                     {
                         diagnostics.Add(
                             SourceMemberContainerTypeSymbol.ReportInvalidScopedOverrideAsError(delegateMethod, lambdaOrMethod) ?
                                 ErrorCode.ERR_ScopedMismatchInParameterOfTarget :
                                 ErrorCode.WRN_ScopedMismatchInParameterOfTarget,
-                            typeAndLocation.Location,
+                            typeAndSyntax.Syntax.Location,
                             new FormattedSymbol(parameter, SymbolDisplayFormat.ShortFormat),
-                            typeAndLocation.Type);
+                            typeAndSyntax.Type);
                     },
-                    (Type: targetType, Location: syntax.Location),
+                    (Type: targetType, Syntax: syntax),
                     allowVariance: true,
                     invokedAsExtensionMethod: invokedAsExtensionMethod);
             }

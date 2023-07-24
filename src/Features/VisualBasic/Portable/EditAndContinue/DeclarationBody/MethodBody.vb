@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return VisualBasicEditAndContinueAnalyzer.GetStateMachineInfo(Node)
         End Function
 
-        Public Overrides Function ComputeMatch(newBody As DeclarationBody, knownMatches As IEnumerable(Of KeyValuePair(Of SyntaxNode, SyntaxNode))) As Match(Of SyntaxNode)
+        Public Overrides Function ComputeSingleRootMatch(newBody As DeclarationBody, knownMatches As IEnumerable(Of KeyValuePair(Of SyntaxNode, SyntaxNode))) As Match(Of SyntaxNode)
             Return SyntaxComparer.Statement.ComputeMatch(Node, DirectCast(newBody, MethodBody).Node, knownMatches)
         End Function
 
@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 statementPart)
         End Function
 
-        Public Overrides Function TryMatchActiveStatement(newBody As DeclarationBody, oldStatement As SyntaxNode, statementPart As Integer, <NotNullWhen(True)> ByRef newStatement As SyntaxNode) As Boolean
+        Public Overrides Function TryMatchActiveStatement(newBody As DeclarationBody, oldStatement As SyntaxNode, ByRef statementPart As Integer, <NotNullWhen(True)> ByRef newStatement As SyntaxNode) As Boolean
             newStatement = Nothing
             Return False
         End Function

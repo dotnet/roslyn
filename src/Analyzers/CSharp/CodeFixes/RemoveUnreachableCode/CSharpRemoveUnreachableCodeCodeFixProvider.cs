@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             // helpful, but shouldn't interfere with anything else the uesr is doing.
             var priority = IsSubsequentSection(diagnostic)
                 ? CodeActionPriority.Low
-                : CodeActionPriority.Medium;
+                : CodeActionPriority.Default;
 
             RegisterCodeFix(context, CSharpCodeFixesResources.Remove_unreachable_code, nameof(CSharpCodeFixesResources.Remove_unreachable_code), priority);
 

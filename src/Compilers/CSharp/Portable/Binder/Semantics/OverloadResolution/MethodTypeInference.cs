@@ -611,9 +611,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ExplicitParameterTypeInference(argument, target, ref useSiteInfo);
                 ExplicitReturnTypeInference(argument, target, ref useSiteInfo);
             }
-            else if (argument.Kind == BoundKind.UnconvertedCollectionLiteralExpression)
+            else if (argument.Kind == BoundKind.UnconvertedCollectionExpression)
             {
-                MakeCollectionLiteralTypeInferences(binder, (BoundUnconvertedCollectionLiteralExpression)argument, target, kind, ref useSiteInfo);
+                MakeCollectionExpressionTypeInferences(binder, (BoundUnconvertedCollectionExpression)argument, target, kind, ref useSiteInfo);
             }
             else if (argument.Kind != BoundKind.TupleLiteral ||
                 !MakeExplicitParameterTypeInferences(binder, (BoundTupleLiteral)argument, target, kind, ref useSiteInfo))
@@ -632,9 +632,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void MakeCollectionLiteralTypeInferences(
+        private void MakeCollectionExpressionTypeInferences(
             Binder binder,
-            BoundUnconvertedCollectionLiteralExpression argument,
+            BoundUnconvertedCollectionExpression argument,
             TypeWithAnnotations target,
             ExactOrBoundsKind kind,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -836,9 +836,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 MakeOutputTypeInferences(binder, (BoundTupleLiteral)argument, formalType, ref useSiteInfo);
             }
-            else if (argument.Kind == BoundKind.UnconvertedCollectionLiteralExpression)
+            else if (argument.Kind == BoundKind.UnconvertedCollectionExpression)
             {
-                MakeOutputTypeInferences(binder, (BoundUnconvertedCollectionLiteralExpression)argument, formalType, ref useSiteInfo);
+                MakeOutputTypeInferences(binder, (BoundUnconvertedCollectionExpression)argument, formalType, ref useSiteInfo);
             }
             else
             {
@@ -853,7 +853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void MakeOutputTypeInferences(Binder binder, BoundUnconvertedCollectionLiteralExpression argument, TypeWithAnnotations formalType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private void MakeOutputTypeInferences(Binder binder, BoundUnconvertedCollectionExpression argument, TypeWithAnnotations formalType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             if (argument.Elements.Length == 0)
             {
@@ -928,7 +928,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // dependent on anything. We need to first determine which parameters need to be 
             // fixed, and then fix them all at once.
 
-            var needsFixing = new bool[_methodTypeParameters.Length];
+            var needsFixing = BitVector.Create(_methodTypeParameters.Length);
             var result = InferenceResult.NoProgress;
             for (int param = 0; param < _methodTypeParameters.Length; param++)
             {
@@ -3068,6 +3068,22 @@ OuterBreak:
             ImmutableArray<BoundExpression> arguments,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            if (!CanInferTypeArgumentsFromFirstArgument(compilation, conversions, method, arguments, ref useSiteInfo, out var inferrer))
+            {
+                return default;
+            }
+
+            return inferrer.GetInferredTypeArguments(out _);
+        }
+
+        public static bool CanInferTypeArgumentsFromFirstArgument(
+            CSharpCompilation compilation,
+            ConversionsBase conversions,
+            MethodSymbol method,
+            ImmutableArray<BoundExpression> arguments,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
+            out MethodTypeInferrer inferrer)
+        {
             Debug.Assert((object)method != null);
             Debug.Assert(method.Arity > 0);
             Debug.Assert(!arguments.IsDefault);
@@ -3075,14 +3091,15 @@ OuterBreak:
             // We need at least one formal parameter type and at least one argument.
             if ((method.ParameterCount < 1) || (arguments.Length < 1))
             {
-                return default(ImmutableArray<TypeWithAnnotations>);
+                inferrer = null;
+                return false;
             }
 
             Debug.Assert(!method.GetParameterType(0).IsDynamic());
 
             var constructedFromMethod = method.ConstructedFrom;
 
-            var inferrer = new MethodTypeInferrer(
+            inferrer = new MethodTypeInferrer(
                 compilation,
                 conversions,
                 constructedFromMethod.TypeParameters,
@@ -3094,10 +3111,10 @@ OuterBreak:
 
             if (!inferrer.InferTypeArgumentsFromFirstArgument(ref useSiteInfo))
             {
-                return default(ImmutableArray<TypeWithAnnotations>);
+                return false;
             }
 
-            return inferrer.GetInferredTypeArguments(out _);
+            return true;
         }
 
         ////////////////////////////////////////////////////////////////////////////////

@@ -2535,6 +2535,16 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Грубая редакция</target>
         <note />
       </trans-unit>
+      <trans-unit id="Run_All_Tests">
+        <source>Run All Tests</source>
+        <target state="new">Run All Tests</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run_Test">
+        <source>Run Test</source>
+        <target state="new">Run Test</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Selection_does_not_contain_a_valid_token">
         <source>Selection does not contain a valid token.</source>
         <target state="translated">Выделение не содержит допустимый токен.</target>
@@ -4322,7 +4332,7 @@ When this standard format specifier is used, the formatting or parsing operation
       </trans-unit>
       <trans-unit id="symbol_kind_and_name_of_member_kind_and_name">
         <source>{0} '{1}' of {2} '{3}'</source>
-        <target state="new">{0} '{1}' of {2} '{3}'</target>
+        <target state="translated">{0} ' {1} ' из {2} ' {3} '</target>
         <note>e.g. "parameter 'T param' of method 'M'"</note>
       </trans-unit>
       <trans-unit id="time_separator">

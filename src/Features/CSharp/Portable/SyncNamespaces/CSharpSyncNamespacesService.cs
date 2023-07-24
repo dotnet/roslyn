@@ -15,20 +15,14 @@ using Microsoft.CodeAnalysis.SyncNamespaces;
 namespace Microsoft.CodeAnalysis.CSharp.SyncNamespaces
 {
     [ExportLanguageService(typeof(ISyncNamespacesService), LanguageNames.CSharp), Shared]
-    internal sealed class CSharpSyncNamespacesService : AbstractSyncNamespacesService<SyntaxKind, BaseNamespaceDeclarationSyntax>
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class CSharpSyncNamespacesService(
+        CSharpMatchFolderAndNamespaceDiagnosticAnalyzer diagnosticAnalyzer,
+        CSharpChangeNamespaceToMatchFolderCodeFixProvider codeFixProvider) : AbstractSyncNamespacesService<SyntaxKind, BaseNamespaceDeclarationSyntax>
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpSyncNamespacesService(
-            CSharpMatchFolderAndNamespaceDiagnosticAnalyzer diagnosticAnalyzer,
-            CSharpChangeNamespaceToMatchFolderCodeFixProvider codeFixProvider)
-        {
-            DiagnosticAnalyzer = diagnosticAnalyzer;
-            CodeFixProvider = codeFixProvider;
-        }
+        public override AbstractMatchFolderAndNamespaceDiagnosticAnalyzer<SyntaxKind, BaseNamespaceDeclarationSyntax> DiagnosticAnalyzer { get; } = diagnosticAnalyzer;
 
-        public override AbstractMatchFolderAndNamespaceDiagnosticAnalyzer<SyntaxKind, BaseNamespaceDeclarationSyntax> DiagnosticAnalyzer { get; }
-
-        public override AbstractChangeNamespaceToMatchFolderCodeFixProvider CodeFixProvider { get; }
+        public override AbstractChangeNamespaceToMatchFolderCodeFixProvider CodeFixProvider { get; } = codeFixProvider;
     }
 }

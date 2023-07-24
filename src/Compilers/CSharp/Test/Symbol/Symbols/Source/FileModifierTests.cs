@@ -448,6 +448,234 @@ public class FileModifierTests : CSharpTestBase
         }
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67258")]
+    public void NonFileLocalClass_Duplicate()
+    {
+        var source = @"
+public class D { }
+
+public partial class C
+{
+    public class D { }
+}
+";
+        var comp = CreateCompilation(new[] { source, source });
+        comp.VerifyEmitDiagnostics(
+            // 1.cs(2,14): error CS0101: The namespace '<global namespace>' already contains a definition for 'D'
+            // public class D { }
+            Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "D").WithArguments("D", "<global namespace>").WithLocation(2, 14),
+            // 1.cs(6,18): error CS0102: The type 'C' already contains a definition for 'D'
+            //     public class D { }
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "D").WithArguments("C", "D").WithLocation(6, 18));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67258")]
+    public void FileLocalClass_Duplicate()
+    {
+        var source = @"
+file class D { }
+
+public partial class C
+{
+    file class D { } // 1
+}
+";
+        var comp = CreateCompilation(new[] { source, source });
+        comp.VerifyEmitDiagnostics(
+                    // 1.cs(6,16): error CS9054: File-local type 'C.D' must be defined in a top level type; 'C.D' is a nested type.
+                    //     file class D { } // 1
+                    Diagnostic(ErrorCode.ERR_FileTypeNested, "D").WithArguments("C.D").WithLocation(6, 16),
+                    // 0.cs(6,16): error CS9054: File-local type 'C.D' must be defined in a top level type; 'C.D' is a nested type.
+                    //     file class D { } // 1
+                    Diagnostic(ErrorCode.ERR_FileTypeNested, "D").WithArguments("C.D").WithLocation(6, 16));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67258")]
+    public void NonFileLocalEnum_Duplicate()
+    {
+        var source = @"
+public enum E { }
+
+public partial class C
+{
+    public enum E { }
+}
+";
+        var comp = CreateCompilation(new[] { source, source });
+        comp.VerifyEmitDiagnostics(
+            // 1.cs(2,13): error CS0101: The namespace '<global namespace>' already contains a definition for 'E'
+            // public enum E { }
+            Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "E").WithArguments("E", "<global namespace>").WithLocation(2, 13),
+            // 1.cs(6,17): error CS0102: The type 'C' already contains a definition for 'E'
+            //     public enum E { }
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "E").WithArguments("C", "E").WithLocation(6, 17));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67258")]
+    public void MixedFileLocalClass_Duplicate()
+    {
+        var source1 = @"
+file class D { }
+
+public partial class C
+{
+    file class D { } // 1
+}
+";
+
+        var source2 = @"
+public class D { }
+
+public partial class C
+{
+    public class D { }
+}
+";
+
+        var comp = CreateCompilation(new[] { source1, source2 });
+        comp.VerifyEmitDiagnostics(
+            // 0.cs(6,16): error CS9054: File-local type 'C.D' must be defined in a top level type; 'C.D' is a nested type.
+            //     file class D { } // 1
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "D").WithArguments("C.D").WithLocation(6, 16));
+
+        comp = CreateCompilation(new[] { source2, source1 });
+        comp.VerifyEmitDiagnostics(
+            // 0.cs(6,16): error CS9054: File-local type 'C.D' must be defined in a top level type; 'C.D' is a nested type.
+            //     file class D { } // 1
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "D").WithArguments("C.D").WithLocation(6, 16));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67258")]
+    public void FileLocalEnum_Duplicate()
+    {
+        var source = @"
+file enum E { }
+
+public partial class C
+{
+    file enum E { } // 1
+}
+";
+        var comp = CreateCompilation(new[] { source, source });
+        comp.VerifyEmitDiagnostics(
+            // 1.cs(6,15): error CS9054: File-local type 'C.E' must be defined in a top level type; 'C.E' is a nested type.
+            //     file enum E { } // 1
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "E").WithArguments("C.E").WithLocation(6, 15),
+            // 0.cs(6,15): error CS9054: File-local type 'C.E' must be defined in a top level type; 'C.E' is a nested type.
+            //     file enum E { } // 1
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "E").WithArguments("C.E").WithLocation(6, 15));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67258")]
+    public void MixedFileLocalEnum_Duplicate()
+    {
+        var source1 = @"
+file enum E { }
+
+public partial class C
+{
+    file enum E { } // 1
+}
+";
+
+        var source2 = @"
+public enum E { }
+
+public partial class C
+{
+    public enum E { }
+}
+";
+
+        var comp = CreateCompilation(new[] { source1, source2 });
+        comp.VerifyEmitDiagnostics(
+            // 0.cs(6,15): error CS9054: File-local type 'C.E' must be defined in a top level type; 'C.E' is a nested type.
+            //     file enum E { } // 1
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "E").WithArguments("C.E").WithLocation(6, 15));
+
+        comp = CreateCompilation(new[] { source2, source1 });
+        comp.VerifyEmitDiagnostics(
+            // 0.cs(6,15): error CS9054: File-local type 'C.E' must be defined in a top level type; 'C.E' is a nested type.
+            //     file enum E { } // 1
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "E").WithArguments("C.E").WithLocation(6, 15));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67258")]
+    public void NonFileLocalDelegate_Duplicate()
+    {
+        var source = @"
+public delegate void D();
+
+public partial class C
+{
+    public delegate void D();
+}
+";
+        var comp = CreateCompilation(new[] { source, source });
+        comp.VerifyEmitDiagnostics(
+            // 1.cs(2,22): error CS0101: The namespace '<global namespace>' already contains a definition for 'D'
+            // public delegate void D();
+            Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "D").WithArguments("D", "<global namespace>").WithLocation(2, 22),
+            // 1.cs(6,26): error CS0102: The type 'C' already contains a definition for 'D'
+            //     public delegate void D();
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "D").WithArguments("C", "D").WithLocation(6, 26));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67258")]
+    public void MixedFileLocalDelegate_Duplicate()
+    {
+        var source1 = @"
+file delegate void D();
+
+public partial class C
+{
+    file delegate void D(); // 1
+}
+";
+
+        var source2 = @"
+public delegate void D();
+
+public partial class C
+{
+    public delegate void D();
+}
+";
+
+        var comp = CreateCompilation(new[] { source1, source2 });
+        comp.VerifyEmitDiagnostics(
+            // 0.cs(6,24): error CS9054: File-local type 'C.D' must be defined in a top level type; 'C.D' is a nested type.
+            //     file delegate void D(); // 1
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "D").WithArguments("C.D").WithLocation(6, 24));
+
+        comp = CreateCompilation(new[] { source2, source1 });
+        comp.VerifyEmitDiagnostics(
+            // 0.cs(6,24): error CS9054: File-local type 'C.D' must be defined in a top level type; 'C.D' is a nested type.
+            //     file delegate void D(); // 1
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "D").WithArguments("C.D").WithLocation(6, 24));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67258")]
+    public void FileLocalDelegate_Duplicate()
+    {
+        var source = @"
+file delegate void D();
+
+public partial class C
+{
+    file delegate void D(); // 1
+}
+";
+        var comp = CreateCompilation(new[] { source, source });
+        comp.VerifyEmitDiagnostics(
+            // 1.cs(6,24): error CS9054: File-local type 'C.D' must be defined in a top level type; 'C.D' is a nested type.
+            //     file delegate void D(); // 1
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "D").WithArguments("C.D").WithLocation(6, 24),
+            // 0.cs(6,24): error CS9054: File-local type 'C.D' must be defined in a top level type; 'C.D' is a nested type.
+            //     file delegate void D(); // 1
+            Diagnostic(ErrorCode.ERR_FileTypeNested, "D").WithArguments("C.D").WithLocation(6, 24));
+    }
+
     [Fact]
     public void OtherFileUse()
     {
@@ -605,6 +833,8 @@ public class FileModifierTests : CSharpTestBase
         verify();
 
         comp = CreateCompilation(new[] { source2, source1 }, assemblyName: "comp");
+        verify();
+
         void verify()
         {
             comp.VerifyDiagnostics();
@@ -685,6 +915,8 @@ public class FileModifierTests : CSharpTestBase
         verify();
 
         comp = CreateCompilation(new[] { source2, source1 }, assemblyName: "comp");
+        verify();
+
         void verify()
         {
             comp.VerifyDiagnostics();
@@ -717,6 +949,8 @@ public class FileModifierTests : CSharpTestBase
         verify();
 
         comp = CreateCompilation(new[] { source2, source1 }, assemblyName: "comp");
+        verify();
+
         void verify()
         {
             comp.VerifyEmitDiagnostics();
@@ -3693,6 +3927,18 @@ public class FileModifierTests : CSharpTestBase
             // (1,5): error CS1061: 'string' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
             // "a".M(); // 1
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("string", "M").WithLocation(1, 5));
+
+        var tree = comp.SyntaxTrees[0];
+        var methodNameSyntax = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var symbolInfo = model.GetSymbolInfo(methodNameSyntax);
+        Assert.Null(symbolInfo.Symbol);
+        Assert.Empty(symbolInfo.CandidateSymbols);
+        Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+
+        var aliasInfo = model.GetAliasInfo(methodNameSyntax);
+        Assert.Null(aliasInfo);
     }
 
     [Fact]

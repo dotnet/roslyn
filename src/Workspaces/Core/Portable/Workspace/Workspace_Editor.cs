@@ -788,7 +788,7 @@ namespace Microsoft.CodeAnalysis
             docIds = docIds.RemoveAll(closedDocumentId);
 
             // Remove the entry if there are no more documents attached to given textContainer.
-            if (docIds.Equals(default(OneOrMany<DocumentId>)))
+            if (docIds.IsEmpty)
             {
                 _bufferToAssociatedDocumentsMap.Remove(textContainer);
                 _bufferToDocumentInCurrentContextMap.Remove(textContainer);

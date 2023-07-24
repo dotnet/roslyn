@@ -30,29 +30,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(nameof(SplitCommentCommandHandler))]
     [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
-    internal sealed class SplitCommentCommandHandler : ICommandHandler<ReturnKeyCommandArgs>
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class SplitCommentCommandHandler(
+        ITextUndoHistoryRegistry undoHistoryRegistry,
+        IEditorOperationsFactoryService editorOperationsFactoryService,
+        EditorOptionsService editorOptionsService,
+        IIndentationManagerService indentationManager,
+        IGlobalOptionService globalOptions) : ICommandHandler<ReturnKeyCommandArgs>
     {
-        private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
-        private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
-        private readonly EditorOptionsService _editorOptionsService;
-        private readonly IIndentationManagerService _indentationManager;
-        private readonly IGlobalOptionService _globalOptions;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SplitCommentCommandHandler(
-            ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService,
-            EditorOptionsService editorOptionsService,
-            IIndentationManagerService indentationManager,
-            IGlobalOptionService globalOptions)
-        {
-            _undoHistoryRegistry = undoHistoryRegistry;
-            _editorOperationsFactoryService = editorOperationsFactoryService;
-            _editorOptionsService = editorOptionsService;
-            _indentationManager = indentationManager;
-            _globalOptions = globalOptions;
-        }
+        private readonly ITextUndoHistoryRegistry _undoHistoryRegistry = undoHistoryRegistry;
+        private readonly IEditorOperationsFactoryService _editorOperationsFactoryService = editorOperationsFactoryService;
+        private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
+        private readonly IIndentationManagerService _indentationManager = indentationManager;
+        private readonly IGlobalOptionService _globalOptions = globalOptions;
 
         public string DisplayName => EditorFeaturesResources.Split_comment;
 

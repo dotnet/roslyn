@@ -1744,6 +1744,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return TypeOf node Is MemberAccessExpressionSyntax
         End Function
 
+        Public Function IsMethodDeclaration(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsMethodDeclaration
+            Return TypeOf node Is MethodBlockSyntax
+        End Function
+
         Public Function IsSimpleName(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsSimpleName
             Return TypeOf node Is SimpleNameSyntax
         End Function

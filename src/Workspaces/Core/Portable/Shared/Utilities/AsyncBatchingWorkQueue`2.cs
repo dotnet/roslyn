@@ -230,13 +230,24 @@ namespace Roslyn.Utilities
                 if (nextBatch.IsEmpty)
                     return default;
 
-                return await _processBatchAsync(nextBatch, batchCancellationToken).ConfigureAwait(false);
-            }
-            catch (OperationCanceledException) when (!_entireQueueCancellationToken.IsCancellationRequested)
-            {
-                // Don't bubble up cancellation to the queue for the nested batch cancellation.  Just because we decided
-                // to cancel this batch isn't something that should stop processing further batches.
-                return default;
+                var batchResultTask = _processBatchAsync(nextBatch, batchCancellationToken).Preserve();
+                await batchResultTask.NoThrowAwaitableInternal(false);
+                if (batchResultTask.IsCompletedSuccessfully)
+                {
+                    return batchResultTask.Result;
+                }
+                else if (batchResultTask.IsCanceled && !_entireQueueCancellationToken.IsCancellationRequested)
+                {
+                    // Don't bubble up cancellation to the queue for the nested batch cancellation.  Just because we decided
+                    // to cancel this batch isn't something that should stop processing further batches.
+                    return default;
+                }
+                else
+                {
+                    // Realize the completed result to force the exception to be thrown.
+                    batchResultTask.VerifyCompleted();
+                    throw ExceptionUtilities.Unreachable();
+                }
             }
             catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, ErrorSeverity.Critical))
             {

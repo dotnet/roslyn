@@ -24,26 +24,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         {
         }
 
-        protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
-        {
-            var whileStatement = (WhileStatementSyntax)caretTarget;
-            var blockStatement = (BlockSyntax)whileStatement.Statement;
-
-            var triviaSpan = blockStatement.CloseBraceToken.LeadingTrivia.Span;
-            var line = sourceText.Lines.GetLineFromPosition(triviaSpan.Start);
-            // Getting the location at the end of the line before the newline.
-            return line.Span.End;
-        }
-
         protected override SyntaxNode GetCondition(SyntaxNode node)
         {
             var whileStatement = (WhileStatementSyntax)node;
             return whileStatement.Condition;
         }
 
+        protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
+        {
+            return CSharpSnippetHelpers.GetTargetCaretPositionInBlock<WhileStatementSyntax>(
+                caretTarget,
+                static s => (BlockSyntax)s.Statement,
+                sourceText);
+        }
+
         protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
         {
-            return СSharpSnippetIndentationHelpers.AddBlockIndentationToDocumentAsync<WhileStatementSyntax>(
+            return CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync<WhileStatementSyntax>(
                 document,
                 FindSnippetAnnotation,
                 static s => (BlockSyntax)s.Statement,

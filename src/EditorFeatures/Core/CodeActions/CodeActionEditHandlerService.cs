@@ -26,26 +26,18 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CodeActions
 {
     [Export(typeof(ICodeActionEditHandlerService))]
-    internal class CodeActionEditHandlerService : ICodeActionEditHandlerService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class CodeActionEditHandlerService(
+        IThreadingContext threadingContext,
+        IPreviewFactoryService previewService,
+        IInlineRenameService renameService,
+        ITextBufferAssociatedViewService associatedViewService) : ICodeActionEditHandlerService
     {
-        private readonly IThreadingContext _threadingContext;
-        private readonly IPreviewFactoryService _previewService;
-        private readonly IInlineRenameService _renameService;
-        private readonly ITextBufferAssociatedViewService _associatedViewService;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CodeActionEditHandlerService(
-            IThreadingContext threadingContext,
-            IPreviewFactoryService previewService,
-            IInlineRenameService renameService,
-            ITextBufferAssociatedViewService associatedViewService)
-        {
-            _threadingContext = threadingContext;
-            _previewService = previewService;
-            _renameService = renameService;
-            _associatedViewService = associatedViewService;
-        }
+        private readonly IThreadingContext _threadingContext = threadingContext;
+        private readonly IPreviewFactoryService _previewService = previewService;
+        private readonly IInlineRenameService _renameService = renameService;
+        private readonly ITextBufferAssociatedViewService _associatedViewService = associatedViewService;
 
         public ITextBufferAssociatedViewService AssociatedViewService => _associatedViewService;
 

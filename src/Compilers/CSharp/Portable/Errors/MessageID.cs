@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureInstanceMemberInNameof = MessageBase + 12835,
 
         IDS_FeatureInlineArrays = MessageBase + 12836,
-        IDS_FeatureCollectionLiterals = MessageBase + 12837,
+        IDS_FeatureCollectionExpressions = MessageBase + 12837,
 
         IDS_FeatureRefReadonlyParameters = MessageBase + 12900, // PROTOTYPE: Pack numbers
     }
@@ -463,7 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureUsingTypeAlias: // semantic check
                 case MessageID.IDS_FeatureInstanceMemberInNameof: // semantic check
                 case MessageID.IDS_FeatureInlineArrays: // semantic check
-                case MessageID.IDS_FeatureCollectionLiterals: // semantic check
+                case MessageID.IDS_FeatureCollectionExpressions: // semantic check
                 case MessageID.IDS_FeatureRefReadonlyParameters: // semantic check
                     return LanguageVersion.Preview;
 
