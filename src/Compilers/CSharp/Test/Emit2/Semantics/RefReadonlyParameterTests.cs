@@ -4607,6 +4607,30 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
     }
 
     [Fact]
+    public void Implementation_RefReadonly_In_Close()
+    {
+        var source = """
+            interface I
+            {
+                void M1(in int x);
+                void M2(ref readonly int x);
+            }
+            class C : I
+            {
+                void M1(ref readonly int x) { }
+                void M2(in int x) { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (6,11): error CS0737: 'C' does not implement interface member 'I.M1(in int)'. 'C.M1(ref readonly int)' cannot implement an interface member because it is not public.
+            // class C : I
+            Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "I").WithArguments("C", "I.M1(in int)", "C.M1(ref readonly int)").WithLocation(6, 11),
+            // (6,11): error CS0737: 'C' does not implement interface member 'I.M2(ref readonly int)'. 'C.M2(in int)' cannot implement an interface member because it is not public.
+            // class C : I
+            Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "I").WithArguments("C", "I.M2(ref readonly int)", "C.M2(in int)").WithLocation(6, 11));
+    }
+
+    [Fact]
     public void Implementation_RefReadonly_In_Indexer()
     {
         var source = """
