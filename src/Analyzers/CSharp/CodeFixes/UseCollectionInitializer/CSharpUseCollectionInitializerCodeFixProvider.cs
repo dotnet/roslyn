@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             StatementSyntax statement,
             BaseObjectCreationExpressionSyntax objectCreation,
             bool useCollectionExpression,
-            ImmutableArray<StatementSyntax> matches)
+            ImmutableArray<Match<StatementSyntax>> matches)
         {
             return statement.ReplaceNode(
                 objectCreation,
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
         private static ExpressionSyntax GetNewObjectCreation(
             BaseObjectCreationExpressionSyntax objectCreation,
             bool useCollectionExpression,
-            ImmutableArray<StatementSyntax> matches)
+            ImmutableArray<Match<StatementSyntax>> matches)
         {
             var expressions = CreateExpressions(objectCreation, matches);
             return useCollectionExpression
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 
         private static CollectionExpressionSyntax CreateCollectionExpression(
             BaseObjectCreationExpressionSyntax objectCreation,
-            ImmutableArray<StatementSyntax> matches,
+            ImmutableArray<Match<StatementSyntax>> matches,
             SeparatedSyntaxList<ExpressionSyntax> expressions)
         {
             using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 else
                 {
                     var expression = (ExpressionSyntax)nodeOrToken.AsNode()!;
-                    nodesAndTokens.Add(matches[expressionIndex] is ForEachStatementSyntax
+                    nodesAndTokens.Add(matches[expressionIndex].UseSpread
                         ? SpreadElement(expression)
                         : ExpressionElement(expression));
                     expressionIndex++;
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 
         private static SeparatedSyntaxList<ExpressionSyntax> CreateExpressions(
             BaseObjectCreationExpressionSyntax objectCreation,
-            ImmutableArray<StatementSyntax> matches)
+            ImmutableArray<Match<StatementSyntax>> matches)
         {
             using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
 
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 
             for (var i = 0; i < matches.Length; i++)
             {
-                var statement = matches[i];
+                var statement = matches[i].Statement;
 
                 var trivia = statement.GetLeadingTrivia();
                 var newTrivia = i == 0 ? trivia.WithoutLeadingBlankLines() : trivia;

@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             => ImmutableArray.Create(IDEDiagnosticIds.UseCollectionInitializerDiagnosticId);
 
         protected abstract TStatementSyntax GetNewStatement(
-            TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation, bool useCollectionExpression, ImmutableArray<TStatementSyntax> matches);
+            TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation, bool useCollectionExpression, ImmutableArray<Match<TStatementSyntax>> matches);
 
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
             => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
@@ -93,20 +93,20 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 var matches = UseCollectionInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TForeachStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
                     semanticModel, syntaxFacts, objectCreation, useCollectionExpression, cancellationToken);
 
-                if (matches == null || matches.Value.Length == 0)
+                if (matches.IsDefaultOrEmpty)
                     continue;
 
                 var statement = objectCreation.FirstAncestorOrSelf<TStatementSyntax>();
                 Contract.ThrowIfNull(statement);
 
-                var newStatement = GetNewStatement(statement, objectCreation, useCollectionExpression, matches.Value)
+                var newStatement = GetNewStatement(statement, objectCreation, useCollectionExpression, matches)
                     .WithAdditionalAnnotations(Formatter.Annotation);
 
                 var subEditor = new SyntaxEditor(currentRoot, document.Project.Solution.Services);
 
                 subEditor.ReplaceNode(statement, newStatement);
                 foreach (var match in matches)
-                    subEditor.RemoveNode(match, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+                    subEditor.RemoveNode(match.Statement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
 
                 document = document.WithSyntaxRoot(subEditor.GetChangedRoot());
                 semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);

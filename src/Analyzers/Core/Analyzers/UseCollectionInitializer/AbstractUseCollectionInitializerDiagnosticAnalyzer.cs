@@ -17,6 +17,10 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 {
+    internal readonly record struct Match<TStatementSyntax>(
+        TStatementSyntax Statement,
+        bool UseSpread) where TStatementSyntax : SyntaxNode;
+
     internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyzer<
         TSyntaxKind,
         TExpressionSyntax,
@@ -128,7 +132,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             if (matches.IsDefaultOrEmpty)
                 return;
 
-            var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(matches);
+            var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(matches.Select(static m => m.Statement));
             var syntaxFacts = GetSyntaxFacts();
             if (syntaxFacts.ContainsInterleavedDirective(nodes, cancellationToken))
                 return;
@@ -146,7 +150,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
             return;
 
-            (ImmutableArray<TStatementSyntax> matches, bool shouldUseCollectionExpression) GetMatches()
+            (ImmutableArray<Match<TStatementSyntax>> matches, bool shouldUseCollectionExpression) GetMatches()
             {
                 // Analyze the surrounding statements. First, try a broader set of statements if the language supports
                 // collection expressions. 
@@ -190,13 +194,13 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         private void FadeOutCode(
             SyntaxNodeAnalysisContext context,
-            ImmutableArray<TStatementSyntax> matches,
+            ImmutableArray<Match<TStatementSyntax>> matches,
             ImmutableArray<Location> locations)
         {
             var syntaxTree = context.Node.SyntaxTree;
             var syntaxFacts = GetSyntaxFacts();
 
-            foreach (var match in matches)
+            foreach (var (match, _) in matches)
             {
                 if (match is TExpressionStatementSyntax)
                 {

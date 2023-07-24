@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             CancellationToken cancellationToken)
         {
             var analyzer = s_pool.Allocate();
-            analyzer.Initialize(semanticModel, syntaxFacts, objectCreationExpression, areCollectionExpressionsSupported: false, cancellationToken);
+            analyzer.Initialize(semanticModel, syntaxFacts, objectCreationExpression, analyzeForCollectionExpression: false, cancellationToken);
             try
             {
                 return analyzer.AnalyzeWorker();

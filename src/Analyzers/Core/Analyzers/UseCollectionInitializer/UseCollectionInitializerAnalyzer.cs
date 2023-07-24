@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             TStatementSyntax,
             TObjectCreationExpressionSyntax,
             TVariableDeclaratorSyntax,
-            TStatementSyntax>
+            Match<TStatementSyntax>>
         where TExpressionSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
         where TObjectCreationExpressionSyntax : TExpressionSyntax
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         private static readonly ObjectPool<UseCollectionInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TForeachStatementSyntax, TVariableDeclaratorSyntax>> s_pool
             = SharedPools.Default<UseCollectionInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TForeachStatementSyntax, TVariableDeclaratorSyntax>>();
 
-        public static ImmutableArray<TStatementSyntax> Analyze(
+        public static ImmutableArray<Match<TStatementSyntax>> Analyze(
             SemanticModel semanticModel,
             ISyntaxFacts syntaxFacts,
             TObjectCreationExpressionSyntax objectCreationExpression,
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             }
         }
 
-        protected override void AddMatches(ArrayBuilder<TStatementSyntax> matches)
+        protected override void AddMatches(ArrayBuilder<Match<TStatementSyntax>> matches)
         {
             // If containing statement is inside a block (e.g. method), than we need to iterate through its child statements.
             // If containing statement is in top-level code, than we need to iterate through child statements of containing compilation unit.
@@ -107,20 +108,42 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
                 if (extractedChild is TExpressionStatementSyntax expressionStatement)
                 {
-                    TExpressionSyntax? instance = null;
-                    if (!seenIndexAssignment && TryAnalyzeAddInvocation(expressionStatement, requiredArgumentName: null, out instance))
-                        seenInvocation = true;
+                    if (!seenIndexAssignment)
+                    {
+                        // Look for a call to Add or AddRange
+                        if (TryAnalyzeInvocation(
+                                expressionStatement,
+                                addName: WellKnownMemberNames.CollectionInitializerAddMethodName,
+                                requiredArgumentName: null,
+                                out var instance) &&
+                            ValuePatternMatches(instance))
+                        {
+                            seenInvocation = true;
+                            matches.Add(new Match<TStatementSyntax>(expressionStatement, UseSpread: false));
+                        }
+                        else if (
+                            _analyzeForCollectionExpression &&
+                            TryAnalyzeInvocation(
+                                expressionStatement,
+                                addName: nameof(List<int>.AddRange),
+                                requiredArgumentName: null,
+                                out instance))
+                        {
+                            seenInvocation = true;
+                            matches.Add(new Match<TStatementSyntax>(expressionStatement, UseSpread: true));
+                        }
+                    }
 
-                    if (!seenInvocation && !_analyzeForCollectionExpression && TryAnalyzeIndexAssignment(expressionStatement, out instance))
-                        seenIndexAssignment = true;
+                    if (!seenInvocation && !_analyzeForCollectionExpression)
+                    {
+                        if (TryAnalyzeIndexAssignment(expressionStatement, out var instance))
+                        {
+                            seenIndexAssignment = true;
+                            matches.Add(new Match<TStatementSyntax>(expressionStatement, UseSpread: false));
+                        }
+                    }
 
-                    if (instance == null)
-                        return;
-
-                    if (!ValuePatternMatches(instance))
-                        return;
-
-                    matches.Add(expressionStatement);
+                    return;
                 }
                 else if (extractedChild is TForeachStatementSyntax foreachStatement)
                 {
@@ -134,14 +157,13 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                         return;
 
                     if (foreachStatements.ToImmutableArray() is not [TExpressionStatementSyntax childExpressionStatement] ||
-                        !TryAnalyzeAddInvocation(childExpressionStatement, identifier.Text, out var instance) ||
-                        instance is null ||
+                        !TryAnalyzeInvocation(childExpressionStatement, addName: WellKnownMemberNames.CollectionInitializerAddMethodName, identifier.Text, out var instance) ||
                         !ValuePatternMatches(instance))
                     {
                         return;
                     }
 
-                    matches.Add(foreachStatement);
+                    matches.Add(new Match<TStatementSyntax>(foreachStatement, UseSpread: true));
                 }
                 else
                 {
@@ -211,8 +233,9 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             return instance != null;
         }
 
-        private bool TryAnalyzeAddInvocation(
+        private bool TryAnalyzeInvocation(
             TExpressionStatementSyntax statement,
+            string addName,
             string? requiredArgumentName,
             [NotNullWhen(true)] out TExpressionSyntax? instance)
         {
@@ -271,7 +294,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             _syntaxFacts.GetPartsOfMemberAccessExpression(memberAccess, out var localInstance, out var memberName);
             _syntaxFacts.GetNameAndArityOfSimpleName(memberName, out var name, out var arity);
 
-            if (arity != 0 || !Equals(name, WellKnownMemberNames.CollectionInitializerAddMethodName))
+            if (arity != 0 || !Equals(name, addName))
                 return false;
 
             instance = localInstance as TExpressionSyntax;

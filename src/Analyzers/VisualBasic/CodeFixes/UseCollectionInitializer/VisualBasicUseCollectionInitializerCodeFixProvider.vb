@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
                 statement As StatementSyntax,
                 objectCreation As ObjectCreationExpressionSyntax,
                 useCollectionExpression As Boolean,
-                matches As ImmutableArray(Of StatementSyntax)) As StatementSyntax
+                matches As ImmutableArray(Of Match(Of StatementSyntax))) As StatementSyntax
             Contract.ThrowIfTrue(useCollectionExpression, "VB does not support collection expressions")
             Dim newStatement = statement.ReplaceNode(
                 objectCreation,
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             totalTrivia.Add(SyntaxFactory.ElasticMarker)
 
             For Each match In matches
-                For Each trivia In match.GetLeadingTrivia()
+                For Each trivia In match.Statement.GetLeadingTrivia()
                     If trivia.Kind = SyntaxKind.CommentTrivia Then
                         totalTrivia.Add(trivia)
                         totalTrivia.Add(SyntaxFactory.ElasticMarker)
@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
 
         Private Shared Function GetNewObjectCreation(
                 objectCreation As ObjectCreationExpressionSyntax,
-                matches As ImmutableArray(Of StatementSyntax)) As ObjectCreationExpressionSyntax
+                matches As ImmutableArray(Of Match(Of StatementSyntax))) As ObjectCreationExpressionSyntax
 
             Return UseInitializerHelpers.GetNewObjectCreation(
                 objectCreation,
@@ -68,13 +68,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
 
         Private Shared Function CreateCollectionInitializer(
                 objectCreation As ObjectCreationExpressionSyntax,
-                matches As ImmutableArray(Of StatementSyntax)) As CollectionInitializerSyntax
+                matches As ImmutableArray(Of Match(Of StatementSyntax))) As CollectionInitializerSyntax
             Dim nodesAndTokens = ArrayBuilder(Of SyntaxNodeOrToken).GetInstance()
 
             AddExistingItems(objectCreation, nodesAndTokens)
 
             For i = 0 To matches.Length - 1
-                Dim expressionStatement = DirectCast(matches(i), ExpressionStatementSyntax)
+                Dim expressionStatement = DirectCast(matches(i).Statement, ExpressionStatementSyntax)
 
                 Dim newExpression As ExpressionSyntax
                 Dim invocationExpression = DirectCast(expressionStatement.Expression, InvocationExpressionSyntax)
