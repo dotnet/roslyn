@@ -2734,12 +2734,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (containsFunctionTypes(lower) &&
                 (containsNonFunctionTypes(lower) || containsNonFunctionTypes(exact) || containsNonFunctionTypes(upper)))
             {
-                lowerPredicate = static type => isFunctionType(type, out _);
+                lowerPredicate = static type => !isFunctionType(type, out _);
             }
             else
             {
                 // Remove any function types with no delegate type.
-                lowerPredicate = static type => isFunctionType(type, out var functionType) && functionType.GetInternalDelegateType() is null;
+                lowerPredicate = static type => !isFunctionType(type, out var functionType) || functionType.GetInternalDelegateType() is not null;
             }
 
             // Optimization: if we have one exact bound then we need not add any
