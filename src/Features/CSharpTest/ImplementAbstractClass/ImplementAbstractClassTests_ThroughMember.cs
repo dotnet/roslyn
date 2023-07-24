@@ -826,5 +826,107 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
                 </Workspace>
                 """, index: 1);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
+        public async Task TestImplementThroughPrimaryConstructorParam1()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                abstract class Base
+                {
+                    public abstract int Method();
+                }
+
+                class [|Program|](Base base1) : Base
+                {
+                }
+                """,
+                """
+                abstract class Base
+                {
+                    public abstract int Method();
+                }
+
+                class Program(Base base1) : Base
+                {
+                    public override int Method()
+                    {
+                        return base1.Method();
+                    }
+                }
+                """, index: 1);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
+        public async Task TestImplementThroughPrimaryConstructorParam2()
+        {
+            // Don't offer "implement through" since this PC parameter is captured as a field.
+            await TestExactActionSetOfferedAsync(
+                """
+                abstract class Base
+                {
+                    public abstract int Method();
+                }
+
+                class [|Program|](Base base1) : Base
+                {
+                    private Base _base = base1;
+                }
+                """, new[] { FeaturesResources.Implement_abstract_class, string.Format(FeaturesResources.Implement_through_0, "_base") });
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
+        public async Task TestImplementThroughPrimaryConstructorParam2_B()
+        {
+            // Don't offer "implement through 'base1'" since this PC parameter is captured as a field.
+            await TestExactActionSetOfferedAsync(
+                """
+                abstract class Base
+                {
+                    public abstract int Method();
+                }
+
+                class [|Program|](Base base1) : Base
+                {
+                    private Base _base = (base1);
+                }
+                """, new[] { FeaturesResources.Implement_abstract_class, string.Format(FeaturesResources.Implement_through_0, "_base") });
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
+        public async Task TestImplementThroughPrimaryConstructorParam3()
+        {
+            // Don't offer "implement through" since this PC parameter is captured as a property.
+            await TestExactActionSetOfferedAsync(
+                """
+                abstract class Base
+                {
+                    public abstract int Method();
+                }
+
+                class [|Program|](Base base1) : Base
+                {
+                    private Base B { get; } = base1;
+                }
+                """, new[] { FeaturesResources.Implement_abstract_class, string.Format(FeaturesResources.Implement_through_0, "B") });
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
+        public async Task TestImplementThroughPrimaryConstructorParam3_B()
+        {
+            // Don't offer "implement through" since this PC parameter is captured as a property.
+            await TestExactActionSetOfferedAsync(
+                """
+                abstract class Base
+                {
+                    public abstract int Method();
+                }
+
+                class [|Program|](Base base1) : Base
+                {
+                    private Base B { get; } = (base1);
+                }
+                """, new[] { FeaturesResources.Implement_abstract_class, string.Format(FeaturesResources.Implement_through_0, "B") });
+        }
     }
 }

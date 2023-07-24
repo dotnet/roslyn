@@ -1483,6 +1483,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return DirectCast(node, VariableDeclaratorSyntax).Initializer
         End Function
 
+        Public Function GetInitializerOfPropertyDeclaration(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetInitializerOfPropertyDeclaration
+            Return DirectCast(node, PropertyBlockSyntax).PropertyStatement.Initializer
+        End Function
+
         Public Function GetTypeOfVariableDeclarator(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetTypeOfVariableDeclarator
             Dim declarator = DirectCast(node, VariableDeclaratorSyntax)
             Return TryCast(declarator.AsClause, SimpleAsClauseSyntax)?.Type

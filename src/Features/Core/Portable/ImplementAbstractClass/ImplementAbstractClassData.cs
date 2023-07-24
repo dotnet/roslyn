@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -257,38 +258,118 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
         private bool ShouldGenerateAccessor([NotNullWhen(true)] IMethodSymbol? method)
             => method != null && ClassType.FindImplementationForAbstractMember(method) == null;
 
-        public IEnumerable<(ISymbol symbol, bool canDelegateAllMembers)> GetDelegatableMembers()
+        public ImmutableArray<(ISymbol symbol, bool canDelegateAllMembers)> GetDelegatableMembers(CancellationToken cancellationToken)
         {
+            using var _ = ArrayBuilder<(ISymbol symbol, bool canDelegateAllMembers)>.GetInstance(out var result);
+
             var fields = ClassType.GetMembers()
                 .OfType<IFieldSymbol>()
                 .Where(f => !f.IsImplicitlyDeclared)
                 .Where(f => InheritsFromOrEquals(f.Type, AbstractClassType))
-                .OfType<ISymbol>();
+                .ToImmutableArray();
 
             var properties = ClassType.GetMembers()
                 .OfType<IPropertySymbol>()
                 .Where(p => !p.IsImplicitlyDeclared && p.Parameters.Length == 0)
                 .Where(p => InheritsFromOrEquals(p.Type, AbstractClassType))
-                .OfType<ISymbol>();
+                .ToImmutableArray();
 
-            // Have to make sure the field or prop has at least one unimplemented member exposed
-            // that we could actually call from our type.  For example, if we're calling through a
-            // type that isn't derived from us, then we can't access protected members.
-            foreach (var fieldOrProp in fields.Concat(properties))
+            var parameters = GetNonCapturedPrimaryConstructorParameters(fields, properties, cancellationToken);
+            var allUnimplementedMembers = _unimplementedMembers.SelectMany(t => t.members).ToImmutableArray();
+
+            // Have to make sure the field or prop has at least one unimplemented member exposed that we could actually
+            // call from our type.  For example, if we're calling through a type that isn't derived from us, then we
+            // can't access protected members.
+            foreach (var member in fields.OfType<ISymbol>().Concat(properties).Concat(parameters))
             {
-                var fieldOrPropType = fieldOrProp.GetMemberType();
-                var allUnimplementedMembers = _unimplementedMembers.SelectMany(t => t.members).ToImmutableArray();
-
-                var accessibleCount = allUnimplementedMembers.Count(m => m.IsAccessibleWithin(ClassType, throughType: fieldOrPropType));
+                var memberType = member.GetMemberType();
+                var accessibleCount = allUnimplementedMembers.Count(m => m.IsAccessibleWithin(ClassType, throughType: memberType));
                 if (accessibleCount > 0)
                 {
-                    // there was at least one unimplemented member that we could implement here
-                    // through one of our members.  Return this as a a delegatable member.  Also
-                    // indicate if we will be able to delegate all unimplemented members through
-                    // this.  If not, we'll let the user know that they can delegate through this
-                    // but that it will not fully fix the error.
-                    yield return (fieldOrProp, canDelegateAllMembers: accessibleCount == allUnimplementedMembers.Length);
+                    // there was at least one unimplemented member that we could implement here through one of our
+                    // members.  Return this as a a delegatable member.  Also indicate if we will be able to delegate
+                    // all unimplemented members through this.  If not, we'll let the user know that they can delegate
+                    // through this but that it will not fully fix the error.
+                    result.Add((member, canDelegateAllMembers: accessibleCount == allUnimplementedMembers.Length));
                 }
+            }
+
+            return result.ToImmutable();
+        }
+
+        private IEnumerable<IParameterSymbol> GetNonCapturedPrimaryConstructorParameters(
+            ImmutableArray<IFieldSymbol> fields,
+            ImmutableArray<IPropertySymbol> properties,
+            CancellationToken cancellationToken)
+        {
+            var syntaxFacts = _document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var primaryConstructor = ClassType.InstanceConstructors
+                .FirstOrDefault(c => c.Parameters.Length > 0 && c.Parameters[0].IsPrimaryConstructor(cancellationToken));
+            if (primaryConstructor != null)
+            {
+                foreach (var parameter in primaryConstructor.Parameters)
+                {
+                    if (InheritsFromOrEquals(parameter.Type, AbstractClassType) &&
+                        !IsAssignedToFieldOrProperty(fields, properties, parameter))
+                    {
+                        yield return parameter;
+                    }
+                }
+            }
+
+            yield break;
+
+            bool IsAssignedToFieldOrProperty(ImmutableArray<IFieldSymbol> fields, ImmutableArray<IPropertySymbol> properties, IParameterSymbol parameter)
+                => fields.Any(f => IsAssignedToField(f, parameter)) || properties.Any(p => IsAssignedToProperty(p, parameter));
+
+            bool IsAssignedToField(IFieldSymbol field, IParameterSymbol parameter)
+            {
+                if (field.DeclaringSyntaxReferences is [var syntaxRef, ..])
+                {
+                    var declarator = syntaxRef.GetSyntax(cancellationToken);
+                    if (syntaxFacts.IsVariableDeclarator(declarator))
+                    {
+                        var initializer = syntaxFacts.GetInitializerOfVariableDeclarator(declarator);
+                        if (InitializerReferencesParameter(initializer, parameter))
+                            return true;
+                    }
+                }
+
+                return false;
+            }
+
+            bool IsAssignedToProperty(IPropertySymbol property, IParameterSymbol parameter)
+            {
+                if (property.DeclaringSyntaxReferences is [var syntaxRef, ..])
+                {
+                    var declarator = syntaxRef.GetSyntax(cancellationToken);
+                    if (syntaxFacts.IsPropertyDeclaration(declarator))
+                    {
+                        var initializer = syntaxFacts.GetInitializerOfPropertyDeclaration(declarator);
+                        if (InitializerReferencesParameter(initializer, parameter))
+                            return true;
+                    }
+                }
+
+                return false;
+            }
+
+            bool InitializerReferencesParameter(SyntaxNode? initializer, IParameterSymbol parameter)
+            {
+                if (initializer != null)
+                {
+                    var value = syntaxFacts.GetValueOfEqualsValueClause(initializer);
+                    value = syntaxFacts.WalkDownParentheses(value);
+
+                    if (syntaxFacts.IsIdentifierName(value))
+                    {
+                        syntaxFacts.GetNameAndArityOfSimpleName(value, out var name, out _);
+                        if (name == parameter.Name)
+                            return true;
+                    }
+                }
+
+                return false;
             }
         }
 

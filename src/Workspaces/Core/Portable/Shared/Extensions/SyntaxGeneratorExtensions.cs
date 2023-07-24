@@ -574,12 +574,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static SyntaxNode CreateDelegateThroughExpression(
             this SyntaxGenerator generator, ISymbol member, ISymbol throughMember)
         {
+            var name = generator.IdentifierName(throughMember.Name);
             var through = throughMember.IsStatic
                 ? GenerateContainerName(generator, throughMember)
-                : generator.ThisExpression();
+                // If we're delegating through a primary constructor parameter, we cannot qualify the name at all.
+                : throughMember is IParameterSymbol
+                    ? null
+                    : generator.ThisExpression();
 
-            through = generator.MemberAccessExpression(
-                through, generator.IdentifierName(throughMember.Name));
+            through = through is null ? name : generator.MemberAccessExpression(through, name);
 
             var throughMemberType = throughMember.GetMemberType();
             if (member.ContainingType.IsInterfaceType() && throughMemberType != null)
@@ -612,8 +615,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     through = generator.CastExpression(interfaceBeingImplemented,
                         through.WithAdditionalAnnotations(Simplifier.Annotation));
                 }
-                else if (!throughMember.IsStatic &&
-                    throughMember is IPropertySymbol throughMemberProperty &&
+                else if (
+                    throughMember is IPropertySymbol { IsStatic: false } throughMemberProperty &&
                     throughMemberProperty.ExplicitInterfaceImplementations.Any())
                 {
                     // If we are implementing through an explicitly implemented property, we need to cast 'this' to
