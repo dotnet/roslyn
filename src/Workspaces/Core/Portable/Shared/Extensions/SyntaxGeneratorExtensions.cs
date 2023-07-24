@@ -422,9 +422,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             // Only generate a setter if the base setter is accessible.
             IMethodSymbol? accessorSet = null;
-            if (overriddenProperty.SetMethod != null &&
-                overriddenProperty.SetMethod.IsAccessibleWithin(containingType) &&
-                overriddenProperty.SetMethod.DeclaredAccessibility != Accessibility.Private)
+            if (overriddenProperty.SetMethod is { DeclaredAccessibility: not Accessibility.Private } &&
+                overriddenProperty.SetMethod.IsAccessibleWithin(containingType))
             {
                 accessorSet = CodeGenerationSymbolFactory.CreateMethodSymbol(
                     overriddenProperty.SetMethod,
@@ -655,7 +654,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 if (property.Parameters.Length > 0)
                 {
-                    var arguments = generator.CreateArguments(property.Parameters.As<IParameterSymbol>());
+                    var arguments = generator.CreateArguments(property.Parameters);
                     expression = generator.ElementAccessExpression(expression, arguments);
                 }
 
@@ -679,7 +678,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 if (property.Parameters.Length > 0)
                 {
-                    var arguments = generator.CreateArguments(property.Parameters.As<IParameterSymbol>());
+                    var arguments = generator.CreateArguments(property.Parameters);
                     expression = generator.ElementAccessExpression(expression, arguments);
                 }
 
