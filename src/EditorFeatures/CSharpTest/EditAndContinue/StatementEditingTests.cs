@@ -4645,7 +4645,7 @@ class C
                 Diagnostic(RudeEditKind.NotCapturingVariable, "remove", "value"));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/68731")]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
         public void Lambdas_Update_CeaseCapture_ConstructorInitializer_This()
         {
@@ -4658,7 +4658,7 @@ class C
                 Diagnostic(RudeEditKind.NotCapturingVariable, "int x", "x"));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/68731")]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
         public void Lambdas_Update_CeaseCapture_ConstructorInitializer_Base()
         {
@@ -4699,11 +4699,11 @@ class C
                 Diagnostic(RudeEditKind.NotCapturingVariable, "int y", "y"));
         }
 
-        [Theory(Skip = "https://github.com/dotnet/roslyn/issues/68731")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
+        [Theory]
         [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
         public void Lambdas_Update_CeaseCapture_PrimaryParameter_InPrimaryConstructor_BaseInitializer(
-            [CombinatorialValues("class", "struct", "record")] string keyword)
+            [CombinatorialValues("class", "record")] string keyword)
         {
             var src1 = keyword + " C(int x, int y) : B(() => x);";
             var src2 = keyword + " C(int x, int y) : B(() => 1);";
@@ -4711,7 +4711,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "x", "x"));
+                Diagnostic(RudeEditKind.NotCapturingVariable, "int x", "x"));
         }
 
         [Fact]
@@ -5157,7 +5157,7 @@ class C
                 Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1"));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/68731")]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
         public void Lambdas_Update_Capturing_ConstructorInitializer_This()
         {
@@ -5170,7 +5170,7 @@ class C
                 Diagnostic(RudeEditKind.CapturingVariable, "x", "x"));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/68731")]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
         public void Lambdas_Update_Capturing_ConstructorInitializer_Base()
         {
@@ -5211,11 +5211,11 @@ class C
                 Diagnostic(RudeEditKind.CapturingVariable, "y", "y"));
         }
 
-        [Theory(Skip = "https://github.com/dotnet/roslyn/issues/68731")]
+        [Theory]
         [WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
         [CombinatorialData]
         public void Lambdas_Update_Capturing_PrimaryParameter_InPrimaryConstructor_BaseInitializer(
-            [CombinatorialValues("class", "struct", "record")] string keyword)
+            [CombinatorialValues("class", "record")] string keyword)
         {
             var src1 = keyword + " C(int x, int y) : B(() => 1);";
             var src2 = keyword + " C(int x, int y) : B(() => x);";

@@ -11943,7 +11943,7 @@ class C
                 SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), preserveLocalVariables: true));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/68731")]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
         public void Constructor_Instance_Update_Initializer_StackAlloc()
         {
@@ -14457,20 +14457,42 @@ public class C
                 Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.constructor));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/68731")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
-        public void FieldInitializerUpdate_StackAllocInConstructor_Initializer()
+        [Fact]
+        public void FieldInitializerUpdate_StackAllocInConstructor_ThisInitializer()
         {
-            var src1 = "class C { int a = 1; C() : this(stackalloc int[1]) { } C(Span<int>) { } }";
-            var src2 = "class C { int a = 2; C() : this(stackalloc int[1]) { } C(Span<int>) { } }";
+            var src1 = "class C { int a = 1; C() : this(stackalloc int[1]) { } C(System.Span<int> s) { } }";
+            var src2 = "class C { int a = 2; C() : this(stackalloc int[1]) { } C(System.Span<int> s) { } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            // no rude edits for constructors that field initializers are not emitted to
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void FieldInitializerUpdate_StackAllocInConstructor_BaseInitializer()
+        {
+            var src1 = "class C : B { int a = 1; C() : base(stackalloc int[1]) { } } class B(System.Span<int> s);";
+            var src2 = "class C : B { int a = 2; C() : base(stackalloc int[1]) { } } class B(System.Span<int> s);";
 
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.constructor));
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", GetResource("constructor")));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/67307")]
+        [Fact]
+        public void FieldInitializerUpdate_StackAllocInConstructor_PrimaryBaseInitializer()
+        {
+            var src1 = "class C : B(stackalloc int[1]) { int a = 1; } class B(System.Span<int> s);";
+            var src2 = "class C : B(stackalloc int[1]) { int a = 2; } class B(System.Span<int> s);";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/67307")]
         public void FieldInitializerUpdate_StackAllocInOtherInitializer()
         {
