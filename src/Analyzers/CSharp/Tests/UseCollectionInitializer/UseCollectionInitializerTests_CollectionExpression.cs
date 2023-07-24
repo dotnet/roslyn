@@ -1567,7 +1567,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             """
                 using System.Collections.Generic;
 
-                var list = [|new|] List<int>();
+                List<int> list = [|new|] List<int>();
                 [|list.Add(|]1);
                 """,
             """
