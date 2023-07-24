@@ -555,17 +555,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static SyntaxNode GenerateDelegateThroughMemberStatement(
             this SyntaxGenerator generator, IMethodSymbol method, ISymbol throughMember)
         {
-            var through = CreateDelegateThroughExpression(generator, method, throughMember);
+            var through = generator.MemberAccessExpression(
+                CreateDelegateThroughExpression(generator, method, throughMember),
+                method.IsGenericMethod
+                    ? generator.GenericName(method.Name, method.TypeArguments)
+                    : generator.IdentifierName(method.Name));
 
-            var memberName = method.IsGenericMethod
-                ? generator.GenericName(method.Name, method.TypeArguments)
-                : generator.IdentifierName(method.Name);
-
-            through = generator.MemberAccessExpression(through, memberName);
-
-            var arguments = generator.CreateArguments(method.Parameters.As<IParameterSymbol>());
-            var invocationExpression = generator.InvocationExpression(through, arguments);
-
+            var invocationExpression = generator.InvocationExpression(through, generator.CreateArguments(method.Parameters));
             return method.ReturnsVoid
                 ? generator.ExpressionStatement(invocationExpression)
                 : generator.ReturnStatement(invocationExpression);
@@ -585,7 +581,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             through = through is null ? name : generator.MemberAccessExpression(through, name);
 
             var throughMemberType = throughMember.GetMemberType();
-            if (member.ContainingType.IsInterfaceType() && throughMemberType != null)
+            if (throughMemberType != null &&
+                member.ContainingType is { TypeKind: TypeKind.Interface } interfaceBeingImplemented)
             {
                 // In the case of 'implement interface through field / property', we need to know what
                 // interface we are implementing so that we can insert casts to this interface on every
@@ -609,7 +606,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 // in the Implements clause. For the purposes of inserting the above cast, we ignore the
                 // uncommon case and optimize for the common one - in other words, we only apply the cast
                 // in cases where we can unambiguously figure out which interface we are trying to implement.
-                var interfaceBeingImplemented = member.ContainingType;
                 if (!throughMemberType.Equals(interfaceBeingImplemented))
                 {
                     through = generator.CastExpression(interfaceBeingImplemented,
