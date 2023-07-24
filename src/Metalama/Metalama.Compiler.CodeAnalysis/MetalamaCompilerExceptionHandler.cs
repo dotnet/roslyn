@@ -18,7 +18,7 @@ internal static class MetalamaCompilerExceptionHandler
             var applicationInfo = new MetalamaCompilerApplicationInfo(false, false, ImmutableArray<ISourceTransformer>.Empty);
             var initializationOptions =
                 new BackstageInitializationOptions(applicationInfo) { AddSupportServices = true };
-            
+
             var serviceProviderBuilder = new ServiceProviderBuilder().AddBackstageServices(initializationOptions);
 
             serviceProviderBuilder.ServiceProvider.GetService<IExceptionReporter>()?.ReportException(e);

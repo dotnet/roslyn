@@ -17,7 +17,7 @@ internal class TransformedPathGenerator
     public TransformedPathGenerator(string? projectDirectory, string? outputDirectory, string workingDirectory)
     {
         _projectDirectory = projectDirectory;
-        
+
         // The outputDirectory variable may be null if the code is not to be written to disk.
         _outputDirectory = outputDirectory ?? "(Transformed)";
         _workingDirectory = workingDirectory;
@@ -38,7 +38,7 @@ internal class TransformedPathGenerator
             var relativePath = new Uri(_projectDirectory + "/").MakeRelativeUri(new Uri(fullPath, UriKind.Absolute))
                 .ToString()
                 .Replace('/', Path.DirectorySeparatorChar);
-            
+
             if (Path.IsPathRooted(relativePath))
             {
                 stem = Path.Combine("links", relativePath.Substring(Path.GetPathRoot(relativePath)?.Length ?? 0));
@@ -63,7 +63,7 @@ internal class TransformedPathGenerator
             var extension = Path.GetExtension(stem);
             var stemWithoutExtension = stem.Substring(0, stem.Length - extension.Length);
 
-            for (var i = 2;; i++)
+            for (var i = 2; ; i++)
             {
                 var candidate = $"{stemWithoutExtension}_{i}{extension}";
                 if (_generatedPaths.Add(candidate))

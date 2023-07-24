@@ -1,6 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
-
-namespace Metalama.Compiler
+﻿namespace Metalama.Compiler
 {
     /// <summary>
     /// The interface required to implement a source transformer.

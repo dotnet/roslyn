@@ -148,7 +148,6 @@ namespace Metalama.Compiler
             return FindAncestorWithAnnotation(parent);
         }
 
-        [return: NotNull]
         internal static SyntaxNode FindNodeByPosition(this SyntaxNode ancestor, int kind, TextSpan span, bool findInsideTrivia)
         {
             SyntaxNode? foundNode;
@@ -202,8 +201,7 @@ namespace Metalama.Compiler
             return foundNode;
         }
 
-        [return: NotNull]
-        private static bool TryFindSourceNode([DisallowNull] SyntaxNode node, SyntaxNode ancestor, TrackingAnnotation annotation, [NotNullWhen(true)] out SyntaxNode? sourceNode)
+        private static bool TryFindSourceNode(SyntaxNode node, SyntaxNode ancestor, TrackingAnnotation annotation, [NotNullWhen(true)] out SyntaxNode? sourceNode)
         {
             var sourceAncestor = annotation.NodeOrToken.AsNode()!;
 
@@ -224,7 +222,7 @@ namespace Metalama.Compiler
                 var nodeOriginalSpan = new TextSpan(originalPosition, node.FullWidth);
 
                 sourceNode =
-                    sourceAncestor!
+                    sourceAncestor
                         .FindNodeByPosition(node.RawKind, nodeOriginalSpan, node.IsPartOfStructuredTrivia());
 
                 return true;
@@ -454,8 +452,6 @@ namespace Metalama.Compiler
             Debug.Assert(ancestor != null);
 
             return GetSourceSyntaxNode(node, ancestor, annotation);
-
-
         }
 
         private static SyntaxNode? GetSourceSyntaxNode(SyntaxNode node, SyntaxNode ancestorWithAnnotation, TrackingAnnotation annotation)
@@ -540,7 +536,6 @@ namespace Metalama.Compiler
 
         }
 
-
         public static SyntaxTree GetSourceSyntaxTree(this SyntaxNode node, bool throwOnTransforcedCode = true)
         {
             var sourceRoot = GetSourceSyntaxNode(node.SyntaxTree.GetRoot());
@@ -570,7 +565,7 @@ namespace Metalama.Compiler
             {
                 return (location, null);
             }
-            
+
             var syntaxRoot = tree.GetRoot();
             Debug.Assert(syntaxRoot.FullSpan.Contains(location.SourceSpan));
 
@@ -580,11 +575,9 @@ namespace Metalama.Compiler
                 return (location, null);
             }
 
-            
-
             // From the given location, try to find the corresponding node, token or token pair and then proceed as usual
             var foundNode = syntaxRoot.FindNode(location.SourceSpan, true, true);
-            
+
             if (foundNode.Span == location.SourceSpan)
             {
                 // The location corresponds to a node in the transformed tree. Find the corresponding tree in the source tree.
@@ -623,7 +616,7 @@ namespace Metalama.Compiler
                         {
                             // The source node indeeds maps to inside the trivia.
 
-                            return (Location.Create(sourceAncestor.SyntaxTree!, newTextSpan), null);
+                            return (Location.Create(sourceAncestor.SyntaxTree, newTextSpan), null);
                         }
 
                     }
@@ -717,9 +710,6 @@ namespace Metalama.Compiler
                 this.NodeOrToken = nodeOrToken;
 
             }
-
-
         }
-
     }
 }

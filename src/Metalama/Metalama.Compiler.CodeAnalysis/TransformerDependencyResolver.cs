@@ -54,7 +54,7 @@ internal static class TransformerDependencyResolver
                 int? currentIndex = nameToIndexMapping.TryGetValue(transformerName, out var index) ? index : null;
                 if (currentIndex == null)
                 {
-                      diagnostics.Add(new DiagnosticInfo(MetalamaCompilerMessageProvider.Instance,
+                    diagnostics.Add(new DiagnosticInfo(MetalamaCompilerMessageProvider.Instance,
                         (int)MetalamaErrorCode.ERR_TransformerNotFound, transformerName));
                     return false;
                 }
