@@ -6102,7 +6102,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         }
                     }
                 }
-
             }
 
             return result;
