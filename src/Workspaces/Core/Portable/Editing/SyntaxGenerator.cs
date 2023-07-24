@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Editing
             SyntaxNode? initializer = null,
             RefKind refKind = RefKind.None)
         {
-            return ParameterDeclaration(name, type, initializer, refKind, isExtension: false, isParams: false, isScoped:false);
+            return ParameterDeclaration(name, type, initializer, refKind, isExtension: false, isParams: false, isScoped: false);
         }
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
