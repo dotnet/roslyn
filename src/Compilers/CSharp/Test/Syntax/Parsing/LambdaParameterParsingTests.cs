@@ -1233,12 +1233,11 @@ class C {
         [Fact]
         public void TestNullCheckedNoParams()
         {
-            UsingDeclaration("Func<int> func1 = (!!) => 42;", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[]
-            {
+            UsingDeclaration("Func<int> func1 = (!!) => 42;", options: TestOptions.RegularPreview, expectedErrors: [
                 // (1,20): error CS1001: Identifier expected
                 // Func<int> func1 = (!!) => 42;
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "!").WithLocation(1, 20)
-            });
+            ]);
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);

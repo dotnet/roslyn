@@ -99,7 +99,7 @@ index: 1);
                 TestCode = initialMarkup,
                 FixedCode = @"class C { void M(int arg1, int arg2) => M(1, arg2: 2); }",
                 LanguageVersion = LanguageVersion.CSharp7_2,
-                ExactActionSetOffered = new[] { string.Format(FeaturesResources.Add_argument_name_0, "arg2") },
+                ExactActionSetOffered = [string.Format(FeaturesResources.Add_argument_name_0, "arg2")],
             }.RunAsync();
         }
 
@@ -643,7 +643,7 @@ index: 1);
             {
                 TestCode = initialMarkup,
                 FixedCode = @"class C { void M(int arg1, int arg2, int arg3) => M(1, arg2: 2, arg3: 3); }",
-                ExactActionSetOffered = new[] { string.Format(FeaturesResources.Add_argument_name_0, "arg2") },
+                ExactActionSetOffered = [string.Format(FeaturesResources.Add_argument_name_0, "arg2")],
             }.RunAsync();
         }
 

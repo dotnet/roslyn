@@ -189,8 +189,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 };
 
                 var arguments = data.Message is string message
-                    ? new object[] { symbol, message }
-                    : new object[] { symbol };
+                    ? [symbol, message]
+                    : [symbol];
 
                 return new CustomObsoleteDiagnosticInfo(MessageProvider.Instance, (int)errorCode, data, arguments);
             }

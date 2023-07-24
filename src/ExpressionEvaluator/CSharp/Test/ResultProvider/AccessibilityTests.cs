@@ -358,7 +358,7 @@ class C
     object F;
 }";
             var assembly = GetAssembly(source);
-            var runtime = new DkmClrRuntimeInstance(new[] { assembly }, (r, a) => null);
+            var runtime = new DkmClrRuntimeInstance([assembly], (r, a) => null);
             var type = assembly.GetType("C");
             var value = CreateDkmClrValue(
                 Activator.CreateInstance(type),

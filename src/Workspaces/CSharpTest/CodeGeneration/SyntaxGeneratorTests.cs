@@ -1228,9 +1228,9 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                     SyntaxFactory.Token(SyntaxKind.PlusToken))
                 .WithModifiers(
                     SyntaxFactory.TokenList(
-                        new[]{
+                        [
                             SyntaxFactory.Token(SyntaxKind.PublicKeyword),
-                            SyntaxFactory.Token(SyntaxKind.StaticKeyword)}))
+                            SyntaxFactory.Token(SyntaxKind.StaticKeyword)]))
                 .WithExplicitInterfaceSpecifier(
                     SyntaxFactory.ExplicitInterfaceSpecifier(
                         SyntaxFactory.GenericName(
@@ -1816,23 +1816,23 @@ public interface IFace
                 "[a.b]");
 
             VerifySyntax<AttributeListSyntax>(
-                Generator.Attribute("a", new SyntaxNode[] { }),
+                Generator.Attribute("a", []),
                 "[a()]");
 
             VerifySyntax<AttributeListSyntax>(
-                Generator.Attribute("a", new[] { Generator.IdentifierName("x") }),
+                Generator.Attribute("a", [Generator.IdentifierName("x")]),
                 "[a(x)]");
 
             VerifySyntax<AttributeListSyntax>(
-                Generator.Attribute("a", new[] { Generator.AttributeArgument(Generator.IdentifierName("x")) }),
+                Generator.Attribute("a", [Generator.AttributeArgument(Generator.IdentifierName("x"))]),
                 "[a(x)]");
 
             VerifySyntax<AttributeListSyntax>(
-                Generator.Attribute("a", new[] { Generator.AttributeArgument("x", Generator.IdentifierName("y")) }),
+                Generator.Attribute("a", [Generator.AttributeArgument("x", Generator.IdentifierName("y"))]),
                 "[a(x = y)]");
 
             VerifySyntax<AttributeListSyntax>(
-                Generator.Attribute("a", new[] { Generator.IdentifierName("x"), Generator.IdentifierName("y") }),
+                Generator.Attribute("a", [Generator.IdentifierName("x"), Generator.IdentifierName("y")]),
                 "[a(x, y)]");
         }
 
@@ -2601,9 +2601,9 @@ public class C { } // end").Members[0];
             TestRemoveAllNamespaceImports(Generator.CompilationUnit(Generator.NamespaceImportDeclaration("x")));
             TestRemoveAllNamespaceImports(Generator.CompilationUnit(Generator.NamespaceImportDeclaration("x"), Generator.IdentifierName("y")));
 
-            TestRemoveNamespaceImport(Generator.CompilationUnit(Generator.NamespaceImportDeclaration("x")), "x", new string[] { });
-            TestRemoveNamespaceImport(Generator.CompilationUnit(Generator.NamespaceImportDeclaration("x"), Generator.IdentifierName("y")), "x", new[] { "y" });
-            TestRemoveNamespaceImport(Generator.CompilationUnit(Generator.NamespaceImportDeclaration("x"), Generator.IdentifierName("y")), "y", new[] { "x" });
+            TestRemoveNamespaceImport(Generator.CompilationUnit(Generator.NamespaceImportDeclaration("x")), "x", []);
+            TestRemoveNamespaceImport(Generator.CompilationUnit(Generator.NamespaceImportDeclaration("x"), Generator.IdentifierName("y")), "x", ["y"]);
+            TestRemoveNamespaceImport(Generator.CompilationUnit(Generator.NamespaceImportDeclaration("x"), Generator.IdentifierName("y")), "y", ["x"]);
         }
 
         private void TestRemoveAllNamespaceImports(SyntaxNode declaration)
@@ -2713,19 +2713,19 @@ public class C
         [Fact]
         public void TestAddMembers()
         {
-            AssertMemberNamesEqual("m", Generator.AddMembers(Generator.ClassDeclaration("d"), new[] { Generator.MethodDeclaration("m") }));
-            AssertMemberNamesEqual("m", Generator.AddMembers(Generator.StructDeclaration("s"), new[] { Generator.MethodDeclaration("m") }));
-            AssertMemberNamesEqual("m", Generator.AddMembers(Generator.InterfaceDeclaration("i"), new[] { Generator.MethodDeclaration("m") }));
-            AssertMemberNamesEqual("v", Generator.AddMembers(Generator.EnumDeclaration("e"), new[] { Generator.EnumMember("v") }));
-            AssertMemberNamesEqual("n2", Generator.AddMembers(Generator.NamespaceDeclaration("n"), new[] { Generator.NamespaceDeclaration("n2") }));
-            AssertMemberNamesEqual("n", Generator.AddMembers(Generator.CompilationUnit(), new[] { Generator.NamespaceDeclaration("n") }));
+            AssertMemberNamesEqual("m", Generator.AddMembers(Generator.ClassDeclaration("d"), [Generator.MethodDeclaration("m")]));
+            AssertMemberNamesEqual("m", Generator.AddMembers(Generator.StructDeclaration("s"), [Generator.MethodDeclaration("m")]));
+            AssertMemberNamesEqual("m", Generator.AddMembers(Generator.InterfaceDeclaration("i"), [Generator.MethodDeclaration("m")]));
+            AssertMemberNamesEqual("v", Generator.AddMembers(Generator.EnumDeclaration("e"), [Generator.EnumMember("v")]));
+            AssertMemberNamesEqual("n2", Generator.AddMembers(Generator.NamespaceDeclaration("n"), [Generator.NamespaceDeclaration("n2")]));
+            AssertMemberNamesEqual("n", Generator.AddMembers(Generator.CompilationUnit(), [Generator.NamespaceDeclaration("n")]));
 
-            AssertMemberNamesEqual(new[] { "m", "m2" }, Generator.AddMembers(Generator.ClassDeclaration("d", members: new[] { Generator.MethodDeclaration("m") }), new[] { Generator.MethodDeclaration("m2") }));
-            AssertMemberNamesEqual(new[] { "m", "m2" }, Generator.AddMembers(Generator.StructDeclaration("s", members: new[] { Generator.MethodDeclaration("m") }), new[] { Generator.MethodDeclaration("m2") }));
-            AssertMemberNamesEqual(new[] { "m", "m2" }, Generator.AddMembers(Generator.InterfaceDeclaration("i", members: new[] { Generator.MethodDeclaration("m") }), new[] { Generator.MethodDeclaration("m2") }));
-            AssertMemberNamesEqual(new[] { "v", "v2" }, Generator.AddMembers(Generator.EnumDeclaration("i", members: new[] { Generator.EnumMember("v") }), new[] { Generator.EnumMember("v2") }));
-            AssertMemberNamesEqual(new[] { "n1", "n2" }, Generator.AddMembers(Generator.NamespaceDeclaration("n", new[] { Generator.NamespaceDeclaration("n1") }), new[] { Generator.NamespaceDeclaration("n2") }));
-            AssertMemberNamesEqual(new[] { "n1", "n2" }, Generator.AddMembers(Generator.CompilationUnit(declarations: new[] { Generator.NamespaceDeclaration("n1") }), new[] { Generator.NamespaceDeclaration("n2") }));
+            AssertMemberNamesEqual(new[] { "m", "m2" }, Generator.AddMembers(Generator.ClassDeclaration("d", members: new[] { Generator.MethodDeclaration("m") }), [Generator.MethodDeclaration("m2")]));
+            AssertMemberNamesEqual(new[] { "m", "m2" }, Generator.AddMembers(Generator.StructDeclaration("s", members: new[] { Generator.MethodDeclaration("m") }), [Generator.MethodDeclaration("m2")]));
+            AssertMemberNamesEqual(new[] { "m", "m2" }, Generator.AddMembers(Generator.InterfaceDeclaration("i", members: new[] { Generator.MethodDeclaration("m") }), [Generator.MethodDeclaration("m2")]));
+            AssertMemberNamesEqual(new[] { "v", "v2" }, Generator.AddMembers(Generator.EnumDeclaration("i", members: new[] { Generator.EnumMember("v") }), [Generator.EnumMember("v2")]));
+            AssertMemberNamesEqual(new[] { "n1", "n2" }, Generator.AddMembers(Generator.NamespaceDeclaration("n", [Generator.NamespaceDeclaration("n1")]), [Generator.NamespaceDeclaration("n2")]));
+            AssertMemberNamesEqual(new[] { "n1", "n2" }, Generator.AddMembers(Generator.CompilationUnit(declarations: [Generator.NamespaceDeclaration("n1")]), [Generator.NamespaceDeclaration("n2")]));
         }
 
         [Fact]
@@ -2736,11 +2736,11 @@ public class C
             TestRemoveAllMembers(Generator.StructDeclaration("s", members: new[] { Generator.MethodDeclaration("m") }));
             TestRemoveAllMembers(Generator.InterfaceDeclaration("i", members: new[] { Generator.MethodDeclaration("m") }));
             TestRemoveAllMembers(Generator.EnumDeclaration("i", members: new[] { Generator.EnumMember("v") }));
-            TestRemoveAllMembers(Generator.NamespaceDeclaration("n", new[] { Generator.NamespaceDeclaration("n") }));
-            TestRemoveAllMembers(Generator.CompilationUnit(declarations: new[] { Generator.NamespaceDeclaration("n") }));
+            TestRemoveAllMembers(Generator.NamespaceDeclaration("n", [Generator.NamespaceDeclaration("n")]));
+            TestRemoveAllMembers(Generator.CompilationUnit(declarations: [Generator.NamespaceDeclaration("n")]));
 
-            TestRemoveMember(Generator.ClassDeclaration("c", members: new[] { Generator.MethodDeclaration("m1"), Generator.MethodDeclaration("m2") }), "m1", new[] { "m2" });
-            TestRemoveMember(Generator.StructDeclaration("s", members: new[] { Generator.MethodDeclaration("m1"), Generator.MethodDeclaration("m2") }), "m1", new[] { "m2" });
+            TestRemoveMember(Generator.ClassDeclaration("c", members: new[] { Generator.MethodDeclaration("m1"), Generator.MethodDeclaration("m2") }), "m1", ["m2"]);
+            TestRemoveMember(Generator.StructDeclaration("s", members: new[] { Generator.MethodDeclaration("m1"), Generator.MethodDeclaration("m2") }), "m1", ["m2"]);
         }
 
         private void TestRemoveAllMembers(SyntaxNode declaration)
@@ -2759,8 +2759,8 @@ public class C
             AssertMemberNamesEqual("m", Generator.StructDeclaration("s", members: new[] { Generator.MethodDeclaration("m") }));
             AssertMemberNamesEqual("m", Generator.InterfaceDeclaration("i", members: new[] { Generator.MethodDeclaration("m") }));
             AssertMemberNamesEqual("v", Generator.EnumDeclaration("e", members: new[] { Generator.EnumMember("v") }));
-            AssertMemberNamesEqual("c", Generator.NamespaceDeclaration("n", declarations: new[] { Generator.ClassDeclaration("c") }));
-            AssertMemberNamesEqual("c", Generator.CompilationUnit(declarations: new[] { Generator.ClassDeclaration("c") }));
+            AssertMemberNamesEqual("c", Generator.NamespaceDeclaration("n", declarations: [Generator.ClassDeclaration("c")]));
+            AssertMemberNamesEqual("c", Generator.CompilationUnit(declarations: [Generator.ClassDeclaration("c")]));
         }
 
         [Fact]

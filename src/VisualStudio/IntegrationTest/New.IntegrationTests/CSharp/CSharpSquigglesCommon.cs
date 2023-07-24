@@ -51,12 +51,11 @@ using System.Text;", "IDE0005: Using directive is unnecessary.")
 using System.Text;", "IDE0005: Using directive is unnecessary.");
 
             await TestServices.EditorVerifier.ErrorTagsAsync(
-              new[]
-              {
+              [
                   usingsErrorTags,
                   ("syntax error", TextSpan.FromBounds(286, 287), "\r", "CS1002: ; expected"),
                   ("syntax error", TextSpan.FromBounds(354, 355), "}", "CS1513: } expected"),
-              },
+              ],
               HangMitigatingCancellationToken);
         }
 
@@ -69,11 +68,10 @@ class C  : Bar
 {
 }", HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.ErrorTagsAsync(
-                new[]
-                {
+                [
                     ("suggestion", TextSpan.FromBounds(0, 13), "using System;", "IDE0005: Using directive is unnecessary."),
                     ("syntax error", TextSpan.FromBounds(28, 31), "Bar", "CS0246: The type or namespace name 'Bar' could not be found (are you missing a using directive or an assembly reference?)"),
-                },
+                ],
                 HangMitigatingCancellationToken);
         }
     }

@@ -64,7 +64,7 @@ End Class
                 var cmd = new CSharpCompilerServer(
                     CompilerServerHost.SharedAssemblyReferenceProvider,
                     responseFile: null,
-                    new[] { "/nologo", "/touchedfiles:" + touchedBase, source1 },
+                    ["/nologo", "/touchedfiles:" + touchedBase, source1],
                     new BuildPaths(clientDirectory, _baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Path.GetTempPath()),
                     s_libDirectory,
                     new TestAnalyzerAssemblyLoader(),
@@ -114,7 +114,7 @@ End Class
                 var cmd = new VisualBasicCompilerServer(
                     CompilerServerHost.SharedAssemblyReferenceProvider,
                     responseFile: null,
-                    new[] { "/nologo", "/touchedfiles:" + touchedBase, source1 },
+                    ["/nologo", "/touchedfiles:" + touchedBase, source1],
                     new BuildPaths(clientDirectory, _baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Path.GetTempPath()),
                     s_libDirectory,
                     new TestAnalyzerAssemblyLoader(),

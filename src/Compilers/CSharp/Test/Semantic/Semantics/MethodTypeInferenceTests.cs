@@ -825,14 +825,14 @@ void M((string, string?) tuple)
 """;
 
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-            comp.VerifyDiagnostics(new[] { 
+            comp.VerifyDiagnostics([ 
                  // (2,6): warning CS8321: The local function 'M' is declared but never used
                 // void M((string, string?) tuple)
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(2, 6),
                 // (5,28): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //     (string _, string _) = tuple;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "tuple").WithLocation(5, 28)
-            });
+            ]);
         }
 
         private static void CheckDiscard(SemanticModel model, DiscardDesignationSyntax discard, string type)

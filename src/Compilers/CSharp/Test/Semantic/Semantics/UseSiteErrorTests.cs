@@ -2203,7 +2203,7 @@ class Test
             CSharpCompilation comp3 = CreateCompilation(source3, new MetadataReference[] { new CSharpCompilationReference(comp2) });
 
             DiagnosticDescription[] expected =
-            {
+            [
                 // (9,23): error CS0012: The type 'GeneralException' is defined in an assembly that is not referenced. You must add a reference to assembly 'Base, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //                 throw e;
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "e").WithArguments("GeneralException", "Base, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(9, 23),
@@ -2216,7 +2216,7 @@ class Test
                 // (11,20): error CS0012: The type 'GeneralException' is defined in an assembly that is not referenced. You must add a reference to assembly 'Base, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //             catch (SpecificException) 
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "SpecificException").WithArguments("GeneralException", "Base, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(11, 20)
-            };
+            ];
 
             comp3.VerifyDiagnostics(expected);
 

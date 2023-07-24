@@ -81,19 +81,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 </PropertyGroup>
 {sourcePackageProps}",
                 customTargets: sourceLinkPackageTargets,
-                targets: new[]
-                {
+                targets: [
                     "CoreCompile"
-                },
-                expressions: new[]
-                {
+                ],
+                expressions: [
                     "@(SourceRoot->'%(Identity): %(MappedPath)')",
                     "$(DeterministicSourcePaths)",
                     "$(PathMap)",
                     "$(SourceRootMappedPathsFeatureSupported)"
-                },
-                expectedResults: new[]
-                {
+                ],
+                expectedResults: [
                     $@"{root3}: /_1/",
                     $@"{root2}: /_2/",
                     $@"{root1}: /_/",
@@ -102,7 +99,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                     "true",
                     $@"{escapedRoot3}=/_1/,{escapedRoot2}=/_2/,{escapedRoot1}=/_/,PreviousPathMap",
                     "true"
-                });
+                ]);
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
                 "[/_1/]=[]," +
@@ -122,18 +119,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 </PropertyGroup>
 {sourcePackageProps}",
                 customTargets: sourceLinkPackageTargets,
-                targets: new[]
-                {
+                targets: [
                     "CoreCompile"
-                },
-                expressions: new[]
-                {
+                ],
+                expressions: [
                     "@(SourceRoot->'%(Identity): %(MappedPath)')",
                     "$(DeterministicSourcePaths)",
                     "$(PathMap)"
-                },
-                expectedResults: new[]
-                {
+                ],
+                expectedResults: [
                     $@"{root3}: {root3}",
                     $@"{root2}: {root2}",
                     $@"{root1}: {root1}",
@@ -141,7 +135,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                     $@"{root1}sub2{Path.DirectorySeparatorChar}: {root1}sub2{Path.DirectorySeparatorChar}",
                     @"",
                     $@""
-                });
+                ]);
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
                 $@"[{root3}]=[]," +
@@ -160,18 +154,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 </PropertyGroup>
 {sourcePackageProps}",
                 customTargets: sourceLinkPackageTargets,
-                targets: new[]
-                {
+                targets: [
                     "CoreCompile"
-                },
-                expressions: new[]
-                {
+                ],
+                expressions: [
                     "@(SourceRoot->'%(Identity): %(MappedPath)')",
                     "$(DeterministicSourcePaths)",
                     "$(PathMap)"
-                },
-                expectedResults: new[]
-                {
+                ],
+                expectedResults: [
                     $@"{root3}: {root3}",
                     $@"{root2}: {root2}",
                     $@"{root1}: {root1}",
@@ -179,7 +170,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                     $@"{root1}sub2{Path.DirectorySeparatorChar}: {root1}sub2{Path.DirectorySeparatorChar}",
                     @"",
                     $@""
-                });
+                ]);
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
                 $@"[{root3}]=[]," +
@@ -198,18 +189,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 </PropertyGroup>
 {sourcePackageProps}",
                 customTargets: sourceLinkPackageTargets,
-                targets: new[]
-                {
+                targets: [
                     "CoreCompile"
-                },
-                expressions: new[]
-                {
+                ],
+                expressions: [
                     "@(SourceRoot->'%(Identity): %(MappedPath)')",
                     "$(DeterministicSourcePaths)",
                     "$(PathMap)"
-                },
-                expectedResults: new[]
-                {
+                ],
+                expectedResults: [
                     $@"{root3}: {root3}",
                     $@"{root2}: {root2}",
                     $@"{root1}: {root1}",
@@ -217,7 +205,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                     $@"{root1}sub2{Path.DirectorySeparatorChar}: {root1}sub2{Path.DirectorySeparatorChar}",
                     @"false",
                     $@""
-                });
+                ]);
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
                 $@"[{root3}]=[]," +
@@ -242,24 +230,21 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
   <SourceControlInformationFeatureSupported>false</SourceControlInformationFeatureSupported>
 </PropertyGroup>
 {sourceLinkPackageTargets}",
-                targets: new[]
-                {
+                targets: [
                     "CoreCompile"
-                },
-                expressions: new[]
-                {
+                ],
+                expressions: [
                     "@(SourceRoot->'%(Identity): %(MappedPath)')",
                     "$(DeterministicSourcePaths)",
                     "$(PathMap)"
-                },
-                expectedResults: new[]
-                {
+                ],
+                expectedResults: [
                     $@"{root3}: /_/",
                     $@"{root1}: /_1/",
                     $@"{root2}: /_2/",
                     @"true",
                     $@"{escapedRoot3}=/_/,{escapedRoot1}=/_1/,{escapedRoot2}=/_2/,"
-                });
+                ]);
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
                 $@"[/_/]=[]," +
@@ -282,24 +267,21 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
   <SourceControlInformationFeatureSupported>true</SourceControlInformationFeatureSupported>
 </PropertyGroup>
 ",
-                targets: new[]
-                {
+                targets: [
                     "CoreCompile"
-                },
-                expressions: new[]
-                {
+                ],
+                expressions: [
                     "@(SourceRoot->'%(Identity): %(MappedPath)')",
                     "$(DeterministicSourcePaths)",
                     "$(PathMap)"
-                },
-                expectedResults: new[]
-                {
+                ],
+                expectedResults: [
                     $@"{root3}: /_/",
                     $@"{root1}: /_1/",
                     $@"{root2}: /_2/",
                     @"true",
                     $@"{escapedRoot3}=/_/,{escapedRoot1}=/_1/,{escapedRoot2}=/_2/,"
-                });
+                ]);
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
                 $@"[/_/]=[]," +
@@ -334,20 +316,17 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 </ItemGroup>
 ",
                 customTargets: null,
-                targets: new[]
-                {
+                targets: [
                     "ResolveProjectReferences;_BeforeVBCSCoreCompile"
-                },
-                expressions: new[]
-                {
+                ],
+                expressions: [
                     "@(ReferencedProjectSourceRoots)",
-                },
-                expectedResults: new[]
-                {
+                ],
+                expectedResults: [
                     $"X{Path.DirectorySeparatorChar}",
                     $"Y{Path.DirectorySeparatorChar}",
                     $"Z{Path.DirectorySeparatorChar}",
-                });
+                ]);
         }
 
         /// <summary>
@@ -362,18 +341,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
     <ReferencePath Include=""A"" />
   </ItemGroup>",
                 customTargets: null,
-                targets: new[]
-                {
+                targets: [
                     "_BeforeVBCSCoreCompile"
-                },
-                expressions: new[]
-                {
+                ],
+                expressions: [
                     "@(ReferencePathWithRefAssemblies)",
-                },
-                expectedResults: new[]
-                {
+                ],
+                expectedResults: [
                     "A",
-                });
+                ]);
         }
 
         [ConditionalFact(typeof(DotNetSdkAvailable))]
@@ -389,19 +365,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
     <ReferencePathWithRefAssemblies Include=""B"" EmbedInteropTypes=""true""/>
   </ItemGroup>",
                 customTargets: null,
-                targets: new[]
-                {
+                targets: [
                     "CoreCompile"
-                },
-                expressions: new[]
-                {
+                ],
+                expressions: [
                     "@(ReferencePathWithRefAssemblies->'EmbedInteropTypes=`%(EmbedInteropTypes)`')",
-                },
-                expectedResults: new[]
-                {
+                ],
+                expectedResults: [
                     "EmbedInteropTypes=``",
                     "EmbedInteropTypes=``"
-                });
+                ]);
         }
 
         [ConditionalFact(typeof(DotNetSdkAvailable), typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/61017")]
@@ -419,19 +392,16 @@ some_prop = some_val");
   <GenerateMSBuildEditorConfigFile>false</GenerateMSBuildEditorConfigFile>
 </PropertyGroup>",
                 customTargets: null,
-                targets: new[]
-                {
+                targets: [
                     "CoreCompile"
-                },
-                expressions: new[]
-                {
+                ],
+                expressions: [
                     "@(EditorConfigFiles)"
-                },
-                expectedResults: AppendExtraEditorConfigs(new[]
-                {
+                ],
+                expectedResults: AppendExtraEditorConfigs([
                     Path.Combine(ProjectDir.Path, ".editorconfig"),
                     editorConfigFile2.Path
-                }));
+                ]));
         }
 
         [ConditionalFact(typeof(DotNetSdkAvailable), typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/61017")]
@@ -451,15 +421,13 @@ some_prop = some_val");
   <GenerateMSBuildEditorConfigFile>false</GenerateMSBuildEditorConfigFile>
 </PropertyGroup>",
                 customTargets: null,
-                targets: new[]
-                {
+                targets: [
                     "CoreCompile"
-                },
-                expressions: new[]
-                {
+                ],
+                expressions: [
                     "@(EditorConfigFiles)"
-                },
-                expectedResults: AppendExtraEditorConfigs(new[] { "" }, findEditorConfigs: false));
+                ],
+                expectedResults: AppendExtraEditorConfigs([""], findEditorConfigs: false));
         }
 
         [ConditionalFact(typeof(DotNetSdkAvailable), typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/61017")]
@@ -480,20 +448,17 @@ some_prop = some_val");
   <GenerateMSBuildEditorConfigFile>false</GenerateMSBuildEditorConfigFile>
 </PropertyGroup>",
                 customTargets: null,
-                targets: new[]
-                {
+                targets: [
                     "CoreCompile"
-                },
-                expressions: new[]
-                {
+                ],
+                expressions: [
                     "@(EditorConfigFiles)"
-                },
-                expectedResults: AppendExtraEditorConfigs(new[]
-                {
+                ],
+                expectedResults: AppendExtraEditorConfigs([
                     Path.Combine(ProjectDir.Path, ".editorconfig"),
                     globalConfigFile.Path,
                     globalConfigFile2.Path
-                }));
+                ]));
         }
 
         [ConditionalFact(typeof(DotNetSdkAvailable), typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/61017")]
@@ -515,18 +480,15 @@ some_prop = some_val");
   <GenerateMSBuildEditorConfigFile>false</GenerateMSBuildEditorConfigFile>
 </PropertyGroup>",
                 customTargets: null,
-                targets: new[]
-                {
+                targets: [
                     "CoreCompile"
-                },
-                expressions: new[]
-                {
+                ],
+                expressions: [
                     "@(EditorConfigFiles)"
-                },
-                expectedResults: AppendExtraEditorConfigs(new[]
-                {
+                ],
+                expectedResults: AppendExtraEditorConfigs([
                     Path.Combine(ProjectDir.Path, ".editorconfig"),
-                }, findGlobalConfigs: false));
+                ], findGlobalConfigs: false));
         }
 
         [ConditionalFact(typeof(DotNetSdkAvailable), typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/61017")]
@@ -548,19 +510,16 @@ some_prop = some_val");
   <GenerateMSBuildEditorConfigFile>false</GenerateMSBuildEditorConfigFile>
 </PropertyGroup>",
                 customTargets: null,
-                targets: new[]
-                {
+                targets: [
                     "CoreCompile"
-                },
-                expressions: new[]
-                {
+                ],
+                expressions: [
                     "@(EditorConfigFiles)"
-                },
-                 expectedResults: AppendExtraEditorConfigs(new[]
-                {
+                ],
+                 expectedResults: AppendExtraEditorConfigs([
                     globalConfigFile.Path,
                     globalConfigFile2.Path
-                }, findEditorConfigs: false));
+                ], findEditorConfigs: false));
         }
 
         // when we run these tests, msbuild will find all .editorconfigs up to the root
@@ -612,15 +571,13 @@ some_prop = some_val");
     <GenerateMSBuildEditorConfigFile>false</GenerateMSBuildEditorConfigFile>
   </PropertyGroup>",
                 customTargets: null,
-                targets: new[]
-                {
+                targets: [
                     "CoreCompile"
-                },
-                expressions: new[]
-                {
+                ],
+                expressions: [
                     "@(EditorConfigFiles)"
-                },
-                 expectedResults: new[] { "" });
+                ],
+                 expectedResults: [""]);
         }
 
         [ConditionalFact(typeof(DotNetSdkAvailable), typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/61017")]
@@ -640,19 +597,16 @@ some_prop = some_val");
     <GlobalAnalyzerConfigFiles Include=""mycustom.config"" />
   </ItemGroup>",
                 customTargets: null,
-                targets: new[]
-                {
+                targets: [
                     "CoreCompile"
-                },
-                expressions: new[]
-                {
+                ],
+                expressions: [
                     "@(EditorConfigFiles)"
-                },
-                 expectedResults: AppendExtraEditorConfigs(new[]
-                {
+                ],
+                 expectedResults: AppendExtraEditorConfigs([
                     Path.Combine(ProjectDir.Path, ".editorconfig"),
                     "mycustom.config"
-                }));
+                ]));
         }
     }
 }

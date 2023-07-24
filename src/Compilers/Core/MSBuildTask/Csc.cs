@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         #region Tool Members
 
         // Same separators as those used by Process.OutputDataReceived to maintain consistency between csc and VBCSCompiler
-        private static readonly string[] s_separators = { "\r\n", "\r", "\n" };
+        private static readonly string[] s_separators = ["\r\n", "\r", "\n"];
 
         internal override void LogCompilerOutput(string output, MessageImportance messageImportance)
         {
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                         // error out on those.  The ones we're checking for here are the ones
                         // that could seriously screw up the command-line parsing or could
                         // allow parameter injection.
-                        if (trimmedAlias.IndexOfAny(new char[] { ',', ' ', ';', '"' }) != -1)
+                        if (trimmedAlias.IndexOfAny([',', ' ', ';', '"']) != -1)
                         {
                             throw Utilities.GetLocalizedArgumentException(
                                 ErrorString.Csc_AssemblyAliasContainsIllegalCharacters,
@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             StringBuilder finalDefineConstants = new StringBuilder();
 
             // Split the incoming string on comma/semicolon/space.
-            string[] allIdentifiers = originalDefineConstants.Split(new char[] { ',', ';', ' ' });
+            string[] allIdentifiers = originalDefineConstants.Split([',', ';', ' ']);
 
             // Loop through all the parts, and for the ones that are legal C# identifiers,
             // add them to the outgoing string.

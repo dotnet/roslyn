@@ -41,7 +41,7 @@ class C
             var errorLogDir = Temp.CreateDirectory();
             var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
 
-            string[] arguments = new[] { "/nologo", hello, $"/errorlog:{errorLogFile}{ErrorLogQualifier}" };
+            string[] arguments = ["/nologo", hello, $"/errorlog:{errorLogFile}{ErrorLogQualifier}"];
 
             var cmd = CreateCSharpCompiler(arguments);
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
@@ -72,7 +72,7 @@ public class C
             var errorLogDir = Temp.CreateDirectory();
             var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
 
-            string[] arguments = new[] { "/nologo", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}" };
+            string[] arguments = ["/nologo", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}"];
 
             var cmd = CreateCSharpCompiler(null, WorkingDirectory, arguments);
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
@@ -106,7 +106,7 @@ public class C
             var errorLogDir = Temp.CreateDirectory();
             var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
 
-            string[] arguments = new[] { "/nologo", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}" };
+            string[] arguments = ["/nologo", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}"];
 
             var cmd = CreateCSharpCompiler(null, WorkingDirectory, arguments);
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
@@ -139,7 +139,7 @@ public class C
             var errorLogFile = Path.Combine(outputDir.Path, "ErrorLog.txt");
             var outputFilePath = Path.Combine(outputDir.Path, "test.dll");
 
-            string[] arguments = new[] { "/nologo", "/t:library", $"/out:{outputFilePath}", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}" };
+            string[] arguments = ["/nologo", "/t:library", $"/out:{outputFilePath}", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}"];
 
             var cmd = CreateCSharpCompiler(null, WorkingDirectory, arguments,
                analyzers: new[] { new AnalyzerForErrorLogTest() });
@@ -175,7 +175,7 @@ class C
             var errorLogDir = Temp.CreateDirectory();
             var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
 
-            string[] arguments = new[] { "/nologo", "/t:library", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}" };
+            string[] arguments = ["/nologo", "/t:library", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}"];
 
             var cmd = CreateCSharpCompiler(null, WorkingDirectory, arguments,
                analyzers: new[] { new AnalyzerForErrorLogTest() });
@@ -210,7 +210,7 @@ class C
             var errorLogDir = Temp.CreateDirectory();
             var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
 
-            string[] arguments = new[] { "/nologo", "/t:library", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}" };
+            string[] arguments = ["/nologo", "/t:library", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}"];
 
             var cmd = CreateCSharpCompiler(null, WorkingDirectory, arguments,
                analyzers: new[] { new AnalyzerForErrorLogTest() });
@@ -245,7 +245,7 @@ class C
             var errorLogDir = Temp.CreateDirectory();
             var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
 
-            string[] arguments = new[] { "/nologo", "/t:library", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}" };
+            string[] arguments = ["/nologo", "/t:library", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}"];
 
             var cmd = CreateCSharpCompiler(null, WorkingDirectory, arguments,
                analyzers: new[] { new AnalyzerForErrorLogTest() });
@@ -280,7 +280,7 @@ class C
             var errorLogDir = Temp.CreateDirectory();
             var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
 
-            string[] arguments = new[] { "/nologo", "/t:library", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}" };
+            string[] arguments = ["/nologo", "/t:library", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}"];
 
             var cmd = CreateCSharpCompiler(null, WorkingDirectory, arguments,
                analyzers: new[] { new AnalyzerForErrorLogTest() });

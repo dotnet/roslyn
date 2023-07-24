@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     return new[]
                     {
-                        new object[] { TestOptions.Regular },
-                        new object[] { TestOptions.RegularWithLegacyStrongName }
+                        [TestOptions.Regular],
+                        [TestOptions.RegularWithLegacyStrongName]
                     };
                 }
 
@@ -338,7 +338,7 @@ public class Test
         [MemberData(nameof(AllProviderParseOptions))]
         public void PubKeyFileBogusOptions(CSharpParseOptions parseOptions)
         {
-            var tempFile = Temp.CreateFile().WriteAllBytes(new byte[] { 1, 2, 3, 4 });
+            var tempFile = Temp.CreateFile().WriteAllBytes([1, 2, 3, 4]);
             string s = "public class C {}";
 
             CSharpCompilation other = CreateCompilation(s, options: TestOptions.ReleaseDll.WithCryptoKeyFile(tempFile.Path), parseOptions: parseOptions);
@@ -1113,7 +1113,7 @@ public class A
 
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, requestor.Assembly.Identity.PublicKey));
             requestor.VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_FriendRefSigningMismatch, arguments: new object[] { "Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" }));
+                Diagnostic(ErrorCode.ERR_FriendRefSigningMismatch, arguments: ["Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"]));
         }
 
         [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
@@ -2357,9 +2357,9 @@ public class C
 }
 ", options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile), parseOptions: parseOptions);
 
-            CompileAndVerify(other.WithReferences(new[] { other.References.ElementAt(0), new CSharpCompilationReference(unsigned) })).VerifyDiagnostics();
+            CompileAndVerify(other.WithReferences([other.References.ElementAt(0), new CSharpCompilationReference(unsigned)])).VerifyDiagnostics();
 
-            CompileAndVerify(other.WithReferences(new[] { other.References.ElementAt(0), MetadataReference.CreateFromStream(unsigned.EmitToStream()) })).VerifyDiagnostics();
+            CompileAndVerify(other.WithReferences([other.References.ElementAt(0), MetadataReference.CreateFromStream(unsigned.EmitToStream())])).VerifyDiagnostics();
         }
 
         [WorkItem(529779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529779")]
@@ -2385,8 +2385,8 @@ public class C
 }
 ", options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile), parseOptions: parseOptions);
 
-            var comps = new[] {other.WithReferences(new []{other.References.ElementAt(0), new CSharpCompilationReference(unsigned)}),
-                            other.WithReferences(new []{other.References.ElementAt(0), MetadataReference.CreateFromStream(unsigned.EmitToStream()) })};
+            var comps = new[] {other.WithReferences([other.References.ElementAt(0), new CSharpCompilationReference(unsigned)]),
+                            other.WithReferences([other.References.ElementAt(0), MetadataReference.CreateFromStream(unsigned.EmitToStream())])};
 
             foreach (var comp in comps)
             {

@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             F.Call(
                                 F.Field(F.This(), _builderField),
                                 _asyncMethodBuilderMemberCollection.SetStateMachine,
-                                new BoundExpression[] { F.Parameter(F.CurrentFunction.Parameters[0]) })),
+                                [F.Parameter(F.CurrentFunction.Parameters[0])])),
                         F.Return()));
             }
 

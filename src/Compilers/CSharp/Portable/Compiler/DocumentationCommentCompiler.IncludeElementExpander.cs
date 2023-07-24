@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (container == null)
                 {
                     Debug.Assert(commentMessage == null, "How did we get an error comment for a non-container?");
-                    return new XNode[] { node.Copy(copyAttributeAnnotations: false) };
+                    return [node.Copy(copyAttributeAnnotations: false)];
                 }
 
                 IEnumerable<XNode> oldNodes = container.Nodes();
@@ -240,12 +240,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (commentMessage == null)
                 {
-                    return new XNode[] { container }; // Already copied.
+                    return [container]; // Already copied.
                 }
                 else
                 {
                     XComment failureComment = new XComment(commentMessage);
-                    return new XNode[] { failureComment, container }; // Already copied.
+                    return [failureComment, container]; // Already copied.
                 }
             }
 
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     commentMessage = ErrorFacts.GetMessage(MessageID.IDS_XMLNOINCLUDE, CultureInfo.CurrentUICulture);
 
                     // Don't inspect the children - we're already in a cycle.
-                    return new XNode[] { new XComment(commentMessage), includeElement.Copy(copyAttributeAnnotations: false) };
+                    return [new XComment(commentMessage), includeElement.Copy(copyAttributeAnnotations: false)];
                 }
 
                 DiagnosticBag includeDiagnostics = DiagnosticBag.GetInstance();
@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (location.IsInSource)
                             {
                                 // As in Dev11, return only the comment - drop the include element.
-                                return new XNode[] { new XComment(commentMessage) };
+                                return [new XComment(commentMessage)];
                             }
                             else
                             {
@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             commentMessage = string.Format(ErrorFacts.GetMessage(MessageID.IDS_XMLIGNORED2, CultureInfo.CurrentUICulture), resolvedFilePath);
 
                             // As in Dev11, return only the comment - drop the include element.
-                            return new XNode[] { new XComment(commentMessage) };
+                            return [new XComment(commentMessage)];
                         }
                         else
                         {

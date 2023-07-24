@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         {
             var expression = "o";
             dynamic o = new ExpandoObject();
-            o.Philosophers = new object[] { "Pythagoras", "Lucretius", "Zeno" };
+            o.Philosophers = ["Pythagoras", "Lucretius", "Zeno"];
             o.WhatsForDinner = "Crab Cakes";
             o.NumForks = 2;
 

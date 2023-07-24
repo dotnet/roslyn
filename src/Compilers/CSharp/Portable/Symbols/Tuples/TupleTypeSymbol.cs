@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return tupleTypes[arity - 1];
         }
 
-        private static readonly WellKnownType[] tupleTypes = {
+        private static readonly WellKnownType[] tupleTypes = [
                                                             WellKnownType.System_ValueTuple_T1,
                                                             WellKnownType.System_ValueTuple_T2,
                                                             WellKnownType.System_ValueTuple_T3,
@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                             WellKnownType.System_ValueTuple_T5,
                                                             WellKnownType.System_ValueTuple_T6,
                                                             WellKnownType.System_ValueTuple_T7,
-                                                            WellKnownType.System_ValueTuple_TRest };
+                                                            WellKnownType.System_ValueTuple_TRest ];
 
         /// <summary>
         /// Find the constructor for a well-known ValueTuple type of a given arity.
@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return tupleCtors[arity - 1];
         }
 
-        private static readonly WellKnownMember[] tupleCtors = {
+        private static readonly WellKnownMember[] tupleCtors = [
                                                             WellKnownMember.System_ValueTuple_T1__ctor,
                                                             WellKnownMember.System_ValueTuple_T2__ctor,
                                                             WellKnownMember.System_ValueTuple_T3__ctor,
@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                             WellKnownMember.System_ValueTuple_T5__ctor,
                                                             WellKnownMember.System_ValueTuple_T6__ctor,
                                                             WellKnownMember.System_ValueTuple_T7__ctor,
-                                                            WellKnownMember.System_ValueTuple_TRest__ctor };
+                                                            WellKnownMember.System_ValueTuple_TRest__ctor ];
 
         /// <summary>
         /// Find the well-known members to the ValueTuple type of a given arity and position.
@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return tupleMembers[arity - 1][position - 1];
         }
 
-        private static readonly WellKnownMember[][] tupleMembers = new[]{
+        private static readonly WellKnownMember[][] tupleMembers = [
                                                         new[]{
                                                             WellKnownMember.System_ValueTuple_T1__Item1 },
 
@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                             WellKnownMember.System_ValueTuple_TRest__Item6,
                                                             WellKnownMember.System_ValueTuple_TRest__Item7,
                                                             WellKnownMember.System_ValueTuple_TRest__Rest }
-        };
+        ];
 
         /// <summary>
         /// Returns "Item1" for position=1

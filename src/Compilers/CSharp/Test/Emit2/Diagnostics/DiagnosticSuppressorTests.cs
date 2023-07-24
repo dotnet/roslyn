@@ -149,13 +149,13 @@ class C
                 Diagnostic(analyzer.Descriptor.Id, source1, isSuppressed: false).WithLocation(1, 1),
                 Diagnostic(analyzer.Descriptor.Id, source2, isSuppressed: false).WithLocation(1, 1),
             };
-            VerifyAnalyzerDiagnostics(compilation, new DiagnosticAnalyzer[] { analyzer }, expectedDiagnostics);
+            VerifyAnalyzerDiagnostics(compilation, [analyzer], expectedDiagnostics);
 
             var analyzersAndSuppressors = new DiagnosticAnalyzer[] { analyzer, new DiagnosticSuppressorForId(analyzer.Descriptor.Id) };
-            expectedDiagnostics = new DiagnosticDescription[] {
+            expectedDiagnostics = [
                 Diagnostic(analyzer.Descriptor.Id, source1, isSuppressed: true).WithLocation(1, 1),
                 Diagnostic(analyzer.Descriptor.Id, source2, isSuppressed: true).WithLocation(1, 1),
-            };
+            ];
             VerifySuppressedDiagnostics(compilation, analyzersAndSuppressors, expectedDiagnostics);
             VerifySuppressedAndFilteredDiagnostics(compilation, analyzersAndSuppressors);
         }
@@ -169,7 +169,7 @@ class C
 
             var analyzer = new CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable: true);
             var expectedDiagnostic = Diagnostic(analyzer.Descriptor.Id, source, isSuppressed: false).WithLocation(1, 1);
-            VerifyAnalyzerDiagnostics(compilation, new DiagnosticAnalyzer[] { analyzer }, expectedDiagnostic);
+            VerifyAnalyzerDiagnostics(compilation, [analyzer], expectedDiagnostic);
 
             // Multiple suppressors with same suppression ID.
             expectedDiagnostic = Diagnostic(analyzer.Descriptor.Id, source, isSuppressed: true).WithLocation(1, 1);
@@ -178,7 +178,7 @@ class C
             VerifySuppressedAndFilteredDiagnostics(compilation, analyzersAndSuppressors);
 
             // Multiple suppressors with different suppression ID.
-            analyzersAndSuppressors = new DiagnosticAnalyzer[] { analyzer, new DiagnosticSuppressorForId(analyzer.Descriptor.Id, suppressionId: "SPR0001"), new DiagnosticSuppressorForId(analyzer.Descriptor.Id, suppressionId: "SPR0002") };
+            analyzersAndSuppressors = [analyzer, new DiagnosticSuppressorForId(analyzer.Descriptor.Id, suppressionId: "SPR0001"), new DiagnosticSuppressorForId(analyzer.Descriptor.Id, suppressionId: "SPR0002")];
             VerifySuppressedDiagnostics(compilation, analyzersAndSuppressors, expectedDiagnostic);
             VerifySuppressedAndFilteredDiagnostics(compilation, analyzersAndSuppressors);
         }
@@ -194,7 +194,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "f").WithArguments("C1.f").WithLocation(1, 33));
 
             var analyzer = new CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable: true);
-            VerifyAnalyzerDiagnostics(compilation, new DiagnosticAnalyzer[] { analyzer },
+            VerifyAnalyzerDiagnostics(compilation, [analyzer],
                 Diagnostic(analyzer.Descriptor.Id, source));
 
             var suppressor1 = new DiagnosticSuppressorForId("CS0169");
@@ -217,7 +217,7 @@ class C
 
             var analyzer = new CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable: true);
             var expectedDiagnostic = Diagnostic(analyzer.Descriptor.Id, source, isSuppressed: false);
-            VerifyAnalyzerDiagnostics(compilation, new DiagnosticAnalyzer[] { analyzer }, expectedDiagnostic);
+            VerifyAnalyzerDiagnostics(compilation, [analyzer], expectedDiagnostic);
 
             const string suppressionId = "SPR1001";
             var analyzersAndSuppressors = new DiagnosticAnalyzer[] { analyzer, new DiagnosticSuppressorForId(analyzer.Descriptor.Id, suppressionId) };
@@ -547,7 +547,7 @@ class C { }";
 
             var analyzer = new CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable: true);
             var expectedDiagnostic = Diagnostic(analyzer.Descriptor.Id, source);
-            VerifyAnalyzerDiagnostics(compilation, new DiagnosticAnalyzer[] { analyzer }, expectedDiagnostic);
+            VerifyAnalyzerDiagnostics(compilation, [analyzer], expectedDiagnostic);
 
             const string suppressionId = "SPR1001";
             var suppressor = new DiagnosticSuppressorForId(analyzer.Descriptor.Id, suppressionId);
@@ -560,7 +560,7 @@ class C { }";
 
             const string suppressionId2 = "SPR1002";
             var suppressor2 = new DiagnosticSuppressorForId(analyzer.Descriptor.Id, suppressionId2);
-            analyzersAndSuppressors = new DiagnosticAnalyzer[] { analyzer, suppressor, suppressor2 };
+            analyzersAndSuppressors = [analyzer, suppressor, suppressor2];
             diagnostics = compilation.GetAnalyzerDiagnostics(analyzersAndSuppressors, reportSuppressedDiagnostics: true);
             Assert.Single(diagnostics);
             var programmaticSuppression = diagnostics.Select(d => d.ProgrammaticSuppressionInfo).Single();
@@ -583,7 +583,7 @@ class C { }";
 
             var analyzer = new CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable: true);
             var expectedDiagnostic = Diagnostic(analyzer.Descriptor.Id, source);
-            VerifyAnalyzerDiagnostics(compilation, new DiagnosticAnalyzer[] { analyzer }, expectedDiagnostic);
+            VerifyAnalyzerDiagnostics(compilation, [analyzer], expectedDiagnostic);
 
             var suppressor = new DiagnosticSuppressorForId_ThrowsOperationCancelledException(analyzer.Descriptor.Id);
             var cancellationToken = suppressor.CancellationTokenSource.Token;
@@ -607,15 +607,15 @@ class C { }";
                 Diagnostic(analyzer2.Descriptor.Id, source, isSuppressed: false).WithLocation(1, 1),
             };
 
-            VerifyAnalyzerDiagnostics(compilation, new DiagnosticAnalyzer[] { analyzer1, analyzer2 }, expectedDiagnostics);
+            VerifyAnalyzerDiagnostics(compilation, [analyzer1, analyzer2], expectedDiagnostics);
 
             // Verify whole compilation analyzer diagnostics including suppressors.
             var suppressor = new DiagnosticSuppressorForMultipleIds(analyzer1.Descriptor.Id, analyzer2.Descriptor.Id);
             var analyzersAndSuppressors = new DiagnosticAnalyzer[] { analyzer1, analyzer2, suppressor };
-            expectedDiagnostics = new DiagnosticDescription[] {
+            expectedDiagnostics = [
                 Diagnostic(analyzer1.Descriptor.Id, source, isSuppressed: true).WithLocation(1, 1),
                 Diagnostic(analyzer2.Descriptor.Id, source, isSuppressed: true).WithLocation(1, 1),
-            };
+            ];
 
             VerifySuppressedDiagnostics(compilation, analyzersAndSuppressors, expectedDiagnostics);
             VerifySuppressedAndFilteredDiagnostics(compilation, analyzersAndSuppressors);

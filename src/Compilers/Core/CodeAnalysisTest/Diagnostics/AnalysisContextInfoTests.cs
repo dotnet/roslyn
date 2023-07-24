@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         private static void Verify(Compilation compilation, AnalyzerOptions options, string context)
         {
             var analyzer = new Analyzer(s => context == s);
-            var diagnostics = compilation.GetAnalyzerDiagnostics(new DiagnosticAnalyzer[] { analyzer }, options);
+            var diagnostics = compilation.GetAnalyzerDiagnostics([analyzer], options);
 
             Assert.Equal(1, diagnostics.Length);
             Assert.True(diagnostics[0].Descriptor.Description.ToString().IndexOf(analyzer.Info.GetContext()) >= 0);

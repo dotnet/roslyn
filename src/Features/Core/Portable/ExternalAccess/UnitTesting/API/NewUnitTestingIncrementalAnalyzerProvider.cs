@@ -56,7 +56,7 @@ internal sealed partial class NewUnitTestingIncrementalAnalyzerProvider : IUnitT
 #if false // Not used in unit testing crawling
             highPriorityForActiveFile: false,
 #endif
-            new[] { workspaceKind });
+            [workspaceKind]);
 
         solutionCrawlerRegistrationService.AddAnalyzerProvider(analyzerProvider, metadata);
         return analyzerProvider;

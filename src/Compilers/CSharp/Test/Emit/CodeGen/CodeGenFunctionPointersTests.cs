@@ -2522,7 +2522,7 @@ public interface I2{}";
 unsafe class C
 {
     public delegate*<I2, I1> M() => throw null;
-}", references: new[] { nopiaReference }, symbolValidator: symbolValidator);
+}", references: [nopiaReference], symbolValidator: symbolValidator);
 
             void symbolValidator(ModuleSymbol module)
             {
@@ -2556,7 +2556,7 @@ using System;
 unsafe class C
 {
     public Type M() => typeof(delegate*<I1, I2>);
-}", references: new[] { nopiaReference }, symbolValidator: symbolValidator);
+}", references: [nopiaReference], symbolValidator: symbolValidator);
 
             void symbolValidator(ModuleSymbol module)
             {
@@ -2592,7 +2592,7 @@ unsafe class C2
     {
         _ = c.M()();
     }
-}", references: new[] { nopiaReference, intermediate }, symbolValidator: symbolValidator);
+}", references: [nopiaReference, intermediate], symbolValidator: symbolValidator);
 
             void symbolValidator(ModuleSymbol module)
             {
@@ -3066,12 +3066,12 @@ unsafe class C
                 expectedConvertedType: "delegate*<out modreq(System.Runtime.InteropServices.OutAttribute) System.String, System.Void>",
                 expectedSymbol: "void C.M(out System.String s)");
 
-            string[] expectedMembers = new[] {
+            string[] expectedMembers = [
                 "void C.M(System.Object o)",
                 "void C.M(System.String s)",
                 "void C.M(out System.String s)",
                 "void C.M(System.Int32 i)"
-            };
+            ];
 
             AssertEx.Equal(expectedMembers, model.GetMemberGroup(addressOfs[0].Operand).Select(m => m.ToTestDisplayString(includeNonNullable: false)));
             AssertEx.Equal(expectedMembers, model.GetMemberGroup(addressOfs[1].Operand).Select(m => m.ToTestDisplayString(includeNonNullable: false)));
@@ -3111,7 +3111,7 @@ class C : I1, I2
                 expectedType: null,
                 expectedConvertedType: "delegate*<C, System.Void>",
                 expectedCandidateReason: CandidateReason.OverloadResolutionFailure,
-                expectedSymbolCandidates: new[] { "void IHelpers.M(I1 i1)", "void IHelpers.M(I2 i2)" });
+                expectedSymbolCandidates: ["void IHelpers.M(I1 i1)", "void IHelpers.M(I2 i2)"]);
         }
 
         [Fact]
@@ -3338,7 +3338,7 @@ public class C
                 expectedType: null,
                 expectedConvertedType: "delegate*<System.Void>",
                 expectedCandidateReason: CandidateReason.OverloadResolutionFailure,
-                expectedSymbolCandidates: new[] { "void C.M()" });
+                expectedSymbolCandidates: ["void C.M()"]);
 
             VerifyOperationTreeForNode(comp, model, declarators[0], expectedOperationTree: @"
 IVariableDeclaratorOperation (Symbol: delegate*<System.Void> ptr1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr1 = &M')
@@ -3359,7 +3359,7 @@ IVariableDeclaratorOperation (Symbol: delegate*<System.Void> ptr1) (OperationKin
                 expectedType: null,
                 expectedConvertedType: "delegate*<System.Int32>",
                 expectedCandidateReason: CandidateReason.OverloadResolutionFailure,
-                expectedSymbolCandidates: new[] { "System.Int32 System.Int32?.GetValueOrDefault()", "System.Int32 System.Int32?.GetValueOrDefault(System.Int32 defaultValue)" });
+                expectedSymbolCandidates: ["System.Int32 System.Int32?.GetValueOrDefault()", "System.Int32 System.Int32?.GetValueOrDefault(System.Int32 defaultValue)"]);
 
             VerifyOperationTreeForNode(comp, model, declarators[1], expectedOperationTree: @"
 IVariableDeclaratorOperation (Symbol: delegate*<System.Int32> ptr2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr2 = &i.G ... ueOrDefault')
@@ -3408,7 +3408,7 @@ unsafe class C
                 expectedType: null,
                 expectedConvertedType: "delegate*<System.Int32, System.Int32>",
                 expectedCandidateReason: CandidateReason.OverloadResolutionFailure,
-                expectedSymbolCandidates: new[] { "System.Int32 C.M(System.String s)", "System.Int32 C.M(ref System.Int32 i)" });
+                expectedSymbolCandidates: ["System.Int32 C.M(System.String s)", "System.Int32 C.M(ref System.Int32 i)"]);
 
             VerifyOperationTreeForNode(comp, model, declarator, expectedOperationTree: @"
 IVariableDeclaratorOperation (Symbol: delegate*<System.Int32, System.Int32> ptr) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr = &M')
@@ -3455,7 +3455,7 @@ unsafe class C
                 expectedType: null,
                 expectedConvertedType: "delegate*<System.String, System.String, System.Void>",
                 expectedCandidateReason: CandidateReason.OverloadResolutionFailure,
-                expectedSymbolCandidates: new[] { "void C.M(System.String s, System.Object o)", "void C.M(System.Object o, System.String s)" });
+                expectedSymbolCandidates: ["void C.M(System.String s, System.Object o)", "void C.M(System.Object o, System.String s)"]);
 
             VerifyOperationTreeForNode(comp, model, declarator, expectedOperationTree: @"
 IVariableDeclaratorOperation (Symbol: delegate*<System.String, System.String, System.Void> ptr) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr = &M')
@@ -3565,14 +3565,14 @@ unsafe class C
                 expectedType: null,
                 expectedConvertedType: "System.Void*",
                 expectedCandidateReason: CandidateReason.OverloadResolutionFailure,
-                expectedSymbolCandidates: new[] { "void C.M()" });
+                expectedSymbolCandidates: ["void C.M()"]);
 
             FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, ((CastExpressionSyntax)decls[1].Initializer!.Value).Expression,
                 expectedSyntax: "&M",
                 expectedType: null,
                 expectedConvertedType: null,
                 expectedCandidateReason: CandidateReason.OverloadResolutionFailure,
-                expectedSymbolCandidates: new[] { "void C.M()" });
+                expectedSymbolCandidates: ["void C.M()"]);
         }
 
         [Fact]
@@ -3617,14 +3617,14 @@ class C
                 expectedType: null,
                 expectedConvertedType: null,
                 expectedCandidateReason: CandidateReason.OverloadResolutionFailure,
-                expectedSymbolCandidates: new[] { "void C.M()" });
+                expectedSymbolCandidates: ["void C.M()"]);
 
             FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, decls[2].Initializer!.Value,
                 expectedSyntax: "&M",
                 expectedType: null,
                 expectedConvertedType: "System.Action",
                 expectedCandidateReason: CandidateReason.OverloadResolutionFailure,
-                expectedSymbolCandidates: new[] { "void C.M()" });
+                expectedSymbolCandidates: ["void C.M()"]);
         }
 
         [Fact]
@@ -3668,14 +3668,14 @@ class C
                 expectedType: null,
                 expectedConvertedType: null,
                 expectedCandidateReason: CandidateReason.OverloadResolutionFailure,
-                expectedSymbolCandidates: new[] { "void C.M()" });
+                expectedSymbolCandidates: ["void C.M()"]);
 
             FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, decls[2].Initializer!.Value,
                 expectedSyntax: "&M",
                 expectedType: null,
                 expectedConvertedType: "C",
                 expectedCandidateReason: CandidateReason.OverloadResolutionFailure,
-                expectedSymbolCandidates: new[] { "void C.M()" });
+                expectedSymbolCandidates: ["void C.M()"]);
         }
 
         [Fact]
@@ -3707,7 +3707,7 @@ class C
                 expectedType: null,
                 expectedConvertedType: null,
                 expectedCandidateReason: CandidateReason.OverloadResolutionFailure,
-                expectedSymbolCandidates: new[] { "void C.M()" });
+                expectedSymbolCandidates: ["void C.M()"]);
         }
 
         [Fact]
@@ -4113,7 +4113,7 @@ class C
                 expectedType: null,
                 expectedConvertedType: "delegate*<System.Void>",
                 expectedCandidateReason: CandidateReason.OverloadResolutionFailure,
-                expectedSymbolCandidates: new[] { "void C.M1()" });
+                expectedSymbolCandidates: ["void C.M1()"]);
 
             AssertEx.Equal(new[] { "void C.M1()" }, model.GetMemberGroup(methodGroup1).Select(m => m.ToTestDisplayString(includeNonNullable: false)));
 

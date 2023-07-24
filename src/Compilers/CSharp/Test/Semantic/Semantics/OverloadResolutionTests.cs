@@ -6950,7 +6950,7 @@ class C
         b.F(null); //-B<C>.F(C)
     }
 }";
-            TestOverloadResolutionWithDiff(source, new[] { CSharpRef, SystemCoreRef });
+            TestOverloadResolutionWithDiff(source, [CSharpRef, SystemCoreRef]);
         }
 
         [Fact]

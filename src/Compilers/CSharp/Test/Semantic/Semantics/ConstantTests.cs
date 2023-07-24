@@ -431,7 +431,7 @@ class Program
         }
 
         private static readonly string[] s_enumTypeQualifiers =
-            {
+            [
                 "",
                 " : sbyte",
                 " : byte",
@@ -441,7 +441,7 @@ class Program
                 " : uint",
                 " : long",
                 " : ulong",
-            };
+            ];
 
         [Fact]
         public void TestExplicitEnumIntConversions()

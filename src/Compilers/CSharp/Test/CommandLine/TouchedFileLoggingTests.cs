@@ -40,8 +40,8 @@ class C
             var touchedDir = Temp.CreateDirectory();
             var touchedBase = Path.Combine(touchedDir.Path, "touched");
 
-            var cmd = CreateCSharpCompiler(new[] { "/nologo", hello,
-               string.Format(@"/touchedfiles:""{0}""", touchedBase) });
+            var cmd = CreateCSharpCompiler([ "/nologo", hello,
+               string.Format(@"/touchedfiles:""{0}""", touchedBase) ]);
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
             List<string> expectedReads;
@@ -82,12 +82,12 @@ class C
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var cmd = CreateCSharpCompiler(
-                new[] { "/nologo",
+                [ "/nologo",
                         "/r:" + silverlight,
                         "/r:" + net4_0dll,
                         "/appconfig:" + appConfigPath,
                         "/touchedfiles:" + touchedBase,
-                        hello });
+                        hello ]);
 
             List<string> expectedReads;
             List<string> expectedWrites;
@@ -117,10 +117,10 @@ class C
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var cmd = CreateCSharpCompiler(
-                new[] { "/nologo",
+                [ "/nologo",
                         "/touchedfiles:" + touchedBase,
                         "/keyfile:" + snkPath,
-                        hello });
+                        hello ]);
 
             List<string> expectedReads;
             List<string> expectedWrites;
@@ -154,14 +154,13 @@ public class C { }").Path;
             var touchedDir = Temp.CreateDirectory();
             var touchedBase = Path.Combine(touchedDir.Path, "touched");
 
-            var cmd = CreateCSharpCompiler(new[]
-            {
+            var cmd = CreateCSharpCompiler([
                 "/nologo",
                 "/target:library",
                 "/doc:" + xml.Path,
                 "/touchedfiles:" + touchedDir.Path + "\\touched",
                 sourcePath
-            });
+            ]);
 
             // Build touched files
             List<string> expectedReads;

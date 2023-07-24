@@ -1003,7 +1003,7 @@ End Class
         D.P[null] = o;   // C# does not support static indexed properties
     }
 }";
-            CreateCompilationWithoutBetterCandidates(source2, references: new[] { reference1 }, options: TestOptions.ReleaseExe.WithAllowUnsafe(true)).VerifyDiagnostics(
+            CreateCompilationWithoutBetterCandidates(source2, references: [reference1], options: TestOptions.ReleaseExe.WithAllowUnsafe(true)).VerifyDiagnostics(
                 // (13,13): error CS0120: An object reference is required for the non-static field, method, or property 'C.P[A]'
                 //         o = D.P[null];
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "D.P[null]").WithArguments("C.P[A]").WithLocation(13, 13),
@@ -1011,7 +1011,7 @@ End Class
                 //         D.P[null] = o;
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "D.P[null]").WithArguments("C.P[A]").WithLocation(14, 9)
                 );
-            CreateCompilationWithBetterCandidates(source2, references: new[] { reference1 }, options: TestOptions.ReleaseExe.WithAllowUnsafe(true)).VerifyDiagnostics(
+            CreateCompilationWithBetterCandidates(source2, references: [reference1], options: TestOptions.ReleaseExe.WithAllowUnsafe(true)).VerifyDiagnostics(
                 // (13,13): error CS0120: An object reference is required for the non-static field, method, or property 'C.P[A]'
                 //         o = D.P[null];
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "D.P[null]").WithArguments("C.P[A]").WithLocation(13, 13),

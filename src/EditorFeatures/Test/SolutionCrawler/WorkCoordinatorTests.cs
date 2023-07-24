@@ -1526,7 +1526,7 @@ class C
                 language,
                 compilationOptions: null,
                 parseOptions: null,
-                new[] { code },
+                [code],
                 composition: EditorTestCompositions.EditorFeatures.AddExcludedPartTypes(typeof(IIncrementalAnalyzerProvider)).AddParts(typeof(AnalyzerProviderNoWaitNoBlock)),
                 workspaceKind: SolutionCrawlerWorkspaceKind);
 
@@ -1737,7 +1737,7 @@ class C
                 => Analyzer;
         }
 
-        [ExportIncrementalAnalyzerProvider(name: "TestAnalyzer", workspaceKinds: new[] { SolutionCrawlerWorkspaceKind })]
+        [ExportIncrementalAnalyzerProvider(name: "TestAnalyzer", workspaceKinds: [SolutionCrawlerWorkspaceKind])]
         [Shared]
         [PartNotDiscoverable]
         private class AnalyzerProviderNoWaitNoBlock : AnalyzerProvider
@@ -1750,7 +1750,7 @@ class C
             }
         }
 
-        [ExportIncrementalAnalyzerProvider(name: "TestAnalyzer", workspaceKinds: new[] { SolutionCrawlerWorkspaceKind })]
+        [ExportIncrementalAnalyzerProvider(name: "TestAnalyzer", workspaceKinds: [SolutionCrawlerWorkspaceKind])]
         [Shared]
         [PartNotDiscoverable]
         private class AnalyzerProviderWaitNoBlock : AnalyzerProvider
@@ -1763,7 +1763,7 @@ class C
             }
         }
 
-        [ExportIncrementalAnalyzerProvider(name: "TestAnalyzer", workspaceKinds: new[] { SolutionCrawlerWorkspaceKind })]
+        [ExportIncrementalAnalyzerProvider(name: "TestAnalyzer", workspaceKinds: [SolutionCrawlerWorkspaceKind])]
         [Shared]
         [PartNotDiscoverable]
         private class AnalyzerProviderNoWaitBlock : AnalyzerProvider
@@ -1776,7 +1776,7 @@ class C
             }
         }
 
-        [ExportIncrementalAnalyzerProvider(name: "TestAnalyzer", workspaceKinds: new[] { SolutionCrawlerWorkspaceKind })]
+        [ExportIncrementalAnalyzerProvider(name: "TestAnalyzer", workspaceKinds: [SolutionCrawlerWorkspaceKind])]
         [Shared]
         [PartNotDiscoverable]
         private class AnalyzerProvider2 : AnalyzerProvider

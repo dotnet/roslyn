@@ -94,18 +94,16 @@ End Class
 
             var items = await ValidateItemsAsync(
                 workspace,
-                itemInfo: new[]
-                {
+                itemInfo: [
                     (8, "value") // _s = [|value|] [Code.vb:8]
-                });
+                ]);
 
             var childItems = await ValidateChildrenAsync(
                 workspace,
                 items.Single(),
-                childInfo: new[]
-                {
+                childInfo: [
                     (14, "s") // Me.S = [|s|] [Code.vb:14]
-                });
+                ]);
 
             await ValidateChildrenEmptyAsync(workspace, childItems.Single());
         }
@@ -139,11 +137,10 @@ End Class
             //
             await ValidateItemsAsync(
                 workspace,
-                itemInfo: new[]
-                {
+                itemInfo: [
                     (5, "s"),
                     (2, "_s")
-                });
+                ]);
         }
 
         [Theory]
@@ -229,34 +226,30 @@ End Class";
 
             var items = await ValidateItemsAsync(
                 workspace,
-                itemInfo: new[]
-                {
+                itemInfo: [
                     (5, "x") // |> Dim y = [|x|] + 1; [Code.vb:7]
-                });
+                ]);
 
             items = await ValidateChildrenAsync(
                 workspace,
                 items.Single(),
-                childInfo: new[]
-                {
+                childInfo: [
                     (3, "GetM()") // |> Dim x = [|GetM()|] [Code.vb:5]
-                });
+                ]);
 
             items = await ValidateChildrenAsync(
                 workspace,
                 items.Single(),
-                childInfo: new[]
-                {
+                childInfo: [
                     (10, "x") // |> return [|x|]; [Code.vb:13]
-                });
+                ]);
 
             items = await ValidateChildrenAsync(
                 workspace,
                 items.Single(),
-                childInfo: new[]
-                {
+                childInfo: [
                     (9, "0") // |> var x = [|0|]; [Code.vb:12]
-                });
+                ]);
 
             await ValidateChildrenEmptyAsync(workspace, items.Single());
         }
@@ -289,34 +282,30 @@ End Class";
 
             var items = await ValidateItemsAsync(
                 workspace,
-                itemInfo: new[]
-                {
+                itemInfo: [
                     (4, "x") // |> Dim y = [|x|] + 1; [Code.vb:7]
-                });
+                ]);
 
             items = await ValidateChildrenAsync(
                 workspace,
                 items.Single(),
-                childInfo: new[]
-                {
+                childInfo: [
                     (3, "GetM()") // |> Dim x = [|GetM()|] [Code.vb:5]
-                });
+                ]);
 
             items = await ValidateChildrenAsync(
                 workspace,
                 items.Single(),
-                childInfo: new[]
-                {
+                childInfo: [
                     (10, "x") // |> return [|x|]; [Code.vb:13]
-                });
+                ]);
 
             items = await ValidateChildrenAsync(
                 workspace,
                 items.Single(),
-                childInfo: new[]
-                {
+                childInfo: [
                     (9, "0") // |> var x = [|0|]; [Code.vb:12]
-                });
+                ]);
 
             await ValidateChildrenEmptyAsync(workspace, items.Single());
         }
@@ -351,34 +340,30 @@ End Class";
 
             var items = await ValidateItemsAsync(
                 workspace,
-                itemInfo: new[]
-                {
+                itemInfo: [
                     (7, "x") // |> Dim y = [|x|] + 1; [Code.vb:7]
-                });
+                ]);
 
             items = await ValidateChildrenAsync(
                 workspace,
                 items.Single(),
-                childInfo: new[]
-                {
+                childInfo: [
                     (5, "GetM()") // |> Dim x = [|GetM()|], z = 1, m As Boolean, n As Boolean, o As Boolean [Code.vb:5]
-                });
+                ]);
 
             items = await ValidateChildrenAsync(
                 workspace,
                 items.Single(),
-                childInfo: new[]
-                {
+                childInfo: [
                     (12, "x") // |> return [|x|]; [Code.vb:12]
-                });
+                ]);
 
             items = await ValidateChildrenAsync(
                 workspace,
                 items.Single(),
-                childInfo: new[]
-                {
+                childInfo: [
                     (11, "0") // |> var x = [|0|]; [Code.vb:11]
-                });
+                ]);
 
             await ValidateChildrenEmptyAsync(workspace, items.Single());
         }

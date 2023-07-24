@@ -35,7 +35,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.Workspaces
 </Project>", HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "Class1.cs", contents: string.Empty, open: true, cancellationToken: HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace], HangMitigatingCancellationToken);
             await TestServices.Workspace.SetFullSolutionAnalysisAsync(true, HangMitigatingCancellationToken);
 
             await base.MetadataReference();

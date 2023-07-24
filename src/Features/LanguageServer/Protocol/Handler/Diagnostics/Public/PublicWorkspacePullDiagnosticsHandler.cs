@@ -70,8 +70,7 @@ internal sealed class PublicWorkspacePullDiagnosticsHandler : AbstractPullDiagno
     protected override WorkspaceDiagnosticPartialReport CreateReport(TextDocumentIdentifier identifier, VisualStudio.LanguageServer.Protocol.Diagnostic[] diagnostics, string resultId)
         => new WorkspaceDiagnosticPartialReport(new WorkspaceDiagnosticReport
         {
-            Items = new SumType<WorkspaceFullDocumentDiagnosticReport, WorkspaceUnchangedDocumentDiagnosticReport>[]
-            {
+            Items = [
                 new WorkspaceFullDocumentDiagnosticReport
                 {
                     Uri = identifier.Uri,
@@ -80,14 +79,13 @@ internal sealed class PublicWorkspacePullDiagnosticsHandler : AbstractPullDiagno
                     Version = null,
                     ResultId = resultId
                 }
-            }
+            ]
         });
 
     protected override WorkspaceDiagnosticPartialReport CreateRemovedReport(TextDocumentIdentifier identifier)
         => new WorkspaceDiagnosticPartialReport(new WorkspaceDiagnosticReport
         {
-            Items = new SumType<WorkspaceFullDocumentDiagnosticReport, WorkspaceUnchangedDocumentDiagnosticReport>[]
-            {
+            Items = [
                 new WorkspaceFullDocumentDiagnosticReport
                 {
                     Uri = identifier.Uri,
@@ -96,14 +94,13 @@ internal sealed class PublicWorkspacePullDiagnosticsHandler : AbstractPullDiagno
                     Version = null,
                     ResultId = null,
                 }
-            }
+            ]
         });
 
     protected override WorkspaceDiagnosticPartialReport CreateUnchangedReport(TextDocumentIdentifier identifier, string resultId)
         => new WorkspaceDiagnosticPartialReport(new WorkspaceDiagnosticReport
         {
-            Items = new SumType<WorkspaceFullDocumentDiagnosticReport, WorkspaceUnchangedDocumentDiagnosticReport>[]
-            {
+            Items = [
                 new WorkspaceUnchangedDocumentDiagnosticReport
                 {
                     Uri = identifier.Uri,
@@ -111,7 +108,7 @@ internal sealed class PublicWorkspacePullDiagnosticsHandler : AbstractPullDiagno
                     Version = null,
                     ResultId = resultId,
                 }
-            }
+            ]
         });
 
     protected override WorkspaceDiagnosticReport? CreateReturn(BufferedProgress<WorkspaceDiagnosticPartialReport> progress)

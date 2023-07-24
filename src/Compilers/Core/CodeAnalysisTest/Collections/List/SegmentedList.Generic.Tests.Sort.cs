@@ -162,8 +162,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void Sort_intintIComparer_NegativeRange_ThrowsArgumentOutOfRangeException(int count)
         {
             SegmentedList<T> list = GenericListFactory(count);
-            Tuple<int, int>[] InvalidParameters = new Tuple<int, int>[]
-            {
+            Tuple<int, int>[] InvalidParameters = [
                 Tuple.Create(-1,-1),
                 Tuple.Create(-1, 0),
                 Tuple.Create(-1, 1),
@@ -175,7 +174,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 Tuple.Create(0 , int.MinValue),
                 Tuple.Create(1 ,-1),
                 Tuple.Create(2 ,-1),
-            };
+            ];
 
             Assert.All(InvalidParameters, invalidSet =>
             {
@@ -188,12 +187,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void Sort_intintIComparer_InvalidRange_ThrowsArgumentException(int count)
         {
             SegmentedList<T> list = GenericListFactory(count);
-            Tuple<int, int>[] InvalidParameters = new Tuple<int, int>[]
-            {
+            Tuple<int, int>[] InvalidParameters = [
                 Tuple.Create(count, 1),
                 Tuple.Create(count + 1, 0),
                 Tuple.Create(int.MaxValue, 0),
-            };
+            ];
 
             Assert.All(InvalidParameters, invalidSet =>
             {

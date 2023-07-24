@@ -3128,12 +3128,11 @@ internal class C
 [assembly:System.CLSCompliant(true)]
 ";
 
-            var moduleRef = CreateCompilation(moduleSource, assemblyName: "module").EmitToImageReference(expectedWarnings: new[]
-            {
+            var moduleRef = CreateCompilation(moduleSource, assemblyName: "module").EmitToImageReference(expectedWarnings: [
                 // (8,16): warning CS3019: CLS compliance checking will not be performed on 'C' because it is not visible from outside this assembly
                 // internal class C
                 Diagnostic(ErrorCode.WRN_CLS_MeaninglessOnPrivateType, "C").WithArguments("C")
-            });
+            ]);
 
             // No diagnostics about added module.
             CreateCompilation(source, new[] { moduleRef }).VerifyDiagnostics();

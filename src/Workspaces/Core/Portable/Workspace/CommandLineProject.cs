@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis
             return CreateProjectInfo(projectName, language, args, baseDirectory, workspace);
         }
 
-        private static readonly char[] s_folderSplitters = new char[] { Path.DirectorySeparatorChar };
+        private static readonly char[] s_folderSplitters = [Path.DirectorySeparatorChar];
 
         private static IList<string> GetFolders(string path)
         {

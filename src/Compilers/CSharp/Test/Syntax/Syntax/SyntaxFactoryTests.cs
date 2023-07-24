@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, singleton1.SeparatorCount);
             Assert.Equal("a", singleton1.ToString());
 
-            var singleton2 = SyntaxFactory.SeparatedList((System.Collections.Generic.IEnumerable<ExpressionSyntax>)new[] { SyntaxFactory.IdentifierName("x") });
+            var singleton2 = SyntaxFactory.SeparatedList((System.Collections.Generic.IEnumerable<ExpressionSyntax>)[SyntaxFactory.IdentifierName("x")]);
 
             Assert.Equal(1, singleton2.Count);
             Assert.Equal(0, singleton2.SeparatorCount);

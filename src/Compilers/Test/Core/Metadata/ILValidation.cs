@@ -201,7 +201,7 @@ namespace Roslyn.Test.Utilities
                     null);
             }
 
-            return (int)s_peheaderSizeMethod.Invoke(null, new object[] { is32Bit });
+            return (int)s_peheaderSizeMethod.Invoke(null, [is32Bit]);
         }
 
         private static ConstructorInfo s_blobCtor;
@@ -216,7 +216,7 @@ namespace Roslyn.Test.Utilities
                     null);
             }
 
-            return (Blob)s_blobCtor.Invoke(new object[] { buffer, offset, size });
+            return (Blob)s_blobCtor.Invoke([buffer, offset, size]);
         }
 
         private static FieldInfo s_bufferField;
@@ -252,13 +252,12 @@ namespace Roslyn.Test.Utilities
                     null);
             }
 
-            return (IEnumerable<Blob>)s_getContentToSignMethod.Invoke(null, new object[]
-            {
+            return (IEnumerable<Blob>)s_getContentToSignMethod.Invoke(null, [
                 peImage,
                 peHeadersSize,
                 peHeaderAlignment,
                 strongNameSignatureFixup
-            });
+            ]);
         }
 
         public static unsafe string GetMethodIL(this ImmutableArray<byte> ilArray)

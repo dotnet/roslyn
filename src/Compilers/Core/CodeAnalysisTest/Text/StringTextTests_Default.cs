@@ -143,7 +143,7 @@ bar baz");
         [Fact]
         public void GetExtendedAsciiText()
         {
-            var originalText = Encoding.Default.GetString(new byte[] { 0xAB, 0xCD, 0xEF });
+            var originalText = Encoding.Default.GetString([0xAB, 0xCD, 0xEF]);
             var encodedText = Create(originalText);
             Assert.Equal(originalText, encodedText.ToString());
         }

@@ -166,7 +166,7 @@ namespace Roslyn.Utilities
             => HasOneItem ? ImmutableArray.Create(_one) : _many;
 
         public T[] ToArray()
-            => HasOneItem ? new[] { _one } : _many.ToArray();
+            => HasOneItem ? [_one] : _many.ToArray();
 
         public bool SequenceEqual(OneOrMany<T> other, IEqualityComparer<T>? comparer = null)
         {

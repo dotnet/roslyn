@@ -116,8 +116,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 Range = caret.Range,
                 Context = new LSP.CodeActionContext
                 {
-                    Diagnostics = new[]
-                    {
+                    Diagnostics = [
                         new LSP.Diagnostic
                         {
                             Code = AddImportDiagnosticIds.CS0103
@@ -126,7 +125,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                         {
                             Code = "SomeCode"
                         }
-                    }
+                    ]
                 }
             };
 
@@ -156,14 +155,13 @@ class ABC
                 Range = caret.Range,
                 Context = new LSP.CodeActionContext
                 {
-                    Diagnostics = new[]
-                    {
+                    Diagnostics = [
                         new LSP.Diagnostic
                         {
                             // async method lack of await.
                             Code = "CS1998"
                         }
-                    }
+                    ]
                 }
             };
 

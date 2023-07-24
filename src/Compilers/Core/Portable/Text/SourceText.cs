@@ -958,7 +958,7 @@ namespace Microsoft.CodeAnalysis.Text
             // Corner case check
             if (0 == this.Length)
             {
-                return new[] { 0 };
+                return [0];
             }
 
             var lineStarts = ArrayBuilder<int>.GetInstance();

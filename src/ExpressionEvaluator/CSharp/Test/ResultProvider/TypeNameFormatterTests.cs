@@ -206,7 +206,7 @@ namespace N
         [Fact]
         public void CustomBoundsArrayTypes()
         {
-            Array instance = Array.CreateInstance(typeof(int), new[] { 1, 2, 3, }, new[] { 4, 5, 6, });
+            Array instance = Array.CreateInstance(typeof(int), [1, 2, 3,], [4, 5, 6,]);
 
             Assert.Equal("int[,,]", instance.GetType().GetTypeName());
             Assert.Equal("int[][,,]", instance.GetType().MakeArrayType().GetTypeName());

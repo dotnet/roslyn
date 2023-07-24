@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     [CompilerTrait(CompilerFeature.Tuples)]
     public class DeconstructionTests : CompilingTestBase
     {
-        private static readonly MetadataReference[] s_valueTupleRefs = new[] { SystemRuntimeFacadeRef, ValueTupleRef };
+        private static readonly MetadataReference[] s_valueTupleRefs = [SystemRuntimeFacadeRef, ValueTupleRef];
 
         const string commonSource =
 @"public class Pair<T1, T2>

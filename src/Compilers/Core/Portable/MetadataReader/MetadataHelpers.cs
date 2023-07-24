@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private struct SerializedTypeDecoder
         {
-            private static readonly char[] s_typeNameDelimiters = { '+', ',', '[', ']', '*' };
+            private static readonly char[] s_typeNameDelimiters = ['+', ',', '[', ']', '*'];
             private readonly string _input;
             private int _offset;
 
@@ -462,7 +462,7 @@ ExitDecodeTypeName:
             }
         }
 
-        private static readonly string[] s_aritySuffixesOneToNine = { "`1", "`2", "`3", "`4", "`5", "`6", "`7", "`8", "`9" };
+        private static readonly string[] s_aritySuffixesOneToNine = ["`1", "`2", "`3", "`4", "`5", "`6", "`7", "`8", "`9"];
 
         internal static string GetAritySuffix(int arity)
         {

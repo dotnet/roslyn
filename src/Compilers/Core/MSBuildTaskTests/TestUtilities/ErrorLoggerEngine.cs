@@ -26,9 +26,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             var assembly = Assembly.LoadFrom("Microsoft.Build.dll");
             var formattingClass = assembly.GetType("Microsoft.Build.Shared.EventArgsFormatting") ?? throw new Exception("Could not find EventArgsFormatting type");
             _formatErrorMethod = formattingClass.GetMethod("FormatEventMessage", BindingFlags.Static | BindingFlags.NonPublic, null, CallingConventions.Any,
-                new Type[] { typeof(BuildErrorEventArgs) }, null) ?? throw new Exception("Could not find FormatEventMessage(BuildErrorEventArgs).");
+                [typeof(BuildErrorEventArgs)], null) ?? throw new Exception("Could not find FormatEventMessage(BuildErrorEventArgs).");
             _formatWarningMethod = formattingClass.GetMethod("FormatEventMessage", BindingFlags.Static | BindingFlags.NonPublic, null, CallingConventions.Any,
-                new Type[] { typeof(BuildWarningEventArgs) }, null) ?? throw new Exception("Could not find FormatEventMessage(BuildWarningEventArgs).");
+                [typeof(BuildWarningEventArgs)], null) ?? throw new Exception("Could not find FormatEventMessage(BuildWarningEventArgs).");
         }
 
         internal string Log
@@ -39,13 +39,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
         public void LogErrorEvent(BuildErrorEventArgs eventArgs)
         {
-            _log.Append(_formatErrorMethod.Invoke(null, new object[] { eventArgs }));
+            _log.Append(_formatErrorMethod.Invoke(null, [eventArgs]));
             _log.AppendLine();
         }
 
         public void LogWarningEvent(BuildWarningEventArgs eventArgs)
         {
-            _log.Append(_formatWarningMethod.Invoke(null, new object[] { eventArgs }));
+            _log.Append(_formatWarningMethod.Invoke(null, [eventArgs]));
             _log.AppendLine();
         }
 

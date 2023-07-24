@@ -1049,7 +1049,7 @@ class async
             using (runtime.Load())
             {
                 var type = runtime.GetType("System.ValueTuple`2", typeof(int), typeof(int));
-                var value = type.Instantiate(new object[] { 1, 2, });
+                var value = type.Instantiate([1, 2,]);
 
                 // Empty custom type info id.
                 var typeInfo = DkmClrCustomTypeInfo.Create(Guid.Empty, new ReadOnlyCollection<byte>(new byte[0]));

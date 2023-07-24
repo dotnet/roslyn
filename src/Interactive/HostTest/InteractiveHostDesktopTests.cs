@@ -377,7 +377,7 @@ WriteLine(5);
             Assert.Equal("C { }", output.Trim());
 
             // rewrite C.dll:            
-            File.WriteAllBytes(c.Path, new byte[] { 1, 2, 3 });
+            File.WriteAllBytes(c.Path, [1, 2, 3]);
 
             // we can still run code:
             var result = await Execute("new C()");

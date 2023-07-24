@@ -294,11 +294,11 @@ class C
                 string[] expected;
                 if (options.OptimizationLevel == OptimizationLevel.Debug)
                 {
-                    expected = new[] { "DebuggerDisplayAttribute", "CompilerGeneratedAttribute" };
+                    expected = ["DebuggerDisplayAttribute", "CompilerGeneratedAttribute"];
                 }
                 else
                 {
-                    expected = new[] { "CompilerGeneratedAttribute" };
+                    expected = ["CompilerGeneratedAttribute"];
                 }
 
                 AssertEx.SetEqual(expected, GetAttributeNames(anon.GetAttributes()));
@@ -311,21 +311,21 @@ class C
                     {
                         case "<X>i__Field":
                         case "<Y>i__Field":
-                            expected = new[] { "DebuggerBrowsableAttribute" };
+                            expected = ["DebuggerBrowsableAttribute"];
                             break;
 
                         case ".ctor":
                         case "Equals":
                         case "GetHashCode":
                         case "ToString":
-                            expected = new[] { "DebuggerHiddenAttribute" };
+                            expected = ["DebuggerHiddenAttribute"];
                             break;
 
                         case "X":
                         case "get_X":
                         case "Y":
                         case "get_Y":
-                            expected = new string[] { };
+                            expected = [];
                             break;
 
                         default:
@@ -484,8 +484,8 @@ class C
             {
                 var goo = module.GlobalNamespace.GetMember<MethodSymbol>("C.Goo");
                 AssertEx.SetEqual(options.OptimizationLevel == OptimizationLevel.Debug ?
-                                    new[] { "AsyncStateMachineAttribute", "DebuggerStepThroughAttribute" } :
-                                    new[] { "AsyncStateMachineAttribute" }, GetAttributeNames(goo.GetAttributes()));
+                                    ["AsyncStateMachineAttribute", "DebuggerStepThroughAttribute"] :
+                                    ["AsyncStateMachineAttribute"], GetAttributeNames(goo.GetAttributes()));
 
                 var iter = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C.<Goo>d__0");
                 AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(iter.GetAttributes()));

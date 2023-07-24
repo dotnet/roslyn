@@ -726,7 +726,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type;
         }
 
-        private static readonly char[] s_nestedTypeNameSeparators = new char[] { '+' };
+        private static readonly char[] s_nestedTypeNameSeparators = ['+'];
 
         /// <summary>
         /// Resolves <see cref="System.Type"/> to a <see cref="TypeSymbol"/> available in this assembly

@@ -24,15 +24,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [Fact]
         public void Test01()
         {
-            int[][] successors = new int[][]
-            {
-                /* 0 */ new int[] { }, // 0 has no successors
-                /* 1 */ new int[] { },
-                /* 2 */ new int[] { 3 },
-                /* 3 */ new int[] { 1 },
-                /* 4 */ new int[] { 0, 1, 0, 1 }, // tolerate duplicate edges
-                /* 5 */ new int[] { 0, 2 },
-            };
+            int[][] successors = [
+                /* 0 */ [], // 0 has no successors
+                /* 1 */ [],
+                /* 2 */ [3],
+                /* 3 */ [1],
+                /* 4 */ [0, 1, 0, 1], // tolerate duplicate edges
+                /* 5 */ [0, 2],
+            ];
 
             var succF = GetAddSuccessorsFunction(successors);
             var wasAcyclic = TopologicalSort.TryIterativeSort(new[] { 4, 5 }, succF, out var sorted);
@@ -45,15 +44,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [Fact]
         public void Test01b()
         {
-            string[][] successors = new string[][]
-            {
-                /* 0 */ new string[] { }, // 0 has no successors
-                /* 1 */ new string[] { },
-                /* 2 */ new string[] { "3" },
-                /* 3 */ new string[] { "1" },
-                /* 4 */ new string[] { "0", "1" },
-                /* 5 */ new string[] { "0", "2" },
-            };
+            string[][] successors = [
+                /* 0 */ [], // 0 has no successors
+                /* 1 */ [],
+                /* 2 */ ["3"],
+                /* 3 */ ["1"],
+                /* 4 */ ["0", "1"],
+                /* 5 */ ["0", "2"],
+            ];
 
             var succF = GetAddSuccessorsFunction(successors, x => int.Parse(x));
             var wasAcyclic = TopologicalSort.TryIterativeSort(new[] { "4", "5" }, succF, out var sorted);
@@ -66,17 +64,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [Fact]
         public void Test02()
         {
-            int[][] successors = new int[][]
-            {
-                /* 0 */ new int[] { },
-                /* 1 */ new int[] { 2, 4 },
-                /* 2 */ new int[] { },
-                /* 3 */ new int[] { 2, 5 },
-                /* 4 */ new int[] { 2, 3 },
-                /* 5 */ new int[] { 2, },
-                /* 6 */ new int[] { 2, 7 },
-                /* 7 */ new int[] { }
-            };
+            int[][] successors = [
+                /* 0 */ [],
+                /* 1 */ [2, 4],
+                /* 2 */ [],
+                /* 3 */ [2, 5],
+                /* 4 */ [2, 3],
+                /* 5 */ [2,],
+                /* 6 */ [2, 7],
+                /* 7 */ []
+            ];
 
             var succF = GetAddSuccessorsFunction(successors);
             var wasAcyclic = TopologicalSort.TryIterativeSort(new[] { 1, 6 }, succF, out var sorted);
@@ -89,17 +86,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [Fact]
         public void TestCycle()
         {
-            int[][] successors = new int[][]
-            {
-                /* 0 */ new int[] { },
-                /* 1 */ new int[] { 2, 4 },
-                /* 2 */ new int[] { },
-                /* 3 */ new int[] { 2, 5 },
-                /* 4 */ new int[] { 2, 3 },
-                /* 5 */ new int[] { 2, 1 },
-                /* 6 */ new int[] { 2, 7 },
-                /* 7 */ new int[] { }
-            };
+            int[][] successors = [
+                /* 0 */ [],
+                /* 1 */ [2, 4],
+                /* 2 */ [],
+                /* 3 */ [2, 5],
+                /* 4 */ [2, 3],
+                /* 5 */ [2, 1],
+                /* 6 */ [2, 7],
+                /* 7 */ []
+            ];
 
             // 1 -> 4 -> 3 -> 5 -> 1
             var succF = GetAddSuccessorsFunction(successors);

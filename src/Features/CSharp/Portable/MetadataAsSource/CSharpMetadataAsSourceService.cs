@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
             var assemblyPath = MetadataAsSourceHelpers.GetAssemblyDisplay(symbolCompilation, symbol.ContainingAssembly);
 
             var regionTrivia = SyntaxFactory.RegionDirectiveTrivia(true)
-                .WithTrailingTrivia(new[] { SyntaxFactory.Space, SyntaxFactory.PreprocessingMessage(assemblyInfo) });
+                .WithTrailingTrivia([SyntaxFactory.Space, SyntaxFactory.PreprocessingMessage(assemblyInfo)]);
 
             var oldRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = oldRoot.WithPrependedLeadingTrivia(
@@ -137,12 +137,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
         private static SyntaxTrivia[] CreateNullableTrivia(bool enable)
         {
             var keyword = enable ? SyntaxKind.EnableKeyword : SyntaxKind.DisableKeyword;
-            return new[]
-            {
+            return [
                 SyntaxFactory.Trivia(SyntaxFactory.NullableDirectiveTrivia(SyntaxFactory.Token(keyword), isActive: enable)),
                 SyntaxFactory.ElasticCarriageReturnLineFeed,
                 SyntaxFactory.ElasticCarriageReturnLineFeed,
-            };
+            ];
         }
 
         private TSyntax AddNullableRegions<TSyntax>(TSyntax node, CancellationToken cancellationToken)

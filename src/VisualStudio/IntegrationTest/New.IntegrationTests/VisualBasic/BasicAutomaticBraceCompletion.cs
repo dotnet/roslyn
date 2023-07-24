@@ -59,7 +59,7 @@ End Class", HangMitigatingCancellationToken);
             if (argumentCompletion)
             {
                 await TestServices.EditorVerifier.CurrentLineTextAsync("        Dim x = {New Object($$)}", assertCaretPosition: true, HangMitigatingCancellationToken);
-                await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.SignatureHelp }, HangMitigatingCancellationToken);
+                await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.SignatureHelp], HangMitigatingCancellationToken);
 
                 await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.TAB, HangMitigatingCancellationToken);
                 await TestServices.EditorVerifier.CurrentLineTextAsync("        Dim x = {New Object()$$}", assertCaretPosition: true, HangMitigatingCancellationToken);

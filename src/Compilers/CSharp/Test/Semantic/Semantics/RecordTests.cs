@@ -292,7 +292,7 @@ public record RecordB();
 ";
             var comp = CreateCompilation(src);
             var b = comp.GlobalNamespace.GetTypeMember("RecordB");
-            AssertEx.SetEqual(new[] { "System.Boolean RecordB.op_Equality(RecordB? left, RecordB? right)" },
+            AssertEx.SetEqual(["System.Boolean RecordB.op_Equality(RecordB? left, RecordB? right)"],
                 b.GetSimpleNonTypeMembers("op_Equality").ToTestDisplayStrings());
         }
 
@@ -22243,7 +22243,7 @@ interface I {}
                 symbolInfo = model.GetSymbolInfo((SyntaxNode)baseWithargs);
                 Assert.Null(symbolInfo.Symbol);
                 Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
-                string[] candidates = new[] { "Base..ctor(Base original)", "Base..ctor(System.Int32 X)", "Base..ctor()" };
+                string[] candidates = ["Base..ctor(Base original)", "Base..ctor(System.Int32 X)", "Base..ctor()"];
                 Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
                 symbolInfo = model.GetSymbolInfo(baseWithargs);
                 Assert.Null(symbolInfo.Symbol);
@@ -22344,7 +22344,7 @@ interface I {}
                 symbolInfo = model.GetSymbolInfo((SyntaxNode)baseWithargs);
                 Assert.Null(symbolInfo.Symbol);
                 Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
-                string[] candidates = new[] { "C..ctor(System.Int32 X, System.Int32 Y)", "C..ctor(C original)", "C..ctor(System.Int32 X, System.Int32 Y, System.Int32 Z)" };
+                string[] candidates = ["C..ctor(System.Int32 X, System.Int32 Y)", "C..ctor(C original)", "C..ctor(System.Int32 X, System.Int32 Y, System.Int32 Z)"];
                 Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
                 symbolInfo = model.GetSymbolInfo(baseWithargs);
                 Assert.Null(symbolInfo.Symbol);
@@ -22483,7 +22483,7 @@ interface I {}
                 symbolInfo = model.GetSymbolInfo((SyntaxNode)baseWithargs);
                 Assert.Null(symbolInfo.Symbol);
                 Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
-                string[] candidates = new[] { "Base..ctor(Base original)", "Base..ctor(System.Int32 X)", "Base..ctor()" };
+                string[] candidates = ["Base..ctor(Base original)", "Base..ctor(System.Int32 X)", "Base..ctor()"];
                 Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
                 symbolInfo = model.GetSymbolInfo(baseWithargs);
                 Assert.Null(symbolInfo.Symbol);

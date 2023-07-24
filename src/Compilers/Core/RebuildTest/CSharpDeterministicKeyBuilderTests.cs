@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             var options = Options
                 .WithCryptoKeyFile(keyFilePath)
                 .WithStrongNameProvider(new DesktopStrongNameProvider(default, fileSystem));
-            var compilation = CreateCompilation(new SyntaxTree[] { }, options: options);
+            var compilation = CreateCompilation([], options: options);
             var obj = GetCompilationValue(compilation);
             Assert.Equal(publicKeyStr, obj.Value<string>("publicKey"));
         }

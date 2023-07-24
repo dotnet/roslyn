@@ -908,7 +908,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #pragma warning disable format
                         new BoundComplexConditionalReceiver(receiverTemp.Syntax,
                                                             intermediateRef,
-                                                            _factory.Sequence(new BoundExpression[] { _factory.AssignmentExpression(cache, intermediateRef) }, cache),
+                                                            _factory.Sequence([_factory.AssignmentExpression(cache, intermediateRef)], cache),
                                                             receiverType) { WasCompilerGenerated = true },
 #pragma warning restore format
                         assignmentToTemp.IsRef,
@@ -926,7 +926,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 assignmentToTemp =
                     assignmentToTemp.Update(
                         assignmentToTemp.Left,
-                        _factory.Sequence(new BoundExpression[] { _factory.AssignmentExpression(cache, assignmentToTemp.Right) }, cache),
+                        _factory.Sequence([_factory.AssignmentExpression(cache, assignmentToTemp.Right)], cache),
                         assignmentToTemp.IsRef,
                         assignmentToTemp.Type);
             }

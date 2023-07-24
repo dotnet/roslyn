@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
                 isEnabledByDefault: true,
                 description: "Description1",
                 helpLinkUri: "HelpLink1",
-                customTags: new[] { "1_CustomTag1", "1_CustomTag2" });
+                customTags: ["1_CustomTag1", "1_CustomTag2"]);
 
             public static readonly DiagnosticDescriptor Descriptor2 = new DiagnosticDescriptor(
                 "ID2",
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis
                 isEnabledByDefault: true,
                 description: "Description2",
                 helpLinkUri: "HelpLink2",
-                customTags: new[] { "2_CustomTag1", "2_CustomTag2" });
+                customTags: ["2_CustomTag1", "2_CustomTag2"]);
 
             private static readonly ImmutableDictionary<string, string> s_properties =
                 new Dictionary<string, string> { { "Key1", "Value1" }, { "Key2", "Value2" } }.ToImmutableDictionary();
@@ -984,7 +984,7 @@ namespace Microsoft.CodeAnalysis
                 DiagnosticSeverity severity,
                 bool configurable)
             {
-                var customTags = !configurable ? new[] { WellKnownDiagnosticTags.NotConfigurable } : Array.Empty<string>();
+                var customTags = !configurable ? [WellKnownDiagnosticTags.NotConfigurable] : Array.Empty<string>();
                 Descriptor = new DiagnosticDescriptor(
                     DiagnosticId,
                     "Description1",
@@ -1576,7 +1576,7 @@ namespace Microsoft.CodeAnalysis
                             sortedCallbackCodeBlockStartNames.Join(",") + ";" +
                             sortedCallbackCodeBlockEndNames.Join(",") + ";" +
                             sortedCallbackCodeBlockNames.Join(",");
-                        args = new object[] { arg1, arg2, arg3 };
+                        args = [arg1, arg2, arg3];
                         rule = Summary2;
                     }
 
@@ -2333,7 +2333,7 @@ namespace Microsoft.CodeAnalysis
                 _analysisFlags = analysisFlags;
                 _symbolCallbacks = new ConcurrentSet<ISymbol>();
 
-                var customTags = configurable ? Array.Empty<string>() : new[] { WellKnownDiagnosticTags.NotConfigurable };
+                var customTags = configurable ? Array.Empty<string>() : [WellKnownDiagnosticTags.NotConfigurable];
                 _rule = new DiagnosticDescriptor(
                     RuleId,
                     "Title1",

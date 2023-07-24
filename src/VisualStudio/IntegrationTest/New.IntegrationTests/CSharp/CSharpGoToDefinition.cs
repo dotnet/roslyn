@@ -90,8 +90,7 @@ partial class PartialClass { int i = 0; }", HangMitigatingCancellationToken);
 
             Assert.Collection(
                 results,
-                new Action<ITableEntryHandle2>[]
-                {
+                [
                     reference =>
                     {
                         Assert.Equal(expected: "partial class /*Marker*/ PartialClass { }", actual: reference.GetText());
@@ -104,7 +103,7 @@ partial class PartialClass { int i = 0; }", HangMitigatingCancellationToken);
                         Assert.Equal(expected: 2, actual: reference.GetLine());
                         Assert.Equal(expected: 14, actual: reference.GetColumn());
                     }
-                });
+                ]);
         }
 
         [IdeFact]

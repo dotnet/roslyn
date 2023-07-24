@@ -2392,7 +2392,7 @@ Implemented B",
                 {
                     var reader = assembly.GetMetadataReader();
                     // Verify synthesized forwarding method I.A was generated.
-                    AssertEx.SetEqual(new[] { "A", "B", ".ctor", "I.A", "Main", ".ctor" }, new[] { reader }.GetStrings(reader.GetMethodDefNames()));
+                    AssertEx.SetEqual(["A", "B", ".ctor", "I.A", "Main", ".ctor"], new[] { reader }.GetStrings(reader.GetMethodDefNames()));
                 });
         }
 
@@ -2428,7 +2428,7 @@ Implemented B",
                 {
                     var reader = assembly.GetMetadataReader();
                     // Verify synthesized forwarding method I.F was generated.
-                    AssertEx.SetEqual(new[] { ".ctor", "F", "I.F", "Main" }, new[] { reader }.GetStrings(reader.GetMethodDefNames()));
+                    AssertEx.SetEqual([".ctor", "F", "I.F", "Main"], new[] { reader }.GetStrings(reader.GetMethodDefNames()));
                 });
         }
 

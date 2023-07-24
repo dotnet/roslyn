@@ -1621,7 +1621,7 @@ var a = new C2();
             Assert.Throws<ArgumentException>(
             delegate
             {
-                comp.RemoveSyntaxTrees(new SyntaxTree[] { t4 }).GetSemanticModel(t4);
+                comp.RemoveSyntaxTrees([t4]).GetSemanticModel(t4);
             });
         }
 
@@ -1883,7 +1883,7 @@ class B
         public void CanReadAndWriteDefaultWin32Res()
         {
             var comp = CSharpCompilation.Create("Compilation");
-            var mft = new MemoryStream(new byte[] { 0, 1, 2, 3, });
+            var mft = new MemoryStream([0, 1, 2, 3,]);
             var res = comp.CreateDefaultWin32Resources(true, false, mft, null);
             var list = comp.MakeWin32ResourceList(res, new DiagnosticBag());
             Assert.Equal(2, list.Count);
@@ -2042,10 +2042,10 @@ public class TestClass
         {
             var c1 = CSharpCompilation.Create("c1");
 
-            var c2 = c1.WithReferences(new[] { MscorlibRef });
+            var c2 = c1.WithReferences([MscorlibRef]);
             Assert.False(c1.ReferenceManagerEquals(c2));
 
-            var c3 = c2.WithReferences(new[] { MscorlibRef, SystemCoreRef });
+            var c3 = c2.WithReferences([MscorlibRef, SystemCoreRef]);
             Assert.False(c3.ReferenceManagerEquals(c2));
 
             c3 = c2.AddReferences(SystemCoreRef);
@@ -2208,7 +2208,7 @@ class C { }", options: TestOptions.Script.WithLanguageVersion(LanguageVersion.CS
             var c2 = c1.WithAssemblyName("c2");
             var c3 = c2.AddSyntaxTrees(Parse("public class Main2 { public static int a; }"));
             var c4 = c3.WithOptions(TestOptions.DebugModule);
-            var c5 = c4.WithReferences(new[] { MscorlibRef, reference });
+            var c5 = c4.WithReferences([MscorlibRef, reference]);
 
             c3.VerifyDiagnostics();
             c1.VerifyDiagnostics();

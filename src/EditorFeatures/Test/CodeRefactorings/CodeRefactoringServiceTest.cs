@@ -260,8 +260,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService
 #pragma warning disable RS0034 // Exported parts should be marked with 'ImportingConstructorAttribute'
         [ExportCodeRefactoringProvider(
             LanguageNames.CSharp,
-            DocumentKinds = new[] { nameof(TextDocumentKind.AdditionalDocument), nameof(TextDocumentKind.AnalyzerConfigDocument) },
-            DocumentExtensions = new[] { ".txt", ".editorconfig" })]
+            DocumentKinds = [nameof(TextDocumentKind.AdditionalDocument), nameof(TextDocumentKind.AnalyzerConfigDocument)],
+            DocumentExtensions = [".txt", ".editorconfig"])]
         [Shared]
         internal sealed class NonSourceFileRefactoringWithDocumentKindsAndExtensions : AbstractNonSourceFileRefactoring
         {
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService
 
         [ExportCodeRefactoringProvider(
             LanguageNames.CSharp,
-            DocumentKinds = new[] { nameof(TextDocumentKind.AdditionalDocument), nameof(TextDocumentKind.AnalyzerConfigDocument) })]
+            DocumentKinds = [nameof(TextDocumentKind.AdditionalDocument), nameof(TextDocumentKind.AnalyzerConfigDocument)])]
         [Shared]
         internal sealed class NonSourceFileRefactoringWithDocumentKinds : AbstractNonSourceFileRefactoring
         {
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService
 
         [ExportCodeRefactoringProvider(
             LanguageNames.CSharp,
-            DocumentExtensions = new[] { ".txt", ".editorconfig" })]
+            DocumentExtensions = [".txt", ".editorconfig"])]
         [Shared]
         internal sealed class NonSourceFileRefactoringWithDocumentExtensions : AbstractNonSourceFileRefactoring
         {

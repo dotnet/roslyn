@@ -325,7 +325,7 @@ namespace Nested
             {
                 foreach (var commandInfo in commandInfos)
                 {
-                    list.Add(new object?[] { commandInfo.CommandLine, commandInfo.PeFileName, commandInfo.PdbFileName, commandInfo.CommandLineSuffix });
+                    list.Add([commandInfo.CommandLine, commandInfo.PeFileName, commandInfo.PdbFileName, commandInfo.CommandLineSuffix]);
                 }
             }
         }
@@ -490,7 +490,7 @@ End Namespace
             {
                 foreach (var commandInfo in commandInfos)
                 {
-                    list.Add(new object?[] { commandInfo.CommandLine, commandInfo.PeFileName, commandInfo.PdbFileName });
+                    list.Add([commandInfo.CommandLine, commandInfo.PeFileName, commandInfo.PdbFileName]);
                 }
             }
         }

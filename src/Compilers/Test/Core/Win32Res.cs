@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
             while (cbuffer[i] != '\0' && ++i < cbuffer.Length);
 
-            return new string(cbuffer).TrimEnd(new char[] { '\0' });
+            return new string(cbuffer).TrimEnd(['\0']);
         }
 
         private static void ReadVarFileInfo(BinaryReader reader)
@@ -222,8 +222,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         foreach (var pair in keyValPairs)
                         {
                             xw.WriteStartElement("KeyValuePair");
-                            xw.WriteAttributeString("Key", pair.Item1.TrimEnd(new char[] { '\0' }));
-                            xw.WriteAttributeString("Value", pair.Item2.TrimEnd(new char[] { '\0' }));
+                            xw.WriteAttributeString("Key", pair.Item1.TrimEnd(['\0']));
+                            xw.WriteAttributeString("Value", pair.Item2.TrimEnd(['\0']));
                             xw.WriteEndElement();
                         }
                     }

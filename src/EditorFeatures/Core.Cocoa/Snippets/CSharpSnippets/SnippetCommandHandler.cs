@@ -96,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             ExpansionServiceProvider.GetExpansionService(textView).InvokeInsertionUI(
                 GetSnippetExpansionClient(textView, subjectBuffer),
                 subjectBuffer.ContentType,
-                types: surroundWith ? new[] { "SurroundsWith" } : new[] { "Expansion", "SurroundsWith" },
+                types: surroundWith ? ["SurroundsWith"] : ["Expansion", "SurroundsWith"],
                 includeNullType: true,
                 kinds: null,
                 includeNullKind: false,

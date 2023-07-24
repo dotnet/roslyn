@@ -59,20 +59,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             switch (Value)
             {
                 case string source:
-                    return new[] { Parse(source, path: sourceFileName, parseOptions) };
+                    return [Parse(source, path: sourceFileName, parseOptions)];
                 case string[] sources:
                     Debug.Assert(string.IsNullOrEmpty(sourceFileName));
                     return CSharpTestBase.Parse(parseOptions, sources);
                 case (string source, string fileName):
                     Debug.Assert(string.IsNullOrEmpty(sourceFileName));
-                    return new[] { CSharpTestBase.Parse(source, fileName, parseOptions) };
+                    return [CSharpTestBase.Parse(source, fileName, parseOptions)];
                 case (string Source, string FileName)[] sources:
                     Debug.Assert(string.IsNullOrEmpty(sourceFileName));
                     return sources.Select(source => Parse(source.Source, source.FileName, parseOptions)).ToArray();
                 case SyntaxTree tree:
                     Debug.Assert(parseOptions == null);
                     Debug.Assert(string.IsNullOrEmpty(sourceFileName));
-                    return new[] { tree };
+                    return [tree];
                 case SyntaxTree[] trees:
                     Debug.Assert(parseOptions == null);
                     Debug.Assert(string.IsNullOrEmpty(sourceFileName));

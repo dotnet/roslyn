@@ -750,7 +750,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     : NullableFlowState.MaybeNull;
                 if (memberState >= badState) // is 'memberState' as bad as or worse than 'badState'?
                 {
-                    var info = new CSDiagnosticInfo(ErrorCode.WRN_UninitializedNonNullableField, new object[] { symbol.Kind.Localize(), symbol.Name }, ImmutableArray<Symbol>.Empty, additionalLocations: symbol.Locations);
+                    var info = new CSDiagnosticInfo(ErrorCode.WRN_UninitializedNonNullableField, [symbol.Kind.Localize(), symbol.Name], ImmutableArray<Symbol>.Empty, additionalLocations: symbol.Locations);
                     Diagnostics.Add(info, exitLocation ?? symbol.GetFirstLocationOrNone());
                 }
             }

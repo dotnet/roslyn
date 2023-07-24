@@ -434,7 +434,7 @@ namespace Roslyn.Test.Utilities
                 // just store the current row and the next row, each of which has a length m+1,
                 // so just O(m) space. Initialize the current row.
                 int curRow = 0, nextRow = 1;
-                int[][] rows = new int[][] { new int[m + 1], new int[m + 1] };
+                int[][] rows = [new int[m + 1], new int[m + 1]];
                 for (int j = 0; j <= m; ++j)
                     rows[curRow][j] = j;
 

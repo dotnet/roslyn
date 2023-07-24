@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void WithUsings()
         {
-            var actual1 = new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithUsings(new[] { "A", "B" }).Usings;
+            var actual1 = new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithUsings(["A", "B"]).Usings;
             Assert.True(actual1.SequenceEqual(new[] { "A", "B" }));
 
             var actual2 = new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithUsings(Enumerable.Repeat("A", 1)).Usings;
@@ -209,15 +209,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithUsings("A", "B").WithUsings(null).Usings.Count());
             Assert.Equal(0, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithUsings("A", "B").WithUsings((string[])null).Usings.Count());
 
-            new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithUsings(new string[] { null }).VerifyErrors(
+            new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithUsings([null]).VerifyErrors(
                 // error CS7088: Invalid 'Usings' value: 'null'.
                 Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("Usings", "null"));
 
-            new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithUsings(new string[] { "" }).VerifyErrors(
+            new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithUsings([""]).VerifyErrors(
                 // error CS7088: Invalid 'Usings' value: ''.
                 Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("Usings", ""));
 
-            new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithUsings(new string[] { "blah\0goo" }).VerifyErrors(
+            new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithUsings(["blah\0goo"]).VerifyErrors(
                 // error CS7088: Invalid 'Usings' value: 'blah\0goo'.
                 Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("Usings", "blah\0goo"));
         }

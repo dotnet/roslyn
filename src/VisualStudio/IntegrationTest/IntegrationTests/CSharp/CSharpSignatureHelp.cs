@@ -75,7 +75,7 @@ class C
                 ("i", "an integer, preferably 42."),
                 ("i2", "an integer, anything you like."));
 
-            VisualStudio.Editor.SendKeys(new object[] { VirtualKey.Home, new KeyPress(VirtualKey.End, ShiftState.Shift), VirtualKey.Delete });
+            VisualStudio.Editor.SendKeys([VirtualKey.Home, new KeyPress(VirtualKey.End, ShiftState.Shift), VirtualKey.Delete]);
             VisualStudio.Editor.SendKeys("var op = OutAndParam(");
 
             VisualStudio.Editor.Verify.CurrentSignature("void C.OutAndParam(ref string[][,] strings, out string[] outArr, params dynamic d)\r\nComplex Method Params");

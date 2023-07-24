@@ -408,14 +408,13 @@ class C
             // do that - the <constant> in the <scope> is sufficient.
             var v = CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
-                Assert.Equal(new[]
-                {
+                Assert.Equal([
                     "<>1__state",
                     "<>2__current",
                     "<>l__initialThreadId",
                     "<>4__this",
                     "<i>5__1"
-                }, module.GetFieldNames("C.<M>d__0"));
+                ], module.GetFieldNames("C.<M>d__0"));
             });
 
             v.VerifyPdb("C+<M>d__0.MoveNext", @"

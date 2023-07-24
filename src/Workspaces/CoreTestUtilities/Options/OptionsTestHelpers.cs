@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         public static IEnumerable<string?> GetApplicableLanguages(IOption option)
-            => option.IsPerLanguage ? new[] { LanguageNames.CSharp, LanguageNames.VisualBasic } : new string?[] { null };
+            => option.IsPerLanguage ? [LanguageNames.CSharp, LanguageNames.VisualBasic] : [null];
 
         public static object? GetDifferentValue(Type type, object? value)
             => value switch

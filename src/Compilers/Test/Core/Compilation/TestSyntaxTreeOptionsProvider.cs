@@ -47,7 +47,7 @@ namespace Roslyn.Utilities
 
         public TestSyntaxTreeOptionsProvider(
             SyntaxTree tree, params (string, ReportDiagnostic)[] options)
-            : this(globalOption: default, new[] { (tree, options) })
+            : this(globalOption: default, [(tree, options)])
         { }
 
         public TestSyntaxTreeOptionsProvider(

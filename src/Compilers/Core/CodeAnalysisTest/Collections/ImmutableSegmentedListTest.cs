@@ -585,7 +585,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             list = ImmutableSegmentedList.Create("a", "b");
             Assert.Equal(2, list.Count);
 
-            list = ImmutableSegmentedList.CreateRange((IEnumerable<string>)new[] { "a", "b" });
+            list = ImmutableSegmentedList.CreateRange((IEnumerable<string>)["a", "b"]);
             Assert.Equal(2, list.Count);
         }
 
@@ -803,7 +803,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             var list = Assert.IsAssignableFrom<IEnumerable>(createMethod.Invoke(null, null));
 
             var addMethod = list.GetType().GetMethod("Add");
-            list = Assert.IsAssignableFrom<IEnumerable>(addMethod!.Invoke(list, new object?[] { Activator.CreateInstance(dummType.AsType()) }));
+            list = Assert.IsAssignableFrom<IEnumerable>(addMethod!.Invoke(list, [Activator.CreateInstance(dummType.AsType())]));
 
             list.GetEnumerator(); // ensure this doesn't throw
         }

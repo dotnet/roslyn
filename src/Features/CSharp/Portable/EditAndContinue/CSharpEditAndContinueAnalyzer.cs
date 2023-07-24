@@ -2147,7 +2147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 var node = displayNode ?? _newNode ?? _oldNode;
                 var displayName = GetDisplayName(node!, _kind);
 
-                _diagnostics.Add(new RudeEditDiagnostic(kind, span, node, arguments: new[] { displayName }));
+                _diagnostics.Add(new RudeEditDiagnostic(kind, span, node, arguments: [displayName]));
             }
 
             private TextSpan GetSpan()
@@ -2337,7 +2337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                             RudeEditKind.StackAllocUpdate,
                             GetDiagnosticSpan(node, EditKind.Update),
                             newDeclaration,
-                            arguments: new[] { GetDisplayName(newDeclaration, EditKind.Update) }));
+                            arguments: [GetDisplayName(newDeclaration, EditKind.Update)]));
 
                         return;
                     }
@@ -2398,7 +2398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     rudeEditKind,
                     GetDiagnosticSpan(newNode, EditKind.Insert),
                     newNode,
-                    arguments: new[] { GetDisplayName(newNode, EditKind.Insert) }));
+                    arguments: [GetDisplayName(newNode, EditKind.Insert)]));
             }
         }
 
@@ -2581,7 +2581,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     RudeEditKind.ChangingFromAsynchronousToSynchronous,
                     GetDiagnosticSpan(newForEachStatement, EditKind.Update),
                     newForEachStatement,
-                    new[] { GetDisplayName(newForEachStatement, EditKind.Update) }));
+                    [GetDisplayName(newForEachStatement, EditKind.Update)]));
 
                 return;
             }
@@ -2595,7 +2595,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         RudeEditKind.ChangingFromAsynchronousToSynchronous,
                         GetDiagnosticSpan(newLocalDeclaration, EditKind.Update),
                         newLocalDeclaration,
-                        new[] { GetDisplayName(newLocalDeclaration, EditKind.Update) }));
+                        [GetDisplayName(newLocalDeclaration, EditKind.Update)]));
 
                 return;
             }
@@ -2615,7 +2615,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     RudeEditKind.Insert,
                     insertedForEachStatement.AwaitKeyword.Span,
                     insertedForEachStatement,
-                    new[] { insertedForEachStatement.AwaitKeyword.ToString() }));
+                    [insertedForEachStatement.AwaitKeyword.ToString()]));
 
                 return;
             }
@@ -2631,7 +2631,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     RudeEditKind.Insert,
                     newLocalDeclaration.AwaitKeyword.Span,
                     newLocalDeclaration,
-                    new[] { newLocalDeclaration.AwaitKeyword.ToString() }));
+                    [newLocalDeclaration.AwaitKeyword.ToString()]));
 
                 return;
             }
@@ -2795,7 +2795,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     RudeEditKind.UpdateAroundActiveStatement,
                     GetDiagnosticSpan(newSwitch, EditKind.Update),
                     newSwitch,
-                    new[] { CSharpFeaturesResources.switch_statement_case_clause }));
+                    [CSharpFeaturesResources.switch_statement_case_clause]));
             }
         }
 

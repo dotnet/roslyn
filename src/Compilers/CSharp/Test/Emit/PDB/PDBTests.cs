@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             PdbValidationOptions.ExcludeScopes |
             PdbValidationOptions.ExcludeNamespaces;
 
-        private static readonly MetadataReference[] s_valueTupleRefs = new[] { SystemRuntimeFacadeRef, ValueTupleRef };
+        private static readonly MetadataReference[] s_valueTupleRefs = [SystemRuntimeFacadeRef, ValueTupleRef];
 
         #region General
 

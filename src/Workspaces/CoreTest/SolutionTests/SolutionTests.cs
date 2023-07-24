@@ -3194,11 +3194,10 @@ End Class";
         [Fact]
         public void TestWorkspaceLanguageServiceOverride()
         {
-            var hostServices = FeaturesTestCompositions.Features.AddParts(new[]
-            {
+            var hostServices = FeaturesTestCompositions.Features.AddParts([
                 typeof(TestLanguageServiceA),
                 typeof(TestLanguageServiceB),
-            }).GetHostServices();
+            ]).GetHostServices();
 
             var ws = new AdhocWorkspace(hostServices, ServiceLayer.Host);
             var service = ws.Services.GetLanguageServices(LanguageNames.CSharp).GetService<ITestLanguageService>();
@@ -4121,7 +4120,7 @@ class C
         [Fact]
         public void NoCompilationProjectsHaveNullSyntaxTreesAndSemanticModels()
         {
-            using var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageService) });
+            using var workspace = CreateWorkspace([typeof(NoCompilationLanguageService)]);
             var solution = workspace.CurrentSolution;
             var projectId = ProjectId.CreateNewId();
             var documentId = DocumentId.CreateNewId(projectId);
@@ -4142,7 +4141,7 @@ class C
         [Fact]
         public void ChangingFilePathOfFileInNoCompilationProjectWorks()
         {
-            using var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageService) });
+            using var workspace = CreateWorkspace([typeof(NoCompilationLanguageService)]);
             var solution = workspace.CurrentSolution;
             var projectId = ProjectId.CreateNewId();
             var documentId = DocumentId.CreateNewId(projectId);

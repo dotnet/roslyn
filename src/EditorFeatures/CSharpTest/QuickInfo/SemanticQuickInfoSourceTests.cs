@@ -4938,7 +4938,7 @@ class C
 }";
             var description = $"({CSharpFeaturesResources.awaitable}) Task C.Goo()";
 
-            await VerifyWithMscorlib45Async(markup, new[] { MainDescription(description) });
+            await VerifyWithMscorlib45Async(markup, [MainDescription(description)]);
         }
 
         [Fact]
@@ -5459,7 +5459,7 @@ class C
     </Project>
 </Workspace>";
 
-            await VerifyWithReferenceWorkerAsync(markup, new[] { MainDescription($"({FeaturesResources.field}) int C.x"), Usage("") });
+            await VerifyWithReferenceWorkerAsync(markup, [MainDescription($"({FeaturesResources.field}) int C.x"), Usage("")]);
         }
 
         [Fact]
@@ -5487,7 +5487,7 @@ class C
 </Workspace>";
             var expectedDescription = Usage($"\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}", expectsWarningGlyph: true);
 
-            await VerifyWithReferenceWorkerAsync(markup, new[] { expectedDescription });
+            await VerifyWithReferenceWorkerAsync(markup, [expectedDescription]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37097")]
@@ -5515,7 +5515,7 @@ class C
 </Workspace>";
             var expectedDescription = Usage($"\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Not_Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}", expectsWarningGlyph: true);
 
-            await VerifyWithReferenceWorkerAsync(markup, new[] { expectedDescription });
+            await VerifyWithReferenceWorkerAsync(markup, [expectedDescription]);
         }
 
         [Fact]
@@ -5548,7 +5548,7 @@ class C
                 $"\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}",
                 expectsWarningGlyph: true);
 
-            await VerifyWithReferenceWorkerAsync(markup, new[] { expectedDescription });
+            await VerifyWithReferenceWorkerAsync(markup, [expectedDescription]);
         }
 
         [Fact]
@@ -5581,7 +5581,7 @@ class C
     </Project>
 </Workspace>";
             var expectedDescription = Usage($"\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}", expectsWarningGlyph: true);
-            await VerifyWithReferenceWorkerAsync(markup, new[] { expectedDescription });
+            await VerifyWithReferenceWorkerAsync(markup, [expectedDescription]);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/962353")]
@@ -5632,7 +5632,7 @@ class C
     </Project>
 </Workspace>";
 
-            await VerifyWithReferenceWorkerAsync(markup, new[] { MainDescription($"({FeaturesResources.local_variable}) int x"), Usage("") });
+            await VerifyWithReferenceWorkerAsync(markup, [MainDescription($"({FeaturesResources.local_variable}) int x"), Usage("")]);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020944")]
@@ -5660,7 +5660,7 @@ class C
     </Project>
 </Workspace>";
 
-            await VerifyWithReferenceWorkerAsync(markup, new[] { MainDescription($"({FeaturesResources.local_variable}) int x"), Usage($"\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}", expectsWarningGlyph: true) });
+            await VerifyWithReferenceWorkerAsync(markup, [MainDescription($"({FeaturesResources.local_variable}) int x"), Usage($"\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}", expectsWarningGlyph: true)]);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020944")]
@@ -5684,7 +5684,7 @@ class C
     </Project>
 </Workspace>";
 
-            await VerifyWithReferenceWorkerAsync(markup, new[] { MainDescription($"({FeaturesResources.label}) LABEL"), Usage("") });
+            await VerifyWithReferenceWorkerAsync(markup, [MainDescription($"({FeaturesResources.label}) LABEL"), Usage("")]);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020944")]
@@ -5709,7 +5709,7 @@ class C
     </Project>
 </Workspace>";
 
-            await VerifyWithReferenceWorkerAsync(markup, new[] { MainDescription($"({FeaturesResources.range_variable}) int y"), Usage("") });
+            await VerifyWithReferenceWorkerAsync(markup, [MainDescription($"({FeaturesResources.range_variable}) int y"), Usage("")]);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1019766")]

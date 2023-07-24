@@ -5068,7 +5068,7 @@ public record struct RecordB();
 ";
             var comp = CreateCompilation(src);
             var b = comp.GlobalNamespace.GetTypeMember("RecordB");
-            AssertEx.SetEqual(new[] { "System.Boolean RecordB.op_Equality(RecordB left, RecordB right)" },
+            AssertEx.SetEqual(["System.Boolean RecordB.op_Equality(RecordB left, RecordB right)"],
                 b.GetSimpleNonTypeMembers("op_Equality").ToTestDisplayStrings());
         }
 

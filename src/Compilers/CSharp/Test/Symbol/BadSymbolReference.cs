@@ -273,7 +273,7 @@ interface I1<T>
 {}
 ";
 
-            DiagnosticDescription[] errors = {
+            DiagnosticDescription[] errors = [
                 // (140,11): error CS0012: The type 'CL2_I1' is defined in an assembly that is not referenced. You must add a reference to assembly 'CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //     class C5 : CL3_I1, I1<CL3_I1>
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "C5").WithArguments("CL2_I1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(140, 11),
@@ -355,7 +355,7 @@ interface I1<T>
                 // (5,20): warning CS0649: Field 'Module1.f1' is never assigned to, and will always have its default value null
                 //     private CL3_C1 f1;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "f1").WithArguments("Module1.f1", "null").WithLocation(5, 20)
-                                             };
+                                             ];
 
             var compilation2 = CreateCompilation(a_cs, new MetadataReference[] { cl3 });
 
@@ -469,7 +469,7 @@ public interface CL3_I1 : CL2_I1
 
             var compilation4 = CreateCompilation(a_cs, new MetadataReference[] { new CSharpCompilationReference(cl3BadCompilation1) });
 
-            DiagnosticDescription[] errors2 = {
+            DiagnosticDescription[] errors2 = [
                 // (140,11): error CS0246: The type or namespace name 'CL2_I1' could not be found (are you missing a using directive or an assembly reference?)
                 //     class C5 : CL3_I1, I1<CL3_I1>
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C5").WithArguments("CL2_I1").WithLocation(140, 11),
@@ -554,13 +554,13 @@ public interface CL3_I1 : CL2_I1
                 // (5,20): warning CS0649: Field 'Module1.f1' is never assigned to, and will always have its default value null
                 //     private CL3_C1 f1;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "f1").WithArguments("Module1.f1", "null").WithLocation(5, 20)
-                                              };
+                                              ];
 
             compilation4.VerifyDiagnostics(errors2);
 
             var cl3BadCompilation2 = CreateCompilation(cl3Source);
 
-            DiagnosticDescription[] errors3 = {
+            DiagnosticDescription[] errors3 = [
                 // (2,23): error CS0246: The type or namespace name 'CL2_C1' could not be found (are you missing a using directive or an assembly reference?)
                 // public class CL3_C1 : CL2_C1
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CL2_C1").WithArguments("CL2_C1"),
@@ -594,13 +594,13 @@ public interface CL3_I1 : CL2_I1
                 // (92,27): error CS0246: The type or namespace name 'CL2_I1' could not be found (are you missing a using directive or an assembly reference?)
                 // public interface CL3_I1 : CL2_I1
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CL2_I1").WithArguments("CL2_I1")
-                                              };
+                                              ];
 
             cl3BadCompilation2.VerifyDiagnostics(errors3);
 
             var compilation5 = CreateCompilation(a_cs, new MetadataReference[] { new CSharpCompilationReference(cl3BadCompilation2) });
 
-            DiagnosticDescription[] errors5 = {
+            DiagnosticDescription[] errors5 = [
                 // (133,16): error CS0509: 'Module1.C4': cannot derive from sealed type 'CL3_S1'
                 //     class C4 : CL3_S1
                 Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "CL3_S1").WithArguments("Module1.C4", "CL3_S1").WithLocation(133, 16),
@@ -640,7 +640,7 @@ public interface CL3_I1 : CL2_I1
                 // (5,20): warning CS0649: Field 'Module1.f1' is never assigned to, and will always have its default value null
                 //     private CL3_C1 f1;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "f1").WithArguments("Module1.f1", "null").WithLocation(5, 20)
-            };
+            ];
 
             compilation5.VerifyDiagnostics(errors5);
 
@@ -648,7 +648,7 @@ public interface CL3_I1 : CL2_I1
 
             var compilation6 = CreateCompilation(cl4Source);
 
-            DiagnosticDescription[] errors6 = {
+            DiagnosticDescription[] errors6 = [
                 // (232,23): error CS0246: The type or namespace name 'CL2_C1' could not be found (are you missing a using directive or an assembly reference?)
                 // public class CL3_C1 : CL2_C1
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CL2_C1").WithArguments("CL2_C1").WithLocation(232, 23),
@@ -721,7 +721,7 @@ public interface CL3_I1 : CL2_I1
                 // (5,20): warning CS0649: Field 'Module1.f1' is never assigned to, and will always have its default value null
                 //     private CL3_C1 f1;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "f1").WithArguments("Module1.f1", "null").WithLocation(5, 20)
-            };
+            ];
             compilation6.VerifyDiagnostics(errors6);
 
             compilation1.VerifyDiagnostics(
@@ -935,7 +935,7 @@ namespace ErrorTest
             var lib4 = CreateCompilation(lib4Def, new[] { lib1Ref, lib3Ref }, TestOptions.ReleaseDll);
 
             DiagnosticDescription[] expectedErrors =
-            {
+            [
                 // (52,18): error CS0311: The type 'ErrorTest.I5' cannot be used as type parameter 'T' in the generic type or method 'ErrorTest.C10<T>'. There is no implicit reference conversion from 'ErrorTest.I5' to 'ErrorTest.I1<ErrorTest.I2>'.
                 //     public class C12
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "C12").WithArguments("ErrorTest.C10<T>", "ErrorTest.I1<ErrorTest.I2>", "T", "ErrorTest.I5"),
@@ -999,7 +999,7 @@ namespace ErrorTest
                 // (8,24): error CS0266: Cannot implicitly convert type 'ErrorTest.C4' to 'ErrorTest.I1<ErrorTest.I2>'. An explicit conversion exists (are you missing a cast?)
                 //             I1<I2> x = y;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "y").WithArguments("ErrorTest.C4", "ErrorTest.I1<ErrorTest.I2>")
-            };
+            ];
 
             lib4.VerifyDiagnostics(expectedErrors);
 
@@ -1377,7 +1377,7 @@ namespace ErrorTest
             var lib4 = CreateCompilation(lib4Def, new[] { lib1Ref, lib3Ref }, TestOptions.ReleaseDll);
 
             DiagnosticDescription[] expectedErrors =
-            {
+            [
                 // (12,23): error CS0012: The type 'ErrorTest.C2' is defined in an assembly that is not referenced. You must add a reference to assembly 'MissingBaseClass2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //     public class C5 : C4
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "C4").WithArguments("ErrorTest.C2", "MissingBaseClass2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
@@ -1417,7 +1417,7 @@ namespace ErrorTest
                 // (28,16): error CS1061: 'T' does not contain a definition for 'M1' and no extension method 'M1' accepting a first argument of type 'T' could be found (are you missing a using directive or an assembly reference?)
                 //             y3.M1();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M1").WithArguments("T", "M1")
-            };
+            ];
 
             lib4.VerifyDiagnostics(expectedErrors);
 

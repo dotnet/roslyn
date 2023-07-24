@@ -86,8 +86,8 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeSt
                 ServicesVSResources.Require_accessibility_modifiers,
                 options,
                 updater,
-                enumValues: new[] { AccessibilityModifiersRequired.Always, AccessibilityModifiersRequired.ForNonInterfaceMembers, AccessibilityModifiersRequired.Never, AccessibilityModifiersRequired.OmitIfDefault },
-                valueDescriptions: new[] { ServicesVSResources.Always, ServicesVSResources.For_non_interface_members, ServicesVSResources.Never, ServicesVSResources.Omit_if_default });
+                enumValues: [AccessibilityModifiersRequired.Always, AccessibilityModifiersRequired.ForNonInterfaceMembers, AccessibilityModifiersRequired.Never, AccessibilityModifiersRequired.OmitIfDefault],
+                valueDescriptions: [ServicesVSResources.Always, ServicesVSResources.For_non_interface_members, ServicesVSResources.Never, ServicesVSResources.Omit_if_default]);
 
             yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferReadonly, ServicesVSResources.Prefer_readonly_fields, options, updater);
         }

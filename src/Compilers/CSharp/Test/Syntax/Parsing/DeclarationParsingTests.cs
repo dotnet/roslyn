@@ -8881,21 +8881,19 @@ b { }";
 
             CreateCompilation(test, parseOptions: useCSharp8 ? TestOptions.Regular8 : TestOptions.Regular9).VerifyDiagnostics(
                 useCSharp8
-                    ? new[]
-                    {
+                    ? [
                         // (1,22): error CS8400: Feature 'default type parameter constraints' is not available in C# 8.0. Please use language version 9.0 or greater.
                         // class C<T> where T : default { }
                         Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "default").WithArguments("default type parameter constraints", "9.0").WithLocation(1, 22),
                         // (1,22): error CS8823: The 'default' constraint is valid on override and explicit interface implementation methods only.
                         // class C<T> where T : default { }
                         Diagnostic(ErrorCode.ERR_DefaultConstraintOverrideOnly, "default").WithLocation(1, 22)
-                    }
-                    : new[]
-                    {
+                    ]
+                    : [
                         // (1,22): error CS8823: The 'default' constraint is valid on override and explicit interface implementation methods only.
                         // class C<T> where T : default { }
                         Diagnostic(ErrorCode.ERR_DefaultConstraintOverrideOnly, "default").WithLocation(1, 22)
-                    });
+                    ]);
 
             UsingNode(
                 test,
@@ -9010,7 +9008,7 @@ b { }";
 
             CreateCompilation(test, parseOptions: useCSharp8 ? TestOptions.Regular8 : TestOptions.Regular9).VerifyDiagnostics(
                 useCSharp8
-                ? new[] {
+                ? [
                     // (2,23): error CS8400: Feature 'default type parameter constraints' is not available in C# 8.0. Please use language version 9.0 or greater.
                     //     where T : struct, default
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "default").WithArguments("default type parameter constraints", "9.0").WithLocation(2, 23),
@@ -9028,8 +9026,8 @@ b { }";
                     Diagnostic(ErrorCode.ERR_DefaultConstraintOverrideOnly, "default").WithLocation(3, 15),
                     // (3,24): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
                     //     where U : default, class { }
-                    Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "class").WithLocation(3, 24) }
-                : new[] {
+                    Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "class").WithLocation(3, 24) ]
+                : [
                     // (2,23): error CS8823: The 'default' constraint is valid on override and explicit interface implementation methods only.
                     //     where T : struct, default
                     Diagnostic(ErrorCode.ERR_DefaultConstraintOverrideOnly, "default").WithLocation(2, 23),
@@ -9041,7 +9039,7 @@ b { }";
                     Diagnostic(ErrorCode.ERR_DefaultConstraintOverrideOnly, "default").WithLocation(3, 15),
                     // (3,24): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
                     //     where U : default, class { }
-                    Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "class").WithLocation(3, 24) });
+                    Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "class").WithLocation(3, 24) ]);
 
             UsingNode(test,
                 useCSharp8 ? TestOptions.Regular8 : TestOptions.Regular9);

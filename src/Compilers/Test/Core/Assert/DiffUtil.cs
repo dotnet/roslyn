@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return string.Join(separator, lcs.CalculateDiff(expectedList, actualList, toString));
         }
 
-        private static readonly char[] s_lineSplitChars = new[] { '\r', '\n' };
+        private static readonly char[] s_lineSplitChars = ['\r', '\n'];
 
         public static string[] Lines(string s)
         {

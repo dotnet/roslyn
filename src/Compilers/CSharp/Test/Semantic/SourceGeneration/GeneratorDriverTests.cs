@@ -1216,28 +1216,28 @@ class C { }
 
             // reported diagnostics can have a location in source
             verifyDiagnosticsWithSource("//comment",
-                new[] { (gen001, TextSpan.FromBounds(2, 5)) },
+                [(gen001, TextSpan.FromBounds(2, 5))],
                 Diagnostic("GEN001", "com").WithLocation(1, 3));
 
             // diagnostics are suppressed via #pragma
             verifyDiagnosticsWithSource(
 @"#pragma warning disable
 //comment",
-                new[] { (gen001, TextSpan.FromBounds(27, 30)) },
+                [(gen001, TextSpan.FromBounds(27, 30))],
                 Diagnostic("GEN001", "com", isSuppressed: true).WithLocation(2, 3));
 
             // but not when they don't have a source location
             verifyDiagnosticsWithSource(
 @"#pragma warning disable
 //comment",
-                new[] { (gen001, new TextSpan(0, 0)) },
+                [(gen001, new TextSpan(0, 0))],
                 Diagnostic("GEN001").WithLocation(1, 1));
 
             // can be suppressed explicitly
             verifyDiagnosticsWithSource(
 @"#pragma warning disable GEN001
 //comment",
-                new[] { (gen001, TextSpan.FromBounds(34, 37)) },
+                [(gen001, TextSpan.FromBounds(34, 37))],
                 Diagnostic("GEN001", "com", isSuppressed: true).WithLocation(2, 3));
 
             // suppress + restore
@@ -1246,7 +1246,7 @@ class C { }
 //comment
 #pragma warning restore GEN001
 //another",
-                new[] { (gen001, TextSpan.FromBounds(34, 37)), (gen001, TextSpan.FromBounds(77, 80)) },
+                [(gen001, TextSpan.FromBounds(34, 37)), (gen001, TextSpan.FromBounds(77, 80))],
                 Diagnostic("GEN001", "com", isSuppressed: true).WithLocation(2, 3),
                 Diagnostic("GEN001", "ano").WithLocation(4, 3));
 
@@ -2196,20 +2196,18 @@ class C { }
             Compilation compilation = CreateCompilation(source, options: TestOptions.DebugExeThrowing, parseOptions: parseOptions);
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
-            verify(ref driver, compilation, new[]
-            {
+            verify(ref driver, compilation, [
                 "// WriteLine",
                 "// ReadLine"
-            });
+            ]);
 
             replace(ref compilation, parseOptions, """
                 System.Console.WriteLine();
                 """);
 
-            verify(ref driver, compilation, new[]
-            {
+            verify(ref driver, compilation, [
                 "// WriteLine"
-            });
+            ]);
 
             replace(ref compilation, parseOptions, "_ = 0;");
             verify(ref driver, compilation, Array.Empty<string>());
@@ -2305,13 +2303,12 @@ class C { }
             Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugExeThrowing, parseOptions: parseOptions);
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
-            verify(ref driver, compilation, new[]
-            {
+            verify(ref driver, compilation, [
                 "// WriteLine",
                 "// ReadLine",
                 "// Clear",
                 "// Beep"
-            });
+            ]);
 
             // edit part of source 1
             replace(ref compilation, parseOptions, """
@@ -2319,13 +2316,12 @@ class C { }
                 System.Console.Write(' ');
                 """);
 
-            verify(ref driver, compilation, new[]
-            {
+            verify(ref driver, compilation, [
                 "// WriteLine",
                 "// Write",
                 "// Clear",
                 "// Beep"
-            });
+            ]);
 
             Assert.Equal(new (object, IncrementalStepRunReason)[]
             {
@@ -2341,12 +2337,11 @@ class C { }
                 System.Console.WriteLine();
                 """);
 
-            verify(ref driver, compilation, new[]
-            {
+            verify(ref driver, compilation, [
                 "// WriteLine",
                 "// Clear",
                 "// Beep"
-            });
+            ]);
 
             Assert.Equal(new (object, IncrementalStepRunReason)[]
             {

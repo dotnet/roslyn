@@ -645,7 +645,7 @@ class C
             var emitContext = new EmitContext(peAssemblyBuilder, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
 
             var fields = displayClass.GetFields(emitContext).ToArray();
-            AssertEx.SetEqual(fields.Select(f => f.Name), new[] { "x1", "x2" });
+            AssertEx.SetEqual(fields.Select(f => f.Name), ["x1", "x2"]);
             var x1 = fields.Where(f => f.Name == "x1").Single();
             var x2 = fields.Where(f => f.Name == "x2").Single();
 
@@ -1344,7 +1344,7 @@ class C
             var emitContext = new EmitContext(peAssemblyBuilder, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
 
             var fields = displayClass.GetFields(emitContext).ToArray();
-            AssertEx.SetEqual(fields.Select(f => f.Name), new[] { "x", "y1", "y2" });
+            AssertEx.SetEqual(fields.Select(f => f.Name), ["x", "y1", "y2"]);
             var y1 = fields.Where(f => f.Name == "y1").Single();
             var y2 = fields.Where(f => f.Name == "y2").Single();
 

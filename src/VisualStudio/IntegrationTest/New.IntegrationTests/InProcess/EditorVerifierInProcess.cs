@@ -207,11 +207,10 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                 {
                     // wait for action to complete
                     await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                        new[]
-                        {
+                        [
                             FeatureAttribute.Workspace,
                             FeatureAttribute.LightBulb,
-                        },
+                        ],
                         cancellationToken);
 
                     if (codeActionLogger.Messages.Any())
@@ -250,7 +249,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             (string errorType, TextSpan textSpan, string taggedText, string tooltipText)[] expectedTags, CancellationToken cancellationToken)
         {
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles },
+                [FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles],
                 cancellationToken);
 
             var actualTags = await TestServices.Editor.GetErrorTagsAsync(cancellationToken);
@@ -297,7 +296,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
         public async Task CurrentTokenTypeAsync(string tokenType, CancellationToken cancellationToken)
         {
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[] { FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.Classification },
+                [FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.Classification],
                 cancellationToken);
 
             var actualTokenTypes = await TestServices.Editor.GetCurrentClassificationsAsync(cancellationToken);

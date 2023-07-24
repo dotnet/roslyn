@@ -201,8 +201,7 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
 
             var registrationParams = new RegistrationParams()
             {
-                Registrations = new Registration[]
-                {
+                Registrations = [
                     new Registration
                     {
                         Id = _id,
@@ -212,7 +211,7 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
                             Watchers = fileSystemWatchers
                         }
                     }
-                }
+                ]
             };
 
             var asyncToken = _changeWatcher._asynchronousOperationListener.BeginAsyncOperation(nameof(LspFileWatchRegistration));
@@ -232,14 +231,13 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
             {
                 var unregistrationParams = new UnregistrationParamsWithMisspelling()
                 {
-                    Unregistrations = new Unregistration[]
-                    {
+                    Unregistrations = [
                         new Unregistration()
                         {
                             Id = _id,
                             Method = "workspace/didChangeWatchedFiles"
                         }
-                    }
+                    ]
                 };
 
                 await _changeWatcher._clientLanguageServerManager.SendRequestAsync("client/unregisterCapability", unregistrationParams, CancellationToken.None);

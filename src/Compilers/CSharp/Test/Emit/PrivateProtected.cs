@@ -597,11 +597,10 @@ class Program
             var verifier = CompileAndVerify(
                 text,
                 parseOptions: TestOptions.Regular7_2,
-                expectedSignatures: new[]
-                {
+                expectedSignatures: [
                     Signature("Program", "M", ".method famandassem hidebysig instance System.Void M() cil managed"),
                     Signature("Program", "F", ".field famandassem instance System.Int32 F"),
-                });
+                ]);
         }
 
         [ConditionalFact(typeof(DesktopOnly))]

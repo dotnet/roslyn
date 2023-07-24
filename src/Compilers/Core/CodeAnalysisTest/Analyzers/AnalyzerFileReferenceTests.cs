@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var compiler = new AnalyzerLoaderMockCSharpCompiler(
                 CSharpCommandLineParser.Default,
                 responseFile: null,
-                args: new[] { "/nologo", $@"/analyzer:""{_testFixture.AnalyzerWithLaterFakeCompilerDependency}""", "/nostdlib", $@"/r:""{corlib}""", "/out:something.dll", source.Path },
+                args: ["/nologo", $@"/analyzer:""{_testFixture.AnalyzerWithLaterFakeCompilerDependency}""", "/nostdlib", $@"/r:""{corlib}""", "/out:something.dll", source.Path],
                 new BuildPaths(clientDir: directory.Path, workingDir: directory.Path, sdkDir: null, tempDir: null),
                 additionalReferenceDirectories: null,
                 new DefaultAnalyzerAssemblyLoader());
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var compiler = new AnalyzerLoaderMockCSharpCompiler(
                 CSharpCommandLineParser.Default,
                 responseFile: null,
-                args: new[] { "/nologo", $@"/analyzer:""{_testFixture.AnalyzerWithFakeCompilerDependency}""", $@"/analyzer:""{_testFixture.AnalyzerWithFakeCompilerDependency}""", "/nostdlib", $@"/r:""{corlib}""", "/out:something.dll", source.Path },
+                args: ["/nologo", $@"/analyzer:""{_testFixture.AnalyzerWithFakeCompilerDependency}""", $@"/analyzer:""{_testFixture.AnalyzerWithFakeCompilerDependency}""", "/nostdlib", $@"/r:""{corlib}""", "/out:something.dll", source.Path],
                 new BuildPaths(clientDir: directory.Path, workingDir: directory.Path, sdkDir: null, tempDir: null),
                 additionalReferenceDirectories: null,
                 new DefaultAnalyzerAssemblyLoader());
@@ -592,7 +592,7 @@ public class Generator : ISourceGenerator
         //       Ensure you do not re-arrange them alphabetically, as that will invalidate the tests, without 
         //       explicitly failing them
 
-        [DiagnosticAnalyzer(LanguageNames.CSharp, new string[] { LanguageNames.VisualBasic })]
+        [DiagnosticAnalyzer(LanguageNames.CSharp, [LanguageNames.VisualBasic])]
         public class TestAnalyzer : DiagnosticAnalyzer
         {
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { throw new NotImplementedException(); } }
@@ -606,7 +606,7 @@ public class Generator : ISourceGenerator
             public override void Initialize(AnalysisContext context) { throw new NotImplementedException(); }
         }
 
-        [DiagnosticAnalyzer(LanguageNames.VisualBasic, new string[] { })]
+        [DiagnosticAnalyzer(LanguageNames.VisualBasic, [])]
         public class TestAnalyzerVB : DiagnosticAnalyzer
         {
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { throw new NotImplementedException(); } }

@@ -53,8 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var allOperators = new ImmutableArray<UnaryOperatorSignature>[]
                 {
-                    GetSignaturesFromUnaryOperatorKinds(new []
-                    {
+                    GetSignaturesFromUnaryOperatorKinds([
                         (int)UnaryOperatorKind.SBytePostfixIncrement,
                         (int)UnaryOperatorKind.BytePostfixIncrement,
                         (int)UnaryOperatorKind.ShortPostfixIncrement,
@@ -83,9 +82,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)UnaryOperatorKind.LiftedFloatPostfixIncrement,
                         (int)UnaryOperatorKind.LiftedDoublePostfixIncrement,
                         (int)UnaryOperatorKind.LiftedDecimalPostfixIncrement,
-                    }),
-                    GetSignaturesFromUnaryOperatorKinds(new []
-                    {
+                    ]),
+                    GetSignaturesFromUnaryOperatorKinds([
                         (int)UnaryOperatorKind.SBytePostfixDecrement,
                         (int)UnaryOperatorKind.BytePostfixDecrement,
                         (int)UnaryOperatorKind.ShortPostfixDecrement,
@@ -114,9 +112,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)UnaryOperatorKind.LiftedFloatPostfixDecrement,
                         (int)UnaryOperatorKind.LiftedDoublePostfixDecrement,
                         (int)UnaryOperatorKind.LiftedDecimalPostfixDecrement,
-                    }),
-                    GetSignaturesFromUnaryOperatorKinds(new []
-                    {
+                    ]),
+                    GetSignaturesFromUnaryOperatorKinds([
                         (int)UnaryOperatorKind.SBytePrefixIncrement,
                         (int)UnaryOperatorKind.BytePrefixIncrement,
                         (int)UnaryOperatorKind.ShortPrefixIncrement,
@@ -145,9 +142,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)UnaryOperatorKind.LiftedFloatPrefixIncrement,
                         (int)UnaryOperatorKind.LiftedDoublePrefixIncrement,
                         (int)UnaryOperatorKind.LiftedDecimalPrefixIncrement,
-                    }),
-                    GetSignaturesFromUnaryOperatorKinds(new []
-                    {
+                    ]),
+                    GetSignaturesFromUnaryOperatorKinds([
                         (int)UnaryOperatorKind.SBytePrefixDecrement,
                         (int)UnaryOperatorKind.BytePrefixDecrement,
                         (int)UnaryOperatorKind.ShortPrefixDecrement,
@@ -176,9 +172,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)UnaryOperatorKind.LiftedFloatPrefixDecrement,
                         (int)UnaryOperatorKind.LiftedDoublePrefixDecrement,
                         (int)UnaryOperatorKind.LiftedDecimalPrefixDecrement,
-                    }),
-                    GetSignaturesFromUnaryOperatorKinds(new []
-                    {
+                    ]),
+                    GetSignaturesFromUnaryOperatorKinds([
                         (int)UnaryOperatorKind.IntUnaryPlus,
                         (int)UnaryOperatorKind.UIntUnaryPlus,
                         (int)UnaryOperatorKind.LongUnaryPlus,
@@ -197,9 +192,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)UnaryOperatorKind.LiftedFloatUnaryPlus,
                         (int)UnaryOperatorKind.LiftedDoubleUnaryPlus,
                         (int)UnaryOperatorKind.LiftedDecimalUnaryPlus,
-                    }),
-                    GetSignaturesFromUnaryOperatorKinds(new []
-                    {
+                    ]),
+                    GetSignaturesFromUnaryOperatorKinds([
                         (int)UnaryOperatorKind.IntUnaryMinus,
                         (int)UnaryOperatorKind.LongUnaryMinus,
                         (int)UnaryOperatorKind.NIntUnaryMinus,
@@ -212,14 +206,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)UnaryOperatorKind.LiftedFloatUnaryMinus,
                         (int)UnaryOperatorKind.LiftedDoubleUnaryMinus,
                         (int)UnaryOperatorKind.LiftedDecimalUnaryMinus,
-                    }),
-                    GetSignaturesFromUnaryOperatorKinds(new []
-                    {
+                    ]),
+                    GetSignaturesFromUnaryOperatorKinds([
                         (int)UnaryOperatorKind.BoolLogicalNegation,
                         (int)UnaryOperatorKind.LiftedBoolLogicalNegation,
-                    }),
-                    GetSignaturesFromUnaryOperatorKinds(new []
-                    {
+                    ]),
+                    GetSignaturesFromUnaryOperatorKinds([
                         (int)UnaryOperatorKind.IntBitwiseComplement,
                         (int)UnaryOperatorKind.UIntBitwiseComplement,
                         (int)UnaryOperatorKind.LongBitwiseComplement,
@@ -232,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)UnaryOperatorKind.LiftedULongBitwiseComplement,
                         (int)UnaryOperatorKind.LiftedNIntBitwiseComplement,
                         (int)UnaryOperatorKind.LiftedNUIntBitwiseComplement,
-                    }),
+                    ]),
                     // No built-in operator true or operator false
                     ImmutableArray<UnaryOperatorSignature>.Empty,
                     ImmutableArray<UnaryOperatorSignature>.Empty,
@@ -327,8 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var nonLogicalOperators = new ImmutableArray<BinaryOperatorSignature>[]
                 {
-                    GetSignaturesFromBinaryOperatorKinds(new []
-                    {
+                    GetSignaturesFromBinaryOperatorKinds([
                         (int)BinaryOperatorKind.IntMultiplication,
                         (int)BinaryOperatorKind.UIntMultiplication,
                         (int)BinaryOperatorKind.LongMultiplication,
@@ -347,9 +338,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedFloatMultiplication,
                         (int)BinaryOperatorKind.LiftedDoubleMultiplication,
                         (int)BinaryOperatorKind.LiftedDecimalMultiplication,
-                    }),
-                    GetSignaturesFromBinaryOperatorKinds(new []
-                    {
+                    ]),
+                    GetSignaturesFromBinaryOperatorKinds([
                         (int)BinaryOperatorKind.IntAddition,
                         (int)BinaryOperatorKind.UIntAddition,
                         (int)BinaryOperatorKind.LongAddition,
@@ -371,9 +361,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.StringConcatenation,
                         (int)BinaryOperatorKind.StringAndObjectConcatenation,
                         (int)BinaryOperatorKind.ObjectAndStringConcatenation,
-                    }),
-                    GetSignaturesFromBinaryOperatorKinds(new []
-                    {
+                    ]),
+                    GetSignaturesFromBinaryOperatorKinds([
                         (int)BinaryOperatorKind.IntSubtraction,
                         (int)BinaryOperatorKind.UIntSubtraction,
                         (int)BinaryOperatorKind.LongSubtraction,
@@ -392,9 +381,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedFloatSubtraction,
                         (int)BinaryOperatorKind.LiftedDoubleSubtraction,
                         (int)BinaryOperatorKind.LiftedDecimalSubtraction,
-                    }),
-                    GetSignaturesFromBinaryOperatorKinds(new []
-                    {
+                    ]),
+                    GetSignaturesFromBinaryOperatorKinds([
                         (int)BinaryOperatorKind.IntDivision,
                         (int)BinaryOperatorKind.UIntDivision,
                         (int)BinaryOperatorKind.LongDivision,
@@ -413,9 +401,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedFloatDivision,
                         (int)BinaryOperatorKind.LiftedDoubleDivision,
                         (int)BinaryOperatorKind.LiftedDecimalDivision,
-                    }),
-                    GetSignaturesFromBinaryOperatorKinds(new []
-                    {
+                    ]),
+                    GetSignaturesFromBinaryOperatorKinds([
                         (int)BinaryOperatorKind.IntRemainder,
                         (int)BinaryOperatorKind.UIntRemainder,
                         (int)BinaryOperatorKind.LongRemainder,
@@ -434,9 +421,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedFloatRemainder,
                         (int)BinaryOperatorKind.LiftedDoubleRemainder,
                         (int)BinaryOperatorKind.LiftedDecimalRemainder,
-                    }),
-                    GetSignaturesFromBinaryOperatorKinds(new []
-                    {
+                    ]),
+                    GetSignaturesFromBinaryOperatorKinds([
                         (int)BinaryOperatorKind.IntLeftShift,
                         (int)BinaryOperatorKind.UIntLeftShift,
                         (int)BinaryOperatorKind.LongLeftShift,
@@ -449,9 +435,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedULongLeftShift,
                         (int)BinaryOperatorKind.LiftedNIntLeftShift,
                         (int)BinaryOperatorKind.LiftedNUIntLeftShift,
-                    }),
-                    GetSignaturesFromBinaryOperatorKinds(new []
-                    {
+                    ]),
+                    GetSignaturesFromBinaryOperatorKinds([
                         (int)BinaryOperatorKind.IntRightShift,
                         (int)BinaryOperatorKind.UIntRightShift,
                         (int)BinaryOperatorKind.LongRightShift,
@@ -464,9 +449,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedULongRightShift,
                         (int)BinaryOperatorKind.LiftedNIntRightShift,
                         (int)BinaryOperatorKind.LiftedNUIntRightShift,
-                    }),
-                    GetSignaturesFromBinaryOperatorKinds(new []
-                    {
+                    ]),
+                    GetSignaturesFromBinaryOperatorKinds([
                         (int)BinaryOperatorKind.IntEqual,
                         (int)BinaryOperatorKind.UIntEqual,
                         (int)BinaryOperatorKind.LongEqual,
@@ -489,9 +473,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedBoolEqual,
                         (int)BinaryOperatorKind.ObjectEqual,
                         (int)BinaryOperatorKind.StringEqual,
-                    }),
-                    GetSignaturesFromBinaryOperatorKinds(new []
-                    {
+                    ]),
+                    GetSignaturesFromBinaryOperatorKinds([
                         (int)BinaryOperatorKind.IntNotEqual,
                         (int)BinaryOperatorKind.UIntNotEqual,
                         (int)BinaryOperatorKind.LongNotEqual,
@@ -514,9 +497,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedBoolNotEqual,
                         (int)BinaryOperatorKind.ObjectNotEqual,
                         (int)BinaryOperatorKind.StringNotEqual,
-                    }),
-                    GetSignaturesFromBinaryOperatorKinds(new []
-                    {
+                    ]),
+                    GetSignaturesFromBinaryOperatorKinds([
                         (int)BinaryOperatorKind.IntGreaterThan,
                         (int)BinaryOperatorKind.UIntGreaterThan,
                         (int)BinaryOperatorKind.LongGreaterThan,
@@ -535,9 +517,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedFloatGreaterThan,
                         (int)BinaryOperatorKind.LiftedDoubleGreaterThan,
                         (int)BinaryOperatorKind.LiftedDecimalGreaterThan,
-                    }),
-                    GetSignaturesFromBinaryOperatorKinds(new []
-                    {
+                    ]),
+                    GetSignaturesFromBinaryOperatorKinds([
                         (int)BinaryOperatorKind.IntLessThan,
                         (int)BinaryOperatorKind.UIntLessThan,
                         (int)BinaryOperatorKind.LongLessThan,
@@ -556,9 +537,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedFloatLessThan,
                         (int)BinaryOperatorKind.LiftedDoubleLessThan,
                         (int)BinaryOperatorKind.LiftedDecimalLessThan,
-                    }),
-                    GetSignaturesFromBinaryOperatorKinds(new []
-                    {
+                    ]),
+                    GetSignaturesFromBinaryOperatorKinds([
                         (int)BinaryOperatorKind.IntGreaterThanOrEqual,
                         (int)BinaryOperatorKind.UIntGreaterThanOrEqual,
                         (int)BinaryOperatorKind.LongGreaterThanOrEqual,
@@ -577,9 +557,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedFloatGreaterThanOrEqual,
                         (int)BinaryOperatorKind.LiftedDoubleGreaterThanOrEqual,
                         (int)BinaryOperatorKind.LiftedDecimalGreaterThanOrEqual,
-                    }),
-                    GetSignaturesFromBinaryOperatorKinds(new []
-                    {
+                    ]),
+                    GetSignaturesFromBinaryOperatorKinds([
                         (int)BinaryOperatorKind.IntLessThanOrEqual,
                         (int)BinaryOperatorKind.UIntLessThanOrEqual,
                         (int)BinaryOperatorKind.LongLessThanOrEqual,
@@ -598,9 +577,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedFloatLessThanOrEqual,
                         (int)BinaryOperatorKind.LiftedDoubleLessThanOrEqual,
                         (int)BinaryOperatorKind.LiftedDecimalLessThanOrEqual,
-                    }),
-                    GetSignaturesFromBinaryOperatorKinds(new []
-                    {
+                    ]),
+                    GetSignaturesFromBinaryOperatorKinds([
                         (int)BinaryOperatorKind.IntAnd,
                         (int)BinaryOperatorKind.UIntAnd,
                         (int)BinaryOperatorKind.LongAnd,
@@ -615,9 +593,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedNIntAnd,
                         (int)BinaryOperatorKind.LiftedNUIntAnd,
                         (int)BinaryOperatorKind.LiftedBoolAnd,
-                    }),
-                    GetSignaturesFromBinaryOperatorKinds(new []
-                    {
+                    ]),
+                    GetSignaturesFromBinaryOperatorKinds([
                         (int)BinaryOperatorKind.IntXor,
                         (int)BinaryOperatorKind.UIntXor,
                         (int)BinaryOperatorKind.LongXor,
@@ -632,9 +609,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedNIntXor,
                         (int)BinaryOperatorKind.LiftedNUIntXor,
                         (int)BinaryOperatorKind.LiftedBoolXor,
-                    }),
-                    GetSignaturesFromBinaryOperatorKinds(new []
-                    {
+                    ]),
+                    GetSignaturesFromBinaryOperatorKinds([
                         (int)BinaryOperatorKind.IntOr,
                         (int)BinaryOperatorKind.UIntOr,
                         (int)BinaryOperatorKind.LongOr,
@@ -649,9 +625,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedNIntOr,
                         (int)BinaryOperatorKind.LiftedNUIntOr,
                         (int)BinaryOperatorKind.LiftedBoolOr,
-                    }),
-                    GetSignaturesFromBinaryOperatorKinds(new []
-                    {
+                    ]),
+                    GetSignaturesFromBinaryOperatorKinds([
                         (int)BinaryOperatorKind.IntUnsignedRightShift,
                         (int)BinaryOperatorKind.UIntUnsignedRightShift,
                         (int)BinaryOperatorKind.LongUnsignedRightShift,
@@ -664,7 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedULongUnsignedRightShift,
                         (int)BinaryOperatorKind.LiftedNIntUnsignedRightShift,
                         (int)BinaryOperatorKind.LiftedNUIntUnsignedRightShift,
-                    }),
+                    ]),
                 };
 
                 var allOperators = new[] { nonLogicalOperators, logicalOperators };

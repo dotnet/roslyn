@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
     /// </summary>
     internal abstract partial class PatternMatcher : IDisposable
     {
-        private static readonly char[] s_dotCharacterArray = { '.' };
+        private static readonly char[] s_dotCharacterArray = ['.'];
 
         public const int NoBonus = 0;
         public const int CamelCaseContiguousBonus = 1;

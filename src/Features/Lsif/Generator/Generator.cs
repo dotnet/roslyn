@@ -42,11 +42,10 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             {
                 Hover = new LspProtocol.HoverSetting()
                 {
-                    ContentFormat = new[]
-                    {
+                    ContentFormat = [
                         LspProtocol.MarkupKind.PlainText,
                         LspProtocol.MarkupKind.Markdown,
-                    }
+                    ]
                 }
             }
         };

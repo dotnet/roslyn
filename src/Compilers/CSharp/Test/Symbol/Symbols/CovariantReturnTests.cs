@@ -401,7 +401,7 @@ namespace System.Runtime.CompilerServices
             CSharpParseOptions parseOptions = null)
         {
             parseOptions ??= TestOptions.WithCovariantReturns;
-            references = references?.Prepend(CorelibraryWithCovariantReturnSupport1).ToArray() ?? new[] { CorelibraryWithCovariantReturnSupport1 };
+            references = references?.Prepend(CorelibraryWithCovariantReturnSupport1).ToArray() ?? [CorelibraryWithCovariantReturnSupport1];
 
             return CreateCompilation(
                 source,
@@ -420,7 +420,7 @@ namespace System.Runtime.CompilerServices
             CSharpParseOptions parseOptions = null)
         {
             parseOptions ??= TestOptions.WithoutCovariantReturns;
-            references = references?.Prepend(CorelibraryWithoutCovariantReturnSupport1).ToArray() ?? new[] { CorelibraryWithoutCovariantReturnSupport1 };
+            references = references?.Prepend(CorelibraryWithoutCovariantReturnSupport1).ToArray() ?? [CorelibraryWithoutCovariantReturnSupport1];
 
             return CreateCompilation(
                 source,
@@ -480,7 +480,7 @@ namespace System.Runtime.CompilerServices
             params DiagnosticDescription[] expectedDiagnostics)
         {
             var compAsImage = comp.EmitToImageReference();
-            references = references?.Append(compAsImage) ?? new[] { compAsImage };
+            references = references?.Append(compAsImage) ?? [compAsImage];
             var coreLibrary = comp.GetMetadataReference(comp.Assembly.CorLibrary);
             if (!withoutCorlib)
                 references = references.Prepend(coreLibrary).ToArray();
@@ -1427,18 +1427,18 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilationWithCovariantReturns(source, references: new[] { baseMetadata }, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
+            var comp = CreateCompilationWithCovariantReturns(source, references: [baseMetadata], parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
                 // (4,28): error CS8400: Feature 'covariant returns' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override string M() => null;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M").WithArguments("covariant returns", "9.0").WithLocation(4, 28)
                 );
             verify(SourceView(comp, assignments));
-            comp = CreateCompilationWithCovariantReturns(source, references: new[] { baseMetadata }).VerifyDiagnostics(
+            comp = CreateCompilationWithCovariantReturns(source, references: [baseMetadata]).VerifyDiagnostics(
                 );
             verify(SourceView(comp, assignments));
-            verify(CompilationReferenceView(comp, assignments, new[] { baseMetadata }));
-            verify(MetadataView(comp, assignments, new[] { baseMetadata }));
-            verify(RetargetingView(comp, assignments, new[] { baseMetadata }));
+            verify(CompilationReferenceView(comp, assignments, [baseMetadata]));
+            verify(MetadataView(comp, assignments, [baseMetadata]));
+            verify(RetargetingView(comp, assignments, [baseMetadata]));
             CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
 {
   // Code size       15 (0xf)
@@ -1560,7 +1560,7 @@ public class Program
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "this").WithArguments("covariant returns", "9.0").WithLocation(4, 28)
                 );
             verify(SourceView(comp, assignments));
-            comp = CreateCompilationWithCovariantReturns(source, references: new[] { baseMetadata }).VerifyDiagnostics(
+            comp = CreateCompilationWithCovariantReturns(source, references: [baseMetadata]).VerifyDiagnostics(
                 );
             verify(SourceView(comp, assignments));
             verify(CompilationReferenceView(comp, assignments, references));
@@ -2817,7 +2817,7 @@ public class Mid : Base
 ";
             var ref1a = CreateCompilationWithoutCovariantReturns(
                 s1a,
-                references: new[] { ref0 },
+                references: [ref0],
                 assemblyName: "ref1").EmitToImageReference();
 
             var s1b = @"
@@ -2828,7 +2828,7 @@ public class Mid : Base
 ";
             var ref1b = CreateCompilationWithCovariantReturns(
                 s1b,
-                references: new[] { ref0 },
+                references: [ref0],
                 assemblyName: "ref1").EmitToImageReference();
 
             var s2 = @"
@@ -2875,7 +2875,7 @@ public class Program
             verify1(MetadataView(comp, assignments1, references));
             verify1(RetargetingView(comp, assignments1, references));
 
-            references = new[] { ref0, ref1b };
+            references = [ref0, ref1b];
             // we do not test CompilationReferenceView because the changed reference would cause us to retarget
 
             verify2(MetadataView(comp, assignments2, references));
@@ -2909,7 +2909,7 @@ public class Mid : Base
 {
 }
 ";
-            var ref1a = CreateCompilationWithoutCovariantReturns(s1a, references: new[] { ref0 }, assemblyName: "ref1").EmitToImageReference();
+            var ref1a = CreateCompilationWithoutCovariantReturns(s1a, references: [ref0], assemblyName: "ref1").EmitToImageReference();
 
             var s1b = @"
 public class Mid : Base
@@ -2917,7 +2917,7 @@ public class Mid : Base
     public override string P => null;
 }
 ";
-            var ref1b = CreateCompilationWithCovariantReturns(s1b, references: new[] { ref0 }, assemblyName: "ref1").EmitToImageReference();
+            var ref1b = CreateCompilationWithCovariantReturns(s1b, references: [ref0], assemblyName: "ref1").EmitToImageReference();
 
             var s2 = @"
 public class Derived : Mid
@@ -2941,7 +2941,7 @@ public class Derived : Mid
             verify1(MetadataView(comp, assignments, references));
             verify1(RetargetingView(comp, assignments, references));
 
-            references = new[] { ref0, ref1b };
+            references = [ref0, ref1b];
             // we do not test CompilationReferenceView because the changed reference would cause us to retarget
             verify2(MetadataView(comp, assignments, references));
             verify2(RetargetingView(comp, assignments, references));
@@ -2976,7 +2976,7 @@ public class Mid : Base
 {
 }
 ";
-            var ref1a = CreateCompilationWithoutCovariantReturns(s1a, references: new[] { ref0 }, assemblyName: "ref1").EmitToImageReference();
+            var ref1a = CreateCompilationWithoutCovariantReturns(s1a, references: [ref0], assemblyName: "ref1").EmitToImageReference();
 
             var s1b = @"
 public class Mid : Base
@@ -2984,7 +2984,7 @@ public class Mid : Base
     public override object M() => null;
 }
 ";
-            var ref1b = CreateCompilationWithCovariantReturns(s1b, references: new[] { ref0 }, assemblyName: "ref1").EmitToImageReference();
+            var ref1b = CreateCompilationWithCovariantReturns(s1b, references: [ref0], assemblyName: "ref1").EmitToImageReference();
 
             var s2 = @"
 public class Derived : Mid
@@ -3008,7 +3008,7 @@ public class Derived : Mid
             verify1(MetadataView(comp, assignments, references));
             verify1(RetargetingView(comp, assignments, references));
 
-            references = new[] { ref0, ref1b };
+            references = [ref0, ref1b];
             // we do not test CompilationReferenceView because the changed reference would cause us to retarget
             verify2(MetadataView(comp, assignments, references));
             verify2(RetargetingView(comp, assignments, references));
@@ -3872,16 +3872,16 @@ public class Derived : Base2<string>
                 baseCompilation.VerifyDiagnostics();
                 var baseMetadata = baseCompilation.ToMetadataReference();
 
-                references = new[] { corlibRef, baseMetadata };
-                retargetReferences = new[] { corlib2Ref, baseMetadata };
+                references = [corlibRef, baseMetadata];
+                retargetReferences = [corlib2Ref, baseMetadata];
                 compilationSource = source;
 
                 verify(RetargetingView(baseCompilation, compilationSource, expectedDiagnostics: expectedDiagnostics));
             }
             else
             {
-                references = new[] { corlibRef };
-                retargetReferences = new[] { corlib2Ref };
+                references = [corlibRef];
+                retargetReferences = [corlib2Ref];
                 compilationSource = baseSource + source;
             }
 
@@ -3991,16 +3991,16 @@ public class Derived : Base2<string>
 
             if (useSeparateCompilation)
             {
-                references = new[] { corlibRef, baseMetadata };
-                retargetReferences = new[] { corlib2Ref, baseMetadata };
+                references = [corlibRef, baseMetadata];
+                retargetReferences = [corlib2Ref, baseMetadata];
                 compilationSource = source;
 
                 verify(RetargetingView(baseCompilation, compilationSource, expectedDiagnostics: expectedDiagnostics));
             }
             else
             {
-                references = new[] { corlibRef };
-                retargetReferences = new[] { corlib2Ref };
+                references = [corlibRef];
+                retargetReferences = [corlib2Ref];
                 compilationSource = baseSource + source;
             }
 
@@ -4114,16 +4114,16 @@ public class Derived : Base<string>
                 baseCompilation.VerifyDiagnostics();
                 var baseMetadata = baseCompilation.ToMetadataReference();
 
-                references = new[] { corlibRef, baseMetadata };
-                retargetReferences = new[] { corlib2Ref, baseMetadata };
+                references = [corlibRef, baseMetadata];
+                retargetReferences = [corlib2Ref, baseMetadata];
                 compilationSource = source;
 
                 verify(RetargetingView(baseCompilation, compilationSource, expectedDiagnostics: expectedDiagnostics));
             }
             else
             {
-                references = new[] { corlibRef };
-                retargetReferences = new[] { corlib2Ref };
+                references = [corlibRef];
+                retargetReferences = [corlib2Ref];
                 compilationSource = baseSource + source;
             }
 
@@ -4229,16 +4229,16 @@ public class Derived : Base<string>
                 baseCompilation.VerifyDiagnostics();
                 var baseMetadata = baseCompilation.ToMetadataReference();
 
-                references = new[] { corlibRef, baseMetadata };
-                retargetReferences = new[] { corlib2Ref, baseMetadata };
+                references = [corlibRef, baseMetadata];
+                retargetReferences = [corlib2Ref, baseMetadata];
                 compilationSource = source;
 
                 verify(RetargetingView(baseCompilation, compilationSource, expectedDiagnostics: expectedDiagnostics));
             }
             else
             {
-                references = new[] { corlibRef };
-                retargetReferences = new[] { corlib2Ref };
+                references = [corlibRef];
+                retargetReferences = [corlib2Ref];
                 compilationSource = baseSource + source;
             }
 
@@ -4338,16 +4338,16 @@ public class Derived : Base2<string>
                 baseCompilation.VerifyDiagnostics();
                 var baseMetadata = baseCompilation.ToMetadataReference();
 
-                references = new[] { corlibRef, baseMetadata };
-                retargetReferences = new[] { corlib2Ref, baseMetadata };
+                references = [corlibRef, baseMetadata];
+                retargetReferences = [corlib2Ref, baseMetadata];
                 compilationSource = source;
 
                 verify(RetargetingView(baseCompilation, compilationSource, expectedDiagnostics: expectedDiagnostics));
             }
             else
             {
-                references = new[] { corlibRef };
-                retargetReferences = new[] { corlib2Ref };
+                references = [corlibRef];
+                retargetReferences = [corlib2Ref];
                 compilationSource = baseSource + source;
             }
 
@@ -4505,16 +4505,16 @@ public class Derived : Base<object>
                 baseCompilation.VerifyDiagnostics(baseDiagnostic);
                 var baseMetadata = baseCompilation.ToMetadataReference();
 
-                references = new[] { corlibRef, baseMetadata };
-                retargetReferences = new[] { corlib2Ref, baseMetadata };
+                references = [corlibRef, baseMetadata];
+                retargetReferences = [corlib2Ref, baseMetadata];
                 compilationSource = source;
 
                 verify(RetargetingView(baseCompilation, compilationSource, expectedDiagnostics: expectedDiagnostics));
             }
             else
             {
-                references = new[] { corlibRef };
-                retargetReferences = new[] { corlib2Ref };
+                references = [corlibRef];
+                retargetReferences = [corlib2Ref];
                 compilationSource = baseSource + source;
                 expectedDiagnostics = expectedDiagnostics.Prepend(
                     // (6,35): error CS0082: Type 'Base<Pbject>' already reserves a member called 'get_Prop' with the same parameter types

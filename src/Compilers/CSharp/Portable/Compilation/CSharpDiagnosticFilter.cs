@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal static class CSharpDiagnosticFilter
     {
-        private static readonly ErrorCode[] s_alinkWarnings = { ErrorCode.WRN_ConflictingMachineAssembly,
+        private static readonly ErrorCode[] s_alinkWarnings = [ ErrorCode.WRN_ConflictingMachineAssembly,
                                                               ErrorCode.WRN_RefCultureMismatch,
-                                                              ErrorCode.WRN_InvalidVersionFormat };
+                                                              ErrorCode.WRN_InvalidVersionFormat ];
 
         /// <summary>
         /// Modifies an input <see cref="Diagnostic"/> per the given options. For example, the

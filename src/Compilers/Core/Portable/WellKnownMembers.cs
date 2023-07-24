@@ -14,8 +14,7 @@ namespace Microsoft.CodeAnalysis
 
         static WellKnownMembers()
         {
-            byte[] initializationBytes = new byte[]
-            {
+            byte[] initializationBytes = [
                 // System_Object__ToString
                 (byte)(MemberFlags.Method | MemberFlags.Virtual),                                                           // Flags
                 (byte)SpecialType.System_Object,                                                                            // DeclaringTypeId
@@ -4061,10 +4060,9 @@ namespace Microsoft.CodeAnalysis
                 0,                                                                                                          // Arity
                     0,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.GenericTypeParameter, 0, // Return Type
-            };
+            ];
 
-            string[] allNames = new string[(int)WellKnownMember.Count]
-            {
+            string[] allNames = [
                 "ToString",                                 // System_Object__ToString
                 "Round",                                    // System_Math__RoundDouble
                 "Pow",                                      // System_Math__PowDoubleDouble
@@ -4564,7 +4562,7 @@ namespace Microsoft.CodeAnalysis
                 ".ctor",                                    // System_MissingMethodException__ctor
                 ".ctor",                                    // System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute
                 "ToArray",                                  // System_Collections_Generic_List_T__ToArray
-            };
+            ];
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);
         }

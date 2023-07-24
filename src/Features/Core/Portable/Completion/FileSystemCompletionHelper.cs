@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal class FileSystemCompletionHelper
     {
-        private static readonly char[] s_windowsDirectorySeparator = { '\\' };
+        private static readonly char[] s_windowsDirectorySeparator = ['\\'];
 
         private readonly Glyph _folderGlyph;
         private readonly Glyph _fileGlyph;

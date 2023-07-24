@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 ? null
                 : type.Assembly.CreateInstance(typeName);
 
-            member.Invoke(obj, new object[] { loader, fixture });
+            member.Invoke(obj, [loader, fixture]);
         }
 
         [Theory]
@@ -233,12 +233,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assembly alpha = loader.LoadFromPath(testFixture.Alpha);
 
                 var a = alpha.CreateInstance("Alpha.A")!;
-                a.GetType().GetMethod("Write")!.Invoke(a, new object[] { sb, "Test A" });
+                a.GetType().GetMethod("Write")!.Invoke(a, [sb, "Test A"]);
 
                 Assembly beta = loader.LoadFromPath(testFixture.Beta);
 
                 var b = beta.CreateInstance("Beta.B")!;
-                b.GetType().GetMethod("Write")!.Invoke(b, new object[] { sb, "Test B" });
+                b.GetType().GetMethod("Write")!.Invoke(b, [sb, "Test B"]);
 
                 var expected = @"Delta: Gamma: Alpha: Test A
 Delta: Gamma: Beta: Test B
@@ -310,7 +310,7 @@ Delta: Gamma: Beta: Test B
                     // We don't pass Alpha's path to AddDependencyLocation here, and therefore expect
                     // calling Beta.B.Write to fail because loader will prevent the load of Alpha
                     var exception = Assert.Throws<TargetInvocationException>(
-                        () => writeMethod.Invoke(b, new object[] { sb, "Test B" }));
+                        () => writeMethod.Invoke(b, [sb, "Test B"]));
                     Assert.IsAssignableFrom<FileNotFoundException>(exception.InnerException);
 
                     var actual = sb.ToString();
@@ -319,7 +319,7 @@ Delta: Gamma: Beta: Test B
                 else
                 {
                     // See limitation 1
-                    writeMethod.Invoke(b, new object[] { sb, "Test B" });
+                    writeMethod.Invoke(b, [sb, "Test B"]);
                     var actual = sb.ToString();
                     Assert.Equal(@"Delta: Gamma: Beta: Test B
 ", actual);
@@ -430,7 +430,7 @@ Delta: Gamma: Beta: Test B
                 Assembly gamma = loader.LoadFromPath(testFixture.Gamma);
                 var b = gamma.CreateInstance("Gamma.G")!;
                 var writeMethod = b.GetType().GetMethod("Write")!;
-                writeMethod.Invoke(b, new object[] { sb, "Test G" });
+                writeMethod.Invoke(b, [sb, "Test G"]);
 
                 var actual = sb.ToString();
                 Assert.Equal(@"Delta: Gamma: Test G
@@ -462,7 +462,7 @@ Delta: Gamma: Beta: Test B
 
                 var b = gamma.CreateInstance("Gamma.G")!;
                 var writeMethod = b.GetType().GetMethod("Write")!;
-                writeMethod.Invoke(b, new object[] { sb, "Test G" });
+                writeMethod.Invoke(b, [sb, "Test G"]);
 
                 var actual = sb.ToString();
                 Assert.Equal(@"Delta: Gamma: Test G
@@ -504,7 +504,7 @@ Delta: Gamma: Beta: Test B
                 StringBuilder sb = new StringBuilder();
                 var b = gamma.CreateInstance("Gamma.G")!;
                 var writeMethod = b.GetType().GetMethod("Write")!;
-                writeMethod.Invoke(b, new object[] { sb, "Test G" });
+                writeMethod.Invoke(b, [sb, "Test G"]);
 
                 var actual = sb.ToString();
                 Assert.Equal(@"Delta: Gamma: Test G
@@ -553,7 +553,7 @@ Delta: Gamma: Beta: Test B
 
                 var b = gamma.CreateInstance("Gamma.G")!;
                 var writeMethod = b.GetType().GetMethod("Write")!;
-                writeMethod.Invoke(b, new object[] { sb, "Test G" });
+                writeMethod.Invoke(b, [sb, "Test G"]);
 
                 var actual = sb.ToString();
                 Assert.Equal(@"Delta: Gamma: Test G
@@ -612,11 +612,11 @@ Delta: Gamma: Beta: Test B
 
                 Assembly gamma = loader.LoadFromPath(testFixture.Gamma);
                 var g = gamma.CreateInstance("Gamma.G")!;
-                g.GetType().GetMethod("Write")!.Invoke(g, new object[] { sb, "Test G" });
+                g.GetType().GetMethod("Write")!.Invoke(g, [sb, "Test G"]);
 
                 Assembly epsilon = loader.LoadFromPath(testFixture.Epsilon);
                 var e = epsilon.CreateInstance("Epsilon.E")!;
-                e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
+                e.GetType().GetMethod("Write")!.Invoke(e, [sb, "Test E"]);
                 var actual = sb.ToString();
 
 #if NETCOREAPP
@@ -668,7 +668,7 @@ Delta: Epsilon: Test E
 
                 Assembly epsilon = loader.LoadFromPath(testFixture.Epsilon);
                 var e = epsilon.CreateInstance("Epsilon.E")!;
-                e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
+                e.GetType().GetMethod("Write")!.Invoke(e, [sb, "Test E"]);
 
                 var actual = sb.ToString();
                 if (ExecutionConditionUtil.IsCoreClr || loader is ShadowCopyAnalyzerAssemblyLoader)
@@ -727,7 +727,7 @@ Delta: Epsilon: Test E
 
                 Assembly epsilon = loader.LoadFromPath(testFixture.Epsilon);
                 var e = epsilon.CreateInstance("Epsilon.E")!;
-                e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
+                e.GetType().GetMethod("Write")!.Invoke(e, [sb, "Test E"]);
 
                 if (ExecutionConditionUtil.IsDesktop && loader is ShadowCopyAnalyzerAssemblyLoader)
                 {
@@ -811,7 +811,7 @@ Delta: Epsilon: Test E
 
                 Assembly epsilon = loader.LoadFromPath(testFixture.Epsilon);
                 var e = epsilon.CreateInstance("Epsilon.E")!;
-                e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
+                e.GetType().GetMethod("Write")!.Invoke(e, [sb, "Test E"]);
 
                 var actual = sb.ToString();
                 if (ExecutionConditionUtil.IsCoreClr || loader is ShadowCopyAnalyzerAssemblyLoader)
@@ -871,7 +871,7 @@ Delta: Epsilon: Test E
 
                 Assembly epsilon = loader.LoadFromPath(epsilonFile);
                 var e = epsilon.CreateInstance("Epsilon.E")!;
-                e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
+                e.GetType().GetMethod("Write")!.Invoke(e, [sb, "Test E"]);
 
                 if (ExecutionConditionUtil.IsDesktop && loader is ShadowCopyAnalyzerAssemblyLoader)
                 {
@@ -925,11 +925,11 @@ Delta: Epsilon: Test E
 
                 Assembly gamma = loader1.LoadFromPath(testFixture.Gamma);
                 var g = gamma.CreateInstance("Gamma.G")!;
-                g.GetType().GetMethod("Write")!.Invoke(g, new object[] { sb, "Test G" });
+                g.GetType().GetMethod("Write")!.Invoke(g, [sb, "Test G"]);
 
                 Assembly epsilon = loader2.LoadFromPath(testFixture.Epsilon);
                 var e = epsilon.CreateInstance("Epsilon.E")!;
-                e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
+                e.GetType().GetMethod("Write")!.Invoke(e, [sb, "Test E"]);
 
 #if NETCOREAPP
                 var alcs1 = loader1.GetDirectoryLoadContextsSnapshot();
@@ -985,14 +985,14 @@ Delta: Epsilon: Test E
 
                 Assembly gamma = loader.LoadFromPath(testFixture.Gamma);
                 var g = gamma.CreateInstance("Gamma.G")!;
-                g.GetType().GetMethod("Write")!.Invoke(g, new object[] { sb, "Test G" });
+                g.GetType().GetMethod("Write")!.Invoke(g, [sb, "Test G"]);
 
                 Assembly epsilon = loader.LoadFromPath(testFixture.Epsilon);
                 var e = epsilon.CreateInstance("Epsilon.E")!;
                 var eWrite = e.GetType().GetMethod("Write")!;
 
                 var actual = sb.ToString();
-                eWrite.Invoke(e, new object[] { sb, "Test E" });
+                eWrite.Invoke(e, [sb, "Test E"]);
                 Assert.Equal(
     @"Delta: Gamma: Test G
 ",
@@ -1019,11 +1019,11 @@ Delta: Epsilon: Test E
 
                 var gamma = loader.LoadFromPath(testFixture.GammaReferencingPublicSigned);
                 var g = gamma.CreateInstance("Gamma.G")!;
-                g.GetType().GetMethod("Write")!.Invoke(g, new object[] { sb, "Test G" });
+                g.GetType().GetMethod("Write")!.Invoke(g, [sb, "Test G"]);
 
                 var epsilon = loader.LoadFromPath(testFixture.EpsilonReferencingPublicSigned);
                 var e = epsilon.CreateInstance("Epsilon.E")!;
-                e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
+                e.GetType().GetMethod("Write")!.Invoke(e, [sb, "Test E"]);
 
                 var actual = sb.ToString();
 
@@ -1049,11 +1049,11 @@ Delta.2: Epsilon: Test E
 
                 var delta1Assembly = loader.LoadFromPath(testFixture.DeltaPublicSigned1);
                 var delta1Instance = delta1Assembly.CreateInstance("Delta.D")!;
-                delta1Instance.GetType().GetMethod("Write")!.Invoke(delta1Instance, new object[] { sb, "Test D1" });
+                delta1Instance.GetType().GetMethod("Write")!.Invoke(delta1Instance, [sb, "Test D1"]);
 
                 var delta2Assembly = loader.LoadFromPath(testFixture.DeltaPublicSigned2);
                 var delta2Instance = delta2Assembly.CreateInstance("Delta.D")!;
-                delta2Instance.GetType().GetMethod("Write")!.Invoke(delta2Instance, new object[] { sb, "Test D2" });
+                delta2Instance.GetType().GetMethod("Write")!.Invoke(delta2Instance, [sb, "Test D2"]);
 
                 var actual = sb.ToString();
 
@@ -1081,12 +1081,12 @@ Delta.2: Test D2
 
                 if (ExecutionConditionUtil.IsCoreClr)
                 {
-                    var ex = Assert.ThrowsAny<Exception>(() => analyzer.GetType().GetMethod("Method")!.Invoke(analyzer, new object[] { sb }));
+                    var ex = Assert.ThrowsAny<Exception>(() => analyzer.GetType().GetMethod("Method")!.Invoke(analyzer, [sb]));
                     Assert.True(ex is MissingMethodException or TargetInvocationException, $@"Unexpected exception type: ""{ex.GetType()}""");
                 }
                 else
                 {
-                    analyzer.GetType().GetMethod("Method")!.Invoke(analyzer, new object[] { sb });
+                    analyzer.GetType().GetMethod("Method")!.Invoke(analyzer, [sb]);
                     Assert.Equal("42", sb.ToString());
                 }
             });
@@ -1105,7 +1105,7 @@ Delta.2: Test D2
 
                 Assembly analyzerAssembly = loader.LoadFromPath(testFixture.AnalyzerReferencesSystemCollectionsImmutable2);
                 var analyzer = analyzerAssembly.CreateInstance("Analyzer")!;
-                analyzer.GetType().GetMethod("Method")!.Invoke(analyzer, new object[] { sb });
+                analyzer.GetType().GetMethod("Method")!.Invoke(analyzer, [sb]);
                 Assert.Equal(ExecutionConditionUtil.IsCoreClr ? "1" : "42", sb.ToString());
             });
         }
@@ -1192,7 +1192,7 @@ Delta.2: Test D2
 
                 // Ensure everything is functioning still 
                 var d = delta.CreateInstance("Delta.D");
-                d!.GetType().GetMethod("Write")!.Invoke(d, new object[] { sb, "Test D" });
+                d!.GetType().GetMethod("Write")!.Invoke(d, [sb, "Test D"]);
 
                 var actual = sb.ToString();
                 Assert.Equal(
@@ -1227,7 +1227,7 @@ Delta.2: Test D2
 
                 var b = gamma.CreateInstance("Gamma.G")!;
                 var writeMethod = b.GetType().GetMethod("Write")!;
-                writeMethod.Invoke(b, new object[] { sb, "Test G" });
+                writeMethod.Invoke(b, [sb, "Test G"]);
 
                 if (loader is ShadowCopyAnalyzerAssemblyLoader)
                 {
@@ -1280,7 +1280,7 @@ Delta.2: Test D2
                 {
                     if (loader is ShadowCopyAnalyzerAssemblyLoader)
                     {
-                        File.WriteAllBytes(path, new byte[] { 42 });
+                        File.WriteAllBytes(path, [42]);
                     }
                     loader.AddDependencyLocation(path);
                     var actual = loader.LoadFromPath(path);
@@ -1322,7 +1322,7 @@ Delta.2: Test D2
 
                     Assembly analyzerAssembly = loader.LoadFromPath(testFixture.AnalyzerReferencesSystemCollectionsImmutable1);
                     var analyzer = analyzerAssembly.CreateInstance("Analyzer")!;
-                    analyzer.GetType().GetMethod("Method")!.Invoke(analyzer, new object[] { sb });
+                    analyzer.GetType().GetMethod("Method")!.Invoke(analyzer, [sb]);
 
                     Assert.Equal("42", sb.ToString());
                 });

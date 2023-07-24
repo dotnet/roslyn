@@ -423,7 +423,7 @@ class NameofLocal
         public static int nameof() { return 3; }
     }
 ";
-            MetadataReference[] references = new[] { SystemCoreRef, CSharpRef };
+            MetadataReference[] references = [SystemCoreRef, CSharpRef];
             var option = TestOptions.ReleaseExe.WithWarningLevel(0);
             CreateCompilationWithMscorlib45(source, references, options: option).VerifyDiagnostics(
                 // (104,31): error CS1501: No overload for method 'nameof' takes 1 arguments

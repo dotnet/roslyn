@@ -316,8 +316,7 @@ namespace N8
 
         comp.VerifyDiagnostics(
             use10 ?
-                new[]
-                {
+                [
                     // (4,12): warning CS8981: The type name 'required' only contains lower-cased ascii characters. Such names may become reserved for the language.
                     //     struct required {}
                     Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "required").WithArguments("required").WithLocation(4, 12),
@@ -342,9 +341,8 @@ namespace N8
                     // (35,11): warning CS8981: The type name 'required' only contains lower-cased ascii characters. Such names may become reserved for the language.
                     //     class required<T> {}
                     Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "required").WithArguments("required").WithLocation(35, 11)
-                } :
-                new[]
-                {
+                ] :
+                [
                     // (4,12): error CS9029: Types and aliases cannot be named 'required'.
                     //     struct required {}
                     Diagnostic(ErrorCode.ERR_RequiredNameDisallowed, "required").WithLocation(4, 12),
@@ -369,7 +367,7 @@ namespace N8
                     // (35,11): error CS9029: Types and aliases cannot be named 'required'.
                     //     class required<T> {}
                     Diagnostic(ErrorCode.ERR_RequiredNameDisallowed, "required").WithLocation(35, 11)
-                }
+                ]
         );
 
         code = code.Replace("required", "@required");
@@ -601,7 +599,7 @@ class Derived : Base
 [RequiredMember] Derived
     [RequiredMember] System.Int32 Derived.Prop { get; set; }
 ";
-        symbolValidator = ValidateRequiredMembersInModule(new[] { "Derived.Prop" }, expectedAttributeLayout);
+        symbolValidator = ValidateRequiredMembersInModule(["Derived.Prop"], expectedAttributeLayout);
         verifier = CompileAndVerify(comp, symbolValidator: symbolValidator, sourceSymbolValidator: symbolValidator);
         verifier.VerifyDiagnostics();
     }
@@ -657,7 +655,7 @@ class DerivedDerived : Derived
 [RequiredMember] DerivedDerived
     [RequiredMember] System.Int32 DerivedDerived.Prop { get; set; }
 ";
-        symbolValidator = ValidateRequiredMembersInModule(new[] { "DerivedDerived.Prop" }, expectedAttributeLayout);
+        symbolValidator = ValidateRequiredMembersInModule(["DerivedDerived.Prop"], expectedAttributeLayout);
         verifier = CompileAndVerify(comp, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
         verifier.VerifyDiagnostics();
     }
@@ -735,7 +733,7 @@ class Derived : Base
     [RequiredMember] System.Int32 Derived.Prop { get; set; }
 ";
 
-        symbolValidator = ValidateRequiredMembersInModule(new[] { "Derived.Prop" }, expectedAttributeLayout);
+        symbolValidator = ValidateRequiredMembersInModule(["Derived.Prop"], expectedAttributeLayout);
         verifier = CompileAndVerify(comp, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
         verifier.VerifyDiagnostics();
     }

@@ -4128,15 +4128,14 @@ class C
 
             var v0 = CompileAndVerify(compilation0, symbolValidator: module =>
             {
-                Assert.Equal(new[]
-                {
+                Assert.Equal([
                     "<>1__state: int",
                     "<>2__current: int",
                     "<>l__initialThreadId: int",
                     "<>s__1: int[]",
                     "<>s__2: int",
                     "<item>5__3: object"
-                }, module.GetFieldNamesAndTypes("C.<F>d__0"));
+                ], module.GetFieldNamesAndTypes("C.<F>d__0"));
             });
 
             var symReader = v0.CreateSymReader();
@@ -4722,8 +4721,7 @@ class C
 
             diff1.VerifySynthesizedMembers(
                "C: {<F>d__0}",
-               "C.<F>d__0: {" + string.Join(", ", new[]
-               {
+               "C.<F>d__0: {" + string.Join(", ", [
                     "<>1__state",
                     "<>2__current",
                     "<>l__initialThreadId",
@@ -4738,7 +4736,7 @@ class C
                     "System.Collections.IEnumerable.GetEnumerator",
                     "System.Collections.Generic.IEnumerator<System.Int32>.Current",
                     "System.Collections.IEnumerator.Current"
-               }) + "}");
+               ]) + "}");
 
             diff1.VerifyIL("C.<F>d__0.<>m__Finally1", @"
 {
@@ -5180,8 +5178,7 @@ class C
 
             diff1.VerifySynthesizedMembers(
                "C: {<F>d__0}",
-               "C.<F>d__0: {" + string.Join(", ", new[]
-               {
+               "C.<F>d__0: {" + string.Join(", ", [
                     "<>1__state",
                     "<>2__current",
                     "<>l__initialThreadId",
@@ -5195,7 +5192,7 @@ class C
                     "System.Collections.IEnumerable.GetEnumerator",
                     "System.Collections.Generic.IEnumerator<System.Int32>.Current",
                     "System.Collections.IEnumerator.Current"
-               }) + "}");
+               ]) + "}");
 
             diff1.VerifyIL("C.<F>d__0.<>m__Finally1", @"
 {
@@ -6561,14 +6558,13 @@ class C
 
             var v0 = CompileAndVerify(compilation0, symbolValidator: module =>
             {
-                Assert.Equal(new[]
-                {
+                Assert.Equal([
                     "<>1__state: int",
                     "<>t__builder: System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>",
                     "<a1>5__1: bool",
                     "<a2>5__2: int",
                     "<>u__1: System.Runtime.CompilerServices.TaskAwaiter"
-                }, module.GetFieldNamesAndTypes("C.<F>d__0"));
+                ], module.GetFieldNamesAndTypes("C.<F>d__0"));
             });
 
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
@@ -7153,21 +7149,19 @@ class C
 
             CompileAndVerify(compilation0, symbolValidator: module =>
             {
-                Assert.Equal(new[]
-                {
+                Assert.Equal([
                     "<>1__state: int",
                     "<>t__builder: System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>",
                     "<>u__1: System.Runtime.CompilerServices.TaskAwaiter<bool>",
                     "<>u__2: System.Runtime.CompilerServices.TaskAwaiter<int>"
-                }, module.GetFieldNamesAndTypes("C.<F>d__3"));
+                ], module.GetFieldNamesAndTypes("C.<F>d__3"));
 
-                Assert.Equal(new[]
-                {
+                Assert.Equal([
                     "<>1__state: int",
                     "<>t__builder: System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>",
                     "<>u__1: System.Runtime.CompilerServices.TaskAwaiter<int>",
                     "<>u__2: System.Runtime.CompilerServices.TaskAwaiter<bool>"
-                }, module.GetFieldNamesAndTypes("C.<G>d__4"));
+                ], module.GetFieldNamesAndTypes("C.<G>d__4"));
             });
         }
 
@@ -7312,13 +7306,12 @@ class C
 
             var v0 = CompileAndVerify(compilation0, emitOptions: EmitOptions.Default.WithDebugInformationFormat(format), symbolValidator: module =>
             {
-                Assert.Equal(new[]
-                {
+                Assert.Equal([
                     "<>1__state: int",
                     "<>t__builder: System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>",
                     "<>u__1: System.Runtime.CompilerServices.TaskAwaiter<bool>",
                     "<>u__2: System.Runtime.CompilerServices.TaskAwaiter<int>"
-                }, module.GetFieldNamesAndTypes("C.<F>d__3"));
+                ], module.GetFieldNamesAndTypes("C.<F>d__3"));
             });
 
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
@@ -8022,14 +8015,13 @@ class C
 
             var v0 = CompileAndVerify(compilation0, symbolValidator: module =>
             {
-                Assert.Equal(new[]
-                {
+                Assert.Equal([
                     "<>1__state: int",
                     "<>t__builder: System.Runtime.CompilerServices.AsyncTaskMethodBuilder",
                     "<>4__this: C.<>c",
                     "<>u__1: System.Runtime.CompilerServices.TaskAwaiter<bool>",
                     "<>u__2: System.Runtime.CompilerServices.TaskAwaiter<int>"
-                }, module.GetFieldNamesAndTypes("C.<>c.<<F>b__0_0>d"));
+                ], module.GetFieldNamesAndTypes("C.<>c.<<F>b__0_0>d"));
             });
 
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
@@ -8311,7 +8303,7 @@ class C
 
             using var md2 = diff2.GetMetadata();
             var reader2 = md2.Reader;
-            readers = new[] { reader0, reader1, reader2 };
+            readers = [reader0, reader1, reader2];
 
             CheckNames(readers, diff2.EmitResult.UpdatedMethods, "MoveNext");
             CheckNames(readers, diff2.EmitResult.ChangedTypes, "C", "<F>d__0");

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [Fact]
         public void TestSupportedCollectionInterface()
         {
-            TestCases(new string[] { });
+            TestCases([]);
             TestCases("a");
             TestCases("a", "b", "c");
             TestCases("c", "b", "a");

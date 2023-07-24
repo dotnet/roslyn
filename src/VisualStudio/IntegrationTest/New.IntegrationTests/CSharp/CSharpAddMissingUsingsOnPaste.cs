@@ -118,7 +118,7 @@ class Program
 }
 ",
                 await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
-            await telemetry.VerifyFiredAsync(new[] { "vs/ide/vbcs/commandhandler/paste/importsonpaste" }, HangMitigatingCancellationToken);
+            await telemetry.VerifyFiredAsync(["vs/ide/vbcs/commandhandler/paste/importsonpaste"], HangMitigatingCancellationToken);
         }
 
         [IdeFact]

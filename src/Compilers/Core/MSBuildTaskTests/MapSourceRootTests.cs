@@ -275,8 +275,8 @@ ERROR : {string.Format(ErrorString.MapSourceRoots_PathMustEndWithSlashOrBackslas
         }
 
         [Theory]
-        [InlineData(new object[] { true })]
-        [InlineData(new object[] { false })]
+        [InlineData([true])]
+        [InlineData([false])]
         public void MetadataMerge1(bool deterministic)
         {
             var engine = new MockEngine();
@@ -411,8 +411,8 @@ ERROR : {string.Format(ErrorString.MapSourceRoots_PathMustEndWithSlashOrBackslas
         }
 
         [Theory]
-        [InlineData(new object[] { true })]
-        [InlineData(new object[] { false })]
+        [InlineData([true])]
+        [InlineData([false])]
         public void Error_NoTopLevelSourceRoot(bool deterministic)
         {
             var engine = new MockEngine();

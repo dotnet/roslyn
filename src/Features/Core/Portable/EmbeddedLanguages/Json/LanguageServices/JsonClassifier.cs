@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
     /// </summary>
     [ExportEmbeddedLanguageClassifier(
         PredefinedEmbeddedLanguageNames.Json,
-        new[] { LanguageNames.CSharp, LanguageNames.VisualBasic },
+        [LanguageNames.CSharp, LanguageNames.VisualBasic],
         supportsUnannotatedAPIs: true, "Json"), Shared]
     internal sealed class JsonClassifier : IEmbeddedLanguageClassifier
     {

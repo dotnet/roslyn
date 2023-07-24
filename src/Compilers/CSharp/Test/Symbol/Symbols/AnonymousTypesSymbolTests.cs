@@ -46,8 +46,8 @@ class Query
                 source,
                 symbolValidator: module => TestAnonymousTypeSymbols(
                                                module,
-                                               new TypeDescr() { FieldNames = new string[] { "x", "g" } },
-                                               new TypeDescr() { FieldNames = new string[] { "<>h__TransparentIdentifier0", "z" } }
+                                               new TypeDescr() { FieldNames = ["x", "g"] },
+                                               new TypeDescr() { FieldNames = ["<>h__TransparentIdentifier0", "z"] }
                                            )
             );
 
@@ -301,8 +301,8 @@ class Query
                 source,
                 symbolValidator: module => TestAnonymousTypeSymbols(
                                                module,
-                                               new TypeDescr() { FieldNames = new string[] { "a", "b" } },
-                                               new TypeDescr() { FieldNames = new string[] { "Length", "at1", "C" } }
+                                               new TypeDescr() { FieldNames = ["a", "b"] },
+                                               new TypeDescr() { FieldNames = ["Length", "at1", "C"] }
                                            ),
                 expectedOutput: @"
 <>f__AnonymousType0`2: 
@@ -641,7 +641,7 @@ class Query
                 source,
                 symbolValidator: module => TestAnonymousTypeSymbols(
                                                module,
-                                               new TypeDescr() { FieldNames = new string[] { } }
+                                               new TypeDescr() { FieldNames = [] }
                                            ),
                 expectedOutput: @"
 <>f__AnonymousType0:
@@ -773,7 +773,7 @@ class Query
                 source,
                 symbolValidator: module => TestAnonymousTypeSymbols(
                                                module,
-                                               new TypeDescr() { FieldNames = new string[] { "ToString", "Equals", "GetHashCode" } }
+                                               new TypeDescr() { FieldNames = ["ToString", "Equals", "GetHashCode"] }
                                            ),
                 expectedOutput: @"
 <>f__AnonymousType0`3: 
@@ -1034,7 +1034,7 @@ class Query
                 new AttributeInfo
                 {
                     CtorName = "System.Runtime.CompilerServices.CompilerGeneratedAttribute.CompilerGeneratedAttribute()",
-                    ConstructorArguments = new string[] { }
+                    ConstructorArguments = []
                 }
             );
 
@@ -1051,28 +1051,28 @@ class Query
                 this.GetMemberByName<MethodSymbol>(type, ".ctor"),
                 String.Format("{0}.<>f__AnonymousType{1}({2})", typeViewName, typeIndex.ToString(), genericParametersList),
                 "void",
-                attr: new AttributeInfo() { CtorName = "System.Diagnostics.DebuggerHiddenAttribute.DebuggerHiddenAttribute()", ConstructorArguments = new string[] { } }
+                attr: new AttributeInfo() { CtorName = "System.Diagnostics.DebuggerHiddenAttribute.DebuggerHiddenAttribute()", ConstructorArguments = [] }
             );
             CheckMethodSymbol(
                 this.GetMemberByName<MethodSymbol>(type, "Equals"),
                 String.Format("{0}.Equals(object)", typeViewName),
                 "bool",
                 isVirtualAndOverride: true,
-                attr: new AttributeInfo() { CtorName = "System.Diagnostics.DebuggerHiddenAttribute.DebuggerHiddenAttribute()", ConstructorArguments = new string[] { } }
+                attr: new AttributeInfo() { CtorName = "System.Diagnostics.DebuggerHiddenAttribute.DebuggerHiddenAttribute()", ConstructorArguments = [] }
             );
             CheckMethodSymbol(
                 this.GetMemberByName<MethodSymbol>(type, "GetHashCode"),
                 String.Format("{0}.GetHashCode()", typeViewName),
                 "int",
                 isVirtualAndOverride: true,
-                attr: new AttributeInfo() { CtorName = "System.Diagnostics.DebuggerHiddenAttribute.DebuggerHiddenAttribute()", ConstructorArguments = new string[] { } }
+                attr: new AttributeInfo() { CtorName = "System.Diagnostics.DebuggerHiddenAttribute.DebuggerHiddenAttribute()", ConstructorArguments = [] }
             );
             CheckMethodSymbol(
                 this.GetMemberByName<MethodSymbol>(type, "ToString"),
                 String.Format("{0}.ToString()", typeViewName),
                 "string",
                 isVirtualAndOverride: true,
-                attr: new AttributeInfo() { CtorName = "System.Diagnostics.DebuggerHiddenAttribute.DebuggerHiddenAttribute()", ConstructorArguments = new string[] { } }
+                attr: new AttributeInfo() { CtorName = "System.Diagnostics.DebuggerHiddenAttribute.DebuggerHiddenAttribute()", ConstructorArguments = [] }
             );
         }
 
@@ -1133,7 +1133,7 @@ class Query
             Assert.Equal(isVirtualAndOverride, method.IsMetadataVirtual());
             Assert.Equal(retType, method.ReturnTypeWithAnnotations.ToDisplayString());
 
-            TestAttributeOnSymbol(method, attr == null ? new AttributeInfo[] { } : new AttributeInfo[] { attr });
+            TestAttributeOnSymbol(method, attr == null ? [] : [attr]);
         }
 
         private class AttributeInfo
@@ -1889,11 +1889,11 @@ class C
                 symbolValidator: module =>
                     TestAnonymousTypeSymbols(
                         module,
-                        new TypeDescr() { FieldNames = new[] { "local" } },
-                        new TypeDescr() { FieldNames = new[] { "P" } },
-                        new TypeDescr() { FieldNames = new[] { "L" } },
-                        new TypeDescr() { FieldNames = new[] { "M" } },
-                        new TypeDescr() { FieldNames = new[] { "N" } }));
+                        new TypeDescr() { FieldNames = ["local"] },
+                        new TypeDescr() { FieldNames = ["P"] },
+                        new TypeDescr() { FieldNames = ["L"] },
+                        new TypeDescr() { FieldNames = ["M"] },
+                        new TypeDescr() { FieldNames = ["N"] }));
         }
 
         [ClrOnlyFact]

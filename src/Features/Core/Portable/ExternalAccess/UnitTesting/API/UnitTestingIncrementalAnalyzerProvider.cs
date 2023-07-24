@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             var metadata = new IncrementalAnalyzerProviderMetadata(
                 analyzerName,
                 highPriorityForActiveFile: false,
-                new[] { workspace.Kind });
+                [workspace.Kind]);
 
             solutionCrawlerRegistrationService.AddAnalyzerProvider(analyzerProvider, metadata);
             return analyzerProvider;

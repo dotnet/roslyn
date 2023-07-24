@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(SiteInitialization is { });
             if (_temps.IsDefaultOrEmpty)
             {
-                return _factory.Sequence(new[] { SiteInitialization }, SiteInvocation, _resultType);
+                return _factory.Sequence([SiteInitialization], SiteInvocation, _resultType);
             }
             else
             {

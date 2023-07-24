@@ -98,9 +98,9 @@ public class Derived<T> : Outer<(int e1, (int e2, int e3) e4)>.Inner<
 }";
 
         private static readonly MetadataReference[] s_attributeRefs =
-        {
+        [
             ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef
-        };
+        ];
 
         [Fact]
         public void TestCompile()
@@ -368,12 +368,11 @@ class C
                 AttributeTests_Dynamic.DynamicAttributeValidator.ValidateDynamicAttribute(
                     args.GetAttributes(),
                     expectedDynamicAttribute: true,
-                    expectedTransformFlags: new[]
-                    {
+                    expectedTransformFlags: [
                         false, false, false, false,
                         true, true, false, true,
                         false, true, false
-                    });
+                    ]);
             }
 
             private void ValidateAttributesOnEvents()
@@ -385,18 +384,16 @@ class C
 
                 ValidateTupleNameAttribute(event1.GetAttributes(),
                     expectedTupleNamesAttribute: true,
-                    expectedElementNames: new[]
-                    {
+                    expectedElementNames: [
                         "e1", "e4", null, "e2", "e3"
-                    });
+                    ]);
                 AttributeTests_Dynamic.DynamicAttributeValidator.ValidateDynamicAttribute(
                     event1.GetAttributes(),
                     expectedDynamicAttribute: true,
-                    expectedTransformFlags: new[]
-                    {
+                    expectedTransformFlags: [
                         false, false, false, true,
                         false, false, true, true
-                    });
+                    ]);
             }
 
             private void ValidateAttributesOnNamedTypes()
@@ -421,11 +418,11 @@ class C
                 //     Outer<(int e5, int e6)>.Inner<(int e7, int e8)[], (int e9, int e10)>.InnerInner<int>[],
                 //     ((int e11, int e12) e13, int e14)>
                 //     .InnerInner<((int e15, int e16) e17, (int e18, Base1<(int e19, int e20)> e21) e22)>
-                expectedElementNames = new[] {
+                expectedElementNames = [
                     "e1", "e4", "e2", "e3", "e5", "e6", "e7", "e8", "e9",
                     "e10", "e13", "e14", "e11", "e12", "e17", "e22", "e15",
                     "e16", "e18", "e21", "e19", "e20"
-                };
+                ];
                 ValidateTupleNameAttribute(_derivedClass.GetAttributes(),
                     expectedTupleNamesAttribute: true,
                     expectedElementNames: expectedElementNames);
@@ -440,44 +437,43 @@ class C
 
                 // public static (int e1, int e2) Field2;
                 var field2 = _derivedClass.GetMember<FieldSymbol>("Field2");
-                expectedElementNames = new[] { "e1", "e2" };
+                expectedElementNames = ["e1", "e2"];
                 ValidateTupleNameAttribute(field2.GetAttributes(), expectedTupleNamesAttribute: true, expectedElementNames: expectedElementNames);
 
                 // public static Base1<(int e1, (int e2, int e3) e4)> Field3;
                 var field3 = _derivedClass.GetMember<FieldSymbol>("Field3");
-                expectedElementNames = new[] { "e1", "e4", "e2", "e3" };
+                expectedElementNames = ["e1", "e4", "e2", "e3"];
                 ValidateTupleNameAttribute(field3.GetAttributes(), expectedTupleNamesAttribute: true, expectedElementNames: expectedElementNames);
 
                 // public static ValueTuple<Base1<(int e1, (int, (dynamic, dynamic)) e2)>, int> Field4;
                 var field4 = _derivedClass.GetMember<FieldSymbol>("Field4");
-                expectedElementNames = new[] { null, null, "e1", "e2", null, null, null, null };
+                expectedElementNames = [null, null, "e1", "e2", null, null, null, null];
                 ValidateTupleNameAttribute(field4.GetAttributes(), expectedTupleNamesAttribute: true, expectedElementNames: expectedElementNames);
                 AttributeTests_Dynamic.DynamicAttributeValidator.ValidateDynamicAttribute(
                     field4.GetAttributes(),
                     expectedDynamicAttribute: true,
-                    expectedTransformFlags: new[] {
+                    expectedTransformFlags: [
                         false, false, false, false,
                         false, false, false, true,
                         true, false
-                    });
+                    ]);
 
                 // public static Outer<(object e1, dynamic e2)>
                 //     .Inner<(dynamic e3, object e4),
                 //             ValueTuple<dynamic, dynamic>> Field5;
                 var field5 = _derivedClass.GetMember<FieldSymbol>("Field5");
-                expectedElementNames = new[] { "e1", "e2", "e3", "e4", null, null };
+                expectedElementNames = ["e1", "e2", "e3", "e4", null, null];
                 ValidateTupleNameAttribute(field5.GetAttributes(),
                     expectedTupleNamesAttribute: true,
                     expectedElementNames: expectedElementNames);
                 AttributeTests_Dynamic.DynamicAttributeValidator.ValidateDynamicAttribute(
                     field5.GetAttributes(),
                     expectedDynamicAttribute: true,
-                    expectedTransformFlags: new[]
-                    {
+                    expectedTransformFlags: [
                         false, false, false, true,
                         false, true, false, false,
                         true, true
-                    });
+                    ]);
 
                 // public static Base1<(int, ValueTuple<int, ValueTuple>)> Field6;
                 var field6 = _derivedClass.GetMember<FieldSymbol>("Field6");
@@ -502,21 +498,19 @@ class C
 
                 // public static (int e1, int e2, int e3, int e4, int e5, int e6, int e7, int e8, int e9) Field8;
                 var field8 = _derivedClass.GetMember<FieldSymbol>("Field8");
-                expectedElementNames = new[]
-                {
+                expectedElementNames = [
                     "e1", "e2", "e3", "e4", "e5",
                     "e6", "e7", "e8", "e9", null, null
-                };
+                ];
                 ValidateTupleNameAttribute(field8.GetAttributes(), expectedTupleNamesAttribute: true,
                     expectedElementNames: expectedElementNames);
 
                 // public static Base<(int e1, int e2, int e3, int e4, int e5, int e6, int e7, int e8, int e9)> Field9;
                 var field9 = _derivedClass.GetMember<FieldSymbol>("Field9");
-                expectedElementNames = new[]
-                {
+                expectedElementNames = [
                     "e1", "e2", "e3", "e4", "e5",
                     "e6", "e7", "e8", "e9", null, null
-                };
+                ];
                 ValidateTupleNameAttribute(field9.GetAttributes(), expectedTupleNamesAttribute: true,
                     expectedElementNames: expectedElementNames);
             }
@@ -532,29 +526,29 @@ class C
 
                 // public static void Method2((int e1, int e2) x) { }
                 var method2 = _derivedClass.GetMember<MethodSymbol>("Method2");
-                expectedElementNames = new[] { "e1", "e2" };
+                expectedElementNames = ["e1", "e2"];
                 ValidateTupleNameAttribute(method2.Parameters.Single().GetAttributes(),
                     expectedTupleNamesAttribute: true,
                     expectedElementNames: expectedElementNames);
 
                 // public static (int e1, int e2) Method3((int e3, int e4) x) => (0, 0);
                 var method3 = _derivedClass.GetMember<MethodSymbol>("Method3");
-                expectedElementNames = new[] { "e1", "e2" };
+                expectedElementNames = ["e1", "e2"];
                 ValidateTupleNameAttribute(method3.GetReturnTypeAttributes(),
                     expectedTupleNamesAttribute: true,
                     expectedElementNames: expectedElementNames);
-                expectedElementNames = new[] { "e3", "e4" };
+                expectedElementNames = ["e3", "e4"];
                 ValidateTupleNameAttribute(method3.Parameters.Single().GetAttributes(),
                     expectedTupleNamesAttribute: true,
                     expectedElementNames: expectedElementNames);
 
                 // public static (int e1, int e2) Method4(ref (int e3, int e4) x) => x;
                 var method4 = _derivedClass.GetMember<MethodSymbol>("Method4");
-                expectedElementNames = new[] { "e1", "e2" };
+                expectedElementNames = ["e1", "e2"];
                 ValidateTupleNameAttribute(method4.GetReturnTypeAttributes(),
                     expectedTupleNamesAttribute: true,
                     expectedElementNames: expectedElementNames);
-                expectedElementNames = new[] { "e3", "e4" };
+                expectedElementNames = ["e3", "e4"];
                 ValidateTupleNameAttribute(method4.Parameters.Single().GetAttributes(),
                     expectedTupleNamesAttribute: true,
                     expectedElementNames: expectedElementNames);
@@ -574,11 +568,10 @@ class C
                 //                int e6, int e7, int e8, int e9) Method6() => (0, 0, 0, 0,
                 //                                                              0, 0, 0, 0, 0);
                 var method6 = _derivedClass.GetMember<MethodSymbol>("Method6");
-                expectedElementNames = new[]
-                {
+                expectedElementNames = [
                     "e1", "e2", "e3", "e4", "e5",
                     "e6", "e7", "e8", "e9", null, null
-                };
+                ];
                 ValidateTupleNameAttribute(method6.GetReturnTypeAttributes(), expectedTupleNamesAttribute: true, expectedElementNames: expectedElementNames);
             }
 
@@ -593,18 +586,18 @@ class C
 
                 // public static (int e1, int e2) Prop2 { get; set; }
                 var prop2 = _derivedClass.GetMember("Prop2");
-                expectedTupleNames = new[] { "e1", "e2" };
+                expectedTupleNames = ["e1", "e2"];
                 ValidateTupleNameAttribute(prop2.GetAttributes(),
                     expectedTupleNamesAttribute: true,
                     expectedElementNames: expectedTupleNames);
 
                 // public (int e1, int e2) this[(int e3, int e4) param]
                 var indexer = (PropertySymbol)_derivedClass.GetMember("this[]");
-                expectedTupleNames = new[] { "e1", "e2" };
+                expectedTupleNames = ["e1", "e2"];
                 ValidateTupleNameAttribute(indexer.GetAttributes(),
                     expectedTupleNamesAttribute: true,
                     expectedElementNames: expectedTupleNames);
-                expectedTupleNames = new[] { "e3", "e4" };
+                expectedTupleNames = ["e3", "e4"];
                 ValidateTupleNameAttribute(indexer.Parameters.Single().GetAttributes(),
                     expectedTupleNamesAttribute: true,
                     expectedElementNames: expectedTupleNames);
@@ -901,11 +894,11 @@ public interface I3<T>
                             continue;
 
                         case "I2`1":
-                            verifyTupleConstraint(def, new[] { "a", "b" });
+                            verifyTupleConstraint(def, ["a", "b"]);
                             break;
 
                         case "I3`1":
-                            verifyTupleConstraint(def, new[] { "c", "d" });
+                            verifyTupleConstraint(def, ["c", "d"]);
                             break;
 
                         default:
@@ -925,11 +918,11 @@ public interface I3<T>
                             continue;
 
                         case "I2":
-                            verifyTupleImpls(t, new[] { "a", "b" });
+                            verifyTupleImpls(t, ["a", "b"]);
                             break;
 
                         case "I3":
-                            verifyTupleImpls(t, new[] { "c", "d" });
+                            verifyTupleImpls(t, ["c", "d"]);
                             break;
                     }
                 }
@@ -998,11 +991,11 @@ public interface I3 : I1<(int c, int d)> {}";
                             continue;
 
                         case "I2":
-                            verifyTupleImpls(def, new[] { "a", "b" });
+                            verifyTupleImpls(def, ["a", "b"]);
                             break;
 
                         case "I3":
-                            verifyTupleImpls(def, new[] { "c", "d" });
+                            verifyTupleImpls(def, ["c", "d"]);
                             break;
 
                         default:
@@ -1022,11 +1015,11 @@ public interface I3 : I1<(int c, int d)> {}";
                             continue;
 
                         case "I2":
-                            VerifyTupleImpls(t, new[] { "a", "b" });
+                            VerifyTupleImpls(t, ["a", "b"]);
                             break;
 
                         case "I3":
-                            VerifyTupleImpls(t, new[] { "c", "d" });
+                            VerifyTupleImpls(t, ["c", "d"]);
                             break;
 
                         default:

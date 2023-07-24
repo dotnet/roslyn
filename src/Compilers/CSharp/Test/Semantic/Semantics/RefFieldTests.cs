@@ -313,7 +313,7 @@ class B
             CompileAndVerify(comp);
 
             var field = (SubstitutedFieldSymbol)comp.GetMember<FieldSymbol>("B.A").Type.GetMember("F");
-            VerifyFieldSymbol(field, "ref modopt(System.SByte) modopt(System.Object) System.Int32 A<System.Int32>.F", RefKind.Ref, new[] { "System.SByte", "System.Object" });
+            VerifyFieldSymbol(field, "ref modopt(System.SByte) modopt(System.Object) System.Int32 A<System.Int32>.F", RefKind.Ref, ["System.SByte", "System.Object"]);
         }
 
         [Fact]
@@ -506,8 +506,8 @@ readonly ref struct B
             comp.VerifyEmitDiagnostics();
 
             var tupleType = (NamedTypeSymbol)comp.GetMember<MethodSymbol>("B.F").ReturnType;
-            VerifyFieldSymbol(tupleType.GetField("Item1"), "ref System.Int32 (System.Int32, System.Object).Item1", RefKind.Ref, new string[0] { });
-            VerifyFieldSymbol(tupleType.GetField("Item2"), "ref modopt(System.Object) modopt(System.SByte) System.Object (System.Int32, System.Object).Item2", RefKind.Ref, new[] { "System.Object", "System.SByte" });
+            VerifyFieldSymbol(tupleType.GetField("Item1"), "ref System.Int32 (System.Int32, System.Object).Item1", RefKind.Ref, []);
+            VerifyFieldSymbol(tupleType.GetField("Item2"), "ref modopt(System.Object) modopt(System.SByte) System.Object (System.Int32, System.Object).Item2", RefKind.Ref, ["System.Object", "System.SByte"]);
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
@@ -2244,8 +2244,8 @@ public class B
 }";
             var compB = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net70);
             var refB = compB.EmitToImageReference();
-            verifyFields(compB.GetMember<NamedTypeSymbol>("R1"), new[] { "ref T R1<T, U>._f1", "ref readonly U R1<T, U>._f2" });
-            verifyFields(compB.GetMember<NamedTypeSymbol>("R2"), new[] { "ref T R2<T, U>.F1", "ref readonly U R2<T, U>.F2" });
+            verifyFields(compB.GetMember<NamedTypeSymbol>("R1"), ["ref T R1<T, U>._f1", "ref readonly U R1<T, U>._f2"]);
+            verifyFields(compB.GetMember<NamedTypeSymbol>("R2"), ["ref T R2<T, U>.F1", "ref readonly U R2<T, U>.F2"]);
 
             var sourceC =
 @"class Program

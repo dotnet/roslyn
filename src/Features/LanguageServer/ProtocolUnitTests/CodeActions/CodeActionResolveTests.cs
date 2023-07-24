@@ -154,7 +154,7 @@ class {|caret:ABC|}
                     {
                         WorkspaceEdit = new WorkspaceEditSetting
                         {
-                            ResourceOperations = new ResourceOperationKind[] { ResourceOperationKind.Rename }
+                            ResourceOperations = [ResourceOperationKind.Rename]
                         }
                     }
                 }
@@ -318,7 +318,7 @@ class BCD
                     {
                         WorkspaceEdit = new WorkspaceEditSetting
                         {
-                            ResourceOperations = new ResourceOperationKind[] { ResourceOperationKind.Create }
+                            ResourceOperations = [ResourceOperationKind.Create]
                         }
                     }
                 }
@@ -352,8 +352,7 @@ class BCD
                     new TextDocumentEdit()
                     {
                         TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = newDocumentUri },
-                        Edits = new TextEdit[]
-                        {
+                        Edits = [
                             new TextEdit()
                             {
                                 Range = new LSP.Range
@@ -374,14 +373,13 @@ class BCD
 }
 "
                             }
-                        }
+                        ]
                     },
                     // Remove the declaration from existing file
                     new TextDocumentEdit()
                     {
                         TextDocument = new OptionalVersionedTextDocumentIdentifier() { Uri = existingDocumentUri },
-                        Edits = new TextEdit[]
-                        {
+                        Edits = [
                             new TextEdit()
                             {
                                 Range = new LSP.Range
@@ -399,7 +397,7 @@ class BCD
                                 },
                                 NewText = ""
                             }
-                        }
+                        ]
                     }
                 }
             };

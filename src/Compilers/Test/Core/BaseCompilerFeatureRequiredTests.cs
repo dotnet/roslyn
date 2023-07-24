@@ -664,7 +664,7 @@ public abstract class BaseCompilerFeatureRequiredTests<TCompilation, TSource> : 
 
         var compiledIl = CompileIL(il, prependDefaultHeader: false);
 
-        var comp = CreateCompilation(source: GetUsage(), references: new[] { compiledIl });
+        var comp = CreateCompilation(source: GetUsage(), references: [compiledIl]);
 
         if (isOptional == true)
         {
@@ -693,7 +693,7 @@ public abstract class BaseCompilerFeatureRequiredTests<TCompilation, TSource> : 
         """;
 
         var compiledIl = CompileIL(il);
-        var comp = CreateCompilation(source: GetUsage(), references: new[] { compiledIl });
+        var comp = CreateCompilation(source: GetUsage(), references: [compiledIl]);
 
         if (isOptional == true)
         {

@@ -31,13 +31,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             CustomSortTestHelper(
                 ImmutableSegmentedHashSet<string>.Empty.WithComparer(StringComparer.Ordinal),
                 false,
-                new[] { "apple", "APPLE" },
-                new[] { "apple", "APPLE" });
+                ["apple", "APPLE"],
+                ["apple", "APPLE"]);
             CustomSortTestHelper(
                 ImmutableSegmentedHashSet<string>.Empty.WithComparer(StringComparer.OrdinalIgnoreCase),
                 false,
-                new[] { "apple", "APPLE" },
-                new[] { "apple" });
+                ["apple", "APPLE"],
+                ["apple"]);
         }
 
         [Fact]
@@ -135,11 +135,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.Equal(2, set.Count);
             Assert.Same(comparer, set.KeyComparer);
 
-            set = ImmutableSegmentedHashSet.CreateRange<string?>((IEnumerable<string>)new[] { "a", "b" });
+            set = ImmutableSegmentedHashSet.CreateRange<string?>((IEnumerable<string>)["a", "b"]);
             Assert.Equal(2, set.Count);
             Assert.Same(EqualityComparer<string>.Default, set.KeyComparer);
 
-            set = ImmutableSegmentedHashSet.CreateRange<string?>(comparer, (IEnumerable<string>)new[] { "a", "b" });
+            set = ImmutableSegmentedHashSet.CreateRange<string?>(comparer, (IEnumerable<string>)["a", "b"]);
             Assert.Equal(2, set.Count);
             Assert.Same(comparer, set.KeyComparer);
 

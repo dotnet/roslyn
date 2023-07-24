@@ -209,8 +209,8 @@ class C
             lib2.VerifyDiagnostics();
 
             var compilation0 = CreateEmptyCompilation(src0, new[] { MscorlibRef, lib0.ToMetadataReference() }, assemblyName: "C", options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(src1).WithReferences(new[] { MscorlibRef, lib1.ToMetadataReference() });
-            var compilation2 = compilation1.WithSource(src2).WithReferences(new[] { MscorlibRef, lib2.ToMetadataReference() });
+            var compilation1 = compilation0.WithSource(src1).WithReferences([MscorlibRef, lib1.ToMetadataReference()]);
+            var compilation2 = compilation1.WithSource(src2).WithReferences([MscorlibRef, lib2.ToMetadataReference()]);
 
             var v0 = CompileAndVerify(compilation0);
             var v1 = CompileAndVerify(compilation1);
@@ -313,8 +313,8 @@ class C
             lib2.VerifyDiagnostics();
 
             var compilation0 = CreateEmptyCompilation(src0, new[] { MscorlibRef, lib0.ToMetadataReference() }, assemblyName: "C", options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(src1).WithReferences(new[] { MscorlibRef, lib1.ToMetadataReference() });
-            var compilation2 = compilation1.WithSource(src2).WithReferences(new[] { MscorlibRef, lib2.ToMetadataReference() });
+            var compilation1 = compilation0.WithSource(src1).WithReferences([MscorlibRef, lib1.ToMetadataReference()]);
+            var compilation2 = compilation1.WithSource(src2).WithReferences([MscorlibRef, lib2.ToMetadataReference()]);
 
             var v0 = CompileAndVerify(compilation0);
             var v1 = CompileAndVerify(compilation1);
@@ -344,15 +344,14 @@ class C
             var aggReader = new AggregatedMetadataReader(md0.MetadataReader, md1.Reader, md2.Reader);
 
             // all references to Lib should be to the baseline version:
-            VerifyAssemblyReferences(aggReader, new[]
-            {
+            VerifyAssemblyReferences(aggReader, [
                 "mscorlib, 4.0.0.0",
                 "Lib, " + lib0.Assembly.Identity.Version,
                 "mscorlib, 4.0.0.0",
                 "Lib, " + lib0.Assembly.Identity.Version,
                 "mscorlib, 4.0.0.0",
                 "Lib, " + lib0.Assembly.Identity.Version,
-            });
+            ]);
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
@@ -396,8 +395,8 @@ class C
             lib2.VerifyDiagnostics();
 
             var compilation0 = CreateEmptyCompilation(src0, new[] { MscorlibRef, lib0.EmitToImageReference() }, assemblyName: "C", options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(src1).WithReferences(new[] { MscorlibRef, lib1.EmitToImageReference() });
-            var compilation2 = compilation1.WithSource(src2).WithReferences(new[] { MscorlibRef, lib2.EmitToImageReference() });
+            var compilation1 = compilation0.WithSource(src1).WithReferences([MscorlibRef, lib1.EmitToImageReference()]);
+            var compilation2 = compilation1.WithSource(src2).WithReferences([MscorlibRef, lib2.EmitToImageReference()]);
 
             var v0 = CompileAndVerify(compilation0);
             var v1 = CompileAndVerify(compilation1);
@@ -480,7 +479,7 @@ class C
             var ref12 = lib12.ToMetadataReference(ImmutableArray.Create("L1"));
 
             var compilation0 = CreateEmptyCompilation(src0, new[] { MscorlibRef, ref01, ref11 }, assemblyName: "C", options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(src1).WithReferences(new[] { MscorlibRef, ref02, ref12 });
+            var compilation1 = compilation0.WithSource(src1).WithReferences([MscorlibRef, ref02, ref12]);
 
             // ILVerify: Multiple modules named 'Lib' were found
             var v0 = CompileAndVerify(compilation0, verify: Verification.FailsILVerify);

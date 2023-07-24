@@ -48,13 +48,12 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { edits },
-                new[]
-                {
+                [edits],
+                [
                     DocumentResults(
                         active,
-                        diagnostics: new[] { Diagnostic(RudeEditKind.DeleteActiveStatement, "class C", DeletedSymbolDisplay(FeaturesResources.method, "Goo(int a)")) })
-                });
+                        diagnostics: [Diagnostic(RudeEditKind.DeleteActiveStatement, "class C", DeletedSymbolDisplay(FeaturesResources.method, "Goo(int a)"))])
+                ]);
         }
 
         [Fact]
@@ -82,13 +81,12 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { edits },
-                new[]
-                {
+                [edits],
+                [
                     DocumentResults(
                         active,
-                        diagnostics: new[] {Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "static void Boo(int a)", FeaturesResources.method) })
-                });
+                        diagnostics: [Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "static void Boo(int a)", FeaturesResources.method)])
+                ]);
         }
 
         [Fact]
@@ -263,12 +261,12 @@ class C
 
             edits.VerifySemanticDiagnostics(
                 active,
-                diagnostics: new[] { Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "static void Swap<T>(T lhs, T rhs)", GetResource("method")) },
+                diagnostics: [Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "static void Swap<T>(T lhs, T rhs)", GetResource("method"))],
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(
                 active,
-                semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Swap"), preserveLocalVariables: true) },
+                semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Swap"), preserveLocalVariables: true)],
                 capabilities: EditAndContinueCapabilities.GenericUpdateMethod);
         }
 
@@ -475,7 +473,7 @@ class C
 
             edits.VerifySemantics(
                 active,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Main"), syntaxMap[0]) });
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Main"), syntaxMap[0])]);
         }
 
         #endregion
@@ -643,11 +641,10 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -729,11 +726,10 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_Item"), deletedSymbolContainerProvider: c => c.GetMember("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -803,11 +799,11 @@ class C<T>
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(active,
-                diagnostics: new[] { Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "set", GetResource("indexer setter")) },
+                diagnostics: [Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "set", GetResource("indexer setter"))],
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(active,
-                semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_Item"), preserveLocalVariables: true) },
+                semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_Item"), preserveLocalVariables: true)],
                 capabilities: EditAndContinueCapabilities.GenericUpdateMethod);
         }
 
@@ -907,11 +903,11 @@ class C<T>
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(active,
-                diagnostics: new[] { Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "get", GetResource("indexer getter")) },
+                diagnostics: [Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "get", GetResource("indexer getter"))],
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(active,
-                semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"), preserveLocalVariables: true) },
+                semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"), preserveLocalVariables: true)],
                 capabilities: EditAndContinueCapabilities.GenericUpdateMethod);
         }
 
@@ -1009,11 +1005,11 @@ class C<T>
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(active,
-                diagnostics: new[] { Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "set", GetResource("indexer setter")) },
+                diagnostics: [Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "set", GetResource("indexer setter"))],
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(active,
-                semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_Item"), preserveLocalVariables: true) },
+                semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_Item"), preserveLocalVariables: true)],
                 capabilities: EditAndContinueCapabilities.GenericUpdateMethod);
         }
 
@@ -1109,11 +1105,11 @@ class C<T>
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(active,
-                diagnostics: new[] { Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "get", GetResource("indexer getter")) },
+                diagnostics: [Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "get", GetResource("indexer getter"))],
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(active,
-                semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"), preserveLocalVariables: true) },
+                semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"), preserveLocalVariables: true)],
                 capabilities: EditAndContinueCapabilities.GenericUpdateMethod);
         }
 

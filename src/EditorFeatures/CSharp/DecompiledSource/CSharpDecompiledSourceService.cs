@@ -127,11 +127,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             var assemblyPath = MetadataAsSourceHelpers.GetAssemblyDisplay(compilation, symbol.ContainingAssembly);
 
             var regionTrivia = SyntaxFactory.RegionDirectiveTrivia(true)
-                .WithTrailingTrivia(new[] { SyntaxFactory.Space, SyntaxFactory.PreprocessingMessage(assemblyInfo) });
+                .WithTrailingTrivia([SyntaxFactory.Space, SyntaxFactory.PreprocessingMessage(assemblyInfo)]);
 
             var oldRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var newRoot = oldRoot.WithLeadingTrivia(new[]
-                {
+            var newRoot = oldRoot.WithLeadingTrivia([
                     SyntaxFactory.Trivia(regionTrivia),
                     SyntaxFactory.CarriageReturnLineFeed,
                     SyntaxFactory.Comment("// " + assemblyPath),
@@ -141,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
                     SyntaxFactory.Trivia(SyntaxFactory.EndRegionDirectiveTrivia(true)),
                     SyntaxFactory.CarriageReturnLineFeed,
                     SyntaxFactory.CarriageReturnLineFeed
-                });
+                ]);
 
             return document.WithSyntaxRoot(newRoot);
         }

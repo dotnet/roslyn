@@ -761,7 +761,7 @@ class C
         public void TestLiftedBuiltInBinaryArithmetic()
         {
             string[,] enumAddition =
-            {
+            [
                 //{ "sbyte", "Base64FormattingOptions"},
                 { "byte", "Base64FormattingOptions"},
                 //{ "short", "Base64FormattingOptions"},
@@ -787,10 +787,10 @@ class C
                 //{ "Base64FormattingOptions", "double" },
                 //{ "Base64FormattingOptions", "float" },
                 //{ "Base64FormattingOptions", "Base64FormattingOptions"},
-            };
+            ];
 
             string[,] enumSubtraction =
-            {
+            [
                 { "Base64FormattingOptions", "sbyte" },
                 //{ "Base64FormattingOptions", "byte" },
                 { "Base64FormattingOptions", "short" },
@@ -804,10 +804,10 @@ class C
                 //{ "Base64FormattingOptions", "double" },
                 //{ "Base64FormattingOptions", "float" },
                 { "Base64FormattingOptions", "Base64FormattingOptions"},
-            };
+            ];
 
             string[,] numerics1 =
-            {
+            [
                 { "sbyte", "sbyte" },
                 { "sbyte", "byte" },
                 //{ "sbyte", "short" },
@@ -846,10 +846,10 @@ class C
                 { "short", "decimal" },
                 //{ "short", "double" },
                 { "short", "float" },
-            };
+            ];
 
             string[,] numerics2 =
-            {
+            [
                 //{ "ushort", "sbyte" },
                 //{ "ushort", "byte" },
                 { "ushort", "short" },
@@ -888,10 +888,10 @@ class C
                 //{ "uint", "decimal" },
                 //{ "uint", "double" },
                 { "uint", "float" },
-            };
+            ];
 
             string[,] numerics3 =
-            {
+            [
                 { "long", "sbyte" },
                 { "long", "byte" },
                 //{ "long", "short" },
@@ -917,10 +917,10 @@ class C
                 { "ulong", "decimal" },
                 { "ulong", "double" },
                 //{ "ulong", "float" },
-            };
+            ];
 
             string[,] numerics4 =
-            {
+            [
                 { "char", "sbyte" },
                 { "char", "byte" },
                 { "char", "short" },
@@ -946,10 +946,10 @@ class C
                 { "decimal", "decimal" },
                 //{ "decimal", "double" },
                 //{ "decimal", "float" },
-            };
+            ];
 
             string[,] numerics5 =
-            {
+            [
                 //{ "double", "sbyte" },
                 { "double", "byte" },
                 { "double", "short" },
@@ -975,10 +975,10 @@ class C
                 //{ "float", "decimal" },
                 //{ "float", "double" },
                 { "float", "float" },
-           };
+           ];
 
             string[,] shift1 =
-            {
+            [
                 { "sbyte", "sbyte" },
                 { "sbyte", "byte" },
                 { "sbyte", "short" },
@@ -1006,10 +1006,10 @@ class C
                 { "ushort", "ushort" },
                 { "ushort", "int" },
                 { "ushort", "char" },
-            };
+            ];
 
             string[,] shift2 =
-            {
+            [
                 { "int", "sbyte" },
                 { "int", "byte" },
                 { "int", "short" },
@@ -1044,10 +1044,10 @@ class C
                 { "char", "ushort" },
                 { "char", "int" },
                 { "char", "char" },
-            };
+            ];
 
             string[,] logical1 =
-            {
+            [
                 { "sbyte", "sbyte" },
                 //{ "sbyte", "byte" },
                 { "sbyte", "short" },
@@ -1077,10 +1077,10 @@ class C
                 { "short", "long" },
                 //{ "short", "ulong" },
                 { "short", "char" },
-            };
+            ];
 
             string[,] logical2 =
-            {
+            [
                 //{ "ushort", "sbyte" },
                 { "ushort", "byte" },
                 { "ushort", "short" },
@@ -1110,10 +1110,10 @@ class C
                 //{ "uint", "long" },
                 //{ "uint", "ulong" },
                 { "uint", "char" },
-            };
+            ];
 
             string[,] logical3 =
-            {
+            [
                 //{ "long", "sbyte" },
                 { "long", "byte" },
                 //{ "long", "short" },
@@ -1145,7 +1145,7 @@ class C
                 { "char", "char" },
 
                 { "Base64FormattingOptions", "Base64FormattingOptions"},
-            };
+            ];
 
             // Use 2 instead of 0 so that we don't get divide by zero errors.
             var twos = new Dictionary<string, string>()

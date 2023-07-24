@@ -303,14 +303,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             const VirtualnessModifiers @override = VirtualnessModifiers.Override;
             const VirtualnessModifiers @sealed = VirtualnessModifiers.Sealed;
 
-            VirtualnessModifiers[] modList = new[]
-            {
+            VirtualnessModifiers[] modList = [
                 @none,
                 @abstract,
                 @virtual,
                 @override,
                 @sealed,
-            };
+            ];
 
             int length = 1 + modList.Cast<int>().Max();
             VirtualnessModifiers[,] expected = new VirtualnessModifiers[length, length];

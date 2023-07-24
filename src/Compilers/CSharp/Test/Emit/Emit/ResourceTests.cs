@@ -235,7 +235,7 @@ class C
         public void CS1508_DuplicateManifestResourceIdentifier()
         {
             var c1 = CreateCompilation("");
-            Func<Stream> dataProvider = () => new MemoryStream(new byte[] { });
+            Func<Stream> dataProvider = () => new MemoryStream([]);
 
             var result = c1.Emit(new MemoryStream(), manifestResources:
                 new[]
@@ -255,7 +255,7 @@ class C
         public void CS1508_DuplicateManifestResourceIdentifier_EmbeddedResource()
         {
             var c1 = CreateCompilation("");
-            Func<Stream> dataProvider = () => new MemoryStream(new byte[] { });
+            Func<Stream> dataProvider = () => new MemoryStream([]);
 
             var result = c1.Emit(new MemoryStream(), manifestResources:
                 new[]
@@ -288,7 +288,7 @@ class C
         public void CS7041_DuplicateManifestResourceFileName()
         {
             var c1 = CSharpCompilation.Create("goo", references: new[] { MscorlibRef }, options: TestOptions.ReleaseDll);
-            Func<Stream> dataProvider = () => new MemoryStream(new byte[] { });
+            Func<Stream> dataProvider = () => new MemoryStream([]);
 
             var result = c1.Emit(new MemoryStream(), manifestResources:
                 new[]
@@ -308,7 +308,7 @@ class C
         public void NoDuplicateManifestResourceFileNameDiagnosticForEmbeddedResources()
         {
             var c1 = CreateCompilation("");
-            Func<Stream> dataProvider = () => new MemoryStream(new byte[] { });
+            Func<Stream> dataProvider = () => new MemoryStream([]);
 
             var result = c1.Emit(new MemoryStream(), manifestResources:
                 new[]
@@ -335,7 +335,7 @@ class C
         public void CS1508_CS7041_DuplicateManifestResourceDiagnostics()
         {
             var c1 = CreateCompilation("");
-            Func<Stream> dataProvider = () => new MemoryStream(new byte[] { });
+            Func<Stream> dataProvider = () => new MemoryStream([]);
 
             var result = c1.Emit(new MemoryStream(), manifestResources:
                 new[]
@@ -464,30 +464,27 @@ class C
             var resourceFileData = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
 
             var result = emit(c1, output,
-                new ResourceDescription[]
-                {
+                [
                     new ResourceDescription(r1Name, () => new MemoryStream(arrayOfEmbeddedData), true),
                     new ResourceDescription(r2Name, resourceFileName, () => new MemoryStream(resourceFileData), false)
-                });
+                ]);
 
             Assert.False(result.Success);
             Assert.NotEmpty(result.Diagnostics.Where(x => x.Code == (int)ErrorCode.ERR_CantRefResource));
 
             result = emit(c1, output,
-                new ResourceDescription[]
-                {
+                [
                     new ResourceDescription(r2Name, resourceFileName, () => new MemoryStream(resourceFileData), false),
                     new ResourceDescription(r1Name, () => new MemoryStream(arrayOfEmbeddedData), true)
-                });
+                ]);
 
             Assert.False(result.Success);
             Assert.NotEmpty(result.Diagnostics.Where(x => x.Code == (int)ErrorCode.ERR_CantRefResource));
 
             result = emit(c1, output,
-                new ResourceDescription[]
-                {
+                [
                     new ResourceDescription(r2Name, resourceFileName, () => new MemoryStream(resourceFileData), false)
-                });
+                ]);
 
             Assert.False(result.Success);
             Assert.NotEmpty(result.Diagnostics.Where(x => x.Code == (int)ErrorCode.ERR_CantRefResource));
@@ -500,10 +497,9 @@ class C
 
             var output_mod1 = new MemoryStream();
             result = emit(c_mod1, output_mod1,
-                new ResourceDescription[]
-                {
+                [
                     new ResourceDescription(r1Name, () => new MemoryStream(arrayOfEmbeddedData), true)
-                });
+                ]);
 
             Assert.True(result.Success);
             var mod1 = ModuleMetadata.CreateFromImage(output_mod1.ToImmutable());
@@ -549,11 +545,10 @@ class C
 
             var output_mod2 = new MemoryStream();
             result = emit(c_mod2, output_mod2,
-                new ResourceDescription[]
-                {
+                [
                     new ResourceDescription(r1Name, () => new MemoryStream(arrayOfEmbeddedData), true),
                     new ResourceDescription(r2Name, () => new MemoryStream(resourceFileData), true)
-                });
+                ]);
 
             Assert.True(result.Success);
             var ref_mod2 = ModuleMetadata.CreateFromImage(output_mod2.ToImmutable()).GetReference();
@@ -606,10 +601,9 @@ class C
 
             var output_mod3 = new MemoryStream();
             result = emit(c_mod3, output_mod3,
-                new ResourceDescription[]
-                {
+                [
                     new ResourceDescription(r2Name, () => new MemoryStream(resourceFileData), false)
-                });
+                ]);
 
             Assert.True(result.Success);
             var mod3 = ModuleMetadata.CreateFromImage(output_mod3.ToImmutable());
@@ -722,10 +716,9 @@ class C
                 }
 
                 result6 = emit(c6, output6,
-                    new ResourceDescription[]
-                    {
+                    [
                         new ResourceDescription(r2Name, () => new MemoryStream(resourceFileData), false)
-                    });
+                    ]);
 
                 if (metadataOnly)
                 {
@@ -745,10 +738,9 @@ class C
                 c6 = CreateCompilation(sourceTree, new[] { ref_mod1, ref_mod2 }, TestOptions.ReleaseModule);
 
                 result6 = emit(c6, output6,
-                    new ResourceDescription[]
-                    {
+                    [
                         new ResourceDescription(r2Name, () => new MemoryStream(resourceFileData), false)
-                    });
+                    ]);
 
                 Assert.True(result6.Success);
             }
@@ -885,7 +877,7 @@ public class Maine
         [Fact]
         public void ResourceProviderStreamGivesBadLength()
         {
-            var backingStream = new MemoryStream(new byte[] { 1, 2, 3, 4 });
+            var backingStream = new MemoryStream([1, 2, 3, 4]);
             var stream = new TestStream(
                 canRead: true,
                 canSeek: true,

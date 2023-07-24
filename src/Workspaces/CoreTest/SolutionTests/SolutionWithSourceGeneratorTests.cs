@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task IncrementalSourceGeneratorInvokedCorrectNumberOfTimes()
         {
-            using var workspace = CreateWorkspace(new[] { typeof(TestCSharpCompilationFactoryServiceWithIncrementalGeneratorTracking) });
+            using var workspace = CreateWorkspace([typeof(TestCSharpCompilationFactoryServiceWithIncrementalGeneratorTracking)]);
             var generator = new GenerateFileForEachAdditionalFileWithContentsCommented();
             var analyzerReference = new TestGeneratorReference(generator);
             var project = AddEmptyProject(workspace.CurrentSolution)
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 .AddAnalyzerReference(analyzerReference);
 
             if (assertRightAway)
-                await AssertCompilationContainsGeneratedFilesAsync(project, expectedGeneratedContents: new string[] { });
+                await AssertCompilationContainsGeneratedFilesAsync(project, expectedGeneratedContents: []);
 
             project = project.AddAdditionalDocument("Test.txt", "Hello, world!").Project;
             var additionalDocumentId = project.AdditionalDocumentIds.Single();
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             project = project.RemoveAdditionalDocument(additionalDocumentId);
 
-            await AssertCompilationContainsGeneratedFilesAsync(project, expectedGeneratedContents: new string[] { });
+            await AssertCompilationContainsGeneratedFilesAsync(project, expectedGeneratedContents: []);
 
             static async Task AssertCompilationContainsGeneratedFilesAsync(Project project, params string[] expectedGeneratedContents)
             {

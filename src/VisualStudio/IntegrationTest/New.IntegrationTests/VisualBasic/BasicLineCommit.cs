@@ -103,7 +103,7 @@ End Module
             await TestServices.Input.SendAsync((VirtualKeyCode.VK_S, VirtualKeyCode.CONTROL), HangMitigatingCancellationToken);
 
             // Wait for async save operations to complete before proceeding
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace], HangMitigatingCancellationToken);
 
             await TestServices.SolutionExplorerVerifier.ActiveDocumentIsSavedAsync(HangMitigatingCancellationToken);
             Assert.True(await TestServices.Editor.IsSavedAsync(HangMitigatingCancellationToken));

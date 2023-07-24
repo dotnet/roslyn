@@ -41,7 +41,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             await base.InitializeAsync();
 
             await TestServices.SolutionExplorer.AddAnalyzerReferenceAsync(ProjectName, typeof(HelloWorldGenerator).Assembly.Location, HangMitigatingCancellationToken);
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.NavigateTo }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace, FeatureAttribute.NavigateTo], HangMitigatingCancellationToken);
         }
 
         [IdeFact]
@@ -114,8 +114,7 @@ internal static class Program
 
             Assert.Collection(
                 results,
-                new Action<ITableEntryHandle2>[]
-                {
+                [
                     reference =>
                     {
                         Assert.Equal(expected: "/// <summary><see cref=\"HelloWorld\" /> is a simple class to fetch the classic message.</summary>", actual: reference.GetText());
@@ -134,7 +133,7 @@ internal static class Program
                         Assert.Equal(expected: 5, actual: reference.GetLine());
                         Assert.Equal(expected: 26, actual: reference.GetColumn());
                     },
-                });
+                ]);
         }
 
         [IdeTheory, CombinatorialData]
@@ -166,7 +165,7 @@ internal static class Program
         {
             await TestServices.Shell.ShowNavigateToDialogAsync(HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendToNavigateToAsync(new InputKey[] { HelloWorldGenerator.GeneratedEnglishClassName, VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
+            await TestServices.Input.SendToNavigateToAsync([HelloWorldGenerator.GeneratedEnglishClassName, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
             await TestServices.Workarounds.WaitForNavigationAsync(HangMitigatingCancellationToken);
 
             Assert.Equal($"{HelloWorldGenerator.GeneratedEnglishClassName}.cs [generated]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
@@ -178,7 +177,7 @@ internal static class Program
         {
             await TestServices.Shell.ShowNavigateToDialogAsync(HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendToNavigateToAsync(new InputKey[] { HelloWorldGenerator.GeneratedFolderClassName, VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
+            await TestServices.Input.SendToNavigateToAsync([HelloWorldGenerator.GeneratedFolderClassName, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
             await TestServices.Workarounds.WaitForNavigationAsync(HangMitigatingCancellationToken);
 
             Assert.Equal($"{HelloWorldGenerator.GeneratedFolderName}/{HelloWorldGenerator.GeneratedFolderClassName}.cs [generated]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));

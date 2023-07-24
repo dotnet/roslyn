@@ -65,10 +65,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             var command = new LSP.ExecuteCommandParams
             {
                 Command = CodeActionsHandler.RunCodeActionCommandName,
-                Arguments = new object[]
-                {
+                Arguments = [
                     JToken.FromObject(codeActionData)
-                }
+                ]
             };
 
             var result = await testLspServer.ExecuteRequestAsync<LSP.ExecuteCommandParams, object>(

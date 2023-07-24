@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void BadPreProcessorSymbolsShouldProduceDiagnostics_EmptyString()
         {
-            var options = new CSharpParseOptions().WithPreprocessorSymbols(new[] { "" });
+            var options = new CSharpParseOptions().WithPreprocessorSymbols([""]);
 
             options.Errors.Verify(
                 // error CS8301: Invalid name for a preprocessing symbol; '' is not a valid identifier
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void BadPreProcessorSymbolsShouldProduceDiagnostics_WhiteSpaceString()
         {
-            var options = new CSharpParseOptions().WithPreprocessorSymbols(new[] { " " });
+            var options = new CSharpParseOptions().WithPreprocessorSymbols([" "]);
 
             options.Errors.Verify(
                 // error CS8301: Invalid name for a preprocessing symbol; ' ' is not a valid identifier
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void BadPreProcessorSymbolsShouldProduceDiagnostics_SymbolWithDots()
         {
-            var options = new CSharpParseOptions().WithPreprocessorSymbols(new[] { "Good", "Bad.Symbol" });
+            var options = new CSharpParseOptions().WithPreprocessorSymbols(["Good", "Bad.Symbol"]);
 
             options.Errors.Verify(
                 // error CS8301: Invalid name for a preprocessing symbol; 'Bad.Symbol' is not a valid identifier
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void BadPreProcessorSymbolsShouldProduceDiagnostics_SymbolWithSlashes()
         {
-            var options = new CSharpParseOptions().WithPreprocessorSymbols(new[] { "Good", "Bad\\Symbol" });
+            var options = new CSharpParseOptions().WithPreprocessorSymbols(["Good", "Bad\\Symbol"]);
 
             options.Errors.Verify(
                 // error CS8301: Invalid name for a preprocessing symbol; 'Bad\Symbol' is not a valid identifier
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void BadPreProcessorSymbolsShouldProduceDiagnostics_NullSymbol()
         {
-            var options = new CSharpParseOptions().WithPreprocessorSymbols(new[] { "Good", null });
+            var options = new CSharpParseOptions().WithPreprocessorSymbols(["Good", null]);
 
             options.Errors.Verify(
                 // error CS8301: Invalid name for a preprocessing symbol; 'null' is not a valid identifier

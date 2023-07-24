@@ -59,7 +59,7 @@ namespace Roslyn.Test.Utilities.Desktop
             Debug.Assert(!MonoHelpers.IsRunningOnMono());
 
             var getRuntimeInterfaceAsObject = typeof(RuntimeEnvironment).GetMethod("GetRuntimeInterfaceAsObject", BindingFlags.Public | BindingFlags.Static);
-            return getRuntimeInterfaceAsObject.Invoke(null, new object[] { clsid, riid });
+            return getRuntimeInterfaceAsObject.Invoke(null, [clsid, riid]);
         }
 
         /// <summary>

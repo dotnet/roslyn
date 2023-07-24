@@ -7395,7 +7395,7 @@ public class RubyTime
         public void UnaryIntrinsicSymbols1()
         {
             UnaryOperatorKind[] operators =
-            {
+            [
             UnaryOperatorKind.PostfixIncrement,
             UnaryOperatorKind.PostfixDecrement,
             UnaryOperatorKind.PrefixIncrement,
@@ -7404,13 +7404,13 @@ public class RubyTime
             UnaryOperatorKind.UnaryMinus,
             UnaryOperatorKind.LogicalNegation,
             UnaryOperatorKind.BitwiseComplement
-            };
+            ];
 
-            string[] opTokens = {"++","--","++","--",
-                                 "+","-","!","~"};
+            string[] opTokens = ["++","--","++","--",
+                                 "+","-","!","~"];
 
             string[] typeNames =
-                {
+                [
                 "System.Object",
                 "System.String",
                 "System.Double",
@@ -7432,7 +7432,7 @@ public class RubyTime
                 "System.Guid",
                 "dynamic",
                 "byte*"
-                };
+                ];
 
             var builder = new System.Text.StringBuilder();
             int n = 0;
@@ -7732,7 +7732,7 @@ class Module1
         public void BinaryIntrinsicSymbols1()
         {
             BinaryOperatorKind[] operators =
-                        {
+                        [
                         BinaryOperatorKind.Addition,
                         BinaryOperatorKind.Subtraction,
                         BinaryOperatorKind.Multiplication,
@@ -7752,9 +7752,9 @@ class Module1
                         BinaryOperatorKind.LogicalOr,
                         BinaryOperatorKind.LogicalAnd,
                         BinaryOperatorKind.UnsignedRightShift,
-                        };
+                        ];
 
-            string[] opTokens = {
+            string[] opTokens = [
                                  "+",
                                  "-",
                                  "*",
@@ -7773,10 +7773,10 @@ class Module1
                                  "&",
                                  "||",
                                  "&&",
-                                 ">>>"};
+                                 ">>>"];
 
             string[] typeNames =
-                            {
+                            [
                             "System.Object",
                             "System.String",
                             "System.Double",
@@ -7805,7 +7805,7 @@ class Module1
                             "dynamic",
                             "byte*",
                             "sbyte*"
-                            };
+                            ];
 
             var builder = new System.Text.StringBuilder();
             int n = 0;
@@ -7908,7 +7908,7 @@ class Module1
         public void BinaryIntrinsicSymbols2()
         {
             BinaryOperatorKind[] operators =
-                        {
+                        [
                         BinaryOperatorKind.Addition,
                         BinaryOperatorKind.Subtraction,
                         BinaryOperatorKind.Multiplication,
@@ -7920,9 +7920,9 @@ class Module1
                         BinaryOperatorKind.Or,
                         BinaryOperatorKind.And,
                         BinaryOperatorKind.UnsignedRightShift
-                        };
+                        ];
 
-            string[] opTokens = {
+            string[] opTokens = [
                                  "+=",
                                  "-=",
                                  "*=",
@@ -7933,10 +7933,10 @@ class Module1
                                  "^=",
                                  "|=",
                                  "&=",
-                                 ">>>="};
+                                 ">>>="];
 
             string[] typeNames =
-                            {
+                            [
                             "System.Object",
                             "System.String",
                             "System.Double",
@@ -7965,7 +7965,7 @@ class Module1
                             "dynamic",
                             "byte*",
                             "sbyte*"
-                            };
+                            ];
 
             var builder = new System.Text.StringBuilder();
             int n = 0;

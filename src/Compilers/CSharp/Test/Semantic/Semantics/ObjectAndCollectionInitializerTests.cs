@@ -3508,8 +3508,8 @@ class X : Base
             Assert.Null(symbolInfo.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
             Assert.Equal(2, symbolInfo.CandidateSymbols.Length);
-            Assert.Equal(new[] {"void X.Add(System.Collections.Generic.List<System.Byte> x)",
-                          "void X.Add(X x)"},
+            Assert.Equal(["void X.Add(System.Collections.Generic.List<System.Byte> x)",
+                          "void X.Add(X x)"],
                           symbolInfo.CandidateSymbols.Select(s => s.ToTestDisplayString()).Order().ToArray());
         }
 

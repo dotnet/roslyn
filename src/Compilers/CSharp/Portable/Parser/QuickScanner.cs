@@ -54,8 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         // PERF: Use byte instead of QuickScanState so the compiler can use array literal initialization.
         //       The most natural type choice, Enum arrays, are not blittable due to a CLR limitation.
-        private static readonly byte[,] s_stateTransitions = new byte[,]
-        {
+        private static readonly byte[,] s_stateTransitions = [
             // Initial
             {
                 (byte)QuickScanState.Initial,             // White
@@ -190,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 (byte)QuickScanState.Done,                // Complex
                 (byte)QuickScanState.Done,                // EndOfFile
             },
-        };
+        ];
 
         private SyntaxToken? QuickScanSyntaxToken()
         {

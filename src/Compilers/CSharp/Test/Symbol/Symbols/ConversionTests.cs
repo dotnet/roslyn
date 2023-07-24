@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             const ConversionKind Xnm = ConversionKind.ExplicitNumeric;
 
             ConversionKind[,] conversions =
-            {
+            [
                 // from   obj  str  arr  i64  u64  i32  u32  i16  u16  i08  u08  r64  r32  dec  chr ni64 nu64 ni32 nu32 ni16 nu16  ni8  nu8 nr64 nr32  ndc  nch  exc  ien  ieo  ies  iec  ars  aro  ils  ilo  aex  del  fee  fao  ser  cmp
                 // to:    
                 /*obj*/ { Idn, Irf, Irf, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf },
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                         { Xrf, Non, Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Irf, Xrf, Xrf, Xrf, Xrf, Non, Non, Xrf, Xrf, Irf, Irf, Irf, Irf, Idn, Xrf },
                 /*cmp*/
                         { Xrf, Irf, Xrf, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Xrf, Xrf, Xrf, Xrf, Xrf, Non, Non, Xrf, Xrf, Xrf, Xrf, Non, Non, Xrf, Idn },
-            };
+            ];
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 

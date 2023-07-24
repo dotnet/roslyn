@@ -122,7 +122,7 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
                 Command = new LSP.Command
                 {
                     CommandIdentifier = RunTestsCommandIdentifier,
-                    Arguments = new object[] { new RunTestsParams(textDocumentIdentifier, range) },
+                    Arguments = [new RunTestsParams(textDocumentIdentifier, range)],
                     Title = FeaturesResources.Run_Test
                 }
             };
@@ -140,7 +140,7 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
                 Command = new LSP.Command
                 {
                     CommandIdentifier = RunTestsCommandIdentifier,
-                    Arguments = new object[] { new RunTestsParams(textDocumentIdentifier, range) },
+                    Arguments = [new RunTestsParams(textDocumentIdentifier, range)],
                     Title = FeaturesResources.Run_All_Tests
                 }
             };

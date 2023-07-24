@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessarySuppre
         {
             public static readonly DiagnosticDescriptor Descriptor =
                 new DiagnosticDescriptor("CompilationEndId", "Title", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true,
-                    customTags: new[] { WellKnownDiagnosticTags.CompilationEnd });
+                    customTags: [WellKnownDiagnosticTags.CompilationEnd]);
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
             public override void Initialize(AnalysisContext context)
                 => context.RegisterCompilationStartAction(context => context.RegisterCompilationEndAction(_ => { }));

@@ -1032,7 +1032,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var cache = _F.Local(_F.SynthesizedLocal(receiverType));
                     receiverBuilder.AddLocal(cache.LocalSymbol);
-                    receiverBuilder.AddStatement(_F.ExpressionStatement(new BoundComplexConditionalReceiver(node.Syntax, cache, _F.Sequence(new[] { _F.AssignmentExpression(cache, receiver) }, cache), receiverType) { WasCompilerGenerated = true }));
+                    receiverBuilder.AddStatement(_F.ExpressionStatement(new BoundComplexConditionalReceiver(node.Syntax, cache, _F.Sequence([_F.AssignmentExpression(cache, receiver)], cache), receiverType) { WasCompilerGenerated = true }));
 
                     receiver = _F.ComplexConditionalReceiver(receiver, cache);
                     _F.Syntax = save_Syntax;

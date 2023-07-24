@@ -399,7 +399,7 @@ class C
             var errorLogDir = Temp.CreateDirectory();
             var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
 
-            string[] arguments = new[] { "/nologo", "/t:library", "/nowarn:ID1", "/nowarn:ID2", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}" };
+            string[] arguments = ["/nologo", "/t:library", "/nowarn:ID1", "/nowarn:ID2", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}"];
 
             var cmd = CreateCSharpCompiler(null, WorkingDirectory, arguments,
                analyzers: new[] { new AnalyzerForErrorLogTest() });
@@ -446,7 +446,7 @@ class C
                 hasAnalyzers: true,
                 AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(
                     cmd.DescriptorsWithInfo, CultureInfo.InvariantCulture,
-                    suppressionKinds1: new[] { "external" }, suppressionKinds2: new[] { "external" }));
+                    suppressionKinds1: ["external"], suppressionKinds2: ["external"]));
 
             Assert.Equal(expectedOutput, actualOutput);
 
@@ -478,7 +478,7 @@ dotnet_diagnostic.ID1.severity = none
             var errorLogDir = Temp.CreateDirectory();
             var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
 
-            string[] arguments = new[] { "/nologo", "/t:library", sourceFile1, sourceFile2, $"/analyzerconfig:{editorconfigFile}", "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}" };
+            string[] arguments = ["/nologo", "/t:library", sourceFile1, sourceFile2, $"/analyzerconfig:{editorconfigFile}", "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}"];
 
             var cmd = CreateCSharpCompiler(null, WorkingDirectory, arguments,
                analyzers: new[] { new AnalyzerForErrorLogTest() });
@@ -523,7 +523,7 @@ dotnet_diagnostic.ID1.severity = none
                 cmd,
                 hasAnalyzers: true,
                 AnalyzerForErrorLogTest.GetExpectedV2ErrorLogWithSuppressionResultsText(cmd.Compilation, "Justification1", suppressionType: "SuppressMessageAttribute"),
-                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(cmd.DescriptorsWithInfo, CultureInfo.InvariantCulture, suppressionKinds1: new[] { "external", "inSource" }));
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(cmd.DescriptorsWithInfo, CultureInfo.InvariantCulture, suppressionKinds1: ["external", "inSource"]));
 
             Assert.Equal(expectedOutput, actualOutput);
 
@@ -544,10 +544,10 @@ class C
             var errorLogDir = Temp.CreateDirectory();
             var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
 
-            string[] arguments = new[] { "/nologo", "/t:library", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}" };
+            string[] arguments = ["/nologo", "/t:library", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}"];
 
             var cmd = CreateCSharpCompiler(null, WorkingDirectory, arguments,
-               analyzers: new DiagnosticAnalyzer[] { new AnalyzerForErrorLogTest(), new SuppressorForErrorLogTest() });
+               analyzers: [new AnalyzerForErrorLogTest(), new SuppressorForErrorLogTest()]);
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
             var exitCode = cmd.Run(outWriter);
@@ -591,7 +591,7 @@ class C
                 AnalyzerForErrorLogTest.GetExpectedV2ErrorLogWithSuppressionResultsText(cmd.Compilation,
                     null,
                     suppressionType: $"DiagnosticSuppressor {{ Suppression Id: {SuppressorForErrorLogTest.Descriptor1.Id}, Suppression Justification: {SuppressorForErrorLogTest.Descriptor1.Justification} }}"),
-                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(cmd.DescriptorsWithInfo, CultureInfo.InvariantCulture, suppressionKinds1: new[] { "inSource" }));
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(cmd.DescriptorsWithInfo, CultureInfo.InvariantCulture, suppressionKinds1: ["inSource"]));
 
             Assert.Equal(expectedOutput, actualOutput);
 

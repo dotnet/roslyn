@@ -84,19 +84,19 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             builder.AddRange(new int[0], 0, 0);
             AssertEx.Equal(new int[0], builder.ToArray());
 
-            builder.AddRange(new[] { 1, 2, 3 }, 0, 3);
+            builder.AddRange([1, 2, 3], 0, 3);
             AssertEx.Equal(new[] { 1, 2, 3 }, builder.ToArray());
 
-            builder.AddRange(new[] { 1, 2, 3 }, 2, 0);
+            builder.AddRange([1, 2, 3], 2, 0);
             AssertEx.Equal(new[] { 1, 2, 3 }, builder.ToArray());
 
-            builder.AddRange(new[] { 1, 2, 3 }, 1, 1);
+            builder.AddRange([1, 2, 3], 1, 1);
             AssertEx.Equal(new[] { 1, 2, 3, 2 }, builder.ToArray());
 
-            builder.AddRange(new[] { 1, 2, 3 }, 1, 2);
+            builder.AddRange([1, 2, 3], 1, 2);
             AssertEx.Equal(new[] { 1, 2, 3, 2, 2, 3 }, builder.ToArray());
 
-            builder.AddRange(new[] { 1, 2, 3 }, 2, 1);
+            builder.AddRange([1, 2, 3], 2, 1);
             AssertEx.Equal(new[] { 1, 2, 3, 2, 2, 3, 3 }, builder.ToArray());
         }
     }

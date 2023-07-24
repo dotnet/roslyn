@@ -97,7 +97,7 @@ class Program
 
     }
 }", HangMitigatingCancellationToken);
-                await telemetry.VerifyFiredAsync(new[] { "vs/ide/vbcs/rename/inlinesession/session", "vs/ide/vbcs/rename/commitcore" }, HangMitigatingCancellationToken);
+                await telemetry.VerifyFiredAsync(["vs/ide/vbcs/rename/inlinesession/session", "vs/ide/vbcs/rename/commitcore"], HangMitigatingCancellationToken);
             }
         }
 

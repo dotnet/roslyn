@@ -55,8 +55,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 """;
 
             var sources = extraSource is null 
-                ? new[] { CSharpTestSource.Parse(source) }
-                : new[] { CSharpTestSource.Parse(source), CSharpTestSource.Parse(extraSource) };
+                ? [CSharpTestSource.Parse(source)]
+                : [CSharpTestSource.Parse(source), CSharpTestSource.Parse(extraSource)];
 
             var options = new CSharpCompilationOptions(
                 OutputKind.DynamicallyLinkedLibrary,

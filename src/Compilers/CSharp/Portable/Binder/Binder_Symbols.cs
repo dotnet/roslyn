@@ -2024,10 +2024,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                     // '{0}' is an ambiguous reference between '{1}' and '{2}'
                                     info = new CSDiagnosticInfo(ErrorCode.ERR_AmbigContext, originalSymbols,
-                                        new object[] {
+                                        [
                                         (where as NameSyntax)?.ErrorDisplayName() ?? simpleName,
                                         new FormattedSymbol(first, SymbolDisplayFormat.CSharpErrorMessageFormat),
-                                        new FormattedSymbol(second, SymbolDisplayFormat.CSharpErrorMessageFormat) });
+                                        new FormattedSymbol(second, SymbolDisplayFormat.CSharpErrorMessageFormat) ]);
                                 }
                                 else
                                 {
@@ -2035,7 +2035,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                     // ErrorCode.ERR_SameFullNameAggAgg: The type '{1}' exists in both '{0}' and '{2}'
                                     info = new CSDiagnosticInfo(ErrorCode.ERR_SameFullNameAggAgg, originalSymbols,
-                                        new object[] { first.ContainingAssembly, first, second.ContainingAssembly });
+                                        [first.ContainingAssembly, first, second.ContainingAssembly]);
 
                                     // Do not report this error if the first is declared in source and the second is declared in added module,
                                     // we already reported declaration error about this name collision.
@@ -2060,7 +2060,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 // ErrorCode.ERR_SameFullNameNsAgg: The namespace '{1}' in '{0}' conflicts with the type '{3}' in '{2}'
                                 info = new CSDiagnosticInfo(ErrorCode.ERR_SameFullNameNsAgg, originalSymbols,
-                                    new object[] { GetContainingAssembly(first), first, second.ContainingAssembly, second });
+                                    [GetContainingAssembly(first), first, second.ContainingAssembly, second]);
 
                                 // Do not report this error if namespace is declared in source and the type is declared in added module,
                                 // we already reported declaration error about this name collision.
@@ -2075,7 +2075,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     // ErrorCode.ERR_SameFullNameNsAgg: The namespace '{1}' in '{0}' conflicts with the type '{3}' in '{2}'
                                     info = new CSDiagnosticInfo(ErrorCode.ERR_SameFullNameNsAgg, originalSymbols,
-                                        new object[] { GetContainingAssembly(second), second, first.ContainingAssembly, first });
+                                        [GetContainingAssembly(second), second, first.ContainingAssembly, first]);
                                 }
                                 else
                                 {
@@ -2117,14 +2117,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     Debug.Assert(arg2.ContainingAssembly == Compilation.Assembly);
 
                                     info = new CSDiagnosticInfo(ErrorCode.ERR_SameFullNameThisAggThisNs, originalSymbols,
-                                        new object[] { arg0, first, arg2, second });
+                                        [arg0, first, arg2, second]);
                                 }
                             }
                             else if (first.Kind == SymbolKind.RangeVariable && second.Kind == SymbolKind.RangeVariable)
                             {
                                 // We will already have reported a conflicting range variable declaration.
                                 info = new CSDiagnosticInfo(ErrorCode.ERR_AmbigMember, originalSymbols,
-                                    new object[] { first, second });
+                                    [first, second]);
                             }
                             else
                             {
@@ -2138,7 +2138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                 // CS0229: Ambiguity between '{0}' and '{1}'
                                 info = new CSDiagnosticInfo(ErrorCode.ERR_AmbigMember, originalSymbols,
-                                    new object[] { first, second });
+                                    [first, second]);
 
                                 reportError = true;
                             }
@@ -2164,23 +2164,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     //  SPEC:   is present, and a compile-time error results.
 
                                     info = new CSDiagnosticInfo(ErrorCode.ERR_AmbiguousAttribute, originalSymbols,
-                                        new object[] { (where as NameSyntax)?.ErrorDisplayName() ?? simpleName, first, second });
+                                        [(where as NameSyntax)?.ErrorDisplayName() ?? simpleName, first, second]);
                                 }
                                 else
                                 {
                                     // '{0}' is an ambiguous reference between '{1}' and '{2}'
                                     info = new CSDiagnosticInfo(ErrorCode.ERR_AmbigContext, originalSymbols,
-                                        new object[] {
+                                        [
                                         (where as NameSyntax)?.ErrorDisplayName() ?? simpleName,
                                         new FormattedSymbol(first, SymbolDisplayFormat.CSharpErrorMessageFormat),
-                                        new FormattedSymbol(second, SymbolDisplayFormat.CSharpErrorMessageFormat) });
+                                        new FormattedSymbol(second, SymbolDisplayFormat.CSharpErrorMessageFormat) ]);
                                 }
                             }
                             else
                             {
                                 // CS0229: Ambiguity between '{0}' and '{1}'
                                 info = new CSDiagnosticInfo(ErrorCode.ERR_AmbigMember, originalSymbols,
-                                    new object[] { first, second });
+                                    [first, second]);
                             }
                         }
 

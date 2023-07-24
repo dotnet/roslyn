@@ -10,13 +10,12 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle
 {
     internal class CodeStyleSeverityViewModel
     {
-        private static readonly string[] s_severities = new[]
-        {
+        private static readonly string[] s_severities = [
             ServicesVSResources.Disabled,
             ServicesVSResources.Suggestion,
             ServicesVSResources.Warning,
             ServicesVSResources.Error
-        };
+        ];
 
         private readonly int _selectedSeverityIndex;
 

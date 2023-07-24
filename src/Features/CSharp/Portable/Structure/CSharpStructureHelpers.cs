@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         public const string Ellipsis = "...";
         public const string MultiLineCommentSuffix = "*/";
         public const int MaxXmlDocCommentBannerLength = 120;
-        private static readonly char[] s_newLineCharacters = new char[] { '\r', '\n' };
+        private static readonly char[] s_newLineCharacters = ['\r', '\n'];
 
         private static int GetCollapsibleStart(SyntaxToken firstToken)
         {

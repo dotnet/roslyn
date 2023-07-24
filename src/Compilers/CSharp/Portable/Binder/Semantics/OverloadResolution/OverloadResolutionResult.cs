@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(firstSupported.Result.Kind == MemberResolutionKind.WrongCallingConvention);
             diagnostics.Add(new DiagnosticInfoWithSymbols(
                 ErrorCode.ERR_WrongFuncPtrCallingConvention,
-                new object[] { firstSupported.Member, target.CallingConvention },
+                [firstSupported.Member, target.CallingConvention],
                 symbols), location);
         }
 
@@ -610,7 +610,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // error CS0122: 'M<X>(I<X>)' is inaccessible due to its protection level
             diagnostics.Add(new DiagnosticInfoWithSymbols(
                 ErrorCode.ERR_BadAccess,
-                new object[] { inaccessible.Member },
+                [inaccessible.Member],
                 symbols), location);
             return true;
         }
@@ -665,7 +665,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // error CS0120: An object reference is required for the non-static field, method, or property 'Program.M(B)'
                     diagnostics.Add(new DiagnosticInfoWithSymbols(
                         errorCode,
-                        new object[] { symbol },
+                        [symbol],
                         symbols), location);
                 }
             }
@@ -735,7 +735,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // from the usage. Try specifying the type arguments explicitly.
                     diagnostics.Add(new DiagnosticInfoWithSymbols(
                         ErrorCode.ERR_CantInferMethTypeArgs,
-                        new object[] { inferenceFailed.Member },
+                        [inferenceFailed.Member],
                         symbols), location);
                 }
 
@@ -755,7 +755,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     diagnostics.Add(new DiagnosticInfoWithSymbols(
                         ErrorCode.ERR_NoSuchMemberOrExtension,
-                        new object[] { instanceArgument.Type, inferenceFailed.Member.Name },
+                        [instanceArgument.Type, inferenceFailed.Member.Name],
                         symbols), location);
                 }
 
@@ -781,7 +781,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Named argument 'x' specifies a parameter for which a positional argument has already been given
             diagnostics.Add(new DiagnosticInfoWithSymbols(
                 ErrorCode.ERR_NamedArgumentUsedInPositional,
-                new object[] { badName },
+                [badName],
                 symbols), location);
         }
 
@@ -801,7 +801,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Named argument 'x' is used out-of-position but is followed by an unnamed argument.
             diagnostics.Add(new DiagnosticInfoWithSymbols(
                 ErrorCode.ERR_BadNonTrailingNamedArgument,
-                new object[] { badName },
+                [badName],
                 symbols), location);
         }
 
@@ -849,7 +849,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             diagnostics.Add(new DiagnosticInfoWithSymbols(
                 code,
-                new object[] { obj, badName },
+                [obj, badName],
                 symbols), location);
         }
 
@@ -894,7 +894,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             diagnostics.Add(new DiagnosticInfoWithSymbols(
                 ErrorCode.ERR_NoCorrespondingArgument,
-                new object[] { badParamName, obj },
+                [badParamName, obj],
                 symbols), location);
         }
 
@@ -932,7 +932,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             diagnostics.Add(new DiagnosticInfoWithSymbols(
                 code,
-                new object[] { target, argCount },
+                [target, argCount],
                 symbols), location);
 
             return;
@@ -1436,16 +1436,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static DiagnosticInfoWithSymbols CreateAmbiguousCallDiagnosticInfo(Symbol first, Symbol second, ImmutableArray<Symbol> symbols)
         {
             var arguments = (first.ContainingNamespace != second.ContainingNamespace) ?
-                new object[]
-                    {
+                [
                             new FormattedSymbol(first, SymbolDisplayFormat.CSharpErrorMessageFormat),
                             new FormattedSymbol(second, SymbolDisplayFormat.CSharpErrorMessageFormat)
-                    } :
-                new object[]
-                    {
+                    ] :
+                [
                             first,
                             second
-                    };
+                    ];
             return new DiagnosticInfoWithSymbols(ErrorCode.ERR_AmbigCall, arguments, symbols);
         }
 

@@ -24,10 +24,9 @@ class C
         x = 0;
     }
 }";
-            CompileAndVerify(source, expectedSignatures: new[]
-            {
+            CompileAndVerify(source, expectedSignatures: [
                 Signature("C", "M", ".method private hidebysig instance System.Void M([out] System.Int32& x) cil managed")
-            });
+            ]);
         }
 
         [Fact]
@@ -40,10 +39,9 @@ class C
     {
     }
 }";
-            CompileAndVerify(source, expectedSignatures: new[]
-            {
+            CompileAndVerify(source, expectedSignatures: [
                 Signature("C", "M", ".method private hidebysig instance System.Void M(System.Int32& x) cil managed")
-            });
+            ]);
         }
 
         [Fact]

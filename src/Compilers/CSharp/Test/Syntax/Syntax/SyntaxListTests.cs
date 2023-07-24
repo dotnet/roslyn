@@ -239,11 +239,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(declaration.AttributeLists.Count == 0);
             Assert.True(declaration.Modifiers.Count == 0);
 
-            declaration = declaration.AddAttributeLists(new[]
-            {
+            declaration = declaration.AddAttributeLists([
                 SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(
                     SyntaxFactory.Attribute(SyntaxFactory.ParseName("Attr")))),
-            });
+            ]);
 
             Assert.True(declaration.AttributeLists.Count == 1);
             Assert.True(declaration.Modifiers.Count == 0);

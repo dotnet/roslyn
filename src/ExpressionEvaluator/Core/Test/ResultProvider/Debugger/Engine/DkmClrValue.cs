@@ -339,7 +339,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                             // we'll return error if there wasn't at least an open paren...
                             if ((openParenIndex >= 0) && method != null)
                             {
-                                var methodValue = method.Invoke(RawValue, new object[] { });
+                                var methodValue = method.Invoke(RawValue, []);
                                 exprValue = new DkmClrValue(
                                     methodValue,
                                     methodValue,
@@ -634,7 +634,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                 BindingFlags.NonPublic |
                 BindingFlags.Public;
             var constructor = lmrType.GetConstructors(bindingFlags).Single();
-            var value = constructor.Invoke(bindingFlags, null, new[] { RawValue }, null);
+            var value = constructor.Invoke(bindingFlags, null, [RawValue], null);
             return new DkmClrValue(
                 value,
                 value,

@@ -595,12 +595,11 @@ IInvalidOperation (OperationKind.Invalid, Type: System.String, IsInvalid) (Synta
       ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: """") (Syntax: '""""')
       ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: """") (Syntax: '""""')
 ";
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics: new DiagnosticDescription[]
-            {
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics: [
                 // file.cs(6,45): error CS1740: Named argument 'format' cannot be specified multiple times
                 //         /*<bind>*/string.Format(format: "", format: "")/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "format").WithArguments("format").WithLocation(6, 45)
-            });
+            ]);
         }
 
         [Fact]
@@ -627,12 +626,11 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax:
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
 ";
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics: new DiagnosticDescription[]
-            {
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics: [
                 // file.cs(10,27): error CS1740: Named argument 'a' cannot be specified multiple times
                 //         /*<bind>*/N(a: 1, a: 2)/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "a").WithArguments("a").WithLocation(10, 27)
-            });
+            ]);
         }
 
         [Fact]
@@ -657,12 +655,11 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax:
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
 ";
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics: new DiagnosticDescription[]
-            {
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics: [
                 // file.cs(7,32): error CS1740: Named argument 'a' cannot be specified multiple times
                 //         /*<bind>*/lambda(a: 1, a: 2, b: 3)/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "a").WithArguments("a").WithLocation(7, 32)
-            });
+            ]);
         }
 
         [Fact]
@@ -691,12 +688,11 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid) (Syntax
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
 ";
-            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics: new DiagnosticDescription[]
-            {
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics: [
                 // file.cs(11,43): error CS1740: Named argument 'a' cannot be specified multiple times
                 //         var result = /*<bind>*/this[a: 1, a: 2, b: 3]/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "a").WithArguments("a").WithLocation(11, 43)
-            });
+            ]);
         }
 
         [Fact]
@@ -725,12 +721,11 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid) (Syntax
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
 ";
-            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics: new DiagnosticDescription[]
-            {
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics: [
                 // file.cs(11,30): error CS1740: Named argument 'a' cannot be specified multiple times
                 //         /*<bind>*/this[a: 1, a: 2, b: 3]/*</bind>*/ = 0;
                 Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "a").WithArguments("a").WithLocation(11, 30)
-            });
+            ]);
         }
 
         [Fact]
@@ -757,12 +752,11 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax:
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
 ";
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics: new DiagnosticDescription[]
-            {
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics: [
                 // file.cs(10,33): error CS1740: Named argument 'a' cannot be specified multiple times
                 //         /*<bind>*/N(b: 1, a: 2, a: 3)/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "a").WithArguments("a").WithLocation(10, 33)
-            });
+            ]);
         }
 
         [Fact]
@@ -787,12 +781,11 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax:
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
 ";
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics: new DiagnosticDescription[]
-            {
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics: [
                 // file.cs(7,38): error CS1740: Named argument 'a' cannot be specified multiple times
                 //         /*<bind>*/lambda(b: 1, a: 2, a: 3)/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "a").WithArguments("a").WithLocation(7, 38)
-            });
+            ]);
         }
 
         [Fact]
@@ -821,12 +814,11 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid) (Syntax
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
 ";
-            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics: new DiagnosticDescription[]
-            {
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics: [
                 // file.cs(11,49): error CS1740: Named argument 'a' cannot be specified multiple times
                 //         var result = /*<bind>*/this[b: 1, a: 2, a: 3]/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "a").WithArguments("a").WithLocation(11, 49)
-            });
+            ]);
         }
 
         [Fact]
@@ -855,12 +847,11 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid) (Syntax
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
 ";
-            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics: new DiagnosticDescription[]
-            {
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics: [
                 // file.cs(11,36): error CS1740: Named argument 'a' cannot be specified multiple times
                 //         /*<bind>*/this[b: 1, a: 2, a: 3]/*</bind>*/ = 0;
                 Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "a").WithArguments("a").WithLocation(11, 36)
-            });
+            ]);
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]

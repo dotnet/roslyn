@@ -19004,7 +19004,7 @@ public class C
         [Fact]
         public void CS3013WRN_CLS_ModuleMissingCLS()
         {
-            var netModule = CreateEmptyCompilation("", options: TestOptions.ReleaseModule, assemblyName: "lib").EmitToImageReference(expectedWarnings: new[] { Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion) });
+            var netModule = CreateEmptyCompilation("", options: TestOptions.ReleaseModule, assemblyName: "lib").EmitToImageReference(expectedWarnings: [Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion)]);
             CreateCompilation("[assembly: System.CLSCompliant(true)]", new[] { netModule }).VerifyDiagnostics(
                 // lib.netmodule: warning CS3013: Added modules must be marked with the CLSCompliant attribute to match the assembly
                 Diagnostic(ErrorCode.WRN_CLS_ModuleMissingCLS));

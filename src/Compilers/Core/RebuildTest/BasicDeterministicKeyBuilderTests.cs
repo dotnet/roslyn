@@ -111,11 +111,10 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 path: "file.vb");
 
             var options = BasicOptions
-                .WithGlobalImports(new[]
-                {
+                .WithGlobalImports([
                     GlobalImport.Parse(@"<xmlns:xmlNamespacePrefix = ""xmlNamespaceName"">"),
                     GlobalImport.Parse("System.Xml")
-                });
+                ]);
             var compilation = VisualBasicCompilation.Create(
                 "test",
                 new[] { syntaxTree },

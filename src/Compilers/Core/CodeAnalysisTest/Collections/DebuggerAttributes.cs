@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             // Get the text of the DebuggerDisplayAttribute
             string attrText = (string?)cad.ConstructorArguments[0].Value ?? throw new InvalidOperationException("Expected a non-null text");
 
-            var segments = attrText.Split(new[] { '{', '}' });
+            var segments = attrText.Split(['{', '}']);
 
             if (segments.Length % 2 == 0)
             {

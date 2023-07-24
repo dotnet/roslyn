@@ -921,15 +921,15 @@ dotnet_diagnostic.cs000.severity = none
 dotnet_diagnostic.cs000.severity = error", "/.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
-                new[] { "/test.cs", "/test.vb", "/test" },
+                ["/test.cs", "/test.vb", "/test"],
                 configs);
             configs.Free();
 
-            Assert.Equal(new[] {
+            Assert.Equal([
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Suppress)),
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Error)),
                 SyntaxTree.EmptyDiagnosticOptions
-            }, options.Select(o => o.TreeOptions).ToArray());
+            ], options.Select(o => o.TreeOptions).ToArray());
         }
 
         [Fact]
@@ -944,15 +944,15 @@ dotnet_diagnostic.cs000.severity = none
 dotnet_diagnostic.cs000.severity = error", "/.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
-                new[] { "/test.cs", "/test.vb", "/test" },
+                ["/test.cs", "/test.vb", "/test"],
                 configs);
             configs.Free();
 
-            Assert.Equal(new[] {
+            Assert.Equal([
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Error)),
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Error)),
                 SyntaxTree.EmptyDiagnosticOptions
-            }, options.Select(o => o.TreeOptions).ToArray());
+            ], options.Select(o => o.TreeOptions).ToArray());
         }
 
         [Fact]
@@ -971,15 +971,15 @@ dotnet_diagnostic.cs000.severity = suggestion"
 , "/.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
-                new[] { "/test.cs", "/test.vb", "/test" },
+                ["/test.cs", "/test.vb", "/test"],
                 configs);
             configs.Free();
 
-            Assert.Equal(new[] {
+            Assert.Equal([
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Suppress)),
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Error)),
                 SyntaxTree.EmptyDiagnosticOptions
-            }, options.Select(o => o.TreeOptions).ToArray());
+            ], options.Select(o => o.TreeOptions).ToArray());
         }
 
         [Fact]
@@ -992,16 +992,15 @@ dotnet_diagnostic.cs000.severity = none
 dotnet_diagnostic.cs001.severity = suggestion", "/.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
-                new[] { "/test.cs" },
+                ["/test.cs"],
                 configs);
             configs.Free();
 
-            Assert.Equal(new[]
-            {
+            Assert.Equal([
                 CreateImmutableDictionary(
                     ("cs000", ReportDiagnostic.Suppress),
                     ("cs001", ReportDiagnostic.Info)),
-            }, options.Select(o => o.TreeOptions).ToArray());
+            ], options.Select(o => o.TreeOptions).ToArray());
         }
 
         [Fact]
@@ -1014,16 +1013,15 @@ dotnet_diagnostic.cs000.severity = silent
 dotnet_diagnostic.cs001.severity = refactoring", "/.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
-                new[] { "/test.cs" },
+                ["/test.cs"],
                 configs);
             configs.Free();
 
-            Assert.Equal(new[]
-            {
+            Assert.Equal([
                 CreateImmutableDictionary(
                     ("cs000", ReportDiagnostic.Hidden),
                     ("cs001", ReportDiagnostic.Hidden)),
-            }, options.Select(o => o.TreeOptions).ToArray());
+            ], options.Select(o => o.TreeOptions).ToArray());
         }
 
         [Fact]
@@ -1038,16 +1036,15 @@ dotnet_diagnostic.cs000.severity = none
 dotnet_diagnostic.cs001.severity = suggestion", "/.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
-                new[] { "/test.cs" },
+                ["/test.cs"],
                 configs);
             configs.Free();
 
-            Assert.Equal(new[]
-            {
+            Assert.Equal([
                 CreateImmutableDictionary(
                     ("cs000", ReportDiagnostic.Suppress),
                     ("cs001", ReportDiagnostic.Info))
-            }, options.Select(o => o.TreeOptions).ToArray());
+            ], options.Select(o => o.TreeOptions).ToArray());
         }
 
         [Fact]
@@ -1068,19 +1065,18 @@ dotnet_diagnostic.cs000.severity = warning
 dotnet_diagnostic.cs001.severity = error", "/subdir/.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
-                new[] { "/subdir/test.cs", "/subdir/test.vb" },
+                ["/subdir/test.cs", "/subdir/test.vb"],
                 configs);
             configs.Free();
 
-            Assert.Equal(new[]
-            {
+            Assert.Equal([
                 CreateImmutableDictionary(
                     ("cs000", ReportDiagnostic.Warn),
                     ("cs001", ReportDiagnostic.Error)),
                 CreateImmutableDictionary(
                     ("cs000", ReportDiagnostic.Warn),
                     ("cs001", ReportDiagnostic.Info))
-            }, options.Select(o => o.TreeOptions).ToArray());
+            ], options.Select(o => o.TreeOptions).ToArray());
         }
 
         [Fact]
@@ -1098,12 +1094,11 @@ dotnet_diagnostic.cs001.severity = suggestion", "/.editorconfig"));
 dotnet_diagnostic.cs001.severity = error", "/subdir/.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
-                new[] { "/test.cs", "/subdir/test.cs", "/subdir/test.vb" },
+                ["/test.cs", "/subdir/test.cs", "/subdir/test.vb"],
                 configs);
             configs.Free();
 
-            Assert.Equal(new[]
-            {
+            Assert.Equal([
                 CreateImmutableDictionary(
                     ("cs001", ReportDiagnostic.Info)),
                 CreateImmutableDictionary(
@@ -1111,7 +1106,7 @@ dotnet_diagnostic.cs001.severity = error", "/subdir/.editorconfig"));
                     ("cs001", ReportDiagnostic.Error)),
                 CreateImmutableDictionary(
                     ("cs000", ReportDiagnostic.Suppress))
-            }, options.Select(o => o.TreeOptions).ToArray());
+            ], options.Select(o => o.TreeOptions).ToArray());
         }
 
         [ConditionalFact(typeof(WindowsOnly))]
@@ -1123,15 +1118,14 @@ dotnet_diagnostic.cs001.severity = error", "/subdir/.editorconfig"));
 dotnet_diagnostic.cs000.severity = none", "Z:\\.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
-                new[] { "Z:\\test.cs" },
+                ["Z:\\test.cs"],
                 configs);
             configs.Free();
 
-            Assert.Equal(new[]
-            {
+            Assert.Equal([
                 CreateImmutableDictionary(
                     ("cs000", ReportDiagnostic.Suppress))
-            }, options.Select(o => o.TreeOptions).ToArray());
+            ], options.Select(o => o.TreeOptions).ToArray());
         }
 
         #endregion
@@ -1199,15 +1193,15 @@ dotnet_diagnostic.cs000.severity = none", "Z:\\.editorconfig"));
 dotnet_diagnostic.cs000.some_key = some_val", "/.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
-                new[] { "/test.cs", "/test.vb" },
+                ["/test.cs", "/test.vb"],
                 configs);
             configs.Free();
 
             VerifyAnalyzerOptions(
-                new[] {
-                    new[] { ("dotnet_diagnostic.cs000.some_key", "some_val") },
-                    new (string, string) [] { }
-                },
+                [
+                    [("dotnet_diagnostic.cs000.some_key", "some_val")],
+                    []
+                ],
                 options);
         }
 
@@ -1225,16 +1219,16 @@ root = true
 dotnet_diagnostic.cs000.some_key = some_val", "/src/.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
-                new[] { "/src/test.cs", "/src/test.vb", "/root.cs" },
+                ["/src/test.cs", "/src/test.vb", "/root.cs"],
                 configs);
             configs.Free();
 
             VerifyAnalyzerOptions(
-                new[] {
-                    new[] { ("dotnet_diagnostic.cs000.some_key", "some_val") },
-                    new (string, string) [] { },
-                    new[] { ("dotnet_diagnostic.cs000.bad_key", "bad_val") }
-               },
+                [
+                    [("dotnet_diagnostic.cs000.some_key", "some_val")],
+                    [],
+                    [("dotnet_diagnostic.cs000.bad_key", "bad_val")]
+               ],
                 options);
         }
 
@@ -1250,16 +1244,16 @@ dotnet_diagnostic.cs000.some_key = a_val", "/.editorconfig"));
 dotnet_diagnostic.cs000.some_key = b_val", "/src/.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
-                new[] { "/src/test.cs", "/src/test.vb", "/root.cs" },
+                ["/src/test.cs", "/src/test.vb", "/root.cs"],
                 configs);
             configs.Free();
 
             VerifyAnalyzerOptions(
-                new[] {
-                    new[] { ("dotnet_diagnostic.cs000.some_key", "b_val") },
-                    new[] { ("dotnet_diagnostic.cs000.some_key", "b_val") },
-                    new[] { ("dotnet_diagnostic.cs000.some_key", "a_val") }
-               },
+                [
+                    [("dotnet_diagnostic.cs000.some_key", "b_val")],
+                    [("dotnet_diagnostic.cs000.some_key", "b_val")],
+                    [("dotnet_diagnostic.cs000.some_key", "a_val")]
+               ],
                 options);
         }
 
@@ -1278,16 +1272,16 @@ dotnet_diagnostic.cs000.some_key = b_val
 dotnet_diagnostic.cs000.some_key = c_val", "/src/.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
-                new[] { "/src/test.cs", "/src/test.vb", "/root.cs" },
+                ["/src/test.cs", "/src/test.vb", "/root.cs"],
                 configs);
             configs.Free();
 
             VerifyAnalyzerOptions(
-                new[] {
-                    new[] { ("dotnet_diagnostic.cs000.some_key", "c_val") },
-                    new[] { ("dotnet_diagnostic.cs000.some_key", "b_val") },
-                    new[] { ("dotnet_diagnostic.cs000.some_key", "a_val") }
-               },
+                [
+                    [("dotnet_diagnostic.cs000.some_key", "c_val")],
+                    [("dotnet_diagnostic.cs000.some_key", "b_val")],
+                    [("dotnet_diagnostic.cs000.some_key", "a_val")]
+               ],
                 options);
         }
 
@@ -1309,24 +1303,23 @@ dotnet_diagnostic.cs000.severity = none
 somekey = c_val", "/src/.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
-                new[] { "/src/test.cs", "/src/test.vb", "/root.cs" },
+                ["/src/test.cs", "/src/test.vb", "/root.cs"],
                 configs);
             configs.Free();
 
             VerifyAnalyzerOptions(
-                new[] {
-                    new[] { ("somekey", "c_val") },
-                    new[] { ("somekey", "b_val") },
-                    new[] { ("somekey", "a_val") }
-               }, options);
+                [
+                    [("somekey", "c_val")],
+                    [("somekey", "b_val")],
+                    [("somekey", "a_val")]
+               ], options);
 
             VerifyTreeOptions(
-                new[]
-                {
+                [
                     new[] { ("cs000", ReportDiagnostic.Suppress) },
                     new[] { ("cs000", ReportDiagnostic.Error) },
                     new[] { ("cs000", ReportDiagnostic.Warn) }
-                }, options);
+                ], options);
         }
 
         [Fact]
@@ -1342,22 +1335,20 @@ dotnet_diagnostic.cs001.some_key2 = some_val2
 ", "/.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
-                new[] { "/test.cs", "/test.vb" },
+                ["/test.cs", "/test.vb"],
                 configs);
             configs.Free();
 
             VerifyAnalyzerOptions(
-                new[] {
-                    new[]
-                    {
+                [
+                    [
                         ("dotnet_diagnostic.cs000.some_key", "some_val"),
                         ("dotnet_diagnostic.cs001.some_key2", "some_val2")
-                    },
-                    new[]
-                    {
+                    ],
+                    [
                         ("dotnet_diagnostic.cs001.some_key2", "some_val2")
-                    }
-                },
+                    ]
+                ],
                 options);
         }
 
@@ -1373,22 +1364,19 @@ dotnet_diagnostic.cs000.some_key = some_val", "/.editorconfig"));
 dotnet_diagnostic.cs000.some_key = some_other_val", "/subdir/.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
-                new[] { "/test.cs", "/subdir/test.cs" },
+                ["/test.cs", "/subdir/test.cs"],
                 configs);
             configs.Free();
 
             VerifyAnalyzerOptions(
-                new[]
-                {
-                    new[]
-                    {
+                [
+                    [
                         ("dotnet_diagnostic.cs000.some_key", "some_val")
-                    },
-                    new[]
-                    {
+                    ],
+                    [
                         ("dotnet_diagnostic.cs000.some_key", "some_other_val")
-                    }
-                },
+                    ]
+                ],
                 options);
         }
 
@@ -1418,22 +1406,21 @@ dotnet_diagnostic..severity = warning
 dotnet_diagnostic..some_key = some_val", "/.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
-                new[] { "/test.cs", },
+                ["/test.cs",],
                 configs);
             configs.Free();
 
-            Assert.Equal(new[] {
+            Assert.Equal([
                 CreateImmutableDictionary(("", ReportDiagnostic.Warn)),
-            }, options.Select(o => o.TreeOptions).ToArray());
+            ], options.Select(o => o.TreeOptions).ToArray());
 
             VerifyAnalyzerOptions(
-                new[]
-                {
+                [
                     new[]
                     {
                         ("dotnet_diagnostic..some_key", "some_val")
                     }
-                },
+                ],
                 options);
         }
 
@@ -1447,24 +1434,22 @@ dotnet_diagnostic.severity = warn
 dotnet_diagnostic.some_key = some_val", "/.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
-                new[] { "/test.cs", },
+                ["/test.cs",],
                 configs);
             configs.Free();
 
-            Assert.Equal(new ImmutableDictionary<string, ReportDiagnostic>[]
-            {
+            Assert.Equal([
                 SyntaxTree.EmptyDiagnosticOptions
-            }, options.Select(o => o.TreeOptions).ToArray());
+            ], options.Select(o => o.TreeOptions).ToArray());
 
             VerifyAnalyzerOptions(
-                new[]
-                {
+                [
                     new[]
                     {
                         ("dotnet_diagnostic.severity", "warn"),
                         ("dotnet_diagnostic.some_key", "some_val")
                     }
-                },
+                ],
                 options);
         }
 
@@ -1477,18 +1462,17 @@ dotnet_diagnostic.some_key = some_val", "/.editorconfig"));
 dotnet_diagnostic.cs000.severity = warning", "/.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
-                new[] { "/a0b0.cs", "/test/a-5b5.cs", "/a0b0.vb" },
+                ["/a0b0.cs", "/test/a-5b5.cs", "/a0b0.vb"],
                 configs);
             configs.Free();
 
-            Assert.Equal(new[]
-            {
+            Assert.Equal([
                 CreateImmutableDictionary(
                     ("cs000", ReportDiagnostic.Warn)),
                 CreateImmutableDictionary(
                     ("cs000", ReportDiagnostic.Warn)),
                 SyntaxTree.EmptyDiagnosticOptions
-            }, options.Select(o => o.TreeOptions).ToArray());
+            ], options.Select(o => o.TreeOptions).ToArray());
         }
 
         [Fact]
@@ -1500,7 +1484,7 @@ dotnet_diagnostic.cs000.severity = warning", "/.editorconfig"));
 dotnet_diagnostic.cs000.severity = warning", "/.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
-                new[] { "/a.cs", "/b.cs", "/c.cs" },
+                ["/a.cs", "/b.cs", "/c.cs"],
                 configs);
             configs.Free();
 
@@ -1519,7 +1503,7 @@ dotnet_diagnostic.cs000.severity = warning", "/.editorconfig"));
 dotnet_diagnostic.cs000.severity = warning", "/.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
-                new[] { "/a.cs", "/b.cs", "/c.cs" },
+                ["/a.cs", "/b.cs", "/c.cs"],
                 configs);
             configs.Free();
             Assert.Equal(KeyValuePair.Create("cs000", ReportDiagnostic.Warn), options[0].TreeOptions.Single());
@@ -1735,17 +1719,16 @@ option1 = value1
 ", "/.globalconfig1"));
 
             var options = GetAnalyzerConfigOptions(
-                 new[] { "/file1.cs", "/path/to/file1.cs", "/file1.vb" },
+                 ["/file1.cs", "/path/to/file1.cs", "/file1.vb"],
                  configs);
             configs.Free();
 
             VerifyAnalyzerOptions(
-              new[]
-              {
-                    new[] { ("option1", "value1") },
-                    new[] { ("option1", "value1") },
-                    new[] { ("option1", "value1") }
-              },
+              [
+                    [("option1", "value1")],
+                    [("option1", "value1")],
+                    [("option1", "value1")]
+              ],
               options);
         }
 
@@ -1768,21 +1751,19 @@ option4 = value4
 ", "/.globalconfig1"));
 
             var options = GetAnalyzerConfigOptions(
-                 new[] { "/file1.cs", "/path/to/file2.cs", "/path/to/file1.cs", "/file1.vb" },
+                 ["/file1.cs", "/path/to/file2.cs", "/path/to/file1.cs", "/file1.vb"],
                  configs);
             configs.Free();
 
             VerifyAnalyzerOptions(
-              new[]
-              {
-                    new (string, string)[] { },
-                    new (string, string)[] { },
-                    new (string, string)[]
-                    {
+              [
+                    [],
+                    [],
+                    [
                         ("option1", "value1")
-                    },
-                    new (string, string)[] { }
-              },
+                    ],
+                    []
+              ],
               options);
         }
 
@@ -1814,31 +1795,27 @@ option2 = config3
 ", "/path/to/.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
-                 new[] { "/path/to/file1.cs", "/path/file1.cs", "/file1.cs" },
+                 ["/path/to/file1.cs", "/path/file1.cs", "/file1.cs"],
                  configs);
             configs.Free();
 
             VerifyAnalyzerOptions(
-              new[]
-              {
-                    new []
-                    {
+              [
+                    [
                         ("option1", "global"),
                         ("option2", "config3"), // overridden by config3
                         ("option3", "config2")  // overridden by config2
-                    },
-                    new []
-                    {
+                    ],
+                    [
                         ("option1", "global"),
                         ("option2", "config1"),
                         ("option3", "config2")
-                    },
-                    new []
-                    {
+                    ],
+                    [
                         ("option1", "global"),
                         ("option2", "config1")
-                    }
-              },
+                    ]
+              ],
               options);
         }
 
@@ -1917,19 +1894,17 @@ option1 = value1
 ", "/.globalconfig1"));
 
             var options = GetAnalyzerConfigOptions(
-                 new[] { "/path/to/file1.cs", "/path/to/file2.cs" },
+                 ["/path/to/file1.cs", "/path/to/file2.cs"],
                  configs);
             configs.Free();
 
             VerifyAnalyzerOptions(
-                new[]
-                {
-                    new []
-                    {
+                [
+                    [
                         ("option1", "value1")
-                    },
-                    new (string, string) [] { }
-                },
+                    ],
+                    []
+                ],
                 options);
         }
 
@@ -1963,14 +1938,14 @@ dotnet_diagnostic.cs000.severity = error
 ", "/.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
-                new[] { "/test.cs", "/path/to/file.cs" },
+                ["/test.cs", "/path/to/file.cs"],
                 configs);
             configs.Free();
 
-            Assert.Equal(new[] {
+            Assert.Equal([
                 SyntaxTree.EmptyDiagnosticOptions,
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Error))
-            }, options.Select(o => o.TreeOptions).ToArray());
+            ], options.Select(o => o.TreeOptions).ToArray());
         }
 
         [Fact]
@@ -2011,7 +1986,7 @@ dotnet_diagnostic.cs000.severity = error
 ", "/.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
-                new[] { "/path/to/file.cs" },
+                ["/path/to/file.cs"],
                 configs);
             configs.Free();
 
@@ -2040,14 +2015,14 @@ dotnet_diagnostic.cs000.severity = warning
 ", "/path/.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
-                new[] { "/test.cs", "/path/file.cs" },
+                ["/test.cs", "/path/file.cs"],
                 configs);
             configs.Free();
 
-            Assert.Equal(new[] {
+            Assert.Equal([
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Suppress)),
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Warn))
-            }, options.Select(o => o.TreeOptions).ToArray());
+            ], options.Select(o => o.TreeOptions).ToArray());
         }
 
         [Fact]
@@ -2061,16 +2036,15 @@ is_global = true
 ", "/.globalconfig"));
 
             var options = GetAnalyzerConfigOptions(
-                new[] { "/file.cs", "/path/to/file.cs" },
+                ["/file.cs", "/path/to/file.cs"],
                 configs);
             configs.Free();
 
             VerifyAnalyzerOptions(
-              new[]
-              {
-                    new (string,string)[] { },
-                    new[] { ("is_global", "true") }
-              },
+              [
+                    [],
+                    [("is_global", "true")]
+              ],
               options);
         }
 
@@ -2113,32 +2087,28 @@ option2 = config3
 ", "/path/to/.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
-                 new[] { "/path/to/file1.cs", "/path/file1.cs", "/file1.cs" },
+                 ["/path/to/file1.cs", "/path/file1.cs", "/file1.cs"],
                  configs);
             configs.Free();
 
             VerifyAnalyzerOptions(
-              new[]
-              {
-                    new []
-                    {
+              [
+                    [
                         ("option1", "global"),
                         ("option2", "config3"), // overridden by config3
                         ("option3", "global") // not overridden by config2, because config3 is root
-                    },
-                    new []
-                    {
+                    ],
+                    [
                         ("option1", "global"),
                         ("option2", "config1"),
                         ("option3", "config2")
-                    },
-                    new []
-                    {
+                    ],
+                    [
                         ("option1", "global"),
                         ("option2", "config1"),
                         ("option3", "global")
-                    }
-              },
+                    ]
+              ],
               options);
         }
 

@@ -4485,11 +4485,10 @@ class Test
     }
 }";
             // Dev11 emits "public", we emit "internal" visibility for <Goo>b__1:
-            CompileAndVerify(source, expectedSignatures: new[]
-            {
+            CompileAndVerify(source, expectedSignatures: [
                 Signature("Test+<>c__DisplayClass2_0", "<Goo>b__0",
                           ".method assembly hidebysig instance System.String <Goo>b__0(System.String a) cil managed"),
-            });
+            ]);
         }
 
         [WorkItem(541008, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541008")]
@@ -4697,11 +4696,10 @@ class D
 }
 ";
             var comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseDll);
-            var verifier = CompileAndVerify(comp, expectedSignatures: new[]
-            {
+            var verifier = CompileAndVerify(comp, expectedSignatures: [
                 Signature("C+<>c__DisplayClass0_0`1", "<>9__0",
                     ".field public instance System.Func`2[T,System.Boolean] <>9__0")
-            });
+            ]);
 
             verifier.VerifyIL("C.M<T>", @"
 {

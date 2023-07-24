@@ -281,8 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private const int IL_OP_CODE_ROW_LENGTH = 4;
 
-        private static readonly ILOpCode[] s_condJumpOpCodes = new ILOpCode[]
-        {
+        private static readonly ILOpCode[] s_condJumpOpCodes = [
             //  <            <=               >                >=
             ILOpCode.Blt,    ILOpCode.Ble,    ILOpCode.Bgt,    ILOpCode.Bge,     // Signed
             ILOpCode.Bge,    ILOpCode.Bgt,    ILOpCode.Ble,    ILOpCode.Blt,     // Signed Invert
@@ -290,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             ILOpCode.Bge_un, ILOpCode.Bgt_un, ILOpCode.Ble_un, ILOpCode.Blt_un,  // Unsigned Invert
             ILOpCode.Blt,    ILOpCode.Ble,    ILOpCode.Bgt,    ILOpCode.Bge,     // Float
             ILOpCode.Bge_un, ILOpCode.Bgt_un, ILOpCode.Ble_un, ILOpCode.Blt_un,  // Float Invert
-        };
+        ];
 
         /// <summary>
         /// Produces opcode for a jump that corresponds to given operation and sense.

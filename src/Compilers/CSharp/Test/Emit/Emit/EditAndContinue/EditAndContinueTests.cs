@@ -72,9 +72,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                             }
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.FirstOrDefault(c => c.Parameters.Length == 1), newSymbolProvider: c => c.GetMember("C")),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -130,10 +130,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                         {
                         }
                         """,
-                    edits: new[]
-                    {
+                    edits: [
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.FirstOrDefault(c => c.Parameters.Length == 1), newSymbolProvider: c => c.GetMember("C")),
-                    },
+                    ],
                     validator: g =>
                     {
                         // The default constructor is added and the deleted constructor is updated to throw:
@@ -572,7 +571,7 @@ class Bad : Bad
             // Verify delta metadata contains expected rows.
             using var md2 = diff2.GetMetadata();
             var reader2 = md2.Reader;
-            readers = new[] { reader0, reader1, reader2 };
+            readers = [reader0, reader1, reader2];
 
             CheckNames(readers, reader2.GetTypeDefNames());
             CheckNames(readers, reader2.GetMethodDefNames(), "F");
@@ -683,7 +682,7 @@ class C
     [System.ComponentModel.Description(""The F method"")]
     static string F() { return string.Empty; }
 }",
-                    edits: new[] { Edit(SemanticEditKind.Update, c => c.GetMember("C.F")) },
+                    edits: [Edit(SemanticEditKind.Update, c => c.GetMember("C.F"))],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -726,10 +725,10 @@ class C
     [System.ComponentModel.Description(""The F method""), System.ComponentModel.Category(""Methods"")]
     static string F() { return string.Empty; }
 }",
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Update, c => c.GetMember("C")),
                         Edit(SemanticEditKind.Update, c => c.GetMember("C.F"))
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames("C");
@@ -784,9 +783,9 @@ class C
     [System.ComponentModel.Browsable(false), System.ComponentModel.Description(""The F method""), System.ComponentModel.Category(""Methods"")]
     static string F() { return string.Empty; }
 }",
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Update, c => c.GetMember("C.F"))
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -1051,7 +1050,7 @@ class D
             // Verify delta metadata contains expected rows.
             using var md2 = diff2.GetMetadata();
             var reader2 = md2.Reader;
-            readers = new[] { reader0, reader1, reader2 };
+            readers = [reader0, reader1, reader2];
 
             EncValidation.VerifyModuleMvid(2, reader1, reader2);
 
@@ -1179,7 +1178,7 @@ class D
             // Verify delta metadata contains expected rows.
             using var md2 = diff2.GetMetadata();
             var reader2 = md2.Reader;
-            readers = new[] { reader0, reader1, reader2 };
+            readers = [reader0, reader1, reader2];
 
             CheckNames(readers, reader2.GetTypeDefNames());
             CheckNames(readers, reader2.GetMethodDefNames(), "F");
@@ -1211,7 +1210,7 @@ class D
             // Verify delta metadata contains expected rows.
             using var md3 = diff3.GetMetadata();
             var reader3 = md3.Reader;
-            readers = new[] { reader0, reader1, reader2, reader3 };
+            readers = [reader0, reader1, reader2, reader3];
 
             CheckNames(readers, reader3.GetTypeDefNames());
             CheckNames(readers, reader3.GetMethodDefNames(), "F");
@@ -1396,7 +1395,7 @@ class C
 
             using var md2 = diff2.GetMetadata();
             var reader2 = md2.Reader;
-            readers = new[] { reader0, reader1, reader2 };
+            readers = [reader0, reader1, reader2];
 
             EncValidation.VerifyModuleMvid(2, reader1, reader2);
 
@@ -1493,7 +1492,7 @@ class C
 
             using var md2 = diff2.GetMetadata();
             var reader2 = md2.Reader;
-            readers = new[] { reader0, reader1, reader2 };
+            readers = [reader0, reader1, reader2];
 
             EncValidation.VerifyModuleMvid(2, reader1, reader2);
 
@@ -1729,7 +1728,7 @@ class C
 
             using var md2 = diff2.GetMetadata();
             var reader2 = md2.Reader;
-            readers = new[] { reader0, reader1, reader2 };
+            readers = [reader0, reader1, reader2];
 
             EncValidation.VerifyModuleMvid(2, reader1, reader2);
 
@@ -1874,10 +1873,9 @@ class C
    public static void G(bool a = true) { }
 }
 ",
-                    edits: new[]
-                    {
+                    edits: [
                         Edit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), preserveLocalVariables: true),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames("<>O#1");
@@ -2004,10 +2002,9 @@ partial class C
     }
 }
 ",
-                    edits: new[]
-                    {
+                    edits: [
                         Edit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.M").PartialImplementationPart)
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyMethodDefNames("M", ".ctor", "<M>b__0#1");
@@ -2199,7 +2196,7 @@ partial class C
 
             using var md2 = diff2.GetMetadata();
             var reader2 = md2.Reader;
-            readers = new[] { reader0, reader1, reader2 };
+            readers = [reader0, reader1, reader2];
 
             EncValidation.VerifyModuleMvid(2, reader1, reader2);
 
@@ -2357,15 +2354,14 @@ class C
 [Description(""D"")]
 delegate int D(int x);
 ",
-                    edits: new[]
-                    {
+                    edits: [
                         Edit(SemanticEditKind.Update, c => c.GetMember("E")),
                         Edit(SemanticEditKind.Update, c => c.GetMember("E.A")),
                         Edit(SemanticEditKind.Update, c => c.GetMember("C")),
                         Edit(SemanticEditKind.Update, c => c.GetMember("C._x")),
                         Edit(SemanticEditKind.Update, c => c.GetMember("C.X")),
                         Edit(SemanticEditKind.Update, c => c.GetMember("D"))
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames("E", "C", "D");
@@ -2439,15 +2435,14 @@ class C
 [Description(""D_2"")]
 delegate int D(int x);
 ",
-                    edits: new[]
-                    {
+                    edits: [
                         Edit(SemanticEditKind.Update, c => c.GetMember("E")),
                         Edit(SemanticEditKind.Update, c => c.GetMember("E.A")),
                         Edit(SemanticEditKind.Update, c => c.GetMember("C")),
                         Edit(SemanticEditKind.Update, c => c.GetMember("C._x")),
                         Edit(SemanticEditKind.Update, c => c.GetMember("C.X")),
                         Edit(SemanticEditKind.Update, c => c.GetMember("D"))
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames("E", "C", "D");
@@ -3172,10 +3167,10 @@ class C
                         {
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.get_P"), newSymbolProvider: c => c.GetMember("C")),
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.set_P"), newSymbolProvider: c => c.GetMember("C")),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -3223,9 +3218,9 @@ class C
                             public string P { get; set; }
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.P")),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -3302,10 +3297,10 @@ class C
                         {
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.get_P"), newSymbolProvider: c => c.GetMember("C")),
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.set_P"), newSymbolProvider: c => c.GetMember("C")),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -3349,9 +3344,9 @@ class C
                             public string P { get; set; }
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.P")),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -3435,10 +3430,10 @@ class C
                         {
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.get_P"), newSymbolProvider: c => c.GetMember("C")),
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.set_P"), newSymbolProvider: c => c.GetMember("C")),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -3482,9 +3477,9 @@ class C
                             public string P { get { return "2"; } set { } }
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.P")),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -3561,9 +3556,9 @@ class C
                             public string P { get { return "1"; } }
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.set_P"), newSymbolProvider: c => c.GetMember("C")),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -3599,9 +3594,9 @@ class C
                             public string P { get { return "2"; } set { } }
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.P")),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -3676,11 +3671,11 @@ class C
                             int P { get; set; }
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMembers("C.get_P").FirstOrDefault(m => m.GetTypeOrReturnType().SpecialType == SpecialType.System_String)?.ISymbol, newSymbolProvider: c=>c.GetMember("C")),
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMembers("C.set_P").FirstOrDefault(m => m.GetParameterTypes()[0].SpecialType == SpecialType.System_String)?.ISymbol, newSymbolProvider: c=>c.GetMember("C")),
                         Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMembers("C.P").FirstOrDefault(m => m.GetTypeOrReturnType().SpecialType == SpecialType.System_Int32)?.ISymbol),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -3771,11 +3766,11 @@ class C
                             string P { get; set; }
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMembers("C.get_P").FirstOrDefault(m => m.GetTypeOrReturnType().SpecialType == SpecialType.System_Int32)?.ISymbol, newSymbolProvider: c=>c.GetMember("C")),
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMembers("C.set_P").FirstOrDefault(m => m.GetParameterTypes()[0].SpecialType == SpecialType.System_Int32)?.ISymbol, newSymbolProvider: c=>c.GetMember("C")),
                         Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMembers("C.P").FirstOrDefault(m => m.GetTypeOrReturnType().SpecialType == SpecialType.System_String)?.ISymbol),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -3874,11 +3869,11 @@ class C
                             string Q { get; set; }
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.get_P"), newSymbolProvider: c=>c.GetMember("C")),
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.set_P"), newSymbolProvider: c=>c.GetMember("C")),
                         Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.Q")),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -3969,11 +3964,11 @@ class C
                             string P { get; set; }
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.get_Q"), newSymbolProvider: c=>c.GetMember("C")),
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.set_Q"), newSymbolProvider: c=>c.GetMember("C")),
                         Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.P")),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -4073,10 +4068,10 @@ class C
                         {
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.get_Item"), newSymbolProvider: c => c.GetMember("C")),
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.set_Item"), newSymbolProvider: c => c.GetMember("C")),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -4143,10 +4138,10 @@ class C
                             int this[string x] { get { return 2; } }
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMembers("C.get_Item").FirstOrDefault(m => m.GetParameterTypes()[0].SpecialType == SpecialType.System_Int32)?.ISymbol, newSymbolProvider: c=>c.GetMember("C")),
                         Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMembers("C.this[]").FirstOrDefault(m => m.GetParameterTypes()[0].SpecialType == SpecialType.System_String)?.ISymbol),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -4210,10 +4205,10 @@ class C
                             int this[int x] { get { return 2; } }
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMembers("C.get_Item").FirstOrDefault(m => m.GetParameterTypes()[0].SpecialType == SpecialType.System_String)?.ISymbol, newSymbolProvider: c=>c.GetMember("C")),
                         Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMembers("C.this[]").FirstOrDefault(m => m.GetParameterTypes()[0].SpecialType == SpecialType.System_Int32)?.ISymbol),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -4433,10 +4428,10 @@ class C
                         {
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.add_E"), newSymbolProvider: c => c.GetMember("C")),
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.remove_E"), newSymbolProvider: c => c.GetMember("C")),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -4507,11 +4502,11 @@ class C
                             public event System.EventHandler F;
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.add_E"), newSymbolProvider: c => c.GetMember("C")),
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.remove_E"), newSymbolProvider: c => c.GetMember("C")),
                         Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.F")),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -4642,11 +4637,11 @@ class C
                             public event System.EventHandler E;
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.add_F"), newSymbolProvider: c => c.GetMember("C")),
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.remove_F"), newSymbolProvider: c => c.GetMember("C")),
                         Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.E")),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -4895,7 +4890,7 @@ class C
             // Verify delta metadata contains expected rows.
             using var md2 = diff2.GetMetadata();
             var reader2 = md2.Reader;
-            readers = new[] { reader0, reader1, reader2 };
+            readers = [reader0, reader1, reader2];
 
             CheckNames(readers, reader2.GetTypeDefNames(), "C");
 
@@ -5062,7 +5057,7 @@ class C
                     Assert.Equal(attributeCtorDefHandle, ctorHandle);
 
                     // The attribute value encodes serialized type name. It should be the base name "C", not "C#1".
-                    CheckBlobValue(readers, attribute.Value, new byte[] { 0x01, 0x00, 0x01, (byte)'C', 0x00, 0x00 });
+                    CheckBlobValue(readers, attribute.Value, [0x01, 0x00, 0x01, (byte)'C', 0x00, 0x00]);
                 }
             }
 
@@ -5073,7 +5068,7 @@ class C
                     SemanticEdit.Create(SemanticEditKind.Replace, null, c1)));
 
             using var md1 = diff1.GetMetadata();
-            ValidateReplacedType(diff1, new[] { reader0, md1.Reader });
+            ValidateReplacedType(diff1, [reader0, md1.Reader]);
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
@@ -5081,7 +5076,7 @@ class C
                     SemanticEdit.Create(SemanticEditKind.Replace, null, c2)));
 
             using var md2 = diff2.GetMetadata();
-            ValidateReplacedType(diff2, new[] { reader0, md1.Reader, md2.Reader });
+            ValidateReplacedType(diff2, [reader0, md1.Reader, md2.Reader]);
 
             // This update is an EnC update - even reloadable types are updated in-place
             var diff3 = compilation3.EmitDifference(
@@ -5114,7 +5109,7 @@ class C
                 Handle(hasAttribute ? 9 : 8, TableIndex.CustomAttribute));
 
             // Obsolete attribute:
-            CheckBlobValue(readers, reader3.GetCustomAttribute(reader3.CustomAttributes.First()).Value, new byte[] { 0x01, 0x00, 0x00, 0x00 });
+            CheckBlobValue(readers, reader3.GetCustomAttribute(reader3.CustomAttributes.First()).Value, [0x01, 0x00, 0x00, 0x00]);
         }
 
         [Fact]
@@ -5167,12 +5162,12 @@ class C
                             }
                         }
                         """ + MetadataUpdateOriginalTypeAttributeSource,
-                    edits: new[] {
+                    edits: [
                         // Note: Nested type edit needs to be seen first to repro the bug. Real world scenario requires the nested
                         // class to be in a separate file.
                         Edit(SemanticEditKind.Update, c => c.GetMember("C.D.M")),
                         Edit(SemanticEditKind.Replace, c => null, newSymbolProvider: c => c.GetMember("C")),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames("C#1");
@@ -5346,7 +5341,7 @@ class C
             // Verify delta metadata contains expected rows.
             using var md2 = diff2.GetMetadata();
             var reader2 = md2.Reader;
-            readers = new[] { reader0, reader1, reader2 };
+            readers = [reader0, reader1, reader2];
 
             // A new nested type <>c is generated in C#2
             CheckNames(readers, reader2.GetTypeDefNames(), "C#2", "<>c", "<<F>b__0#2_0#2>d");
@@ -5431,7 +5426,7 @@ class C
             // Verify delta metadata contains expected rows.
             using var md2 = diff2.GetMetadata();
             var reader2 = md2.Reader;
-            readers = new[] { reader0, reader1, reader2 };
+            readers = [reader0, reader1, reader2];
 
             // A new nested type <>c is generated in C#2
             CheckNames(readers, reader2.GetTypeDefNames(), "C#2", "D", "<>c", "<<F>b__0#2_0#2>d");
@@ -6119,7 +6114,7 @@ interface I
 
             using var md2 = diff2.GetMetadata();
             var reader2 = md2.Reader;
-            readers = new[] { reader0, reader1, reader2 };
+            readers = [reader0, reader1, reader2];
 
             CheckNames(readers, diff1.EmitResult.ChangedTypes, "I", "J");
 
@@ -8891,7 +8886,7 @@ class C
 ");
             // expect a single TypeRef for System.Object
             var md1 = diff1.GetMetadata();
-            AssertEx.Equal(new[] { "[0x23000002] System.Object" }, DumpTypeRefs(new[] { md0.MetadataReader, md1.Reader }));
+            AssertEx.Equal(new[] { "[0x23000002] System.Object" }, DumpTypeRefs([md0.MetadataReader, md1.Reader]));
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
@@ -8914,7 +8909,7 @@ class C
 ");
             // expect a single TypeRef for System.Object
             var md2 = diff2.GetMetadata();
-            AssertEx.Equal(new[] { "[0x23000003] System.Object" }, DumpTypeRefs(new[] { md0.MetadataReader, md1.Reader, md2.Reader }));
+            AssertEx.Equal(new[] { "[0x23000003] System.Object" }, DumpTypeRefs([md0.MetadataReader, md1.Reader, md2.Reader]));
         }
 
         [Fact]
@@ -9001,7 +8996,7 @@ class C
 ");
             // expect a single TypeRef for System.Object
             var md2 = diff2.GetMetadata();
-            AssertEx.Equal(new[] { "[0x23000003] System.Object" }, DumpTypeRefs(new[] { md0.MetadataReader, md1.Reader, md2.Reader }));
+            AssertEx.Equal(new[] { "[0x23000003] System.Object" }, DumpTypeRefs([md0.MetadataReader, md1.Reader, md2.Reader]));
         }
 
         /// <summary>
@@ -11362,9 +11357,9 @@ public interface IB
                         {
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.op_LogicalNot"), newSymbolProvider: c => c.GetMember("C")),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -13658,7 +13653,7 @@ public class C : Base
 
             using var md2 = diff2.GetMetadata();
             var reader2 = md2.Reader;
-            readers = new[] { reader0, reader1, reader2 };
+            readers = [reader0, reader1, reader2];
 
             CheckNames(readers, diff2.EmitResult.ChangedTypes, "C", "<>c__DisplayClass0_0");
 
@@ -15002,13 +14997,12 @@ namespace N
 
                 .AddGeneration(
                     source: IsExternalInitTypeDefinition + "record R(int P) {}",
-                    edits: new[]
-                    {
+                    edits: [
                         // The IDE actually also adds Update edits for synthesized methods (PrintMembers, Equals, GetHashCode).
                         // This test demonstrates that the compiler does not emit them automatically given just the constructor insert.
                         Edit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("R")),
                         Edit(SemanticEditKind.Delete, c => c.GetParameterlessConstructor("R"), c => c.GetMember("R"))
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyMethodDefNames(
@@ -15084,14 +15078,13 @@ namespace N
 
                 .AddGeneration(
                     source: IsExternalInitTypeDefinition + "record R(int P, int Q, int U) {}",
-                    edits: new[]
-                    {
+                    edits: [
                         // The IDE actually also adds Update edits for synthesized methods (PrintMembers, Equals, GetHashCode, copy-constructor) and 
                         // delete of the old primary constructor.
                         // This test demonstrates that the compiler does not emit them automatically given just the constructor insert.
                         // The synthesized auto-properties and Deconstruct method are emitted.
                         Edit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("R"))
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyMethodDefNames(
@@ -15223,12 +15216,11 @@ namespace N
 
                 .AddGeneration(
                     source: IsExternalInitTypeDefinition + "record R(int P) { int Q { get; init; } }",
-                    edits: new[]
-                    {
+                    edits: [
                         // The IDE actually adds Update edits for synthesized methods (PrintMembers, Equals, GetHashCode, copy-constructor).
                         // This test demonstrates that the compiler does not emit them automatically given just the property insert.
                         Edit(SemanticEditKind.Insert, c => c.GetMember("R.Q")),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyMethodDefNames(
@@ -15472,9 +15464,9 @@ class C
                         {
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M1"), newSymbolProvider: c => c.GetMember("C")),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -15530,9 +15522,9 @@ class C
                             void M2() { }
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.M2")),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -15567,9 +15559,9 @@ class C
                             void M1() { }
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M2"), newSymbolProvider: c => c.GetMember("C")),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -15622,9 +15614,9 @@ class C
                         {
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M1"), newSymbolProvider: c => c.GetMember("C")),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -15658,9 +15650,9 @@ class C
                             void M1() { System.Console.Write(1); }
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.M1")),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -15724,9 +15716,9 @@ class C
                         {
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M1"), newSymbolProvider: c => c.GetMember("C")),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -15782,9 +15774,9 @@ class C
                         
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.M1")),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -15855,9 +15847,9 @@ class C
                             C M1(C c) { return default; }
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.M1")),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -15901,9 +15893,9 @@ class C
                             void Goo() { }
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M1"), newSymbolProvider: c => c.GetMember("C")),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -15941,9 +15933,9 @@ class C
                             C M1(C b) { System.Console.Write(1); return default; }
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.M1")),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -16009,10 +16001,10 @@ class C
 {{
     int M2() {{ return {i}; }}
 }}",
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M1"), newSymbolProvider: c => c.GetMember("C")),
                         Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.M2")),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -16025,10 +16017,10 @@ class C
 {{
     int M1() {{ return {i}; }}
 }}",
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M2"), newSymbolProvider: c => c.GetMember("C")),
                         Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.M1")),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -16063,10 +16055,10 @@ class C
                             void M(bool someBool) { someBool.ToString(); }
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMembers("C.M").FirstOrDefault(m => m.GetParameterTypes()[0].SpecialType == SpecialType.System_Int32)?.ISymbol, newSymbolProvider: c=>c.GetMember("C")),
                         Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMembers("C.M").FirstOrDefault(m => m.GetParameterTypes()[0].SpecialType == SpecialType.System_Boolean)?.ISymbol),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -16118,10 +16110,10 @@ class C
                             void M(int someInt) { someInt.ToString(); }
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMembers("C.M").FirstOrDefault(m => m.GetParameterTypes()[0].SpecialType == SpecialType.System_Boolean)?.ISymbol, newSymbolProvider: c=>c.GetMember("C")),
                         Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMembers("C.M").FirstOrDefault(m => m.GetParameterTypes()[0].SpecialType == SpecialType.System_Int32)?.ISymbol),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -16190,10 +16182,10 @@ class C
                             int M(int someInt) { return someInt; }
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMembers("C.M").FirstOrDefault(m => m.GetTypeOrReturnType().SpecialType == SpecialType.System_String)?.ISymbol, newSymbolProvider: c=>c.GetMember("C")),
                         Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMembers("C.M").FirstOrDefault(m => m.GetTypeOrReturnType().SpecialType == SpecialType.System_Int32)?.ISymbol),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -16248,10 +16240,10 @@ class C
                             string M(int someInt) { return someInt.ToString(); }
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMembers("C.M").FirstOrDefault(m => m.GetTypeOrReturnType().SpecialType == SpecialType.System_Int32)?.ISymbol, newSymbolProvider: c=>c.GetMember("C")),
                         Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMembers("C.M").FirstOrDefault(m => m.GetTypeOrReturnType().SpecialType == SpecialType.System_String)?.ISymbol),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -16324,10 +16316,10 @@ class C
                             void M(int someInt, bool someBool) { someInt.ToString(); }
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMembers("C.M").FirstOrDefault(m => m.GetParameterCount() == 1)?.ISymbol, newSymbolProvider: c=>c.GetMember("C")),
                         Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMembers("C.M").FirstOrDefault(m => m.GetParameterCount() == 2)?.ISymbol),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -16382,10 +16374,10 @@ class C
                             void M(int someInt) { someInt.ToString(); }
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMembers("C.M").FirstOrDefault(m => m.GetParameterCount() == 2)?.ISymbol, newSymbolProvider: c=>c.GetMember("C")),
                         Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMembers("C.M").FirstOrDefault(m => m.GetParameterCount() == 1)?.ISymbol),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
@@ -16812,10 +16804,9 @@ file class C
                             }
                         }
                         """),
-                    edits: new[]
-                    {
+                    edits: [
                         Edit(SemanticEditKind.Update, symbolProvider: c => c.GetMember("C.F"), preserveLocalVariables: true),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyIL("C.F", """

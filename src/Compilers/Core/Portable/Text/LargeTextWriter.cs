@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Text
             }
             else
             {
-                Write(new char[] { value }, 0, 1);
+                Write([value], 0, 1);
             }
         }
 

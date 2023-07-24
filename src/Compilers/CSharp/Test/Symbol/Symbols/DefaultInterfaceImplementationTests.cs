@@ -6156,11 +6156,11 @@ class Test1 : I1
 {}
 ";
             ValidateEventImplementation_101(source1,
-                new[] {
+                [
                 // (4,25): error CS0065: 'I1.E1': event property must have both add and remove accessors
                 //     event System.Action E1 
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I1.E1").WithLocation(4, 25 + declModifiers.Length)
-                },
+                ],
                 haveAdd: true, haveRemove: false, isStatic: isStatic);
         }
 
@@ -6472,11 +6472,11 @@ class Test1 : I1
 ";
 
             ValidateEventImplementation_101(source1,
-                new[] {
+                [
                 // (4,25): error CS0065: 'I1.E1': event property must have both add and remove accessors
                 //     event System.Action E1 
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I1.E1").WithLocation(4, 25 + declModifiers.Length)
-                },
+                ],
                 haveAdd: false, haveRemove: true, isStatic: isStatic);
         }
 
@@ -6501,14 +6501,14 @@ class Test1 : I1
 ";
 
             ValidateEventImplementation_101(source1,
-                new[] {
+                [
                 // (6,12): error CS0073: An add or remove accessor must have a body
                 //         add;
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 12),
                 // (4,25): error CS0065: 'I1.E1': event property must have both add and remove accessors
                 //     event System.Action E1 
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I1.E1").WithLocation(4, 25 + declModifiers.Length)
-                },
+                ],
                 haveAdd: true, haveRemove: false, isStatic: isStatic);
         }
 
@@ -6533,14 +6533,14 @@ class Test1 : I1
 ";
 
             ValidateEventImplementation_101(source1,
-                new[] {
+                [
                 // (6,15): error CS0073: An add or remove accessor must have a body
                 //         remove;
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 15),
                 // (4,25): error CS0065: 'I1.E1': event property must have both add and remove accessors
                 //     event System.Action E1 
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I1.E1").WithLocation(4, 25 + declModifiers.Length)
-                },
+                ],
                 haveAdd: false, haveRemove: true, isStatic: isStatic);
         }
 
@@ -6560,11 +6560,11 @@ class Test1 : I1
 {}
 ";
             ValidateEventImplementation_101(source1,
-                new[] {
+                [
                 // (4,25): error CS0065: 'I1.E1': event property must have both add and remove accessors
                 //     event System.Action E1 
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I1.E1").WithLocation(4, 25)
-                },
+                ],
                 haveAdd: false, haveRemove: false);
         }
 
@@ -6589,14 +6589,14 @@ class Test1 : I1
 {}
 ";
             ValidateEventImplementation_101(source1,
-                new[] {
+                [
                 // (6,12): error CS0073: An add or remove accessor must have a body
                 //         add;
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 12),
                 // (7,15): error CS0073: An add or remove accessor must have a body
                 //         remove;
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(7, 15)
-                },
+                ],
                 haveAdd: true, haveRemove: true, isStatic: isStatic);
         }
 
@@ -6621,7 +6621,7 @@ class Test1 : I1
 {}
 ";
             ValidateEventImplementation_101(source1,
-                new[] {
+                [
                 // (8,7): error CS1519: Invalid token '=>' in class, record, struct, or interface member declaration
                 //     } => 0;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(8, 7),
@@ -6634,7 +6634,7 @@ class Test1 : I1
                 // (4,25): error CS0065: 'I1.E1': event property must have both add and remove accessors
                 //     event System.Action E1 
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I1.E1")
-                },
+                ],
                 haveAdd: false, haveRemove: false, isStatic: isStatic);
         }
 
@@ -6659,11 +6659,11 @@ class Test1 : I1
 {}
 ";
             ValidateEventImplementation_101(source1,
-                new[] {
+                [
                 // (7,15): error CS0073: An add or remove accessor must have a body
                 //         remove;
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(7, 15)
-                },
+                ],
                 haveAdd: true, haveRemove: true, isStatic: isStatic);
         }
 
@@ -6688,11 +6688,11 @@ class Test1 : I1
 {}
 ";
             ValidateEventImplementation_101(source1,
-                new[] {
+                [
                 // (6,12): error CS0073: An add or remove accessor must have a body
                 //         add;
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 12)
-                },
+                ],
                 haveAdd: true, haveRemove: true, isStatic: isStatic);
         }
 
@@ -16490,8 +16490,7 @@ class Test2 : I1, I2, I3, I4, I5
 }
 ";
             ValidatePropertyModifiers_16(source1,
-                new DiagnosticDescription[]
-                {
+                [
                 // (4,16): error CS8503: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     extern int P1 {get;} 
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P1").WithArguments("extern", "7.3", "8.0").WithLocation(4, 16),
@@ -16537,7 +16536,7 @@ class Test2 : I1, I2, I3, I4, I5
                 // (4,20): warning CS0626: Method, operator, or accessor 'I1.P1.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern int P1 {get;} 
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I1.P1.get").WithLocation(4, 20)
-                },
+                ],
                 // (4,20): error CS8501: Target runtime doesn't support default interface implementation.
                 //     extern int P1 {get;} 
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(4, 20),
@@ -20406,14 +20405,14 @@ class Test1 : I1
 ";
 
             ValidatePropertyModifiers_11_01(source1, source2, Accessibility.Protected,
-                new DiagnosticDescription[] {
+                [
                 // (12,9): error CS8704: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 //         get
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "get").WithArguments("Test1", "I1.P1.get", "Test1.P1.get", "9.0", "10.0").WithLocation(12, 9),
                 // (17,9): error CS8704: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 //         set
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "set").WithArguments("Test1", "I1.P1.set", "Test1.P1.set", "9.0", "10.0").WithLocation(17, 9)
-                },
+                ],
                 // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.P1'
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.P1").WithLocation(2, 15)
@@ -20462,14 +20461,14 @@ class Test1 : I1
 ";
 
             ValidatePropertyModifiers_11_01(source1, source2, Accessibility.ProtectedOrInternal,
-                new DiagnosticDescription[] {
+                [
                 // (12,9): error CS8704: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 //         get
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "get").WithArguments("Test1", "I1.P1.get", "Test1.P1.get", "9.0", "10.0").WithLocation(12, 9),
                 // (17,9): error CS8704: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 //         set
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "set").WithArguments("Test1", "I1.P1.set", "Test1.P1.set", "9.0", "10.0").WithLocation(17, 9)
-                },
+                ],
                 // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.P1'
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.P1").WithLocation(2, 15)
@@ -24003,8 +24002,7 @@ class Test2 : I1, I2, I4, I5
 }
 ";
             ValidatePropertyModifiers_16(source1,
-                new DiagnosticDescription[]
-                {
+                [
                 // (4,16): error CS8503: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     extern int this[int x] {get;} 
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "this").WithArguments("extern", "7.3", "8.0").WithLocation(4, 16),
@@ -24038,7 +24036,7 @@ class Test2 : I1, I2, I4, I5
                 // (4,29): warning CS0626: Method, operator, or accessor 'I1.this[int].get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern int this[int x] {get;} 
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I1.this[int].get").WithLocation(4, 29)
-                },
+                ],
                 // (4,29): error CS8501: Target runtime doesn't support default interface implementation.
                 //     extern int this[int x] {get;} 
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(4, 29),
@@ -27186,11 +27184,11 @@ public interface I1
 class Test1 : I1
 {}
 ",
-                new[] {
+                [
                 // (4,40): error CS0065: 'I1.E1': event property must have both add and remove accessors
                 //     public virtual event System.Action E1 {}
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I1.E1").WithLocation(4, 40)
-                },
+                ],
                 haveAdd: false, haveRemove: false);
 
             ValidateEventImplementation_101(@"
@@ -27205,14 +27203,14 @@ public interface I1
 class Test1 : I1
 {}
 ",
-                new[] {
+                [
                 // (6,12): error CS0073: An add or remove accessor must have a body
                 //         add;
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";"),
                 // (4,40): error CS0065: 'I1.E1': event property must have both add and remove accessors
                 //     public virtual event System.Action E1 
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I1.E1").WithLocation(4, 40)
-                },
+                ],
                 haveAdd: true, haveRemove: false);
 
             ValidateEventImplementation_101(@"
@@ -27227,11 +27225,11 @@ public interface I1
 class Test1 : I1
 {}
 ",
-                new[] {
+                [
                 // (4,40): error CS0065: 'I1.E1': event property must have both add and remove accessors
                 //     public virtual event System.Action E1 
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I1.E1").WithLocation(4, 40)
-                },
+                ],
                 haveAdd: true, haveRemove: false);
 
             ValidateEventImplementation_101(@"
@@ -27246,11 +27244,11 @@ public interface I1
 class Test1 : I1
 {}
 ",
-                new[] {
+                [
                 // (4,40): error CS0065: 'I1.E1': event property must have both add and remove accessors
                 //     public virtual event System.Action E1 
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I1.E1").WithLocation(4, 40)
-                },
+                ],
                 haveAdd: true, haveRemove: false);
 
             ValidateEventImplementation_101(@"
@@ -27265,14 +27263,14 @@ public interface I1
 class Test1 : I1
 {}
 ",
-                new[] {
+                [
                 // (6,15): error CS0073: An add or remove accessor must have a body
                 //         remove;
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 15),
                 // (4,40): error CS0065: 'I1.E1': event property must have both add and remove accessors
                 //     public virtual event System.Action E1 
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I1.E1").WithLocation(4, 40)
-                },
+                ],
                 haveAdd: false, haveRemove: true);
 
             ValidateEventImplementation_101(@"
@@ -27287,11 +27285,11 @@ public interface I1
 class Test1 : I1
 {}
 ",
-                new[] {
+                [
                 // (4,40): error CS0065: 'I1.E1': event property must have both add and remove accessors
                 //     public virtual event System.Action E1 
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I1.E1").WithLocation(4, 40)
-                },
+                ],
                 haveAdd: false, haveRemove: true);
 
             ValidateEventImplementation_101(@"
@@ -27306,11 +27304,11 @@ public interface I1
 class Test1 : I1
 {}
 ",
-                new[] {
+                [
                 // (4,40): error CS0065: 'I1.E1': event property must have both add and remove accessors
                 //     public virtual event System.Action E1 
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I1.E1").WithLocation(4, 40)
-                },
+                ],
                 haveAdd: false, haveRemove: true);
 
             ValidateEventImplementation_101(@"
@@ -27326,14 +27324,14 @@ public interface I1
 class Test1 : I1
 {}
 ",
-                new[] {
+                [
                 // (6,12): error CS0073: An add or remove accessor must have a body
                 //         add;
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";"),
                 // (7,15): error CS0073: An add or remove accessor must have a body
                 //         remove;
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(7, 15)
-                },
+                ],
                 haveAdd: true, haveRemove: true);
 
             ValidateEventImplementation_101(@"
@@ -27345,14 +27343,14 @@ public interface I1
 class Test1 : I1
 {}
 ",
-                new[] {
+                [
                 // (4,40): error CS0065: 'I1.E1': event property must have both add and remove accessors
                 //     public virtual event System.Action E1;
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I1.E1").WithLocation(4, 40),
                 // (4,40): warning CS0067: The event 'I1.E1' is never used
                 //     public virtual event System.Action E1;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E1").WithArguments("I1.E1").WithLocation(4, 40)
-                },
+                ],
                 haveAdd: true, haveRemove: true);
 
             ValidateEventImplementation_101(@"
@@ -27364,7 +27362,7 @@ public interface I1
 class Test1 : I1
 {}
 ",
-                new[] {
+                [
                 // (4,40): error CS0068: 'I1.E1': instance event in interface cannot have initializer
                 //     public virtual event System.Action E1 = null;
                 Diagnostic(ErrorCode.ERR_InterfaceEventInitializer, "E1").WithArguments("I1.E1").WithLocation(4, 40),
@@ -27374,7 +27372,7 @@ class Test1 : I1
                 // (4,40): warning CS0067: The event 'I1.E1' is never used
                 //     public virtual event System.Action E1 = null;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E1").WithArguments("I1.E1").WithLocation(4, 40)
-                },
+                ],
                 haveAdd: true, haveRemove: true);
         }
 
@@ -31115,15 +31113,14 @@ class Test1 : I1
 ";
 
             ValidateEventModifiers_11(source1, source2, Accessibility.Protected,
-                new DiagnosticDescription[]
-                {
+                [
                 // (12,9): error CS8704: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 //         add
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "add").WithArguments("Test1", "I1.P1.add", "Test1.P1.add", "9.0", "10.0").WithLocation(12, 9),
                 // (16,9): error CS8704: 'Test1' does not implement interface member 'I1.P1.remove'. 'Test1.P1.remove' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 //         remove
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "remove").WithArguments("Test1", "I1.P1.remove", "Test1.P1.remove", "9.0", "10.0").WithLocation(16, 9)
-                },
+                ],
                 // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.P1'
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.P1").WithLocation(2, 15)
@@ -36996,8 +36993,7 @@ class Test1 : I1
 ";
 
             ValidatePropertyImplementationInDerived_02(source1, isStatic: false,
-                new DiagnosticDescription[]
-                {
+                [
                 // (14,18): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     int I2.M1 => Getter();
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "Getter()").WithArguments("default interface implementation", "8.0").WithLocation(14, 18),
@@ -37007,7 +37003,7 @@ class Test1 : I1
                 // (24,9): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         set 
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(24, 9)
-                },
+                ],
                 // (6,15): error CS8506: 'I1.I2.M1.get' cannot implement interface member 'I2.M1.get' in type 'Test1' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
                 // class Test1 : I1
                 Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1.get", "I2.M1.get", "Test1", "default interface implementation", "7.3", "8.0").WithLocation(6, 15),
@@ -37060,8 +37056,7 @@ class Test1 : I1
 ";
 
             ValidatePropertyImplementationInDerived_02(source1, isStatic: true,
-                new DiagnosticDescription[]
-                {
+                [
                 // (4,25): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     static abstract int M1 {get;} 
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M1").WithArguments("abstract", "10.0", "11.0").WithLocation(4, 25),
@@ -37074,7 +37069,7 @@ class Test1 : I1
                 // (22,19): error CS8703: The modifier 'static' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     static int I4.M1 
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M1").WithArguments("static", "10.0", "11.0").WithLocation(22, 19)
-                },
+                ],
                 // (6,15): error CS8706: 'I1.I2.M1.get' cannot implement interface member 'I2.M1.get' in type 'Test1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version '11.0' or greater.
                 // class Test1 : I1
                 Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1.get", "I2.M1.get", "Test1", "static abstract members in interfaces", "10.0", "11.0").WithLocation(6, 15),
@@ -37161,8 +37156,7 @@ class Test1 : I1
 ";
 
             ValidatePropertyImplementationInDerived_03(source1, isStatic: false,
-                new DiagnosticDescription[]
-                {
+                [
                 // (16,9): error CS8501: Target runtime doesn't support default interface implementation.
                 //         get
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(16, 9),
@@ -37172,7 +37166,7 @@ class Test1 : I1
                 // (29,9): error CS8501: Target runtime doesn't support default interface implementation.
                 //         set 
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(29, 9)
-                },
+                ],
                 // (6,15): error CS8502: 'I1.I2.M1.set' cannot implement interface member 'I2.M1.set' in type 'Test1' because the target runtime doesn't support default interface implementation.
                 // class Test1 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1.set", "I2.M1.set", "Test1").WithLocation(6, 15),
@@ -37258,8 +37252,7 @@ class Test1 : I1
 ";
 
             ValidatePropertyImplementationInDerived_03(source1, isStatic: true,
-                new DiagnosticDescription[]
-                {
+                [
                 // (4,29): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     static abstract int M1 {get; set;} 
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "get").WithLocation(4, 29),
@@ -37275,7 +37268,7 @@ class Test1 : I1
                 // (27,19): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     static int I4.M1 
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M1").WithLocation(27, 19)
-                },
+                ],
                 // (6,15): error CS8929: 'I1.I2.M1.get' cannot implement interface member 'I2.M1.get' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
                 // class Test1 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("I1.I2.M1.get", "I2.M1.get", "Test1").WithLocation(6, 15),
@@ -37730,30 +37723,27 @@ class Test1 : I1
 ";
 
             ValidatePropertyImplementationInDerived_09(source1, source2, isStatic: false,
-                new DiagnosticDescription[]
-                {
+                [
                 // (9,23): warning CS0626: Method, operator, or accessor 'I1.I2.M1.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern int I2.M1 {get;} 
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I1.I2.M1.get").WithLocation(9, 23)
-                },
-                new DiagnosticDescription[]
-                {
+                ],
+                [
                 // (9,23): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     extern int I2.M1 {get;} 
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(9, 23),
                 // (9,23): warning CS0626: Method, operator, or accessor 'I1.I2.M1.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern int I2.M1 {get;} 
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I1.I2.M1.get").WithLocation(9, 23)
-                },
-                new DiagnosticDescription[]
-                {
+                ],
+                [
                 // (9,23): error CS8501: Target runtime doesn't support default interface implementation.
                 //     extern int I2.M1 {get;} 
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(9, 23),
                 // (9,23): warning CS0626: Method, operator, or accessor 'I1.I2.M1.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern int I2.M1 {get;} 
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I1.I2.M1.get").WithLocation(9, 23)
-                },
+                ],
                 // (10,7): error CS0179: 'I1.I2.M1.set' cannot be extern and declare a body
                 //     { set {}} 
                 Diagnostic(ErrorCode.ERR_ExternHasBody, "set").WithArguments("I1.I2.M1.set").WithLocation(10, 7)
@@ -37890,14 +37880,12 @@ class Test1 : I1
 ";
 
             ValidatePropertyImplementationInDerived_09(source1, source2, isStatic: true,
-                new DiagnosticDescription[]
-                {
+                [
                 // (9,30): warning CS0626: Method, operator, or accessor 'I1.I2.M1.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     static extern int I2.M1 {get;} 
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I1.I2.M1.get").WithLocation(9, 30)
-                },
-                new DiagnosticDescription[]
-                {
+                ],
+                [
                 // (4,25): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     static abstract int M1 {get;} 
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M1").WithArguments("abstract", "10.0", "11.0").WithLocation(4, 25),
@@ -37907,9 +37895,8 @@ class Test1 : I1
                 // (9,30): warning CS0626: Method, operator, or accessor 'I1.I2.M1.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     static extern int I2.M1 {get;} 
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I1.I2.M1.get").WithLocation(9, 30)
-                },
-                new DiagnosticDescription[]
-                {
+                ],
+                [
                 // (4,29): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     static abstract int M1 {get;} 
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "get").WithLocation(4, 29),
@@ -37919,7 +37906,7 @@ class Test1 : I1
                 // (9,30): warning CS0626: Method, operator, or accessor 'I1.I2.M1.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     static extern int I2.M1 {get;} 
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I1.I2.M1.get").WithLocation(9, 30)
-                },
+                ],
                 // (10,7): error CS0179: 'I1.I2.M1.set' cannot be extern and declare a body
                 //     { set {}} 
                 Diagnostic(ErrorCode.ERR_ExternHasBody, "set").WithArguments("I1.I2.M1.set").WithLocation(10, 7)
@@ -38530,8 +38517,7 @@ class Test12 : I8
 }
 ";
             ValidatePropertyImplementationInDerived_12(source1, source4, source5, isStatic,
-                new DiagnosticDescription[]
-                {
+                [
                 // (2,15): error CS8505: Interface member 'I1.M1' does not have a most specific implementation. Neither 'I2.I1.M1', nor 'I3.I1.M1' are most specific.
                 // class Test1 : I2, I3
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.M1", "I2.I1.M1", "I3.I1.M1").WithLocation(2, 15),
@@ -38547,7 +38533,7 @@ class Test12 : I8
                 // (14,15): error CS8505: Interface member 'I1.M1' does not have a most specific implementation. Neither 'I5.I1.M1', nor 'I4.I1.M1' are most specific.
                 // class Test5 : I8
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I8").WithArguments("I1.M1", "I5.I1.M1", "I4.I1.M1").WithLocation(14, 15)
-                }
+                ]
                 );
         }
 
@@ -38800,15 +38786,14 @@ class Test1 : I2, I3
 ";
 
             ValidatePropertyImplementationInDerived_13(source1, source2,
-                new DiagnosticDescription[]
-                {
+                [
                 // (2,15): error CS8505: Interface member 'I1.M1' does not have a most specific implementation. Neither 'I2.I1.M1', nor 'I3.I1.M1' are most specific.
                 // class Test1 : I2, I3
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.M1", "I2.I1.M1", "I3.I1.M1").WithLocation(2, 15),
                 // (2,15): error CS0738: 'Test1' does not implement interface member 'I1.M1'. 'Test1.M1' cannot implement 'I1.M1' because it does not have the matching return type of 'int'.
                 // class Test1 : I2, I3
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I2").WithArguments("Test1", "I1.M1", "Test1.M1", "int").WithLocation(2, 15)
-                }
+                ]
                 );
         }
 
@@ -42405,8 +42390,7 @@ class Test1 : I1
 ";
 
             ValidatePropertyImplementationInDerived_02(source1, isStatic: false,
-                new DiagnosticDescription[]
-                {
+                [
                 // (16,17): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     private int Getter()
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "Getter").WithArguments("default interface implementation", "8.0").WithLocation(16, 17),
@@ -42416,7 +42400,7 @@ class Test1 : I1
                 // (24,9): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         set 
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(24, 9)
-                },
+                ],
                 // (6,15): error CS8506: 'I1.I2.this[int].get' cannot implement interface member 'I2.this[int].get' in type 'Test1' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
                 // class Test1 : I1
                 Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.I2.this[int].get", "I2.this[int].get", "Test1", "default interface implementation", "7.3", "8.0").WithLocation(6, 15),
@@ -42474,8 +42458,7 @@ class Test1 : I1
 ";
 
             ValidatePropertyImplementationInDerived_03(source1, isStatic: false,
-                new DiagnosticDescription[]
-                {
+                [
                 // (16,9): error CS8501: Target runtime doesn't support default interface implementation.
                 //         get
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(16, 9),
@@ -42485,7 +42468,7 @@ class Test1 : I1
                 // (29,9): error CS8501: Target runtime doesn't support default interface implementation.
                 //         set 
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(29, 9)
-                },
+                ],
                 // (6,15): error CS8502: 'I1.I2.this[int].set' cannot implement interface member 'I2.this[int].set' in type 'Test1' because the target runtime doesn't support default interface implementation.
                 // class Test1 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.this[int].set", "I2.this[int].set", "Test1").WithLocation(6, 15),
@@ -42794,30 +42777,27 @@ class Test1 : I1
 ";
 
             ValidatePropertyImplementationInDerived_09(source1, source2, isStatic: false,
-                new DiagnosticDescription[]
-                {
+                [
                 // (9,32): warning CS0626: Method, operator, or accessor 'I1.I2.this[int].get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern int I2.this[int x] {get;} 
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I1.I2.this[int].get").WithLocation(9, 32)
-                },
-                new DiagnosticDescription[]
-                {
+                ],
+                [
                 // (9,32): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     extern int I2.this[int x] {get;} 
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(9, 32),
                 // (9,32): warning CS0626: Method, operator, or accessor 'I1.I2.this[int].get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern int I2.this[int x] {get;} 
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I1.I2.this[int].get").WithLocation(9, 32)
-                },
-                new DiagnosticDescription[]
-                {
+                ],
+                [
                 // (9,32): error CS8501: Target runtime doesn't support default interface implementation.
                 //     extern int I2.this[int x] {get;} 
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(9, 32),
                 // (9,32): warning CS0626: Method, operator, or accessor 'I1.I2.this[int].get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern int I2.this[int x] {get;} 
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I1.I2.this[int].get").WithLocation(9, 32)
-                },
+                ],
                 // (10,7): error CS0179: 'I1.I2.this[int].set' cannot be extern and declare a body
                 //     { set {}} 
                 Diagnostic(ErrorCode.ERR_ExternHasBody, "set").WithArguments("I1.I2.this[int].set").WithLocation(10, 7)
@@ -43175,8 +43155,7 @@ class Test12 : I8
 }
 ";
             ValidatePropertyImplementationInDerived_12(source1, source4, source5, isStatic: false,
-                new DiagnosticDescription[]
-                {
+                [
                 // (2,15): error CS8505: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I2.I1.this[int]', nor 'I3.I1.this[int]' are most specific.
                 // class Test1 : I2, I3
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.this[int]", "I2.I1.this[int]", "I3.I1.this[int]").WithLocation(2, 15),
@@ -43192,9 +43171,8 @@ class Test12 : I8
                 // (14,15): error CS8505: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I5.I1.this[int]', nor 'I4.I1.this[int]' are most specific.
                 // class Test5 : I8
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I8").WithArguments("I1.this[int]", "I5.I1.this[int]", "I4.I1.this[int]").WithLocation(14, 15)
-                },
-                new DiagnosticDescription[]
-                {
+                ],
+                [
                 // (2,15): error CS8505: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I2.I1.Item[int]', nor 'I3.I1.Item[int]' are most specific.
                 // class Test1 : I2, I3
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.this[int]", "I2.I1.Item[int]", "I3.I1.Item[int]").WithLocation(2, 15),
@@ -43210,7 +43188,7 @@ class Test12 : I8
                 // (14,15): error CS8505: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I5.I1.Item[int]', nor 'I4.I1.Item[int]' are most specific.
                 // class Test5 : I8
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I8").WithArguments("I1.this[int]", "I5.I1.Item[int]", "I4.I1.Item[int]").WithLocation(14, 15)
-                }
+                ]
                 );
         }
 
@@ -43244,24 +43222,22 @@ class Test1 : I2, I3
 ";
 
             ValidatePropertyImplementationInDerived_13(source1, source2,
-                new DiagnosticDescription[]
-                {
+                [
                 // (2,15): error CS8505: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I2.I1.this[int]', nor 'I3.I1.this[int]' are most specific.
                 // class Test1 : I2, I3
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.this[int]", "I2.I1.this[int]", "I3.I1.this[int]").WithLocation(2, 15),
                 // (2,15): error CS0738: 'Test1' does not implement interface member 'I1.this[int]'. 'Test1.this[int]' cannot implement 'I1.this[int]' because it does not have the matching return type of 'int'.
                 // class Test1 : I2, I3
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I2").WithArguments("Test1", "I1.this[int]", "Test1.this[int]", "int").WithLocation(2, 15)
-                },
-                new DiagnosticDescription[]
-                {
+                ],
+                [
                 // (2,15): error CS8505: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I2.I1.Item[int]', nor 'I3.I1.Item[int]' are most specific.
                 // class Test1 : I2, I3
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.this[int]", "I2.I1.Item[int]", "I3.I1.Item[int]").WithLocation(2, 15),
                 // (2,15): error CS0738: 'Test1' does not implement interface member 'I1.this[int]'. 'Test1.this[int]' cannot implement 'I1.this[int]' because it does not have the matching return type of 'int'.
                 // class Test1 : I2, I3
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I2").WithArguments("Test1", "I1.this[int]", "Test1.this[int]", "int").WithLocation(2, 15)
-                }
+                ]
                 );
         }
 

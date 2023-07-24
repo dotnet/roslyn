@@ -382,12 +382,11 @@ class C
                 expectedNugetAnalyzerExecuted: true,
                 vsixAnalyzer: null,
                 expectedVsixAnalyzerExecuted: false,
-                new[]
-                {
+                [
                     (Diagnostic("A", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer)),
                     (Diagnostic("B", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer)),
                     (Diagnostic("C", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer)),
-                });
+                ]);
 
             // Only VSIX analyzer - verify diagnostics.
             await TestNuGetAndVsixAnalyzerCoreAsync(
@@ -395,12 +394,11 @@ class C
                 expectedNugetAnalyzerExecuted: false,
                 vsixAnalyzer,
                 expectedVsixAnalyzerExecuted: true,
-                new[]
-                {
+                [
                     (Diagnostic("A", "Class").WithLocation(1, 7), nameof(VsixAnalyzer)),
                     (Diagnostic("B", "Class").WithLocation(1, 7), nameof(VsixAnalyzer)),
                     (Diagnostic("C", "Class").WithLocation(1, 7), nameof(VsixAnalyzer)),
-                });
+                ]);
 
             // Both NuGet and VSIX analyzer, verify the following:
             //   1) No duplicate diagnostics
@@ -410,12 +408,11 @@ class C
                 expectedNugetAnalyzerExecuted: true,
                 vsixAnalyzer,
                 expectedVsixAnalyzerExecuted: false,
-                new[]
-                {
+                [
                     (Diagnostic("A", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer)),
                     (Diagnostic("B", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer)),
                     (Diagnostic("C", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer)),
-                });
+                ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18818")]
@@ -435,10 +432,9 @@ class C
                 expectedNugetAnalyzerExecuted: true,
                 vsixAnalyzer: null,
                 expectedVsixAnalyzerExecuted: false,
-                new[]
-                {
+                [
                     (Diagnostic("B", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer))
-                });
+                ]);
 
             // Only VSIX analyzer - verify diagnostics.
             await TestNuGetAndVsixAnalyzerCoreAsync(
@@ -446,12 +442,11 @@ class C
                 expectedNugetAnalyzerExecuted: false,
                 vsixAnalyzer,
                 expectedVsixAnalyzerExecuted: true,
-                new[]
-                {
+                [
                     (Diagnostic("A", "Class").WithLocation(1, 7), nameof(VsixAnalyzer)),
                     (Diagnostic("B", "Class").WithLocation(1, 7), nameof(VsixAnalyzer)),
                     (Diagnostic("C", "Class").WithLocation(1, 7), nameof(VsixAnalyzer)),
-                });
+                ]);
 
             // Both NuGet and VSIX analyzer, verify the following:
             //   1) No duplicate diagnostics
@@ -462,12 +457,11 @@ class C
                 expectedNugetAnalyzerExecuted: true,
                 vsixAnalyzer,
                 expectedVsixAnalyzerExecuted: true,
-                new[]
-                {
+                [
                     (Diagnostic("A", "Class").WithLocation(1, 7), nameof(VsixAnalyzer)),
                     (Diagnostic("B", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer)),
                     (Diagnostic("C", "Class").WithLocation(1, 7), nameof(VsixAnalyzer)),
-                });
+                ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18818")]
@@ -487,12 +481,11 @@ class C
                 expectedNugetAnalyzerExecuted: true,
                 vsixAnalyzer: null,
                 expectedVsixAnalyzerExecuted: false,
-                new[]
-                {
+                [
                     (Diagnostic("A", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer)),
                     (Diagnostic("B", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer)),
                     (Diagnostic("C", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer))
-                });
+                ]);
 
             // Only VSIX analyzer - verify diagnostics.
             await TestNuGetAndVsixAnalyzerCoreAsync(
@@ -500,10 +493,9 @@ class C
                 expectedNugetAnalyzerExecuted: false,
                 vsixAnalyzer,
                 expectedVsixAnalyzerExecuted: true,
-                new[]
-                {
+                [
                     (Diagnostic("B", "Class").WithLocation(1, 7), nameof(VsixAnalyzer))
-                });
+                ]);
 
             // Both NuGet and VSIX analyzer, verify the following:
             //   1) No duplicate diagnostics
@@ -513,12 +505,11 @@ class C
                 expectedNugetAnalyzerExecuted: true,
                 vsixAnalyzer,
                 expectedVsixAnalyzerExecuted: false,
-                new[]
-                {
+                [
                     (Diagnostic("A", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer)),
                     (Diagnostic("B", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer)),
                     (Diagnostic("C", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer)),
-                });
+                ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18818")]
@@ -547,12 +538,11 @@ class C
                 expectedNugetSuppressorsExecuted: false,
                 vsixSuppressors: ImmutableArray<VsixSuppressor>.Empty,
                 expectedVsixSuppressorsExecuted: false,
-                new[]
-                {
+                [
                     (Diagnostic("A", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer)),
                     (Diagnostic("B", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer)),
                     (Diagnostic("C", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer))
-                });
+                ]);
 
             // All NuGet analyzers and Vsix analyzer, verify the following:
             //   1) No duplicate diagnostics
@@ -566,12 +556,11 @@ class C
                 expectedNugetSuppressorsExecuted: false,
                 vsixSuppressors: ImmutableArray<VsixSuppressor>.Empty,
                 expectedVsixSuppressorsExecuted: false,
-                new[]
-                {
+                [
                     (Diagnostic("A", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer)),
                     (Diagnostic("B", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer)),
                     (Diagnostic("C", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer))
-                });
+                ]);
 
             // Subset of NuGet analyzers and Vsix analyzer, verify the following:
             //   1) No duplicate diagnostics
@@ -586,12 +575,11 @@ class C
                 expectedNugetSuppressorsExecuted: false,
                 vsixSuppressors: ImmutableArray<VsixSuppressor>.Empty,
                 expectedVsixSuppressorsExecuted: false,
-                new[]
-                {
+                [
                     (Diagnostic("A", "Class").WithLocation(1, 7), nameof(VsixAnalyzer)),
                     (Diagnostic("B", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer)),
                     (Diagnostic("C", "Class").WithLocation(1, 7), nameof(VsixAnalyzer))
-                });
+                ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46942")]
@@ -606,7 +594,7 @@ class C
             var vsixAnalyzer = new VsixAnalyzer(vsixAnalyzerDiagnosticIds);
             var vsixSuppressor = new VsixSuppressor(vsixAnalyzerDiagnosticIds);
             var nugetSuppressor = new NuGetSuppressor(vsixAnalyzerDiagnosticIds);
-            var partialNugetSuppressor = new NuGetSuppressor(new[] { "Y", "Z" });
+            var partialNugetSuppressor = new NuGetSuppressor(["Y", "Z"]);
 
             Assert.Equal(firstNugetAnalyzerDiagnosticIds, firstNugetAnalyzer.SupportedDiagnostics.Select(d => d.Id).Order());
             Assert.Equal(secondNugetAnalyzerDiagnosticIds, secondNugetAnalyzer.SupportedDiagnostics.Select(d => d.Id).Order());
@@ -626,12 +614,11 @@ class C
                 expectedNugetSuppressorsExecuted: false,
                 vsixSuppressors: ImmutableArray.Create(vsixSuppressor),
                 expectedVsixSuppressorsExecuted: true,
-                new[]
-                {
+                [
                     (Diagnostic("X", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer)),
                     (Diagnostic("Y", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer)),
                     (Diagnostic("Z", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer))
-                });
+                ]);
 
             // All without overlap, the VSIX analyzer and suppressor still work when nuget analyzers are present:
             //   1) No duplicate diagnostics
@@ -646,15 +633,14 @@ class C
                 expectedNugetSuppressorsExecuted: false,
                 vsixSuppressors: ImmutableArray.Create(vsixSuppressor),
                 expectedVsixSuppressorsExecuted: true,
-                new[]
-                {
+                [
                     (Diagnostic("A", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer)),
                     (Diagnostic("B", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer)),
                     (Diagnostic("C", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer)),
                     (Diagnostic("X", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer)),
                     (Diagnostic("Y", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer)),
                     (Diagnostic("Z", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer))
-                });
+                ]);
 
             // All without overlap, verify the following:
             //   1) No duplicate diagnostics
@@ -669,13 +655,12 @@ class C
                 expectedNugetSuppressorsExecuted: true,
                 vsixSuppressors: ImmutableArray<VsixSuppressor>.Empty,
                 expectedVsixSuppressorsExecuted: false,
-                new[]
-                {
+                [
                     (Diagnostic("A", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer)),
                     (Diagnostic("X", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer)),
                     (Diagnostic("Y", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer)),
                     (Diagnostic("Z", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer))
-                });
+                ]);
 
             // Suppressors with duplicate support for VsixAnalyzer, but not 100% overlap. Verify the following:
             //   1) No duplicate diagnostics
@@ -691,13 +676,12 @@ class C
                 expectedNugetSuppressorsExecuted: true,
                 vsixSuppressors: ImmutableArray.Create(vsixSuppressor),
                 expectedVsixSuppressorsExecuted: false,
-                new[]
-                {
+                [
                     (Diagnostic("A", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer)),
                     (Diagnostic("X", "Class", isSuppressed: false).WithLocation(1, 7), nameof(VsixAnalyzer)),
                     (Diagnostic("Y", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer)),
                     (Diagnostic("Z", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer))
-                });
+                ]);
 
             // Suppressors with duplicate support for VsixAnalyzer, with 100% overlap. Verify the following:
             //   1) No duplicate diagnostics
@@ -713,13 +697,12 @@ class C
                 expectedNugetSuppressorsExecuted: true,
                 vsixSuppressors: ImmutableArray.Create(vsixSuppressor),
                 expectedVsixSuppressorsExecuted: false,
-                new[]
-                {
+                [
                     (Diagnostic("A", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer)),
                     (Diagnostic("X", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer)),
                     (Diagnostic("Y", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer)),
                     (Diagnostic("Z", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer))
-                });
+                ]);
         }
 
         private static Task TestNuGetAndVsixAnalyzerCoreAsync(

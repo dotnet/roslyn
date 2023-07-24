@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     [CompilerTrait(CompilerFeature.Tuples)]
     public class CodeGenDeconstructTests : CSharpTestBase
     {
-        private static readonly MetadataReference[] s_valueTupleRefs = new[] { SystemRuntimeFacadeRef, ValueTupleRef };
+        private static readonly MetadataReference[] s_valueTupleRefs = [SystemRuntimeFacadeRef, ValueTupleRef];
 
         const string commonSource =
 @"public class Pair<T1, T2>

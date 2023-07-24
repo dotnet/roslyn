@@ -2461,7 +2461,7 @@ public class Test
                     ");
 
             var comp45 = CreateCompilationWithMscorlib45(
-                new[] { text, ExpressionTestLibrary },
+                [text, ExpressionTestLibrary],
                 new[] { ExpressionAssemblyRef },
                 options: TestOptions.ReleaseExe);
 
@@ -3520,7 +3520,7 @@ class Program
             string expectedOutput45 = @"Convert(Call(Constant(Int32 Func1(System.String) Type:System.Reflection.MethodInfo).[System.Delegate CreateDelegate(System.Type, System.Object)](Constant(Del Type:System.Type), Parameter(tc1 Type:TestClass1)) Type:System.Delegate) Type:Del)";
 
             var comp45 = CreateCompilationWithMscorlib45(
-                new[] { source, ExpressionTestLibrary },
+                [source, ExpressionTestLibrary],
                 new[] { ExpressionAssemblyRef },
                 TestOptions.ReleaseExe);
 
@@ -5207,7 +5207,7 @@ class Program
             var expectedOutput = @"a => a.Cells.get_Cell(2)";
             CompileAndVerifyUtil(
                 new[] { source2 },
-                new[] { reference1 },
+                [reference1],
                 expectedOutput: expectedOutput);
         }
 
@@ -6257,7 +6257,7 @@ class C : TestBase
 
         private static string TrimExpectedOutput(string expectedOutput)
         {
-            char[] delimit = { '\n' };
+            char[] delimit = ['\n'];
             string trimmedOutput = null;
             string[] expected_strs = expectedOutput.Trim().Split(delimit);
 

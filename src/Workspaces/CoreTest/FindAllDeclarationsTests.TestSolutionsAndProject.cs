@@ -125,15 +125,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private Workspace CreateWorkspaceWithSolution(SolutionKind solutionKind, out Solution solution, TestHost testHost = TestHost.InProcess)
             => solutionKind switch
             {
-                SolutionKind.SingleClass => CreateWorkspaceWithSingleProjectSolution(testHost, new[] { SingleClass }, out solution),
-                SolutionKind.SingleClassWithSingleMethod => CreateWorkspaceWithSingleProjectSolution(testHost, new[] { SingleClassWithSingleMethod }, out solution),
-                SolutionKind.SingleClassWithSingleProperty => CreateWorkspaceWithSingleProjectSolution(testHost, new[] { SingleClassWithSingleProperty }, out solution),
-                SolutionKind.SingleClassWithSingleField => CreateWorkspaceWithSingleProjectSolution(testHost, new[] { SingleClassWithSingleField }, out solution),
-                SolutionKind.TwoProjectsEachWithASingleClassWithSingleMethod => CreateWorkspaceWithMultipleProjectSolution(testHost, new[] { SingleClassWithSingleMethod, SingleClassWithSingleMethod }, out solution),
-                SolutionKind.TwoProjectsEachWithASingleClassWithSingleProperty => CreateWorkspaceWithMultipleProjectSolution(testHost, new[] { SingleClassWithSingleProperty, SingleClassWithSingleProperty }, out solution),
-                SolutionKind.TwoProjectsEachWithASingleClassWithSingleField => CreateWorkspaceWithMultipleProjectSolution(testHost, new[] { SingleClassWithSingleField, SingleClassWithSingleField }, out solution),
-                SolutionKind.NestedClass => CreateWorkspaceWithSingleProjectSolution(testHost, new[] { NestedClass }, out solution),
-                SolutionKind.TwoNamespacesWithIdenticalClasses => CreateWorkspaceWithSingleProjectSolution(testHost, new[] { Namespace1, Namespace2 }, out solution),
+                SolutionKind.SingleClass => CreateWorkspaceWithSingleProjectSolution(testHost, [SingleClass], out solution),
+                SolutionKind.SingleClassWithSingleMethod => CreateWorkspaceWithSingleProjectSolution(testHost, [SingleClassWithSingleMethod], out solution),
+                SolutionKind.SingleClassWithSingleProperty => CreateWorkspaceWithSingleProjectSolution(testHost, [SingleClassWithSingleProperty], out solution),
+                SolutionKind.SingleClassWithSingleField => CreateWorkspaceWithSingleProjectSolution(testHost, [SingleClassWithSingleField], out solution),
+                SolutionKind.TwoProjectsEachWithASingleClassWithSingleMethod => CreateWorkspaceWithMultipleProjectSolution(testHost, [SingleClassWithSingleMethod, SingleClassWithSingleMethod], out solution),
+                SolutionKind.TwoProjectsEachWithASingleClassWithSingleProperty => CreateWorkspaceWithMultipleProjectSolution(testHost, [SingleClassWithSingleProperty, SingleClassWithSingleProperty], out solution),
+                SolutionKind.TwoProjectsEachWithASingleClassWithSingleField => CreateWorkspaceWithMultipleProjectSolution(testHost, [SingleClassWithSingleField, SingleClassWithSingleField], out solution),
+                SolutionKind.NestedClass => CreateWorkspaceWithSingleProjectSolution(testHost, [NestedClass], out solution),
+                SolutionKind.TwoNamespacesWithIdenticalClasses => CreateWorkspaceWithSingleProjectSolution(testHost, [Namespace1, Namespace2], out solution),
                 _ => throw ExceptionUtilities.UnexpectedValue(solutionKind),
             };
 

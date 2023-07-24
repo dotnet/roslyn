@@ -322,7 +322,7 @@ namespace N1
         [Fact]
         public void CompilingCodeWithInvalidPreProcessorSymbolsShouldProvideDiagnostics()
         {
-            var compilation = CreateEmptyCompilation(string.Empty, parseOptions: new CSharpParseOptions().WithPreprocessorSymbols(new[] { "1" }));
+            var compilation = CreateEmptyCompilation(string.Empty, parseOptions: new CSharpParseOptions().WithPreprocessorSymbols(["1"]));
 
             compilation.VerifyDiagnostics(
                 // (1,1): error CS8301: Invalid name for a preprocessing symbol; '1' is not a valid identifier
@@ -366,9 +366,9 @@ namespace N1
         [Fact]
         public void CompilingCodeWithInvalidParseOptionsInMultipleSyntaxTreesShouldReportThemAll()
         {
-            var syntaxTree1 = Parse(string.Empty, options: new CSharpParseOptions().WithPreprocessorSymbols(new[] { "1" }));
-            var syntaxTree2 = Parse(string.Empty, options: new CSharpParseOptions().WithPreprocessorSymbols(new[] { "2" }));
-            var syntaxTree3 = Parse(string.Empty, options: new CSharpParseOptions().WithPreprocessorSymbols(new[] { "3" }));
+            var syntaxTree1 = Parse(string.Empty, options: new CSharpParseOptions().WithPreprocessorSymbols(["1"]));
+            var syntaxTree2 = Parse(string.Empty, options: new CSharpParseOptions().WithPreprocessorSymbols(["2"]));
+            var syntaxTree3 = Parse(string.Empty, options: new CSharpParseOptions().WithPreprocessorSymbols(["3"]));
 
             var compilation = CreateEmptyCompilation(new[] { syntaxTree1, syntaxTree2, syntaxTree3 });
             var diagnostics = compilation.GetDiagnostics();
@@ -392,8 +392,8 @@ namespace N1
         [Fact]
         public void CompilingCodeWithSameParseOptionsInMultipleSyntaxTreesShouldReportOnlyNonDuplicates()
         {
-            var parseOptions1 = new CSharpParseOptions().WithPreprocessorSymbols(new[] { "1" });
-            var parseOptions2 = new CSharpParseOptions().WithPreprocessorSymbols(new[] { "2" });
+            var parseOptions1 = new CSharpParseOptions().WithPreprocessorSymbols(["1"]);
+            var parseOptions2 = new CSharpParseOptions().WithPreprocessorSymbols(["2"]);
 
             var syntaxTree1 = Parse(string.Empty, options: parseOptions1);
             var syntaxTree2 = Parse(string.Empty, options: parseOptions2);

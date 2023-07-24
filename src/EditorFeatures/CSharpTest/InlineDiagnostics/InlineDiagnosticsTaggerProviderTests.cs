@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDiagnostics
         {
             using var workspace = TestWorkspace.CreateCSharp(
                 files: Array.Empty<string>(),
-                sourceGeneratedFiles: new[] { content },
+                sourceGeneratedFiles: [content],
                 composition: SquiggleUtilities.WpfCompositionWithSolutionCrawler);
             return await GetTagSpansAsync(workspace);
         }

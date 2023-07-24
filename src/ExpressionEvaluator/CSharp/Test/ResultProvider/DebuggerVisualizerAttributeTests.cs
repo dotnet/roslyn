@@ -53,7 +53,7 @@ class Q
             string defaultDebuggeeSideVisualizerAssemblyName = $"Microsoft.VisualStudio.DebuggerVisualizers, Version={vsVersion}.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
 
             DkmCustomUIVisualizerInfo[] customUIVisualizerInfo =
-            {
+            [
                 new DkmCustomUIVisualizerInfo { Id = 0, Description = "P", MenuName = "P", Metric = "ClrCustomVisualizerVSHost",
                     UISideVisualizerTypeName = typeP.FullName,
                     UISideVisualizerAssemblyName = typeP.Assembly.FullName,
@@ -68,7 +68,7 @@ class Q
                     DebuggeeSideVisualizerTypeName = defaultDebuggeeSideVisualizerTypeName,
                     DebuggeeSideVisualizerAssemblyName = defaultDebuggeeSideVisualizerAssemblyName,
                     ExtensionPartId = Guid.Empty}
-            };
+            ];
 
             Verify(evalResult,
                 EvalResult("new C()", "{C}", "C", "new C()", flags: DkmEvaluationResultFlags.Expandable, customUIVisualizerInfo: customUIVisualizerInfo));

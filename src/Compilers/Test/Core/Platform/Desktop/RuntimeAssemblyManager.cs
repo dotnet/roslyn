@@ -401,7 +401,7 @@ namespace Roslyn.Test.Utilities.Desktop
                 }
                 else if (count == 1)
                 {
-                    args = new object[] { mainArgs ?? new string[0] };
+                    args = [mainArgs ?? new string[0]];
                 }
                 else
                 {

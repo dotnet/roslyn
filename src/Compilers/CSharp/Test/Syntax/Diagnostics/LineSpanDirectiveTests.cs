@@ -478,7 +478,7 @@ class Page
             static string getDescription(SyntaxNode syntax)
             {
                 var description = syntax.ToString();
-                int index = description.IndexOfAny(new[] { '\r', '\n' });
+                int index = description.IndexOfAny(['\r', '\n']);
                 return index < 0 ?
                     description :
                     description.Substring(0, index) + "...";

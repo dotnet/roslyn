@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal static AssemblySymbol GetSymbolForReference(MetadataReference reference)
         {
-            return GetSymbolsForReferences(mrefs: new[] { reference })[0];
+            return GetSymbolsForReferences(mrefs: [reference])[0];
         }
 
         internal static AssemblySymbol[] GetSymbolsForReferences(params MetadataReference[] mrefs)

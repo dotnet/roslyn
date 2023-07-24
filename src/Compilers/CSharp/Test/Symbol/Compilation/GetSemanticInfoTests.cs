@@ -5417,7 +5417,7 @@ class C2<T> : E2<T> { }";
             type = (INamedTypeSymbol)model.GetDeclaredSymbol(root.Members[1]);
             Assert.True(type.IsGenericType);
             Assert.False(type.IsErrorType());
-            Assert.Throws<ArgumentException>(() => type.Construct(new ITypeSymbol[] { null })); // null type arg
+            Assert.Throws<ArgumentException>(() => type.Construct([null])); // null type arg
             Assert.Throws<ArgumentException>(() => type.Construct()); // typeArgs.Length != Arity
             Assert.Throws<InvalidOperationException>(() => type.Construct(objectType).Construct(objectType)); // constructed type
 
@@ -5425,7 +5425,7 @@ class C2<T> : E2<T> { }";
             type = type.BaseType.ConstructedFrom;
             Assert.True(type.IsGenericType);
             Assert.True(type.IsErrorType());
-            Assert.Throws<ArgumentException>(() => type.Construct(new ITypeSymbol[] { null })); // null type arg
+            Assert.Throws<ArgumentException>(() => type.Construct([null])); // null type arg
             Assert.Throws<ArgumentException>(() => type.Construct()); // typeArgs.Length != Arity
             Assert.Throws<InvalidOperationException>(() => type.Construct(objectType).Construct(objectType)); // constructed type
         }

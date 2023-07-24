@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         private static void AttachAndCheckDiagnostics(InternalSyntax.CSharpSyntaxNode node)
         {
-            var nodeWithDiags = node.SetDiagnostics(new DiagnosticInfo[] { new CSDiagnosticInfo(ErrorCode.ERR_NoBaseClass) });
+            var nodeWithDiags = node.SetDiagnostics([new CSDiagnosticInfo(ErrorCode.ERR_NoBaseClass)]);
             var diags = nodeWithDiags.GetDiagnostics();
 
             Assert.NotEqual(node, nodeWithDiags);

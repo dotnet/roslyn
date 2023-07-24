@@ -1581,8 +1581,7 @@ testHost, composition, @"class C
         {
             using var workspace = TestWorkspace.CreateCSharp(
                 files: Array.Empty<string>(),
-                sourceGeneratedFiles: new[]
-                {
+                sourceGeneratedFiles: [
                     @"
 public partial class C
 {
@@ -1591,7 +1590,7 @@ public partial class C
 public partial class C
 {
 }",
-                },
+                ],
                 composition: EditorTestCompositions.EditorFeatures);
 
             _provider = CreateProvider(workspace);
