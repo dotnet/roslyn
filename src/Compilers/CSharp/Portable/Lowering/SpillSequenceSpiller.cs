@@ -697,6 +697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(builder.Value is null);
                 locals = locals.AddRange(builder.GetLocals());
                 exceptionFilterPrologueOpt = new BoundStatementList(node.Syntax, builder.GetStatements());
+                builder.Free();
             }
 
             BoundBlock body = (BoundBlock)this.Visit(node.Body);
@@ -715,6 +716,97 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion
 
         #region Expression Visitors
+
+        private new BoundNode VisitLoweredSwitchExpressionArm(BoundLoweredSwitchExpressionArm node)
+        {
+            var statements = VisitList(node.Statements);
+            BoundSpillSequenceBuilder valueBuilder = null;
+            var value = VisitExpression(ref valueBuilder, node.Value);
+            if (valueBuilder is null && statements == node.Statements)
+            {
+                return node.Update(node.Locals, statements, value);
+            }
+
+            var builder = new BoundSpillSequenceBuilder(node.Syntax);
+            builder.AddStatements(statements);
+            builder.Include(valueBuilder);
+            return builder.Update(value);
+        }
+
+        public override BoundNode VisitLoweredSwitchExpression(BoundLoweredSwitchExpression node)
+        {
+            var statements = VisitList(node.Statements);
+            Debug.Assert(statements == node.Statements);
+
+            int firstSpill = -1;
+            BoundSpillSequenceBuilder firstSpillNode = null;
+
+            var switchArms = node.SwitchArms;
+            for (int i = 0; i < switchArms.Length; i++)
+            {
+                var switchArm = switchArms[i];
+                var rewrittenNode = VisitLoweredSwitchExpressionArm(switchArm);
+                if (rewrittenNode.Kind == SpillSequenceBuilderKind)
+                {
+                    firstSpill = i;
+                    firstSpillNode = (BoundSpillSequenceBuilder)rewrittenNode;
+                    break;
+                }
+
+                Debug.Assert(rewrittenNode == switchArm);
+            }
+
+            if (firstSpillNode is null)
+            {
+                return node.Update(statements, switchArms, node.Type);
+            }
+
+            _F.Syntax = node.Syntax;
+            var tmp = _F.SynthesizedLocal(node.Type, kind: SynthesizedLocalKind.Spill, syntax: _F.Syntax);
+            var switchBuilder = new BoundSpillSequenceBuilder(node.Syntax);
+            var rewrittenArms = ArrayBuilder<BoundLoweredSwitchExpressionArm>.GetInstance(switchArms.Length);
+
+            for (int i = 0; i < firstSpill; i++)
+            {
+                rewrittenArms.Add(makeAssignment(switchArms[i]));
+            }
+
+            rewrittenArms.Add(makeAssignmentAndFree(switchArms[firstSpill], firstSpillNode));
+
+            for (int i = firstSpill + 1; i < switchArms.Length; i++)
+            {
+                var switchArm = switchArms[i];
+                var rewrittenNode = VisitLoweredSwitchExpressionArm(switchArm);
+                rewrittenArms.Add(rewrittenNode switch
+                {
+                    BoundLoweredSwitchExpressionArm rewrittenArm => makeAssignment(rewrittenArm),
+                    BoundSpillSequenceBuilder newBuilder => makeAssignmentAndFree(switchArm, newBuilder),
+                    _ => throw ExceptionUtilities.Unreachable()
+                });
+            }
+
+            var newNode = node.Update(statements, rewrittenArms.ToImmutableAndFree(), node.Type);
+            switchBuilder.AddStatement(_F.ExpressionStatement(newNode));
+            switchBuilder.AddLocal(tmp);
+            return switchBuilder.Update(_F.Local(tmp));
+
+            BoundLoweredSwitchExpressionArm makeAssignmentAndFree(BoundLoweredSwitchExpressionArm switchArm, BoundSpillSequenceBuilder newBuilder)
+            {
+                switchBuilder.AddLocals(newBuilder.GetLocals());
+                var result = switchArm.Update(
+                    switchArm.Locals, newBuilder.GetStatements(),
+                    _F.AssignmentExpression(_F.Local(tmp), newBuilder.Value));
+                newBuilder.Free();
+                return result;
+            }
+
+            BoundLoweredSwitchExpressionArm makeAssignment(BoundLoweredSwitchExpressionArm switchArm)
+            {
+                return switchArm.Update(
+                    switchArm.Locals, switchArm.Statements,
+                    _F.AssignmentExpression(_F.Local(tmp), switchArm.Value));
+            }
+        }
 
 #if DEBUG
         public override BoundNode VisitLoweredIsPatternExpression(BoundLoweredIsPatternExpression node)

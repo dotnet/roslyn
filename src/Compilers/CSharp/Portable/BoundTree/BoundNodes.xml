@@ -1508,6 +1508,18 @@
     <Field Name="WasTargetTyped" Type="bool" />
   </Node>
 
+  <Node Name="BoundLoweredSwitchExpression" Base="BoundExpression" HasValidate="true">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="Statements" Type="ImmutableArray&lt;BoundStatement&gt;"/>
+    <Field Name="SwitchArms" Type="ImmutableArray&lt;BoundLoweredSwitchExpressionArm&gt;"/>
+  </Node>
+
+  <Node Name="BoundLoweredSwitchExpressionArm" Base="BoundNode">
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
+    <Field Name="Statements" Type="ImmutableArray&lt;BoundStatement&gt;"/>
+    <Field Name="Value" Type="BoundExpression" Null="disallow"/>
+  </Node>
+
   <Node Name="BoundDecisionDag" Base="BoundNode">
     <Field Name="RootNode" Type="BoundDecisionDagNode" Null="disallow"/>
   </Node>

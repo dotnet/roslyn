@@ -315,6 +315,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitRefValueOperator((BoundRefValueOperator)expression, used);
                     break;
 
+                case BoundKind.LoweredSwitchExpression:
+                    EmitLoweredSwitchExpression((BoundLoweredSwitchExpression)expression, used);
+                    break;
+
                 case BoundKind.LoweredIsPatternExpression:
                     EmitLoweredIsPatternExpression((BoundLoweredIsPatternExpression)expression, used);
                     break;
@@ -354,6 +358,42 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // node should have been lowered:
                     throw ExceptionUtilities.UnexpectedValue(expression.Kind);
             }
+        }
+
+        private void EmitLoweredSwitchExpression(BoundLoweredSwitchExpression node, bool used)
+        {
+            EmitSideEffects(node.Statements);
+
+            var doneLabel = new object();
+            for (int i = 0, n = node.SwitchArms.Length; i < n; i++)
+            {
+                var switchArm = node.SwitchArms[i];
+                if (!switchArm.Locals.IsEmpty)
+                {
+                    _builder.OpenLocalScope();
+                    DefineScopeLocals(switchArm.Locals);
+                }
+
+                EmitSideEffects(switchArm.Statements);
+                EmitExpression(switchArm.Value, used);
+                if (used)
+                {
+                    EmitStaticCastIfNeeded(node, switchArm.Value);
+                }
+
+                if (!switchArm.Locals.IsEmpty)
+                {
+                    _builder.CloseLocalScope();
+                }
+
+                _builder.EmitBranch(ILOpCode.Br, doneLabel);
+                if (used && i != n - 1)
+                {
+                    _builder.AdjustStack(-1);
+                }
+            }
+
+            _builder.MarkLabel(doneLabel);
         }
 
         private void EmitLoweredIsPatternExpression(BoundLoweredIsPatternExpression node, bool used, bool sense = true)
@@ -3764,18 +3804,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // it seems that either PEVerify or the runtime/JIT verifier will complain at you if you try to remove
             // either of the casts.
             //
-            var mergeTypeOfAlternative = StackMergeType(expr.Alternative);
             if (used)
             {
-                if (IsVarianceCast(expr.Type, mergeTypeOfAlternative))
-                {
-                    EmitStaticCast(expr.Type, expr.Syntax);
-                    mergeTypeOfAlternative = expr.Type;
-                }
-                else if (expr.Type.IsInterfaceType() && !TypeSymbol.Equals(expr.Type, mergeTypeOfAlternative, TypeCompareKind.ConsiderEverything2))
-                {
-                    EmitStaticCast(expr.Type, expr.Syntax);
-                }
+                EmitStaticCastIfNeeded(expr, expr.Alternative);
             }
 
             _builder.EmitBranch(ILOpCode.Br, doneLabel);
@@ -3790,19 +3821,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (used)
             {
-                var mergeTypeOfConsequence = StackMergeType(expr.Consequence);
-                if (IsVarianceCast(expr.Type, mergeTypeOfConsequence))
-                {
-                    EmitStaticCast(expr.Type, expr.Syntax);
-                    mergeTypeOfConsequence = expr.Type;
-                }
-                else if (expr.Type.IsInterfaceType() && !TypeSymbol.Equals(expr.Type, mergeTypeOfConsequence, TypeCompareKind.ConsiderEverything2))
-                {
-                    EmitStaticCast(expr.Type, expr.Syntax);
-                }
+                EmitStaticCastIfNeeded(expr, expr.Consequence);
             }
 
             _builder.MarkLabel(doneLabel);
+        }
+
+        private void EmitStaticCastIfNeeded(BoundExpression node, BoundExpression expression)
+        {
+            Debug.Assert(node.Type is not null);
+            TypeSymbol stackMergeType = StackMergeType(expression);
+            if (IsVarianceCast(node.Type, stackMergeType) ||
+                (node.Type.IsInterfaceType() && !TypeSymbol.Equals(node.Type, stackMergeType, TypeCompareKind.ConsiderEverything2)))
+            {
+                EmitStaticCast(node.Type, node.Syntax);
+            }
         }
 
         /// <summary>
