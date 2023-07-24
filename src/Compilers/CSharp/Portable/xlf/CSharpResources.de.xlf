@@ -2487,6 +2487,16 @@
         <target state="new">Inline array indexer will not be used for element access expression.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_InlineArrayNotSupportedByLanguage">
+        <source>'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</source>
+        <target state="new">'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InlineArrayNotSupportedByLanguage_Title">
+        <source>'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</source>
+        <target state="new">'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_InlineArraySliceNotUsed">
         <source>Inline array 'Slice' method will not be used for element access expression.</source>
         <target state="new">Inline array 'Slice' method will not be used for element access expression.</target>
