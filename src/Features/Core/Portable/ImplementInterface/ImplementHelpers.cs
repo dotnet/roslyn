@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
             var properties = namedType.GetMembers()
                 .OfType<IPropertySymbol>()
-                .Where(p => !p.IsImplicitlyDeclared && p.Parameters.Length == 0)
+                .Where(p => !p.IsImplicitlyDeclared && p.Parameters.Length == 0 && p.GetMethod != null)
                 .Where(p => includeMemberType(p.Type))
                 .ToImmutableArray();
 
