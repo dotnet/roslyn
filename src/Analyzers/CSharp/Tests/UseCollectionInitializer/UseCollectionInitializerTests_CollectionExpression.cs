@@ -109,6 +109,114 @@ public partial class UseCollectionInitializerTests_CollectionExpression
     }
 
     [Fact]
+    public async Task TestOnVariableDeclarator_Foreach1_A()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x)
+                {
+                    List<int> c = [|new|] List<int>();
+                    [|c.Add(|]1);
+                    foreach (var v in x)
+                    {
+                        c.Add(v);
+                    }
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    var c = new List<int>
+                    {
+                        1
+                    };
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestOnVariableDeclarator_Foreach1_B()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x)
+                {
+                    List<int> c = [|new|] List<int>();
+                    [|c.Add(|]1);
+                    foreach (var v in x)
+                    {
+                        c.Add(0);
+                    }
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    var c = new List<int>
+                    {
+                        1
+                    };
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestOnVariableDeclarator_Foreach1_C()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x, int z)
+                {
+                    List<int> c = [|new|] List<int>();
+                    [|c.Add(|]1);
+                    foreach (var v in x)
+                    {
+                        c.Add(z);
+                    }
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    var c = new List<int>
+                    {
+                        1
+                    };
+                }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task TestOnVariableDeclarator_Foreach2()
     {
         await TestInRegularAndScriptAsync(
@@ -197,6 +305,74 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     foreach (var v in y)
                         c.Add(v);
                     [|c.Add(|]1);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    var c = new List<int>
+                    {
+                        1
+                    };
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestOnVariableDeclarator_AddRange1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x)
+                {
+                    List<int> c = [|new|] List<int>();
+                    [|c.Add(|]1);
+                    c.AddRange(x);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    var c = new List<int>
+                    {
+                        1
+                    };
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestOnVariableDeclarator_AddRangeAndForeach1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x, int[] y)
+                {
+                    List<int> c = [|new|] List<int>();
+                    [|c.Add(|]1);
+                    foreach (var v in x)
+                        c.Add(v);
+                    c.AddRange(y);
                 }
             }
             """,

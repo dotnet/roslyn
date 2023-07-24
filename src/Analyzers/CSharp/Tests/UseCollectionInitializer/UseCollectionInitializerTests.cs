@@ -79,6 +79,76 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
         }
 
         [Fact]
+        public async Task TestOnVariableDeclarator_AddRange()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(int[] x)
+                    {
+                        var c = [|new|] List<int>();
+                        [|c.Add(|]1);
+                        c.AddRange(x);
+                    }
+                }
+                """,
+                """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(int[] x)
+                    {
+                        var c = new List<int>
+                        {
+                            1
+                        };
+                        c.AddRange(x);
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestOnVariableDeclarator_Foreach()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(int[] x)
+                    {
+                        var c = [|new|] List<int>();
+                        [|c.Add(|]1);
+                        foreach (var v in x)
+                            c.Add(v);
+                    }
+                }
+                """,
+                """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(int[] x)
+                    {
+                        var c = new List<int>
+                        {
+                            1
+                        };
+                        foreach (var v in x)
+                            c.Add(v);
+                    }
+                }
+                """);
+        }
+
+        [Fact]
         public async Task TestIndexAccess1()
         {
             await TestInRegularAndScriptAsync(

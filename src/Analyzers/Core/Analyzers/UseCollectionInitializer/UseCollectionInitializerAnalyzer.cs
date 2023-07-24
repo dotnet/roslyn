@@ -120,6 +120,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                         {
                             seenInvocation = true;
                             matches.Add(new Match<TStatementSyntax>(expressionStatement, UseSpread: false));
+                            continue;
                         }
                         else if (
                             _analyzeForCollectionExpression &&
@@ -131,6 +132,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                         {
                             seenInvocation = true;
                             matches.Add(new Match<TStatementSyntax>(expressionStatement, UseSpread: true));
+                            continue;
                         }
                     }
 
@@ -140,6 +142,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                         {
                             seenIndexAssignment = true;
                             matches.Add(new Match<TStatementSyntax>(expressionStatement, UseSpread: false));
+                            continue;
                         }
                     }
 
