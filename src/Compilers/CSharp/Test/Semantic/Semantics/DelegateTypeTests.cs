@@ -2355,6 +2355,47 @@ public static class E
             Assert.Equal(new[] { "void C.M<T>()", "void C.M<T, U>()" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
+        public void MethodGroup_ScopeByScope_BreakingChange()
+        {
+            var source = """
+
+var c = new C();
+var d = new D();
+d.Del(c.M); // used to bind to DExt.Del, now binds to D.Del
+
+public class C
+{
+    public void M() { }
+}
+
+public static class CExt
+{
+    public static void M(this C c, object o) { }
+}
+
+public class D
+{
+    public void Del(System.Delegate d) { System.Console.Write("ran"); }
+}
+
+public static class DExt
+{
+    public static void Del(this D d, System.Action<object> action) { }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "ran");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "c.M");
+            // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
+            Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+            Assert.Equal(new[] { "void C.M()", "void C.M(System.Object o)" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
         [Fact]
         public void Discard()
         {
