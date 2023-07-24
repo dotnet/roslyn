@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 
 namespace Analyzer.Utilities.PooledObjects
@@ -87,12 +88,9 @@ namespace Analyzer.Utilities.PooledObjects
             return new Enumerator((_storage ?? EmptyHashSet).GetEnumerator());
         }
 
-        public readonly IEnumerable<T> AsEunumerable_NonConcurrent()
+        public readonly IEnumerable<T> AsEnumerable_NonConcurrent()
         {
-            foreach (var item in _storage ?? EmptyHashSet)
-            {
-                yield return item;
-            }
+            return (_storage ?? EmptyHashSet).AsEnumerable();
         }
 
         public readonly struct Enumerable
