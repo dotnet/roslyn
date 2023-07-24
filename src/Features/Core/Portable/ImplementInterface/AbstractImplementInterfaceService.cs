@@ -158,12 +158,12 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
         private static IList<ISymbol> GetDelegatableMembers(State state)
         {
-            var fields =
-                state.ClassOrStructType.GetMembers()
-                                       .OfType<IFieldSymbol>()
-                                       .Where(f => !f.IsImplicitlyDeclared)
-                                       .Where(f => f.Type.GetAllInterfacesIncludingThis().Contains(state.InterfaceTypes.First()))
-                                       .OfType<ISymbol>();
+            var fields = state.ClassOrStructType
+                .GetMembers()
+                .OfType<IFieldSymbol>()
+                .Where(f => !f.IsImplicitlyDeclared)
+                .Where(f => f.Type.GetAllInterfacesIncludingThis().Contains(state.InterfaceTypes.First()))
+                .ToImmutableArray<ISymbol>();
 
             // Select all properties with zero parameters that also have a getter
             var properties =
@@ -172,6 +172,9 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                                        .Where(p => (!p.IsImplicitlyDeclared) && (p.Parameters.Length == 0) && (p.GetMethod != null))
                                        .Where(p => p.Type.GetAllInterfacesIncludingThis().Contains(state.InterfaceTypes.First()))
                                        .OfType<ISymbol>();
+
+            var parameters = GetNonCapturedPrimaryConstructorParameters(fields, properties, cancellationToken);
+
 
             return fields.Concat(properties).ToList();
         }
