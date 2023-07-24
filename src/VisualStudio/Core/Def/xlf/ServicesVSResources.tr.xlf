@@ -1092,9 +1092,9 @@
         <target state="translated">UTF-8 sabit değerli dizelerini tercih et</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_collection_expression_for_array">
-        <source>Prefer collection expression for array</source>
-        <target state="new">Prefer collection expression for array</target>
+      <trans-unit id="Prefer_collection_expression">
+        <source>Prefer collection expression</source>
+        <target state="new">Prefer collection expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
