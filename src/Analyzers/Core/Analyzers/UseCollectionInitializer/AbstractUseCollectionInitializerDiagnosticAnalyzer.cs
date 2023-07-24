@@ -119,29 +119,18 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             if (objectType.Type == null || !objectType.Type.AllInterfaces.Contains(ienumerableType))
                 return;
 
-            // Analyze the surrounding statements. We can accept a broader set of statements if the language supports
-            // collection expressions. 
-            var areCollectionExpressionsSupported = AreCollectionExpressionsSupported(context, objectCreationExpression);
-            var matches = UseCollectionInitializerAnalyzer<
-                TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TForeachStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
-                semanticModel, GetSyntaxFacts(), objectCreationExpression, areCollectionExpressionsSupported, cancellationToken);
-
-            if (matches == null || matches.Value.Length == 0)
-                return;
-
             var containingStatement = objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
             if (containingStatement == null)
                 return;
 
-            var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(matches.Value);
-            var syntaxFacts = GetSyntaxFacts();
-            if (syntaxFacts.ContainsInterleavedDirective(nodes, cancellationToken))
+            var matches = GetMatches();
+            // If we got no matches, then we def can't convert this.
+            if (matches.IsDefaultOrEmpty)
                 return;
 
-            // See if we can actually could replace this expression with a collection expression.  If not, and we did
-            // run into any foreach-statements, then we can't convert this.
-            var shouldUseCollectionExpression = areCollectionExpressionsSupported && CanUseCollectionExpression(semanticModel, objectCreationExpression, cancellationToken);
-            if (!shouldUseCollectionExpression && matches.Value.Any(static v => v is TForeachStatementSyntax))
+            var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(matches);
+            var syntaxFacts = GetSyntaxFacts();
+            if (syntaxFacts.ContainsInterleavedDirective(nodes, cancellationToken))
                 return;
 
             var locations = ImmutableArray.Create(objectCreationExpression.GetLocation());
@@ -153,7 +142,31 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 additionalLocations: locations,
                 properties: shouldUseCollectionExpression ? UseCollectionInitializerHelpers.UseCollectionExpressionProperties : null));
 
-            FadeOutCode(context, matches.Value, locations);
+            FadeOutCode(context, matches, locations);
+
+            return;
+
+            ImmutableArray<TStatementSyntax> GetMatches()
+            {
+                // Analyze the surrounding statements. First, try a broader set of statements if the language supports
+                // collection expressions. 
+                var areCollectionExpressionsSupported = AreCollectionExpressionsSupported(context, objectCreationExpression);
+                var matches = UseCollectionInitializerAnalyzer<
+                    TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TForeachStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
+                    semanticModel, GetSyntaxFacts(), objectCreationExpression, areCollectionExpressionsSupported, cancellationToken);
+
+                if (matches.IsDefaultOrEmpty)
+                    return default;
+
+                // if we're just doing a normal initializer, or we want a collection expression, and that is legal here, then we're done.
+                if (!areCollectionExpressionsSupported || CanUseCollectionExpression(semanticModel, objectCreationExpression, cancellationToken))
+                    return matches;
+
+                // we tried collection expression, and were not successful.  try again, this time without collection exprs.
+                return UseCollectionInitializerAnalyzer<
+                    TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TForeachStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
+                    semanticModel, GetSyntaxFacts(), objectCreationExpression, areCollectionExpressionsSupported: false, cancellationToken);
+            }
         }
 
         private bool AreCollectionExpressionsSupported(SyntaxNodeAnalysisContext context, TObjectCreationExpressionSyntax objectCreationExpression)

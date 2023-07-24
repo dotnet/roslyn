@@ -1324,10 +1324,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     public void M()
                     {
                 #if true
-                        var items = new List<object>
-                        {
-                            1
-                        };
+                        var items = [1];
                 #endif
                     }
                 }

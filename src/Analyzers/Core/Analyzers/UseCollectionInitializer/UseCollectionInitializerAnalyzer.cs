@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         private static readonly ObjectPool<UseCollectionInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TForeachStatementSyntax, TVariableDeclaratorSyntax>> s_pool
             = SharedPools.Default<UseCollectionInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TForeachStatementSyntax, TVariableDeclaratorSyntax>>();
 
-        public static ImmutableArray<TStatementSyntax>? Analyze(
+        public static ImmutableArray<TStatementSyntax> Analyze(
             SemanticModel semanticModel,
             ISyntaxFacts syntaxFacts,
             TObjectCreationExpressionSyntax objectCreationExpression,
@@ -140,6 +140,10 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                     }
 
                     matches.Add(foreachStatement);
+                }
+                else
+                {
+                    return;
                 }
             }
         }

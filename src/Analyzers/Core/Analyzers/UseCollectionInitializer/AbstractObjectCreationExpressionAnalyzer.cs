@@ -67,19 +67,19 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         protected abstract bool ShouldAnalyze();
         protected abstract void AddMatches(ArrayBuilder<TMatch> matches);
 
-        protected ImmutableArray<TMatch>? AnalyzeWorker()
+        protected ImmutableArray<TMatch> AnalyzeWorker()
         {
             if (!ShouldAnalyze())
-                return null;
+                return default;
 
             _containingStatement = _objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
             if (_containingStatement == null)
-                return null;
+                return default;
 
             if (!TryInitializeVariableDeclarationCase() &&
                 !TryInitializeAssignmentCase())
             {
-                return null;
+                return default;
             }
 
             using var _ = ArrayBuilder<TMatch>.GetInstance(out var matches);
