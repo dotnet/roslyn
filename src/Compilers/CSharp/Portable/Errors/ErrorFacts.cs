@@ -537,6 +537,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor:
                 case ErrorCode.WRN_CapturedPrimaryConstructorParameterInFieldInitializer:
                 case ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase:
+                case ErrorCode.WRN_InlineArrayIndexerNotUsed:
+                case ErrorCode.WRN_InlineArraySliceNotUsed:
+                case ErrorCode.WRN_InlineArrayConversionOperatorNotUsed:
+                case ErrorCode.WRN_InlineArrayNotSupportedByLanguage:
                     return 1;
                 default:
                     return 0;
@@ -2358,11 +2362,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_RuntimeDoesNotSupportInlineArrayTypes:
                 case ErrorCode.ERR_InlineArrayBadIndex:
                 case ErrorCode.ERR_NamedArgumentForInlineArray:
-                case ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible:
-                case ErrorCode.ERR_ExpressionTreeContainsCollectionLiteral:
-                case ErrorCode.ERR_CollectionLiteralNoTargetType:
+                case ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible:
+                case ErrorCode.ERR_ExpressionTreeContainsCollectionExpression:
+                case ErrorCode.ERR_CollectionExpressionNoTargetType:
                 case ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase:
                 case ErrorCode.ERR_InlineArrayUnsupportedElementFieldModifier:
+                case ErrorCode.WRN_InlineArrayIndexerNotUsed:
+                case ErrorCode.WRN_InlineArraySliceNotUsed:
+                case ErrorCode.WRN_InlineArrayConversionOperatorNotUsed:
+                case ErrorCode.WRN_InlineArrayNotSupportedByLanguage:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

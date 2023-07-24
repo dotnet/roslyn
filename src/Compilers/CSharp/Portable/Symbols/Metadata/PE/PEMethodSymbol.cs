@@ -1549,7 +1549,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     var result = uncommonFields._lazyObsoleteAttributeData;
                     return ReferenceEquals(result, ObsoleteAttributeData.Uninitialized)
-                        ? InterlockedOperations.Initialize(ref uncommonFields._lazyObsoleteAttributeData, null, ObsoleteAttributeData.Uninitialized)
+                        ? InterlockedOperations.Initialize(ref uncommonFields._lazyObsoleteAttributeData, initializedValue: null, ObsoleteAttributeData.Uninitialized)
                         : result;
                 }
             }

@@ -389,13 +389,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         result = RebindSimpleBinaryOperatorAsConverted(unconvertedBinaryOperator, diagnostics);
                     }
                     break;
-                case BoundUnconvertedCollectionLiteralExpression expr:
+                case BoundUnconvertedCollectionExpression expr:
                     {
                         if (reportNoTargetType && !expr.HasAnyErrors)
                         {
-                            diagnostics.Add(ErrorCode.ERR_CollectionLiteralNoTargetType, expr.Syntax.GetLocation());
+                            diagnostics.Add(ErrorCode.ERR_CollectionExpressionNoTargetType, expr.Syntax.GetLocation());
                         }
-                        result = BindCollectionLiteralForErrorRecovery(expr, CreateErrorType(), diagnostics);
+                        result = BindCollectionExpressionForErrorRecovery(expr, CreateErrorType(), diagnostics);
                     }
                     break;
                 default:
@@ -774,7 +774,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BadExpression(node);
 
                 case SyntaxKind.CollectionExpression:
-                    return BindCollectionLiteralExpression((CollectionExpressionSyntax)node, diagnostics);
+                    return BindCollectionExpression((CollectionExpressionSyntax)node, diagnostics);
 
                 case SyntaxKind.NullableType:
                     // Not reachable during method body binding, but
@@ -2747,11 +2747,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         GenerateImplicitConversionError(diagnostics, operand.Syntax, conversion, operand, targetType);
                         return;
                     }
-                case BoundKind.UnconvertedCollectionLiteralExpression:
+                case BoundKind.UnconvertedCollectionExpression:
                     {
                         if (operand.Type is null)
                         {
-                            Error(diagnostics, ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible, syntax, targetType);
+                            Error(diagnostics, ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, syntax, targetType);
                             return;
                         }
                         break;
@@ -4650,16 +4650,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        private BoundExpression BindCollectionLiteralExpression(CollectionExpressionSyntax syntax, BindingDiagnosticBag diagnostics)
+        private BoundExpression BindCollectionExpression(CollectionExpressionSyntax syntax, BindingDiagnosticBag diagnostics)
         {
-            MessageID.IDS_FeatureCollectionLiterals.CheckFeatureAvailability(diagnostics, syntax, syntax.OpenBracketToken.GetLocation());
+            MessageID.IDS_FeatureCollectionExpressions.CheckFeatureAvailability(diagnostics, syntax, syntax.OpenBracketToken.GetLocation());
 
             var builder = ArrayBuilder<BoundExpression>.GetInstance(syntax.Elements.Count);
             foreach (var element in syntax.Elements)
             {
                 builder.Add(bindElement(element, diagnostics));
             }
-            return new BoundUnconvertedCollectionLiteralExpression(syntax, builder.ToImmutableAndFree(), this);
+            return new BoundUnconvertedCollectionExpression(syntax, builder.ToImmutableAndFree(), this);
 
             BoundExpression bindElement(CollectionElementSyntax syntax, BindingDiagnosticBag diagnostics)
             {
@@ -4679,7 +4679,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.IsIncomplete;
                 if (hasErrors)
                 {
-                    return new BoundCollectionLiteralSpreadElement(
+                    return new BoundCollectionExpressionSpreadElement(
                         syntax,
                         expression,
                         enumeratorInfoOpt: null,
@@ -4698,7 +4698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(syntax.Expression, useSiteInfo);
                 expression = ConvertForEachCollection(expression, conversion, collectionType, diagnostics);
                 var elementPlaceholder = new BoundValuePlaceholder(syntax.Expression, enumeratorInfo.ElementType);
-                return new BoundCollectionLiteralSpreadElement(
+                return new BoundCollectionExpressionSpreadElement(
                     syntax,
                     expression,
                     enumeratorInfo,
@@ -5809,9 +5809,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        private BoundCollectionLiteralSpreadElement BindCollectionInitializerSpreadElementAddMethod(
+        private BoundCollectionExpressionSpreadElement BindCollectionInitializerSpreadElementAddMethod(
             SpreadElementSyntax syntax,
-            BoundCollectionLiteralSpreadElement element,
+            BoundCollectionExpressionSpreadElement element,
             Binder collectionInitializerAddMethodBinder,
             BoundObjectOrCollectionValuePlaceholder implicitReceiver,
             BindingDiagnosticBag diagnostics)
@@ -9252,11 +9252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (!candidate.IsStatic &&
                                 IsAccessible(candidate, syntax, diagnostics) &&
                                 candidate is MethodSymbol method &&
-                                method.OriginalDefinition is var original &&
-                                !original.ReturnsVoid &&
-                                original.ParameterCount == 2 &&
-                                original.Parameters[0] is { Type.SpecialType: SpecialType.System_Int32, RefKind: RefKind.None } &&
-                                original.Parameters[1] is { Type.SpecialType: SpecialType.System_Int32, RefKind: RefKind.None })
+                                MethodHasValidSliceSignature(method))
                             {
                                 makeCall(syntax, receiver, method, out indexerOrSliceAccess, out argumentPlaceholders);
                                 lookupResult.Free();
@@ -9293,6 +9289,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 analyzedArguments.Free();
             }
+        }
+
+        internal static bool MethodHasValidSliceSignature(MethodSymbol method)
+        {
+            return method.OriginalDefinition is var original &&
+                   !original.ReturnsVoid &&
+                   original.ParameterCount == 2 &&
+                   original.Parameters[0] is { Type.SpecialType: SpecialType.System_Int32, RefKind: RefKind.None } &&
+                   original.Parameters[1] is { Type.SpecialType: SpecialType.System_Int32, RefKind: RefKind.None };
         }
 
         private bool TryBindLengthOrCount(

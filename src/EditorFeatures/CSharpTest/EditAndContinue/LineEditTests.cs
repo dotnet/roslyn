@@ -771,33 +771,58 @@ class C
         }
 
         [Fact]
-        public void Constructor_LineChange1()
+        public void Constructor_ImplicitInitializer_BlockBody_LineChange()
         {
             var src1 = @"
 class C
 {
     public C(int a)
-      : base()
-    {
-    }
+
+    {}
 }
 ";
             var src2 = @"
 class C
 {
-    public C(int a) 
 
-      : base()
-    {
-    }
+    public C(int a)
+    {}
 }";
             var edits = GetTopEdits(src1, src2);
-            edits.VerifyLineEdits(
-                new[] { new SourceLineUpdate(4, 5) });
+            edits.VerifyLineEdits(new[]
+            {
+                new SourceLineUpdate(3, 4),
+                new SourceLineUpdate(4, 4)
+            });
         }
 
         [Fact]
-        public void Constructor_ExpressionBodied_LineChange1()
+        public void Constructor_ImplicitInitializer_BlockBody_Recompile()
+        {
+            var src1 = @"
+class C
+{
+    public C(int a
+    )
+    {}
+}
+";
+            var src2 = @"
+class C
+{
+    public C(int a
+        )
+    {}
+}";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                Array.Empty<SequencePointUpdates>(),
+                semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true) });
+
+        }
+
+        [Fact]
+        public void Constructor_ImplicitInitializer_ExpressionBodied_LineChange1()
         {
             var src1 = @"
 class C
@@ -821,7 +846,7 @@ class C
         }
 
         [Fact]
-        public void Constructor_ExpressionBodied_LineChange2()
+        public void Constructor_ImplicitInitializer_ExpressionBodied_LineChange2()
         {
             var src1 = @"
 class C
@@ -845,7 +870,7 @@ class C
         }
 
         [Fact]
-        public void Constructor_ExpressionBodied_LineChange3()
+        public void Constructor_ImplicitInitializer_ExpressionBodied_LineChange3()
         {
             var src1 = @"
 class C
@@ -869,7 +894,7 @@ class C
         }
 
         [Fact]
-        public void Constructor_ExpressionBodied_LineChange4()
+        public void Constructor_ImplicitInitializer_ExpressionBodied_LineChange4()
         {
             var src1 = @"
 class C
@@ -896,81 +921,139 @@ class C
         }
 
         [Fact]
-        public void Constructor_ExpressionBodiedWithBase_LineChange1()
+        public void Constructor_ImplicitInitializer_Primary_LineChange()
         {
             var src1 = @"
-class C
-{
-    int _a;
-    public C(int a)
-      : base() => _a = a;
-}
+class C(int a);
 ";
             var src2 = @"
-class C
-{
-    int _a;
-    public C(int a)
+class
+      C(int a);";
 
-      : base() => _a = a;
-}";
             var edits = GetTopEdits(src1, src2);
-            edits.VerifyLineEdits(
-                new[] { new SourceLineUpdate(5, 6) });
+            edits.VerifyLineEdits(new[]
+            {
+                new SourceLineUpdate(1, 2)
+            });
         }
 
         [Fact]
-        public void Constructor_ExpressionBodiedWithBase_LineChange2()
+        public void Constructor_ImplicitInitializer_Primary_Recompile1()
         {
             var src1 = @"
-class C
-{
-    int _a;
-    public C(int a)
-      : base() => 
-                  _a = a;
-}
+class C (int a);
 ";
             var src2 = @"
-class C
-{
-    int _a;
-    public C(int a)
-
-      : base() => _a = a;
-}";
-            var edits = GetTopEdits(src1, src2);
-            edits.VerifyLineEdits(
-                new SourceLineUpdate[] { new(5, 6) });
-        }
-
-        [Fact]
-        public void Constructor_ExpressionBodiedWithBase_Recompile1()
-        {
-            var src1 = @"
-class C
-{
-    int _a;
-    public C(int a)
-      : base() => _a 
-                     = a;
-}
+class  C(int a);
 ";
-            var src2 = @"
-class C
-{
-    int _a;
-    public C(int a)
-      : base() => _a = a;
-}";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 Array.Empty<SequencePointUpdates>(),
-                semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true) });
+                semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), preserveLocalVariables: true) });
+
         }
 
         [Fact]
-        public void Constructor_PartialBodyLineChange1()
+        public void Constructor_ImplicitInitializer_Primary_Recompile2()
+        {
+            var src1 = @"
+class C(int a);
+";
+            var src2 = @"
+class C(int a );
+";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                Array.Empty<SequencePointUpdates>(),
+                semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), preserveLocalVariables: true) });
+
+        }
+
+        [Fact]
+        public void Constructor_ImplicitInitializer_PrimaryRecord_Recompile1()
+        {
+            var src1 = @"
+record C (int P);
+";
+            var src2 = @"
+record  C(int P);
+";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                Array.Empty<SequencePointUpdates>(),
+                semanticEdits: new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), preserveLocalVariables: true),
+                });
+
+        }
+
+        [Fact]
+        public void Constructor_ImplicitInitializer_PrimaryRecord_Recompile2()
+        {
+            var src1 = @"
+record C(int P);
+";
+            var src2 = @"
+record C(int P );
+";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                Array.Empty<SequencePointUpdates>(),
+                semanticEdits: new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), preserveLocalVariables: true)
+                });
+
+        }
+
+        [Fact]
+        public void Constructor_ImplicitInitializer_PrimaryAndParameter_Recompile3()
+        {
+            var src1 = @"
+record C(int P);
+";
+            var src2 = @"
+record C( int P);
+";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                Array.Empty<SequencePointUpdates>(),
+                semanticEdits: new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.P")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_P")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), preserveLocalVariables: true),
+                });
+        }
+
+        [Fact]
+        public void Constructor_ImplicitInitializer_PrimaryAndCopyCtorAndParameter_Recompile3()
+        {
+            var src1 = @"
+record C<T>(int P);
+";
+            var src2 = @"
+record C<T >(int P);
+";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                Array.Empty<SequencePointUpdates>(),
+                semanticEdits: new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.P")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_P")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), preserveLocalVariables: true),
+                },
+                capabilities: EditAndContinueCapabilities.GenericUpdateMethod);
+        }
+
+        [Fact]
+        public void Constructor_ExplicitInitializer_BlockBody_LineChange1()
         {
             var src1 = @"
 class C
@@ -984,19 +1067,19 @@ class C
             var src2 = @"
 class C
 {
-    public C(int a)
-      : base()
+    public C(int a) 
 
+      : base()
     {
     }
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new SourceLineUpdate[] { new(5, 6) });
+                new[] { new SourceLineUpdate(4, 5) });
         }
 
         [Fact]
-        public void Constructor_Recompile2()
+        public void Constructor_ExplicitInitializer_BlockBody_Recompile()
         {
             var src1 = @"
 class C
@@ -1022,7 +1105,33 @@ class C
         }
 
         [Fact]
-        public void Constructor_RudeRecompile1()
+        public void Constructor_ExplicitInitializer_BlockBody_PartialBodyLineChange1()
+        {
+            var src1 = @"
+class C
+{
+    public C(int a)
+      : base()
+    {
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    public C(int a)
+      : base()
+
+    {
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                new SourceLineUpdate[] { new(5, 6) });
+        }
+
+        [Fact]
+        public void Constructor_ExplicitInitializer_BlockBody_RudeRecompile1()
         {
             var src1 = @"
 class C<T>
@@ -1051,6 +1160,80 @@ class C<T>
                 Array.Empty<SequencePointUpdates>(),
                 semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true) },
                 capabilities: EditAndContinueCapabilities.GenericUpdateMethod);
+        }
+
+        [Fact]
+        public void Constructor_ExplicitInitializer_ExpressionBodied_LineChange1()
+        {
+            var src1 = @"
+class C
+{
+    int _a;
+    public C(int a)
+      : base() => _a = a;
+}
+";
+            var src2 = @"
+class C
+{
+    int _a;
+    public C(int a)
+
+      : base() => _a = a;
+}";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                new[] { new SourceLineUpdate(5, 6) });
+        }
+
+        [Fact]
+        public void Constructor_ExplicitInitializer_ExpressionBodied_LineChange2()
+        {
+            var src1 = @"
+class C
+{
+    int _a;
+    public C(int a)
+      : base() => 
+                  _a = a;
+}
+";
+            var src2 = @"
+class C
+{
+    int _a;
+    public C(int a)
+
+      : base() => _a = a;
+}";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                new SourceLineUpdate[] { new(5, 6) });
+        }
+
+        [Fact]
+        public void Constructor_ExplicitInitializer_ExpressionBodied_Recompile1()
+        {
+            var src1 = @"
+class C
+{
+    int _a;
+    public C(int a)
+      : base() => _a 
+                     = a;
+}
+";
+            var src2 = @"
+class C
+{
+    int _a;
+    public C(int a)
+      : base() => _a = a;
+}";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                Array.Empty<SequencePointUpdates>(),
+                semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true) });
         }
 
         #endregion
@@ -1641,13 +1824,38 @@ class C
     int P { get; } = 
                      1;
 }";
+            // We can only apply one delta per line, but that affects both getter and initializer. So we need to recompile one of them.
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new[] { new SourceLineUpdate(3, 4) });
+                lineEdits: new[] { new SourceLineUpdate(3, 4) },
+                semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P")) });
         }
 
         [Fact]
         public void Property_Initializer3()
+        {
+            var src1 = @"
+class C
+{
+    int P { get; } = 1;
+}
+";
+            var src2 = @"
+class C
+{
+    int P
+          { get; } = 
+                     1;
+}";
+            // We can only apply one delta per line, but that affects both getter and initializer. So we need to recompile one of them.
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                lineEdits: new[] { new SourceLineUpdate(3, 5) },
+                semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P")) });
+        }
+
+        [Fact]
+        public void Property_Initializer4()
         {
             var src1 = @"
 class C
