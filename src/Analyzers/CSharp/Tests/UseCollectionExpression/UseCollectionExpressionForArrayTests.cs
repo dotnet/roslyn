@@ -483,13 +483,6 @@ public class UseCollectionExpressionForArray
                         var i = new int[] { 1 }.AsSpan();
                     }
                 }
-
-                //internal static class Extensions
-                //{
-                //    public static ReadOnlySpan<T> AsSpan<T>(this T[] values) => default;
-                //}
-
-                //internal readonly struct ReadOnlySpan<T> { }
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
