@@ -4743,6 +4743,40 @@ public readonly struct [|S|]
 }");
         }
 
+        [Fact]
+        public void TestStructModifiers2()
+        {
+            var compilation = Compile("""
+                public ref struct S
+                {
+                    public int Value;
+                    public ref int RefValue;
+                    public readonly ref int RORefValue;
+
+                    public void M(scoped ref int value) { }
+                }
+                """);
+
+            var symbol = compilation.GlobalNamespace.GetMembers("S").Single();
+            VerifySyntax<StructDeclarationSyntax>(
+                Generator.Declaration(symbol),
+                """
+                public struct S
+                {
+                    public global::System.Int32 Value;
+                    public ref global::System.Int32 RefValue;
+                    public readonly ref global::System.Int32 RORefValue;
+                    public void M(scoped ref global::System.Int32 value)
+                    {
+                    }
+
+                    public S()
+                    {
+                    }
+                }
+                """);
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67341")]
         public void TestUnboundGenerics()
         {
