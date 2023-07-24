@@ -860,7 +860,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
         public async Task TestImplementThroughPrimaryConstructorParam2()
         {
-            // Don't offer "implement through" since this PC parameter is captured as a field.
+            // Don't offer "implement through 'base1'" since this PC parameter is captured as a field.
             await TestExactActionSetOfferedAsync(
                 """
                 abstract class Base
@@ -896,7 +896,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
         public async Task TestImplementThroughPrimaryConstructorParam3()
         {
-            // Don't offer "implement through" since this PC parameter is captured as a property.
+            // Don't offer "implement through 'base1'" since this PC parameter is captured as a field.
             await TestExactActionSetOfferedAsync(
                 """
                 abstract class Base
@@ -914,7 +914,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
         public async Task TestImplementThroughPrimaryConstructorParam3_B()
         {
-            // Don't offer "implement through" since this PC parameter is captured as a property.
+            // Don't offer "implement through 'base1'" since this PC parameter is captured as a field.
             await TestExactActionSetOfferedAsync(
                 """
                 abstract class Base
