@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -41,23 +40,7 @@ internal static class TaskTestUtil
 
             var message = engine.BuildMessages.OfType<TaskCommandLineEventArgs>().Single();
             var commandLine = message.CommandLine.Replace("  ", " ").Trim();
-
-            var dotnetPath = RuntimeHostInfo.GetDotNetPathOrDefault();
-            var expectedCommandLine = $@"{dotnetPath} exec ""{task.PathToManagedTool}"" {line}";
-
-            bool isOnlyFileName = Path.GetFileName(dotnetPath).Length == dotnetPath.Length;
-            if (isOnlyFileName)
-            {
-                // When ToolTask.GenerateFullPathToTool() returns only a file name (not a path to a file), MSBuild's ToolTask
-                // will search the %PATH% (see https://github.com/dotnet/msbuild/blob/5410bf323451e04e99e79bcffd158e6d8d378149/src/Utilities/ToolTask.cs#L494-L513)
-                // and log the full path to the exe. In this case, only assert that the commandLine ends with the expected
-                // command line, and ignore the full path at the beginning.
-                Assert.EndsWith(expectedCommandLine, commandLine);
-            }
-            else
-            {
-                Assert.Equal(expectedCommandLine, commandLine);
-            }
+            Assert.Equal($@"{RuntimeHostInfo.GetDotNetPathOrDefault()} exec ""{task.PathToManagedTool}"" {line}", commandLine);
 
             compilerTask.NoConfig = true;
             Assert.Equal("/noconfig", compilerTask.GenerateToolArguments());

@@ -53,11 +53,40 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Get the path to the dotnet executable. In the case the .NET SDK did not provide this information
-        /// in the environment this will return simply "dotnet".
+        /// in the environment this tries to find "dotnet" on the PATH. In the case it is not found,
+        /// this will return simply "dotnet".
         /// </summary>
-        internal static string GetDotNetPathOrDefault() =>
-            Environment.GetEnvironmentVariable(DotNetHostPathEnvironmentName) ??
-                (PlatformInformation.IsWindows ? "dotnet.exe" : "dotnet");
+        internal static string GetDotNetPathOrDefault()
+        {
+            if (Environment.GetEnvironmentVariable(DotNetHostPathEnvironmentName) is string pathToDotNet)
+            {
+                return pathToDotNet;
+            }
+
+            var (fileName, sep) = PlatformInformation.IsWindows
+                ? ("dotnet.exe", ';')
+                : ("dotnet", ':');
+
+            var path = Environment.GetEnvironmentVariable("PATH") ?? "";
+            foreach (var item in path.Split(sep, StringSplitOptions.RemoveEmptyEntries))
+            {
+                try
+                {
+                    var filePath = Path.Combine(item, fileName);
+                    if (File.Exists(filePath))
+                    {
+                        return filePath;
+                    }
+                }
+                catch
+                {
+                    // If we can't read a directory for any reason just skip it
+                }
+            }
+
+            return fileName;
+        }
+
 #else
 
         internal static bool IsCoreClrRuntime => false;
