@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Analyzers.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -27,6 +28,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         TMemberAccessExpressionSyntax,
         TInvocationExpressionSyntax,
         TExpressionStatementSyntax,
+        TForeachStatementSyntax,
         TVariableDeclaratorSyntax>
         : SyntaxEditorBasedCodeFixProvider
         where TSyntaxKind : struct
@@ -36,10 +38,14 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         where TMemberAccessExpressionSyntax : TExpressionSyntax
         where TInvocationExpressionSyntax : TExpressionSyntax
         where TExpressionStatementSyntax : TStatementSyntax
+        where TForeachStatementSyntax : TStatementSyntax
         where TVariableDeclaratorSyntax : SyntaxNode
     {
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseCollectionInitializerDiagnosticId);
+
+        protected abstract TStatementSyntax GetNewStatement(
+            TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation, bool useCollectionExpression, ImmutableArray<TStatementSyntax> matches);
 
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
             => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
@@ -65,27 +71,27 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var originalRoot = editor.OriginalRoot;
 
-            var originalObjectCreationNodes = new Stack<TObjectCreationExpressionSyntax>();
+            var originalObjectCreationNodes = new Stack<(TObjectCreationExpressionSyntax objectCreationExpression, bool useCollectionExpression)>();
             foreach (var diagnostic in diagnostics)
             {
                 var objectCreation = (TObjectCreationExpressionSyntax)originalRoot.FindNode(
                     diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
-                originalObjectCreationNodes.Push(objectCreation);
+                originalObjectCreationNodes.Push((objectCreation, diagnostic.Properties?.ContainsKey(UseCollectionInitializerHelpers.UseCollectionExpressionName) is true));
             }
 
             // We're going to be continually editing this tree.  Track all the nodes we
             // care about so we can find them across each edit.
-            document = document.WithSyntaxRoot(originalRoot.TrackNodes(originalObjectCreationNodes));
+            document = document.WithSyntaxRoot(originalRoot.TrackNodes(originalObjectCreationNodes.Select(static t => t.objectCreationExpression)));
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var currentRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             while (originalObjectCreationNodes.Count > 0)
             {
-                var originalObjectCreation = originalObjectCreationNodes.Pop();
+                var (originalObjectCreation, useCollectionExpression) = originalObjectCreationNodes.Pop();
                 var objectCreation = currentRoot.GetCurrentNodes(originalObjectCreation).Single();
 
-                var matches = UseCollectionInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
-                    semanticModel, syntaxFacts, objectCreation, cancellationToken);
+                var matches = UseCollectionInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TForeachStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
+                    semanticModel, syntaxFacts, objectCreation, useCollectionExpression, cancellationToken);
 
                 if (matches == null || matches.Value.Length == 0)
                     continue;
@@ -93,7 +99,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 var statement = objectCreation.FirstAncestorOrSelf<TStatementSyntax>();
                 Contract.ThrowIfNull(statement);
 
-                var newStatement = GetNewStatement(statement, objectCreation, matches.Value)
+                var newStatement = GetNewStatement(statement, objectCreation, useCollectionExpression, matches.Value)
                     .WithAdditionalAnnotations(Formatter.Annotation);
 
                 var subEditor = new SyntaxEditor(currentRoot, document.Project.Solution.Services);
@@ -109,9 +115,5 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
             editor.ReplaceNode(originalRoot, currentRoot);
         }
-
-        protected abstract TStatementSyntax GetNewStatement(
-            TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation,
-            ImmutableArray<TExpressionStatementSyntax> matches);
     }
 }

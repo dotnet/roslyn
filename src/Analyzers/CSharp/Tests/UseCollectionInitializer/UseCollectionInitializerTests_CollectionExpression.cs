@@ -11,58 +11,89 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitializer
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitializer;
+
+using VerifyCS = CSharpCodeFixVerifier<
+    CSharpUseCollectionInitializerDiagnosticAnalyzer,
+    CSharpUseCollectionInitializerCodeFixProvider>;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+public partial class UseCollectionInitializerTests_CollectionExpression
 {
-    using VerifyCS = CSharpCodeFixVerifier<
-        CSharpUseCollectionInitializerDiagnosticAnalyzer,
-        CSharpUseCollectionInitializerCodeFixProvider>;
-
-    [Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
-    public partial class UseCollectionInitializerTests
+    private static async Task TestInRegularAndScriptAsync(string testCode, string fixedCode, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
     {
-        private static async Task TestInRegularAndScriptAsync(string testCode, string fixedCode, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                ReferenceAssemblies = Testing.ReferenceAssemblies.NetCore.NetCoreApp31,
-                TestCode = testCode,
-                FixedCode = fixedCode,
-                LanguageVersion = LanguageVersion.CSharp11,
-                TestState = { OutputKind = outputKind }
-            }.RunAsync();
-        }
+            ReferenceAssemblies = Testing.ReferenceAssemblies.NetCore.NetCoreApp31,
+            TestCode = testCode,
+            FixedCode = fixedCode,
+            LanguageVersion = LanguageVersion.Preview,
+            TestState = { OutputKind = outputKind }
+        }.RunAsync();
+    }
 
-        private static async Task TestMissingInRegularAndScriptAsync(string testCode, LanguageVersion? languageVersion = null)
+    private static async Task TestMissingInRegularAndScriptAsync(string testCode)
+    {
+        var test = new VerifyCS.Test
         {
-            var test = new VerifyCS.Test
-            {
-                TestCode = testCode,
-                FixedCode = testCode,
-            };
+            TestCode = testCode,
+            FixedCode = testCode,
+        };
+        await test.RunAsync();
+    }
 
-            if (languageVersion != null)
-                test.LanguageVersion = languageVersion.Value;
 
-            await test.RunAsync();
-        }
-
-        [Fact]
-        public async Task TestOnVariableDeclarator()
-        {
-            await TestInRegularAndScriptAsync(
-                """
+    [Fact]
+    public async Task TestOnVariableDeclarator()
+    {
+        await TestInRegularAndScriptAsync(
+            """
                 using System.Collections.Generic;
 
                 class C
                 {
                     void M()
                     {
-                        var c = [|new|] List<int>();
+                        List<int> c = [|new|] List<int>();
                         [|c.Add(|]1);
                     }
                 }
                 """,
-                """
+            """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        List<int> c = new List<int>
+                        {
+                            1
+                        };
+                    }
+                }
+                """);
+    }
+
+    [Fact]
+    public async Task TestOnVariableDeclarator_Foreach1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(int[] x)
+                    {
+                        List<int> c = [|new|] List<int>();
+                        [|c.Add(|]1);
+                        foreach (var v in x)
+                            c.Add(v);
+                    }
+                }
+                """,
+            """
                 using System.Collections.Generic;
 
                 class C
@@ -76,24 +107,132 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """);
-        }
+    }
 
-        [Fact]
-        public async Task TestIndexAccess1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
+    [Fact]
+    public async Task TestOnVariableDeclarator_Foreach2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(int[] x, int y)
+                    {
+                        List<int> c = [|new|] List<int>();
+                        [|c.Add(|]1);
+                        foreach (var v in x)
+                            c.Add(v);
+                        foreach (var v in y)
+                            c.Add(v);
+                    }
+                }
+                """,
+            """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        List<int> c = new List<int>
+                        {
+                            1
+                        };
+                    }
+                }
+                """);
+    }
+
+    [Fact]
+    public async Task TestOnVariableDeclarator_Foreach3()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(int[] x, int y)
+                    {
+                        List<int> c = [|new|] List<int>();
+                        foreach (var v in x)
+                            c.Add(v);
+                        [|c.Add(|]1);
+                        foreach (var v in y)
+                            c.Add(v);
+                    }
+                }
+                """,
+            """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        var c = new List<int>
+                        {
+                            1
+                        };
+                    }
+                }
+                """);
+    }
+
+    [Fact]
+    public async Task TestOnVariableDeclarator_Foreach4()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(int[] x, int y)
+                    {
+                        List<int> c = [|new|] List<int>();
+                        foreach (var v in x)
+                            c.Add(v);
+                        foreach (var v in y)
+                            c.Add(v);
+                        [|c.Add(|]1);
+                    }
+                }
+                """,
+            """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        var c = new List<int>
+                        {
+                            1
+                        };
+                    }
+                }
+                """);
+    }
+
+    [Fact]
+    public async Task TestIndexAccess1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
                 using System.Collections.Generic;
                 class C
                 {
                     void M()
                     {
-                        var c = [|new|] List<int>();
+                        List<int> c = [|new|] List<int>();
                         c[1] = 2;
                     }
                 }
                 """,
-                """
+            """
                 using System.Collections.Generic;
                 class C
                 {
@@ -106,30 +245,45 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """);
-        }
+    }
 
-        [Fact]
-        public async Task TestIndexAccess1_NotInCSharp5()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
+    [Fact]
+    public async Task TestIndexAccess1_Foreach()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+                using System.Collections.Generic;
+                class C
+                {
+                    void M(int[] x)
+                    {
+                        List<int> c = [|new|] List<int>();
+                        c[1] = 2;
+                        foreach (var v in x)
+                            c.Add(v);
+                    }
+                }
+                """,
+            """
                 using System.Collections.Generic;
                 class C
                 {
                     void M()
                     {
-                        var c = new List<int>();
-                        c[1] = 2;
+                        var c = new List<int>
+                        {
+                            [1] = 2
+                        };
                     }
                 }
-                """, LanguageVersion.CSharp5);
-        }
+                """);
+    }
 
-        [Fact]
-        public async Task TestComplexIndexAccess1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
+    [Fact]
+    public async Task TestComplexIndexAccess1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
                 using System.Collections.Generic;
 
                 class A
@@ -151,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """,
-                """
+            """
                 using System.Collections.Generic;
 
                 class A
@@ -175,25 +329,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """);
-        }
+    }
 
-        [Fact]
-        public async Task TestIndexAccess2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
+    [Fact]
+    public async Task TestIndexAccess2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
                 using System.Collections.Generic;
                 class C
                 {
                     void M()
                     {
-                        var c = [|new|] List<object>();
+                        List<object> c = [|new|] List<object>();
                         c[1] = 2;
                         c[2] = "";
                     }
                 }
                 """,
-                """
+            """
                 using System.Collections.Generic;
                 class C
                 {
@@ -207,20 +361,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """);
-        }
+    }
 
-        [Fact]
-        public async Task TestIndexAccess3()
-        {
-            await TestInRegularAndScriptAsync(
-                """
+    [Fact]
+    public async Task TestIndexAccess3()
+    {
+        await TestInRegularAndScriptAsync(
+            """
                 using System.Collections;
 
                 class C
                 {
                     void M()
                     {
-                        var c = [|new|] X();
+                        X c = [|new|] X();
                         c[1] = 2;
                         c[2] = "";
                         c[3, 4] = 5;
@@ -236,7 +390,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     public void Add(int i) { }
                 }
                 """,
-                """
+            """
                 using System.Collections;
 
                 class C
@@ -261,25 +415,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     public void Add(int i) { }
                 }
                 """);
-        }
+    }
 
-        [Fact]
-        public async Task TestIndexFollowedByInvocation()
-        {
-            await TestInRegularAndScriptAsync(
-                """
+    [Fact]
+    public async Task TestIndexFollowedByInvocation()
+    {
+        await TestInRegularAndScriptAsync(
+            """
                 using System.Collections.Generic;
                 class C
                 {
                     void M()
                     {
-                        var c = [|new|] List<int>();
+                        List<int> c = [|new|] List<int>();
                         c[1] = 2;
                         c.Add(0);
                     }
                 }
                 """,
-                """
+            """
                 using System.Collections.Generic;
                 class C
                 {
@@ -293,25 +447,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """);
-        }
+    }
 
-        [Fact]
-        public async Task TestInvocationFollowedByIndex()
-        {
-            await TestInRegularAndScriptAsync(
-                """
+    [Fact]
+    public async Task TestInvocationFollowedByIndex()
+    {
+        await TestInRegularAndScriptAsync(
+            """
                 using System.Collections.Generic;
                 class C
                 {
                     void M()
                     {
-                        var c = [|new|] List<int>();
+                        List<int> c = [|new|] List<int>();
                         [|c.Add(|]0);
                         c[1] = 2;
                     }
                 }
                 """,
-                """
+            """
                 using System.Collections.Generic;
                 class C
                 {
@@ -325,20 +479,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """);
-        }
+    }
 
-        [Fact]
-        public async Task TestWithInterimStatement()
-        {
-            await TestInRegularAndScriptAsync(
-                """
+    [Fact]
+    public async Task TestWithInterimStatement()
+    {
+        await TestInRegularAndScriptAsync(
+            """
                 using System.Collections.Generic;
 
                 class C
                 {
                     void M()
                     {
-                        var c = [|new|] List<int>();
+                        List<int> c = [|new|] List<int>();
                         [|c.Add(|]1);
                         [|c.Add(|]2);
                         throw new System.Exception();
@@ -347,7 +501,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """,
-                """
+            """
                 using System.Collections.Generic;
 
                 class C
@@ -365,58 +519,40 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """);
-        }
+    }
 
-        [Fact]
-        public async Task TestMissingBeforeCSharp3()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
+    [Fact]
+    public async Task TestMissingOnNonIEnumerable()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
                 using System.Collections.Generic;
 
                 class C
                 {
                     void M()
                     {
-                        List<int> c = new List<int>();
-                        c.Add(1);
-                    }
-                }
-                """, LanguageVersion.CSharp2);
-        }
-
-        [Fact]
-        public async Task TestMissingOnNonIEnumerable()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                using System.Collections.Generic;
-
-                class C
-                {
-                    void M()
-                    {
-                        var c = new C();
+                        C c = new C();
                         c.Add(1);
                     }
 
                     void Add(int i) { }
                 }
                 """);
-        }
+    }
 
-        [Fact]
-        public async Task TestMissingOnNonIEnumerableEvenWithAdd()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
+    [Fact]
+    public async Task TestMissingOnNonIEnumerableEvenWithAdd()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
                 using System.Collections.Generic;
 
                 class C
                 {
                     void M()
                     {
-                        var c = new C();
+                        C c = new C();
                         c.Add(1);
                     }
 
@@ -425,25 +561,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """);
-        }
+    }
 
-        [Fact]
-        public async Task TestWithCreationArguments()
-        {
-            await TestInRegularAndScriptAsync(
-                """
+    [Fact]
+    public async Task TestWithCreationArguments()
+    {
+        await TestInRegularAndScriptAsync(
+            """
                 using System.Collections.Generic;
 
                 class C
                 {
                     void M()
                     {
-                        var c = [|new|] List<int>(1);
+                        List<int> c = [|new|] List<int>(1);
                         [|c.Add(|]1);
                     }
                 }
                 """,
-                """
+            """
                 using System.Collections.Generic;
 
                 class C
@@ -457,13 +593,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """);
-        }
+    }
 
-        [Fact]
-        public async Task TestOnAssignmentExpression()
-        {
-            await TestInRegularAndScriptAsync(
-                """
+    [Fact]
+    public async Task TestOnAssignmentExpression()
+    {
+        await TestInRegularAndScriptAsync(
+            """
                 using System.Collections.Generic;
 
                 class C
@@ -476,7 +612,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """,
-                """
+            """
                 using System.Collections.Generic;
 
                 class C
@@ -491,20 +627,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """);
-        }
+    }
 
-        [Fact]
-        public async Task TestMissingOnRefAdd()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
+    [Fact]
+    public async Task TestMissingOnRefAdd()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
                 using System.Collections.Generic;
 
                 class C
                 {
                     void M(int i)
                     {
-                        var c = new List();
+                        List c = new List();
                         c.Add(ref i);
                     }
                 }
@@ -517,13 +653,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """);
-        }
+    }
 
-        [Fact]
-        public async Task TestComplexInitializer()
-        {
-            await TestInRegularAndScriptAsync(
-                """
+    [Fact]
+    public async Task TestComplexInitializer()
+    {
+        await TestInRegularAndScriptAsync(
+            """
                 using System.Collections.Generic;
 
                 class C
@@ -536,7 +672,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """,
-                """
+            """
                 using System.Collections.Generic;
 
                 class C
@@ -551,38 +687,38 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """);
-        }
+    }
 
-        [Fact]
-        public async Task TestNotOnNamedArg()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
+    [Fact]
+    public async Task TestNotOnNamedArg()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
                 using System.Collections.Generic;
 
                 class C
                 {
                     void M()
                     {
-                        var c = new List<int>();
+                        List<int> c = new List<int>();
                         c.Add(item: 1);
                     }
                 }
                 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39146")]
-        public async Task TestWithExistingInitializer()
-        {
-            await TestInRegularAndScriptAsync(
-                """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39146")]
+    public async Task TestWithExistingInitializer()
+    {
+        await TestInRegularAndScriptAsync(
+            """
                 using System.Collections.Generic;
 
                 class C
                 {
                     void M()
                     {
-                        var c = [|new|] List<int>()
+                        List<int> c = [|new|] List<int>()
                         {
                             1
                         };
@@ -590,7 +726,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """,
-                """
+            """
                 using System.Collections.Generic;
 
                 class C
@@ -605,20 +741,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39146")]
-        public async Task TestWithExistingInitializerWithComma()
-        {
-            await TestInRegularAndScriptAsync(
-                """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39146")]
+    public async Task TestWithExistingInitializerWithComma()
+    {
+        await TestInRegularAndScriptAsync(
+            """
                 using System.Collections.Generic;
 
                 class C
                 {
                     void M()
                     {
-                        var c = [|new|] List<int>()
+                        List<int> c = [|new|] List<int>()
                         {
                             1,
                         };
@@ -626,7 +762,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """,
-                """
+            """
                 using System.Collections.Generic;
 
                 class C
@@ -641,13 +777,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """);
-        }
+    }
 
-        [Fact]
-        public async Task TestFixAllInDocument1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
+    [Fact]
+    public async Task TestFixAllInDocument1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
                 using System.Collections.Generic;
 
                 class C
@@ -663,7 +799,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """,
-                """
+            """
                 using System.Collections.Generic;
 
                 class C
@@ -683,13 +819,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """);
-        }
+    }
 
-        [Fact]
-        public async Task TestFixAllInDocument2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
+    [Fact]
+    public async Task TestFixAllInDocument2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
                 using System;
                 using System.Collections;
                 using System.Collections.Generic;
@@ -698,7 +834,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                 {
                     void M()
                     {
-                        var list1 = [|new|] Bar(() => {
+                        Bar list1 = [|new|] Bar(() => {
                             var list2 = [|new|] List<int>();
                             [|list2.Add(|]2);
                         });
@@ -714,7 +850,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     public void Add(int i) { }
                 }
                 """,
-                """
+            """
                 using System;
                 using System.Collections;
                 using System.Collections.Generic;
@@ -744,15 +880,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     public void Add(int i) { }
                 }
                 """);
-        }
+    }
 
-        [Fact]
-        public async Task TestFixAllInDocument3()
+    [Fact]
+    public async Task TestFixAllInDocument3()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode =
-                """
+            TestCode =
+            """
                 using System;
                 using System.Collections.Generic;
 
@@ -760,7 +896,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                 {
                     void M()
                     {
-                        var list1 = [|new|] List<Action>();
+                        List<Action> list1 = [|new|] List<Action>();
                         [|list1.Add(|]() => {
                             var list2 = [|new|] List<int>();
                             [|list2.Add(|]2);
@@ -768,8 +904,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """,
-                FixedCode =
-                """
+            FixedCode =
+            """
                 using System;
                 using System.Collections.Generic;
 
@@ -787,8 +923,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """,
-                BatchFixedCode =
-                """
+            BatchFixedCode =
+            """
                 using System;
                 using System.Collections.Generic;
 
@@ -809,26 +945,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """,
-            }.RunAsync();
-        }
+        }.RunAsync();
+    }
 
-        [Fact]
-        public async Task TestTrivia1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
+    [Fact]
+    public async Task TestTrivia1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
                 using System.Collections.Generic;
                 class C
                 {
                     void M()
                     {
-                        var c = [|new|] List<int>();
+                        List<int> c = [|new|] List<int>();
                         [|c.Add(|]1); // Goo
                         [|c.Add(|]2); // Bar
                     }
                 }
                 """,
-                """
+            """
                 using System.Collections.Generic;
                 class C
                 {
@@ -842,20 +978,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """);
-        }
+    }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/46670")]
-        public async Task TestTriviaRemoveLeadingBlankLinesForFirstElement()
-        {
-            await TestInRegularAndScriptAsync(
-                """
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/46670")]
+    public async Task TestTriviaRemoveLeadingBlankLinesForFirstElement()
+    {
+        await TestInRegularAndScriptAsync(
+            """
                 using System.Collections.Generic;
                 class C
                 {
                     void M()
                     {
-                        var c = [|new|] List<int>();
+                        List<int> c = [|new|] List<int>();
 
                         // Goo
                         [|c.Add(|]1);
@@ -865,7 +1001,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """,
-                """
+            """
                 using System.Collections.Generic;
                 class C
                 {
@@ -882,13 +1018,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """);
-        }
+    }
 
-        [Fact]
-        public async Task TestComplexInitializer2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
+    [Fact]
+    public async Task TestComplexInitializer2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
                 using System.Collections.Generic;
 
                 class C
@@ -901,7 +1037,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """,
-                """
+            """
                 using System.Collections.Generic;
 
                 class C
@@ -916,13 +1052,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16158")]
-        public async Task TestIncorrectAddName()
-        {
-            await TestInRegularAndScriptAsync(
-                """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16158")]
+    public async Task TestIncorrectAddName()
+    {
+        await TestInRegularAndScriptAsync(
+            """
                 using System.Collections.Generic;
 
                 public class Goo
@@ -932,13 +1068,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                         string item = null;
                         var items = new List<string>();
 
-                        var values = [|new|] List<string>(); // Collection initialization can be simplified
+                        List<string> values = [|new|] List<string>(); // Collection initialization can be simplified
                         [|values.Add(|]item);
                         values.AddRange(items);
                     }
                 }
                 """,
-                """
+            """
                 using System.Collections.Generic;
 
                 public class Goo
@@ -956,13 +1092,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16241")]
-        public async Task TestNestedCollectionInitializer()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16241")]
+    public async Task TestNestedCollectionInitializer()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
                         using System.Collections.Generic;
                 using System.Linq;
 
@@ -971,49 +1107,49 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     static void Main(string[] args)
                     {
                         var myStringArray = new string[] { "Test", "123", "ABC" };
-                        var myStringList = myStringArray?.ToList() ?? new List<string>();
+                        List<string> myStringList = myStringArray?.ToList() ?? new List<string>();
                         myStringList.Add("Done");
                     }
                 }
                 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17823")]
-        public async Task TestMissingWhenReferencedInInitializer()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17823")]
+    public async Task TestMissingWhenReferencedInInitializer()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
                 using System.Collections.Generic;
 
                 class C
                 {
                     static void M()
                     {
-                        var items = new List<object>();
+                        List<object> items = new List<object>();
                         items[0] = items[0];
                     }
                 }
                 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17823")]
-        public async Task TestWhenReferencedInInitializer_LocalVar()
-        {
-            await TestInRegularAndScriptAsync(
-                """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17823")]
+    public async Task TestWhenReferencedInInitializer_LocalVar()
+    {
+        await TestInRegularAndScriptAsync(
+            """
                 using System.Collections.Generic;
 
                 class C
                 {
                     static void M()
                     {
-                        var items = [|new|] List<object>();
+                        List<object> items = [|new|] List<object>();
                         items[0] = 1;
                         items[1] = items[0];
                     }
                 }
                 """,
-                """
+            """
                 using System.Collections.Generic;
 
                 class C
@@ -1028,13 +1164,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17823")]
-        public async Task TestWhenReferencedInInitializer_LocalVar2()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17823")]
+    public async Task TestWhenReferencedInInitializer_LocalVar2()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
                 using System.Collections.Generic;
                 using System.Linq;
 
@@ -1042,18 +1178,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                 {
                     void M()
                     {
-                        var t = new List<int>(new int[] { 1, 2, 3 });
+                        List<int> t = new List<int>(new int[] { 1, 2, 3 });
                         t.Add(t.Min() - 1);
                     }
                 }
                 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18260")]
-        public async Task TestWhenReferencedInInitializer_Assignment()
-        {
-            await TestInRegularAndScriptAsync(
-                """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18260")]
+    public async Task TestWhenReferencedInInitializer_Assignment()
+    {
+        await TestInRegularAndScriptAsync(
+            """
                 using System.Collections.Generic;
 
                 class C
@@ -1067,7 +1203,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """,
-                """
+            """
                 using System.Collections.Generic;
 
                 class C
@@ -1083,13 +1219,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18260")]
-        public async Task TestWhenReferencedInInitializer_Assignment2()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18260")]
+    public async Task TestWhenReferencedInInitializer_Assignment2()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
                 using System.Collections.Generic;
                 using System.Linq;
 
@@ -1103,13 +1239,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18260")]
-        public async Task TestFieldReference()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18260")]
+    public async Task TestFieldReference()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
                 using System.Collections.Generic;
 
                 class C
@@ -1122,13 +1258,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17853")]
-        public async Task TestMissingForDynamic()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17853")]
+    public async Task TestMissingForDynamic()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
                 using System.Dynamic;
 
                 class C
@@ -1140,33 +1276,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17953")]
-        public async Task TestMissingAcrossPreprocessorDirective()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17953")]
+    public async Task TestMissingAcrossPreprocessorDirective()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
                 using System.Collections.Generic;
 
                 public class Goo
                 {
                     public void M()
                     {
-                        var items = new List<object>();
+                        List<object> items = new List<object>();
                 #if true
                         items.Add(1);
                 #endif
                     }
                 }
                 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17953")]
-        public async Task TestAvailableInsidePreprocessorDirective()
-        {
-            await TestInRegularAndScriptAsync(
-                """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17953")]
+    public async Task TestAvailableInsidePreprocessorDirective()
+    {
+        await TestInRegularAndScriptAsync(
+            """
                 using System.Collections.Generic;
 
                 public class Goo
@@ -1174,13 +1310,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     public void M()
                     {
                 #if true
-                        var items = [|new|] List<object>();
+                        List<object> items = [|new|] List<object>();
                         [|items.Add(|]1);
                 #endif
                     }
                 }
                 """,
-                """
+            """
                 using System.Collections.Generic;
 
                 public class Goo
@@ -1196,13 +1332,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18242")]
-        public async Task TestObjectInitializerAssignmentAmbiguity()
-        {
-            await TestInRegularAndScriptAsync(
-                """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18242")]
+    public async Task TestObjectInitializerAssignmentAmbiguity()
+    {
+        await TestInRegularAndScriptAsync(
+            """
                 using System.Collections.Generic;
 
                 public class Goo
@@ -1210,12 +1346,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     public void M()
                     {
                         int lastItem;
-                        var list = [|new|] List<int>();
+                        List<int> list = [|new|] List<int>();
                         [|list.Add(|]lastItem = 5);
                     }
                 }
                 """,
-                """
+            """
                 using System.Collections.Generic;
 
                 public class Goo
@@ -1230,13 +1366,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18242")]
-        public async Task TestObjectInitializerCompoundAssignment()
-        {
-            await TestInRegularAndScriptAsync(
-                """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18242")]
+    public async Task TestObjectInitializerCompoundAssignment()
+    {
+        await TestInRegularAndScriptAsync(
+            """
                 using System.Collections.Generic;
 
                 public class Goo
@@ -1244,12 +1380,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     public void M()
                     {
                         int lastItem = 0;
-                        var list = [|new|] List<int>();
+                        List<int> list = [|new|] List<int>();
                         [|list.Add(|]lastItem += 5);
                     }
                 }
                 """,
-                """
+            """
                 using System.Collections.Generic;
 
                 public class Goo
@@ -1264,27 +1400,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19253")]
-        public async Task TestKeepBlankLinesAfter()
-        {
-            await TestInRegularAndScriptAsync(
-                """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19253")]
+    public async Task TestKeepBlankLinesAfter()
+    {
+        await TestInRegularAndScriptAsync(
+            """
                 using System.Collections.Generic;
 
                 class MyClass
                 {
                     public void Main()
                     {
-                        var list = [|new|] List<int>();
+                        List<int> list = [|new|] List<int>();
                         [|list.Add(|]1);
 
                         int horse = 1;
                     }
                 }
                 """,
-                """
+            """
                 using System.Collections.Generic;
 
                 class MyClass
@@ -1300,13 +1436,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23672")]
-        public async Task TestMissingWithExplicitImplementedAddMethod()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23672")]
+    public async Task TestMissingWithExplicitImplementedAddMethod()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
                 using System.Collections.Generic;
                 using System.Dynamic;
 
@@ -1321,13 +1457,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                         }
                 }
                 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47632")]
-        public async Task TestWhenReferencedInInitializerLeft()
-        {
-            await TestInRegularAndScriptAsync(
-                """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47632")]
+    public async Task TestWhenReferencedInInitializerLeft()
+    {
+        await TestInRegularAndScriptAsync(
+            """
                 using System.Collections.Generic;
 
                 class C
@@ -1340,7 +1476,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """,
-                """
+            """
                 using System.Collections.Generic;
 
                 class C
@@ -1355,13 +1491,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47632")]
-        public async Task TestWithIndexerInInitializerLeft()
-        {
-            await TestInRegularAndScriptAsync(
-                """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47632")]
+    public async Task TestWithIndexerInInitializerLeft()
+    {
+        await TestInRegularAndScriptAsync(
+            """
                 using System.Collections.Generic;
 
                 class C
@@ -1374,7 +1510,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """,
-                """
+            """
                 using System.Collections.Generic;
 
                 class C
@@ -1389,13 +1525,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47632")]
-        public async Task TestWithImplicitObjectCreation()
-        {
-            await TestInRegularAndScriptAsync(
-                """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47632")]
+    public async Task TestWithImplicitObjectCreation()
+    {
+        await TestInRegularAndScriptAsync(
+            """
                 using System.Collections.Generic;
 
                 class C
@@ -1407,7 +1543,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """,
-                """
+            """
                 using System.Collections.Generic;
 
                 class C
@@ -1421,25 +1557,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                     }
                 }
                 """);
-        }
+    }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/61066")]
-        public async Task TestInTopLevelStatements()
-        {
-            await TestInRegularAndScriptAsync(
-                """
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/61066")]
+    public async Task TestInTopLevelStatements()
+    {
+        await TestInRegularAndScriptAsync(
+            """
                 using System.Collections.Generic;
 
                 var list = [|new|] List<int>();
                 [|list.Add(|]1);
                 """,
-                """
+            """
                 using System.Collections.Generic;
 
                 var list = new List<int> { 1 };
 
                 """, OutputKind.ConsoleApplication);
-        }
     }
 }

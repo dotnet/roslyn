@@ -39,8 +39,8 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
 
     public CSharpUseCollectionExpressionForArrayDiagnosticAnalyzer()
         : base(ImmutableDictionary<DiagnosticDescriptor, IOption2>.Empty
-                .Add(s_descriptor, CodeStyleOptions2.PreferCollectionExpressionForArray)
-                .Add(s_unnecessaryCodeDescriptor, CodeStyleOptions2.PreferCollectionExpressionForArray))
+                .Add(s_descriptor, CodeStyleOptions2.PreferCollectionExpression)
+                .Add(s_unnecessaryCodeDescriptor, CodeStyleOptions2.PreferCollectionExpression))
     {
     }
 
@@ -49,7 +49,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
 
     private void OnCompilationStart(CompilationStartAnalysisContext context)
     {
-        if (!context.Compilation.LanguageVersion().IsCSharp12OrAbove())
+        if (!context.Compilation.LanguageVersion().SupportsCollectionExpressions())
             return;
 
         // We wrap the SyntaxNodeAction within a CodeBlockStartAction, which allows us to
@@ -73,7 +73,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
         var cancellationToken = context.CancellationToken;
 
         // no point in analyzing if the option is off.
-        var option = context.GetAnalyzerOptions().PreferCollectionExpressionForArray;
+        var option = context.GetAnalyzerOptions().PreferCollectionExpression;
         if (!option.Value)
             return;
 

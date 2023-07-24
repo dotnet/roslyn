@@ -14,9 +14,12 @@ using Microsoft.CodeAnalysis.CSharp.UseObjectInitializer;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 {
+    using static SyntaxFactory;
+
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionInitializer), Shared]
     internal class CSharpUseCollectionInitializerCodeFixProvider :
         AbstractUseCollectionInitializerCodeFixProvider<
@@ -27,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             MemberAccessExpressionSyntax,
             InvocationExpressionSyntax,
             ExpressionStatementSyntax,
+            ForEachStatementSyntax,
             VariableDeclaratorSyntax>
     {
         [ImportingConstructor]
@@ -38,24 +42,55 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
         protected override StatementSyntax GetNewStatement(
             StatementSyntax statement,
             BaseObjectCreationExpressionSyntax objectCreation,
-            ImmutableArray<ExpressionStatementSyntax> matches)
+            bool useCollectionExpression,
+            ImmutableArray<StatementSyntax> matches)
         {
             return statement.ReplaceNode(
                 objectCreation,
-                GetNewObjectCreation(objectCreation, matches));
+                GetNewObjectCreation(objectCreation, useCollectionExpression, matches));
         }
 
-        private static BaseObjectCreationExpressionSyntax GetNewObjectCreation(
+        private static ExpressionSyntax GetNewObjectCreation(
             BaseObjectCreationExpressionSyntax objectCreation,
-            ImmutableArray<ExpressionStatementSyntax> matches)
+            bool useCollectionExpression,
+            ImmutableArray<StatementSyntax> matches)
         {
-            return UseInitializerHelpers.GetNewObjectCreation(
-                objectCreation, CreateExpressions(objectCreation, matches));
+            var expressions = CreateExpressions(objectCreation, matches);
+            return useCollectionExpression
+                ? CreateCollectionExpression(objectCreation, matches, expressions)
+                : UseInitializerHelpers.GetNewObjectCreation(objectCreation, expressions);
+        }
+
+        private static CollectionExpressionSyntax CreateCollectionExpression(
+            BaseObjectCreationExpressionSyntax objectCreation,
+            ImmutableArray<StatementSyntax> matches,
+            SeparatedSyntaxList<ExpressionSyntax> expressions)
+        {
+            using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
+
+            var expressionIndex = 0;
+            foreach (var nodeOrToken in expressions.GetWithSeparators())
+            {
+                if (nodeOrToken.IsToken)
+                {
+                    nodesAndTokens.Add(nodeOrToken.AsToken());
+                }
+                else
+                {
+                    var expression = (ExpressionSyntax)nodeOrToken.AsNode()!;
+                    nodesAndTokens.Add(matches[expressionIndex] is ForEachStatementSyntax
+                        ? SpreadElement(expression)
+                        : ExpressionElement(expression));
+                    expressionIndex++;
+                }
+            }
+
+            return CollectionExpression(SeparatedList<CollectionElementSyntax>(nodesAndTokens)).WithTriviaFrom(objectCreation);
         }
 
         private static SeparatedSyntaxList<ExpressionSyntax> CreateExpressions(
             BaseObjectCreationExpressionSyntax objectCreation,
-            ImmutableArray<ExpressionStatementSyntax> matches)
+            ImmutableArray<StatementSyntax> matches)
         {
             using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
 
@@ -63,32 +98,48 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 
             for (var i = 0; i < matches.Length; i++)
             {
-                var expressionStatement = matches[i];
-                var trivia = expressionStatement.GetLeadingTrivia();
+                var statement = matches[i];
 
+                var trivia = statement.GetLeadingTrivia();
                 var newTrivia = i == 0 ? trivia.WithoutLeadingBlankLines() : trivia;
 
-                var newExpression = ConvertExpression(expressionStatement.Expression)
-                    .WithoutTrivia()
-                    .WithPrependedLeadingTrivia(newTrivia);
-
-                if (i < matches.Length - 1)
+                if (statement is ExpressionStatementSyntax expressionStatement)
                 {
-                    nodesAndTokens.Add(newExpression);
-                    var commaToken = SyntaxFactory.Token(SyntaxKind.CommaToken)
-                        .WithTriviaFrom(expressionStatement.SemicolonToken);
+                    var newExpression = ConvertExpression(expressionStatement.Expression)
+                        .WithoutTrivia()
+                        .WithPrependedLeadingTrivia(newTrivia);
 
-                    nodesAndTokens.Add(commaToken);
+                    if (i < matches.Length - 1)
+                    {
+                        nodesAndTokens.Add(newExpression);
+                        var commaToken = Token(SyntaxKind.CommaToken)
+                            .WithTriviaFrom(expressionStatement.SemicolonToken);
+
+                        nodesAndTokens.Add(commaToken);
+                    }
+                    else
+                    {
+                        newExpression = newExpression.WithTrailingTrivia(
+                            expressionStatement.GetTrailingTrivia());
+                        nodesAndTokens.Add(newExpression);
+                    }
+                }
+                else if (statement is ForEachStatementSyntax foreachStatement)
+                {
+                    var newExpression = ConvertExpression(foreachStatement.Expression)
+                        .WithoutTrivia()
+                        .WithPrependedLeadingTrivia(newTrivia);
+                    nodesAndTokens.Add(newExpression);
+                    if (i < matches.Length - 1)
+                        nodesAndTokens.Add(Token(SyntaxKind.CommaToken));
                 }
                 else
                 {
-                    newExpression = newExpression.WithTrailingTrivia(
-                        expressionStatement.GetTrailingTrivia());
-                    nodesAndTokens.Add(newExpression);
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
-            return SyntaxFactory.SeparatedList<ExpressionSyntax>(nodesAndTokens);
+            return SeparatedList<ExpressionSyntax>(nodesAndTokens);
         }
 
         private static ExpressionSyntax ConvertExpression(ExpressionSyntax expression)
@@ -109,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
         {
             var elementAccess = (ElementAccessExpressionSyntax)assignment.Left;
             return assignment.WithLeft(
-                SyntaxFactory.ImplicitElementAccess(elementAccess.ArgumentList));
+                ImplicitElementAccess(elementAccess.ArgumentList));
         }
 
         private static ExpressionSyntax ConvertInvocation(InvocationExpressionSyntax invocation)
@@ -124,17 +175,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 // avoid the ambiguity.
                 var expression = arguments[0].Expression;
                 return SyntaxFacts.IsAssignmentExpression(expression.Kind())
-                    ? SyntaxFactory.ParenthesizedExpression(expression)
+                    ? ParenthesizedExpression(expression)
                     : expression;
             }
 
-            return SyntaxFactory.InitializerExpression(
+            return InitializerExpression(
                 SyntaxKind.ComplexElementInitializerExpression,
-                SyntaxFactory.Token(SyntaxKind.OpenBraceToken).WithoutTrivia(),
-                SyntaxFactory.SeparatedList(
+                Token(SyntaxKind.OpenBraceToken).WithoutTrivia(),
+                SeparatedList(
                     arguments.Select(a => a.Expression),
                     arguments.GetSeparators()),
-                SyntaxFactory.Token(SyntaxKind.CloseBraceToken).WithoutTrivia());
+                Token(SyntaxKind.CloseBraceToken).WithoutTrivia());
         }
     }
 }

@@ -2,8 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
+using Microsoft.CodeAnalysis.Analyzers.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -21,6 +25,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         TMemberAccessExpressionSyntax,
         TInvocationExpressionSyntax,
         TExpressionStatementSyntax,
+        TForeachStatementSyntax,
         TVariableDeclaratorSyntax>
         : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct
@@ -30,8 +35,10 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         where TMemberAccessExpressionSyntax : TExpressionSyntax
         where TInvocationExpressionSyntax : TExpressionSyntax
         where TExpressionStatementSyntax : TStatementSyntax
+        where TForeachStatementSyntax : TStatementSyntax
         where TVariableDeclaratorSyntax : SyntaxNode
     {
+
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
@@ -57,9 +64,12 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         }
 
         protected abstract ISyntaxFacts GetSyntaxFacts();
-        protected abstract bool AreCollectionInitializersSupported(Compilation compilation);
 
-        protected override void InitializeWorker(AnalysisContext context)
+        protected abstract bool AreCollectionInitializersSupported(Compilation compilation);
+        protected abstract bool AreCollectionExpressionsSupported(Compilation compilation);
+        protected abstract bool CanUseCollectionExpression(SemanticModel semanticModel, TObjectCreationExpressionSyntax objectCreationExpression, CancellationToken cancellationToken);
+
+        protected sealed override void InitializeWorker(AnalysisContext context)
             => context.RegisterCompilationStartAction(OnCompilationStart);
 
         private void OnCompilationStart(CompilationStartAnalysisContext context)
@@ -104,14 +114,17 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 return;
             }
 
-            // Object creation can only be converted to collection initializer if it
-            // implements the IEnumerable type.
+            // Object creation can only be converted to collection initializer if it implements the IEnumerable type.
             var objectType = context.SemanticModel.GetTypeInfo(objectCreationExpression, cancellationToken);
             if (objectType.Type == null || !objectType.Type.AllInterfaces.Contains(ienumerableType))
                 return;
 
-            var matches = UseCollectionInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
-                semanticModel, GetSyntaxFacts(), objectCreationExpression, cancellationToken);
+            // Analyze the surrounding statements. We can accept a broader set of statements if the language supports
+            // collection expressions. 
+            var areCollectionExpressionsSupported = AreCollectionExpressionsSupported(context, objectCreationExpression);
+            var matches = UseCollectionInitializerAnalyzer<
+                TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TForeachStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
+                semanticModel, GetSyntaxFacts(), objectCreationExpression, areCollectionExpressionsSupported, cancellationToken);
 
             if (matches == null || matches.Value.Length == 0)
                 return;
@@ -125,6 +138,12 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             if (syntaxFacts.ContainsInterleavedDirective(nodes, cancellationToken))
                 return;
 
+            // See if we can actually could replace this expression with a collection expression.  If not, and we did
+            // run into any foreach-statements, then we can't convert this.
+            var shouldUseCollectionExpression = areCollectionExpressionsSupported && CanUseCollectionExpression(semanticModel, objectCreationExpression, cancellationToken);
+            if (!shouldUseCollectionExpression && matches.Value.Any(static v => v is TForeachStatementSyntax))
+                return;
+
             var locations = ImmutableArray.Create(objectCreationExpression.GetLocation());
 
             context.ReportDiagnostic(DiagnosticHelper.Create(
@@ -132,14 +151,31 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 objectCreationExpression.GetFirstToken().GetLocation(),
                 option.Notification.Severity,
                 additionalLocations: locations,
-                properties: null));
+                properties: shouldUseCollectionExpression ? UseCollectionInitializerHelpers.UseCollectionExpressionProperties : null));
 
             FadeOutCode(context, matches.Value, locations);
         }
 
+        private bool AreCollectionExpressionsSupported(SyntaxNodeAnalysisContext context, TObjectCreationExpressionSyntax objectCreationExpression)
+        {
+            if (!AreCollectionExpressionsSupported(context.Compilation))
+                return false;
+
+            var option = context.GetAnalyzerOptions().PreferCollectionExpression;
+            if (!option.Value)
+                return false;
+
+            var syntaxFacts = GetSyntaxFacts();
+            var arguments = syntaxFacts.GetArgumentsOfObjectCreationExpression(objectCreationExpression);
+            if (arguments.Count != 0)
+                return false;
+
+            return true;
+        }
+
         private void FadeOutCode(
             SyntaxNodeAnalysisContext context,
-            ImmutableArray<TExpressionStatementSyntax> matches,
+            ImmutableArray<TStatementSyntax> matches,
             ImmutableArray<Location> locations)
         {
             var syntaxTree = context.Node.SyntaxTree;
@@ -147,14 +183,37 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
             foreach (var match in matches)
             {
-                var expression = syntaxFacts.GetExpressionOfExpressionStatement(match);
-
-                if (syntaxFacts.IsInvocationExpression(expression))
+                if (match is TExpressionStatementSyntax)
                 {
-                    var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(expression);
+                    var expression = syntaxFacts.GetExpressionOfExpressionStatement(match);
+
+                    if (syntaxFacts.IsInvocationExpression(expression))
+                    {
+                        var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(expression);
+                        var additionalUnnecessaryLocations = ImmutableArray.Create(
+                            syntaxTree.GetLocation(TextSpan.FromBounds(match.SpanStart, arguments[0].SpanStart)),
+                            syntaxTree.GetLocation(TextSpan.FromBounds(arguments.Last().FullSpan.End, match.Span.End)));
+
+                        // Report the diagnostic at the first unnecessary location. This is the location where the code fix
+                        // will be offered.
+                        var location1 = additionalUnnecessaryLocations[0];
+
+                        context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                            s_unnecessaryCodeDescriptor,
+                            location1,
+                            ReportDiagnostic.Default,
+                            additionalLocations: locations,
+                            additionalUnnecessaryLocations: additionalUnnecessaryLocations));
+                    }
+                }
+                else if (match is TForeachStatementSyntax)
+                {
+                    // For a `foreach (var x in expr) ...` statement, fade out the parts before and after `expr`.
+
+                    var expression = syntaxFacts.GetExpressionOfForeachStatement(match);
                     var additionalUnnecessaryLocations = ImmutableArray.Create(
-                        syntaxTree.GetLocation(TextSpan.FromBounds(match.SpanStart, arguments[0].SpanStart)),
-                        syntaxTree.GetLocation(TextSpan.FromBounds(arguments.Last().FullSpan.End, match.Span.End)));
+                        syntaxTree.GetLocation(TextSpan.FromBounds(match.SpanStart, expression.SpanStart)),
+                        syntaxTree.GetLocation(TextSpan.FromBounds(expression.FullSpan.End, match.Span.End)));
 
                     // Report the diagnostic at the first unnecessary location. This is the location where the code fix
                     // will be offered.
