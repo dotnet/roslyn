@@ -75,7 +75,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
             var seenInvocation = false;
             var seenIndexAssignment = false;
-            var seenForeach = false;
 
             var initializer = _syntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression);
             if (initializer != null)
@@ -84,6 +83,9 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 seenIndexAssignment = _syntaxFacts.IsElementAccessInitializer(firstInit);
                 seenInvocation = !seenIndexAssignment;
             }
+
+            if (seenIndexAssignment && _analyzeForCollectionExpression)
+                return;
 
             foreach (var child in containingBlockOrCompilationUnit.ChildNodesAndTokens())
             {
@@ -109,7 +111,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                     if (!seenIndexAssignment && TryAnalyzeAddInvocation(expressionStatement, requiredArgumentName: null, out instance))
                         seenInvocation = true;
 
-                    if (!seenInvocation && !seenForeach && TryAnalyzeIndexAssignment(expressionStatement, out instance))
+                    if (!seenInvocation && !_analyzeForCollectionExpression && TryAnalyzeIndexAssignment(expressionStatement, out instance))
                         seenIndexAssignment = true;
 
                     if (instance == null)
@@ -124,7 +126,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 {
                     // if we're not producing a collection expression, then we cannot convert any foreach'es into
                     // `[..expr]` elements.
-                    if (!_areCollectionExpressionsSupported || seenIndexAssignment)
+                    if (!_analyzeForCollectionExpression)
                         return;
 
                     _syntaxFacts.GetPartsOfForeachStatement(foreachStatement, out var identifier, out _, out var foreachStatements);
@@ -220,6 +222,9 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
             var arguments = _syntaxFacts.GetArgumentsOfInvocationExpression(invocationExpression);
             if (arguments.Count < 1)
+                return false;
+
+            if (_analyzeForCollectionExpression && arguments.Count != 1)
                 return false;
 
             if (requiredArgumentName != null && arguments.Count != 1)

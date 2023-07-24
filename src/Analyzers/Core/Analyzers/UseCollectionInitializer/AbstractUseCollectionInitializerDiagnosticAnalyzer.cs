@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             if (containingStatement == null)
                 return;
 
-            var matches = GetMatches();
+            var (matches, shouldUseCollectionExpression) = GetMatches();
             // If we got no matches, then we def can't convert this.
             if (matches.IsDefaultOrEmpty)
                 return;
@@ -146,44 +146,46 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
             return;
 
-            ImmutableArray<TStatementSyntax> GetMatches()
+            (ImmutableArray<TStatementSyntax> matches, bool shouldUseCollectionExpression) GetMatches()
             {
                 // Analyze the surrounding statements. First, try a broader set of statements if the language supports
                 // collection expressions. 
-                var areCollectionExpressionsSupported = AreCollectionExpressionsSupported(context, objectCreationExpression);
+                var analyzeForCollectionExpression = AreCollectionExpressionsSupported();
                 var matches = UseCollectionInitializerAnalyzer<
                     TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TForeachStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
-                    semanticModel, GetSyntaxFacts(), objectCreationExpression, areCollectionExpressionsSupported, cancellationToken);
+                    semanticModel, GetSyntaxFacts(), objectCreationExpression, analyzeForCollectionExpression, cancellationToken);
 
                 if (matches.IsDefaultOrEmpty)
                     return default;
 
                 // if we're just doing a normal initializer, or we want a collection expression, and that is legal here, then we're done.
-                if (!areCollectionExpressionsSupported || CanUseCollectionExpression(semanticModel, objectCreationExpression, cancellationToken))
-                    return matches;
+                if (!analyzeForCollectionExpression || CanUseCollectionExpression(semanticModel, objectCreationExpression, cancellationToken))
+                    return (matches, analyzeForCollectionExpression);
 
                 // we tried collection expression, and were not successful.  try again, this time without collection exprs.
-                return UseCollectionInitializerAnalyzer<
+                analyzeForCollectionExpression = false;
+                matches = UseCollectionInitializerAnalyzer<
                     TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TForeachStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
-                    semanticModel, GetSyntaxFacts(), objectCreationExpression, areCollectionExpressionsSupported: false, cancellationToken);
+                    semanticModel, GetSyntaxFacts(), objectCreationExpression, analyzeForCollectionExpression, cancellationToken);
+                return (matches, analyzeForCollectionExpression);
             }
-        }
 
-        private bool AreCollectionExpressionsSupported(SyntaxNodeAnalysisContext context, TObjectCreationExpressionSyntax objectCreationExpression)
-        {
-            if (!AreCollectionExpressionsSupported(context.Compilation))
-                return false;
+            bool AreCollectionExpressionsSupported()
+            {
+                if (!this.AreCollectionExpressionsSupported(context.Compilation))
+                    return false;
 
-            var option = context.GetAnalyzerOptions().PreferCollectionExpression;
-            if (!option.Value)
-                return false;
+                var option = context.GetAnalyzerOptions().PreferCollectionExpression;
+                if (!option.Value)
+                    return false;
 
-            var syntaxFacts = GetSyntaxFacts();
-            var arguments = syntaxFacts.GetArgumentsOfObjectCreationExpression(objectCreationExpression);
-            if (arguments.Count != 0)
-                return false;
+                var syntaxFacts = GetSyntaxFacts();
+                var arguments = syntaxFacts.GetArgumentsOfObjectCreationExpression(objectCreationExpression);
+                if (arguments.Count != 0)
+                    return false;
 
-            return true;
+                return true;
+            }
         }
 
         private void FadeOutCode(

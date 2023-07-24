@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         protected SemanticModel _semanticModel;
         protected ISyntaxFacts _syntaxFacts;
         protected TObjectCreationExpressionSyntax _objectCreationExpression;
-        protected bool _areCollectionExpressionsSupported;
+        protected bool _analyzeForCollectionExpression;
         protected CancellationToken _cancellationToken;
 
         protected TStatementSyntax _containingStatement;
@@ -42,13 +42,13 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             SemanticModel semanticModel,
             ISyntaxFacts syntaxFacts,
             TObjectCreationExpressionSyntax objectCreationExpression,
-            bool areCollectionExpressionsSupported,
+            bool analyzeForCollectionExpression,
             CancellationToken cancellationToken)
         {
             _semanticModel = semanticModel;
             _syntaxFacts = syntaxFacts;
             _objectCreationExpression = objectCreationExpression;
-            _areCollectionExpressionsSupported = areCollectionExpressionsSupported;
+            _analyzeForCollectionExpression = analyzeForCollectionExpression;
             _cancellationToken = cancellationToken;
         }
 
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             _semanticModel = null;
             _syntaxFacts = null;
             _objectCreationExpression = null;
-            _areCollectionExpressionsSupported = false;
+            _analyzeForCollectionExpression = false;
             _cancellationToken = default;
             _containingStatement = null;
             _valuePattern = default;
