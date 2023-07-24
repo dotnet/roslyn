@@ -75,6 +75,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
             var seenInvocation = false;
             var seenIndexAssignment = false;
+            var seenForeach = false;
 
             var initializer = _syntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression);
             if (initializer != null)
@@ -102,23 +103,44 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                     continue;
                 }
 
-                if (extractedChild is not TExpressionStatementSyntax statement)
-                    return;
+                if (extractedChild is TExpressionStatementSyntax expressionStatement)
+                {
+                    TExpressionSyntax? instance = null;
+                    if (!seenIndexAssignment && TryAnalyzeAddInvocation(expressionStatement, requiredArgumentName: null, out instance))
+                        seenInvocation = true;
 
-                SyntaxNode? instance = null;
-                if (!seenIndexAssignment && TryAnalyzeAddInvocation(statement, out instance))
-                    seenInvocation = true;
+                    if (!seenInvocation && !seenForeach && TryAnalyzeIndexAssignment(expressionStatement, out instance))
+                        seenIndexAssignment = true;
 
-                if (!seenInvocation && TryAnalyzeIndexAssignment(statement, out instance))
-                    seenIndexAssignment = true;
+                    if (instance == null)
+                        return;
 
-                if (instance == null)
-                    return;
+                    if (!ValuePatternMatches(instance))
+                        return;
 
-                if (!ValuePatternMatches((TExpressionSyntax)instance))
-                    return;
+                    matches.Add(expressionStatement);
+                }
+                else if (extractedChild is TForeachStatementSyntax foreachStatement)
+                {
+                    // if we're not producing a collection expression, then we cannot convert any foreach'es into
+                    // `[..expr]` elements.
+                    if (!_areCollectionExpressionsSupported || seenIndexAssignment)
+                        return;
 
-                matches.Add(statement);
+                    _syntaxFacts.GetPartsOfForeachStatement(foreachStatement, out var identifier, out _, out var foreachStatements);
+                    if (identifier == default)
+                        return;
+
+                    if (foreachStatements.ToImmutableArray() is not [TExpressionStatementSyntax childExpressionStatement] ||
+                        !TryAnalyzeAddInvocation(childExpressionStatement, identifier.Text, out var instance) ||
+                        instance is null ||
+                        !ValuePatternMatches(instance))
+                    {
+                        return;
+                    }
+
+                    matches.Add(foreachStatement);
+                }
             }
         }
 
@@ -142,7 +164,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         private bool TryAnalyzeIndexAssignment(
             TExpressionStatementSyntax statement,
-            [NotNullWhen(true)] out SyntaxNode? instance)
+            [NotNullWhen(true)] out TExpressionSyntax? instance)
         {
             instance = null;
             if (!_syntaxFacts.SupportsIndexingInitializer(statement.SyntaxTree.Options))
@@ -179,13 +201,14 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                     return false;
             }
 
-            instance = elementInstance;
+            instance = elementInstance as TExpressionSyntax;
             return instance != null;
         }
 
         private bool TryAnalyzeAddInvocation(
             TExpressionStatementSyntax statement,
-            [NotNullWhen(true)] out SyntaxNode? instance)
+            string? requiredArgumentName,
+            [NotNullWhen(true)] out TExpressionSyntax? instance)
         {
             instance = null;
             if (_syntaxFacts.GetExpressionOfExpressionStatement(statement) is not TInvocationExpressionSyntax invocationExpression)
@@ -193,6 +216,9 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
             var arguments = _syntaxFacts.GetArgumentsOfInvocationExpression(invocationExpression);
             if (arguments.Count < 1)
+                return false;
+
+            if (requiredArgumentName != null && arguments.Count != 1)
                 return false;
 
             foreach (var argument in arguments)
@@ -213,6 +239,18 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 // instead looks for an 3-argument `Add` method to invoke on `List<T>` (which clearly fails).
                 if (_syntaxFacts.SyntaxKinds.CollectionInitializerExpression == argumentExpression.RawKind)
                     return false;
+
+                // If the caller is requiring a particular argument name, then validate that is what this argument
+                // is referencing.
+                if (requiredArgumentName != null)
+                {
+                    if (!_syntaxFacts.IsIdentifierName(argumentExpression))
+                        return false;
+
+                    _syntaxFacts.GetNameAndArityOfSimpleName(argumentExpression, out var suppliedName, out _);
+                    if (requiredArgumentName != suppliedName)
+                        return false;
+                }
             }
 
             if (_syntaxFacts.GetExpressionOfInvocationExpression(invocationExpression) is not TMemberAccessExpressionSyntax memberAccess)
@@ -227,8 +265,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             if (arity != 0 || !Equals(name, WellKnownMemberNames.CollectionInitializerAddMethodName))
                 return false;
 
-            instance = localInstance;
-            return true;
+            instance = localInstance as TExpressionSyntax;
+            return instance != null;
         }
     }
 }
