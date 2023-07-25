@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             extension ??= (language == LanguageNames.CSharp) ? CSharpExtension : VisualBasicExtension;
             if (files != null)
             {
-                if (fileContainingFolders != null && !fileContainingFolders.IsEmpty())
+                if (fileContainingFolders != null)
                 {
-                    Contract.ThrowIfTrue(fileContainingFolders.Length != files.Length, "Please specify the containing folder for each file.");
+                    Contract.ThrowIfTrue(fileContainingFolders.Length != files.Length, "Please specify containing folder for each file.");
                     foreach (var (file, folders) in files.Zip(fileContainingFolders, (file, containingFolders) => (file, containingFolders)))
                     {
                         documentElements.Add(CreateDocumentElement(
