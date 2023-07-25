@@ -2359,7 +2359,6 @@ public static class E
         public void MethodGroup_ScopeByScope_BreakingChange()
         {
             var source = """
-
 var c = new C();
 var d = new D();
 d.Del(c.M); // used to bind to DExt.Del, now binds to D.Del
@@ -2394,6 +2393,74 @@ public static class DExt
             // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
             Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
             Assert.Equal(new[] { "void C.M()", "void C.M(System.Object o)" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69222")]
+        public void MethodGroup_GenericExtensionMethod()
+        {
+            var source = """
+var d = new object().M;
+d();
+
+static class E
+{
+    public static void M<T>(this T t)
+    {
+        System.Console.Write("ran");
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (1,9): error CS8917: The delegate type could not be inferred.
+                // var d = new object().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new object().M").WithLocation(1, 9)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69222")]
+        public void MethodGroup_GenericExtensionMethod_Nested()
+        {
+            var source = """
+var d = new C<int, long>().M;
+d();
+
+class C<T, U> { }
+
+static class E
+{
+    public static void M<T1, T2>(this C<T1, T2> t)
+    {
+        System.Console.Write("ran");
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (1,9): error CS8917: The delegate type could not be inferred.
+                // var d = new C<int, long>().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C<int, long>().M").WithLocation(1, 9)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69222")]
+        public void MethodGroup_GenericExtensionMethod_Constraint()
+        {
+            var source = """
+var x = new C().M<int>;
+
+public class C
+{
+    public void M<T>() { }
+    public void M<T>(object o) where T : class { }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (1,9): error CS8917: The delegate type could not be inferred.
+                // var x = new C().M<int>;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M<int>").WithLocation(1, 9)
+                );
         }
 
         [Fact]

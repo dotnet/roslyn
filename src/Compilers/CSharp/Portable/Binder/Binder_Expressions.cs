@@ -9626,7 +9626,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private MethodSymbol? GetUniqueSignatureFromMethodGroup(BoundMethodGroup node)
         {
-            var method = selectMethodForSignature(node);
+            MethodSymbol? method = selectMethodForSignature(node);
 
             if (method is null)
             {
