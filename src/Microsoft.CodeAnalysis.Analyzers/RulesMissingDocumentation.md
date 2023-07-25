@@ -37,3 +37,4 @@ RS1034 |  | Prefer 'IsKind' for checking syntax kinds |
 RS1035 |  | Do not use APIs banned for analyzers |
 RS1036 |  | Specify analyzer banned API enforcement setting |
 RS1037 |  | Add "CompilationEnd" custom tag to compilation end diagnostic descriptor |
+RS1039 |  | A call to 'SemanticModel.GetDeclaredSymbol({0})' will always return 'null' |
