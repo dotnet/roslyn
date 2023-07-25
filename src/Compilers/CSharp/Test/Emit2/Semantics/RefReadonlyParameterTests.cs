@@ -3641,6 +3641,44 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """);
     }
 
+    [Theory, CombinatorialData]
+    public void Invocation_ExtensionMethod_Metadata([CombinatorialValues("ref readonly", "ref", "in")] string modifier)
+    {
+        var source1 = $$"""
+            public static class E
+            {
+                public static void M(this {{modifier}} int x) => System.Console.Write(x);
+            }
+            """;
+        var comp1 = CreateCompilation(source1).VerifyDiagnostics();
+        var comp1Ref = comp1.EmitToImageReference();
+
+        var source2 = """
+            static class Program
+            {
+                static void Main()
+                {
+                    var x = 1;
+                    x.M();
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(source2, new[] { comp1Ref }, expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("Program.Main", $$"""
+            {
+              // Code size       10 (0xa)
+              .maxstack  1
+              .locals init (int V_0) //x
+              IL_0000:  ldc.i4.1
+              IL_0001:  stloc.0
+              IL_0002:  ldloca.s   V_0
+              IL_0004:  call       "void E.M({{modifier}} int)"
+              IL_0009:  ret
+            }
+            """);
+    }
+
     [Fact]
     public void Invocation_ExtensionMethod_SecondParameter()
     {
