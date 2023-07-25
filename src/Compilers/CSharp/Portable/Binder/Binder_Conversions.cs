@@ -542,6 +542,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case CollectionExpressionTypeKind.Span:
                 case CollectionExpressionTypeKind.ReadOnlySpan:
                     return BindArrayOrSpanCollectionExpression(node, targetType, wasCompilerGenerated: wasCompilerGenerated, collectionTypeKind, elementType!, diagnostics);
+                case CollectionExpressionTypeKind.CollectionBuilder:
+                    return BindCollectionBuilderCollectionExpression(node, (NamedTypeSymbol)targetType, wasCompilerGenerated: wasCompilerGenerated, diagnostics);
                 case CollectionExpressionTypeKind.ListInterface:
                     return BindListInterfaceCollectionExpression(node, targetType, wasCompilerGenerated: wasCompilerGenerated, elementType!, diagnostics);
                 case CollectionExpressionTypeKind.None:
@@ -549,6 +551,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     throw ExceptionUtilities.UnexpectedValue(collectionTypeKind);
             }
+        }
+
+        internal bool TryGetCollectionIterationType(ExpressionSyntax syntax, TypeSymbol collectionType, out TypeWithAnnotations iterationType)
+        {
+            BoundExpression collectionExpr = new BoundValuePlaceholder(syntax, collectionType);
+            return GetEnumeratorInfoAndInferCollectionElementType(
+                syntax,
+                syntax,
+                ref collectionExpr,
+                isAsync: false,
+                BindingDiagnosticBag.Discarded,
+                out iterationType,
+                builder: out _);
         }
 
         private BoundCollectionExpression BindArrayOrSpanCollectionExpression(
@@ -583,49 +598,50 @@ namespace Microsoft.CodeAnalysis.CSharp
                     GetWellKnownType(WellKnownType.System_Collections_Generic_List_T, diagnostics, syntax).Construct(elementType),
                     wasCompilerGenerated: wasCompilerGenerated,
                     diagnostics);
-                return result.Update(result.CollectionTypeKind, result.Placeholder, result.CollectionCreation, result.Elements, targetType);
+                return result.Update(result.CollectionTypeKind, result.Placeholder, result.CollectionCreation, result.CollectionBuilderMethod, result.Elements, targetType);
             }
 
             var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
             var builder = ArrayBuilder<BoundExpression>.GetInstance(elements.Length);
             foreach (var element in elements)
             {
-                builder.Add(convertArrayElement(element, elementType, diagnostics));
+                builder.Add(ConvertCollectionExpressionArrayElement(element, elementType, diagnostics));
             }
             return new BoundCollectionExpression(
                 syntax,
                 collectionTypeKind,
                 implicitReceiver,
                 collectionCreation: null,
+                collectionBuilderMethod: null,
                 builder.ToImmutableAndFree(),
                 targetType)
             { WasCompilerGenerated = wasCompilerGenerated };
+        }
 
-            BoundExpression convertArrayElement(BoundExpression element, TypeSymbol elementType, BindingDiagnosticBag diagnostics)
+        private BoundExpression ConvertCollectionExpressionArrayElement(BoundExpression element, TypeSymbol elementType, BindingDiagnosticBag diagnostics)
+        {
+            var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+            var conversion = Conversions.ClassifyImplicitConversionFromExpression(element, elementType, ref useSiteInfo);
+            diagnostics.Add(element.Syntax, useSiteInfo);
+            bool hasErrors = !conversion.IsValid;
+            if (hasErrors)
             {
-                var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                var conversion = Conversions.ClassifyImplicitConversionFromExpression(element, elementType, ref useSiteInfo);
-                diagnostics.Add(element.Syntax, useSiteInfo);
-                bool hasErrors = !conversion.IsValid;
-                if (hasErrors)
-                {
-                    GenerateImplicitConversionError(diagnostics, element.Syntax, conversion, element, elementType);
-                    // Suppress any additional diagnostics
-                    diagnostics = BindingDiagnosticBag.Discarded;
-                }
-                var result = CreateConversion(
-                    element.Syntax,
-                    element,
-                    conversion,
-                    isCast: false,
-                    conversionGroupOpt: null,
-                    wasCompilerGenerated: true,
-                    destination: elementType,
-                    diagnostics,
-                    hasErrors: hasErrors);
-                result.WasCompilerGenerated = true;
-                return result;
+                GenerateImplicitConversionError(diagnostics, element.Syntax, conversion, element, elementType);
+                // Suppress any additional diagnostics
+                diagnostics = BindingDiagnosticBag.Discarded;
             }
+            var result = CreateConversion(
+                element.Syntax,
+                element,
+                conversion,
+                isCast: false,
+                conversionGroupOpt: null,
+                wasCompilerGenerated: true,
+                destination: elementType,
+                diagnostics,
+                hasErrors: hasErrors);
+            result.WasCompilerGenerated = true;
+            return result;
         }
 
         private BoundCollectionExpression BindCollectionInitializerCollectionExpression(
@@ -688,6 +704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionTypeKind,
                 implicitReceiver,
                 collectionCreation,
+                collectionBuilderMethod: null,
                 builder.ToImmutableAndFree(),
                 targetType,
                 hasErrors)
@@ -708,7 +725,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GetWellKnownType(WellKnownType.System_Collections_Generic_List_T, diagnostics, node.Syntax).Construct(elementType),
                 wasCompilerGenerated: wasCompilerGenerated,
                 diagnostics);
-            return result.Update(result.CollectionTypeKind, result.Placeholder, result.CollectionCreation, result.Elements, targetType);
+            return result.Update(result.CollectionTypeKind, result.Placeholder, result.CollectionCreation, result.CollectionBuilderMethod, result.Elements, targetType);
         }
 
         private BoundCollectionExpression BindCollectionExpressionForErrorRecovery(
@@ -727,9 +744,158 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionTypeKind: CollectionExpressionTypeKind.None,
                 placeholder: null,
                 collectionCreation: null,
+                collectionBuilderMethod: null,
                 elements: builder.ToImmutableAndFree(),
                 targetType,
                 hasErrors: true);
+        }
+
+        private BoundCollectionExpression BindCollectionBuilderCollectionExpression(
+            BoundUnconvertedCollectionExpression node,
+            NamedTypeSymbol targetType,
+            bool wasCompilerGenerated,
+            BindingDiagnosticBag diagnostics)
+        {
+            var syntax = (ExpressionSyntax)node.Syntax;
+
+            bool hasAttribute = targetType.HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName);
+            Debug.Assert(hasAttribute);
+
+            var targetTypeOriginalDefinition = targetType.OriginalDefinition;
+            TryGetCollectionIterationType(syntax, targetTypeOriginalDefinition, out TypeWithAnnotations elementTypeOriginalDefinition);
+            if (!elementTypeOriginalDefinition.HasType)
+            {
+                diagnostics.Add(ErrorCode.ERR_CollectionBuilderNoElementType, syntax, targetType);
+                return BindCollectionExpressionForErrorRecovery(node, targetType, diagnostics);
+            }
+
+            var constructMethod = GetCollectionBuilderMethod(syntax, targetType, elementTypeOriginalDefinition.Type, builderType, methodName, diagnostics);
+            if (constructMethod is null)
+            {
+                diagnostics.Add(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, syntax, methodName ?? "", elementTypeOriginalDefinition, targetTypeOriginalDefinition);
+                return BindCollectionExpressionForErrorRecovery(node, targetType, diagnostics);
+            }
+
+            constructMethod.CheckConstraints(
+                new ConstraintsHelper.CheckConstraintsArgs(Compilation, Conversions, syntax.Location, diagnostics));
+
+            ReportDiagnosticsIfObsolete(diagnostics, constructMethod.ContainingType, syntax, hasBaseReceiver: false);
+            ReportDiagnosticsIfObsolete(diagnostics, constructMethod, syntax, hasBaseReceiver: false);
+            ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, constructMethod, syntax, isDelegateConversion: false);
+
+            var readOnlySpanType = (NamedTypeSymbol)constructMethod.Parameters[0].Type;
+            Debug.Assert(readOnlySpanType.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions));
+
+            var elementType = readOnlySpanType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+
+            var elements = node.Elements;
+            if (elements.Any(e => e is BoundCollectionExpressionSpreadElement))
+            {
+                // The array initializer includes at least one spread element, so we'll create an intermediate List<T> instance.
+                // https://github.com/dotnet/roslyn/issues/68785: Avoid intermediate List<T> if all spread elements have Length property.
+                // https://github.com/dotnet/roslyn/issues/68785: Use CollectionsMarshal.AsSpan<T>(List<T>) to create a span
+                // from the list, to avoid creating an additional intermediate array.
+                _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray, diagnostics, syntax: syntax);
+                var result = BindCollectionInitializerCollectionExpression(
+                    node,
+                    CollectionExpressionTypeKind.CollectionBuilder,
+                    GetWellKnownType(WellKnownType.System_Collections_Generic_List_T, diagnostics, syntax).Construct(elementType),
+                    wasCompilerGenerated: wasCompilerGenerated,
+                    diagnostics);
+                return result.Update(result.CollectionTypeKind, result.Placeholder, result.CollectionCreation, constructMethod, result.Elements, targetType);
+            }
+
+            var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, readOnlySpanType) { WasCompilerGenerated = true };
+            var builder = ArrayBuilder<BoundExpression>.GetInstance(elements.Length);
+            foreach (var element in elements)
+            {
+                builder.Add(ConvertCollectionExpressionArrayElement(element, elementType, diagnostics));
+            }
+            return new BoundCollectionExpression(
+                syntax,
+                CollectionExpressionTypeKind.CollectionBuilder,
+                implicitReceiver,
+                collectionCreation: null,
+                collectionBuilderMethod: constructMethod,
+                builder.ToImmutableAndFree(),
+                targetType)
+            { WasCompilerGenerated = wasCompilerGenerated };
+        }
+
+        private MethodSymbol? GetCollectionBuilderMethod(
+            ExpressionSyntax syntax,
+            NamedTypeSymbol targetType,
+            TypeSymbol elementTypeOriginalDefinition,
+            TypeSymbol? builderType,
+            string? methodName,
+            BindingDiagnosticBag diagnostics)
+        {
+            if (!SourceNamedTypeSymbol.IsValidCollectionBuilderType(builderType))
+            {
+                return null;
+            }
+
+            if (string.IsNullOrEmpty(methodName))
+            {
+                return null;
+            }
+
+            var readOnlySpanType = Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T);
+
+            foreach (var candidate in builderType.GetMembers(methodName))
+            {
+                if (candidate is not MethodSymbol { IsStatic: true } method)
+                {
+                    continue;
+                }
+
+                var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                if (!IsAccessible(method, ref useSiteInfo))
+                {
+                    continue;
+                }
+
+                var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
+                targetType.GetAllTypeArgumentsNoUseSiteDiagnostics(builder);
+                var allTypeArguments = builder.ToImmutableAndFree();
+
+                if (method.Arity != allTypeArguments.Length)
+                {
+                    continue;
+                }
+
+                if (method.Parameters is not [{ RefKind: RefKind.None, Type: var parameterType }]
+                    || !readOnlySpanType.Equals(parameterType.OriginalDefinition, TypeCompareKind.AllIgnoreOptions))
+                {
+                    continue;
+                }
+
+                if (allTypeArguments.Length > 0)
+                {
+                    var allTypeParameters = TypeMap.TypeParametersAsTypeSymbolsWithAnnotations(targetType.OriginalDefinition.GetAllTypeParameters());
+                    var mDef = method.OriginalDefinition.Construct(allTypeParameters);
+                    var spanElementType = ((NamedTypeSymbol)mDef.Parameters[0].Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+                    if (!elementTypeOriginalDefinition.Equals(spanElementType, TypeCompareKind.AllIgnoreOptions))
+                    {
+                        continue;
+                    }
+                    if (!targetType.OriginalDefinition.Equals(mDef.ReturnType, TypeCompareKind.AllIgnoreOptions))
+                    {
+                        continue;
+                    }
+                    method = method.Construct(allTypeArguments);
+                }
+
+                if (!targetType.Equals(method.ReturnType, TypeCompareKind.AllIgnoreOptions))
+                {
+                    continue;
+                }
+
+                diagnostics.Add(syntax, useSiteInfo);
+                return method;
+            }
+
+            return null;
         }
 
         /// <summary>
