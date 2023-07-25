@@ -206,10 +206,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var isLinked = IsDocumentLinked(documentItem);
             var isGenerated = IsDocumentGenerated(documentItem);
             var sourceCodeKind = GetSourceCodeKind(filePath);
-            var relativePath = PathUtilities.GetDirectoryName(
-                PathUtilities.GetRelativePath(_projectDirectory, filePath));
 
-            var folders = relativePath.Split(PathUtilities.DirectorySeparatorChar).ToImmutableArray();
+            var folders = GetRelativeFolders(documentItem, filePath);
             return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated, sourceCodeKind, folders);
         }
 
@@ -220,11 +218,25 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var isLinked = IsDocumentLinked(documentItem);
             var isGenerated = IsDocumentGenerated(documentItem);
 
-            var relativePath = PathUtilities.GetDirectoryName(
-                PathUtilities.GetRelativePath(_projectDirectory, filePath));
-
-            var folders = relativePath == null ? ImmutableArray<string>.Empty : relativePath.Split(PathUtilities.DirectorySeparatorChar).ToImmutableArray();
+            var folders = GetRelativeFolders(documentItem, filePath);
             return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated, SourceCodeKind.Regular, folders);
+        }
+
+        private ImmutableArray<string> GetRelativeFolders(
+            MSB.Framework.ITaskItem documentItem,
+            string filePath)
+        {
+            var linkPath = documentItem.GetMetadata(MetadataNames.Link);
+            if (RoslynString.IsNullOrEmpty(linkPath))
+            {
+                return linkPath.Split(PathUtilities.DirectorySeparatorChar).ToImmutableArray();
+            }
+            else
+            {
+                var relativePath = PathUtilities.GetDirectoryName(PathUtilities.GetRelativePath(_projectDirectory, filePath));
+                var folders = relativePath == null ? ImmutableArray<string>.Empty : relativePath.Split(PathUtilities.DirectorySeparatorChar).ToImmutableArray();
+                return folders;
+            }
         }
 
         /// <summary>
