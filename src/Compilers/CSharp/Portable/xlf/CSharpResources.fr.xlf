@@ -12654,8 +12654,8 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
         <note />
       </trans-unit>
       <trans-unit id="ERR_InExtensionMustBeValueType">
-        <source>The first parameter of the 'in' extension method '{0}' must be a concrete (non-generic) value type.</source>
-        <target state="translated">Le premier paramètre de la méthode d'extension 'in' '{0}' doit être un type valeur concret (non générique).</target>
+        <source>The first 'in' or 'ref readonly' parameter of the extension method '{0}' must be a concrete (non-generic) value type.</source>
+        <target state="needs-review-translation">Le premier paramètre de la méthode d'extension 'in' '{0}' doit être un type valeur concret (non générique).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldsInRoStruct">
