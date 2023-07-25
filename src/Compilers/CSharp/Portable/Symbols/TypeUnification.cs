@@ -104,7 +104,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     arg: substitution);
                 return foundTypeParameter is not null;
             }
-
         }
 
 #if DEBUG
