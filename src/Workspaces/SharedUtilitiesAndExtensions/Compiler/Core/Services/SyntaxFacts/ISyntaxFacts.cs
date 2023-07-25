@@ -358,6 +358,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         bool IsDeclaratorOfLocalDeclarationStatement(SyntaxNode declarator, SyntaxNode localDeclarationStatement);
         SeparatedSyntaxList<SyntaxNode> GetVariablesOfLocalDeclarationStatement(SyntaxNode node);
         SyntaxNode? GetInitializerOfVariableDeclarator(SyntaxNode node);
+        SyntaxNode? GetInitializerOfPropertyDeclaration(SyntaxNode node);
 
         bool IsThisConstructorInitializer(SyntaxToken token);
         bool IsBaseConstructorInitializer(SyntaxToken token);

@@ -649,7 +649,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (!TryGetCollectionIterationType(binder, (ExpressionSyntax)argument.Syntax, target.Type, out TypeWithAnnotations targetElementType))
+            if (!binder.TryGetCollectionIterationType((ExpressionSyntax)argument.Syntax, target.Type, out TypeWithAnnotations targetElementType))
             {
                 return;
             }
@@ -658,19 +658,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 MakeExplicitParameterTypeInferences(binder, element, targetElementType, kind, ref useSiteInfo);
             }
-        }
-
-        private static bool TryGetCollectionIterationType(Binder binder, ExpressionSyntax syntax, TypeSymbol collectionType, out TypeWithAnnotations iterationType)
-        {
-            BoundExpression collectionExpr = new BoundValuePlaceholder(syntax, collectionType);
-            return binder.GetEnumeratorInfoAndInferCollectionElementType(
-                syntax,
-                syntax,
-                ref collectionExpr,
-                isAsync: false,
-                BindingDiagnosticBag.Discarded,
-                out iterationType,
-                builder: out _);
         }
 #nullable disable
 
@@ -860,7 +847,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (!TryGetCollectionIterationType(binder, (ExpressionSyntax)argument.Syntax, formalType.Type, out TypeWithAnnotations targetElementType))
+            if (!binder.TryGetCollectionIterationType((ExpressionSyntax)argument.Syntax, formalType.Type, out TypeWithAnnotations targetElementType))
             {
                 return;
             }
