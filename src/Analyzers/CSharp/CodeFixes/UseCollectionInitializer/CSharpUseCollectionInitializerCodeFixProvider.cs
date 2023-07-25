@@ -188,12 +188,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 
                 if (statement is ExpressionStatementSyntax expressionStatement)
                 {
+                    var trivia = statement.GetLeadingTrivia();
+                    var leadingTrivia = i == 0 ? trivia.WithoutLeadingBlankLines() : trivia;
+
                     var semicolon = expressionStatement.SemicolonToken;
                     var trailingTrivia = semicolon.TrailingTrivia.Contains(static t => t.IsSingleOrMultiLineComment())
                         ? TriviaList(semicolon.TrailingTrivia.TakeWhile(static t => t.Kind() != SyntaxKind.EndOfLineTrivia))
                         : default;
 
-                    var expression = ConvertExpression(expressionStatement.Expression).WithoutTrivia();
+                    var expression = ConvertExpression(expressionStatement.Expression).WithoutTrivia().WithLeadingTrivia(leadingTrivia);
                     if (i < matches.Length - 1)
                     {
                         nodesAndTokens.Add(expression);
