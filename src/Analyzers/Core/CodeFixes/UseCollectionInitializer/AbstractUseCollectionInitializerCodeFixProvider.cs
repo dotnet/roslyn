@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         public sealed override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseCollectionInitializerDiagnosticId);
 
-        protected abstract Task<TStatementSyntax> GetNewStatementAsync(
+        protected abstract TStatementSyntax GetNewStatement(
             SourceText sourceText, TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation, int wrappingLength, bool useCollectionExpression, ImmutableArray<Match<TStatementSyntax>> matches);
 
         protected sealed override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
@@ -111,8 +111,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 var statement = objectCreation.FirstAncestorOrSelf<TStatementSyntax>();
                 Contract.ThrowIfNull(statement);
 
-                var newStatement = await GetNewStatementAsync(
-                    sourceText, statement, objectCreation, wrappingLength, useCollectionExpression, matches).ConfigureAwait(false);
+                var newStatement = GetNewStatement(
+                    sourceText, statement, objectCreation, wrappingLength, useCollectionExpression, matches);
 
                 var subEditor = new SyntaxEditor(currentRoot, document.Project.Solution.Services);
 

@@ -4,6 +4,7 @@
 
 using System.Collections;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
@@ -20,16 +21,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
     public partial class UseCollectionInitializerTests
     {
-        private static async Task TestInRegularAndScriptAsync(string testCode, string fixedCode, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
+        private static async Task TestInRegularAndScriptAsync(
+            string testCode,
+            string fixedCode,
+            OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
         {
-            await new VerifyCS.Test
+            var test = new VerifyCS.Test
             {
                 ReferenceAssemblies = Testing.ReferenceAssemblies.NetCore.NetCoreApp31,
                 TestCode = testCode,
                 FixedCode = fixedCode,
                 LanguageVersion = LanguageVersion.CSharp11,
-                TestState = { OutputKind = outputKind }
-            }.RunAsync();
+                TestState = { OutputKind = outputKind },
+            };
+
+            await test.RunAsync();
         }
 
         private static async Task TestMissingInRegularAndScriptAsync(string testCode, LanguageVersion? languageVersion = null)
@@ -1507,7 +1513,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                 """
                 using System.Collections.Generic;
 
-                var list = new List<int> { 1 };
+                var list = new List<int>
+                {
+                    1
+                };
 
                 """, OutputKind.ConsoleApplication);
         }

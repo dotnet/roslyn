@@ -7,6 +7,7 @@ Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.UseCollectionInitializer
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
@@ -30,11 +31,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
         Public Sub New()
         End Sub
 
-        Protected Overrides Function GetNewStatementAsync(
+        Protected Overrides Function GetNewStatement(
+                sourceText As SourceText,
                 statement As StatementSyntax,
                 objectCreation As ObjectCreationExpressionSyntax,
+                wrappingLength As Integer,
                 useCollectionExpression As Boolean,
-                matches As ImmutableArray(Of Match(Of StatementSyntax))) As Task(Of StatementSyntax)
+                matches As ImmutableArray(Of Match(Of StatementSyntax))) As StatementSyntax
             Contract.ThrowIfTrue(useCollectionExpression, "VB does not support collection expressions")
             Dim newStatement = statement.ReplaceNode(
                 objectCreation,
@@ -53,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
                 Next
             Next
 
-            Return Task.FromResult(newStatement.WithLeadingTrivia(totalTrivia))
+            Return newStatement.WithLeadingTrivia(totalTrivia)
         End Function
 
         Private Shared Function GetNewObjectCreation(

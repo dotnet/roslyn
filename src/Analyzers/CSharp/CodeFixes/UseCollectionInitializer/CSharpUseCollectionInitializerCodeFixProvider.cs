@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
         {
         }
 
-        protected override async Task<StatementSyntax> GetNewStatementAsync(
+        protected override StatementSyntax GetNewStatement(
             SourceText sourceText,
             StatementSyntax statement,
             BaseObjectCreationExpressionSyntax objectCreation,
@@ -51,10 +51,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
         {
             return statement.ReplaceNode(
                 objectCreation,
-                await GetNewObjectCreationAsync(sourceText, objectCreation, wrappingLength, useCollectionExpression, matches).ConfigureAwait(false));
+                GetNewObjectCreation(sourceText, objectCreation, wrappingLength, useCollectionExpression, matches));
         }
 
-        private static async Task<ExpressionSyntax> GetNewObjectCreationAsync(
+        private static ExpressionSyntax GetNewObjectCreation(
             SourceText sourceText,
             BaseObjectCreationExpressionSyntax objectCreation,
             int wrappingLength,
@@ -62,12 +62,43 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             ImmutableArray<Match<StatementSyntax>> matches)
         {
             var expressions = CreateExpressions(objectCreation, matches);
-            if (MakeMultiLine(sourceText, objectCreation, expressions, wrappingLength))
+            if (!useCollectionExpression || MakeMultiLine(sourceText, objectCreation, expressions, wrappingLength))
                 expressions = AddLineBreaks(expressions);
 
             return useCollectionExpression
                 ? CreateCollectionExpression(objectCreation, matches, expressions)
                 : UseInitializerHelpers.GetNewObjectCreation(objectCreation, expressions);
+        }
+
+        private static SeparatedSyntaxList<ExpressionSyntax> AddLineBreaks(SeparatedSyntaxList<ExpressionSyntax> expressions)
+        {
+            using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
+
+            foreach (var item in expressions.GetWithSeparators())
+            {
+                if (item.IsNode)
+                {
+                    var expression = item.AsNode()!;
+                    if (expression == expressions.Last() &&
+                        expressions.SeparatorCount < expressions.Count &&
+                        expression.GetTrailingTrivia() is not [.., (kind: SyntaxKind.EndOfLineTrivia)])
+                    {
+                        expression = expression.WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed);
+                    }
+
+                    nodesAndTokens.Add(expression);
+                }
+                else
+                {
+                    var token = item.AsToken();
+                    if (token.TrailingTrivia is not [.., (kind: SyntaxKind.EndOfLineTrivia)])
+                        token = token.WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed);
+
+                    nodesAndTokens.Add(token);
+                }
+            }
+
+            return SeparatedList<ExpressionSyntax>(nodesAndTokens);
         }
 
         private static bool MakeMultiLine(
@@ -76,6 +107,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             SeparatedSyntaxList<ExpressionSyntax> expressions,
             int wrappingLength)
         {
+            // If we have anything like: `new Dictionary<X,Y> { { A, B }, { C, D } }` the always make multiline.
+            // Similarly, if we have `new Dictionary<X,Y> { [A] = B }`.
+
+            foreach (var expression in expressions)
+            {
+                if (expression is InitializerExpressionSyntax or AssignmentExpressionSyntax)
+                    return true;
+            }
+
             // If it's already multiline, keep it that way.
             if (!sourceText.AreOnSameLine(objectCreation.GetFirstToken(), objectCreation.GetLastToken()))
                 return true;
@@ -146,36 +186,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             {
                 var statement = matches[i].Statement;
 
-                var trivia = statement.GetLeadingTrivia();
-                var newTrivia = i == 0 ? trivia.WithoutLeadingBlankLines() : trivia;
-
                 if (statement is ExpressionStatementSyntax expressionStatement)
                 {
-                    var newExpression = ConvertExpression(expressionStatement.Expression)
-                        .WithoutTrivia()
-                        .WithPrependedLeadingTrivia(newTrivia);
+                    var semicolon = expressionStatement.SemicolonToken;
+                    var trailingTrivia = semicolon.TrailingTrivia.Contains(static t => t.IsSingleOrMultiLineComment())
+                        ? TriviaList(semicolon.TrailingTrivia.TakeWhile(static t => t.Kind() != SyntaxKind.EndOfLineTrivia))
+                        : default;
 
+                    var expression = ConvertExpression(expressionStatement.Expression).WithoutTrivia();
                     if (i < matches.Length - 1)
                     {
-                        nodesAndTokens.Add(newExpression);
-                        var commaToken = Token(SyntaxKind.CommaToken)
-                            .WithTriviaFrom(expressionStatement.SemicolonToken);
-
-                        nodesAndTokens.Add(commaToken);
+                        nodesAndTokens.Add(expression);
+                        nodesAndTokens.Add(Token(SyntaxKind.CommaToken).WithTrailingTrivia(trailingTrivia));
                     }
                     else
                     {
-                        newExpression = newExpression.WithTrailingTrivia(
-                            expressionStatement.GetTrailingTrivia());
-                        nodesAndTokens.Add(newExpression);
+                        nodesAndTokens.Add(expression.WithTrailingTrivia(trailingTrivia));
                     }
                 }
                 else if (statement is ForEachStatementSyntax foreachStatement)
                 {
-                    var newExpression = foreachStatement.Expression
-                        .WithoutTrivia()
-                        .WithPrependedLeadingTrivia(newTrivia);
-                    nodesAndTokens.Add(newExpression);
+                    nodesAndTokens.Add(foreachStatement.Expression.WithoutTrivia());
                     if (i < matches.Length - 1)
                         nodesAndTokens.Add(Token(SyntaxKind.CommaToken));
                 }
