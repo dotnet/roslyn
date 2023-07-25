@@ -28,10 +28,7 @@ public class Test {{
     }}
 }}";
 
-            return new VerifyCS.Test
-            {
-                TestCode = code
-            }.RunAsync();
+            return VerifyCS.VerifyAnalyzerAsync(code);
         }
 
         [Theory]
@@ -49,10 +46,23 @@ public class Test {{
     }}
 }}";
 
-            return new VerifyCS.Test
-            {
-                TestCode = code
-            }.RunAsync();
+            return VerifyCS.VerifyAnalyzerAsync(code);
+        }
+
+        [Fact]
+        public Task NoDiagnosticForCompilationError()
+        {
+            const string code = @"
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
+public class Test {
+    public void M(SemanticModel semanticModel) {
+        var x = semanticModel.{|CS7036:GetDeclaredSymbol|}();
+    }
+}";
+
+            return VerifyCS.VerifyAnalyzerAsync(code);
         }
     }
 }

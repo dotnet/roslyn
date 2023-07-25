@@ -30,9 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers
         {
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
             context.EnableConcurrentExecution();
-            context.RegisterCompilationStartAction(static compilationContext =>
+            context.RegisterCompilationStartAction(static context =>
             {
-                var typeProvider = WellKnownTypeProvider.GetOrCreate(compilationContext.Compilation);
+                var typeProvider = WellKnownTypeProvider.GetOrCreate(context.Compilation);
                 IMethodSymbol? getDeclaredSymbolMethod;
                 if (!typeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisModelExtensions, out var modelExtensions)
                     || (getDeclaredSymbolMethod = modelExtensions.GetMembers(nameof(ModelExtensions.GetDeclaredSymbol)).FirstOrDefault() as IMethodSymbol) is null
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers
                     return;
                 }
 
-                compilationContext.RegisterOperationAction(ctx => AnalyzeInvocation(ctx, getDeclaredSymbolMethod, globalStatementSymbol, incompleteMemberSymbol, baseFieldDeclarationSymbol), OperationKind.Invocation);
+                context.RegisterOperationAction(ctx => AnalyzeInvocation(ctx, getDeclaredSymbolMethod, globalStatementSymbol, incompleteMemberSymbol, baseFieldDeclarationSymbol), OperationKind.Invocation);
             });
         }
 
