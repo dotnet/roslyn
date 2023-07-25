@@ -3611,6 +3611,106 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """);
     }
 
+    [Fact]
+    public void Invocation_Operator_Metadata()
+    {
+        // public class C
+        // {
+        //     public static C operator+(ref readonly C x, C y) => x;
+        //     public static C operator--(ref readonly C x) => x;
+        //     public static implicit operator C(ref readonly int x) => null;
+        //     public static explicit operator C(ref readonly short x) => null;
+        // }
+        var ilSource = """
+            .class public auto ansi beforefieldinit C extends System.Object
+            {
+                .method public hidebysig specialname static 
+                    class C op_Addition (
+                        [in] class C& x,
+                        class C y
+                    ) cil managed 
+                {
+                    .param [1]
+                        .custom instance void System.Runtime.CompilerServices.RequiresLocationAttribute::.ctor() = (
+                            01 00 00 00
+                        )
+                    .maxstack 8
+                    ret
+                }
+
+                .method public hidebysig specialname static 
+                    class C op_Decrement (
+                        [in] class C& x
+                    ) cil managed 
+                {
+                    .param [1]
+                        .custom instance void System.Runtime.CompilerServices.RequiresLocationAttribute::.ctor() = (
+                            01 00 00 00
+                        )
+                    .maxstack 8
+                    ret
+                }
+
+                .method public hidebysig specialname static 
+                    class C op_Implicit (
+                        [in] int32& x
+                    ) cil managed 
+                {
+                    .param [1]
+                        .custom instance void System.Runtime.CompilerServices.RequiresLocationAttribute::.ctor() = (
+                            01 00 00 00
+                        )
+                    .maxstack 8
+                    ret
+                }
+
+                .method public hidebysig specialname static 
+                    class C op_Explicit (
+                        [in] int16& x
+                    ) cil managed 
+                {
+                    .param [1]
+                        .custom instance void System.Runtime.CompilerServices.RequiresLocationAttribute::.ctor() = (
+                            01 00 00 00
+                        )
+                    .maxstack 8
+                    ret
+                }
+            }
+
+            .class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.RequiresLocationAttribute extends System.Object
+            {
+                .method public hidebysig specialname rtspecialname instance void .ctor() cil managed
+                {
+                    .maxstack 8
+                    ret
+                }
+            }
+            """;
+        var source = """
+            int i = 4;
+            short s = 5;
+            C c = null;
+            _ = c + c;
+            c--;
+            c = i;
+            c = (C)s;
+            """;
+        CreateCompilationWithIL(source, ilSource).VerifyDiagnostics(
+            // (4,5): error CS0019: Operator '+' cannot be applied to operands of type 'C' and 'C'
+            // _ = c + c;
+            Diagnostic(ErrorCode.ERR_BadBinaryOps, "c + c").WithArguments("+", "C", "C").WithLocation(4, 5),
+            // (5,1): error CS0023: Operator '--' cannot be applied to operand of type 'C'
+            // c--;
+            Diagnostic(ErrorCode.ERR_BadUnaryOp, "c--").WithArguments("--", "C").WithLocation(5, 1),
+            // (6,5): error CS0029: Cannot implicitly convert type 'int' to 'C'
+            // c = i;
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "i").WithArguments("int", "C").WithLocation(6, 5),
+            // (7,5): error CS0030: Cannot convert type 'short' to 'C'
+            // c = (C)s;
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C)s").WithArguments("short", "C").WithLocation(7, 5));
+    }
+
     [Theory, CombinatorialData]
     public void Invocation_ExtensionMethod([CombinatorialValues("ref readonly", "ref", "in")] string modifier)
     {
