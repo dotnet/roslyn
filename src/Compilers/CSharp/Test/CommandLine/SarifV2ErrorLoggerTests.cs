@@ -370,7 +370,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
                 hasAnalyzers: true,
                 AnalyzerForErrorLogTest.GetExpectedV2ErrorLogResultsText(cmd.Compilation, warnAsError: true),
                 AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(cmd.DescriptorsWithInfo, CultureInfo.InvariantCulture),
-                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogInvocationsText((0, ImmutableHashSet.Create(ReportDiagnostic.Error))));
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogInvocationsText(
+                    (AnalyzerForErrorLogTest.Descriptor1.Id, 0, ImmutableHashSet.Create(ReportDiagnostic.Error))));
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
@@ -491,7 +492,8 @@ class C
                 AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(cmd.DescriptorsWithInfo, CultureInfo.InvariantCulture,
                     suppressionKinds1: new[] { "external" }, suppressionKinds2: new[] { "external" }),
                 AnalyzerForErrorLogTest.GetExpectedV2ErrorLogInvocationsText(
-                    (0, ImmutableHashSet.Create(ReportDiagnostic.Suppress)), (1, ImmutableHashSet.Create(ReportDiagnostic.Suppress))));
+                    (AnalyzerForErrorLogTest.Descriptor1.Id, 0, ImmutableHashSet.Create(ReportDiagnostic.Suppress)),
+                    (AnalyzerForErrorLogTest.Descriptor2.Id, 1, ImmutableHashSet.Create(ReportDiagnostic.Suppress))));
 
             Assert.Equal(expectedOutput, actualOutput);
 
@@ -571,7 +573,8 @@ dotnet_diagnostic.ID1.severity = none
                 AnalyzerForErrorLogTest.GetExpectedV2ErrorLogWithSuppressionResultsText(cmd.Compilation, "Justification1", suppressionType: "SuppressMessageAttribute"),
                 AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(cmd.DescriptorsWithInfo, CultureInfo.InvariantCulture,
                     suppressionKinds1: new[] { "external", "inSource" }),
-                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogInvocationsText((0, ImmutableHashSet.Create(ReportDiagnostic.Suppress, ReportDiagnostic.Warn))));
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogInvocationsText(
+                    (AnalyzerForErrorLogTest.Descriptor1.Id, 0, ImmutableHashSet.Create(ReportDiagnostic.Suppress, ReportDiagnostic.Warn))));
 
             Assert.Equal(expectedOutput, actualOutput);
 

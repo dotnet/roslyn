@@ -160,7 +160,9 @@ Example `rule` entry:
 ### `Rule Configuration Override` format for each rule severity override
 
 The `ruleConfigurationOverrides` section contains an array of entries, with an entry each for every rule severity configuration override for the whole or part of the compilation via options, i.e. editorconfig, globalconfig, command line options, ruleset, etc. Each rule configuration override entry contains the following information:
-1. `descriptor`: Property containing information to map back to the relevant `descriptor` or the `rule` in the `rules` section. Currently, it contains a single child property named `index`, which contains a zero-based index value into the `rules` array for the rule mapping.
+1. `descriptor`: Property containing information to map back to the relevant `descriptor` or the `rule` in the `rules` section. Currently, it contains the below child properties:
+   1. `id`: Rule id string for the rule or diagnostic.
+   2. `index`: A zero-based integral index value into the `rules` array for the rule mapping.
 2. `configuration`: Configuration property for the effective overridden severity for the rule. Currently, it includes a single child property named `level` for the effective severity of the rule, such as `error`, `warning`, `note`, `none`, etc.
 
 Note that we can have multiple `ruleConfigurationOverride` entries for the same descriptor if the rule is configured to fire at different severities across different parts of the compilation. For example, editorconfig based severity configurations can specify different effective severity for the same rule ID for different files or folders in a project.
@@ -169,6 +171,7 @@ Example `ruleConfigurationOverride` entry:
 ```json
 {
   "descriptor": {
+    "id": "CA1000",
     "index": 0
   },
   "configuration": {
@@ -177,6 +180,7 @@ Example `ruleConfigurationOverride` entry:
 },
 {
   "descriptor": {
+    "id": "CA1000",
     "index": 0
   },
   "configuration": {
@@ -185,6 +189,7 @@ Example `ruleConfigurationOverride` entry:
 },
 {
   "descriptor": {
+    "id": "CA1001",
     "index": 1
   },
   "configuration": {

@@ -227,9 +227,9 @@ namespace Microsoft.CodeAnalysis
             WriteInvocations(effectiveSeverities);
         }
 
-        private ImmutableArray<(int DesciptorIndex, ImmutableHashSet<ReportDiagnostic> EffectiveSeverities)> WriteRules()
+        private ImmutableArray<(string DescriptorId, int DesciptorIndex, ImmutableHashSet<ReportDiagnostic> EffectiveSeverities)> WriteRules()
         {
-            var effectiveSeveritiesBuilder = ArrayBuilder<(int DesciptorIndex, ImmutableHashSet<ReportDiagnostic> EffectiveSeverities)>.GetInstance(_descriptors.Count);
+            var effectiveSeveritiesBuilder = ArrayBuilder<(string DescriptorId, int DesciptorIndex, ImmutableHashSet<ReportDiagnostic> EffectiveSeverities)>.GetInstance(_descriptors.Count);
 
             if (_descriptors.Count > 0)
             {
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis
                         (descriptorInfo.EffectiveSeverities.Count != 1 || descriptorInfo.EffectiveSeverities.Single() != defaultSeverity);
                     if (hasNonDefaultEffectiveSeverities)
                     {
-                        effectiveSeveritiesBuilder.Add((index, descriptorInfo.EffectiveSeverities!));
+                        effectiveSeveritiesBuilder.Add((descriptor.Id, index, descriptorInfo.EffectiveSeverities!));
                     }
                 }
 
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis
             return effectiveSeveritiesBuilder.ToImmutableAndFree();
         }
 
-        private void WriteInvocations(ImmutableArray<(int DescriptorIndex, ImmutableHashSet<ReportDiagnostic> EffectiveSeverities)> effectiveSeverities)
+        private void WriteInvocations(ImmutableArray<(string DescriptorId, int DescriptorIndex, ImmutableHashSet<ReportDiagnostic> EffectiveSeverities)> effectiveSeverities)
         {
             if (effectiveSeverities.IsEmpty)
                 return;
@@ -359,6 +359,7 @@ namespace Microsoft.CodeAnalysis
                       {                                   # A configurationOverride object
                                                           #  (§3.51).
                         "descriptor": {                   # See §3.51.2.
+                          "id": "CA1000",
                           "index": 0
                         },
                         "configuration": {                # See §3.51.3.
@@ -381,7 +382,7 @@ namespace Microsoft.CodeAnalysis
 
             _writer.WriteArrayStart("ruleConfigurationOverrides");
 
-            foreach (var (index, severities) in effectiveSeverities)
+            foreach (var (id, index, severities) in effectiveSeverities)
             {
                 Debug.Assert(!severities.IsEmpty);
 
@@ -390,6 +391,7 @@ namespace Microsoft.CodeAnalysis
                     _writer.WriteObjectStart(); // ruleConfigurationOverride
 
                     _writer.WriteObjectStart("descriptor");
+                    _writer.Write("id", id);
                     _writer.Write("index", index);
                     _writer.WriteObjectEnd(); // descriptor
 

@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public static string GetExpectedV2ErrorLogInvocationsText(
-                params (int DescriptorIndex, ImmutableHashSet<ReportDiagnostic> EffectiveSeverities)[] overriddenEffectiveSeveritiesWithIndex)
+                params (string DescriptorId, int DescriptorIndex, ImmutableHashSet<ReportDiagnostic> EffectiveSeverities)[] overriddenEffectiveSeveritiesWithIndex)
             {
                 if (overriddenEffectiveSeveritiesWithIndex.Length == 0)
                 {
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis
 
                 var first = true;
                 var overridesContent = string.Empty;
-                foreach (var (index, effectiveSeverities) in overriddenEffectiveSeveritiesWithIndex)
+                foreach (var (id, index, effectiveSeverities) in overriddenEffectiveSeveritiesWithIndex)
                 {
                     foreach (var effectiveSeverity in effectiveSeverities.OrderBy(Comparer<ReportDiagnostic>.Default))
                     {
@@ -406,6 +406,7 @@ namespace Microsoft.CodeAnalysis
                         overridesContent += $@"
             {{
               ""descriptor"": {{
+                ""id"": ""{id}"",
                 ""index"": {index}
               }},
               ""configuration"": {{
