@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             string filePath)
         {
             var linkPath = documentItem.GetMetadata(MetadataNames.Link);
-            if (RoslynString.IsNullOrEmpty(linkPath))
+            if (!RoslynString.IsNullOrEmpty(linkPath))
             {
                 return linkPath.Split(PathUtilities.DirectorySeparatorChar).ToImmutableArray();
             }

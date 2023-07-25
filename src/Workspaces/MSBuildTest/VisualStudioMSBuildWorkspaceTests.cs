@@ -3251,6 +3251,18 @@ class C { }";
             Assert.Equal("//\u00E2\u20AC\u0153".Length, text.Length);
         }
 
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        public async Task MSBuildWorkspaceDocumentHasFoldersProperty()
+        {
+            CreateFiles(GetNetCoreAppFiles()
+                .WithFile(@"dir1\dir2\dir3\MyClass.cs", Resources.SourceFiles.CSharp.CSharpClass));
+
+            using var workspace = CreateMSBuildWorkspace();
+            var project = await workspace.OpenProjectAsync(GetSolutionFileName("Project.csproj"));
+            var document = project.Documents.Single(d => d.Name == "MyClass.cs");
+            Assert.Equal(document.Folders, new[] { "dir1", "dir2", "dir3" });
+        }
+
         private class InMemoryAssemblyLoader : IAnalyzerAssemblyLoader
         {
             public void AddDependencyLocation(string fullPath)
