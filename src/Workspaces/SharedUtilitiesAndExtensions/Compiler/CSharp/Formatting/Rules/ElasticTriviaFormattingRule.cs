@@ -33,6 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             AddPropertyDeclarationSuppressOperations(list, node);
 
             AddInitializerSuppressOperations(list, node);
+
+            AddCollectionExpressionSuppressOperations(list, node);
         }
 
         private static void AddPropertyDeclarationSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
@@ -60,6 +62,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (node is AnonymousObjectCreationExpressionSyntax anonymousCreationNode)
             {
                 AddSuppressWrappingIfOnSingleLineOperation(list, anonymousCreationNode.NewKeyword, anonymousCreationNode.CloseBraceToken, SuppressOption.IgnoreElasticWrapping);
+                return;
+            }
+        }
+
+        private static void AddCollectionExpressionSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+        {
+            if (node is CollectionExpressionSyntax { OpenBracketToken.IsMissing: false, CloseBracketToken.IsMissing: false } collectionExpression)
+            {
+                AddSuppressWrappingIfOnSingleLineOperation(list, collectionExpression.OpenBracketToken, collectionExpression.CloseBracketToken, SuppressOption.IgnoreElasticWrapping);
                 return;
             }
         }
