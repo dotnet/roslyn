@@ -409,6 +409,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return OriginalDefinition.ComImportCoClass; }
         }
 
+#nullable enable
+        internal sealed override bool HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName)
+        {
+            return _underlyingType.HasCollectionBuilderAttribute(out builderType, out methodName);
+        }
+#nullable disable
+
         internal override IEnumerable<MethodSymbol> GetMethodsToEmit()
         {
             throw ExceptionUtilities.Unreachable();

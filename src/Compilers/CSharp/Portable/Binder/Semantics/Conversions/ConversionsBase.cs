@@ -1619,6 +1619,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return CollectionExpressionTypeKind.ReadOnlySpan;
             }
+            else if ((destination as NamedTypeSymbol)?.HasCollectionBuilderAttribute(out _, out _) == true)
+            {
+                return CollectionExpressionTypeKind.CollectionBuilder;
+            }
             else if (implementsIEnumerable(compilation, destination))
             {
                 elementType = null;
