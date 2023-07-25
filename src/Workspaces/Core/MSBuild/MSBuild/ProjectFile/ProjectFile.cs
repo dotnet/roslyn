@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var isGenerated = IsDocumentGenerated(documentItem);
             var sourceCodeKind = GetSourceCodeKind(filePath);
 
-            var folders = GetRelativeFolders(documentItem, filePath);
+            var folders = GetRelativeFolders(documentItem);
             return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated, sourceCodeKind, folders);
         }
 
@@ -218,13 +218,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var isLinked = IsDocumentLinked(documentItem);
             var isGenerated = IsDocumentGenerated(documentItem);
 
-            var folders = GetRelativeFolders(documentItem, filePath);
+            var folders = GetRelativeFolders(documentItem);
             return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated, SourceCodeKind.Regular, folders);
         }
 
-        private ImmutableArray<string> GetRelativeFolders(
-            MSB.Framework.ITaskItem documentItem,
-            string filePath)
+        private ImmutableArray<string> GetRelativeFolders(MSB.Framework.ITaskItem documentItem)
         {
             var linkPath = documentItem.GetMetadata(MetadataNames.Link);
             if (!RoslynString.IsNullOrEmpty(linkPath))
@@ -233,6 +231,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
             else
             {
+                var filePath = documentItem.ItemSpec;
                 var relativePath = PathUtilities.GetDirectoryName(PathUtilities.GetRelativePath(_projectDirectory, filePath));
                 var folders = relativePath == null ? ImmutableArray<string>.Empty : relativePath.Split(PathUtilities.DirectorySeparatorChar).ToImmutableArray();
                 return folders;

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             {
                 if (fileContainingFolders != null && !fileContainingFolders.IsEmpty())
                 {
-                    Contract.ThrowIfTrue(fileContainingFolders.Length != files.Length);
+                    Contract.ThrowIfTrue(fileContainingFolders.Length != files.Length, "Please specify the containing folder for each file.");
                     foreach (var (file, folders) in files.Zip(fileContainingFolders, (file, containingFolders) => (file, containingFolders)))
                     {
                         documentElements.Add(CreateDocumentElement(
