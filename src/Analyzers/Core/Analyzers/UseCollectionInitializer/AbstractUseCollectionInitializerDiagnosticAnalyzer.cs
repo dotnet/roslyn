@@ -159,11 +159,12 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                     TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TForeachStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
                     semanticModel, GetSyntaxFacts(), objectCreationExpression, analyzeForCollectionExpression, cancellationToken);
 
-                if (matches.IsDefaultOrEmpty)
-                    return default;
+                // if this was a normal (non-collection-expr) analysis, then just return what we got.
+                if (!analyzeForCollectionExpression)
+                    return (matches, shouldUseCollectionExpression: false);
 
-                // if we're just doing a normal initializer, or we want a collection expression, and that is legal here, then we're done.
-                if (!analyzeForCollectionExpression || CanUseCollectionExpression(semanticModel, objectCreationExpression, cancellationToken))
+                // If we succeeded and finding matches, and we can use collection expressions, then do so.
+                if (!matches.IsDefaultOrEmpty && CanUseCollectionExpression(semanticModel, objectCreationExpression, cancellationToken))
                     return (matches, analyzeForCollectionExpression);
 
                 // we tried collection expression, and were not successful.  try again, this time without collection exprs.
