@@ -565,15 +565,14 @@ class X
         public void NativeTypeFixedArray()
         {
             var source = @"
-using System;
 using System.Runtime.InteropServices;
 
 public class X
 {
-    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 1)]
+    [MarshalAs(UnmanagedType.ByValArray)]
     public int ByValArray0;
 
-    [MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.ByValTStr, IidParameterIndex = -1, SizeConst = 1, MarshalCookie = null, MarshalType = null, MarshalTypeRef = null,
+    [MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.ByValTStr, IidParameterIndex = -1, MarshalCookie = null, MarshalType = null, MarshalTypeRef = null,
          SafeArrayUserDefinedSubType = null)]
     public int ByValArray1;
 
@@ -585,10 +584,10 @@ public class X
         MarshalCookie = null, MarshalType = null, MarshalTypeRef = null, SafeArrayUserDefinedSubType = null)]
     public int ByValArray3;
 
-    [MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.AsAny, SizeConst = 1)]
+    [MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.AsAny)]
     public int ByValArray4;
 
-    [MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.CustomMarshaler, SizeConst = 1)]
+    [MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.CustomMarshaler)]
     public int ByValArray5;
 }
 ";
@@ -603,6 +602,20 @@ public class X
             };
 
             var verifier = CompileAndVerifyFieldMarshal(source, blobs);
+            verifier.VerifyDiagnostics(
+                // (6,6): warning CS9125: Attribute parameter 'SizeConst' must be specified.
+                //     [MarshalAs(UnmanagedType.ByValArray)]
+                Diagnostic(ErrorCode.WRN_ByValArraySizeConstRequired, "MarshalAs(UnmanagedType.ByValArray)").WithLocation(6, 6),
+                // (9,6): warning CS9125: Attribute parameter 'SizeConst' must be specified.
+                //     [MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.ByValTStr, IidParameterIndex = -1, MarshalCookie = null, MarshalType = null, MarshalTypeRef = null,
+                Diagnostic(ErrorCode.WRN_ByValArraySizeConstRequired, @"MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.ByValTStr, IidParameterIndex = -1, MarshalCookie = null, MarshalType = null, MarshalTypeRef = null,
+         SafeArrayUserDefinedSubType = null)").WithLocation(9, 6),
+                // (21,6): warning CS9125: Attribute parameter 'SizeConst' must be specified.
+                //     [MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.AsAny)]
+                Diagnostic(ErrorCode.WRN_ByValArraySizeConstRequired, "MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.AsAny)").WithLocation(21, 6),
+                // (24,6): warning CS9125: Attribute parameter 'SizeConst' must be specified.
+                //     [MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.CustomMarshaler)]
+                Diagnostic(ErrorCode.WRN_ByValArraySizeConstRequired, "MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.CustomMarshaler)").WithLocation(24, 6));
             VerifyFieldMetadataDecoding(verifier, blobs);
         }
 
@@ -671,6 +684,33 @@ public class X
                 // (11,82): error CS0599: Invalid value for named attribute argument 'SizeConst'
                 //     [MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.ByValTStr, SizeConst = 0x20000000)]                                                                                     int ByValArray_e4;
                 Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "SizeConst = 0x20000000").WithArguments("SizeConst"));
+        }
+
+        [Fact]
+        [WorkItem(68988, "https://github.com/dotnet/roslyn/issues/68988")]
+        public void NativeTypeFixedArray_SizeConstWarning_RespectsWarningLevel()
+        {
+            var source = @"
+using System.Runtime.InteropServices;
+
+public class X
+{
+    [MarshalAs(UnmanagedType.ByValArray)]
+    public int ByValArray0;
+}
+";
+            CreateCompilation(
+                source,
+                options: TestOptions.ReleaseDll.WithWarningLevel(7))
+                .VerifyDiagnostics();
+
+            CreateCompilation(
+                source,
+                options: TestOptions.ReleaseDll.WithWarningLevel(8))
+                .VerifyDiagnostics(
+                // (6,6): warning CS9125: Attribute parameter 'SizeConst' must be specified.
+                //     [MarshalAs(UnmanagedType.ByValArray)]
+                Diagnostic(ErrorCode.WRN_ByValArraySizeConstRequired, "MarshalAs(UnmanagedType.ByValArray)").WithLocation(6, 6));
         }
 
         /// <summary>
