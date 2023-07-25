@@ -140,12 +140,17 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         public static bool IsDisposable(this ITypeSymbol type,
             INamedTypeSymbol? iDisposable,
-            INamedTypeSymbol? iAsyncDisposable)
+            INamedTypeSymbol? iAsyncDisposable,
+            INamedTypeSymbol? configuredAsyncDisposable)
         {
             if (type.IsReferenceType)
             {
                 return IsInterfaceOrImplementsInterface(type, iDisposable)
                     || IsInterfaceOrImplementsInterface(type, iAsyncDisposable);
+            }
+            else if (SymbolEqualityComparer.Default.Equals(type, configuredAsyncDisposable))
+            {
+                return true;
             }
 
 #if CODEANALYSIS_V3_OR_BETTER
@@ -288,6 +293,13 @@ namespace Analyzer.Utilities.Extensions
 
         public static bool HasValueCopySemantics(this ITypeSymbol typeSymbol)
             => typeSymbol.IsValueType || typeSymbol.SpecialType == SpecialType.System_String;
+
+#if !MICROSOFT_CODEANALYSIS_PUBLIC_API_ANALYZERS
+        public static bool CanHoldNullValue([NotNullWhen(returnValue: true)] this ITypeSymbol? typeSymbol)
+            => typeSymbol.IsReferenceTypeOrNullableValueType() ||
+               typeSymbol?.IsRefLikeType == true ||
+               typeSymbol is ITypeParameterSymbol typeParameter && !typeParameter.IsValueType;
+#endif
 
         public static bool IsNonNullableValueType([NotNullWhen(returnValue: true)] this ITypeSymbol? typeSymbol)
             => typeSymbol != null && typeSymbol.IsValueType && typeSymbol.OriginalDefinition.SpecialType != SpecialType.System_Nullable_T;

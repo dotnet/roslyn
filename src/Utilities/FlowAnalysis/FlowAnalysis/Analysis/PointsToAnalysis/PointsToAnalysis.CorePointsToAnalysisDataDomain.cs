@@ -17,10 +17,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         /// </summary>
         private sealed class CorePointsToAnalysisDataDomain : AnalysisEntityMapAbstractDomain<PointsToAbstractValue>
         {
-            public CorePointsToAnalysisDataDomain(DefaultPointsToValueGenerator defaultPointsToValueGenerator, AbstractValueDomain<PointsToAbstractValue> valueDomain)
+            private readonly Func<ITypeSymbol?, bool> _isDisposable;
+
+            public CorePointsToAnalysisDataDomain(
+                DefaultPointsToValueGenerator defaultPointsToValueGenerator,
+                AbstractValueDomain<PointsToAbstractValue> valueDomain,
+                Func<ITypeSymbol?, bool> isDisposable)
                 : base(valueDomain, defaultPointsToValueGenerator.IsTrackedEntity, defaultPointsToValueGenerator.IsTrackedPointsToValue)
             {
                 DefaultPointsToValueGenerator = defaultPointsToValueGenerator;
+                this._isDisposable = isDisposable;
             }
 
             public DefaultPointsToValueGenerator DefaultPointsToValueGenerator { get; }
@@ -36,12 +42,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             protected override void AssertValidEntryForMergedMap(AnalysisEntity analysisEntity, PointsToAbstractValue value)
             {
-                PointsToAnalysisData.AssertValidPointsToAnalysisKeyValuePair(analysisEntity, value);
+                PointsToAnalysisData.AssertValidPointsToAnalysisKeyValuePair(analysisEntity, value, _isDisposable);
             }
 
             protected override void AssertValidAnalysisData(CorePointsToAnalysisData map)
             {
-                PointsToAnalysisData.AssertValidPointsToAnalysisData(map);
+                PointsToAnalysisData.AssertValidPointsToAnalysisData(map, _isDisposable);
             }
 
             public CorePointsToAnalysisData MergeCoreAnalysisDataForBackEdge(

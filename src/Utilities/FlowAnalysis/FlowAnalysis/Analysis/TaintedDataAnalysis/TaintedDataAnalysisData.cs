@@ -29,6 +29,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         {
         }
 
+        protected override AbstractValueDomain<TaintedDataAbstractValue> ValueDomain => TaintedDataAnalysis.ValueDomainInstance;
         public override AnalysisEntityBasedPredicateAnalysisData<TaintedDataAbstractValue> Clone()
         {
             return new TaintedDataAnalysisData(this);

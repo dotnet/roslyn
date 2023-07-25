@@ -11,5 +11,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public static AbstractIndex Create(int index) => new ConstantValueIndex(index);
         public static AbstractIndex Create(AnalysisEntity analysisEntity) => new AnalysisEntityBasedIndex(analysisEntity);
         public static AbstractIndex Create(IOperation operation) => new OperationBasedIndex(operation);
+
+        internal bool IsConstant() => this is ConstantValueIndex;
     }
 }

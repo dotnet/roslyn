@@ -272,17 +272,19 @@ namespace Analyzer.Utilities.Extensions
                 SymbolEqualityComparer.Default.Equals(method.ReturnType, taskType);
 
         /// <summary>
-        /// Checks if the given method has the signature "Task DisposeAsync()" or "ValueTask DisposeAsync()".
+        /// Checks if the given method has the signature "Task DisposeAsync()" or "ValueTask DisposeAsync()" or "ConfiguredValueTaskAwaitable DisposeAsync()".
         /// </summary>
         private static bool HasDisposeAsyncMethodSignature(this IMethodSymbol method,
             INamedTypeSymbol? task,
-            INamedTypeSymbol? valueTask)
+            INamedTypeSymbol? valueTask,
+            INamedTypeSymbol? configuredValueTaskAwaitable)
         {
             return method.Name == "DisposeAsync" &&
                 method.MethodKind == MethodKind.Ordinary &&
                 method.Parameters.IsEmpty &&
                 (SymbolEqualityComparer.Default.Equals(method.ReturnType, task) ||
-                 SymbolEqualityComparer.Default.Equals(method.ReturnType, valueTask));
+                 SymbolEqualityComparer.Default.Equals(method.ReturnType, valueTask) ||
+                 SymbolEqualityComparer.Default.Equals(method.ReturnType, configuredValueTaskAwaitable));
         }
 
         /// <summary>
@@ -305,9 +307,11 @@ namespace Analyzer.Utilities.Extensions
         {
             INamedTypeSymbol? iDisposable = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIDisposable);
             INamedTypeSymbol? iAsyncDisposable = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIAsyncDisposable);
+            INamedTypeSymbol? configuredAsyncDisposable = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemRuntimeCompilerServicesConfiguredAsyncDisposable);
             INamedTypeSymbol? task = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksTask);
             INamedTypeSymbol? valueTask = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksValueTask);
-            return method.GetDisposeMethodKind(iDisposable, iAsyncDisposable, task, valueTask);
+            INamedTypeSymbol? configuredValueTaskAwaitable = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemRuntimeCompilerServicesConfiguredValueTaskAwaitable);
+            return method.GetDisposeMethodKind(iDisposable, iAsyncDisposable, configuredAsyncDisposable, task, valueTask, configuredValueTaskAwaitable);
         }
 
         /// <summary>
@@ -317,10 +321,12 @@ namespace Analyzer.Utilities.Extensions
             this IMethodSymbol method,
             INamedTypeSymbol? iDisposable,
             INamedTypeSymbol? iAsyncDisposable,
+            INamedTypeSymbol? configuredAsyncDisposable,
             INamedTypeSymbol? task,
-            INamedTypeSymbol? valueTask)
+            INamedTypeSymbol? valueTask,
+            INamedTypeSymbol? configuredValueTaskAwaitable)
         {
-            if (method.ContainingType.IsDisposable(iDisposable, iAsyncDisposable))
+            if (method.ContainingType.IsDisposable(iDisposable, iAsyncDisposable, configuredAsyncDisposable))
             {
                 if (IsDisposeImplementation(method, iDisposable) ||
                     (SymbolEqualityComparer.Default.Equals(method.ContainingType, iDisposable) &&
@@ -337,7 +343,7 @@ namespace Analyzer.Utilities.Extensions
                 {
                     return DisposeMethodKind.DisposeBool;
                 }
-                else if (method.IsAsyncDisposeImplementation(iAsyncDisposable, valueTask) || method.HasDisposeAsyncMethodSignature(task, valueTask))
+                else if (method.IsAsyncDisposeImplementation(iAsyncDisposable, valueTask) || method.HasDisposeAsyncMethodSignature(task, valueTask, configuredValueTaskAwaitable))
                 {
                     return DisposeMethodKind.DisposeAsync;
                 }
@@ -511,6 +517,21 @@ namespace Analyzer.Utilities.Extensions
                method.Parameters.Length == 1 &&
                method.Parameters[0].Type.SpecialType == SpecialType.System_Boolean &&
                SymbolEqualityComparer.Default.Equals(method.ContainingType.OriginalDefinition, genericTaskType);
+
+        /// <summary>
+        /// Determine if the specific method is a TaskAsyncEnumerableExtensions.ConfigureAwait(this IAsyncDisposable, bool) extension method.
+        /// </summary>
+        /// <param name="method">The method to test.</param>
+        /// <param name="asyncDisposableType">IAsyncDisposable named type.</param>
+        /// <param name="taskAsyncEnumerableExtensions">System.Threading.Tasks.TaskAsyncEnumerableExtensions named type.</param>
+        public static bool IsAsyncDisposableConfigureAwaitMethod(this IMethodSymbol method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? asyncDisposableType, [NotNullWhen(returnValue: true)] INamedTypeSymbol? taskAsyncEnumerableExtensions)
+            => method.IsExtensionMethod &&
+               method.Name.Equals("ConfigureAwait", StringComparison.Ordinal) &&
+               method.Parameters.Length == 2 &&
+               SymbolEqualityComparer.Default.Equals(method.Parameters[0].Type, asyncDisposableType) &&
+               method.Parameters[1].Type.SpecialType == SpecialType.System_Boolean &&
+               SymbolEqualityComparer.Default.Equals(method.ContainingType.OriginalDefinition, taskAsyncEnumerableExtensions) &&
+               taskAsyncEnumerableExtensions.IsStatic;
 
 #if HAS_IOPERATION
         /// <summary>

@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         {
         }
 
+        protected override AbstractValueDomain<ValueContentAbstractValue> ValueDomain => ValueContentAnalysis.ValueDomainInstance;
         public override AnalysisEntityBasedPredicateAnalysisData<ValueContentAbstractValue> Clone() => new ValueContentAnalysisData(this);
 
         public override int Compare(AnalysisEntityBasedPredicateAnalysisData<ValueContentAbstractValue> other, MapAbstractDomain<AnalysisEntity, ValueContentAbstractValue> coreDataAnalysisDomain)

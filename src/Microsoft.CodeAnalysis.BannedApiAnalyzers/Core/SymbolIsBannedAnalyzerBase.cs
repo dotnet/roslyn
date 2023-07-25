@@ -177,16 +177,18 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             {
                 // We want to avoid realizing symbols here as that can be very expensive.  So we instead use a simple
                 // heuristic which works thanks to .net coding conventions.  Specifically, we look to see if the banned
-                // api is a type that ends in 'Attribute'.  In that case, we do the work to try to get the real symbol.
+                // api contains a type that ends in 'Attribute'.  In that case, we do the work to try to get the real symbol.
                 foreach (var kvp in bannedApis)
                 {
-                    if (!kvp.Key.SymbolName.EndsWith("Attribute", StringComparison.InvariantCulture))
+                    if (!kvp.Key.SymbolName.EndsWith("Attribute", StringComparison.InvariantCulture) &&
+                        !kvp.Key.ContainerName.EndsWith("Attribute", StringComparison.InvariantCulture))
+                    {
                         continue;
+                    }
 
                     foreach (var entry in kvp.Value)
                     {
-                        if (entry.DeclarationId.StartsWith("T", StringComparison.InvariantCulture) &&
-                            entry.Symbols.Any(s => s is INamedTypeSymbol namedType && namedType.IsAttribute()))
+                        if (entry.Symbols.Any(ContainsAttributeSymbol))
                         {
                             return true;
                         }
@@ -194,6 +196,16 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 }
 
                 return false;
+            }
+
+            bool ContainsAttributeSymbol(ISymbol symbol)
+            {
+                return symbol switch
+                {
+                    INamedTypeSymbol namedType => namedType.IsAttribute(),
+                    IMethodSymbol method => method.ContainingType.IsAttribute() && method.IsConstructor(),
+                    _ => false
+                };
             }
 
             void VerifyAttributes(Action<Diagnostic> reportDiagnostic, ImmutableArray<AttributeData> attributes, CancellationToken cancellationToken)
@@ -211,6 +223,16 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                                     SymbolIsBannedRule,
                                     attribute.AttributeClass.ToDisplayString(),
                                     string.IsNullOrWhiteSpace(entry.Message) ? "" : ": " + entry.Message));
+                        }
+                    }
+
+                    if (attribute.AttributeConstructor != null)
+                    {
+                        var syntaxNode = attribute.ApplicationSyntaxReference?.GetSyntax(cancellationToken);
+
+                        if (syntaxNode != null)
+                        {
+                            VerifySymbol(reportDiagnostic, attribute.AttributeConstructor, syntaxNode);
                         }
                     }
                 }

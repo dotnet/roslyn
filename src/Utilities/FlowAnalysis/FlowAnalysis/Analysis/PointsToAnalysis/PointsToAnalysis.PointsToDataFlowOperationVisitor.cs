@@ -81,13 +81,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             }
 
             private bool ShouldBeTracked(AnalysisEntity analysisEntity)
-                => PointsToAnalysis.ShouldBeTracked(analysisEntity, DataFlowAnalysisContext.PointsToAnalysisKind);
+                => PointsToAnalysis.ShouldBeTracked(analysisEntity, DataFlowAnalysisContext.PointsToAnalysisKind, IsDisposable);
             private PointsToAbstractValue GetValueForEntityThatShouldNotBeTracked(AnalysisEntity analysisEntity)
             {
                 Debug.Assert(!ShouldBeTracked(analysisEntity));
                 Debug.Assert(!CurrentAnalysisData.TryGetValue(analysisEntity, out var existingValue) || existingValue == PointsToAbstractValue.NoLocation);
 
-                return !PointsToAnalysis.ShouldBeTracked(analysisEntity.Type) ?
+                return !PointsToAnalysis.ShouldBeTracked(analysisEntity.Type, IsDisposable) ?
                     PointsToAbstractValue.NoLocation :
                     _defaultPointsToValueGenerator.GetOrCreateDefaultValue(analysisEntity);
             }
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             protected override PointsToAbstractValue GetPointsToAbstractValue(IOperation operation) => base.GetCachedAbstractValue(operation);
 
-            protected override PointsToAbstractValue GetAbstractDefaultValue(ITypeSymbol? type) => !PointsToAnalysis.ShouldBeTracked(type) ? PointsToAbstractValue.NoLocation : PointsToAbstractValue.NullLocation;
+            protected override PointsToAbstractValue GetAbstractDefaultValue(ITypeSymbol? type) => !PointsToAnalysis.ShouldBeTracked(type, IsDisposable) ? PointsToAbstractValue.NoLocation : PointsToAbstractValue.NullLocation;
 
             protected override bool HasAnyAbstractValue(PointsToAnalysisData data) => data.HasAnyAbstractValue;
 
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             // Create a dummy PointsTo value for each reference type parameter.
             protected override PointsToAbstractValue GetDefaultValueForParameterOnEntry(IParameterSymbol parameter, AnalysisEntity analysisEntity)
-                => PointsToAnalysis.ShouldBeTracked(parameter.Type) ?
+                => PointsToAnalysis.ShouldBeTracked(parameter.Type, IsDisposable) ?
                     PointsToAbstractValue.Create(
                         AbstractLocation.CreateSymbolLocation(parameter, DataFlowAnalysisContext.InterproceduralAnalysisData?.CallStack),
                         mayBeNull: true) :
@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             protected override PointsToAbstractValue ComputeAnalysisValueForReferenceOperation(IOperation operation, PointsToAbstractValue defaultValue)
             {
-                if (PointsToAnalysis.ShouldBeTracked(operation.Type) &&
+                if (PointsToAnalysis.ShouldBeTracked(operation.Type, IsDisposable) &&
                     AnalysisEntityFactory.TryCreate(operation, out var analysisEntity))
                 {
                     return GetAbstractValue(analysisEntity);
@@ -412,14 +412,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                         foreach (var analysisEntity in copyValue.AnalysisEntities)
                         {
                             SetValueForNullCompareFromPredicate(analysisEntity, value, targetEntity.Type, equals, inferInTargetAnalysisData,
-                                ref predicateValueKind, _defaultPointsToValueGenerator, WellKnownTypeProvider.Compilation,
+                                ref predicateValueKind, _defaultPointsToValueGenerator, WellKnownTypeProvider.Compilation, IsDisposable,
                                 sourceAnalysisData: CurrentAnalysisData, targetAnalysisData: targetAnalysisData);
                         }
                     }
                     else
                     {
                         SetValueForNullCompareFromPredicate(targetEntity, value, targetEntity.Type, equals, inferInTargetAnalysisData,
-                            ref predicateValueKind, _defaultPointsToValueGenerator, WellKnownTypeProvider.Compilation,
+                            ref predicateValueKind, _defaultPointsToValueGenerator, WellKnownTypeProvider.Compilation, IsDisposable,
                             sourceAnalysisData: CurrentAnalysisData, targetAnalysisData: targetAnalysisData);
                     }
 
@@ -438,10 +438,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 ref PredicateValueKind predicateValueKind,
                 DefaultPointsToValueGenerator defaultPointsToValueGenerator,
                 Compilation compilation,
+                Func<ITypeSymbol?, bool> isDisposable,
                 PointsToAnalysisData sourceAnalysisData,
                 PointsToAnalysisData targetAnalysisData)
             {
-                if (!PointsToAnalysis.ShouldBeTracked(key, defaultPointsToValueGenerator.PointsToAnalysisKind))
+                if (!PointsToAnalysis.ShouldBeTracked(key, defaultPointsToValueGenerator.PointsToAnalysisKind, isDisposable))
                 {
                     Debug.Assert(!targetAnalysisData.HasAbstractValue(key));
                     Debug.Assert(!sourceAnalysisData.HasAbstractValue(key));
@@ -571,15 +572,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             protected override PointsToAnalysisData MergeAnalysisData(PointsToAnalysisData value1, PointsToAnalysisData value2)
                 => _pointsToAnalysisDomain.Merge(value1, value2);
             protected override PointsToAnalysisData MergeAnalysisDataForBackEdge(PointsToAnalysisData value1, PointsToAnalysisData value2, BasicBlock forBlock)
-                => _pointsToAnalysisDomain.MergeAnalysisDataForBackEdge(value1, value2, GetChildAnalysisEntities, ResetAbstractValueIfTracked);
+                => _pointsToAnalysisDomain.MergeAnalysisDataForBackEdge(value1, value2, GetChildAnalysisEntities, ResetAbstractValueIfTracked, IsDisposable);
             protected override void UpdateValuesForAnalysisData(PointsToAnalysisData targetAnalysisData)
                 => UpdateValuesForAnalysisData(targetAnalysisData.CoreAnalysisData, CurrentAnalysisData.CoreAnalysisData);
             protected override PointsToAnalysisData GetClonedAnalysisData(PointsToAnalysisData analysisData)
                 => (PointsToAnalysisData)analysisData.Clone();
             public override PointsToAnalysisData GetEmptyAnalysisData()
-                => new();
+                => new(IsDisposable);
             protected override PointsToAnalysisData GetExitBlockOutputData(PointsToAnalysisResult analysisResult)
-                => new(analysisResult.ExitBlockOutput.Data);
+                => new(analysisResult.ExitBlockOutput.Data, IsDisposable);
             protected override void ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(PointsToAnalysisData dataAtException, ThrownExceptionInfo throwBranchWithExceptionType)
                 => ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(dataAtException.CoreAnalysisData, CurrentAnalysisData.CoreAnalysisData, throwBranchWithExceptionType);
             protected override void AssertValidAnalysisData(PointsToAnalysisData analysisData)
@@ -915,7 +916,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             private PointsToAbstractValue VisitInvocationCommon(IOperation operation, IOperation? instance)
             {
-                if (PointsToAnalysis.ShouldBeTracked(operation.Type))
+                if (PointsToAnalysis.ShouldBeTracked(operation.Type, IsDisposable))
                 {
                     if (TryGetInterproceduralAnalysisResult(operation, out var interproceduralResult))
                     {
@@ -1166,7 +1167,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
                 ConversionInference? inference = null;
                 if (operandValue.NullState == NullAbstractValue.NotNull &&
-                    PointsToAnalysis.ShouldBeTracked(operation.Value.Type))
+                    PointsToAnalysis.ShouldBeTracked(operation.Value.Type, IsDisposable))
                 {
                     if (TryInferConversion(operation, out var conversionInference))
                     {

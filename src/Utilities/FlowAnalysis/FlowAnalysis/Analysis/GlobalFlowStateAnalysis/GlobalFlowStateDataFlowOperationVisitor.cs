@@ -60,7 +60,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
                 ImmutableArray<AbstractIndex>.Empty,
                 owningSymbol.GetMemberOrLocalOrParameterType()!,
                 instanceLocation: PointsToAbstractValue.Unknown,
-                parent: null);
+                parent: null,
+                entityForInstanceLocation: null);
         }
 
         public sealed override DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> Flow(

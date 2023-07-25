@@ -249,7 +249,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             ContractNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemDiagnosticContractsContract);
             IDisposableNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIDisposable);
             IAsyncDisposableNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIAsyncDisposable);
+            ConfiguredAsyncDisposable = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemRuntimeCompilerServicesConfiguredAsyncDisposable);
+            ConfiguredValueTaskAwaitable = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemRuntimeCompilerServicesConfiguredValueTaskAwaitable);
             TaskNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksTask);
+            TaskAsyncEnumerableExtensions = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksTaskAsyncEnumerableExtensions);
             MemoryStreamNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIOMemoryStream);
             ValueTaskNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksValueTask);
             GenericTaskNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksTask1);
@@ -3107,20 +3110,33 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 value = VisitInvocation_NonLambdaOrDelegateOrLocalFunction(operation, argument);
                 CacheAbstractValue(operation, value);
 
-                if (operation.Arguments.Length == 1 &&
-                    operation.Instance != null &&
-                    operation.TargetMethod.IsTaskConfigureAwaitMethod(GenericTaskNamedType))
+                switch (operation.Arguments.Length)
                 {
-                    // ConfigureAwait invocation - just return the abstract value of the visited instance on which it is invoked.
-                    value = GetCachedAbstractValue(operation.Instance);
-                }
-                else if (operation.Arguments.Length == 1 &&
-                   operation.TargetMethod.IsTaskFromResultMethod(TaskNamedType))
-                {
-                    // Result wrapped within a task.
-                    var wrappedOperationValue = GetCachedAbstractValue(operation.Arguments[0].Value);
-                    var pointsToValueOfTask = GetPointsToAbstractValue(operation);
-                    SetTaskWrappedValue(pointsToValueOfTask, wrappedOperationValue);
+                    case 1:
+                        if (operation.Instance != null && operation.TargetMethod.IsTaskConfigureAwaitMethod(GenericTaskNamedType))
+                        {
+                            // ConfigureAwait invocation - just return the abstract value of the visited instance on which it is invoked.
+                            value = GetCachedAbstractValue(operation.Instance);
+                        }
+                        else if (operation.TargetMethod.IsTaskFromResultMethod(TaskNamedType))
+                        {
+                            // Result wrapped within a task.
+                            var wrappedOperationValue = GetCachedAbstractValue(operation.Arguments[0].Value);
+                            var pointsToValueOfTask = GetPointsToAbstractValue(operation);
+                            SetTaskWrappedValue(pointsToValueOfTask, wrappedOperationValue);
+                        }
+
+                        break;
+
+                    case 2:
+                        if (operation.Instance == null &&
+                            operation.TargetMethod.IsAsyncDisposableConfigureAwaitMethod(IAsyncDisposableNamedType, TaskAsyncEnumerableExtensions))
+                        {
+                            // ConfigureAwait invocation - just return the abstract value of the visited instance on which it is invoked.
+                            value = GetCachedAbstractValue(operation.Arguments.GetArgumentForParameterAtIndex(0));
+                        }
+
+                        break;
                 }
 
                 PostVisitInvocation(operation.TargetMethod, operation.Arguments);
@@ -4019,9 +4035,26 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private INamedTypeSymbol? IAsyncDisposableNamedType { get; }
 
         /// <summary>
+        /// <see cref="INamedTypeSymbol"/> for "System.Runtime.CompilerServices.ConfiguredAsyncDisposable"
+        /// </summary>
+        private INamedTypeSymbol? ConfiguredAsyncDisposable { get; }
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"/> for "System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable"
+        /// </summary>
+        private INamedTypeSymbol? ConfiguredValueTaskAwaitable { get; }
+
+        /// <summary>
         /// <see cref="INamedTypeSymbol"/> for <see cref="System.Threading.Tasks.Task"/>
         /// </summary>
         protected INamedTypeSymbol? TaskNamedType { get; }
+
+#pragma warning disable CA1200 // Avoid using cref tags with a prefix - cref prefix required for one of the project contexts
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"/> for <see cref="T:System.Threading.Tasks.TaskAsyncEnumerableExtensions"/>
+        /// </summary>
+        private INamedTypeSymbol? TaskAsyncEnumerableExtensions { get; }
+#pragma warning restore CA1200 // Avoid using cref tags with a prefix
 
         /// <summary>
         /// <see cref="INamedTypeSymbol"/> for <see cref="System.IO.MemoryStream"/>
@@ -4103,9 +4136,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         }
 
         private protected bool IsDisposable([NotNullWhen(returnValue: true)] ITypeSymbol? type)
-            => type != null && type.IsDisposable(IDisposableNamedType, IAsyncDisposableNamedType);
+            => type != null && type.IsDisposable(IDisposableNamedType, IAsyncDisposableNamedType, ConfiguredAsyncDisposable);
 
         private protected DisposeMethodKind GetDisposeMethodKind(IMethodSymbol method)
-            => method.GetDisposeMethodKind(IDisposableNamedType, IAsyncDisposableNamedType, TaskNamedType, ValueTaskNamedType);
+            => method.GetDisposeMethodKind(IDisposableNamedType, IAsyncDisposableNamedType, ConfiguredAsyncDisposable, TaskNamedType, ValueTaskNamedType, ConfiguredValueTaskAwaitable);
     }
 }

@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     ///     1. An associated non-null <see cref="Type"/> and
     ///     2. A non-null <see cref="InstanceLocation"/> indicating the abstract location at which the entity is located and
     ///     3. An optional parent key if this key has the same <see cref="InstanceLocation"/> as the parent (i.e. parent is a value type).
+    ///     4. An optional entity for reference typed <see cref="InstanceLocation"/> if the points to value for the instance location has more than one possible locations.
     /// </para>
     /// </summary>
     public sealed class AnalysisEntity : CacheBasedEquatable<AnalysisEntity>
@@ -40,11 +41,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             PointsToAbstractValue location,
             ITypeSymbol type,
             AnalysisEntity? parent,
+            AnalysisEntity? entityForInstanceLocation,
             bool isThisOrMeInstance)
         {
             Debug.Assert(!indices.IsDefault);
             Debug.Assert(symbol != null || !indices.IsEmpty || instanceReferenceOperationSyntax != null || captureId.HasValue);
             Debug.Assert(parent == null || parent.Type.HasValueCopySemantics() || !indices.IsEmpty);
+            Debug.Assert(entityForInstanceLocation == null || parent == null);
+            Debug.Assert(entityForInstanceLocation == null || location.Kind == PointsToAbstractValueKind.KnownLocations);
 
             Symbol = symbol;
             Indices = indices;
@@ -53,44 +57,46 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             InstanceLocation = location;
             Type = type;
             Parent = parent;
+            EntityForInstanceLocation = entityForInstanceLocation;
             IsThisOrMeInstance = isThisOrMeInstance;
 
             _ignoringLocationHashCode = ComputeIgnoringLocationHashCode();
             EqualsIgnoringInstanceLocationId = _ignoringLocationHashCode;
         }
 
-        private AnalysisEntity(ISymbol? symbol, ImmutableArray<AbstractIndex> indices, PointsToAbstractValue location, ITypeSymbol type, AnalysisEntity? parent)
-            : this(symbol, indices, instanceReferenceOperationSyntax: null, captureId: null, location: location, type: type, parent: parent, isThisOrMeInstance: false)
+        private AnalysisEntity(ISymbol? symbol, ImmutableArray<AbstractIndex> indices, PointsToAbstractValue location, ITypeSymbol type, AnalysisEntity? parent, AnalysisEntity? entityForInstanceLocation)
+            : this(symbol, indices, instanceReferenceOperationSyntax: null, captureId: null, location: location, type: type, parent: parent, entityForInstanceLocation: entityForInstanceLocation, isThisOrMeInstance: false)
         {
             Debug.Assert(symbol != null || !indices.IsEmpty);
         }
 
         private AnalysisEntity(IInstanceReferenceOperation instanceReferenceOperation, PointsToAbstractValue location)
             : this(symbol: null, indices: ImmutableArray<AbstractIndex>.Empty, instanceReferenceOperationSyntax: instanceReferenceOperation.Syntax,
-                  captureId: null, location: location, type: instanceReferenceOperation.Type!, parent: null, isThisOrMeInstance: false)
+                  captureId: null, location: location, type: instanceReferenceOperation.Type!, parent: null, entityForInstanceLocation: null, isThisOrMeInstance: false)
         {
             Debug.Assert(instanceReferenceOperation != null);
         }
 
         private AnalysisEntity(InterproceduralCaptureId captureId, ITypeSymbol capturedType, PointsToAbstractValue location)
             : this(symbol: null, indices: ImmutableArray<AbstractIndex>.Empty, instanceReferenceOperationSyntax: null,
-                  captureId: captureId, location: location, type: capturedType, parent: null, isThisOrMeInstance: false)
+                  captureId: captureId, location: location, type: capturedType, parent: null, entityForInstanceLocation: null, isThisOrMeInstance: false)
         {
         }
 
         private AnalysisEntity(INamedTypeSymbol namedType, PointsToAbstractValue location, bool isThisOrMeInstance)
             : this(symbol: namedType, indices: ImmutableArray<AbstractIndex>.Empty, instanceReferenceOperationSyntax: null,
-                  captureId: null, location: location, type: namedType, parent: null, isThisOrMeInstance: isThisOrMeInstance)
+                  captureId: null, location: location, type: namedType, parent: null, entityForInstanceLocation: null, isThisOrMeInstance: isThisOrMeInstance)
         {
         }
 
         public static AnalysisEntity Create(ISymbol? symbol, ImmutableArray<AbstractIndex> indices,
-            ITypeSymbol type, PointsToAbstractValue instanceLocation, AnalysisEntity? parent)
+            ITypeSymbol type, PointsToAbstractValue instanceLocation, AnalysisEntity? parent, AnalysisEntity? entityForInstanceLocation)
         {
             Debug.Assert(symbol != null || !indices.IsEmpty);
             Debug.Assert(parent == null || parent.InstanceLocation == instanceLocation);
+            Debug.Assert(entityForInstanceLocation == null || instanceLocation.Kind == PointsToAbstractValueKind.KnownLocations);
 
-            return new AnalysisEntity(symbol, indices, instanceLocation, type, parent);
+            return new AnalysisEntity(symbol, indices, instanceLocation, type, parent, entityForInstanceLocation);
         }
 
         public static AnalysisEntity Create(IInstanceReferenceOperation instanceReferenceOperation, PointsToAbstractValue instanceLocation)
@@ -120,8 +126,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Debug.Assert(EqualsIgnoringInstanceLocation(analysisEntityToMerge));
             Debug.Assert(!InstanceLocation.Equals(analysisEntityToMerge.InstanceLocation));
 
-            var mergedInstanceLocation = PointsToAnalysis.PointsToAnalysis.PointsToAbstractValueDomainInstance.Merge(InstanceLocation, analysisEntityToMerge.InstanceLocation);
-            return new AnalysisEntity(Symbol, Indices, InstanceReferenceOperationSyntax, CaptureId, mergedInstanceLocation, Type, Parent, IsThisOrMeInstance);
+            var mergedInstanceLocation = PointsToAnalysis.PointsToAnalysis.ValueDomainInstance.Merge(InstanceLocation, analysisEntityToMerge.InstanceLocation);
+            return new AnalysisEntity(Symbol, Indices, InstanceReferenceOperationSyntax, CaptureId, mergedInstanceLocation, Type, Parent, EntityForInstanceLocation, IsThisOrMeInstance);
         }
 
         public bool IsChildOrInstanceMember
@@ -190,6 +196,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public SyntaxNode? InstanceReferenceOperationSyntax { get; }
         public InterproceduralCaptureId? CaptureId { get; }
         public PointsToAbstractValue InstanceLocation { get; }
+        public AnalysisEntity? EntityForInstanceLocation { get; }
         public ITypeSymbol Type { get; }
         public AnalysisEntity? Parent { get; }
         public bool IsThisOrMeInstance { get; }
@@ -203,6 +210,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         };
 
         public bool IsLValueFlowCaptureEntity => CaptureId.HasValue && CaptureId.Value.IsLValueFlowCapture;
+
+        internal AnalysisEntity WithIndices(ImmutableArray<AbstractIndex> indices)
+            => new(Symbol, indices, InstanceReferenceOperationSyntax, CaptureId, InstanceLocation, Type, Parent, EntityForInstanceLocation, IsThisOrMeInstance);
 
         public bool EqualsIgnoringInstanceLocation(AnalysisEntity? other)
         {
@@ -225,6 +235,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 && CaptureId.GetHashCodeOrDefault() == other.CaptureId.GetHashCodeOrDefault()
                 && Type.GetHashCodeOrDefault() == other.Type.GetHashCodeOrDefault()
                 && Parent.GetHashCodeOrDefault() == other.Parent.GetHashCodeOrDefault()
+                && EntityForInstanceLocation.GetHashCodeOrDefault() == other.EntityForInstanceLocation.GetHashCodeOrDefault()
                 && IsThisOrMeInstance.GetHashCode() == other.IsThisOrMeInstance.GetHashCode();
         }
 
@@ -251,6 +262,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             hashCode.Add(CaptureId.GetHashCodeOrDefault());
             hashCode.Add(Type.GetHashCode());
             hashCode.Add(Parent.GetHashCodeOrDefault());
+            hashCode.Add(EntityForInstanceLocation.GetHashCodeOrDefault());
             hashCode.Add(IsThisOrMeInstance.GetHashCode());
         }
 

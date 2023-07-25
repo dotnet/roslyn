@@ -340,6 +340,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 }
 
                 PointsToAbstractValue instanceLocation = _getPointsToAbstractValue(tupleOperation);
+                AnalysisEntity? entityForInstanceLocation = null;
                 var underlyingValueTupleType = tupleType.GetUnderlyingValueTupleTypeOrThis()!;
                 AnalysisEntity? parentEntity = null;
                 if (tupleOperation.TryGetParentTupleOperation(out var parentTupleOperationOpt, out var elementOfParentTupleContainingTuple) &&
@@ -352,6 +353,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         {
                             parentEntity = parentTupleElementEntities[i];
                             instanceLocation = parentEntity.InstanceLocation;
+                            entityForInstanceLocation = parentEntity.EntityForInstanceLocation;
                             break;
                         }
                     }
@@ -361,7 +363,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 else
                 {
                     parentEntity = AnalysisEntity.Create(underlyingValueTupleType, ImmutableArray<AbstractIndex>.Empty,
-                        underlyingValueTupleType, instanceLocation, parent: null);
+                        underlyingValueTupleType, instanceLocation, parent: null, entityForInstanceLocation: null);
                 }
 
                 Debug.Assert(parentEntity.InstanceLocation == instanceLocation);
@@ -377,7 +379,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     }
 
                     builder.Add(AnalysisEntity.Create(mappedValueTupleField, indices: ImmutableArray<AbstractIndex>.Empty,
-                        type: mappedValueTupleField.Type, instanceLocation, parentEntity));
+                        type: mappedValueTupleField.Type, instanceLocation, parentEntity, entityForInstanceLocation));
                 }
 
                 elementEntities = builder.ToImmutable();
@@ -447,6 +449,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             PointsToAbstractValue? instanceLocation = null;
+            AnalysisEntity? entityForReferenceTypeInstance = null;
             AnalysisEntity? parent = null;
             if (instance?.Type != null)
             {
@@ -476,10 +479,33 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 else
                 {
                     instanceLocation = _getPointsToAbstractValue!(instance);
+
+                    // If the instanceLocation can point to multiple potential locations, then we also store the
+                    // entity for the instance location in the analysis entity. This is done to ensure that we
+                    // can distinguish this entity from any other entity which can also point to the same set of
+                    // potential locations, but the actual runtime location for both these entities can be different.
+                    // See https://github.com/dotnet/roslyn-analyzers/issues/6520 for an example.
+                    if (instanceLocation.Kind == PointsToAbstractValueKind.KnownLocations &&
+                        instanceLocation.Locations.Count > 1)
+                    {
+                        if (TryCreate(instance, out var instanceEntity))
+                        {
+                            entityForReferenceTypeInstance = instanceEntity;
+                        }
+                        else
+                        {
+                            instanceLocation = instanceLocation.NullState switch
+                            {
+                                NullAbstractValue.Null => PointsToAbstractValue.UnknownNull,
+                                NullAbstractValue.NotNull => PointsToAbstractValue.UnknownNotNull,
+                                _ => PointsToAbstractValue.Unknown,
+                            };
+                        }
+                    }
                 }
             }
 
-            analysisEntity = Create(symbol, indices, type, instanceLocation, parent);
+            analysisEntity = Create(symbol, indices, type, instanceLocation, parent, entityForReferenceTypeInstance);
             return true;
         }
 
@@ -522,18 +548,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return instanceLocation;
         }
 
-        private AnalysisEntity Create(ISymbol? symbol, ImmutableArray<AbstractIndex> indices, ITypeSymbol type, PointsToAbstractValue? instanceLocation, AnalysisEntity? parent)
+        private AnalysisEntity Create(ISymbol? symbol, ImmutableArray<AbstractIndex> indices, ITypeSymbol type, PointsToAbstractValue? instanceLocation, AnalysisEntity? parent, AnalysisEntity? entityForInstanceLocation)
         {
             instanceLocation = EnsureLocation(instanceLocation, symbol, parent);
             RoslynDebug.Assert(instanceLocation != null);
-            var analysisEntity = AnalysisEntity.Create(symbol, indices, type, instanceLocation, parent);
+            var analysisEntity = AnalysisEntity.Create(symbol, indices, type, instanceLocation, parent, entityForInstanceLocation);
             return analysisEntity;
         }
 
         public AnalysisEntity CreateWithNewInstanceRoot(AnalysisEntity analysisEntity, AnalysisEntity newRootInstance)
         {
             if (analysisEntity.InstanceLocation == newRootInstance.InstanceLocation &&
-                analysisEntity.Parent == newRootInstance.Parent)
+                analysisEntity.Parent == newRootInstance.Parent &&
+                analysisEntity.EntityForInstanceLocation == newRootInstance.EntityForInstanceLocation)
             {
                 return analysisEntity;
             }
@@ -544,7 +571,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             AnalysisEntity parentOpt = CreateWithNewInstanceRoot(analysisEntity.Parent, newRootInstance);
-            return Create(analysisEntity.Symbol, analysisEntity.Indices, analysisEntity.Type, newRootInstance.InstanceLocation, parentOpt);
+            return Create(analysisEntity.Symbol, analysisEntity.Indices, analysisEntity.Type, newRootInstance.InstanceLocation, parentOpt, newRootInstance.EntityForInstanceLocation);
         }
     }
 }
