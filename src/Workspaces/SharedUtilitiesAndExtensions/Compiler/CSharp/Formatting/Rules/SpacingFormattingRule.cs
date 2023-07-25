@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // List patterns
-            if (currentKind == SyntaxKind.OpenBracketToken && currentToken.Parent.IsKind(SyntaxKind.ListPattern))
+            if (currentKind == SyntaxKind.OpenBracketToken && currentToken.Parent.Kind() is SyntaxKind.ListPattern or SyntaxKind.CollectionExpression)
             {
                 // For the space after the middle comma in ([1, 2], [1, 2])
                 if (previousKind == SyntaxKind.CommaToken)
