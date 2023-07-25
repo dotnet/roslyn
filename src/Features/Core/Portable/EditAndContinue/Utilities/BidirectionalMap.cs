@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public readonly IReadOnlyDictionary<T, T> Forward;
         public readonly IReadOnlyDictionary<T, T> Reverse;
 
+        public static readonly BidirectionalMap<T> Empty = new(SpecializedCollections.EmptyReadOnlyDictionary<T, T>(), SpecializedCollections.EmptyReadOnlyDictionary<T, T>());
+
         public BidirectionalMap(IReadOnlyDictionary<T, T> forward, IReadOnlyDictionary<T, T> reverse)
         {
             Contract.ThrowIfFalse(forward.Count == reverse.Count);

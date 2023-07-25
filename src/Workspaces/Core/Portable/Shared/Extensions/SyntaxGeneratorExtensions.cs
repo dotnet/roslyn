@@ -422,9 +422,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             // Only generate a setter if the base setter is accessible.
             IMethodSymbol? accessorSet = null;
-            if (overriddenProperty.SetMethod != null &&
-                overriddenProperty.SetMethod.IsAccessibleWithin(containingType) &&
-                overriddenProperty.SetMethod.DeclaredAccessibility != Accessibility.Private)
+            if (overriddenProperty.SetMethod is { DeclaredAccessibility: not Accessibility.Private } &&
+                overriddenProperty.SetMethod.IsAccessibleWithin(containingType))
             {
                 accessorSet = CodeGenerationSymbolFactory.CreateMethodSymbol(
                     overriddenProperty.SetMethod,
@@ -555,17 +554,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static SyntaxNode GenerateDelegateThroughMemberStatement(
             this SyntaxGenerator generator, IMethodSymbol method, ISymbol throughMember)
         {
-            var through = CreateDelegateThroughExpression(generator, method, throughMember);
+            var through = generator.MemberAccessExpression(
+                CreateDelegateThroughExpression(generator, method, throughMember),
+                method.IsGenericMethod
+                    ? generator.GenericName(method.Name, method.TypeArguments)
+                    : generator.IdentifierName(method.Name));
 
-            var memberName = method.IsGenericMethod
-                ? generator.GenericName(method.Name, method.TypeArguments)
-                : generator.IdentifierName(method.Name);
-
-            through = generator.MemberAccessExpression(through, memberName);
-
-            var arguments = generator.CreateArguments(method.Parameters.As<IParameterSymbol>());
-            var invocationExpression = generator.InvocationExpression(through, arguments);
-
+            var invocationExpression = generator.InvocationExpression(through, generator.CreateArguments(method.Parameters));
             return method.ReturnsVoid
                 ? generator.ExpressionStatement(invocationExpression)
                 : generator.ReturnStatement(invocationExpression);
@@ -574,15 +569,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static SyntaxNode CreateDelegateThroughExpression(
             this SyntaxGenerator generator, ISymbol member, ISymbol throughMember)
         {
+            var name = generator.IdentifierName(throughMember.Name);
             var through = throughMember.IsStatic
                 ? GenerateContainerName(generator, throughMember)
-                : generator.ThisExpression();
+                // If we're delegating through a primary constructor parameter, we cannot qualify the name at all.
+                : throughMember is IParameterSymbol
+                    ? null
+                    : generator.ThisExpression();
 
-            through = generator.MemberAccessExpression(
-                through, generator.IdentifierName(throughMember.Name));
+            through = through is null ? name : generator.MemberAccessExpression(through, name);
 
             var throughMemberType = throughMember.GetMemberType();
-            if (member.ContainingType.IsInterfaceType() && throughMemberType != null)
+            if (throughMemberType != null &&
+                member.ContainingType is { TypeKind: TypeKind.Interface } interfaceBeingImplemented)
             {
                 // In the case of 'implement interface through field / property', we need to know what
                 // interface we are implementing so that we can insert casts to this interface on every
@@ -606,22 +605,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 // in the Implements clause. For the purposes of inserting the above cast, we ignore the
                 // uncommon case and optimize for the common one - in other words, we only apply the cast
                 // in cases where we can unambiguously figure out which interface we are trying to implement.
-                var interfaceBeingImplemented = member.ContainingType;
                 if (!throughMemberType.Equals(interfaceBeingImplemented))
                 {
                     through = generator.CastExpression(interfaceBeingImplemented,
                         through.WithAdditionalAnnotations(Simplifier.Annotation));
                 }
-                else if (!throughMember.IsStatic &&
-                    throughMember is IPropertySymbol throughMemberProperty &&
-                    throughMemberProperty.ExplicitInterfaceImplementations.Any())
+                else if (throughMember is IPropertySymbol { IsStatic: false, ExplicitInterfaceImplementations: [var explicitlyImplementedProperty, ..] })
                 {
                     // If we are implementing through an explicitly implemented property, we need to cast 'this' to
                     // the explicitly implemented interface type before calling the member, as in:
                     //       ((IA)this).Prop.Member();
                     //
-                    var explicitlyImplementedProperty = throughMemberProperty.ExplicitInterfaceImplementations[0];
-
                     var explicitImplementationCast = generator.CastExpression(
                         explicitlyImplementedProperty.ContainingType,
                         generator.ThisExpression());
@@ -660,7 +654,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 if (property.Parameters.Length > 0)
                 {
-                    var arguments = generator.CreateArguments(property.Parameters.As<IParameterSymbol>());
+                    var arguments = generator.CreateArguments(property.Parameters);
                     expression = generator.ElementAccessExpression(expression, arguments);
                 }
 
@@ -684,7 +678,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 if (property.Parameters.Length > 0)
                 {
-                    var arguments = generator.CreateArguments(property.Parameters.As<IParameterSymbol>());
+                    var arguments = generator.CreateArguments(property.Parameters);
                     expression = generator.ElementAccessExpression(expression, arguments);
                 }
 

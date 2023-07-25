@@ -2183,10 +2183,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         conversion = Conversion.Identity;
                     }
                 }
-                else if (boundExpr is BoundCollectionLiteralExpression convertedCollection)
+                else if (boundExpr is BoundCollectionExpression convertedCollection)
                 {
                     type = null;
-                    if (highestBoundExpr is BoundConversion { ConversionKind: ConversionKind.CollectionLiteral or ConversionKind.NoConversion, Conversion: var convertedCollectionConversion })
+                    if (highestBoundExpr is BoundConversion { ConversionKind: ConversionKind.CollectionExpression or ConversionKind.NoConversion, Conversion: var convertedCollectionConversion })
                     {
                         convertedType = highestBoundExpr.Type;
                         convertedNullability = convertedCollection.TopLevelNullability;
@@ -2196,9 +2196,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // There was an explicit cast on top of this.
                         (convertedType, convertedNullability) = (convertedCollection.Type, nullability);
-                        conversion = convertedCollection.CollectionTypeKind == CollectionLiteralTypeKind.None
+                        conversion = convertedCollection.CollectionTypeKind == CollectionExpressionTypeKind.None
                             ? Conversion.NoConversion
-                            : Conversion.CollectionLiteral;
+                            : Conversion.CollectionExpression;
                     }
                 }
                 else if (highestBoundExpr != null && highestBoundExpr != boundExpr && highestBoundExpr.HasExpressionType())

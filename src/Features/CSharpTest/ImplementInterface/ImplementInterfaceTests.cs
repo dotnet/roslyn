@@ -70,6 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
                 Options = { AllOptionsOff },
                 CodeActionEquivalenceKey = codeAction?.equivalenceKey,
                 CodeActionIndex = codeAction?.index,
+                LanguageVersion = LanguageVersion.Preview,
             }.RunAsync();
         }
 
@@ -1010,6 +1011,37 @@ codeAction: ("True;False;False:global::IInterface;TestProject;Microsoft.CodeAnal
                 {
                     I i;
 
+                    public void Method1()
+                    {
+                        i.Method1();
+                    }
+                }
+                """,
+codeAction: ("False;False;False:global::I;TestProject;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;i", 1));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
+        public async Task TestImplementThroughPrimaryConstructorParameter1()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+                """
+                interface I
+                {
+                    void Method1();
+                }
+
+                class C(I i) : {|CS0535:I|}
+                {
+                }
+                """,
+                """
+                interface I
+                {
+                    void Method1();
+                }
+
+                class C(I i) : I
+                {
                     public void Method1()
                     {
                         i.Method1();

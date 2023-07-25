@@ -1382,6 +1382,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public SyntaxNode? GetInitializerOfVariableDeclarator(SyntaxNode node)
             => ((VariableDeclaratorSyntax)node).Initializer;
 
+        public SyntaxNode? GetInitializerOfPropertyDeclaration(SyntaxNode node)
+            => ((PropertyDeclarationSyntax)node).Initializer;
+
         public SyntaxNode GetTypeOfVariableDeclarator(SyntaxNode node)
             => ((VariableDeclarationSyntax)((VariableDeclaratorSyntax)node).Parent!).Type;
 

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeLens;
 using Microsoft.CodeAnalysis.Features.Testing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -27,10 +28,13 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
 {
     public const string RunTestsCommandIdentifier = "dotnet.test.run";
 
+    private readonly IGlobalOptionService _globalOptionService;
+
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CodeLensHandler()
+    public CodeLensHandler(IGlobalOptionService globalOptionService)
     {
+        _globalOptionService = globalOptionService;
     }
 
     public bool MutatesSolutionState => false;
@@ -70,7 +74,11 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
             codeLenses.Add(codeLens);
         }
 
-        AddTestCodeLens(codeLenses, members, document, text, request.TextDocument);
+        if (!_globalOptionService.GetOption(LspOptionsStorage.LspUsingDevkitFeatures))
+        {
+            // Only return test codelenses if we're not using devkit.
+            AddTestCodeLens(codeLenses, members, document, text, request.TextDocument);
+        }
 
         return codeLenses.ToArray();
     }

@@ -4,6 +4,7 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
 
@@ -12,12 +13,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 [Export, Shared]
 internal class ServerConfigurationFactory
 {
+    private readonly IGlobalOptionService _globalOptionService;
+
     private ServerConfiguration? _serverConfiguration;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public ServerConfigurationFactory()
+    public ServerConfigurationFactory(IGlobalOptionService globalOptionService)
     {
+        _globalOptionService = globalOptionService;
     }
 
     [Export(typeof(ServerConfiguration))]
@@ -27,6 +31,13 @@ internal class ServerConfigurationFactory
     {
         Contract.ThrowIfFalse(_serverConfiguration == null);
         _serverConfiguration = serverConfiguration;
+
+        // Update any other global options based on the configuration the server was started with.
+
+        // Use the SharedDependenciesPath option as a proxy for whether or not devkit is running.
+        var isDevkitEnabled = !string.IsNullOrEmpty(serverConfiguration.SharedDependenciesPath);
+        // Set the standalone option so other features know whether devkit is running.
+        _globalOptionService.SetGlobalOption(LspOptionsStorage.LspUsingDevkitFeatures, isDevkitEnabled);
     }
 }
 
