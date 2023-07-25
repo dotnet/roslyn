@@ -68,7 +68,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
         {
             using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
 
+            // 'expressions' is the entire list of expressions that will go into the collection expression. some will be
+            // new, but some may be from 
+
             var expressionIndex = 0;
+            var expressionOffset = expressions.Count - matches.Length;
             foreach (var nodeOrToken in expressions.GetWithSeparators())
             {
                 if (nodeOrToken.IsToken)
@@ -78,9 +82,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 else
                 {
                     var expression = (ExpressionSyntax)nodeOrToken.AsNode()!;
-                    nodesAndTokens.Add(matches[expressionIndex].UseSpread
-                        ? SpreadElement(expression)
-                        : ExpressionElement(expression));
+                    nodesAndTokens.Add(expressionIndex < expressionOffset || !matches[expressionIndex - expressionOffset].UseSpread
+                        ? ExpressionElement(expression)
+                        : SpreadElement(expression));
                     expressionIndex++;
                 }
             }
