@@ -67,13 +67,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     }
 
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
-
-                case SyntaxKind.CloseBracketToken:
-                    // For a multi-line collection expression, keep the `[` and `]` on different lines.
-                    if (currentToken.Parent is CollectionExpressionSyntax)
-                        return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
-
-                    break;
             }
 
             // do { } while case
@@ -98,6 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                             !currentToken.IsCommaInInitializerExpression() &&
                             !currentToken.IsCommaInAnyArgumentsList() &&
                             !currentToken.IsCommaInTupleExpression() &&
+                            !currentToken.IsCommaInCollectionExpression() &&
                             !currentToken.IsParenInArgumentList() &&
                             !currentToken.IsDotInMemberAccess() &&
                             !currentToken.IsCloseParenInStatement() &&
@@ -118,22 +112,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     }
 
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
-
-                case SyntaxKind.OpenBracketToken:
-                    // For a multi-line collection expression, keep the `[` and `]` on different lines.
-                    if (previousToken.Parent is CollectionExpressionSyntax)
-                        return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
-
-                    break;
             }
 
             ///////////////////////////////////////////////////
             // statement related operations
             // object and anonymous initializer "," case
             if (previousToken.IsCommaInInitializerExpression())
-            {
                 return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
-            }
+
+            if (previousToken.IsCommaInCollectionExpression())
+                return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
 
             // , * in switch expression arm
             // ```

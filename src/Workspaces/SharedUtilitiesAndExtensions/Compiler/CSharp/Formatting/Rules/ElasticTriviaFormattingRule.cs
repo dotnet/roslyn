@@ -320,13 +320,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 case SyntaxKind.FinallyKeyword:
                     return 1;
 
-                //case SyntaxKind.OpenBracketToken:
-                //    // For a multi-line collection expression, keep the `[` and `]` on different lines.
-                //    if (previousToken.Parent is CollectionExpressionSyntax)
-                //        return 1;
-
-                //    break;
-
                 case SyntaxKind.CloseBraceToken:
                     return LineBreaksAfterCloseBrace(currentToken);
 
@@ -395,13 +388,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 case SyntaxKind.ElseKeyword:
                 case SyntaxKind.FinallyKeyword:
                     return 1;
-
-                //case SyntaxKind.CloseBracketToken:
-                //    // For a multi-line collection expression, keep the `[` and `]` on different lines.
-                //    if (previousToken.Parent is CollectionExpressionSyntax)
-                //        return 1;
-
-                //    break;
 
                 case SyntaxKind.OpenBracketToken:
                     // Assembly and module-level attributes preceded by non-attributes should have
