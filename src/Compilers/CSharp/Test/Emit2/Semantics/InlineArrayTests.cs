@@ -11821,6 +11821,10 @@ class Program
         C c;
         c.F._element0 = 1;
         _ = c.F;
+
+        Buffer2Ref b;
+        b._element0 = ref (new [] { 1 })[0];
+        _ = b;
     }
 }
 
@@ -11829,13 +11833,25 @@ public struct Buffer2<T>
 {
     public T _element0;
 }
+
+[System.Runtime.CompilerServices.InlineArray(2)]
+public ref struct Buffer2Ref
+{
+    public ref int _element0;
+}
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.VerifyDiagnostics(
                 // (13,13): error CS0170: Use of possibly unassigned field 'F'
                 //         _ = c.F;
-                Diagnostic(ErrorCode.ERR_UseDefViolationField, "c.F").WithArguments("F").WithLocation(13, 13)
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "c.F").WithArguments("F").WithLocation(13, 13),
+                // (17,13): error CS0165: Use of unassigned local variable 'b'
+                //         _ = b;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "b").WithArguments("b").WithLocation(17, 13),
+                // (30,20): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                //     public ref int _element0;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element0").WithLocation(30, 20)
                 );
         }
 
@@ -11855,6 +11871,10 @@ class Program
         C c;
         c.F._element0 = 1;
         _ = c.F;
+
+        Buffer2Ref b;
+        b._element0 = ref (new [] { 1 })[0];
+        _ = b;
     }
 }
 
@@ -11863,10 +11883,20 @@ public struct Buffer1<T>
 {
     public T _element0;
 }
+
+[System.Runtime.CompilerServices.InlineArray(1)]
+public ref struct Buffer2Ref
+{
+    public ref int _element0;
+}
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (30,20): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                //     public ref int _element0;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element0").WithLocation(30, 20)
+                );
         }
 
         [Fact]
@@ -12822,9 +12852,24 @@ public struct Buffer1
         _element0 = 1;
     }
 }
+
+[System.Runtime.CompilerServices.InlineArray(1)]
+public ref struct Buffer1Ref
+{
+    public ref int _element2;
+
+    public Buffer1Ref()
+    {
+        _element2 = ref (new [] { 1 })[0];
+    }
+}
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics(
+                // (25,20): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                //     public ref int _element2;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element2").WithLocation(25, 20)
+                );
 
             verifier.VerifyIL("Buffer1..ctor",
 @"
@@ -12837,11 +12882,36 @@ public struct Buffer1
   IL_0007:  ret
 }
 ");
+
+            verifier.VerifyIL("Buffer1Ref..ctor",
+@"
+{
+  // Code size       23 (0x17)
+  .maxstack  5
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  newarr     ""int""
+  IL_0007:  dup
+  IL_0008:  ldc.i4.0
+  IL_0009:  ldc.i4.1
+  IL_000a:  stelem.i4
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldelema    ""int""
+  IL_0011:  stfld      ""ref int Buffer1Ref._element2""
+  IL_0016:  ret
+}
+");
             comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (7,30): error CS8652: The feature 'inline arrays' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         System.Console.Write(f[0]);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "f[0]").WithArguments("inline arrays").WithLocation(7, 30)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "f[0]").WithArguments("inline arrays").WithLocation(7, 30),
+                // (25,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     public ref int _element2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref int").WithArguments("ref fields", "11.0").WithLocation(25, 12),
+                // (25,20): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                //     public ref int _element2;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element2").WithLocation(25, 20)
                 );
         }
 
@@ -12913,9 +12983,23 @@ public struct Buffer1
     {
     }
 }
+
+[System.Runtime.CompilerServices.InlineArray(1)]
+public ref struct Buffer1Ref
+{
+    public ref int _element0;
+
+    public Buffer1Ref()
+    {
+    }
+}
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "0 1 0").VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 1 0", verify: Verification.Fails).VerifyDiagnostics(
+                // (31,20): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                //     public ref int _element0;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element0").WithLocation(31, 20)
+                );
 
             verifier.VerifyIL("Buffer1..ctor",
 @"
@@ -12926,6 +13010,19 @@ public struct Buffer1
   IL_0001:  ldc.i4.0
   IL_0002:  stfld      ""int Buffer1._element0""
   IL_0007:  ret
+}
+");
+
+            verifier.VerifyIL("Buffer1Ref..ctor",
+@"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  conv.u
+  IL_0003:  stfld      ""ref int Buffer1Ref._element0""
+  IL_0008:  ret
 }
 ");
         }
@@ -12944,9 +13041,24 @@ public struct Buffer2
         _element0 = 1;
     }
 }
+
+[System.Runtime.CompilerServices.InlineArray(2)]
+public ref struct Buffer2Ref
+{
+    public ref int _element2;
+
+    public Buffer2Ref()
+    {
+        _element2 = ref (new [] { 1 })[0];
+    }
+}
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
-            var verifier = CompileAndVerify(comp, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics(
+                // (16,20): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                //     public ref int _element2;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element2").WithLocation(16, 20)
+                );
 
             verifier.VerifyIL("Buffer2..ctor",
 @"
@@ -12962,11 +13074,42 @@ public struct Buffer2
 }
 ");
 
+
+            verifier.VerifyIL("Buffer2Ref..ctor",
+@"
+{
+  // Code size       30 (0x1e)
+  .maxstack  5
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""Buffer2Ref""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  newarr     ""int""
+  IL_000e:  dup
+  IL_000f:  ldc.i4.0
+  IL_0010:  ldc.i4.1
+  IL_0011:  stelem.i4
+  IL_0012:  ldc.i4.0
+  IL_0013:  ldelema    ""int""
+  IL_0018:  stfld      ""ref int Buffer2Ref._element2""
+  IL_001d:  ret
+}
+");
+
             comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (7,12): error CS0177: The out parameter 'this' must be assigned to before control leaves the current method
                 //     public Buffer2()
-                Diagnostic(ErrorCode.ERR_ParamUnassigned, "Buffer2").WithArguments("this").WithLocation(7, 12)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "Buffer2").WithArguments("this").WithLocation(7, 12),
+                // (16,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     public ref int _element2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref int").WithArguments("ref fields", "11.0").WithLocation(16, 12),
+                // (16,20): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                //     public ref int _element2;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element2").WithLocation(16, 20),
+                // (18,12): error CS0177: The out parameter 'this' must be assigned to before control leaves the current method
+                //     public Buffer2Ref()
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "Buffer2Ref").WithArguments("this").WithLocation(18, 12)
                 );
         }
 
@@ -13057,9 +13200,25 @@ public struct Buffer2
         _ = this[0];
     }
 }
+
+[System.Runtime.CompilerServices.InlineArray(2)]
+public ref struct Buffer2Ref
+{
+    public ref int _element2;
+
+    public Buffer2Ref()
+    {
+        _element2 = ref (new [] { 1 })[0];
+        _ = this;
+    }
+}
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
-            var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp).VerifyDiagnostics(
+                // (17,20): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                //     public ref int _element2;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element2").WithLocation(17, 20)
+                );
 
             verifier.VerifyIL("Buffer2..ctor",
 @"
@@ -13078,6 +13237,27 @@ public struct Buffer2
 }
 ");
 
+            verifier.VerifyIL("Buffer2Ref..ctor",
+@"
+{
+  // Code size       30 (0x1e)
+  .maxstack  5
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""Buffer2Ref""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  newarr     ""int""
+  IL_000e:  dup
+  IL_000f:  ldc.i4.0
+  IL_0010:  ldc.i4.1
+  IL_0011:  stelem.i4
+  IL_0012:  ldc.i4.0
+  IL_0013:  ldelema    ""int""
+  IL_0018:  stfld      ""ref int Buffer2Ref._element2""
+  IL_001d:  ret
+}
+");
+
             comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (7,12): error CS0177: The out parameter 'this' must be assigned to before control leaves the current method
@@ -13088,7 +13268,19 @@ public struct Buffer2
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "this[0]").WithArguments("inline arrays").WithLocation(10, 13),
                 // (10,13): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '11.0' to auto-default the unassigned fields.
                 //         _ = this[0];
-                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "this").WithArguments("11.0").WithLocation(10, 13)
+                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "this").WithArguments("11.0").WithLocation(10, 13),
+                // (17,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     public ref int _element2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref int").WithArguments("ref fields", "11.0").WithLocation(17, 12),
+                // (17,20): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                //     public ref int _element2;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element2").WithLocation(17, 20),
+                // (19,12): error CS0177: The out parameter 'this' must be assigned to before control leaves the current method
+                //     public Buffer2Ref()
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "Buffer2Ref").WithArguments("this").WithLocation(19, 12),
+                // (22,13): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '11.0' to auto-default the unassigned fields.
+                //         _ = this;
+                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "this").WithArguments("11.0").WithLocation(22, 13)
                 );
         }
 
