@@ -3252,7 +3252,7 @@ class C { }";
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        public async Task MSBuildWorkspaceDocumentHasFoldersProperty()
+        public async Task MSBuildWorkspaceDocumentsFoldersProperty()
         {
             CreateFiles(GetNetCoreAppFiles()
                 .WithFile(@"dir1\dir2\dir3\MyClass.cs", Resources.SourceFiles.CSharp.CSharpClass));
@@ -3261,6 +3261,19 @@ class C { }";
             var project = await workspace.OpenProjectAsync(GetSolutionFileName("Project.csproj"));
             var document = project.Documents.Single(d => d.Name == "MyClass.cs");
             Assert.Equal(document.Folders, new[] { "dir1", "dir2", "dir3" });
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        public async Task MSBuildWorkspaceLinkedDocumentHasFolders()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.WithLink)
+                .WithFile(@"OtherStuff\Foo.cs", Resources.SourceFiles.CSharp.OtherStuff_Foo));
+
+            using var workspace = CreateMSBuildWorkspace();
+            var project = await workspace.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj"));
+            var linkedDocument = project.Documents.Single(d => d.Name == "Foo.cs");
+            Assert.Equal(linkedDocument.Folders, new[] { "Blah" });
         }
 
         private class InMemoryAssemblyLoader : IAnalyzerAssemblyLoader
