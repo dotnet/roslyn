@@ -4,13 +4,6 @@ Rule ID | Missing Help Link | Title |
 --------|-------------------|-------|
 IDE0005_gen |  | Imports statement is unnecessary. |
 IDE0043 |  | Invalid format string |
-IDE0120 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0120> | Simplify LINQ expression |
-IDE0130 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0130> | Namespace does not match folder structure |
-IDE0200 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0200> | Remove unnecessary lambda expression |
-IDE0210 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0210> | Convert to top-level statements |
-IDE0211 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0211> | Convert to 'Program.Main' style program |
-IDE0220 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0220> | Add explicit cast |
-IDE0230 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0230> | Use UTF-8 string literal |
 IDE0240 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0240> | Remove redundant nullable directive |
 IDE0241 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0241> | Remove unnecessary nullable directive |
 IDE0250 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0250> | Make struct 'readonly' |
