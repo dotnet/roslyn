@@ -785,8 +785,15 @@ class A : A.B.B.I
 ";
 
             CreateCompilation(text).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_CircularBase, "A").WithArguments("A", "A.B"),
-                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "B").WithArguments("B", "A.B"));
+                // (4,23): error CS0146: Circular base type dependency involving 'A' and 'A.B'
+                //     private class B : A
+                Diagnostic(ErrorCode.ERR_CircularBase, "A").WithArguments("A", "A.B").WithLocation(4, 23),
+                // (2,15): error CS0426: The type name 'B' does not exist in the type 'A.B'
+                // class A : A.B.B.I
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "B").WithArguments("B", "A.B").WithLocation(2, 15),
+                // (2,7): error CS0060: Inconsistent accessibility: base class 'A.B.B.I' is less accessible than class 'A'
+                // class A : A.B.B.I
+                Diagnostic(ErrorCode.ERR_BadVisBaseClass, "A").WithArguments("A", "A.B.B.I").WithLocation(2, 7));
         }
 
         [Fact]

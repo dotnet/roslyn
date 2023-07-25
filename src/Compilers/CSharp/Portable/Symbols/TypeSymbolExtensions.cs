@@ -702,6 +702,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Enum:
                     case TypeKind.Delegate:
                     case TypeKind.Extension:
+                    case TypeKind.Error:
                         {
                             var containingType = current.ContainingType;
                             if ((object)containingType != null)

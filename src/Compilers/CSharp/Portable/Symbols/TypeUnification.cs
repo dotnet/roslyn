@@ -15,8 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Determine whether there is any substitution of type parameters that will
         /// make two types identical.
         /// </summary>
-        public static bool CanUnify(TypeSymbol? t1, TypeSymbol? t2)
+        public static bool CanUnify(TypeSymbol t1, TypeSymbol t2)
         {
+            Debug.Assert(t1 is not null);
+            Debug.Assert(t2 is not null);
+
             if (TypeSymbol.Equals(t1, t2, TypeCompareKind.CLRSignatureCompareOptions))
             {
                 return true;
@@ -25,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MutableTypeMap? substitution = null;
             bool result = CanUnifyHelper(t1, t2, onlySubstituteInLHS: false, ref substitution);
 #if DEBUG
-            if (result && ((object)t1 != null && (object)t2 != null))
+            if (result)
             {
                 var substituted1 = SubstituteAllTypeParameters(substitution, TypeWithAnnotations.Create(t1));
                 var substituted2 = SubstituteAllTypeParameters(substitution, TypeWithAnnotations.Create(t2));
@@ -38,11 +41,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Determines a substitution of type parameters on <paramref name="extensionUnderlyingType"/>
+        /// Determines a substitution of type parameters on <paramref name="extension"/>
         /// that yields <paramref name="type"/>.
+        /// The substitution should not touch any of the containing type's type parameters
+        /// and it should substitute all of the extension's own type parameters.
         /// </summary>
-        public static bool CanImplicitlyExtend(TypeSymbol? extensionUnderlyingType, TypeSymbol? type, out AbstractTypeParameterMap? map)
+        public static bool CanImplicitlyExtend(NamedTypeSymbol extension, TypeSymbol type, out AbstractTypeParameterMap? map)
         {
+            Debug.Assert(extension is not null);
+            Debug.Assert(type is not null);
+
+            var extensionUnderlyingType = extension.ExtendedTypeNoUseSiteDiagnostics;
+            Debug.Assert(extensionUnderlyingType is not null);
+
             // PROTOTYPE we'll want to adjust the handling for differences that aren't relevant to the CLR, such as object/dynamic
             if (TypeSymbol.Equals(extensionUnderlyingType, type, TypeCompareKind.CLRSignatureCompareOptions))
             {
@@ -59,8 +70,41 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(substitutedUnderlyingType.Type.Equals(type, TypeCompareKind.CLRSignatureCompareOptions));
             }
 #endif
+
+            // In error scenarios where we end up with unsubstituted type parameters,
+            // we reject the extension.
+            foreach (var typeParameter in extension.TypeParameters)
+            {
+                if (substitution is null || !substitution.Contains(typeParameter))
+                {
+                    map = null;
+                    return false;
+                }
+            }
+
+            // We cannot allow any of the type parameters of the extension's containing type to be substituted
+            if (hasSubstitutionForContainingTypeTypeParameter(extension.ContainingType, substitution))
+            {
+                map = null;
+                return false;
+            }
+
             map = substitution;
             return result;
+
+            static bool hasSubstitutionForContainingTypeTypeParameter(NamedTypeSymbol? containingType, MutableTypeMap? substitution)
+            {
+                if (containingType is null || substitution is null)
+                {
+                    return false;
+                }
+
+                TypeSymbol? foundTypeParameter = containingType.VisitType(
+                    (type, substitution, _) => type is TypeParameterSymbol typeParameter ? substitution.Contains(typeParameter) : false,
+                    arg: substitution);
+                return foundTypeParameter is not null;
+            }
+
         }
 
 #if DEBUG
@@ -221,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // Perform the "occurs check" - i.e. ensure that t2 doesn't contain t1 to avoid recursive types
                         // Note: t2 can't be the same type param - we would have caught that with ReferenceEquals above
-                        if (Contains(t2.Type, tp1))
+                        if (t2.Type.ContainsTypeParameter(tp1))
                         {
                             return false;
                         }
@@ -287,43 +331,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // if t1 was already in the substitution, it would have been substituted at the
             // start of CanUnifyHelper and we wouldn't be here.
             substitution.Add(tp1, t2);
-        }
-
-        /// <summary>
-        /// Return true if the given type contains the specified type parameter.
-        /// </summary>
-        internal static bool Contains(TypeSymbol type, TypeParameterSymbol typeParam)
-        {
-            switch (type.Kind)
-            {
-                case SymbolKind.ArrayType:
-                    return Contains(((ArrayTypeSymbol)type).ElementType, typeParam);
-                case SymbolKind.PointerType:
-                    return Contains(((PointerTypeSymbol)type).PointedAtType, typeParam);
-                case SymbolKind.NamedType:
-                case SymbolKind.ErrorType:
-                    {
-                        NamedTypeSymbol namedType = (NamedTypeSymbol)type;
-                        while ((object)namedType != null)
-                        {
-                            var typeParts = namedType.IsTupleType ? namedType.TupleElementTypesWithAnnotations : namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
-                            foreach (TypeWithAnnotations typePart in typeParts)
-                            {
-                                if (Contains(typePart.Type, typeParam))
-                                {
-                                    return true;
-                                }
-                            }
-                            namedType = namedType.ContainingType;
-                        }
-
-                        return false;
-                    }
-                case SymbolKind.TypeParameter:
-                    return TypeSymbol.Equals(type, typeParam, TypeCompareKind.ConsiderEverything);
-                default:
-                    return false;
-            }
         }
     }
 }

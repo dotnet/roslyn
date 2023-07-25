@@ -2724,6 +2724,9 @@ implicit extension E<T, U> for C<T>
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
+            // (1,19): error CS0117: 'C<int>' does not contain a definition for 'f'
+            // string s = C<int>.f;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "f").WithArguments("C<int>", "f").WithLocation(1, 19),
             // (5,20): error CS9228: The underlying type 'C<T>' of implicit extension 'E<T, U>' must reference all the type parameters declared by the extension, but type parameter 'U' is missing.
             // implicit extension E<T, U> for C<T>
             Diagnostic(ErrorCode.ERR_UnderspecifiedImplicitExtension, "E").WithArguments("C<T>", "E<T, U>", "U").WithLocation(5, 20)
@@ -2732,7 +2735,141 @@ implicit extension E<T, U> for C<T>
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<int>.f");
-        Assert.Equal("System.String E<System.Int32, U>.f", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+    }
+
+    [Fact]
+    public void UnderlyingType_TypeParametersMustBeUsed_Container()
+    {
+        var src = """
+#nullable enable
+
+string s1 = C<int>.f; // 1
+
+class C<T> { }
+
+class Container<T, U>
+{
+    implicit extension E for C<T>
+    {
+        public static string f = "hi";
+    }
+
+    void M()
+    {
+        string s2 = C<long>.f; // 2
+        string s3 = C<T>.f;
+
+        string s4 = C<T?>.f;
+
+        string s5 = C<
+#nullable disable
+            T
+#nullable enable
+            >.f;
+    }
+}
+""";
+        // PROTOTYPE handle nullability differences on s4 and s5
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (3,20): error CS0117: 'C<int>' does not contain a definition for 'f'
+            // string s1 = C<int>.f; // 1
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "f").WithArguments("C<int>", "f").WithLocation(3, 20),
+            // (16,29): error CS0117: 'C<long>' does not contain a definition for 'f'
+            //         string s2 = C<long>.f; // 2
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "f").WithArguments("C<long>", "f").WithLocation(16, 29)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var s1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<int>.f");
+        Assert.Null(model.GetSymbolInfo(s1).Symbol);
+
+        var s2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<long>.f");
+        Assert.Null(model.GetSymbolInfo(s2).Symbol);
+
+        var s3 = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<T>.f");
+        Assert.Equal("System.String Container<T, U>.E.f", model.GetSymbolInfo(s3).Symbol.ToTestDisplayString());
+
+        var s4 = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<T?>.f");
+        Assert.Equal("System.String Container<T, U>.E.f", model.GetSymbolInfo(s4).Symbol.ToTestDisplayString());
+
+        var s5 = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Last();
+        Assert.Equal("""
+            C<
+            #nullable disable
+                        T
+            #nullable enable
+                        >.f
+            """, s5.ToString());
+
+        Assert.Equal("System.String Container<T, U>.E.f", model.GetSymbolInfo(s5).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void UnderlyingType_TypeParametersMustBeUsed_ContainerContainer()
+    {
+        var src = """
+#nullable enable
+
+class C<T> { }
+
+class ContainerContainer<T>
+{
+    class Container<U>
+    {
+        implicit extension E for C<T>
+        {
+            public static string f = "hi";
+        }
+
+        void M()
+        {
+            string s2 = C<long>.f; // 1
+            string s3 = C<T>.f;
+
+            string s4 = C<T?>.f;
+
+            string s5 = C<
+#nullable disable
+                T
+#nullable enable
+                >.f;
+        }
+    }
+}
+""";
+        // PROTOTYPE handle nullability differences on s4 and s5
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (16,33): error CS0117: 'C<long>' does not contain a definition for 'f'
+            //             string s2 = C<long>.f; // 1
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "f").WithArguments("C<long>", "f").WithLocation(16, 33)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var s2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<long>.f");
+        Assert.Null(model.GetSymbolInfo(s2).Symbol);
+
+        var s3 = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<T>.f");
+        Assert.Equal("System.String ContainerContainer<T>.Container<U>.E.f", model.GetSymbolInfo(s3).Symbol.ToTestDisplayString());
+
+        var s4 = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<T?>.f");
+        Assert.Equal("System.String ContainerContainer<T>.Container<U>.E.f", model.GetSymbolInfo(s4).Symbol.ToTestDisplayString());
+
+        var s5 = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Last();
+        Assert.Equal("""
+            C<
+            #nullable disable
+                            T
+            #nullable enable
+                            >.f
+            """, s5.ToString());
+
+        Assert.Equal("System.String ContainerContainer<T>.Container<U>.E.f", model.GetSymbolInfo(s5).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -19083,6 +19220,40 @@ unsafe implicit extension E<T1, T2> for C<T1[]>.Nested<T2[]>
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<long*[]>.Nested<int*[]>.f");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void GenericExtension_FunctionPointer()
+    {
+        // PROTOTYPE type unification should handle function pointer types
+        var src = """
+unsafe
+{
+    string s = C<delegate*<int>[]>.Nested<delegate*<long>[]>.f;
+    System.Console.Write(s);
+}
+
+unsafe class C<T>
+{
+    internal class Nested<U> { }
+}
+
+unsafe implicit extension E<T1, T2> for C<delegate*<T1>[]>.Nested<delegate*<T2>[]>
+{
+    public static string f = "hi";
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.UnsafeDebugExe);
+        comp.VerifyDiagnostics(
+            // (3,62): error CS0117: 'C<delegate*<int>[]>.Nested<delegate*<long>[]>' does not contain a definition for 'f'
+            //     string s = C<delegate*<int>[]>.Nested<delegate*<long>[]>.f;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "f").WithArguments("C<delegate*<int>[]>.Nested<delegate*<long>[]>", "f").WithLocation(3, 62)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<delegate*<int>[]>.Nested<delegate*<long>[]>.f");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
     }
 

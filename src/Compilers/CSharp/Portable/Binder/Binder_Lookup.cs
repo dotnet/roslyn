@@ -229,8 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isCompatible(NamedTypeSymbol extension, TypeSymbol type, [NotNullWhen(true)] out NamedTypeSymbol? substitutedExtension)
             {
                 Debug.Assert(!type.IsExtension);
-                var extended = extension.ExtendedTypeNoUseSiteDiagnostics;
-                if (extended is null)
+                if (extension.ExtendedTypeNoUseSiteDiagnostics is null)
                 {
                     substitutedExtension = null;
                     return false;
@@ -239,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var baseType = type;
                 do
                 {
-                    if (TypeUnification.CanImplicitlyExtend(extended, baseType, out var map))
+                    if (TypeUnification.CanImplicitlyExtend(extension, baseType, out AbstractTypeParameterMap? map))
                     {
                         substitutedExtension = map is not null ? (NamedTypeSymbol)map.SubstituteType(extension).Type : extension;
                         return true;
@@ -251,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var implementedInterface in type.AllInterfacesNoUseSiteDiagnostics)
                 {
-                    if (TypeUnification.CanImplicitlyExtend(extended, implementedInterface, out var map))
+                    if (TypeUnification.CanImplicitlyExtend(extension, implementedInterface, out AbstractTypeParameterMap? map))
                     {
                         substitutedExtension = map is not null ? (NamedTypeSymbol)map.SubstituteType(extension).Type : extension;
                         return true;
