@@ -4754,6 +4754,7 @@ public readonly struct [|S|]
                     public readonly ref int RORefValue;
 
                     public void M(scoped ref int value) { }
+                    public void N(out int value) { }
                 }
                 """);
 
@@ -4767,6 +4768,10 @@ public readonly struct [|S|]
                     public ref global::System.Int32 RefValue;
                     public readonly ref global::System.Int32 RORefValue;
                     public void M(scoped ref global::System.Int32 value)
+                    {
+                    }
+
+                    public void N(out global::System.Int32 value)
                     {
                     }
 
