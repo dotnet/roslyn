@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 => CurrentAnalysisData.TryGetValue(analysisEntity, out var value) ? value : ValueDomain.UnknownOrMayBeValue;
 
             protected override ValueContentAbstractValue GetAbstractDefaultValue(ITypeSymbol? type)
-                => type != null && !type.HasReferenceTypeSemantics() ?
+                => type != null && !type.CanHoldNullValue() ?
                    ValueContentAbstractValue.DoesNotContainLiteralOrNonLiteralState :
                    ValueContentAbstractValue.ContainsNullLiteralState;
 

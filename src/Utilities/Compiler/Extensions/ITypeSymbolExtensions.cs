@@ -295,7 +295,7 @@ namespace Analyzer.Utilities.Extensions
             => typeSymbol.IsValueType || typeSymbol.SpecialType == SpecialType.System_String;
 
 #if !MICROSOFT_CODEANALYSIS_PUBLIC_API_ANALYZERS
-        public static bool HasReferenceTypeSemantics([NotNullWhen(returnValue: true)] this ITypeSymbol? typeSymbol)
+        public static bool CanHoldNullValue([NotNullWhen(returnValue: true)] this ITypeSymbol? typeSymbol)
             => typeSymbol.IsReferenceTypeOrNullableValueType() ||
                typeSymbol?.IsRefLikeType == true ||
                typeSymbol is ITypeParameterSymbol typeParameter && !typeParameter.IsValueType;
