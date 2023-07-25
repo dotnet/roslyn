@@ -15,8 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
             BaseObjectCreationExpressionSyntax baseObjectCreation,
             SeparatedSyntaxList<ExpressionSyntax> expressions)
         {
-            if (baseObjectCreation is ObjectCreationExpressionSyntax objectCreation &&
-                objectCreation.ArgumentList?.Arguments.Count == 0)
+            if (baseObjectCreation is ObjectCreationExpressionSyntax { ArgumentList.Arguments.Count: 0 } objectCreation)
             {
                 baseObjectCreation = objectCreation
                     .WithType(objectCreation.Type.WithTrailingTrivia(objectCreation.ArgumentList.GetTrailingTrivia()))

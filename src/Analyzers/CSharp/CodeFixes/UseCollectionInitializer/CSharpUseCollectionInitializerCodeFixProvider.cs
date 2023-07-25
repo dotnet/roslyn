@@ -7,12 +7,14 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.UseObjectInitializer;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
 using Roslyn.Utilities;
 
@@ -39,26 +41,42 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
         {
         }
 
-        protected override StatementSyntax GetNewStatement(
+        protected override async Task<StatementSyntax> GetNewStatementAsync(
+            SourceText sourceText,
             StatementSyntax statement,
             BaseObjectCreationExpressionSyntax objectCreation,
+            int wrappingLength,
             bool useCollectionExpression,
             ImmutableArray<Match<StatementSyntax>> matches)
         {
             return statement.ReplaceNode(
                 objectCreation,
-                GetNewObjectCreation(objectCreation, useCollectionExpression, matches));
+                await GetNewObjectCreationAsync(sourceText, objectCreation, wrappingLength, useCollectionExpression, matches).ConfigureAwait(false));
         }
 
-        private static ExpressionSyntax GetNewObjectCreation(
+        private static async Task<ExpressionSyntax> GetNewObjectCreationAsync(
+            SourceText sourceText,
             BaseObjectCreationExpressionSyntax objectCreation,
+            int wrappingLength,
             bool useCollectionExpression,
             ImmutableArray<Match<StatementSyntax>> matches)
         {
             var expressions = CreateExpressions(objectCreation, matches);
+            if (MakeMultiLine(objectCreation, useCollectionExpression, expressions, wrappingLength))
+                expressions = AddLineBreaks(expressions);
+
             return useCollectionExpression
                 ? CreateCollectionExpression(objectCreation, matches, expressions)
                 : UseInitializerHelpers.GetNewObjectCreation(objectCreation, expressions);
+        }
+
+        private static bool MakeMultiLine(
+            BaseObjectCreationExpressionSyntax objectCreation,
+            bool useCollectionExpression,
+            SeparatedSyntaxList<ExpressionSyntax> expressions,
+            int wrappingLength)
+        {
+            throw new NotImplementedException();
         }
 
         private static CollectionExpressionSyntax CreateCollectionExpression(
