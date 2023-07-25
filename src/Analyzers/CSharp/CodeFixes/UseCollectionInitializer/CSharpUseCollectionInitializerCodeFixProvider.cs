@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             ImmutableArray<Match<StatementSyntax>> matches)
         {
             var expressions = CreateExpressions(objectCreation, matches);
-            if (MakeMultiLine(objectCreation, useCollectionExpression, expressions, wrappingLength))
+            if (MakeMultiLine(sourceText, objectCreation, expressions, wrappingLength))
                 expressions = AddLineBreaks(expressions);
 
             return useCollectionExpression
@@ -71,12 +71,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
         }
 
         private static bool MakeMultiLine(
+            SourceText sourceText,
             BaseObjectCreationExpressionSyntax objectCreation,
-            bool useCollectionExpression,
             SeparatedSyntaxList<ExpressionSyntax> expressions,
             int wrappingLength)
         {
-            throw new NotImplementedException();
+            // If it's already multiline, keep it that way.
+            if (!sourceText.AreOnSameLine(objectCreation.GetFirstToken(), objectCreation.GetLastToken()))
+                return true;
+
+            // if any of the expressions we're adding are multiline, then make things multiline.
+            foreach (var expression in expressions)
+            {
+                if (!sourceText.AreOnSameLine(expression.GetFirstToken(), expression.GetLastToken()))
+                    return true;
+            }
+
+            var totalLength = 2; // for the braces.
+            foreach (var item in expressions.GetWithSeparators())
+            {
+                totalLength += item.Span.Length;
+
+                // add a space for after each comma.
+                if (item.IsToken)
+                    totalLength++;
+
+                if (totalLength > wrappingLength)
+                    return true;
+            }
+
+            return false;
         }
 
         private static CollectionExpressionSyntax CreateCollectionExpression(
@@ -165,20 +189,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
         }
 
         private static ExpressionSyntax ConvertExpression(ExpressionSyntax expression)
-        {
-            if (expression is InvocationExpressionSyntax invocation)
+            => expression switch
             {
-                return ConvertInvocation(invocation);
-            }
-            else if (expression is AssignmentExpressionSyntax assignment)
-            {
-                return ConvertAssignment(assignment);
-            }
+                InvocationExpressionSyntax invocation => ConvertInvocation(invocation),
+                AssignmentExpressionSyntax assignment => ConvertAssignment(assignment),
+                _ => throw new InvalidOperationException(),
+            };
 
-            throw new InvalidOperationException();
-        }
-
-        private static ExpressionSyntax ConvertAssignment(AssignmentExpressionSyntax assignment)
+        private static AssignmentExpressionSyntax ConvertAssignment(AssignmentExpressionSyntax assignment)
         {
             var elementAccess = (ElementAccessExpressionSyntax)assignment.Left;
             return assignment.WithLeft(
