@@ -90,9 +90,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         }
 
         internal static bool ShouldBeTracked([NotNullWhen(returnValue: true)] ITypeSymbol? typeSymbol, Func<ITypeSymbol?, bool> isDisposable)
-            => typeSymbol.IsReferenceTypeOrNullableValueType() ||
-               typeSymbol?.IsRefLikeType == true ||
-               typeSymbol is ITypeParameterSymbol typeParameter && !typeParameter.IsValueType ||
+            => typeSymbol.CanHoldNullValue() ||
                isDisposable(typeSymbol);
 
         internal static bool ShouldBeTracked(AnalysisEntity analysisEntity, PointsToAnalysisKind pointsToAnalysisKind, Func<ITypeSymbol?, bool> isDisposable)
