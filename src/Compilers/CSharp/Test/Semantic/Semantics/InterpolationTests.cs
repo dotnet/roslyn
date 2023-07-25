@@ -8492,7 +8492,8 @@ literal:literal
         [Theory]
         [CombinatorialData]
         public void InterpolatedStringHandlerArgumentAttribute_RefKindsMatch([CombinatorialValues("", ", out bool success")] string extraConstructorArg,
-            [CombinatorialValues(@"$""literal""", @"$""literal"" + $""""")] string expression)
+            [CombinatorialValues(@"$""literal""", @"$""literal"" + $""""")] string expression,
+            [CombinatorialValues("in", "ref readonly")] string modifier)
         {
             var code = @"
 using System;
@@ -8507,7 +8508,7 @@ Console.WriteLine(o);
 
 public class C
 {
-    public static void M(in int i, ref string s, out object o, [InterpolatedStringHandlerArgumentAttribute(""i"", ""s"", ""o"")] CustomHandler c)
+    public static void M(" + modifier + @" int i, ref string s, out object o, [InterpolatedStringHandlerArgumentAttribute(""i"", ""s"", ""o"")] CustomHandler c)
     { 
         Console.WriteLine(s);
         o = ""o in M"";
@@ -8518,7 +8519,7 @@ public class C
 
 public partial struct CustomHandler
 {
-    public CustomHandler(int literalLength, int formattedCount, in int i, ref string s, out object o" + extraConstructorArg + @") : this(literalLength, formattedCount)
+    public CustomHandler(int literalLength, int formattedCount, " + modifier + @" int i, ref string s, out object o" + extraConstructorArg + @") : this(literalLength, formattedCount)
     {
         o = null;
         s = ""s in constructor"";
@@ -8539,7 +8540,14 @@ s in M
 o in M
 ");
 
-            verifier.VerifyDiagnostics();
+            verifier.VerifyDiagnostics(modifier == "ref readonly"
+                ? new[]
+                {
+                    // 0.cs(8,5): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+                    // C.M(i, ref s, out o, $"literal");
+                    Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "i").WithArguments("1").WithLocation(8, 5)
+                }
+                : DiagnosticDescription.None);
 
             verifier.VerifyIL("<top-level-statements-entry-point>", (extraConstructorArg == "")
                 ? @"
@@ -8571,14 +8579,14 @@ o in M
   IL_0016:  ldloc.3
   IL_0017:  ldloc.s    V_4
   IL_0019:  ldloc.s    V_5
-  IL_001b:  newobj     ""CustomHandler..ctor(int, int, in int, ref string, out object)""
+  IL_001b:  newobj     ""CustomHandler..ctor(int, int, " + modifier + @" int, ref string, out object)""
   IL_0020:  stloc.s    V_6
   IL_0022:  ldloca.s   V_6
   IL_0024:  ldstr      ""literal""
   IL_0029:  call       ""bool CustomHandler.AppendLiteral(string)""
   IL_002e:  pop
   IL_002f:  ldloc.s    V_6
-  IL_0031:  call       ""void C.M(in int, ref string, out object, CustomHandler)""
+  IL_0031:  call       ""void C.M(" + modifier + @" int, ref string, out object, CustomHandler)""
   IL_0036:  ldloc.1
   IL_0037:  call       ""void System.Console.WriteLine(string)""
   IL_003c:  ldloc.2
@@ -8617,7 +8625,7 @@ o in M
   IL_0017:  ldloc.s    V_4
   IL_0019:  ldloc.s    V_5
   IL_001b:  ldloca.s   V_7
-  IL_001d:  newobj     ""CustomHandler..ctor(int, int, in int, ref string, out object, out bool)""
+  IL_001d:  newobj     ""CustomHandler..ctor(int, int, " + modifier + @" int, ref string, out object, out bool)""
   IL_0022:  stloc.s    V_6
   IL_0024:  ldloc.s    V_7
   IL_0026:  brfalse.s  IL_0036
@@ -8628,7 +8636,7 @@ o in M
   IL_0036:  ldc.i4.0
   IL_0037:  pop
   IL_0038:  ldloc.s    V_6
-  IL_003a:  call       ""void C.M(in int, ref string, out object, CustomHandler)""
+  IL_003a:  call       ""void C.M(" + modifier + @" int, ref string, out object, CustomHandler)""
   IL_003f:  ldloc.1
   IL_0040:  call       ""void System.Console.WriteLine(string)""
   IL_0045:  ldloc.2
@@ -17575,8 +17583,8 @@ partial struct CustomHandler
 ");
         }
 
-        [Fact]
-        public void HandlerExtensionMethod_05()
+        [Theory, CombinatorialData]
+        public void HandlerExtensionMethod_05([CombinatorialValues("in", "ref readonly")] string modifier)
         {
             var code = @"
 using System;
@@ -17593,12 +17601,12 @@ public struct S1
 
 public static class S1Ext
 {
-    public static void M(in this S1 s, [InterpolatedStringHandlerArgument(""s"")] CustomHandler c) => Console.WriteLine(c.ToString());
+    public static void M(" + modifier + @" this S1 s, [InterpolatedStringHandlerArgument(""s"")] CustomHandler c) => Console.WriteLine(c.ToString());
 }
 
 partial struct CustomHandler
 {
-    public CustomHandler(int literalLength, int formattedCount, in S1 s) : this(literalLength, formattedCount) => _builder.Append(""s.Field:"" + s.Field);
+    public CustomHandler(int literalLength, int formattedCount, " + modifier + @" S1 s) : this(literalLength, formattedCount) => _builder.Append(""s.Field:"" + s.Field);
 }
 ";
 
@@ -17618,8 +17626,8 @@ partial struct CustomHandler
   IL_000b:  ldc.i4.0
   IL_000c:  ldc.i4.0
   IL_000d:  ldloc.1
-  IL_000e:  newobj     ""CustomHandler..ctor(int, int, in S1)""
-  IL_0013:  call       ""void S1Ext.M(in S1, CustomHandler)""
+  IL_000e:  newobj     ""CustomHandler..ctor(int, int, " + modifier + @" S1)""
+  IL_0013:  call       ""void S1Ext.M(" + modifier + @" S1, CustomHandler)""
   IL_0018:  ret
 }
 ");
