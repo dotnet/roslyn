@@ -635,23 +635,24 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             class C
             {
                 public static C operator+(ref readonly C x, C y) => x;
+                public static C operator--(ref readonly C x) => x;
                 public static implicit operator C(ref readonly int x) => null;
-                public static explicit operator C(ref readonly int x) => null;
+                public static explicit operator C(ref readonly short x) => null;
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
             // (3,29): error CS0631: ref and out are not valid in this context
             //     public static C operator+(ref readonly C x, C y) => x;
             Diagnostic(ErrorCode.ERR_IllegalRefParam, "+").WithLocation(3, 29),
-            // (4,37): error CS0631: ref and out are not valid in this context
-            //     public static implicit operator C(ref readonly int x) => null;
-            Diagnostic(ErrorCode.ERR_IllegalRefParam, "C").WithLocation(4, 37),
+            // (4,29): error CS0631: ref and out are not valid in this context
+            //     public static C operator--(ref readonly C x) => x;
+            Diagnostic(ErrorCode.ERR_IllegalRefParam, "--").WithLocation(4, 29),
             // (5,37): error CS0631: ref and out are not valid in this context
-            //     public static explicit operator C(ref readonly int x) => null;
+            //     public static implicit operator C(ref readonly int x) => null;
             Diagnostic(ErrorCode.ERR_IllegalRefParam, "C").WithLocation(5, 37),
-            // (5,37): error CS0557: Duplicate user-defined conversion in type 'C'
-            //     public static explicit operator C(ref readonly int x) => null;
-            Diagnostic(ErrorCode.ERR_DuplicateConversionInClass, "C").WithArguments("C").WithLocation(5, 37));
+            // (6,37): error CS0631: ref and out are not valid in this context
+            //     public static explicit operator C(ref readonly short x) => null;
+            Diagnostic(ErrorCode.ERR_IllegalRefParam, "C").WithLocation(6, 37));
     }
 
     [Fact]
