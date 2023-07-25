@@ -13074,7 +13074,6 @@ public ref struct Buffer2Ref
 }
 ");
 
-
             verifier.VerifyIL("Buffer2Ref..ctor",
 @"
 {
