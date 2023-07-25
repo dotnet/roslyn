@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 }
                 else if (statement is ForEachStatementSyntax foreachStatement)
                 {
-                    var newExpression = ConvertExpression(foreachStatement.Expression)
+                    var newExpression = foreachStatement.Expression
                         .WithoutTrivia()
                         .WithPrependedLeadingTrivia(newTrivia);
                     nodesAndTokens.Add(newExpression);

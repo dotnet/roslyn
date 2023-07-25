@@ -85,7 +85,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 {
                     List<int> c = [|new|] List<int>();
                     [|c.Add(|]1);
-                    foreach (var v in x)
+                    [|foreach (var v in |]x)
                         c.Add(v);
                 }
             }
@@ -95,12 +95,9 @@ public partial class UseCollectionInitializerTests_CollectionExpression
 
             class C
             {
-                void M()
+                void M(int[] x)
                 {
-                    var c = new List<int>
-                    {
-                        1
-                    };
+                    List<int> c = [1, .. x];
                 }
             }
             """);
@@ -119,7 +116,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 {
                     List<int> c = [|new|] List<int>();
                     [|c.Add(|]1);
-                    foreach (var v in x)
+                    [|foreach (var v in |]x)
                     {
                         c.Add(v);
                     }
@@ -131,12 +128,9 @@ public partial class UseCollectionInitializerTests_CollectionExpression
 
             class C
             {
-                void M()
+                void M(int[] x)
                 {
-                    var c = new List<int>
-                    {
-                        1
-                    };
+                    List<int> c = [1, .. x];
                 }
             }
             """);
@@ -167,12 +161,13 @@ public partial class UseCollectionInitializerTests_CollectionExpression
 
             class C
             {
-                void M()
+                void M(int[] x)
                 {
-                    var c = new List<int>
+                    List<int> c = [1];
+                    foreach (var v in x)
                     {
-                        1
-                    };
+                        c.Add(0);
+                    }
                 }
             }
             """);
@@ -203,12 +198,13 @@ public partial class UseCollectionInitializerTests_CollectionExpression
 
             class C
             {
-                void M()
+                void M(int[] x, int z)
                 {
-                    var c = new List<int>
+                    List<int> c = [1];
+                    foreach (var v in x)
                     {
-                        1
-                    };
+                        c.Add(z);
+                    }
                 }
             }
             """);
@@ -223,13 +219,13 @@ public partial class UseCollectionInitializerTests_CollectionExpression
 
             class C
             {
-                void M(int[] x, int y)
+                void M(int[] x, int[] y)
                 {
                     List<int> c = [|new|] List<int>();
                     [|c.Add(|]1);
-                    foreach (var v in x)
+                    [|foreach (var v in |]x)
                         c.Add(v);
-                    foreach (var v in y)
+                    [|foreach (var v in |]y)
                         c.Add(v);
                 }
             }
@@ -239,7 +235,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
 
             class C
             {
-                void M()
+                void M(int[] x, int[] y)
                 {
                     List<int> c = new List<int>
                     {
@@ -259,13 +255,13 @@ public partial class UseCollectionInitializerTests_CollectionExpression
 
             class C
             {
-                void M(int[] x, int y)
+                void M(int[] x, int[] y)
                 {
                     List<int> c = [|new|] List<int>();
-                    foreach (var v in x)
+                    [|foreach (var v in |]x)
                         c.Add(v);
                     [|c.Add(|]1);
-                    foreach (var v in y)
+                    [|foreach (var v in |]y)
                         c.Add(v);
                 }
             }
@@ -275,7 +271,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
 
             class C
             {
-                void M()
+                void M(int[] x, int[] y)
                 {
                     var c = new List<int>
                     {
@@ -298,9 +294,9 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M(int[] x, int y)
                 {
                     List<int> c = [|new|] List<int>();
-                    foreach (var v in x)
+                    [|foreach (var v in |]x)
                         c.Add(v);
-                    foreach (var v in y)
+                    [|foreach (var v in |]y)
                         c.Add(v);
                     [|c.Add(|]1);
                 }
@@ -311,7 +307,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
 
             class C
             {
-                void M()
+                void M(int[] x, int y)
                 {
                     var c = new List<int>
                     {
@@ -344,12 +340,9 @@ public partial class UseCollectionInitializerTests_CollectionExpression
 
             class C
             {
-                void M()
+                void M(int[] x)
                 {
-                    var c = new List<int>
-                    {
-                        1
-                    };
+                    List<int> c = [1, .. x];
                 }
             }
             """);
@@ -379,12 +372,9 @@ public partial class UseCollectionInitializerTests_CollectionExpression
 
             class C
             {
-                void M()
+                void M(int[] x, int[] y)
                 {
-                    var c = new List<int>
-                    {
-                        1
-                    };
+                    List<int> c = [1, .. x, .. y];
                 }
             }
             """);
@@ -441,7 +431,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             using System.Collections.Generic;
             class C
             {
-                void M()
+                void M(int[] x)
                 {
                     List<int> c = new List<int>
                     {
@@ -680,11 +670,8 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    var c = new List<int>
-                    {
-                        1,
-                        2
-                    };
+                    List<int> c = [1,
+                    2];
                     throw new System.Exception();
                     c.Add(3);
                     c.Add(4);
@@ -758,7 +745,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    var c = new List<int>(1)
+                    List<int> c = new List<int>(1)
                     {
                         1
                     };
@@ -1173,14 +1160,12 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    var c = new List<int>
-                    {
-                        // Goo
-                        1,
+                    List<int> c = [
+                    // Goo
+                    1,
 
-                        // Bar
-                        2
-                    };
+                    // Bar
+                    2];
                 }
             }
             """);
@@ -1322,7 +1307,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 static void M()
                 {
-                    var items = [|new|] List<object>
+                    List<object> items = [|new|] List<object>
                     {
                         [0] = 1
                     };
@@ -1522,10 +1507,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 public void M()
                 {
                     int lastItem;
-                    var list = new List<int>
-                    {
-                        (lastItem = 5)
-                    };
+                    List<int> list = [(lastItem = 5)];
                 }
             }
             """);
@@ -1556,10 +1538,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 public void M()
                 {
                     int lastItem = 0;
-                    var list = new List<int>
-                    {
-                        (lastItem += 5)
-                    };
+                    List<int> list = [(lastItem += 5)];
                 }
             }
             """);
@@ -1614,7 +1593,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     obj.Add("string", "v");
                     obj.Add("int", 1);
                     obj.Add(" object", new { X = 1, Y = 2 });
-                    }
+                }
             }
             """);
     }
