@@ -1160,7 +1160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (arguments.IsExtensionMethodThisArgument(arg))
             {
                 Debug.Assert(refArg == RefKind.None);
-                if (refParameter == RefKind.Ref || refParameter == RefKind.In)
+                if (refParameter == RefKind.Ref)
                 {
                     // For ref and ref-readonly extension methods, we omit the "ref" modifier on receiver arguments.
                     // Setting the correct RefKind for finding the correct diagnostics message.
