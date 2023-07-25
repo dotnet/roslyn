@@ -46,6 +46,7 @@ Example `runs` section, with stripped off `results`, `rules` and `ruleConfigurat
   },
   "invocations": [
     {
+      "executionSuccessful": true,
       "ruleConfigurationOverrides": [
       ]
     }

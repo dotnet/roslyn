@@ -354,6 +354,7 @@ namespace Microsoft.CodeAnalysis
             /*
                 "invocations": [                          # See §3.14.11.
                   {                                       # An invocation object (§3.20).
+                    "executionSuccessful" : true,         # See $3.20.14. A boolean value.
                     "ruleConfigurationOverrides": [       # See §3.20.5.
                       {                                   # A configurationOverride object
                                                           #  (§3.51).
@@ -372,6 +373,11 @@ namespace Microsoft.CodeAnalysis
 
             _writer.WriteArrayStart("invocations");
             _writer.WriteObjectStart(); // invocation
+
+            // Boolean property that is true if the engineering system that started the process knows that the analysis tool succeeded,
+            // and false if the engineering system knows that the tool failed.
+            // TODO: Detect when the compiler exits with an exception and emit "false".
+            _writer.Write("executionSuccessful", true);
 
             _writer.WriteArrayStart("ruleConfigurationOverrides");
 

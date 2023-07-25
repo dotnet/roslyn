@@ -417,6 +417,7 @@ namespace Microsoft.CodeAnalysis
 
                 return $@"""invocations"": [
         {{
+          ""executionSuccessful"": true,
           ""ruleConfigurationOverrides"": [{overridesContent}
           ]
         }}
