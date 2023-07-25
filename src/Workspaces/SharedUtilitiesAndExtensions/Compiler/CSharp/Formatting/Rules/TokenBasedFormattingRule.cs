@@ -67,6 +67,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     }
 
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
+
+                case SyntaxKind.CloseBracketToken:
+                    // For a multi-line collection expression, keep the `[` and `]` on different lines.
+                    if (currentToken.Parent is CollectionExpressionSyntax)
+                        return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
+
+                    break;
             }
 
             // do { } while case
@@ -111,6 +118,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     }
 
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
+
+                case SyntaxKind.OpenBracketToken:
+                    // For a multi-line collection expression, keep the `[` and `]` on different lines.
+                    if (previousToken.Parent is CollectionExpressionSyntax)
+                        return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
+
+                    break;
             }
 
             ///////////////////////////////////////////////////

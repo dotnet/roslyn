@@ -289,8 +289,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 //     then, engine will pick new line operation and ignore space operation
 
                 // make attributes have a space following
-                if (previousToken.IsKind(SyntaxKind.CloseBracketToken) && previousToken.Parent is AttributeListSyntax
-                    && !(currentToken.Parent is AttributeListSyntax))
+                if (previousToken.IsKind(SyntaxKind.CloseBracketToken) &&
+                    previousToken.Parent is AttributeListSyntax &&
+                    currentToken.Parent is not AttributeListSyntax)
                 {
                     return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
                 }
@@ -318,6 +319,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 case SyntaxKind.OpenBraceToken:
                 case SyntaxKind.FinallyKeyword:
                     return 1;
+
+                //case SyntaxKind.OpenBracketToken:
+                //    // For a multi-line collection expression, keep the `[` and `]` on different lines.
+                //    if (previousToken.Parent is CollectionExpressionSyntax)
+                //        return 1;
+
+                //    break;
 
                 case SyntaxKind.CloseBraceToken:
                     return LineBreaksAfterCloseBrace(currentToken);
@@ -388,21 +396,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 case SyntaxKind.FinallyKeyword:
                     return 1;
 
+                //case SyntaxKind.CloseBracketToken:
+                //    // For a multi-line collection expression, keep the `[` and `]` on different lines.
+                //    if (previousToken.Parent is CollectionExpressionSyntax)
+                //        return 1;
+
+                //    break;
+
                 case SyntaxKind.OpenBracketToken:
                     // Assembly and module-level attributes preceded by non-attributes should have
                     // a blank line separating them.
                     if (currentToken.Parent is AttributeListSyntax parent)
                     {
-                        if (parent.Target != null)
+                        if (parent.Target != null &&
+                            parent.Target.Identifier.Kind() is SyntaxKind.AssemblyKeyword or SyntaxKind.ModuleKeyword &&
+                            previousToken.Parent is not AttributeListSyntax)
                         {
-                            if (parent.Target.Identifier == SyntaxFactory.Token(SyntaxKind.AssemblyKeyword) ||
-                                parent.Target.Identifier == SyntaxFactory.Token(SyntaxKind.ModuleKeyword))
-                            {
-                                if (previousToken.Parent is not AttributeListSyntax)
-                                {
-                                    return 2;
-                                }
-                            }
+                            return 2;
                         }
 
                         // Attributes on parameters should have no lines between them.
