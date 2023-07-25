@@ -9,21 +9,14 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
 {
     internal abstract partial class AbstractGenerateFromMembersCodeRefactoringProvider : CodeRefactoringProvider
     {
-        protected class SelectedMemberInfo
+        protected class SelectedMemberInfo(
+            INamedTypeSymbol containingType,
+            ImmutableArray<SyntaxNode> selectedDeclarations,
+            ImmutableArray<ISymbol> selectedMembers)
         {
-            public readonly INamedTypeSymbol ContainingType;
-            public readonly ImmutableArray<SyntaxNode> SelectedDeclarations;
-            public readonly ImmutableArray<ISymbol> SelectedMembers;
-
-            public SelectedMemberInfo(
-                INamedTypeSymbol containingType,
-                ImmutableArray<SyntaxNode> selectedDeclarations,
-                ImmutableArray<ISymbol> selectedMembers)
-            {
-                ContainingType = containingType;
-                SelectedDeclarations = selectedDeclarations;
-                SelectedMembers = selectedMembers;
-            }
+            public readonly INamedTypeSymbol ContainingType = containingType;
+            public readonly ImmutableArray<SyntaxNode> SelectedDeclarations = selectedDeclarations;
+            public readonly ImmutableArray<ISymbol> SelectedMembers = selectedMembers;
         }
     }
 }

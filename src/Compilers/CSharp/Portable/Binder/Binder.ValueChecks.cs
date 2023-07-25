@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case BoundKind.UnconvertedCollectionLiteralExpression:
+                case BoundKind.UnconvertedCollectionExpression:
                     if (valueKind == BindValueKind.RValue)
                     {
                         return expr;
@@ -3959,7 +3959,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var switchExpr = (BoundSwitchExpression)expr;
                     return GetValEscape(switchExpr.SwitchArms.SelectAsArray(a => a.Value), scopeOfTheContainingExpression);
 
-                case BoundKind.CollectionLiteralExpression:
+                case BoundKind.CollectionExpression:
                     return CallingMethodScope;
 
                 default:
@@ -4488,7 +4488,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return true;
 
-                case BoundKind.CollectionLiteralExpression:
+                case BoundKind.CollectionExpression:
                     return true;
 
                 default:
@@ -4832,7 +4832,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (expression)
                 {
                     case BoundBinaryOperator binary:
-                        getParts((BoundInterpolatedString)binary.Right);
+                        GetInterpolatedStringHandlerArgumentsForEscape(binary.Right, arguments);
                         expression = binary.Left;
                         break;
 

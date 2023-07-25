@@ -657,12 +657,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We extend the definition of standard implicit conversions to include
             // all of the implicit conversions that are allowed based on an expression,
             // with the exception of switch expression, interpolated string builder,
-            // and collection literal conversions.
+            // and collection expression conversions.
 
             Conversion conversion = ClassifyImplicitBuiltInConversionFromExpression(sourceExpression, source, destination, ref useSiteInfo);
             if (conversion.Exists &&
                 !conversion.IsInterpolatedStringHandler &&
-                !conversion.IsCollectionLiteral)
+                !conversion.IsCollectionExpression)
             {
                 Debug.Assert(IsStandardImplicitConversionFromExpression(conversion.Kind));
                 return conversion;
@@ -1101,10 +1101,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.UnconvertedObjectCreationExpression:
                     return Conversion.ObjectCreation;
 
-                case BoundKind.UnconvertedCollectionLiteralExpression:
-                    if (GetCollectionLiteralTypeKind(Compilation, destination, out _) != CollectionLiteralTypeKind.None)
+                case BoundKind.UnconvertedCollectionExpression:
+                    if (GetCollectionExpressionTypeKind(Compilation, destination, out _) != CollectionExpressionTypeKind.None)
                     {
-                        return Conversion.CollectionLiteral;
+                        return Conversion.CollectionExpression;
                     }
                     break;
             }
@@ -1599,7 +1599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return IsAnonymousFunctionCompatibleWithType((UnboundLambda)source, destination) == LambdaConversionResult.Success;
         }
 
-        internal static CollectionLiteralTypeKind GetCollectionLiteralTypeKind(CSharpCompilation compilation, TypeSymbol destination, out TypeSymbol? elementType)
+        internal static CollectionExpressionTypeKind GetCollectionExpressionTypeKind(CSharpCompilation compilation, TypeSymbol destination, out TypeSymbol? elementType)
         {
             Debug.Assert(compilation is { });
 
@@ -1608,29 +1608,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (arrayType.IsSZArray)
                 {
                     elementType = arrayType.ElementType;
-                    return CollectionLiteralTypeKind.Array;
+                    return CollectionExpressionTypeKind.Array;
                 }
             }
             else if (isSpanType(compilation, destination, WellKnownType.System_Span_T, out elementType))
             {
-                return CollectionLiteralTypeKind.Span;
+                return CollectionExpressionTypeKind.Span;
             }
             else if (isSpanType(compilation, destination, WellKnownType.System_ReadOnlySpan_T, out elementType))
             {
-                return CollectionLiteralTypeKind.ReadOnlySpan;
+                return CollectionExpressionTypeKind.ReadOnlySpan;
+            }
+            else if ((destination as NamedTypeSymbol)?.HasCollectionBuilderAttribute(out _, out _) == true)
+            {
+                return CollectionExpressionTypeKind.CollectionBuilder;
             }
             else if (implementsIEnumerable(compilation, destination))
             {
                 elementType = null;
-                return CollectionLiteralTypeKind.CollectionInitializer;
+                return CollectionExpressionTypeKind.CollectionInitializer;
             }
             else if (isListInterface(compilation, destination, out elementType))
             {
-                return CollectionLiteralTypeKind.ListInterface;
+                return CollectionExpressionTypeKind.ListInterface;
             }
 
             elementType = null;
-            return CollectionLiteralTypeKind.None;
+            return CollectionExpressionTypeKind.None;
 
             static bool isSpanType(CSharpCompilation compilation, TypeSymbol targetType, WellKnownType spanType, [NotNullWhen(true)] out TypeSymbol? elementType)
             {

@@ -88,8 +88,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
                     }
                 }
 
-                var xIsStatic = x.GetModifiers().Any(t => t.Kind() == SyntaxKind.StaticKeyword);
-                var yIsStatic = y.GetModifiers().Any(t => t.Kind() == SyntaxKind.StaticKeyword);
+                var xIsStatic = x.GetModifiers().Any(SyntaxKind.StaticKeyword);
+                var yIsStatic = y.GetModifiers().Any(SyntaxKind.StaticKeyword);
 
                 if ((compare = Comparer<bool>.Default.Inverse().Compare(xIsStatic, yIsStatic)) != 0)
                 {
@@ -119,19 +119,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
             {
                 var xModifiers = x.GetModifiers();
 
-                if (xModifiers.Any(t => t.Kind() == SyntaxKind.PublicKeyword))
+                if (xModifiers.Any(SyntaxKind.PublicKeyword))
                 {
                     return Accessibility.Public;
                 }
-                else if (xModifiers.Any(t => t.Kind() == SyntaxKind.ProtectedKeyword) && xModifiers.Any(t => t.Kind() == SyntaxKind.InternalKeyword))
+                else if (xModifiers.Any(SyntaxKind.ProtectedKeyword) && xModifiers.Any(SyntaxKind.InternalKeyword))
                 {
                     return Accessibility.ProtectedOrInternal;
                 }
-                else if (xModifiers.Any(t => t.Kind() == SyntaxKind.InternalKeyword))
+                else if (xModifiers.Any(SyntaxKind.InternalKeyword))
                 {
                     return Accessibility.Internal;
                 }
-                else if (xModifiers.Any(t => t.Kind() == SyntaxKind.ProtectedKeyword))
+                else if (xModifiers.Any(SyntaxKind.ProtectedKeyword))
                 {
                     return Accessibility.Protected;
                 }

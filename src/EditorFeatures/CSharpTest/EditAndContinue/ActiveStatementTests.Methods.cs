@@ -53,7 +53,7 @@ class C
                 {
                     DocumentResults(
                         active,
-                        diagnostics: new[] { Diagnostic(RudeEditKind.Delete, "class C", DeletedSymbolDisplay(FeaturesResources.method, "Goo(int a)")) })
+                        diagnostics: new[] { Diagnostic(RudeEditKind.DeleteActiveStatement, "class C", DeletedSymbolDisplay(FeaturesResources.method, "Goo(int a)")) })
                 });
         }
 
@@ -595,7 +595,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "get", FeaturesResources.code));
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "{"));
         }
 
         [Fact]

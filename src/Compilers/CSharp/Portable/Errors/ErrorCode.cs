@@ -2233,12 +2233,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InlineArrayBadIndex = 9172,
         ERR_NamedArgumentForInlineArray = 9173,
 
-        ERR_CollectionLiteralTargetTypeNotConstructible = 9174,
-        ERR_ExpressionTreeContainsCollectionLiteral = 9175,
-        ERR_CollectionLiteralNoTargetType = 9176,
+        ERR_CollectionExpressionTargetTypeNotConstructible = 9174,
+        ERR_ExpressionTreeContainsCollectionExpression = 9175,
+        ERR_CollectionExpressionNoTargetType = 9176,
 
         ERR_InterceptorArityNotCompatible = 9177,
         ERR_InterceptorCannotBeGeneric = 9178,
+
+        WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase = 9179,
+
+        ERR_InlineArrayUnsupportedElementFieldModifier = 9180,
+        WRN_InlineArrayIndexerNotUsed = 9181,
+        WRN_InlineArraySliceNotUsed = 9182,
+        WRN_InlineArrayConversionOperatorNotUsed = 9183,
+        WRN_InlineArrayNotSupportedByLanguage = 9184,
+        ERR_CollectionBuilderAttributeInvalidType = 9185,
+        ERR_CollectionBuilderAttributeInvalidMethodName = 9186,
+        ERR_CollectionBuilderAttributeMethodNotFound = 9187,
+        ERR_CollectionBuilderNoElementType = 9188,
 
         #endregion
 

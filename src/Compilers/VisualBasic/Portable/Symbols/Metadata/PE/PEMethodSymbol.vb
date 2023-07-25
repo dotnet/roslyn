@@ -1259,7 +1259,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Else
                     Dim result = uncommonFields._lazyObsoleteAttributeData
                     Return If(result Is ObsoleteAttributeData.Uninitialized,
-                              InterlockedOperations.Initialize(uncommonFields._lazyObsoleteAttributeData, Nothing, ObsoleteAttributeData.Uninitialized),
+                              InterlockedOperations.Initialize(uncommonFields._lazyObsoleteAttributeData, initializedValue:=Nothing, ObsoleteAttributeData.Uninitialized),
                               result)
                 End If
             End Get
