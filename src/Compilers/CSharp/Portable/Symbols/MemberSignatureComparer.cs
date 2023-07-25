@@ -386,9 +386,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _typeComparison = typeComparison;
             Debug.Assert((_typeComparison & TypeCompareKind.FunctionPointerRefMatchesOutInRefReadonly) == 0,
                          $"Rely on the {nameof(refKindCompareMode)} flag to set this to ensure all cases are handled.");
-            Debug.Assert((_refKindCompareMode & RefKindCompareMode.AllowRefReadonlyVsInMismatch) == 0 ||
+            Debug.Assert(_refKindCompareMode == RefKindCompareMode.DoNotConsiderDifferences ||
                 (_refKindCompareMode & RefKindCompareMode.ConsiderDifferences) != 0,
-                $"Cannot set {nameof(RefKindCompareMode.AllowRefReadonlyVsInMismatch)} without {nameof(RefKindCompareMode.ConsiderDifferences)}.");
+                $"Cannot set {nameof(RefKindCompareMode)} flags without {nameof(RefKindCompareMode.ConsiderDifferences)}.");
             if ((refKindCompareMode & RefKindCompareMode.ConsiderDifferences) == 0)
             {
                 _typeComparison |= TypeCompareKind.FunctionPointerRefMatchesOutInRefReadonly;
