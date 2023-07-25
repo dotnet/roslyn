@@ -655,7 +655,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
     }
 
     [Fact]
-    public void ExpressionTrees()
+    public void ExpressionTrees_Invalid()
     {
         var source = """
             using System;
@@ -665,7 +665,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Expression<D> e2 = (ref readonly int p) => C.M(ref p);
             Expression<D> e3 = (ref readonly int p) => C.M(p);
             Expression<D> e4 = (int p) => C.M(in p);
-            Expression<Action<int>> e5 = (int p) => C.M(in p);
+            Expression<Action<int>> e5 = (int p) => C.M(out p);
 
             delegate void D(ref readonly int p);
 
@@ -692,7 +692,37 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(int p) => C.M(in p)").WithArguments("lambda expression", "System.Linq.Expressions.Expression<D>").WithLocation(7, 20),
             // (7,25): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
             // Expression<D> e4 = (int p) => C.M(in p);
-            Diagnostic(ErrorCode.ERR_BadParamRef, "p").WithArguments("1", "ref readonly").WithLocation(7, 25));
+            Diagnostic(ErrorCode.ERR_BadParamRef, "p").WithArguments("1", "ref readonly").WithLocation(7, 25),
+            // (8,49): error CS1615: Argument 1 may not be passed with the 'out' keyword
+            // Expression<Action<int>> e5 = (int p) => C.M(out p);
+            Diagnostic(ErrorCode.ERR_BadArgExtraRef, "p").WithArguments("1", "out").WithLocation(8, 49));
+    }
+
+    [Fact]
+    public void ExpressionTrees_Valid()
+    {
+        var source = """
+            using System;
+            using System.Linq.Expressions;
+
+            C.E((int p) => C.M(in p));
+            C.E((int p) => C.M(ref p));
+            C.E((int p) => C.M(p));
+            C.E((int p) => C.M(5));
+
+            static class C
+            {
+                public static void M(ref readonly int x) => Console.Write(x);
+                public static void E(Expression<Action<int>> e) => e.Compile()(4);
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "4445").VerifyDiagnostics(
+            // (6,20): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // C.E((int p) => C.M(p));
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "p").WithArguments("1").WithLocation(6, 20),
+            // (7,20): warning CS9504: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
+            // C.E((int p) => C.M(5));
+            Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "5").WithArguments("1").WithLocation(7, 20));
     }
 
     [Fact]
