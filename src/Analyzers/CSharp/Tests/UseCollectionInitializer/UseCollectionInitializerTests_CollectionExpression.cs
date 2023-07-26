@@ -1072,8 +1072,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    List<Action> list1 = [
-                    () =>
+                    List<Action> list1 = [() =>
                     {
                         List<int> list2 = [2];
                     }
