@@ -28077,7 +28077,7 @@ namespace System
         ) cil managed
     {
         // Method begins at RVA 0x2050
-        // Code size: 2 (0x2)
+        // Code size 2 (0x2)
         .maxstack 8
         IL_0000: ldnull
         IL_0001: throw

@@ -1626,7 +1626,7 @@ public readonly struct S2
         instance void .ctor () cil managed
     {
         // Method begins at RVA 0x2050
-        // Code size: 7 (0x7)
+        // Code size 7 (0x7)
         .maxstack 8
 
         IL_0000: ldarg.0
@@ -1649,7 +1649,7 @@ public readonly struct S2
 			01 00 00 00
 		)
 		// Method begins at RVA 0x2058
-		// Code size: 1 (0x1)
+		// Code size 1 (0x1)
 		.maxstack 8
 		IL_0000: ret
 	} // end of method S::M1
@@ -1662,7 +1662,7 @@ public readonly struct S2
 			01 00 00 00
 		)
 		// Method begins at RVA 0x2058
-		// Code size: 1 (0x1)
+		// Code size 1 (0x1)
 		.maxstack 8
 		IL_0000: ret
 	} // end of method S::M2

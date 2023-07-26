@@ -1006,7 +1006,7 @@ BC30390: 'C2.Private Overloads Sub M2()' is not accessible in this context becau
     {
         .override method instance void class Interface`2<!T, !T>::Method(int32)
         // Method begins at RVA 0x2050
-        // Code size: 2 (0x2)
+        // Code size 2 (0x2)
         .maxstack 8
 
         IL_0000: nop
@@ -1021,7 +1021,7 @@ BC30390: 'C2.Private Overloads Sub M2()' is not accessible in this context becau
         .override method instance void class Interface`2<!T, !T>::Method(!0)
         .override method instance void class Interface`2<!T, !T>::Method(!1)
         // Method begins at RVA 0x2050
-        // Code size: 2 (0x2)
+        // Code size 2 (0x2)
         .maxstack 8
 
         IL_0000: nop
@@ -1032,7 +1032,7 @@ BC30390: 'C2.Private Overloads Sub M2()' is not accessible in this context becau
         instance void .ctor () cil managed 
     {
         // Method begins at RVA 0x2053
-        // Code size: 8 (0x8)
+        // Code size 8 (0x8)
         .maxstack 8
 
         IL_0000: ldarg.0

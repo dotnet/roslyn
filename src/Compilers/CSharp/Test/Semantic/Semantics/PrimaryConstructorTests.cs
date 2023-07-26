@@ -8315,7 +8315,7 @@ class Program
 			instance void .ctor () cil managed 
 		{
 			// Method begins at RVA 0x221b
-			// Code size: 7 (0x7)
+			// Code size 7 (0x7)
 			.maxstack 8
 			IL_0000: ldarg.0
 			IL_0001: call instance void [mscorlib]System.Object::.ctor()
@@ -8325,7 +8325,7 @@ class Program
 			instance void '<.ctor>b__0' () cil managed 
 		{
 			// Method begins at RVA 0x2224
-			// Code size: 17 (0x11)
+			// Code size 17 (0x11)
 			.maxstack 3
 			.locals init (
 				[0] int32
@@ -8344,7 +8344,7 @@ class Program
 			instance int32 '<.ctor>b__1' () cil managed 
 		{
 			// Method begins at RVA 0x2241
-			// Code size: 12 (0xc)
+			// Code size 12 (0xc)
 			.maxstack 8
 			IL_0000: ldarg.0
 			IL_0001: ldfld class C1 C1/'<>c__DisplayClass1_0'::'<>4__this'
@@ -8373,7 +8373,7 @@ class Program
 		) cil managed 
 	{
 		// Method begins at RVA 0x2084
-		// Code size: 98 (0x62)
+		// Code size 98 (0x62)
 		.maxstack 5
 		.locals init (
 			[0] class C1/'<>c__DisplayClass1_0'
@@ -8423,7 +8423,7 @@ class Program
 		instance int32 get_P1 () cil managed 
 	{
 		// Method begins at RVA 0x20f2
-		// Code size: 7 (0x7)
+		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldfld int32 C1::'<p1>P'
@@ -8433,7 +8433,7 @@ class Program
 		instance int32 get_P2 () cil managed 
 	{
 		// Method begins at RVA 0x20fc
-		// Code size: 18 (0x12)
+		// Code size 18 (0x12)
 		.maxstack 3
 		.locals init (
 			[0] int32
@@ -8453,7 +8453,7 @@ class Program
 		instance int32 M1 () cil managed 
 	{
 		// Method begins at RVA 0x211c
-		// Code size: 18 (0x12)
+		// Code size 18 (0x12)
 		.maxstack 3
 		.locals init (
 			[0] int32
@@ -8475,7 +8475,7 @@ class Program
 		) cil managed 
 	{
 		// Method begins at RVA 0x213a
-		// Code size: 15 (0xf)
+		// Code size 15 (0xf)
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldarg.0
@@ -8491,7 +8491,7 @@ class Program
 		) cil managed 
 	{
 		// Method begins at RVA 0x214a
-		// Code size: 7 (0x7)
+		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: call instance void C1::'<remove_E1>g__local|12_0'()
@@ -8506,7 +8506,7 @@ class Program
 			01 00 00 00
 		)
 		// Method begins at RVA 0x2154
-		// Code size: 41 (0x29)
+		// Code size 41 (0x29)
 		.maxstack 3
 		.locals init (
 			[0] class [mscorlib]System.Action,
@@ -8545,7 +8545,7 @@ class Program
 			01 00 00 00
 		)
 		// Method begins at RVA 0x218c
-		// Code size: 41 (0x29)
+		// Code size 41 (0x29)
 		.maxstack 3
 		.locals init (
 			[0] class [mscorlib]System.Action,
@@ -8579,7 +8579,7 @@ class Program
 		instance class [mscorlib]System.Action M2 () cil managed 
 	{
 		// Method begins at RVA 0x21c1
-		// Code size: 13 (0xd)
+		// Code size 13 (0xd)
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldftn instance void C1::'<M2>b__16_0'()
@@ -8593,7 +8593,7 @@ class Program
 			01 00 00 00
 		)
 		// Method begins at RVA 0x21cf
-		// Code size: 15 (0xf)
+		// Code size 15 (0xf)
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldarg.0
@@ -8610,7 +8610,7 @@ class Program
 			01 00 00 00
 		)
 		// Method begins at RVA 0x213a
-		// Code size: 15 (0xf)
+		// Code size 15 (0xf)
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldarg.0
@@ -8718,7 +8718,7 @@ class Program
 		) cil managed 
 	{
 		// Method begins at RVA 0x2067
-		// Code size: 35 (0x23)
+		// Code size 35 (0x23)
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldarg.1
@@ -8744,7 +8744,7 @@ class Program
 		instance int32 get_P1 () cil managed 
 	{
 		// Method begins at RVA 0x208b
-		// Code size: 7 (0x7)
+		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldfld int32 C1::'<p1>P'
@@ -8754,7 +8754,7 @@ class Program
 		instance int32 get_P2 () cil managed 
 	{
 		// Method begins at RVA 0x2094
-		// Code size: 18 (0x12)
+		// Code size 18 (0x12)
 		.maxstack 3
 		.locals init (
 			[0] int32
@@ -8774,7 +8774,7 @@ class Program
 		instance int32 M1 () cil managed 
 	{
 		// Method begins at RVA 0x20b4
-		// Code size: 18 (0x12)
+		// Code size 18 (0x12)
 		.maxstack 3
 		.locals init (
 			[0] int32
@@ -8796,7 +8796,7 @@ class Program
 		) cil managed 
 	{
 		// Method begins at RVA 0x20d2
-		// Code size: 15 (0xf)
+		// Code size 15 (0xf)
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldarg.0
@@ -8812,7 +8812,7 @@ class Program
 		) cil managed 
 	{
 		// Method begins at RVA 0x20e2
-		// Code size: 1 (0x1)
+		// Code size 1 (0x1)
 		.maxstack 8
 		IL_0000: ret
 	} // end of method C1::remove_E1
@@ -15379,7 +15379,7 @@ class Program
 		) cil managed 
 	{
 		// Method begins at RVA 0x2083
-		// Code size: 60 (0x3c)
+		// Code size 60 (0x3c)
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldarg.1
@@ -15413,7 +15413,7 @@ class Program
 		instance int32 get_P1 () cil managed 
 	{
 		// Method begins at RVA 0x20c0
-		// Code size: 7 (0x7)
+		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldfld int32 C1::'<p1>P'
@@ -15423,7 +15423,7 @@ class Program
 		instance int32 get_P2 () cil managed 
 	{
 		// Method begins at RVA 0x20c8
-		// Code size: 18 (0x12)
+		// Code size 18 (0x12)
 		.maxstack 3
 		.locals init (
 			[0] int32
@@ -15443,7 +15443,7 @@ class Program
 		instance int32 M1 () cil managed 
 	{
 		// Method begins at RVA 0x20e8
-		// Code size: 18 (0x12)
+		// Code size 18 (0x12)
 		.maxstack 3
 		.locals init (
 			[0] int32
@@ -15465,7 +15465,7 @@ class Program
 		) cil managed 
 	{
 		// Method begins at RVA 0x2106
-		// Code size: 15 (0xf)
+		// Code size 15 (0xf)
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldarg.0
@@ -15481,7 +15481,7 @@ class Program
 		) cil managed 
 	{
 		// Method begins at RVA 0x2116
-		// Code size: 7 (0x7)
+		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: call instance void C1::'<remove_E1>g__local|12_0'()
@@ -15491,7 +15491,7 @@ class Program
 		instance class [mscorlib]System.Action M2 () cil managed 
 	{
 		// Method begins at RVA 0x211e
-		// Code size: 13 (0xd)
+		// Code size 13 (0xd)
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldftn instance void C1::'<M2>b__13_0'()
@@ -15505,7 +15505,7 @@ class Program
 			01 00 00 00
 		)
 		// Method begins at RVA 0x20c0
-		// Code size: 7 (0x7)
+		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldfld int32 C1::'<p1>P'
@@ -15518,7 +15518,7 @@ class Program
 			01 00 00 00
 		)
 		// Method begins at RVA 0x212c
-		// Code size: 15 (0xf)
+		// Code size 15 (0xf)
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldarg.0
@@ -15535,7 +15535,7 @@ class Program
 			01 00 00 00
 		)
 		// Method begins at RVA 0x2106
-		// Code size: 15 (0xf)
+		// Code size 15 (0xf)
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: ldarg.0

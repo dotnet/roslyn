@@ -28959,7 +28959,7 @@ public class C3 : C2, I1<C2>
         instance void .ctor () cil managed 
     {
         // Method begins at RVA 0x2053
-        // Code size: 8 (0x8)
+        // Code size 8 (0x8)
         .maxstack 8
 
         IL_0000: ldarg.0

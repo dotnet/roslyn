@@ -19804,7 +19804,7 @@ End Class
 		instance void .ctor () cil managed
 	{
 		// Method begins at RVA 0x2050
-		// Code size: 8 (0x8)
+		// Code size 8 (0x8)
 		.maxstack 8
 
 		IL_0000: ldarg.0
@@ -19823,7 +19823,7 @@ End Class
 		instance void .ctor () cil managed
 	{
 		// Method begins at RVA 0x2059
-		// Code size: 8 (0x8)
+		// Code size 8 (0x8)
 		.maxstack 8
 
 		IL_0000: ldarg.0
@@ -19842,7 +19842,7 @@ End Class
 		instance class Base`1<object modopt([mscorlib]System.Runtime.CompilerServices.IsLong)> GetBaseWithModifiers () cil managed
 	{
 		// Method begins at RVA 0x2064
-		// Code size: 7 (0x7)
+		// Code size 7 (0x7)
 		.maxstack 1
 		.locals init (
 			[0] class Base`1<object modopt([mscorlib]System.Runtime.CompilerServices.IsLong)>
@@ -19861,7 +19861,7 @@ End Class
 		instance class Derived`1<object> GetDerivedWithoutModifiers () cil managed
 	{
 		// Method begins at RVA 0x2078
-		// Code size: 7 (0x7)
+		// Code size 7 (0x7)
 		.maxstack 1
 		.locals init (
 			[0] class Derived`1<object>
@@ -19880,7 +19880,7 @@ End Class
 		instance void .ctor () cil managed
 	{
 		// Method begins at RVA 0x2050
-		// Code size: 8 (0x8)
+		// Code size 8 (0x8)
 		.maxstack 8
 
 		IL_0000: ldarg.0

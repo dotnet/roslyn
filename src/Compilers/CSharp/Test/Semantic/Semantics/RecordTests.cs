@@ -2641,7 +2641,7 @@ class C
         instance valuetype S '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
     {
         // Method begins at RVA 0x2150
-        // Code size: 2 (0x2)
+        // Code size 2 (0x2)
         .maxstack 1
         .locals init (
             [0] valuetype S
@@ -2655,7 +2655,7 @@ class C
         instance int32 get_Property () cil managed 
     {
         // Method begins at RVA 0x215e
-        // Code size: 2 (0x2)
+        // Code size 2 (0x2)
         .maxstack 8
 
         IL_0000: ldnull
@@ -2668,7 +2668,7 @@ class C
         ) cil managed 
     {
         // Method begins at RVA 0x215e
-        // Code size: 2 (0x2)
+        // Code size 2 (0x2)
         .maxstack 8
 
         IL_0000: ldnull
