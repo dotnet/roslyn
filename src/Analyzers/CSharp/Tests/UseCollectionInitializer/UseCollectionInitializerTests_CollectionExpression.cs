@@ -33,14 +33,39 @@ public partial class UseCollectionInitializerTests_CollectionExpression
         }.RunAsync();
     }
 
-    private static async Task TestMissingInRegularAndScriptAsync(string testCode)
+    private static Task TestMissingInRegularAndScriptAsync(string testCode)
+        => TestInRegularAndScriptAsync(testCode, testCode);
+
+    [Fact]
+    public async Task TestNotOnVarVariableDeclarator()
     {
-        var test = new VerifyCS.Test
-        {
-            TestCode = testCode,
-            FixedCode = testCode,
-        };
-        await test.RunAsync();
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    var c = [|new|] List<int>();
+                    [|c.Add(|]1);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    var c = new List<int>
+                    {
+                        1
+                    };
+                }
+            }
+            """);
     }
 
     [Fact]
