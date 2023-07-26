@@ -16827,7 +16827,7 @@ class B2 : A<string>
 
         [CombinatorialData]
         [Theory]
-        public void Overrides_02(bool useCompilationReference)
+        public void Overrides_02(bool useCompilationReference, [CombinatorialValues("in", "ref readonly")] string modifier)
         {
             var sourceA =
 @"public abstract class A<T>
@@ -16836,8 +16836,8 @@ class B2 : A<string>
     public abstract ref T F2(scoped out T t);
     public abstract ref T F3(ref T t);
     public abstract ref T F4(scoped ref T t);
-    public abstract ref T F5(in T t);
-    public abstract ref T F6(scoped in T t);
+    public abstract ref T F5(" + modifier + @" T t);
+    public abstract ref T F6(scoped " + modifier + @" T t);
 }";
             var comp = CreateCompilation(sourceA);
             comp.VerifyEmitDiagnostics();
@@ -16850,8 +16850,8 @@ class B2 : A<string>
     public override ref int F2(scoped out int i) => throw null;
     public override ref int F3(ref int i) => throw null;
     public override ref int F4(scoped ref int i) => throw null;
-    public override ref int F5(in int i) => throw null;
-    public override ref int F6(scoped in int i) => throw null;
+    public override ref int F5(" + modifier + @" int i) => throw null;
+    public override ref int F6(scoped " + modifier + @" int i) => throw null;
 }
 class B2 : A<string>
 {
@@ -16859,8 +16859,8 @@ class B2 : A<string>
     public override ref string F2(out string s) => throw null;
     public override ref string F3(scoped ref string s) => throw null;
     public override ref string F4(ref string s) => throw null; // 1
-    public override ref string F5(scoped in string s) => throw null;
-    public override ref string F6(in string s) => throw null; // 2
+    public override ref string F5(scoped " + modifier + @" string s) => throw null;
+    public override ref string F6(" + modifier + @" string s) => throw null; // 2
 }";
             comp = CreateCompilation(sourceB, references: new[] { refA });
             comp.VerifyEmitDiagnostics(
