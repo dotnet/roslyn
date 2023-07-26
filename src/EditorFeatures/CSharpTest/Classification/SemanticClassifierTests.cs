@@ -4278,6 +4278,73 @@ Json.Array("]"));
         }
 
         [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69237")]
+        public async Task TestJsonOnApiWithStringSyntaxAttribute_PropertyInitializer(TestHost testHost)
+        {
+            await TestAsync(
+                """"
+                using System.Diagnostics.CodeAnalysis;
+
+                public sealed record Foo
+                {
+                    [StringSyntax(StringSyntaxAttribute.Json)]
+                    public required string Bar { get; set; }
+                }
+
+                class Program
+                {
+                    void Goo()
+                    {
+                        var f = new Foo { [|Bar = """[1, 2, 3]"""|] };
+                    }
+                }
+                """" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Property("Bar"),
+Json.Array("["),
+Json.Number("1"),
+Json.Punctuation(","),
+Json.Number("2"),
+Json.Punctuation(","),
+Json.Number("3"),
+Json.Array("]"));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69237")]
+        public async Task TestJsonOnApiWithStringSyntaxAttribute_WithExpression(TestHost testHost)
+        {
+            await TestAsync(
+                """"
+                using System.Diagnostics.CodeAnalysis;
+
+                public sealed record Foo
+                {
+                    [StringSyntax(StringSyntaxAttribute.Json)]
+                    public required string Bar { get; set; }
+                }
+
+                class Program
+                {
+                    void Goo()
+                    {
+                        var f = new Foo { Bar =  "" };
+                        f = f with { [|Bar = """[1, 2, 3]"""|] };
+                    }
+                }
+                """" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Property("Bar"),
+Json.Array("["),
+Json.Number("1"),
+Json.Punctuation(","),
+Json.Number("2"),
+Json.Punctuation(","),
+Json.Number("3"),
+Json.Array("]"));
+        }
+
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_LocalFunction_Keyword(TestHost testHost)
         {
             await TestAsync(@"
