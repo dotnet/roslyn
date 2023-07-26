@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 moduleBuilder.EnsureIsReadOnlyAttributeExists();
             }
 
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(moduleBuilder, Parameters);
+            ParameterHelpers.EnsureRefKindAttributesExist(moduleBuilder, Parameters);
 
             if (moduleBuilder.Compilation.ShouldEmitNativeIntegerAttributes())
             {
