@@ -4753,8 +4753,10 @@ public readonly struct [|S|]
                     public ref int RefValue;
                     public readonly ref int RORefValue;
 
-                    public void M(scoped ref int value) { }
-                    public void N(out int value) { }
+                    public void M(scoped ref int value) { }                    
+                    public void M(in int x, scoped in int y) { }
+                    public void M(S x, scoped S y) { }
+                    public void M(out int value) { }
                 }
                 """);
 
@@ -4771,7 +4773,15 @@ public readonly struct [|S|]
                     {
                     }
 
-                    public void N(out global::System.Int32 value)
+                    public void M(in global::System.Int32 x, scoped in global::System.Int32 y)
+                    {
+                    }
+
+                    public void M(global::S x, scoped global::S y)
+                    {
+                    }
+
+                    public void M(out global::System.Int32 value)
                     {
                     }
 
