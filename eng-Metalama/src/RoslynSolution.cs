@@ -5,13 +5,11 @@
 using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using PostSharp.Engineering.BuildTools.Build;
 using PostSharp.Engineering.BuildTools.Build.Model;
 using PostSharp.Engineering.BuildTools.Utilities;
-using Spectre.Console.Cli;
 
 namespace Build
 {
@@ -29,11 +27,11 @@ namespace Build
 
         private bool ExecuteScript(BuildContext context, BuildSettings settings, string args)
         {
-            var configuration = context.Product.Configurations[settings.BuildConfiguration];
+            var msBuildConfiguration = context.Product.DependencyDefinition.MSBuildConfiguration[settings.BuildConfiguration];
 
             var argsBuilder = new StringBuilder();
 
-            argsBuilder.Append(CultureInfo.InvariantCulture, $"-c {configuration.MSBuildName}");
+            argsBuilder.Append(CultureInfo.InvariantCulture, $"-c {msBuildConfiguration}");
             argsBuilder.Append(' ');
             argsBuilder.Append(args);
 
