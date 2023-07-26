@@ -9787,7 +9787,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns one of the methods from the method group if all instance methods, or extension methods
+        /// For C# 12 onwards, returns one of the methods from the method group if all instance methods, or extension methods
         /// in the nearest scope, have the same signature ignoring parameter names and custom modifiers.
         /// The particular method returned is not important since the caller is interested in the signature only.
         /// </summary>
