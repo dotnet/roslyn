@@ -4479,7 +4479,6 @@ parse_member_name:;
                 case SyntaxKind.OutKeyword:
                 case SyntaxKind.InKeyword:
                 case SyntaxKind.ParamsKeyword:
-                // For error tolerance
                 case SyntaxKind.ReadOnlyKeyword:
                     return true;
             }
@@ -4493,7 +4492,7 @@ parse_member_name:;
 
             while (IsParameterModifierExcludingScoped(this.CurrentToken))
             {
-                if (this.CurrentToken.Kind is SyntaxKind.RefKeyword or SyntaxKind.OutKeyword or SyntaxKind.InKeyword)
+                if (this.CurrentToken.Kind is SyntaxKind.RefKeyword or SyntaxKind.OutKeyword or SyntaxKind.InKeyword or SyntaxKind.ReadOnlyKeyword)
                 {
                     tryScoped = false;
                 }
@@ -4509,8 +4508,8 @@ parse_member_name:;
                 {
                     modifiers.Add(scopedKeyword);
 
-                    // Look if ref/out/in are next
-                    if (this.CurrentToken.Kind is (SyntaxKind.RefKeyword or SyntaxKind.OutKeyword or SyntaxKind.InKeyword))
+                    // Look if ref/out/in/readonly are next
+                    while (this.CurrentToken.Kind is (SyntaxKind.RefKeyword or SyntaxKind.OutKeyword or SyntaxKind.InKeyword or SyntaxKind.ReadOnlyKeyword))
                     {
                         modifiers.Add(this.EatToken());
                     }
