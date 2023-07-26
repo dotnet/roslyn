@@ -940,6 +940,39 @@ public partial class UseCollectionInitializerTests_CollectionExpression
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39146")]
+    public async Task TestWithExistingInitializer_NoParens()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>
+                    {
+                        1
+                    };
+                    [|c.Add(|]2);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [1,
+                        2];
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39146")]
     public async Task TestWithExistingInitializerWithComma()
     {
         await TestInRegularAndScriptAsync(

@@ -216,11 +216,9 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
                         // Report the diagnostic at the first unnecessary location. This is the location where the code fix
                         // will be offered.
-                        var location1 = additionalUnnecessaryLocations[0];
-
                         context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                             s_unnecessaryCodeDescriptor,
-                            location1,
+                            additionalUnnecessaryLocations[0],
                             ReportDiagnostic.Default,
                             additionalLocations: locations,
                             additionalUnnecessaryLocations: additionalUnnecessaryLocations));
@@ -237,11 +235,9 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
                     // Report the diagnostic at the first unnecessary location. This is the location where the code fix
                     // will be offered.
-                    var location1 = additionalUnnecessaryLocations[0];
-
                     context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                         s_unnecessaryCodeDescriptor,
-                        location1,
+                        additionalUnnecessaryLocations[0],
                         ReportDiagnostic.Default,
                         additionalLocations: locations,
                         additionalUnnecessaryLocations: additionalUnnecessaryLocations));
