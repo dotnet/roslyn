@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -15,7 +17,7 @@ using static SyntaxFactory;
 
 internal static class UseCollectionExpressionHelpers
 {
-    private static readonly LiteralExpressionSyntax s_nullLiteralExpression = LiteralExpression(SyntaxKind.NullLiteralExpression);
+    private static readonly CollectionExpressionSyntax s_emptyCollectionExpression = CollectionExpression();
 
     public static bool CanReplaceWithCollectionExpression(
         SemanticModel semanticModel,
@@ -47,13 +49,13 @@ internal static class UseCollectionExpressionHelpers
             return false;
 
         // Looks good as something to replace.  Now check the semantics of making the replacement to see if there would
-        // any issues.  To keep things simple, all we do is replace the existing expression with the `null` literal.
-        // This is a similarly 'untyped' literal (like a collection-expression is), so it tells us if the new code will
-        // have any issues moving to something untyped.  This will also tell us if we have any ambiguities (because
-        // there are multiple destination types that could accept the collection expression).
+        // any issues.  To keep things simple, all we do is replace the existing expression with the `[]` literal. This
+        // is an 'untyped' collection expression literal, so it tells us if the new code will have any issues moving to
+        // something untyped.  This will also tell us if we have any ambiguities (because there are multiple destination
+        // types that could accept the collection expression).
         var speculationAnalyzer = new SpeculationAnalyzer(
             topMostExpression,
-            s_nullLiteralExpression,
+            s_emptyCollectionExpression,
             semanticModel,
             cancellationToken,
             skipVerificationForReplacedNode: true,
