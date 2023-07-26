@@ -145,7 +145,7 @@
         two would eventually be in sync. But we'd need to include those binaries during the out-of-sync period.
         Note, for the same reasone, we can't safely exclude shared dependencies from ServiceHub host folder.
       -->
-      <_PublishRuntimeLibraries>true</_PublishRuntimeLibraries>
+      <_PublishRuntimeLibraries>false</_PublishRuntimeLibraries>
     </PropertyGroup>
     <ItemGroup>
       <_ExcludedFiles Include="$(PublishDir)**\Microsoft.CodeAnalysis.Remote.ServiceHub.CoreComponents.*" />
