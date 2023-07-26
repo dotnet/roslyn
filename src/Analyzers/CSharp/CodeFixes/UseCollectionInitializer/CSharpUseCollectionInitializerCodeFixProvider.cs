@@ -61,10 +61,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             bool useCollectionExpression,
             ImmutableArray<Match<StatementSyntax>> matches)
         {
-            var expressions = CreateExpressions(objectCreation, matches);
             return useCollectionExpression
-                ? CreateCollectionExpression(objectCreation, matches, expressions, MakeMultiLine(sourceText, objectCreation, matches, wrappingLength))
-                : UseInitializerHelpers.GetNewObjectCreation(objectCreation, AddLineBreaks(expressions, includeFinalLineBreak: true));
+                ? CreateCollectionExpression(objectCreation, matches, MakeMultiLine(sourceText, objectCreation, matches, wrappingLength))
+                : CreateObjectInitializerExpression(objectCreation, matches);
+        }
+
+        private static BaseObjectCreationExpressionSyntax CreateObjectInitializerExpression(
+            BaseObjectCreationExpressionSyntax objectCreation,
+            ImmutableArray<Match<StatementSyntax>> matches)
+        {
+            var expressions = CreateElements(objectCreation, matches, static (_, e) => e);
+            var withLineBreaks = AddLineBreaks(expressions, includeFinalLineBreak: true);
+            return UseInitializerHelpers.GetNewObjectCreation(objectCreation, withLineBreaks);
+        }
+
+        private static CollectionExpressionSyntax CreateCollectionExpression(
+            BaseObjectCreationExpressionSyntax objectCreation,
+            ImmutableArray<Match<StatementSyntax>> matches,
+            bool makeMultiLine)
+        {
+            var elements = CreateElements<CollectionElementSyntax>(
+                objectCreation, matches,
+                static (match, expression) => match?.UseSpread is true ? SpreadElement(expression) : ExpressionElement(expression));
+
+            if (makeMultiLine)
+                elements = AddLineBreaks(elements, includeFinalLineBreak: false);
+
+            return CollectionExpression(elements).WithTriviaFrom(objectCreation);
         }
 
         private static bool MakeMultiLine(
@@ -113,63 +136,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 };
         }
 
-        private static CollectionExpressionSyntax CreateCollectionExpression(
-            BaseObjectCreationExpressionSyntax objectCreation,
-            ImmutableArray<Match<StatementSyntax>> matches,
-            SeparatedSyntaxList<ExpressionSyntax> expressions,
-            bool makeMultiLine)
-        {
-            if (makeMultiLine)
-                expressions = AddLineBreaks(expressions, includeFinalLineBreak: false);
-
-            using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
-
-            // 'expressions' is the entire list of expressions that will go into the collection expression. some will be
-            // new, but some may be from 
-
-            var expressionIndex = 0;
-            var expressionOffset = expressions.Count - matches.Length;
-            foreach (var nodeOrToken in expressions.GetWithSeparators())
-            {
-                if (nodeOrToken.IsToken)
-                {
-                    nodesAndTokens.Add(nodeOrToken.AsToken());
-                }
-                else
-                {
-                    var expression = (ExpressionSyntax)nodeOrToken.AsNode()!;
-                    nodesAndTokens.Add(expressionIndex < expressionOffset || !matches[expressionIndex - expressionOffset].UseSpread
-                        ? ExpressionElement(expression)
-                        : SpreadElement(expression));
-                    expressionIndex++;
-                }
-            }
-
-            return CollectionExpression(
-                Token(SyntaxKind.OpenBracketToken),
-                SeparatedList<CollectionElementSyntax>(nodesAndTokens),
-                Token(SyntaxKind.CloseBracketToken)).WithTriviaFrom(objectCreation);
-        }
-
-        public static SeparatedSyntaxList<ExpressionSyntax> AddLineBreaks(
-            SeparatedSyntaxList<ExpressionSyntax> expressions, bool includeFinalLineBreak)
+        public static SeparatedSyntaxList<TNode> AddLineBreaks<TNode>(
+            SeparatedSyntaxList<TNode> nodes, bool includeFinalLineBreak)
+            where TNode : SyntaxNode
         {
             using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
 
-            foreach (var item in expressions.GetWithSeparators())
+            foreach (var item in nodes.GetWithSeparators())
             {
                 if (item.IsNode)
                 {
-                    var expression = item.AsNode()!;
+                    var node = item.AsNode()!;
                     if (includeFinalLineBreak &&
-                        expression == expressions.Last() &&
-                        expressions.SeparatorCount < expressions.Count &&
-                        expression.GetTrailingTrivia() is not [.., (kind: SyntaxKind.EndOfLineTrivia)])
+                        node == nodes.Last() &&
+                        nodes.SeparatorCount < nodes.Count &&
+                        node.GetTrailingTrivia() is not [.., (kind: SyntaxKind.EndOfLineTrivia)])
                     {
-                        expression = expression.WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed);
+                        node = node.WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed);
                     }
 
-                    nodesAndTokens.Add(expression);
+                    nodesAndTokens.Add(node);
                 }
                 else
                 {
@@ -181,20 +167,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 }
             }
 
-            return SeparatedList<ExpressionSyntax>(nodesAndTokens);
+            return SeparatedList<TNode>(nodesAndTokens);
         }
 
-        private static SeparatedSyntaxList<ExpressionSyntax> CreateExpressions(
+        private static SeparatedSyntaxList<TElement> CreateElements<TElement>(
             BaseObjectCreationExpressionSyntax objectCreation,
-            ImmutableArray<Match<StatementSyntax>> matches)
+            ImmutableArray<Match<StatementSyntax>> matches,
+            Func<Match<StatementSyntax>?, ExpressionSyntax, TElement> createElement)
+            where TElement : SyntaxNode
         {
             using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
 
-            UseInitializerHelpers.AddExistingItems(objectCreation, nodesAndTokens);
+            UseInitializerHelpers.AddExistingItems(objectCreation, nodesAndTokens, createElement);
 
             for (var i = 0; i < matches.Length; i++)
             {
-                var statement = matches[i].Statement;
+                var match = matches[i];
+                var statement = match.Statement;
 
                 if (statement is ExpressionStatementSyntax expressionStatement)
                 {
@@ -206,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                         ? semicolon.TrailingTrivia
                         : default;
 
-                    var expression = ConvertExpression(expressionStatement.Expression).WithoutTrivia().WithLeadingTrivia(leadingTrivia);
+                    var expression = createElement(match, ConvertExpression(expressionStatement.Expression).WithoutTrivia()).WithLeadingTrivia(leadingTrivia);
                     if (i < matches.Length - 1)
                     {
                         nodesAndTokens.Add(expression);
@@ -219,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 }
                 else if (statement is ForEachStatementSyntax foreachStatement)
                 {
-                    nodesAndTokens.Add(foreachStatement.Expression.WithoutTrivia());
+                    nodesAndTokens.Add(createElement(match, foreachStatement.Expression.WithoutTrivia()));
                     if (i < matches.Length - 1)
                         nodesAndTokens.Add(Token(SyntaxKind.CommaToken));
                 }
@@ -229,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 }
             }
 
-            return SeparatedList<ExpressionSyntax>(nodesAndTokens);
+            return SeparatedList<TElement>(nodesAndTokens);
         }
 
         private static ExpressionSyntax ConvertExpression(ExpressionSyntax expression)
