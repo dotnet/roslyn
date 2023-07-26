@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -185,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!type.IsTypeParameter());
 
             var compatibleExtensions = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-            getCompatibleExtensions(binder, type, compatibleExtensions);
+            getCompatibleExtensions(binder, type, compatibleExtensions, basesBeingResolved);
             // PROTOTYPE test use-site diagnostics
             var tempResult = LookupResult.GetInstance();
             foreach (NamedTypeSymbol extension in compatibleExtensions)
@@ -203,36 +204,43 @@ namespace Microsoft.CodeAnalysis.CSharp
             compatibleExtensions.Free();
             return;
 
-            void getCompatibleExtensions(Binder binder, TypeSymbol type, ArrayBuilder<NamedTypeSymbol> compatibleExtensions)
+            void getCompatibleExtensions(Binder binder, TypeSymbol type, ArrayBuilder<NamedTypeSymbol> compatibleExtensions, ConsList<TypeSymbol>? basesBeingResolved)
             {
                 var extensions = ArrayBuilder<NamedTypeSymbol>.GetInstance();
                 binder.GetImplicitExtensionTypes(extensions, originalBinder: this);
 
                 foreach (var extension in extensions)
                 {
-                    // PROTOTYPE deal with generic extensions
-                    if (isCompatible(extension, type))
+                    if (basesBeingResolved?.Contains(extension) == true)
+                    {
+                        continue;
+                    }
+
+                    if (isCompatible(extension, type, out NamedTypeSymbol? substitutedExtension))
                     {
                         // PROTOTYPE should we deal with duplicate or near-duplicate extensions here instead of in merging/hiding logic?
-                        compatibleExtensions.Add(extension);
+                        compatibleExtensions.Add(substitutedExtension);
                     }
                 }
 
                 extensions.Free();
             }
 
-            bool isCompatible(TypeSymbol extension, TypeSymbol type)
+            bool isCompatible(NamedTypeSymbol extension, TypeSymbol type, [NotNullWhen(true)] out NamedTypeSymbol? substitutedExtension)
             {
                 Debug.Assert(!type.IsExtension);
-                var extended = extension.ExtendedTypeNoUseSiteDiagnostics;
-                if (extended is null)
+                if (extension.ExtendedTypeNoUseSiteDiagnostics is null)
+                {
+                    substitutedExtension = null;
                     return false;
+                }
 
                 var baseType = type;
                 do
                 {
-                    if (matches(extended, baseType))
+                    if (TypeUnification.CanImplicitlyExtend(extension, baseType, out AbstractTypeParameterMap? map))
                     {
+                        substitutedExtension = map is not null ? (NamedTypeSymbol)map.SubstituteType(extension).Type : extension;
                         return true;
                     }
 
@@ -242,18 +250,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var implementedInterface in type.AllInterfacesNoUseSiteDiagnostics)
                 {
-                    if (matches(extended, implementedInterface))
+                    if (TypeUnification.CanImplicitlyExtend(extension, implementedInterface, out AbstractTypeParameterMap? map))
                     {
+                        substitutedExtension = map is not null ? (NamedTypeSymbol)map.SubstituteType(extension).Type : extension;
                         return true;
                     }
                 }
 
+                substitutedExtension = null;
                 return false;
-            }
-
-            static bool matches(TypeSymbol extended, TypeSymbol baseType)
-            {
-                return extended.Equals(baseType, TypeCompareKind.CLRSignatureCompareOptions);
             }
         }
 #nullable disable

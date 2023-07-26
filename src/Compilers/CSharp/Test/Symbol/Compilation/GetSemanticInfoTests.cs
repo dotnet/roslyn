@@ -4448,12 +4448,15 @@ public class B : A
             Assert.Equal(classAnother, rightInfo.CandidateSymbols.Single());
 
             compilation.VerifyDiagnostics(
-                // (12,14): error CS0060: Inconsistent accessibility: base type 'A' is less accessible than class 'B'
+                // (12,14): error CS0060: Inconsistent accessibility: base class 'A' is less accessible than class 'B'
                 // public class B : A
-                Diagnostic(ErrorCode.ERR_BadVisBaseClass, "B").WithArguments("B", "A"),
+                Diagnostic(ErrorCode.ERR_BadVisBaseClass, "B").WithArguments("B", "A").WithLocation(12, 14),
+                // (14,27): error CS0052: Inconsistent accessibility: field type 'A.Nested.Another' is less accessible than field 'B.a'
+                //     public Nested.Another a;
+                Diagnostic(ErrorCode.ERR_BadVisFieldType, "a").WithArguments("B.a", "A.Nested.Another").WithLocation(14, 27),
                 // (14,12): error CS0122: 'A.Nested' is inaccessible due to its protection level
                 //     public Nested.Another a;
-                Diagnostic(ErrorCode.ERR_BadAccess, "Nested").WithArguments("A.Nested"));
+                Diagnostic(ErrorCode.ERR_BadAccess, "Nested").WithArguments("A.Nested").WithLocation(14, 12));
         }
 
         [WorkItem(633340, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633340")]

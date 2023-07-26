@@ -7692,6 +7692,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (analyzedArguments == null)
                 {
+                    // Without arguments (for scenarios such as `nameof` or conversion to non-delegate/dynamic type)
+                    // we can still prune the inapplicable extension methods using the receiver type
                     for (int i = methodGroup.Methods.Count - 1; i >= 0; i--)
                     {
                         if ((object)methodGroup.Methods[i].ReduceExtensionMethod(left.Type, binder.Compilation) == null)

@@ -164,6 +164,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public static bool CanUnifyWith(this TypeSymbol thisType, TypeSymbol otherType)
         {
+            Debug.Assert(thisType is not null);
+            Debug.Assert(otherType is not null);
+
             return TypeUnification.CanUnify(thisType, otherType);
         }
 

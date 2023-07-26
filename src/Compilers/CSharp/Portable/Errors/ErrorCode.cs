@@ -2259,6 +2259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DuplicateExtensionInBaseList = 9220,
         ERR_ExtensionMethodInExtension = 9221,
         ERR_MalformedExtensionInMetadata = 9222,
+        ERR_UnderspecifiedImplicitExtension = 9228,
         #endregion
 
         // Note: you will need to do the following after adding warnings:

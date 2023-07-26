@@ -61,6 +61,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var location = singleDeclaration.NameLocation;
 
                 underlyingType.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
+
+                if (!IsExplicitExtension)
+                {
+                    var usedTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
+                    underlyingType.VisitType(collectTypeParameters, arg: usedTypeParameters);
+
+                    foreach (var typeParameter in TypeParameters)
+                    {
+                        if (!usedTypeParameters.Contains(typeParameter))
+                        {
+                            diagnostics.Add(ErrorCode.ERR_UnderspecifiedImplicitExtension, location, underlyingType, this, typeParameter);
+                        }
+                    }
+
+                    usedTypeParameters.Free();
+                }
+            }
+
+            return;
+
+            static bool collectTypeParameters(TypeSymbol type, PooledHashSet<TypeParameterSymbol> typeParameters, bool b)
+            {
+                if (type is TypeParameterSymbol typeParameter)
+                {
+                    typeParameters.Add(typeParameter);
+                }
+
+                return false;
             }
         }
 
