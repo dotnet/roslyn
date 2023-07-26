@@ -94,15 +94,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static bool hasSubstitutionForContainingTypeTypeParameter(NamedTypeSymbol? containingType, MutableTypeMap? substitution)
             {
-                if (containingType is null || substitution is null)
+                if (substitution is null)
                 {
                     return false;
                 }
 
-                TypeSymbol? foundTypeParameter = containingType.VisitType(
-                    (type, substitution, _) => type is TypeParameterSymbol typeParameter ? substitution.Contains(typeParameter) : false,
-                    arg: substitution);
-                return foundTypeParameter is not null;
+                while (containingType is not null)
+                {
+                    foreach (var typeParameter in containingType.TypeParameters)
+                    {
+                        if (substitution.Contains(typeParameter))
+                        {
+                            return true;
+                        }
+                    }
+
+                    containingType = containingType.ContainingType;
+                }
+
+                return false;
             }
         }
 
