@@ -8208,13 +8208,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (allowInlineArrayElementAccess &&
                 !InAttributeArgument && !InParameterDefaultValue && // These checks prevent cycles caused by attribute binding when HasInlineArrayAttribute check triggers that.
-                expr.Type.HasInlineArrayAttribute(out int length) && expr.Type.TryGetInlineArrayElementField() is FieldSymbol elementField)
+                expr.Type.HasInlineArrayAttribute(out int length) && expr.Type.TryGetPossiblyUnsupportedByLanguageInlineArrayElementField() is FieldSymbol elementField)
             {
                 tryInlineArrayAccess = true;
 
                 if (analyzedArguments.Arguments.Count == 1 &&
                     tryImplicitConversionToInlineArrayIndex(node, analyzedArguments.Arguments[0], diagnostics, out WellKnownType indexOrRangeWellknownType) is { } convertedIndex)
                 {
+                    if (!TypeSymbol.IsInlineArrayElementFieldSupported(elementField))
+                    {
+                        return BadIndexerExpression(node, expr, analyzedArguments, null, diagnostics);
+                    }
+
+                    Debug.Assert(expr.Type.TryGetInlineArrayElementField() is not null);
                     return bindInlineArrayElementAccess(node, expr, length, analyzedArguments, convertedIndex, indexOrRangeWellknownType, elementField, diagnostics);
                 }
             }

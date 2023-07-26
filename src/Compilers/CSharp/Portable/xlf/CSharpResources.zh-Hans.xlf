@@ -902,6 +902,11 @@
         <target state="translated">无法将表达式转换为“{0}”，因为它不是可分配的变量</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InlineArrayForEachNotSupported">
+        <source>foreach statement on an inline array of type '{0}' is not supported</source>
+        <target state="new">foreach statement on an inline array of type '{0}' is not supported</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InlineArrayIndexOutOfRange">
         <source>Index is outside the bounds of the inline array</source>
         <target state="translated">索引超出了内联数组的界限</target>

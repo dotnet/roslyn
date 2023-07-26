@@ -2251,6 +2251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CollectionBuilderAttributeInvalidMethodName = 9186,
         ERR_CollectionBuilderAttributeMethodNotFound = 9187,
         ERR_CollectionBuilderNoElementType = 9188,
+        ERR_InlineArrayForEachNotSupported = 9189,
 
         #endregion
 

@@ -902,6 +902,11 @@
         <target state="translated">식을 '{0}'(으)로 변환할 수 없습니다. 할당 가능한 변수가 아니기 때문입니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InlineArrayForEachNotSupported">
+        <source>foreach statement on an inline array of type '{0}' is not supported</source>
+        <target state="new">foreach statement on an inline array of type '{0}' is not supported</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InlineArrayIndexOutOfRange">
         <source>Index is outside the bounds of the inline array</source>
         <target state="translated">인덱스가 인라인 배열의 범위 밖에 있습니다.</target>
