@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 if (!analyzeForCollectionExpression)
                     return (matches, shouldUseCollectionExpression: false);
 
-                // If we succeeded and finding matches, and we can use collection expressions, then do so.
+                // If we succeeded in finding matches, and this is a location a collection expression is legal in, then convert to that.
                 if (!matches.IsDefaultOrEmpty && CanUseCollectionExpression(semanticModel, objectCreationExpression, cancellationToken))
                     return (matches, analyzeForCollectionExpression);
 

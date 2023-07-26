@@ -85,6 +85,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 seenInvocation = !seenIndexAssignment;
             }
 
+            // An indexer can't be used with a collection expression.  So fail out immediately if we see that.
             if (seenIndexAssignment && _analyzeForCollectionExpression)
                 return;
 
@@ -264,6 +265,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             if (arguments.Count < 1)
                 return false;
 
+            // Collection expressions can only call the single argument Add/AddRange methods on a type.
+            // So if we don't have exactly one argument, fail out.
             if (_analyzeForCollectionExpression && arguments.Count != 1)
                 return false;
 
