@@ -111,8 +111,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 var statement = objectCreation.FirstAncestorOrSelf<TStatementSyntax>();
                 Contract.ThrowIfNull(statement);
 
-                var newStatement = GetNewStatement(
-                    sourceText, statement, objectCreation, wrappingLength, useCollectionExpression, matches).WithAdditionalAnnotations(Formatter.Annotation);
+                var newStatement = GetNewStatement(sourceText, statement, objectCreation, wrappingLength, useCollectionExpression, matches)
+                    .WithAdditionalAnnotations(Formatter.Annotation);
 
                 var subEditor = new SyntaxEditor(currentRoot, document.Project.Solution.Services);
 
