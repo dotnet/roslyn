@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 symbol.RefKind,
                 isExtension: symbol is { Ordinal: 0, ContainingSymbol: IMethodSymbol { IsExtensionMethod: true } },
                 symbol.IsParams,
-                isScoped: symbol is { RefKind: RefKind.Ref or RefKind.In, ScopedKind: ScopedKind.ScopedRef }
+                isScoped: symbol is { RefKind: RefKind.Ref or RefKind.In or RefKind.RefReadOnlyParameter, ScopedKind: ScopedKind.ScopedRef }
                     or { RefKind: RefKind.None, Type.IsRefLikeType: true, ScopedKind: ScopedKind.ScopedValue });
         }
 
