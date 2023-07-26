@@ -4,19 +4,9 @@
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class SymbolDisplayVisitor
-        ''' <summary>
-        ''' Visits a symbol, and specifically handles symbol types that do not support visiting.
-        ''' </summary>
-        ''' <param name="symbol">The symbol to visit.</param>
-        Public Sub VisitSymbol(symbol As ISymbol)
-            Dim preprocessingSymbol = TryCast(symbol, IPreprocessingSymbol)
-            If preprocessingSymbol IsNot Nothing Then
-                Dim part = New SymbolDisplayPart(SymbolDisplayPartKind.PreprocessingName, preprocessingSymbol, preprocessingSymbol.Name)
-                builder.Add(part)
-                Return
-            End If
-
-            symbol.Accept(Me)
+        Friend Overrides Sub VisitPreprocessing(symbol As IPreprocessingSymbol)
+            Dim part = New SymbolDisplayPart(SymbolDisplayPartKind.PreprocessingName, symbol, symbol.Name)
+            builder.Add(part)
         End Sub
     End Class
 End Namespace

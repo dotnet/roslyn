@@ -8,20 +8,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class SymbolDisplayVisitor
     {
-        /// <summary>
-        /// Visits a symbol, and specifically handles symbol types that do not support visiting.
-        /// </summary>
-        /// <param name="symbol">The symbol to visit.</param>
-        public void VisitSymbol(ISymbol symbol)
+        internal override void VisitPreprocessing(IPreprocessingSymbol symbol)
         {
-            if (symbol is IPreprocessingSymbol preprocessingSymbol)
-            {
-                var part = new SymbolDisplayPart(SymbolDisplayPartKind.PreprocessingName, preprocessingSymbol, preprocessingSymbol.Name);
-                builder.Add(part);
-                return;
-            }
-
-            symbol.Accept(this);
+            var part = new SymbolDisplayPart(SymbolDisplayPartKind.PreprocessingName, symbol, symbol.Name);
+            builder.Add(part);
         }
     }
 }
