@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim builder = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
             Dim visitor = New SymbolDisplayVisitor(builder, format, semanticModelOpt, positionOpt)
-            visitor.VisitSymbol(symbol)
+            symbol.Accept(visitor)
             Return builder.ToImmutableAndFree()
         End Function
 
