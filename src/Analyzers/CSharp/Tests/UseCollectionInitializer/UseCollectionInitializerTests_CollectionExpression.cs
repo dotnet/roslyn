@@ -661,8 +661,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    List<int> c = [1,
-                    2];
+                    List<int> c = [1, 2];
                     throw new System.Exception();
                     c.Add(3);
                     c.Add(4);
@@ -826,8 +825,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M(List<int>[] array)
                 {
-                    array[0] = [1,
-                    2];
+                    array[0] = [1, 2];
                 }
             }
             """);
@@ -866,7 +864,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     {
                         1
                     };
-                    [|c.Add(|]1);
+                    [|c.Add(|]2);
                 }
             }
             """,
@@ -878,7 +876,8 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M()
                 {
                     List<int> c = [1,
-                    1];
+                        2
+            ];
                 }
             }
             """);
@@ -899,7 +898,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     {
                         1,
                     };
-                    [|c.Add(|]1);
+                    [|c.Add(|]2);
                 }
             }
             """,
@@ -911,7 +910,8 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M()
                 {
                     List<int> c = [1,
-                    1];
+                        2
+            ];
                 }
             }
             """);
@@ -944,10 +944,8 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M(List<int>[] array)
                 {
-                    array[0] = [1,
-                    2];
-                    array[1] = [3,
-                    4];
+                    array[0] = [1, 2];
+                    array[1] = [3, 4];
                 }
             }
             """);
@@ -1096,7 +1094,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M()
                 {
                     List<int> c = [1, // Goo
-                    2 // Bar
+                        2 // Bar
             ];
                 }
             }
@@ -1133,9 +1131,8 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     List<int> c = [
                     // Goo
                     1,
-
-                    // Bar
-                    2];
+                        // Bar
+                        2];
                 }
             }
             """);

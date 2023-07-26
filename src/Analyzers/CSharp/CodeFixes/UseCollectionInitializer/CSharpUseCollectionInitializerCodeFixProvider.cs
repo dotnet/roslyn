@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             ImmutableArray<Match<StatementSyntax>> matches)
         {
             var expressions = CreateExpressions(objectCreation, matches);
-            if (!useCollectionExpression || MakeMultiLine(sourceText, objectCreation, expressions, wrappingLength))
+            if (!useCollectionExpression || MakeMultiLine(sourceText, objectCreation, matches, wrappingLength))
                 expressions = AddLineBreaks(expressions);
 
             return useCollectionExpression
@@ -104,43 +104,47 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
         private static bool MakeMultiLine(
             SourceText sourceText,
             BaseObjectCreationExpressionSyntax objectCreation,
-            SeparatedSyntaxList<ExpressionSyntax> expressions,
+            ImmutableArray<Match<StatementSyntax>> matches,
             int wrappingLength)
         {
-            // If we have anything like: `new Dictionary<X,Y> { { A, B }, { C, D } }` the always make multiline.
-            // Similarly, if we have `new Dictionary<X,Y> { [A] = B }`.
-
-            foreach (var expression in expressions)
-            {
-                if (expression is InitializerExpressionSyntax or AssignmentExpressionSyntax)
-                    return true;
-            }
-
             // If it's already multiline, keep it that way.
             if (!sourceText.AreOnSameLine(objectCreation.GetFirstToken(), objectCreation.GetLastToken()))
                 return true;
 
-            // if any of the expressions we're adding are multiline, then make things multiline.
-            foreach (var expression in expressions)
+            foreach (var match in matches)
             {
+                var expression = GetExpression(match);
+
+                // If we have anything like: `new Dictionary<X,Y> { { A, B }, { C, D } }` the always make multiline.
+                // Similarly, if we have `new Dictionary<X,Y> { [A] = B }`.
+                if (expression is InitializerExpressionSyntax or AssignmentExpressionSyntax)
+                    return true;
+
+                // if any of the expressions we're adding are multiline, then make things multiline.
                 if (!sourceText.AreOnSameLine(expression.GetFirstToken(), expression.GetLastToken()))
                     return true;
             }
 
             var totalLength = 2; // for the braces.
-            foreach (var item in expressions.GetWithSeparators())
+            foreach (var match in matches)
             {
-                totalLength += item.Span.Length;
-
-                // add a space for after each comma.
-                if (item.IsToken)
-                    totalLength++;
+                var expression = GetExpression(match);
+                totalLength += expression.Span.Length;
+                totalLength += ", ".Length;
 
                 if (totalLength > wrappingLength)
                     return true;
             }
 
             return false;
+
+            static ExpressionSyntax GetExpression(Match<StatementSyntax> match)
+                => match.Statement switch
+                {
+                    ExpressionStatementSyntax expressionStatement => expressionStatement.Expression,
+                    ForEachStatementSyntax foreachStatement => foreachStatement.Expression,
+                    _ => throw ExceptionUtilities.Unreachable(),
+                };
         }
 
         private static CollectionExpressionSyntax CreateCollectionExpression(
@@ -193,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 
                     var semicolon = expressionStatement.SemicolonToken;
                     var trailingTrivia = semicolon.TrailingTrivia.Contains(static t => t.IsSingleOrMultiLineComment())
-                        ? TriviaList(semicolon.TrailingTrivia.TakeWhile(static t => t.Kind() != SyntaxKind.EndOfLineTrivia))
+                        ? semicolon.TrailingTrivia
                         : default;
 
                     var expression = ConvertExpression(expressionStatement.Expression).WithoutTrivia().WithLeadingTrivia(leadingTrivia);
