@@ -90,6 +90,46 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             return CollectionExpression(elements).WithTriviaFrom(objectCreation);
         }
 
+        private static ExpressionSyntax ConvertExpression(ExpressionSyntax expression)
+            => expression switch
+            {
+                InvocationExpressionSyntax invocation => ConvertInvocation(invocation),
+                AssignmentExpressionSyntax assignment => ConvertAssignment(assignment),
+                _ => throw new InvalidOperationException(),
+            };
+
+        private static AssignmentExpressionSyntax ConvertAssignment(AssignmentExpressionSyntax assignment)
+        {
+            var elementAccess = (ElementAccessExpressionSyntax)assignment.Left;
+            return assignment.WithLeft(
+                ImplicitElementAccess(elementAccess.ArgumentList));
+        }
+
+        private static ExpressionSyntax ConvertInvocation(InvocationExpressionSyntax invocation)
+        {
+            var arguments = invocation.ArgumentList.Arguments;
+
+            if (arguments.Count == 1)
+            {
+                // Assignment expressions in a collection initializer will cause the compiler to 
+                // report an error.  This is because { a = b } is the form for an object initializer,
+                // and the two forms are not allowed to mix/match.  Parenthesize the assignment to
+                // avoid the ambiguity.
+                var expression = arguments[0].Expression;
+                return SyntaxFacts.IsAssignmentExpression(expression.Kind())
+                    ? ParenthesizedExpression(expression)
+                    : expression;
+            }
+
+            return InitializerExpression(
+                SyntaxKind.ComplexElementInitializerExpression,
+                Token(SyntaxKind.OpenBraceToken).WithoutTrivia(),
+                SeparatedList(
+                    arguments.Select(a => a.Expression),
+                    arguments.GetSeparators()),
+                Token(SyntaxKind.CloseBraceToken).WithoutTrivia());
+        }
+
         private static bool MakeMultiLine(
             SourceText sourceText,
             BaseObjectCreationExpressionSyntax objectCreation,
@@ -157,46 +197,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             }
 
             return SeparatedList<TNode>(nodesAndTokens);
-        }
-
-        private static ExpressionSyntax ConvertExpression(ExpressionSyntax expression)
-            => expression switch
-            {
-                InvocationExpressionSyntax invocation => ConvertInvocation(invocation),
-                AssignmentExpressionSyntax assignment => ConvertAssignment(assignment),
-                _ => throw new InvalidOperationException(),
-            };
-
-        private static AssignmentExpressionSyntax ConvertAssignment(AssignmentExpressionSyntax assignment)
-        {
-            var elementAccess = (ElementAccessExpressionSyntax)assignment.Left;
-            return assignment.WithLeft(
-                ImplicitElementAccess(elementAccess.ArgumentList));
-        }
-
-        private static ExpressionSyntax ConvertInvocation(InvocationExpressionSyntax invocation)
-        {
-            var arguments = invocation.ArgumentList.Arguments;
-
-            if (arguments.Count == 1)
-            {
-                // Assignment expressions in a collection initializer will cause the compiler to 
-                // report an error.  This is because { a = b } is the form for an object initializer,
-                // and the two forms are not allowed to mix/match.  Parenthesize the assignment to
-                // avoid the ambiguity.
-                var expression = arguments[0].Expression;
-                return SyntaxFacts.IsAssignmentExpression(expression.Kind())
-                    ? ParenthesizedExpression(expression)
-                    : expression;
-            }
-
-            return InitializerExpression(
-                SyntaxKind.ComplexElementInitializerExpression,
-                Token(SyntaxKind.OpenBraceToken).WithoutTrivia(),
-                SeparatedList(
-                    arguments.Select(a => a.Expression),
-                    arguments.GetSeparators()),
-                Token(SyntaxKind.CloseBraceToken).WithoutTrivia());
         }
 
         private static SeparatedSyntaxList<TElement> CreateElements<TElement>(
