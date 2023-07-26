@@ -1533,7 +1533,7 @@ namespace N
     }
 }
 """;
-            var comp = CreateCompilation(new[] { source, s_utils });
+            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics(
                 // 0.cs(1,1): hidden CS8019: Unnecessary using directive.
                 // using N;
@@ -1584,7 +1584,7 @@ namespace N
     }
 }
 """;
-            var comp = CreateCompilation(new[] { source, s_utils });
+            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics(
                 // 0.cs(1,1): hidden CS8019: Unnecessary using directive.
                 // using N;
@@ -1635,7 +1635,7 @@ namespace N
     }
 }
 """;
-            var comp = CreateCompilation(new[] { source, s_utils });
+            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics(
                 // 0.cs(1,1): hidden CS8019: Unnecessary using directive.
                 // using N;
@@ -1686,7 +1686,7 @@ namespace N
     }
 }
 """;
-            var comp = CreateCompilation(new[] { source, s_utils });
+            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics(
                 // 0.cs(1,1): hidden CS8019: Unnecessary using directive.
                 // using N;
@@ -1737,7 +1737,7 @@ namespace N
     }
 }
 """;
-            var comp = CreateCompilation(new[] { source, s_utils });
+            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics(
                 // 0.cs(1,1): hidden CS8019: Unnecessary using directive.
                 // using N;
@@ -1788,7 +1788,7 @@ namespace N
     }
 }
 """;
-            var comp = CreateCompilation(new[] { source, s_utils });
+            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics(
                 // 0.cs(1,1): hidden CS8019: Unnecessary using directive.
                 // using N;
@@ -1839,7 +1839,7 @@ namespace N
     }
 }
 """;
-            var comp = CreateCompilation(new[] { source, s_utils });
+            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics(
                 // 0.cs(1,1): hidden CS8019: Unnecessary using directive.
                 // using N;
@@ -2132,7 +2132,10 @@ namespace N
     }
 }
 """;
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics();
 
             // ILVerify: Unrecognized arguments for delegate .ctor.
@@ -2169,7 +2172,10 @@ public static class E
     }
 }
 """;
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics();
 
             // ILVerify: Unrecognized arguments for delegate .ctor.
@@ -2210,7 +2216,10 @@ public static class E
     }
 }
 """;
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics();
 
             // ILVerify: Unrecognized arguments for delegate .ctor.
@@ -2248,7 +2257,17 @@ public static class E
     public static void M(this C c) { }
 }
 """;
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics(
+                // (1,21): error CS0123: No overload for 'M' matches delegate 'Action'
+                // System.Action x = C.M;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "System.Action").WithLocation(1, 21),
+                // (4,9): error CS8917: The delegate type could not be inferred.
+                // var z = C.M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "C.M").WithLocation(4, 9)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics(
                 // (1,21): error CS0123: No overload for 'M' matches delegate 'Action'
                 // System.Action x = C.M;
@@ -2291,7 +2310,14 @@ public static class E
     }
 }
 """;
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics(
+                // (4,9): error CS8917: The delegate type could not be inferred.
+                // var z = new C().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(4, 9)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics(
                 // (4,9): error CS8917: The delegate type could not be inferred.
                 // var z = new C().M;
@@ -2335,7 +2361,14 @@ namespace N
     }
 }
 """;
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8917: The delegate type could not be inferred.
+                // var z = new C().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(6, 9)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics(
                 // (6,9): error CS8917: The delegate type could not be inferred.
                 // var z = new C().M;
@@ -2484,7 +2517,10 @@ namespace N
     }
 }
 """;
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics();
             // ILVerify: Unrecognized arguments for delegate .ctor.
             CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "E2.M<T, U> E2.M<T, U>");
@@ -2516,7 +2552,17 @@ public static class E
     public static void M<T, U>(this C c) => throw null;
 }
 """;
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics(
+                // (1,19): error CS0411: The type arguments for method 'C.M<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                // System.Action x = new C().M;
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "new C().M").WithArguments("C.M<T>()").WithLocation(1, 19),
+                // (2,9): error CS8917: The delegate type could not be inferred.
+                // var z = new C().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(2, 9)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (1,19): error CS0411: The type arguments for method 'C.M<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 // System.Action x = new C().M;
