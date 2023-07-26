@@ -3237,6 +3237,10 @@ outerDefault:
                     return argRefKind;
                 }
             }
+            else if (AreRefsCompatibleForMethodConversion(paramRefKind, argRefKind, binder.Compilation))
+            {
+                return argRefKind;
+            }
 
             // Omit ref feature for COM interop: We can pass arguments by value for ref parameters if we are calling a method/property on an instance of a COM imported type.
             // We must ignore the 'ref' on the parameter while determining the applicability of argument for the given method call.
@@ -3248,6 +3252,30 @@ outerDefault:
             }
 
             return paramRefKind;
+        }
+
+        // In method group conversions, 'in' is allowed to match 'ref' and 'ref readonly' is allowed to match 'ref' or 'in'.
+        internal static bool AreRefsCompatibleForMethodConversion(RefKind x, RefKind y, CSharpCompilation compilation)
+        {
+            Debug.Assert(compilation is not null);
+
+            if (x == y)
+            {
+                return true;
+            }
+
+            if (x == RefKind.RefReadOnlyParameter)
+            {
+                return y is RefKind.Ref or RefKind.In;
+            }
+
+            if (y == RefKind.RefReadOnlyParameter)
+            {
+                return x is RefKind.Ref or RefKind.In;
+            }
+
+            return (x, y) is (RefKind.In, RefKind.Ref) or (RefKind.Ref, RefKind.In) &&
+                compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefReadonlyParameters);
         }
 
         private EffectiveParameters GetEffectiveParametersInExpandedForm<TMember>(

@@ -314,6 +314,7 @@ class X
                         case ErrorCode.WRN_ArgExpectedIn:
                         case ErrorCode.WRN_OverridingDifferentRefness:
                         case ErrorCode.WRN_HidingDifferentRefness:
+                        case ErrorCode.WRN_TargetDifferentRefness:
                         case ErrorCode.WRN_RefReadonlyParameterDefaultValue:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;

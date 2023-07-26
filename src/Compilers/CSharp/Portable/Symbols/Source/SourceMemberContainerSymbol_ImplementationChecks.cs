@@ -1503,7 +1503,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BindingDiagnosticBag diagnostics,
             ReportMismatchInParameterType<(ParameterSymbol BaseParameter, TArg Arg)> reportMismatchInParameterType,
             TArg extraArgument,
-            // PROTOTYPE: This argument is expected to be used for method conversion warnings.
             bool invokedAsExtensionMethod)
         {
             Debug.Assert(reportMismatchInParameterType is { });
@@ -1522,7 +1521,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var baseParameter = baseParameters[i];
                 var overrideParameter = overrideParameters[i + overrideParameterOffset];
-                if ((baseParameter.RefKind, overrideParameter.RefKind) is (RefKind.RefReadOnlyParameter, RefKind.In) or (RefKind.In, RefKind.RefReadOnlyParameter))
+                if (baseParameter.RefKind != overrideParameter.RefKind)
                 {
                     reportMismatchInParameterType(diagnostics, baseMethod, overrideMethod, overrideParameter, topLevel: true, (baseParameter, extraArgument));
                 }
