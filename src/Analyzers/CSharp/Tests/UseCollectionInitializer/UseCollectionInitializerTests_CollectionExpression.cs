@@ -98,6 +98,38 @@ public partial class UseCollectionInitializerTests_CollectionExpression
     }
 
     [Fact]
+    public async Task TestOnVariableDeclaratorDifferentType()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    IList<int> c = [|new|] List<int>();
+                    [|c.Add(|]1);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    IList<int> c = new List<int>
+                    {
+                        1
+                    };
+                }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task TestOnVariableDeclarator_Foreach1()
     {
         await TestInRegularAndScriptAsync(
