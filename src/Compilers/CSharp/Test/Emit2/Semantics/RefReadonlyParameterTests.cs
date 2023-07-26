@@ -2650,6 +2650,78 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         }
     }
 
+    [Theory, CombinatorialData]
+    public void RefAssignment_BetweenParameters_Struct(
+        [CombinatorialValues("in", "ref readonly", "ref")] string modifier1,
+        [CombinatorialValues("in", "ref readonly", "ref")] string modifier2)
+    {
+        var source = $$"""
+            struct S(int v)
+            {
+                public int V = v;
+            }
+            class C
+            {
+                static int M1({{modifier1}} S x, {{modifier2}} S y)
+                {
+                    return (x = ref y).V;
+                }
+                static void M2({{modifier1}} S x, {{modifier2}} S y)
+                {
+                    System.Console.WriteLine(x.V + " " + y.V);
+                    System.Console.WriteLine((x = ref y).V);
+                    System.Console.WriteLine(x.V + " " + y.V);
+                }
+                static void Main()
+                {
+                    S x = new S(5);
+                    S y = new S(6);
+                    M2({{getArgumentModifier(modifier1)}} x, {{getArgumentModifier(modifier2)}} y);
+                }
+            }
+            """;
+
+        if (modifier1 == "ref" && modifier2 != "ref")
+        {
+            CreateCompilation(source).VerifyDiagnostics(
+                // (9,25): error CS8331: Cannot assign to variable 'y' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //         return (x = ref y).V;
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "y").WithArguments("variable", "y").WithLocation(9, 25),
+                // (14,43): error CS8331: Cannot assign to variable 'y' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //         System.Console.WriteLine((x = ref y).V);
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "y").WithArguments("variable", "y").WithLocation(14, 43));
+        }
+        else
+        {
+            var verifier = CompileAndVerify(source, expectedOutput: """
+                5 6
+                6
+                6 6
+                """);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M1", """
+                {
+                  // Code size       10 (0xa)
+                  .maxstack  2
+                  IL_0000:  ldarg.1
+                  IL_0001:  dup
+                  IL_0002:  starg.s    V_0
+                  IL_0004:  ldfld      "int S.V"
+                  IL_0009:  ret
+                }
+                """);
+        }
+
+        static string getArgumentModifier(string parameterModifier)
+        {
+            return parameterModifier switch
+            {
+                "ref" => "ref",
+                _ => "in",
+            };
+        }
+    }
+
     [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
     public void RefReadonlyParameter_Arglist()
     {
