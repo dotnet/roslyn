@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected bool? CalculateIsNotNullableFromNonTypeConstraints()
+        internal bool? CalculateIsNotNullableFromNonTypeConstraints()
         {
             if (this.HasNotNullConstraint || this.HasValueTypeConstraint)
             {
