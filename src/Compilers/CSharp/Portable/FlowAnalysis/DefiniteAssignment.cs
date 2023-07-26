@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (!reported)
                         {
-                            if (parameterType.HasInlineArrayAttribute(out int length) && length > 1 && parameterType.TryGetInlineArrayElementField() is FieldSymbol elementField)
+                            if (parameterType.HasInlineArrayAttribute(out int length) && length > 1 && parameterType.TryGetPossiblyUnsupportedByLanguageInlineArrayElementField() is FieldSymbol elementField)
                             {
                                 if (!compilation.IsFeatureEnabled(MessageID.IDS_FeatureAutoDefaultStructs))
                                 {
@@ -1269,7 +1269,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    if (!foundUnassignedField && containingType.HasInlineArrayAttribute(out int length) && length > 1 && containingType.TryGetInlineArrayElementField() is FieldSymbol elementField)
+                    if (!foundUnassignedField && containingType.HasInlineArrayAttribute(out int length) && length > 1 && containingType.TryGetPossiblyUnsupportedByLanguageInlineArrayElementField() is FieldSymbol elementField)
                     {
                         // Add the element field to the set of fields requiring initialization to indicate that the whole instance needs initialization.
                         // This is done explicitly only for unreported cases, because, if something was reported, then we already have added the
@@ -1657,7 +1657,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VariableIdentifier variable = variableBySlot[containingSlot];
             TypeSymbol structType = variable.Symbol.GetTypeOrReturnType().Type;
 
-            if (structType.HasInlineArrayAttribute(out int length) && length > 1 && structType.TryGetInlineArrayElementField() is object)
+            if (structType.HasInlineArrayAttribute(out int length) && length > 1 && structType.TryGetPossiblyUnsupportedByLanguageInlineArrayElementField() is object)
             {
                 // An inline array of length > 1 cannot be considered fully initialized judging only based on fields.
                 return false;
