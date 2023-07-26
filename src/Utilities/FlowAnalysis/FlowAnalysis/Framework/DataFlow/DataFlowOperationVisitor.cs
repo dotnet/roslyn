@@ -1564,8 +1564,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                                 predicateValueKind = SetValueForIsNullComparisonOperator(isPatternOperation.Pattern, equals: FlowBranchConditionKind == ControlFlowConditionKind.WhenFalse, targetAnalysisData: targetAnalysisData);
                             }
 
-                            // Also set the predicated value for pattern value for true branch, i.e. for 'c' in "c is D d".
-                            goto case OperationKind.DiscardPattern;
+                            // Also set the predicated value for pattern value for true branch, i.e. for 'c' in "c is D d",
+                            // while explicitly ignore the returned 'predicateValueKind'.
+                            if (FlowBranchConditionKind == ControlFlowConditionKind.WhenTrue)
+                            {
+                                _ = SetValueForIsNullComparisonOperator(isPatternOperation.Value, equals: false, targetAnalysisData: targetAnalysisData);
+                            }
+
+                            break;
 
                         case OperationKind.DiscardPattern:
                         case OperationKind.RecursivePattern:
