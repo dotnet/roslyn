@@ -876,8 +876,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M()
                 {
                     List<int> c = [1,
-                        2
-            ];
+                        2];
                 }
             }
             """);
@@ -910,8 +909,41 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M()
                 {
                     List<int> c = [1,
-                        2
-            ];
+                        2];
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39146")]
+    public async Task TestWithExistingInitializer2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x)
+                {
+                    List<int> c = [|new|] List<int>()
+                    {
+                        1
+                    };
+                    [|foreach (var y in |]x)
+                        c.Add(y);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x)
+                {
+                    List<int> c = [1,
+                        .. x];
                 }
             }
             """);
@@ -1040,7 +1072,8 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    List<Action> list1 = [() =>
+                    List<Action> list1 = [
+                    () =>
                     {
                         List<int> list2 = [2];
                     }
