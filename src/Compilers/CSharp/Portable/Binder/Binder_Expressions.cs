@@ -9869,98 +9869,135 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return GetUniqueSignatureFromMethodGroup_CSharp10(node);
             }
 
-            MethodSymbol? method = selectMethodForSignature(node);
-
-            if (method is null)
+            MethodSymbol? foundMethod = null;
+            var typeArguments = node.TypeArgumentsOpt;
+            if (node.ResultKind == LookupResultKind.Viable)
             {
-                return null;
-            }
-
-            int arity = node.TypeArgumentsOpt.IsDefaultOrEmpty ? 0 : node.TypeArgumentsOpt.Length;
-            if (method.Arity != arity)
-            {
-                return null;
-            }
-            else if (arity > 0)
-            {
-                return method.ConstructedFrom.Construct(node.TypeArgumentsOpt);
-            }
-
-            return method;
-
-            static bool isCandidateUnique(ref MethodSymbol? method, MethodSymbol candidate)
-            {
-                if (method is null)
+                foreach (var instanceMethod in node.Methods)
                 {
-                    method = candidate;
-                    return true;
-                }
-                if (MemberSignatureComparer.MethodGroupSignatureComparer.Equals(method, candidate))
-                {
-                    return true;
-                }
-                method = null;
-                return false;
-            }
-
-            MethodSymbol? selectMethodForSignature(BoundMethodGroup node)
-            {
-                MethodSymbol? method = null;
-                if (node.ResultKind == LookupResultKind.Viable)
-                {
-                    foreach (var m in node.Methods)
+                    switch (node.ReceiverOpt)
                     {
-                        switch (node.ReceiverOpt)
+                        case BoundTypeExpression:
+                        case null: // if `using static Class` is in effect, the receiver is missing
+                            if (!instanceMethod.IsStatic) continue;
+                            break;
+                        case BoundThisReference { WasCompilerGenerated: true }:
+                            break;
+                        default:
+                            if (instanceMethod.IsStatic) continue;
+                            break;
+                    }
+
+                    int arity = typeArguments.IsDefaultOrEmpty ? 0 : typeArguments.Length;
+                    if (instanceMethod.Arity != arity)
+                    {
+                        // We have no way of inferring type arguments, so if the given type arguments
+                        // don't match the method's arity, the method is not a candidate
+                        continue;
+                    }
+
+                    var substituted = typeArguments.IsDefaultOrEmpty ? instanceMethod : instanceMethod.Construct(typeArguments);
+                    if (!satisfiesConstraintChecks(substituted))
+                    {
+                        continue;
+                    }
+
+                    if (!isCandidateUnique(ref foundMethod, substituted))
+                    {
+                        return null;
+                    }
+                }
+
+                if (foundMethod is not null)
+                {
+                    return foundMethod;
+                }
+            }
+
+            if (node.SearchExtensionMethods)
+            {
+                var receiver = node.ReceiverOpt!;
+                var methodGroup = MethodGroup.GetInstance();
+                foreach (var scope in new ExtensionMethodScopes(this))
+                {
+                    methodGroup.Clear();
+                    PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, node.Syntax, receiver, node.Name, typeArguments, BindingDiagnosticBag.Discarded);
+                    foreach (var extensionMethod in methodGroup.Methods)
+                    {
+                        var substituted = typeArguments.IsDefaultOrEmpty ? extensionMethod : extensionMethod.Construct(typeArguments);
+
+                        var reduced = substituted.ReduceExtensionMethod(receiver.Type, Compilation, out bool wasFullyInferred);
+                        if (reduced is null)
                         {
-                            case BoundTypeExpression:
-                            case null: // if `using static Class` is in effect, the receiver is missing
-                                if (!m.IsStatic) continue;
-                                break;
-                            case BoundThisReference { WasCompilerGenerated: true }:
-                                break;
-                            default:
-                                if (m.IsStatic) continue;
-                                break;
+                            // Extension method was not applicable
+                            continue;
                         }
 
-                        if (!isCandidateUnique(ref method, m))
+                        if (!wasFullyInferred)
                         {
+                            continue;
+                        }
+
+                        if (!satisfiesConstraintChecks(reduced))
+                        {
+                            continue;
+                        }
+
+                        var wasUnique = isCandidateUnique(ref foundMethod, reduced);
+                        if (!wasUnique)
+                        {
+                            methodGroup.Free();
                             return null;
                         }
                     }
 
-                    if (method is not null)
+                    if (foundMethod is not null)
                     {
-                        return method;
-                    }
-                }
-
-                if (node.SearchExtensionMethods)
-                {
-                    var receiver = node.ReceiverOpt!;
-                    foreach (var scope in new ExtensionMethodScopes(this))
-                    {
-                        var methodGroup = MethodGroup.GetInstance();
-                        PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, node.Syntax, receiver, node.Name, node.TypeArgumentsOpt, BindingDiagnosticBag.Discarded);
-                        foreach (var m in methodGroup.Methods)
-                        {
-                            if (m.ReduceExtensionMethod(receiver.Type, Compilation) is { } reduced &&
-                                !isCandidateUnique(ref method, reduced))
-                            {
-                                methodGroup.Free();
-                                return null;
-                            }
-                        }
                         methodGroup.Free();
-
-                        if (method is not null)
-                        {
-                            return method;
-                        }
+                        return foundMethod;
                     }
                 }
+                methodGroup.Free();
+            }
 
-                return null;
+            return null;
+
+            static bool isCandidateUnique(ref MethodSymbol? foundMethod, MethodSymbol candidate)
+            {
+                if (foundMethod is null)
+                {
+                    foundMethod = candidate;
+                    return true;
+                }
+                if (MemberSignatureComparer.MethodGroupSignatureComparer.Equals(foundMethod, candidate))
+                {
+                    return true;
+                }
+                foundMethod = null;
+                return false;
+            }
+
+            bool satisfiesConstraintChecks(MethodSymbol method)
+            {
+                if (method.Arity == 0)
+                {
+                    return true;
+                }
+
+                var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
+                ArrayBuilder<TypeParameterDiagnosticInfo>? useSiteDiagnosticsBuilder = null;
+
+                bool constraintsSatisfied = ConstraintsHelper.CheckMethodConstraints(
+                    method,
+                    new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: false, location: NoLocation.Singleton, diagnostics: null),
+                    diagnosticsBuilder,
+                    nullabilityDiagnosticsBuilderOpt: null,
+                    ref useSiteDiagnosticsBuilder);
+
+                diagnosticsBuilder.Free();
+                useSiteDiagnosticsBuilder?.Free();
+
+                return constraintsSatisfied;
             }
         }
 

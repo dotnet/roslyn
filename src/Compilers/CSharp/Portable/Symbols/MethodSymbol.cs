@@ -733,6 +733,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return visitor.VisitMethod(this);
         }
 
+        public MethodSymbol ReduceExtensionMethod(TypeSymbol receiverType, CSharpCompilation compilation)
+        {
+            return ReduceExtensionMethod(receiverType, compilation, wasFullyInferred: out _);
+        }
+
         /// <summary>
         /// If this is an extension method that can be applied to a receiver of the given type,
         /// returns a reduced extension method symbol thus formed. Otherwise, returns null.
@@ -740,7 +745,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="compilation">The compilation in which constraints should be checked.
         /// Should not be null, but if it is null we treat constraints as we would in the latest
         /// language version.</param>
-        public MethodSymbol ReduceExtensionMethod(TypeSymbol receiverType, CSharpCompilation compilation)
+        public MethodSymbol ReduceExtensionMethod(TypeSymbol receiverType, CSharpCompilation compilation, out bool wasFullyInferred)
         {
             if ((object)receiverType == null)
             {
@@ -749,10 +754,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!this.IsExtensionMethod || this.MethodKind == MethodKind.ReducedExtension || receiverType.IsVoidType())
             {
+                wasFullyInferred = false;
                 return null;
             }
 
-            return ReducedExtensionMethodSymbol.Create(this, receiverType, compilation);
+            return ReducedExtensionMethodSymbol.Create(this, receiverType, compilation, out wasFullyInferred);
         }
 
         /// <summary>
