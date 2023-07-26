@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -2582,6 +2583,71 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (23,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
             //         rorro = ref p; // 7
             Diagnostic(ErrorCode.ERR_AssgReadonly, "rorro").WithLocation(23, 9));
+    }
+
+    [Theory, CombinatorialData]
+    public void RefAssignment_BetweenParameters(
+        [CombinatorialValues("in", "ref readonly", "ref")] string modifier1,
+        [CombinatorialValues("in", "ref readonly", "ref")] string modifier2)
+    {
+        var source = $$"""
+            class C
+            {
+                static void M1({{modifier1}} int x, {{modifier2}} int y)
+                {
+                    x = ref y;
+                }
+                static void M2({{modifier1}} int x, {{modifier2}} int y)
+                {
+                    System.Console.WriteLine(x + " " + y);
+                    x = ref y;
+                    System.Console.WriteLine(x + " " + y);
+                }
+                static void Main()
+                {
+                    int x = 5;
+                    int y = 6;
+                    M2({{getArgumentModifier(modifier1)}} x, {{getArgumentModifier(modifier2)}} y);
+                }
+            }
+            """;
+
+        if (modifier1 == "ref" && modifier2 != "ref")
+        {
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,17): error CS8331: Cannot assign to variable 'y' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //         x = ref y;
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "y").WithArguments("variable", "y").WithLocation(5, 17),
+                // (10,17): error CS8331: Cannot assign to variable 'y' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //         x = ref y;
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "y").WithArguments("variable", "y").WithLocation(10, 17));
+        }
+        else
+        {
+            var verifier = CompileAndVerify(source, expectedOutput: """
+                5 6
+                6 6
+                """);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M1", """
+                {
+                  // Code size        4 (0x4)
+                  .maxstack  1
+                  IL_0000:  ldarg.1
+                  IL_0001:  starg.s    V_0
+                  IL_0003:  ret
+                }
+                """);
+        }
+
+        static string getArgumentModifier(string parameterModifier)
+        {
+            return parameterModifier switch
+            {
+                "ref" => "ref",
+                _ => "in",
+            };
+        }
     }
 
     [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
