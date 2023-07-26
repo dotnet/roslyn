@@ -2562,7 +2562,7 @@ public static class E
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(2, 9)
                 );
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics(
                 // (1,19): error CS0411: The type arguments for method 'C.M<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 // System.Action x = new C().M;
