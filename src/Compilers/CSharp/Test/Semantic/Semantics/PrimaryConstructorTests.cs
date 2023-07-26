@@ -17742,5 +17742,188 @@ class C1(int p1) : Base1
             comp.VerifyDiagnostics(expected);
             comp.VerifyEmitDiagnostics(expected);
         }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67371")]
+        public void AssignToRefField_01()
+        {
+            var source = @"
+ref struct S1
+{
+    public ref int R1;
+
+    public S1(ref int x)
+    {
+        R1 = ref x;
+    }
+}
+
+ref struct S2
+{
+    public ref int R2;
+
+    public S2([System.Diagnostics.CodeAnalysis.UnscopedRef] ref int x)
+    {
+        R2 = ref x;
+    }
+}
+
+ref struct S3(ref int x)
+{
+    public ref int R3 = ref x;
+}
+
+ref struct S4([System.Diagnostics.CodeAnalysis.UnscopedRef] ref int x)
+{
+    public ref int R4 = ref x;
+}
+
+ref struct S5
+{
+    public ref int R5;
+
+    public S5(scoped ref int x)
+    {
+        R5 = ref x;
+    }
+}
+
+ref struct S6(scoped ref int x)
+{
+    public ref int R6 = ref x;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (38,9): error CS8374: Cannot ref-assign 'x' to 'R5' because 'x' has a narrower escape scope than 'R5'.
+                //         R5 = ref x;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "R5 = ref x").WithArguments("R5", "x").WithLocation(38, 9),
+                // (44,25): error CS8374: Cannot ref-assign 'x' to 'R6' because 'x' has a narrower escape scope than 'R6'.
+                //     public ref int R6 = ref x;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "ref x").WithArguments("R6", "x").WithLocation(44, 25)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67371")]
+        public void AssignToRefField_02()
+        {
+            var source = @"
+ref struct S1
+{
+    public ref readonly int R1;
+
+    public S1(ref int x)
+    {
+        R1 = ref x;
+    }
+}
+
+ref struct S2
+{
+    public ref readonly int R2;
+
+    public S2([System.Diagnostics.CodeAnalysis.UnscopedRef] ref int x)
+    {
+        R2 = ref x;
+    }
+}
+
+ref struct S3(ref int x)
+{
+    public ref readonly int R3 = ref x;
+}
+
+ref struct S4([System.Diagnostics.CodeAnalysis.UnscopedRef] ref int x)
+{
+    public ref readonly int R4 = ref x;
+}
+
+ref struct S5
+{
+    public ref readonly int R5;
+
+    public S5(scoped ref int x)
+    {
+        R5 = ref x;
+    }
+}
+
+ref struct S6(scoped ref int x)
+{
+    public ref readonly int R6 = ref x;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (38,9): error CS8374: Cannot ref-assign 'x' to 'R5' because 'x' has a narrower escape scope than 'R5'.
+                //         R5 = ref x;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "R5 = ref x").WithArguments("R5", "x").WithLocation(38, 9),
+                // (44,34): error CS8374: Cannot ref-assign 'x' to 'R6' because 'x' has a narrower escape scope than 'R6'.
+                //     public ref readonly int R6 = ref x;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "ref x").WithArguments("R6", "x").WithLocation(44, 34)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67371")]
+        public void AssignToRefField_03()
+        {
+            var source = @"
+ref struct S1
+{
+    public ref readonly int R1;
+
+    public S1(in int x)
+    {
+        R1 = ref x;
+    }
+}
+
+ref struct S2
+{
+    public ref readonly int R2;
+
+    public S2([System.Diagnostics.CodeAnalysis.UnscopedRef] in int x)
+    {
+        R2 = ref x;
+    }
+}
+
+ref struct S3(in int x)
+{
+    public ref readonly int R3 = ref x;
+}
+
+ref struct S4([System.Diagnostics.CodeAnalysis.UnscopedRef] in int x)
+{
+    public ref readonly int R4 = ref x;
+}
+
+ref struct S5
+{
+    public ref readonly int R5;
+
+    public S5(scoped in int x)
+    {
+        R5 = ref x;
+    }
+}
+
+ref struct S6(scoped in int x)
+{
+    public ref readonly int R6 = ref x;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (38,9): error CS8374: Cannot ref-assign 'x' to 'R5' because 'x' has a narrower escape scope than 'R5'.
+                //         R5 = ref x;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "R5 = ref x").WithArguments("R5", "x").WithLocation(38, 9),
+                // (44,34): error CS8374: Cannot ref-assign 'x' to 'R6' because 'x' has a narrower escape scope than 'R6'.
+                //     public ref readonly int R6 = ref x;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "ref x").WithArguments("R6", "x").WithLocation(44, 34)
+                );
+        }
     }
 }

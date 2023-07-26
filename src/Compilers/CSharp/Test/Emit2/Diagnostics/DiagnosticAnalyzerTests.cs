@@ -3511,8 +3511,7 @@ internal class A
             var compWithAnalyzers = new CompilationWithAnalyzers(
                 compilation,
                 analyzers.ToImmutableArray(),
-                new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
-                CancellationToken.None);
+                new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty));
             var diagnostics = await compWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(model, filterSpan: null, CancellationToken.None);
             diagnostics.Verify(Diagnostic("ID0001", "M").WithLocation(4, 17));
         }

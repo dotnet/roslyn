@@ -53,12 +53,12 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             {
                 var priority = diagnostic.Severity == DiagnosticSeverity.Hidden
                     ? CodeActionPriority.Low
-                    : CodeActionPriority.Medium;
+                    : CodeActionPriority.Default;
 
-                context.RegisterCodeFix(
-                    new UseAutoPropertyCodeAction(
+                context.RegisterCodeFix(CodeAction.SolutionChangeAction.Create(
                         AnalyzersResources.Use_auto_property,
                         c => ProcessResultAsync(context, diagnostic, c),
+                        equivalenceKey: nameof(AnalyzersResources.Use_auto_property),
                         priority),
                     diagnostic);
             }
@@ -342,25 +342,6 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             // We do need a setter
             return true;
-        }
-
-        private class UseAutoPropertyCodeAction : CustomCodeActions.SolutionChangeAction
-        {
-            public UseAutoPropertyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution
-#if !CODE_STYLE // 'CodeActionPriority' is not a public API, hence not supported in CodeStyle layer.
-                , CodeActionPriority priority
-#endif
-                )
-                : base(title, createChangedSolution, title)
-            {
-#if !CODE_STYLE // 'CodeActionPriority' is not a public API, hence not supported in CodeStyle layer.
-                Priority = priority;
-#endif
-            }
-
-#if !CODE_STYLE // 'CodeActionPriority' is not a public API, hence not supported in CodeStyle layer.
-            internal override CodeActionPriority Priority { get; }
-#endif
         }
     }
 }

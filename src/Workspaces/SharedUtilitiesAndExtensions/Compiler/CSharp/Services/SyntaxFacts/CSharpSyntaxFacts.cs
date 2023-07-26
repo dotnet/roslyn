@@ -1382,6 +1382,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public SyntaxNode? GetInitializerOfVariableDeclarator(SyntaxNode node)
             => ((VariableDeclaratorSyntax)node).Initializer;
 
+        public SyntaxNode? GetInitializerOfPropertyDeclaration(SyntaxNode node)
+            => ((PropertyDeclarationSyntax)node).Initializer;
+
         public SyntaxNode GetTypeOfVariableDeclarator(SyntaxNode node)
             => ((VariableDeclarationSyntax)((VariableDeclaratorSyntax)node).Parent!).Type;
 
@@ -1543,6 +1546,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
 
         public bool IsMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node)
             => node is MemberAccessExpressionSyntax;
+
+        public bool IsMethodDeclaration([NotNullWhen(true)] SyntaxNode? node)
+            => node is MethodDeclarationSyntax;
 
         public bool IsSimpleName([NotNullWhen(true)] SyntaxNode? node)
             => node is SimpleNameSyntax;

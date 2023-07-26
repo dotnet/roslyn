@@ -49,19 +49,23 @@ namespace Microsoft.CodeAnalysis
 
         internal static bool IsCoreClrRuntime => true;
 
+        private const string DotNetHostPathEnvironmentName = "DOTNET_HOST_PATH";
+
         /// <summary>
-        /// Get the path to the dotnet executable. In the case the host did not provide this information
-        /// in the environment this will return simply "dotnet".
+        /// Get the path to the dotnet executable. In the case the .NET SDK did not provide this information
+        /// in the environment this tries to find "dotnet" on the PATH. In the case it is not found,
+        /// this will return simply "dotnet".
         /// </summary>
         internal static string GetDotNetPathOrDefault()
         {
+            if (Environment.GetEnvironmentVariable(DotNetHostPathEnvironmentName) is string pathToDotNet)
+            {
+                return pathToDotNet;
+            }
+
             var (fileName, sep) = PlatformInformation.IsWindows
                 ? ("dotnet.exe", ';')
                 : ("dotnet", ':');
-            if (Environment.GetEnvironmentVariable("DOTNET_ROOT") is { } rootStr)
-            {
-                return Path.Combine(rootStr, fileName);
-            }
 
             var path = Environment.GetEnvironmentVariable("PATH") ?? "";
             foreach (var item in path.Split(sep, StringSplitOptions.RemoveEmptyEntries))

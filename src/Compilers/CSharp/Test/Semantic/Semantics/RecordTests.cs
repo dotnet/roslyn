@@ -13220,24 +13220,27 @@ public record D(int J) : C(1)
 ";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "(1, 2, 42) (10, 20, 42)", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails).VerifyDiagnostics();
-            verifier.VerifyIL("D..ctor(D)", @"
- {
-      // Code size       33 (0x21)
-      .maxstack  2
-      IL_0000:  ldarg.0
-      IL_0001:  ldarg.1
-      IL_0002:  call       ""C..ctor(C)""
-      IL_0007:  nop
-      IL_0008:  ldarg.0
-      IL_0009:  ldarg.1
-      IL_000a:  ldfld      ""int D.<J>k__BackingField""
-      IL_000f:  stfld      ""int D.<J>k__BackingField""
-      IL_0014:  ldarg.0
-      IL_0015:  ldarg.1
-      IL_0016:  ldfld      ""int D.field""
-      IL_001b:  stfld      ""int D.field""
-      IL_0020:  ret
-    }
+            verifier.VerifyMethodBody("D..ctor(D)", @"
+{
+  // Code size       34 (0x22)
+  .maxstack  2
+  // sequence point: <hidden>
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""C..ctor(C)""
+  IL_0007:  nop
+  IL_0008:  ldarg.0
+  IL_0009:  ldarg.1
+  IL_000a:  ldfld      ""int D.<J>k__BackingField""
+  IL_000f:  stfld      ""int D.<J>k__BackingField""
+  IL_0014:  ldarg.0
+  IL_0015:  ldarg.1
+  IL_0016:  ldfld      ""int D.field""
+  IL_001b:  stfld      ""int D.field""
+  // sequence point: D
+  IL_0020:  nop
+  IL_0021:  ret
+}
 ");
         }
 

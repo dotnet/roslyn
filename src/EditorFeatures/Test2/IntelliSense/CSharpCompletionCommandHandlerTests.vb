@@ -3442,6 +3442,39 @@ class D : C
             End Using
         End Function
 
+        <WorkItem("https://github.com/dotnet/roslyn/issues/69153")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestOverrideWithClassWithTrailingSemicolon(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[class Class1
+{
+    override tostring$$
+};
+
+class Class2
+{
+
+};]]></Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Equal("class Class1
+{
+    public override string ToString()
+    {
+        return base.ToString();
+    }
+};
+
+class Class2
+{
+
+};", state.SubjectBuffer.CurrentSnapshot.GetText())
+            End Using
+        End Function
+
         <WpfTheory, CombinatorialData>
         Public Async Function TestOverrideDefaultParameter(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(

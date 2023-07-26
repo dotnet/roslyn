@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             TargetFramework targetFramework = TargetFramework.Standard,
             Verification? verification = null)
         {
-            _options = options ?? TestOptions.DebugDll;
+            _options = options ?? EditAndContinueTestBase.ComSafeDebugDll;
             _targetFramework = targetFramework;
             _parseOptions = parseOptions ?? TestOptions.Regular.WithNoRefSafetyRulesAttribute();
             _verification = verification ?? Verification.Passes;
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             var md = ModuleMetadata.CreateFromImage(verifier.EmittedAssemblyData);
             _disposables.Add(md);
 
-            var baseline = EmitBaseline.CreateInitialBaseline(md, EditAndContinueTestBase.EmptyLocalsProvider);
+            var baseline = EmitBaseline.CreateInitialBaseline(md, verifier.CreateSymReader().GetEncMethodDebugInfo);
 
             _generations.Add(new GenerationInfo(compilation, md.MetadataReader, diff: null, verifier, baseline, validator));
             _sources.Add(source);

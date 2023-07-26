@@ -601,4 +601,12 @@
     <value>reversed for loop</value>
     <comment>{Locked="for"} "for" is a C# keyword and should not be localized.</comment>
   </data>
+  <data name="static_void_Main" xml:space="preserve">
+    <value>static void Main</value>
+    <comment>{Locked}</comment>
+  </data>
+  <data name="static_int_Main" xml:space="preserve">
+    <value>static int Main</value>
+    <comment>{Locked}</comment>
+  </data>
 </root>

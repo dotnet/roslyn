@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
 #Region "Syntax Analysis"
 
-        Friend Overrides Function TryFindMemberDeclaration(rootOpt As SyntaxNode, node As SyntaxNode, <Out> ByRef declarations As OneOrMany(Of SyntaxNode)) As Boolean
+        Friend Overrides Function TryFindMemberDeclaration(rootOpt As SyntaxNode, node As SyntaxNode, activeSpan As TextSpan, <Out> ByRef declarations As OneOrMany(Of SyntaxNode)) As Boolean
             Dim current = node
             While current IsNot rootOpt
                 Select Case current.Kind
@@ -97,20 +97,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         ''' - <see cref="ArgumentListSyntax"/> for fields with array initializer, e.g. "Dim a(1) As Integer".
         ''' A null reference otherwise.
         ''' </returns>
-        Friend Overrides Function TryGetDeclarationBody(node As SyntaxNode) As MemberBody
+        Friend Overrides Function TryGetDeclarationBody(node As SyntaxNode, symbol As ISymbol) As MemberBody
             Return SyntaxUtilities.TryGetDeclarationBody(node)
         End Function
 
-        Friend Overrides Function IsDeclarationWithSharedBody(declaration As SyntaxNode) As Boolean
+        Friend Overrides Function IsDeclarationWithSharedBody(declaration As SyntaxNode, member As ISymbol) As Boolean
             If declaration.Kind = SyntaxKind.ModifiedIdentifier AndAlso declaration.Parent.Kind = SyntaxKind.VariableDeclarator Then
                 Dim variableDeclarator = CType(declaration.Parent, VariableDeclaratorSyntax)
                 Return variableDeclarator.Names.Count > 1 AndAlso variableDeclarator.Initializer IsNot Nothing OrElse SyntaxUtilities.HasAsNewClause(variableDeclarator)
             End If
 
-            Return False
-        End Function
-
-        Friend Overrides Function HasParameterClosureScope(member As ISymbol) As Boolean
             Return False
         End Function
 
@@ -127,37 +123,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                    Where String.Equals(DirectCast(identifier.Identifier.Value, String), localOrParameter.Name, StringComparison.OrdinalIgnoreCase) AndAlso
                          If(model.GetSymbolInfo(identifier, cancellationToken).Symbol?.Equals(localOrParameter), False)
                    Select node
-        End Function
-
-        Protected Overrides Function GetEncompassingAncestorImpl(bodyOrMatchRoot As SyntaxNode) As SyntaxNode
-            ' AsNewClause is a match root for field/property As New initializer 
-            ' EqualsClause is a match root for field/property initializer
-            If bodyOrMatchRoot.IsKind(SyntaxKind.AsNewClause) OrElse bodyOrMatchRoot.IsKind(SyntaxKind.EqualsValue) Then
-                Debug.Assert(bodyOrMatchRoot.Parent.IsKind(SyntaxKind.VariableDeclarator) OrElse
-                             bodyOrMatchRoot.Parent.IsKind(SyntaxKind.PropertyStatement))
-                Return bodyOrMatchRoot.Parent
-            End If
-
-            ' ArgumentList is a match root for an array initialized field
-            If bodyOrMatchRoot.IsKind(SyntaxKind.ArgumentList) Then
-                Debug.Assert(bodyOrMatchRoot.Parent.IsKind(SyntaxKind.ModifiedIdentifier))
-                Return bodyOrMatchRoot.Parent
-            End If
-
-            ' The following active nodes are outside of the initializer body,
-            ' we need to return a node that encompasses them.
-            ' Dim [|a = <<Body>>|]
-            ' Dim [|a As Integer = <<Body>>|]
-            ' Dim [|a As <<Body>>|]
-            ' Dim [|a|], [|b|], [|c|] As <<Body>> 
-            ' Property [|P As Integer = <<Body>>|]
-            ' Property [|P As <<Body>>|]
-            If bodyOrMatchRoot.Parent.IsKind(SyntaxKind.AsNewClause) OrElse
-               bodyOrMatchRoot.Parent.IsKind(SyntaxKind.EqualsValue) Then
-                Return bodyOrMatchRoot.Parent.Parent
-            End If
-
-            Return bodyOrMatchRoot
         End Function
 
         Friend Shared Function FindStatementAndPartner(
@@ -221,8 +186,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return LambdaUtilities.IsClosureScope(node)
         End Function
 
-        Protected Overrides Function FindEnclosingLambdaBody(root As SyntaxNode, node As SyntaxNode) As LambdaBody
-            While node IsNot root And node IsNot Nothing
+        Protected Overrides Function FindEnclosingLambdaBody(encompassingAncestor As SyntaxNode, node As SyntaxNode) As LambdaBody
+            While node IsNot encompassingAncestor And node IsNot Nothing
                 Dim body As SyntaxNode = Nothing
                 If LambdaUtilities.IsLambdaBodyStatementOrExpression(node, body) Then
                     Return SyntaxUtilities.CreateLambdaBody(body)
@@ -358,12 +323,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                    Not node.IsKind(SyntaxKind.SingleLineSubLambdaExpression)
         End Function
 
-        Protected Overrides Function TryGetEnclosingBreakpointSpan(root As SyntaxNode, position As Integer, <Out> ByRef span As TextSpan) As Boolean
-            Return BreakpointSpans.TryGetEnclosingBreakpointSpan(root, position, minLength:=0, span)
+        Protected Overrides Function TryGetEnclosingBreakpointSpan(token As SyntaxToken, <Out> ByRef span As TextSpan) As Boolean
+            Return BreakpointSpans.TryGetClosestBreakpointSpan(token.Parent, token.SpanStart, minLength:=token.Span.Length, span)
         End Function
 
         Protected Overrides Function TryGetActiveSpan(node As SyntaxNode, statementPart As Integer, minLength As Integer, <Out> ByRef span As TextSpan) As Boolean
-            Return BreakpointSpans.TryGetEnclosingBreakpointSpan(node, node.SpanStart, minLength, span)
+            Return BreakpointSpans.TryGetClosestBreakpointSpan(node, node.SpanStart, minLength, span)
         End Function
 
         Protected Overrides Iterator Function EnumerateNearStatements(statement As SyntaxNode) As IEnumerable(Of ValueTuple(Of SyntaxNode, Integer))
@@ -495,6 +460,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                    DirectCast(modifiedIdentifier.Parent, VariableDeclaratorSyntax).Names.Count > 1
         End Function
 
+        Protected Overrides Function AreEquivalentImpl(oldToken As SyntaxToken, newToken As SyntaxToken) As Boolean
+            Return SyntaxFactory.AreEquivalent(oldToken, newToken)
+        End Function
+
         Friend Overrides Function IsInterfaceDeclaration(node As SyntaxNode) As Boolean
             Return node.IsKind(SyntaxKind.InterfaceBlock)
         End Function
@@ -506,27 +475,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
         Friend Overrides Function TryGetContainingTypeDeclaration(node As SyntaxNode) As SyntaxNode
             Return node.Parent.FirstAncestorOrSelf(Of TypeBlockSyntax)() ' TODO: EnbumBlock?
-        End Function
-
-        Friend Overrides Function TryGetAssociatedMemberDeclaration(node As SyntaxNode, editKind As EditKind, <Out> ByRef declaration As SyntaxNode) As Boolean
-            If node.IsKind(SyntaxKind.Parameter, SyntaxKind.TypeParameter) Then
-                Contract.ThrowIfFalse(node.IsParentKind(SyntaxKind.ParameterList, SyntaxKind.TypeParameterList))
-                declaration = node.Parent.Parent
-                Return True
-            End If
-
-            ' We allow deleting event and property accessors, so don't associate them
-            If editKind <> EditKind.Delete AndAlso node.IsParentKind(SyntaxKind.PropertyBlock, SyntaxKind.EventBlock) Then
-                declaration = node.Parent
-                Return True
-            End If
-
-            declaration = Nothing
-            Return False
-        End Function
-
-        Friend Overrides Function HasBackingField(propertyDeclaration As SyntaxNode) As Boolean
-            Return SyntaxUtilities.HasBackingField(propertyDeclaration)
         End Function
 
         Friend Overrides Function IsDeclarationWithInitializer(declaration As SyntaxNode) As Boolean
@@ -577,7 +525,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         ''' is represented by its declaration statement.
         ''' </summary>
         Protected Overrides Function GetSymbolDeclarationSyntax(symbol As ISymbol, selector As Func(Of ImmutableArray(Of SyntaxReference), SyntaxReference), cancellationToken As CancellationToken) As SyntaxNode
-            Dim syntax = selector(symbol.DeclaringSyntaxReferences).GetSyntax(cancellationToken)
+            ' Invoke method of a delegate type doesn't have DeclaringSyntaxReferences
+            Dim syntaxRefs As ImmutableArray(Of SyntaxReference)
+
+            If symbol Is symbol.ContainingType?.DelegateInvokeMethod Then
+                syntaxRefs = symbol.ContainingType.DeclaringSyntaxReferences
+                If syntaxRefs.IsEmpty Then
+                    Dim parameter = DirectCast(symbol, IMethodSymbol).Parameters.First()
+                    Return parameter.DeclaringSyntaxReferences.Single().GetSyntax(cancellationToken).Parent.Parent
+                End If
+            Else
+                syntaxRefs = symbol.DeclaringSyntaxReferences
+            End If
+
+            Dim syntax = selector(syntaxRefs).GetSyntax(cancellationToken)
             Dim parent = syntax.Parent
 
             Select Case syntax.Kind
@@ -1628,15 +1589,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Sub
 
             Private Sub ReportError(kind As RudeEditKind)
-                ReportError(kind, {GetDisplayName(If(_newNode, _oldNode), EditKind.Update)})
-            End Sub
-
-            Private Sub ReportError(kind As RudeEditKind, args As String())
-                _diagnostics.Add(New RudeEditDiagnostic(kind, GetSpan(), If(_newNode, _oldNode), args))
-            End Sub
-
-            Private Sub ReportError(kind As RudeEditKind, spanNode As SyntaxNode, displayNode As SyntaxNode)
-                _diagnostics.Add(New RudeEditDiagnostic(kind, GetDiagnosticSpan(spanNode, _kind), displayNode, {GetDisplayName(displayNode, EditKind.Update)}))
+                _diagnostics.Add(New RudeEditDiagnostic(
+                    kind,
+                    span:=GetSpan(),
+                    node:=If(_newNode, _oldNode),
+                    arguments:={GetDisplayName(If(_newNode, _oldNode), EditKind.Update)}))
             End Sub
 
             Private Function GetSpan() As TextSpan
@@ -1855,30 +1812,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         Return
                 End Select
             End Sub
-
-            Public Sub ClassifyMemberOrLambdaBodyRudeUpdates(newBody As DeclarationBody)
-                For Each root In newBody.RootNodes
-                    Dim lambdaBody = TryCast(newBody, LambdaBody)
-                    For Each topMostBodyNode In If(lambdaBody IsNot Nothing, lambdaBody.GetExpressionsAndStatements(), {root})
-                        For Each node In topMostBodyNode.DescendantNodesAndSelf(AddressOf LambdaUtilities.IsNotLambda)
-                            Select Case node.Kind()
-                                Case SyntaxKind.AggregateClause,
-                                     SyntaxKind.GroupByClause,
-                                     SyntaxKind.SimpleJoinClause,
-                                     SyntaxKind.GroupJoinClause
-                                    ReportError(RudeEditKind.ComplexQueryExpression, node, Me._newNode)
-                                    Return
-
-                                Case SyntaxKind.LocalDeclarationStatement
-                                    Dim declaration = DirectCast(node, LocalDeclarationStatementSyntax)
-                                    If declaration.Modifiers.Any(SyntaxKind.StaticKeyword) Then
-                                        ReportError(RudeEditKind.UpdateStaticLocal)
-                                    End If
-                            End Select
-                        Next
-                    Next
-                Next
-            End Sub
 #End Region
         End Structure
 
@@ -1917,9 +1850,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             classifier.ClassifyEdit()
         End Sub
 
-        Friend Overrides Sub ReportMemberOrLambdaBodyUpdateRudeEditsImpl(diagnostics As ArrayBuilder(Of RudeEditDiagnostic), newDeclaration As SyntaxNode, newBody As DeclarationBody, span As TextSpan?)
-            Dim classifier = New EditClassifier(Me, diagnostics, Nothing, newDeclaration, EditKind.Update, span:=span)
-            classifier.ClassifyMemberOrLambdaBodyRudeUpdates(newBody)
+        Friend Overrides Sub ReportMemberOrLambdaBodyUpdateRudeEditsImpl(diagnostics As ArrayBuilder(Of RudeEditDiagnostic), newDeclaration As SyntaxNode, newBody As DeclarationBody)
+            ' Disallow editing the body even if the change is only in trivia.
+            ' The compiler might not emit equivallent IL for these constructs (e.g. different names of backing fields for static locals).
+
+            For Each root In newBody.RootNodes
+                Dim lambdaBody = TryCast(newBody, LambdaBody)
+                For Each topMostBodyNode In If(lambdaBody IsNot Nothing, lambdaBody.GetExpressionsAndStatements(), {root})
+                    For Each node In topMostBodyNode.DescendantNodesAndSelf(AddressOf LambdaUtilities.IsNotLambda)
+                        Dim rudeEdit = RudeEditKind.None
+
+                        Select Case node.Kind()
+                            Case SyntaxKind.AggregateClause,
+                                 SyntaxKind.GroupByClause,
+                                 SyntaxKind.SimpleJoinClause,
+                                 SyntaxKind.GroupJoinClause
+                                rudeEdit = RudeEditKind.ComplexQueryExpression
+
+                            Case SyntaxKind.LocalDeclarationStatement
+                                Dim declaration = DirectCast(node, LocalDeclarationStatementSyntax)
+                                If declaration.Modifiers.Any(SyntaxKind.StaticKeyword) Then
+                                    rudeEdit = RudeEditKind.UpdateStaticLocal
+                                End If
+                        End Select
+
+                        If rudeEdit <> RudeEditKind.None Then
+                            diagnostics.Add(New RudeEditDiagnostic(
+                                rudeEdit,
+                                GetDiagnosticSpan(node, EditKind.Update),
+                                newDeclaration,
+                                {GetDisplayName(newDeclaration, EditKind.Update)}))
+
+                            Return
+                        End If
+                    Next
+                Next
+            Next
         End Sub
 
 #End Region
@@ -2011,10 +1977,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
 #Region "Exception Handling Rude Edits"
 
-        Protected Overrides Function GetExceptionHandlingAncestors(node As SyntaxNode, isNonLeaf As Boolean) As List(Of SyntaxNode)
+        Protected Overrides Function GetExceptionHandlingAncestors(node As SyntaxNode, root As SyntaxNode, isNonLeaf As Boolean) As List(Of SyntaxNode)
             Dim result = New List(Of SyntaxNode)()
 
-            While node IsNot Nothing
+            While node IsNot root
                 Dim kind = node.Kind
 
                 Select Case kind
@@ -2040,6 +2006,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Exit While
                 End If
 
+                Debug.Assert(node.Parent IsNot Nothing)
                 node = node.Parent
             End While
 
@@ -2239,40 +2206,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 #Region "Rude Edits around Active Statement"
 
         Friend Overrides Sub ReportOtherRudeEditsAroundActiveStatement(diagnostics As ArrayBuilder(Of RudeEditDiagnostic),
-                                                                       match As Match(Of SyntaxNode),
+                                                                       forwardMap As IReadOnlyDictionary(Of SyntaxNode, SyntaxNode),
                                                                        oldActiveStatement As SyntaxNode,
+                                                                       oldBody As DeclarationBody,
                                                                        newActiveStatement As SyntaxNode,
+                                                                       newBody As DeclarationBody,
                                                                        isNonLeaf As Boolean)
 
-            Dim onErrorOrResumeStatement = FindOnErrorOrResumeStatement(match.NewRoot)
+            Dim onErrorOrResumeStatement = FindOnErrorOrResumeStatement(newBody)
             If onErrorOrResumeStatement IsNot Nothing Then
                 AddAroundActiveStatementRudeDiagnostic(diagnostics, oldActiveStatement, onErrorOrResumeStatement, newActiveStatement.Span)
             End If
 
-            ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics, match, oldActiveStatement, newActiveStatement)
+            ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics, forwardMap, oldActiveStatement, oldBody.EncompassingAncestor, newActiveStatement, newBody.EncompassingAncestor)
         End Sub
 
-        Private Shared Function FindOnErrorOrResumeStatement(newDeclarationOrBody As SyntaxNode) As SyntaxNode
-            For Each node In newDeclarationOrBody.DescendantNodes(AddressOf ChildrenCompiledInBody)
-                Select Case node.Kind
-                    Case SyntaxKind.OnErrorGoToLabelStatement,
+        Private Shared Function FindOnErrorOrResumeStatement(newBody As DeclarationBody) As SyntaxNode
+            For Each newRoot In newBody.RootNodes
+                For Each node In newRoot.DescendantNodes(AddressOf ChildrenCompiledInBody)
+                    Select Case node.Kind
+                        Case SyntaxKind.OnErrorGoToLabelStatement,
                          SyntaxKind.OnErrorGoToMinusOneStatement,
                          SyntaxKind.OnErrorGoToZeroStatement,
                          SyntaxKind.OnErrorResumeNextStatement,
                          SyntaxKind.ResumeStatement,
                          SyntaxKind.ResumeNextStatement,
                          SyntaxKind.ResumeLabelStatement
-                        Return node
-                End Select
+                            Return node
+                    End Select
+                Next
             Next
 
             Return Nothing
         End Function
 
         Private Sub ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics As ArrayBuilder(Of RudeEditDiagnostic),
-                                                                            match As Match(Of SyntaxNode),
+                                                                            forwardMap As IReadOnlyDictionary(Of SyntaxNode, SyntaxNode),
                                                                             oldActiveStatement As SyntaxNode,
-                                                                            newActiveStatement As SyntaxNode)
+                                                                            oldEncompassingAncestor As SyntaxNode,
+                                                                            newActiveStatement As SyntaxNode,
+                                                                            newEncompassingAncestor As SyntaxNode)
 
             ' Rude Edits for Using/SyncLock/With/ForEach statements that are added/updated around an active statement.
             ' Although such changes are technically possible, they might lead to confusion since 
@@ -2283,19 +2256,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             ' 
             ' Unlike exception regions matching where we use LCS, we allow reordering of the statements.
 
-            ReportUnmatchedStatements(Of SyncLockBlockSyntax)(diagnostics, match, Function(node) node.IsKind(SyntaxKind.SyncLockBlock), oldActiveStatement, newActiveStatement,
+            ReportUnmatchedStatements(Of SyncLockBlockSyntax)(diagnostics, forwardMap, Function(node) node.IsKind(SyntaxKind.SyncLockBlock), oldActiveStatement, oldEncompassingAncestor, newActiveStatement, newEncompassingAncestor,
                 areEquivalent:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(n1.SyncLockStatement.Expression, n2.SyncLockStatement.Expression),
                 areSimilar:=Nothing)
 
-            ReportUnmatchedStatements(Of WithBlockSyntax)(diagnostics, match, Function(node) node.IsKind(SyntaxKind.WithBlock), oldActiveStatement, newActiveStatement,
+            ReportUnmatchedStatements(Of WithBlockSyntax)(diagnostics, forwardMap, Function(node) node.IsKind(SyntaxKind.WithBlock), oldActiveStatement, oldEncompassingAncestor, newActiveStatement, newEncompassingAncestor,
                 areEquivalent:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(n1.WithStatement.Expression, n2.WithStatement.Expression),
                 areSimilar:=Nothing)
 
-            ReportUnmatchedStatements(Of UsingBlockSyntax)(diagnostics, match, Function(node) node.IsKind(SyntaxKind.UsingBlock), oldActiveStatement, newActiveStatement,
+            ReportUnmatchedStatements(Of UsingBlockSyntax)(diagnostics, forwardMap, Function(node) node.IsKind(SyntaxKind.UsingBlock), oldActiveStatement, oldEncompassingAncestor, newActiveStatement, newEncompassingAncestor,
                 areEquivalent:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(n1.UsingStatement.Expression, n2.UsingStatement.Expression),
                 areSimilar:=Nothing)
 
-            ReportUnmatchedStatements(Of ForOrForEachBlockSyntax)(diagnostics, match, Function(node) node.IsKind(SyntaxKind.ForEachBlock), oldActiveStatement, newActiveStatement,
+            ReportUnmatchedStatements(Of ForOrForEachBlockSyntax)(diagnostics, forwardMap, Function(node) node.IsKind(SyntaxKind.ForEachBlock), oldActiveStatement, oldEncompassingAncestor, newActiveStatement, newEncompassingAncestor,
                 areEquivalent:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(n1.ForOrForEachStatement, n2.ForOrForEachStatement),
                 areSimilar:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(DirectCast(n1.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable,
                                                                                DirectCast(n2.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable))

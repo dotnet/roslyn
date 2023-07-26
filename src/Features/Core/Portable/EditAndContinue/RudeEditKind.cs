@@ -140,5 +140,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         DeleteNotSupportedByRuntime = 111,
         UpdatingStateMachineMethodNotSupportedByRuntime = 112,
         UpdatingGenericNotSupportedByRuntime = 113,
+        CapturingPrimaryConstructorParameter = 114,
+        NotCapturingPrimaryConstructorParameter = 115,
     }
 }

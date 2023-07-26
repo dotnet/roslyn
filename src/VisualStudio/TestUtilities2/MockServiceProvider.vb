@@ -72,6 +72,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
 
                     Return _settingsManager
 
+                Case GetType(SVsFeatureFlags)
+                    ' The only places that we consume this treat it as optional, so we can skip it here, and remove this in 
+                    ' https://github.com/dotnet/roslyn/pull/69160.
+                    Return Nothing
+
                 Case Else
                     Throw New Exception($"{NameOf(MockServiceProvider)} does not implement {serviceType.FullName}.")
             End Select
