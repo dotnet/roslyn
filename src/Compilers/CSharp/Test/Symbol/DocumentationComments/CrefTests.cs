@@ -6824,7 +6824,7 @@ class Test
 
             var expectedDiagnostics = new[]
             {
-                // (3,12): error CS9501: 'readonly' modifier must be specified after 'ref'.
+                // (3,12): error CS9190: 'readonly' modifier must be specified after 'ref'.
                 //     void M(readonly ref int x)
                 Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 12),
                 // (8,20): warning CS1584: XML comment has syntactically incorrect cref attribute 'M(readonly ref int)'
@@ -6866,7 +6866,7 @@ class Test
                 """;
 
             verify(CreateCompilation(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(
-                // (3,12): error CS9501: 'readonly' modifier must be specified after 'ref'.
+                // (3,12): error CS9190: 'readonly' modifier must be specified after 'ref'.
                 //     void M(readonly ref int x)
                 Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 12),
                 // (8,20): warning CS1574: XML comment has cref attribute 'M(ref readonly int)' that could not be resolved
@@ -6878,7 +6878,7 @@ class Test
 
             var expectedDiagnostics = new[]
             {
-                // (3,12): error CS9501: 'readonly' modifier must be specified after 'ref'.
+                // (3,12): error CS9190: 'readonly' modifier must be specified after 'ref'.
                 //     void M(readonly ref int x)
                 Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 12),
                 // (8,20): warning CS1574: XML comment has cref attribute 'M(ref readonly int)' that could not be resolved

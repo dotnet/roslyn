@@ -6836,7 +6836,7 @@ class Program
                 // (6,21): error CS1107: A parameter can only have one 'ref' modifier
                 //         D d1 = (ref ref int i) => { };
                 Diagnostic(ErrorCode.ERR_DupParamMod, "ref").WithArguments("ref").WithLocation(6, 21),
-                // (7,16): warning CS9510: Reference kind modifier of parameter 'in int i' doesn't match the corresponding parameter 'ref int i' in target.
+                // (7,16): warning CS9198: Reference kind modifier of parameter 'in int i' doesn't match the corresponding parameter 'ref int i' in target.
                 //         D d2 = (in ref int i) => { };
                 Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(in ref int i) => { }").WithArguments("in int i", "ref int i").WithLocation(7, 16),
                 // (7,20): error CS8328:  The parameter modifier 'ref' cannot be used with 'in'

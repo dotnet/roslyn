@@ -2253,17 +2253,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CollectionBuilderNoElementType = 9188,
         ERR_InlineArrayForEachNotSupported = 9189,
 
-        ERR_RefReadOnlyWrongOrdering = 9501, // PROTOTYPE: Pack numbers
-        WRN_BadArgRef = 9502,
-        WRN_ArgExpectedRefOrIn = 9503,
-        WRN_RefReadonlyNotVariable = 9504,
-        ERR_BadArgExtraRefLangVersion = 9505,
-        WRN_ArgExpectedIn = 9506,
-        WRN_OverridingDifferentRefness = 9507,
-        WRN_HidingDifferentRefness = 9508,
-        WRN_TargetDifferentRefness = 9510,
-        ERR_OutAttrOnRefReadonlyParam = 9520,
-        WRN_RefReadonlyParameterDefaultValue = 9521,
+        ERR_RefReadOnlyWrongOrdering = 9190,
+        WRN_BadArgRef = 9191,
+        WRN_ArgExpectedRefOrIn = 9192,
+        WRN_RefReadonlyNotVariable = 9193,
+        ERR_BadArgExtraRefLangVersion = 9194,
+        WRN_ArgExpectedIn = 9195,
+        WRN_OverridingDifferentRefness = 9196,
+        WRN_HidingDifferentRefness = 9197,
+        WRN_TargetDifferentRefness = 9198,
+        ERR_OutAttrOnRefReadonlyParam = 9199,
+        WRN_RefReadonlyParameterDefaultValue = 9200,
 
         #endregion
 

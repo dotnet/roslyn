@@ -307,10 +307,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (4,36): error CS9520: A ref readonly parameter cannot have the Out attribute.
+            // (4,36): error CS9199: A ref readonly parameter cannot have the Out attribute.
             //     void M1([Out] ref readonly int p) { }
             Diagnostic(ErrorCode.ERR_OutAttrOnRefReadonlyParam, "p").WithLocation(4, 36),
-            // (5,40): error CS9520: A ref readonly parameter cannot have the Out attribute.
+            // (5,40): error CS9199: A ref readonly parameter cannot have the Out attribute.
             //     void M2([In, Out] ref readonly int p) { }
             Diagnostic(ErrorCode.ERR_OutAttrOnRefReadonlyParam, "p").WithLocation(5, 40));
     }
@@ -787,13 +787,13 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
 
         CreateCompilationWithIL(source, ilSource, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (7,17): error CS9505: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version preview or greater.
+            // (7,17): error CS9194: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version preview or greater.
             //         c.D(ref x);
             Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "preview").WithLocation(7, 17));
 
         var comp = CreateCompilationWithIL(source, ilSource, options: TestOptions.UnsafeDebugDll);
         comp.VerifyDiagnostics(
-            // (7,17): warning CS9502: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            // (7,17): warning CS9191: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
             //         c.D(ref x);
             Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(7, 17));
 
@@ -1174,7 +1174,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
 
         var expectedDiagnostics = new[]
         {
-            // (6,13): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // (6,13): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
             //         c.D(x);
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(6, 13)
         };
@@ -1253,7 +1253,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (3,16): error CS8328:  The parameter modifier 'params' cannot be used with 'ref'
             //     void M(ref params readonly int[] p) => throw null;
             Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("params", "ref").WithLocation(3, 16),
-            // (3,23): error CS9501: 'readonly' modifier must be specified after 'ref'.
+            // (3,23): error CS9190: 'readonly' modifier must be specified after 'ref'.
             //     void M(ref params readonly int[] p) => throw null;
             Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 23));
 
@@ -1272,7 +1272,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         var comp = CreateCompilation(source).VerifyDiagnostics(
-            // (3,15): error CS9501: 'readonly' modifier must be specified after 'ref'.
+            // (3,15): error CS9190: 'readonly' modifier must be specified after 'ref'.
             //     void M(in readonly int p) => throw null;
             Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 15));
 
@@ -1320,10 +1320,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         var expectedDiagnostics = new[]
         {
-            // (3,12): error CS9501: 'readonly' modifier must be specified after 'ref'.
+            // (3,12): error CS9190: 'readonly' modifier must be specified after 'ref'.
             //     void M(readonly readonly int p) { }
             Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 12),
-            // (3,21): error CS9501: 'readonly' modifier must be specified after 'ref'.
+            // (3,21): error CS9190: 'readonly' modifier must be specified after 'ref'.
             //     void M(readonly readonly int p) { }
             Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 21)
         };
@@ -1343,7 +1343,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (3,12): error CS9501: 'readonly' modifier must be specified after 'ref'.
+            // (3,12): error CS9190: 'readonly' modifier must be specified after 'ref'.
             //     void M(readonly ref readonly int p) { }
             Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 12),
             // (3,25): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
@@ -1352,7 +1352,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
 
         var expectedDiagnostics = new[]
         {
-            // (3,12): error CS9501: 'readonly' modifier must be specified after 'ref'.
+            // (3,12): error CS9190: 'readonly' modifier must be specified after 'ref'.
             //     void M(readonly ref readonly int p) { }
             Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 12)
         };
@@ -1372,10 +1372,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         var expectedDiagnostics = new[]
         {
-            // (3,12): error CS9501: 'readonly' modifier must be specified after 'ref'.
+            // (3,12): error CS9190: 'readonly' modifier must be specified after 'ref'.
             //     void M(readonly readonly ref int p) { }
             Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 12),
-            // (3,21): error CS9501: 'readonly' modifier must be specified after 'ref'.
+            // (3,21): error CS9190: 'readonly' modifier must be specified after 'ref'.
             //     void M(readonly readonly ref int p) { }
             Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 21)
         };
@@ -1430,7 +1430,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         var expectedDiagnostics = new[]
         {
-            // (3,12): error CS9501: 'readonly' modifier must be specified after 'ref'.
+            // (3,12): error CS9190: 'readonly' modifier must be specified after 'ref'.
             //     void M(readonly int p) => throw null;
             Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 12)
         };
@@ -1451,7 +1451,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         var expectedDiagnostics = new[]
         {
-            // (3,12): error CS9501: 'readonly' modifier must be specified after 'ref'.
+            // (3,12): error CS9190: 'readonly' modifier must be specified after 'ref'.
             //     void M(readonly params int[] p) => throw null;
             Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 12)
         };
@@ -1521,7 +1521,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         var expectedDiagnostics = new[]
         {
-            // (3,15): error CS9501: 'readonly' modifier must be specified after 'ref'.
+            // (3,15): error CS9190: 'readonly' modifier must be specified after 'ref'.
             //     void M(in readonly int[] p) => throw null;
             Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 15)
         };
@@ -1570,7 +1570,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         var expectedDiagnostics = new[]
         {
-            // (3,16): error CS9501: 'readonly' modifier must be specified after 'ref'.
+            // (3,16): error CS9190: 'readonly' modifier must be specified after 'ref'.
             //     void M(out readonly int[] p) => throw null;
             Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 16)
         };
@@ -1619,7 +1619,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         var expectedDiagnostics = new[]
         {
-            // (3,31): error CS9501: 'readonly' modifier must be specified after 'ref'.
+            // (3,31): error CS9190: 'readonly' modifier must be specified after 'ref'.
             //     public static void M(this readonly int p) => throw null;
             Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 31)
         };
@@ -1658,7 +1658,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         var expectedDiagnostics = new[]
         {
-            // (3,35): error CS9501: 'readonly' modifier must be specified after 'ref'.
+            // (3,35): error CS9190: 'readonly' modifier must be specified after 'ref'.
             //     public static void M(ref this readonly int p) => throw null;
             Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 35)
         };
@@ -1724,7 +1724,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (3,37): error CS1003: Syntax error, ',' expected
             //     public static void M(ref scoped readonly int p) => throw null;
             Diagnostic(ErrorCode.ERR_SyntaxError, "readonly").WithArguments(",").WithLocation(3, 37),
-            // (3,37): error CS9501: 'readonly' modifier must be specified after 'ref'.
+            // (3,37): error CS9190: 'readonly' modifier must be specified after 'ref'.
             //     public static void M(ref scoped readonly int p) => throw null;
             Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 37)
         };
@@ -1745,7 +1745,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         var expectedDiagnostics = new[]
         {
-            // (3,26): error CS9501: 'readonly' modifier must be specified after 'ref'.
+            // (3,26): error CS9190: 'readonly' modifier must be specified after 'ref'.
             //     public static void M(readonly scoped ref int p) => throw null;
             Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 26),
             // (3,35): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
@@ -1784,7 +1784,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (3,33): error CS1003: Syntax error, ',' expected
             //     public static void M(scoped readonly int p) => throw null;
             Diagnostic(ErrorCode.ERR_SyntaxError, "readonly").WithArguments(",").WithLocation(3, 33),
-            // (3,33): error CS9501: 'readonly' modifier must be specified after 'ref'.
+            // (3,33): error CS9190: 'readonly' modifier must be specified after 'ref'.
             //     public static void M(scoped readonly int p) => throw null;
             Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 33)
         };
@@ -1902,7 +1902,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         var verifier = CompileAndVerify(source, expectedOutput: "5");
         verifier.VerifyDiagnostics(
-            // (7,11): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // (7,11): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
             //         M(x);
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(7, 11));
         verifier.VerifyIL("C.Main", """
@@ -1965,7 +1965,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         var verifier = CompileAndVerify(source, expectedOutput: "5", verify: Verification.Fails);
         verifier.VerifyDiagnostics(
-            // (7,11): warning CS9506: Argument 1 should be passed with the 'in' keyword
+            // (7,11): warning CS9195: Argument 1 should be passed with the 'in' keyword
             //         M(x);
             Diagnostic(ErrorCode.WRN_ArgExpectedIn, "x").WithArguments("1").WithLocation(7, 11));
         verifier.VerifyIL("C.Main", """
@@ -2041,7 +2041,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         var verifier = CompileAndVerify(source, expectedOutput: "5");
         verifier.VerifyDiagnostics(
-            // (6,11): warning CS9504: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
+            // (6,11): warning CS9193: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
             //         M(5);
             Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "5").WithArguments("1").WithLocation(6, 11));
         verifier.VerifyIL("C.Main", """
@@ -2126,7 +2126,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         var verifier = CompileAndVerify(source, expectedOutput: "5");
         verifier.VerifyDiagnostics(
-            // (5,12): warning CS9506: Argument 1 should be passed with the 'in' keyword
+            // (5,12): warning CS9195: Argument 1 should be passed with the 'in' keyword
             //         M2(p);
             Diagnostic(ErrorCode.WRN_ArgExpectedIn, "p").WithArguments("1").WithLocation(5, 12));
         verifier.VerifyIL("C.M1", """
@@ -2293,7 +2293,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         var verifier = CompileAndVerify(source, expectedOutput: "5");
         verifier.VerifyDiagnostics(
-            // (5,12): warning CS9506: Argument 1 should be passed with the 'in' keyword
+            // (5,12): warning CS9195: Argument 1 should be passed with the 'in' keyword
             //         M2(p);
             Diagnostic(ErrorCode.WRN_ArgExpectedIn, "p").WithArguments("1").WithLocation(5, 12));
         verifier.VerifyIL("C.M1", """
@@ -2462,7 +2462,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (7,12): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // (7,12): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
             //         M2(M1());
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "M1()").WithArguments("1").WithLocation(7, 12),
             // (10,16): error CS1615: Argument 1 may not be passed with the 'out' keyword
@@ -2488,7 +2488,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (7,12): warning CS9506: Argument 1 should be passed with the 'in' keyword
+            // (7,12): warning CS9195: Argument 1 should be passed with the 'in' keyword
             //         M2(M1());
             Diagnostic(ErrorCode.WRN_ArgExpectedIn, "M1()").WithArguments("1").WithLocation(7, 12),
             // (9,16): error CS8329: Cannot use method 'M1' as a ref or out value because it is a readonly variable
@@ -2575,7 +2575,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             111
             """);
         verifier.VerifyDiagnostics(
-            // (7,11): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // (7,11): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
             //         M(x, __arglist(x));
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(7, 11));
     }
@@ -2617,7 +2617,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         var comp1 = CreateCompilation(source1).VerifyDiagnostics(
-            // (7,11): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // (7,11): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
             //         M(x);
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(7, 11));
         var comp1Ref = comp1.ToMetadataReference();
@@ -2644,7 +2644,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
 
         var expectedDiagnostics = new[]
         {
-            // (6,13): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // (6,13): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
             //         c.M(x);
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(6, 13)
         };
@@ -2670,7 +2670,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CompileAndVerify(source, expectedOutput: "555").VerifyDiagnostics(
-            // (7,15): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // (7,15): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
             //         new C(x);
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(7, 15));
     }
@@ -2721,7 +2721,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CompileAndVerify(source, expectedOutput: "555").VerifyDiagnostics(
-            // (16,15): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // (16,15): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
             //         _ = c[x];
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(16, 15));
     }
@@ -2767,7 +2767,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         var verifier = CompileAndVerify(new[] { source, RequiresLocationAttributeDefinition },
             expectedOutput: "555", options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails);
         verifier.VerifyDiagnostics(
-            // (8,11): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // (8,11): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
             //         f(x);
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(8, 11));
     }
@@ -2816,13 +2816,13 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CompileAndVerify(source, expectedOutput: "65655656").VerifyDiagnostics(
-            // (12,14): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // (12,14): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
             //         M(b: x, a: y); // 1
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(12, 14),
-            // (13,14): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // (13,14): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
             //         M(b: x, a: in y); // 2
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(13, 14),
-            // (14,17): warning CS9503: Argument 2 should be passed with 'ref' or 'in' keyword
+            // (14,17): warning CS9192: Argument 2 should be passed with 'ref' or 'in' keyword
             //         M(a: x, y); // 3
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "y").WithArguments("2").WithLocation(14, 17));
     }
@@ -2894,7 +2894,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             object5
             c5
             """).VerifyDiagnostics(
-            // (10,58): warning CS9502: The 'ref' modifier for argument 2 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            // (10,58): warning CS9191: The 'ref' modifier for argument 2 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
             //         System.Console.WriteLine(M1(default(object), ref i));
             Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("2").WithLocation(10, 58));
     }
@@ -2921,7 +2921,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
 
         var expectedDiagnostics = new[]
         {
-            // (8,36): warning CS9501: The 'ref' modifier for argument 2 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            // (8,36): warning CS9190: The 'ref' modifier for argument 2 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
             //         new C(default(object), ref i);
             Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("2").WithLocation(8, 36)
         };
@@ -2985,7 +2985,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                 }
             }
             """;
-        // PROTOTYPE: Add betterness rule. Then verify execution.
+        // Add betterness rule (https://github.com/dotnet/roslyn/issues/69229). Then verify execution.
         CreateCompilation(source).VerifyDiagnostics(
             // (10,34): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int)' and 'C.M1(I2, ref readonly int)'
             //         System.Console.WriteLine(M1(null, ref i));
@@ -3055,7 +3055,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         var warning1 =
-            // (3,47): warning CS9521: A default value is specified for 'ref readonly' parameter 'i', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
+            // (3,47): warning CS9200: A default value is specified for 'ref readonly' parameter 'i', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
             //     public static void M(ref readonly int i = 1) => System.Console.Write(i);
             Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "1").WithArguments("i").WithLocation(3, 47);
         var source2 = """
@@ -3073,7 +3073,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         var warning2 =
-            // (7,13): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // (7,13): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
             //         C.M(x);
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(7, 13);
         var comp = fromMetadata
@@ -3106,7 +3106,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         var warning1 =
-            // (4,37): warning CS9521: A default value is specified for 'ref readonly' parameter 'i', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
+            // (4,37): warning CS9200: A default value is specified for 'ref readonly' parameter 'i', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
             //     public static void M([Optional, DefaultParameterValue(1)] ref readonly int i) => System.Console.Write(i);
             Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "DefaultParameterValue(1)").WithArguments("i").WithLocation(4, 37);
         var source2 = """
@@ -3124,7 +3124,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         var warning2 =
-            // (7,13): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // (7,13): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
             //         C.M(x);
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(7, 13);
         var comp = fromMetadata
@@ -3160,7 +3160,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (4,20): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute
             //     static void M([DefaultParameterValue(1)] ref readonly int i = 1) => throw null;
             Diagnostic(ErrorCode.ERR_DefaultValueUsedWithAttributes, "DefaultParameterValue").WithLocation(4, 20),
-            // (4,67): warning CS9521: A default value is specified for 'ref readonly' parameter 'i', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
+            // (4,67): warning CS9200: A default value is specified for 'ref readonly' parameter 'i', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
             //     static void M([DefaultParameterValue(1)] ref readonly int i = 1) => throw null;
             Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "1").WithArguments("i").WithLocation(4, 67),
             // (4,67): error CS8017: The parameter has multiple distinct default values.
@@ -3182,7 +3182,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (4,20): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute
             //     static void M([Optional] ref readonly int i = 1) => throw null;
             Diagnostic(ErrorCode.ERR_DefaultValueUsedWithAttributes, "Optional").WithLocation(4, 20),
-            // (4,51): warning CS9521: A default value is specified for 'ref readonly' parameter 'i', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
+            // (4,51): warning CS9200: A default value is specified for 'ref readonly' parameter 'i', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
             //     static void M([Optional] ref readonly int i = 1) => throw null;
             Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "1").WithArguments("i").WithLocation(4, 51));
     }
@@ -3204,7 +3204,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (4,30): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute
             //     static void M([Optional, DefaultParameterValue(1)] ref readonly int i = 1) => throw null;
             Diagnostic(ErrorCode.ERR_DefaultValueUsedWithAttributes, "DefaultParameterValue").WithLocation(4, 30),
-            // (4,77): warning CS9521: A default value is specified for 'ref readonly' parameter 'i', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
+            // (4,77): warning CS9200: A default value is specified for 'ref readonly' parameter 'i', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
             //     static void M([Optional, DefaultParameterValue(1)] ref readonly int i = 1) => throw null;
             Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "1").WithArguments("i").WithLocation(4, 77),
             // (4,77): error CS8017: The parameter has multiple distinct default values.
@@ -3228,10 +3228,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         var warnings1 = new[]
         {
-            // (7,38): warning CS9521: A default value is specified for 'ref readonly' parameter 'd', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
+            // (7,38): warning CS9200: A default value is specified for 'ref readonly' parameter 'd', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
             //     public static void M1([Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] ref readonly decimal d) => Console.WriteLine("M1 " + d.ToString(CultureInfo.InvariantCulture));
             Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "DecimalConstant(1, 0, 0u, 0u, 11u)").WithArguments("d").WithLocation(7, 38),
-            // (8,52): warning CS9521: A default value is specified for 'ref readonly' parameter 'd', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
+            // (8,52): warning CS9200: A default value is specified for 'ref readonly' parameter 'd', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
             //     public static void M2(ref readonly decimal d = 1.1m) => Console.WriteLine("M2 " + d.ToString(CultureInfo.InvariantCulture));
             Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "1.1m").WithArguments("d").WithLocation(8, 52),
         };
@@ -3258,10 +3258,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         var warnings2 = new[]
         {
-            // (7,14): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // (7,14): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
             //         C.M1(x);
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(7, 14),
-            // (13,14): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // (13,14): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
             //         C.M2(y);
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "y").WithArguments("1").WithLocation(13, 14)
         };
@@ -3336,7 +3336,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (6,21): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute
             //     static void M2([Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] ref readonly decimal d = 1.1m) => throw null;
             Diagnostic(ErrorCode.ERR_DefaultValueUsedWithAttributes, "Optional").WithLocation(6, 21),
-            // (6,92): warning CS9521: A default value is specified for 'ref readonly' parameter 'd', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
+            // (6,92): warning CS9200: A default value is specified for 'ref readonly' parameter 'd', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
             //     static void M2([Optional, DecimalConstant(1, 0, 0u, 0u, 11u)] ref readonly decimal d = 1.1m) => throw null;
             Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "1.1m").WithArguments("d").WithLocation(6, 92),
             // (9,9): error CS7036: There is no argument given that corresponds to the required parameter 'd' of 'C.M1(ref readonly decimal)'
@@ -3357,7 +3357,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         var warning1 =
-            // (6,37): warning CS9521: A default value is specified for 'ref readonly' parameter 'd', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
+            // (6,37): warning CS9200: A default value is specified for 'ref readonly' parameter 'd', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
             //     public static void M([Optional, DateTimeConstant(100L)] ref readonly DateTime d) => Console.Write(d.Ticks);
             Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "DateTimeConstant(100L)").WithArguments("d").WithLocation(6, 37);
         var source2 = """
@@ -3635,25 +3635,25 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (9,14): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // (9,14): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
             //         x.M1(x);
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(9, 14),
-            // (11,15): warning CS9503: Argument 2 should be passed with 'ref' or 'in' keyword
+            // (11,15): warning CS9192: Argument 2 should be passed with 'ref' or 'in' keyword
             //         M1(x, x);
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("2").WithLocation(11, 15),
-            // (13,14): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // (13,14): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
             //         x.M2(x);
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(13, 14),
-            // (14,12): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // (14,12): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
             //         M2(x, in x);
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(14, 12),
-            // (15,12): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // (15,12): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
             //         M2(x, x);
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(15, 12),
-            // (15,15): warning CS9503: Argument 2 should be passed with 'ref' or 'in' keyword
+            // (15,15): warning CS9192: Argument 2 should be passed with 'ref' or 'in' keyword
             //         M2(x, x);
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("2").WithLocation(15, 15),
-            // (17,18): warning CS9503: Argument 2 should be passed with 'ref' or 'in' keyword
+            // (17,18): warning CS9192: Argument 2 should be passed with 'ref' or 'in' keyword
             //         M2(in x, x);
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("2").WithLocation(17, 18));
     }
@@ -3682,25 +3682,25 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (8,14): warning CS9506: Argument 1 should be passed with the 'in' keyword
+            // (8,14): warning CS9195: Argument 1 should be passed with the 'in' keyword
             //         x.M1(x);
             Diagnostic(ErrorCode.WRN_ArgExpectedIn, "x").WithArguments("1").WithLocation(8, 14),
-            // (10,15): warning CS9506: Argument 2 should be passed with the 'in' keyword
+            // (10,15): warning CS9195: Argument 2 should be passed with the 'in' keyword
             //         M1(x, x);
             Diagnostic(ErrorCode.WRN_ArgExpectedIn, "x").WithArguments("2").WithLocation(10, 15),
-            // (12,14): warning CS9506: Argument 1 should be passed with the 'in' keyword
+            // (12,14): warning CS9195: Argument 1 should be passed with the 'in' keyword
             //         x.M2(x);
             Diagnostic(ErrorCode.WRN_ArgExpectedIn, "x").WithArguments("1").WithLocation(12, 14),
-            // (13,12): warning CS9506: Argument 1 should be passed with the 'in' keyword
+            // (13,12): warning CS9195: Argument 1 should be passed with the 'in' keyword
             //         M2(x, in x);
             Diagnostic(ErrorCode.WRN_ArgExpectedIn, "x").WithArguments("1").WithLocation(13, 12),
-            // (14,12): warning CS9506: Argument 1 should be passed with the 'in' keyword
+            // (14,12): warning CS9195: Argument 1 should be passed with the 'in' keyword
             //         M2(x, x);
             Diagnostic(ErrorCode.WRN_ArgExpectedIn, "x").WithArguments("1").WithLocation(14, 12),
-            // (14,15): warning CS9506: Argument 2 should be passed with the 'in' keyword
+            // (14,15): warning CS9195: Argument 2 should be passed with the 'in' keyword
             //         M2(x, x);
             Diagnostic(ErrorCode.WRN_ArgExpectedIn, "x").WithArguments("2").WithLocation(14, 15),
-            // (16,18): warning CS9506: Argument 2 should be passed with the 'in' keyword
+            // (16,18): warning CS9195: Argument 2 should be passed with the 'in' keyword
             //         M2(in x, x);
             Diagnostic(ErrorCode.WRN_ArgExpectedIn, "x").WithArguments("2").WithLocation(16, 18));
     }
@@ -3720,7 +3720,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         var verifier = CompileAndVerify(source, expectedOutput: "5");
         verifier.VerifyDiagnostics(
-            // (6,9): warning CS9504: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+            // (6,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
             //         5.M();
             Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "5").WithArguments("0").WithLocation(6, 9));
         verifier.VerifyIL("C.Main", """
@@ -3758,25 +3758,25 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (7,14): warning CS9504: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
+            // (7,14): warning CS9193: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
             //         5.M1(111);
             Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "111").WithArguments("1").WithLocation(7, 14),
-            // (8,15): warning CS9504: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter
+            // (8,15): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter
             //         M1(5, 111);
             Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "111").WithArguments("2").WithLocation(8, 15),
-            // (9,9): warning CS9504: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+            // (9,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
             //         5.M2(111);
             Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "5").WithArguments("0").WithLocation(9, 9),
-            // (9,14): warning CS9504: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
+            // (9,14): warning CS9193: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
             //         5.M2(111);
             Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "111").WithArguments("1").WithLocation(9, 14),
-            // (10,12): warning CS9504: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
+            // (10,12): warning CS9193: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
             //         M2(5, 111);
             Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "5").WithArguments("1").WithLocation(10, 12),
-            // (10,15): warning CS9504: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter
+            // (10,15): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter
             //         M2(5, 111);
             Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "111").WithArguments("2").WithLocation(10, 15),
-            // (11,9): warning CS9504: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+            // (11,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
             //         5.M2(in 111);
             Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "5").WithArguments("0").WithLocation(11, 9),
             // (11,17): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
@@ -3785,7 +3785,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (12,15): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
             //         M2(in 5, 111);
             Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "5").WithLocation(12, 15),
-            // (12,18): warning CS9504: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter
+            // (12,18): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter
             //         M2(in 5, 111);
             Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "111").WithArguments("2").WithLocation(12, 18),
             // (13,15): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
@@ -3992,7 +3992,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             C.M123
             """, sourceSymbolValidator: verify, symbolValidator: verify);
         verifier.VerifyDiagnostics(
-            // (14,13): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // (14,13): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
             //         c.M(x);
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(14, 13));
 
@@ -4032,10 +4032,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             C.M123
             """, sourceSymbolValidator: verify, symbolValidator: verify);
         verifier.VerifyDiagnostics(
-            // (7,29): warning CS9507: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in overridden or implemented member.
+            // (7,29): warning CS9196: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in overridden or implemented member.
             //     protected override void M(ref readonly int x) => System.Console.WriteLine("C.M" + x);
             Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "M").WithArguments("ref readonly int x", "in int x").WithLocation(7, 29),
-            // (12,17): warning CS9502: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            // (12,17): warning CS9191: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
             //         c.M(ref x);
             Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(12, 17));
 
@@ -4091,10 +4091,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             C123
             """, sourceSymbolValidator: verify, symbolValidator: verify);
         verifier.VerifyDiagnostics(
-            // (22,9): warning CS9507: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in overridden or implemented member.
+            // (22,9): warning CS9196: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in overridden or implemented member.
             //         set { }
             Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "set").WithArguments("ref readonly int x", "in int x").WithLocation(22, 9),
-            // (28,19): warning CS9502: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            // (28,19): warning CS9191: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
             //         _ = c[ref x];
             Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(28, 19));
 
@@ -4134,10 +4134,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             C.M123
             """, sourceSymbolValidator: verify, symbolValidator: verify);
         verifier.VerifyDiagnostics(
-            // (7,29): warning CS9507: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in overridden or implemented member.
+            // (7,29): warning CS9196: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in overridden or implemented member.
             //     protected override void M(in int x) => System.Console.WriteLine("C.M" + x);
             Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "M").WithArguments("in int x", "ref readonly int x").WithLocation(7, 29),
-            // (14,13): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // (14,13): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
             //         c.M(x);
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(14, 13));
 
@@ -4240,7 +4240,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (7,17): warning CS0108: 'C.M(ref readonly int)' hides inherited member 'B.M(ref readonly int)'. Use the new keyword if hiding was intended.
             //     public void M(ref readonly int x) => System.Console.WriteLine("C" + x);
             Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("C.M(ref readonly int)", "B.M(ref readonly int)").WithLocation(7, 17),
-            // (14,13): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // (14,13): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
             //         c.M(x);
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(14, 13));
     }
@@ -4273,7 +4273,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             C111
             B111
             """).VerifyDiagnostics(
-            // (14,13): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // (14,13): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
             //         c.M(x);
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(14, 13));
     }
@@ -4309,10 +4309,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (7,17): warning CS0108: 'C.M(ref readonly int)' hides inherited member 'B.M(in int)'. Use the new keyword if hiding was intended.
             //     public void M(ref readonly int x) => System.Console.WriteLine("C" + x);
             Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("C.M(ref readonly int)", "B.M(in int)").WithLocation(7, 17),
-            // (7,17): warning CS9508: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in hidden member.
+            // (7,17): warning CS9197: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in hidden member.
             //     public void M(ref readonly int x) => System.Console.WriteLine("C" + x);
             Diagnostic(ErrorCode.WRN_HidingDifferentRefness, "M").WithArguments("ref readonly int x", "in int x").WithLocation(7, 17),
-            // (14,13): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // (14,13): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
             //         c.M(x);
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(14, 13));
     }
@@ -4345,10 +4345,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             C111
             B111
             """).VerifyDiagnostics(
-            // (7,21): warning CS9508: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in hidden member.
+            // (7,21): warning CS9197: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in hidden member.
             //     public new void M(ref readonly int x) => System.Console.WriteLine("C" + x);
             Diagnostic(ErrorCode.WRN_HidingDifferentRefness, "M").WithArguments("ref readonly int x", "in int x").WithLocation(7, 21),
-            // (14,13): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // (14,13): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
             //         c.M(x);
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(14, 13));
     }
@@ -4400,13 +4400,13 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (15,16): warning CS0108: 'C.this[ref readonly int]' hides inherited member 'B.this[in int]'. Use the new keyword if hiding was intended.
             //     public int this[ref readonly int x]
             Diagnostic(ErrorCode.WRN_NewRequired, "this").WithArguments("C.this[ref readonly int]", "B.this[in int]").WithLocation(15, 16),
-            // (17,9): warning CS9508: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in hidden member.
+            // (17,9): warning CS9197: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in hidden member.
             //         get
             Diagnostic(ErrorCode.WRN_HidingDifferentRefness, "get").WithArguments("ref readonly int x", "in int x").WithLocation(17, 9),
-            // (22,9): warning CS9508: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in hidden member.
+            // (22,9): warning CS9197: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in hidden member.
             //         set { }
             Diagnostic(ErrorCode.WRN_HidingDifferentRefness, "set").WithArguments("ref readonly int x", "in int x").WithLocation(22, 9),
-            // (30,15): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // (30,15): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
             //         _ = c[x];
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(30, 15));
     }
@@ -4455,13 +4455,13 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             C111
             B111
             """).VerifyDiagnostics(
-            // (17,9): warning CS9508: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in hidden member.
+            // (17,9): warning CS9197: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in hidden member.
             //         get
             Diagnostic(ErrorCode.WRN_HidingDifferentRefness, "get").WithArguments("ref readonly int x", "in int x").WithLocation(17, 9),
-            // (22,9): warning CS9508: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in hidden member.
+            // (22,9): warning CS9197: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in hidden member.
             //         set { }
             Diagnostic(ErrorCode.WRN_HidingDifferentRefness, "set").WithArguments("ref readonly int x", "in int x").WithLocation(22, 9),
-            // (30,15): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // (30,15): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
             //         _ = c[x];
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(30, 15));
     }
@@ -4497,10 +4497,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (7,17): warning CS0108: 'C.M(in int)' hides inherited member 'B.M(ref readonly int)'. Use the new keyword if hiding was intended.
             //     public void M(in int x) => System.Console.WriteLine("C" + x);
             Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("C.M(in int)", "B.M(ref readonly int)").WithLocation(7, 17),
-            // (7,17): warning CS9508: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in hidden member.
+            // (7,17): warning CS9197: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in hidden member.
             //     public void M(in int x) => System.Console.WriteLine("C" + x);
             Diagnostic(ErrorCode.WRN_HidingDifferentRefness, "M").WithArguments("in int x", "ref readonly int x").WithLocation(7, 17),
-            // (12,17): warning CS9502: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            // (12,17): warning CS9191: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
             //         c.M(ref x);
             Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(12, 17));
     }
@@ -4533,10 +4533,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             C111
             B111
             """).VerifyDiagnostics(
-            // (7,21): warning CS9508: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in hidden member.
+            // (7,21): warning CS9197: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in hidden member.
             //     public new void M(in int x) => System.Console.WriteLine("C" + x);
             Diagnostic(ErrorCode.WRN_HidingDifferentRefness, "M").WithArguments("in int x", "ref readonly int x").WithLocation(7, 21),
-            // (12,17): warning CS9502: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            // (12,17): warning CS9191: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
             //         c.M(ref x);
             Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(12, 17));
     }
@@ -4577,10 +4577,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             B.M2
             B.M2
             """).VerifyDiagnostics(
-            // (16,14): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // (16,14): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
             //         c.M1(x);
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(16, 14),
-            // (20,14): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // (20,14): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
             //         c.M2(x);
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(20, 14));
     }
@@ -4631,10 +4631,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             B.M2
             C.M2
             """).VerifyDiagnostics(
-            // (24,14): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // (24,14): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
             //         c.M1(x);
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(24, 14),
-            // (28,14): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // (28,14): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
             //         c.M2(x);
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(28, 14));
     }
@@ -4733,10 +4733,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             C.M11
             C.M21
             """).VerifyDiagnostics(
-            // (8,17): warning CS9507: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in overridden or implemented member.
+            // (8,17): warning CS9196: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in overridden or implemented member.
             //     public void M1(ref readonly int x) { }
             Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "M1").WithArguments("ref readonly int x", "in int x").WithLocation(8, 17),
-            // (9,17): warning CS9507: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in overridden or implemented member.
+            // (9,17): warning CS9196: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in overridden or implemented member.
             //     public void M2(in int x) { }
             Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "M2").WithArguments("in int x", "ref readonly int x").WithLocation(9, 17));
     }
@@ -4767,10 +4767,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             C.M11
             C.M21
             """).VerifyDiagnostics(
-            // (8,12): warning CS9507: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in overridden or implemented member.
+            // (8,12): warning CS9196: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in overridden or implemented member.
             //     void I.M1(ref readonly int x) { }
             Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "M1").WithArguments("ref readonly int x", "in int x").WithLocation(8, 12),
-            // (9,12): warning CS9507: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in overridden or implemented member.
+            // (9,12): warning CS9196: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in overridden or implemented member.
             //     void I.M2(in int x) { }
             Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "M2").WithArguments("in int x", "ref readonly int x").WithLocation(9, 12));
     }
@@ -4810,7 +4810,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             get1
             set1
             """).VerifyDiagnostics(
-            // (14,9): warning CS9507: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in overridden or implemented member.
+            // (14,9): warning CS9196: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in overridden or implemented member.
             //         set
             Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "set").WithArguments("in int x", "ref readonly int x").WithLocation(14, 9));
     }
@@ -4850,7 +4850,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             get1
             set1
             """).VerifyDiagnostics(
-            // (14,9): warning CS9507: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in overridden or implemented member.
+            // (14,9): warning CS9196: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in overridden or implemented member.
             //         set
             Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "set").WithArguments("in int x", "ref readonly int x").WithLocation(14, 9));
     }
@@ -5249,10 +5249,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             var expectedWarnings = (x, y) is ("in", "ref readonly") or ("ref", "in") or ("ref", "ref readonly")
                 ? new[]
                 {
-                    // (8,5): warning CS9510: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
+                    // (8,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
                     // x = C.Y;
                     Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.Y").WithArguments($"{y} int p", $"{x} int p").WithLocation(8, 5),
-                    // (9,5): warning CS9510: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
+                    // (9,5): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
                     // y = C.X;
                     Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.X").WithArguments($"{x} int p", $"{y} int p").WithLocation(9, 5)
                 }
@@ -5324,16 +5324,16 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             delegate void Y({{modifier}} int p);
             """;
         CompileAndVerify(source, expectedOutput: "X1 Y1 Y1 X1 Y2 X2", verify: Verification.FailsILVerify).VerifyDiagnostics(
-            // (9,5): warning CS9510: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
+            // (9,5): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
             // x = c.Y1;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "c.Y1").WithArguments($"{modifier} int p", "ref readonly int p").WithLocation(9, 5),
-            // (10,5): warning CS9510: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
+            // (10,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
             // y = c.X1;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "c.X1").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(10, 5),
-            // (15,5): warning CS9510: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
+            // (15,5): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
             // x = c.Y2;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "c.Y2").WithArguments($"{modifier} int p", "ref readonly int p").WithLocation(15, 5),
-            // (16,5): warning CS9510: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
+            // (16,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
             // y = c.X2;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "c.X2").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(16, 5));
     }
@@ -5363,10 +5363,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             delegate void Y({{modifier}} int p);
             """;
         CompileAndVerify(source, expectedOutput: "XYYX").VerifyDiagnostics(
-            // (7,11): warning CS9510: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
+            // (7,11): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
             // (x, y) = (C.Y, C.X);
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.Y").WithArguments($"{modifier} int p", "ref readonly int p").WithLocation(7, 11),
-            // (7,16): warning CS9510: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
+            // (7,16): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
             // (x, y) = (C.Y, C.X);
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.X").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(7, 16));
     }
@@ -5398,10 +5398,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             delegate void Y({{modifier}} int p);
             """;
         CompileAndVerify(source, expectedOutput: "XYYX").VerifyDiagnostics(
-            // (8,5): warning CS9510: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
+            // (8,5): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
             // x = (X)C.Y;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(X)C.Y").WithArguments($"{modifier} int p", "ref readonly int p").WithLocation(8, 5),
-            // (9,5): warning CS9510: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
+            // (9,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
             // y = (Y)C.X;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(Y)C.X").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(9, 5));
     }
@@ -5433,10 +5433,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             delegate void Y({{modifier}} int p);
             """;
         CompileAndVerify(source, expectedOutput: "XYYX").VerifyDiagnostics(
-            // (8,11): warning CS9510: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
+            // (8,11): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
             // x = new X(C.Y);
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.Y").WithArguments($"{modifier} int p", "ref readonly int p").WithLocation(8, 11),
-            // (9,11): warning CS9510: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
+            // (9,11): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
             // y = new Y(C.X);
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.X").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(9, 11));
     }
@@ -5466,12 +5466,12 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             delegate void D1(ref readonly int x);
             delegate void D2({{modifier}} int x);
             """;
-        // PROTOTYPE: Add betterness rule.
+        // Add betterness rule (https://github.com/dotnet/roslyn/issues/69229).
         var verifier = CompileAndVerify(source, expectedOutput: "CC");
         if (modifier != "ref readonly")
         {
             verifier.VerifyDiagnostics(
-                // (7,17): warning CS9510: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in target.
+                // (7,17): warning CS9198: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in target.
                 //         D2 m2 = this.M;
                 Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "this.M").WithArguments("ref readonly int x", $"{modifier} int x").WithLocation(7, 17));
         }
@@ -5506,12 +5506,12 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             delegate void D1({{modifier}} int x);
             delegate void D2(ref readonly int x);
             """;
-        // PROTOTYPE: Add betterness rule.
+        // Add betterness rule (https://github.com/dotnet/roslyn/issues/69229).
         var verifier = CompileAndVerify(source, expectedOutput: "CC");
         if (modifier != "ref readonly")
         {
             verifier.VerifyDiagnostics(
-                // (7,17): warning CS9510: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in target.
+                // (7,17): warning CS9198: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in target.
                 //         D2 m2 = this.M;
                 Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "this.M").WithArguments($"{modifier} int x", "ref readonly int x").WithLocation(7, 17));
         }
@@ -5546,7 +5546,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             delegate void D1(X s, ref readonly int x);
             delegate void D2(X s, ref int x);
             """;
-        // PROTOTYPE: Add betterness rule.
+        // Add betterness rule (https://github.com/dotnet/roslyn/issues/69229). Then verify execution.
         CreateCompilation(source).VerifyDiagnostics(
             // (7,17): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(I1, ref readonly int)' and 'C.M(I2, ref int)'
             //         D1 m1 = this.M;
@@ -5591,10 +5591,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (5,6): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // x(in i);
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "i").WithArguments("ref readonly parameters").WithLocation(5, 6),
-            // (8,5): warning CS9510: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
+            // (8,5): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
             // x = C.Y;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.Y").WithArguments($"{modifier} int p", "ref readonly int p").WithLocation(8, 5),
-            // (9,5): warning CS9510: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
+            // (9,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
             // y = C.X;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.X").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(9, 5),
             // (11,6): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
@@ -5603,10 +5603,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
 
         var expectedDiagnostics = new[]
         {
-            // (8,5): warning CS9510: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
+            // (8,5): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
             // x = C.Y;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.Y").WithArguments($"{modifier} int p", "ref readonly int p").WithLocation(8, 5),
-            // (9,5): warning CS9510: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
+            // (9,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
             // y = C.X;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.X").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(9, 5)
         };
@@ -5656,10 +5656,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
 
         var expectedDiagnostics = new[]
         {
-            // (8,5): warning CS9510: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref int p' in target.
+            // (8,5): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref int p' in target.
             // x = C.Y;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.Y").WithArguments("in int p", "ref int p").WithLocation(8, 5),
-            // (9,5): warning CS9510: Reference kind modifier of parameter 'ref int p' doesn't match the corresponding parameter 'in int p' in target.
+            // (9,5): warning CS9198: Reference kind modifier of parameter 'ref int p' doesn't match the corresponding parameter 'in int p' in target.
             // y = C.X;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.X").WithArguments("ref int p", "in int p").WithLocation(9, 5)
         };
@@ -5931,10 +5931,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // 0.cs(9,10): error CS8757: No overload for 'V' matches function pointer 'delegate*<ref readonly int, void>'
             //     rr = &V;
             Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&V").WithArguments("V", "delegate*<ref readonly int, void>").WithLocation(9, 10),
-            // 0.cs(10,10): warning CS9510: Reference kind modifier of parameter 'ref int p' doesn't match the corresponding parameter 'ref readonly int' in target.
+            // 0.cs(10,10): warning CS9198: Reference kind modifier of parameter 'ref int p' doesn't match the corresponding parameter 'ref readonly int' in target.
             //     rr = &R;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "&R").WithArguments("ref int p", "ref readonly int").WithLocation(10, 10),
-            // 0.cs(11,10): warning CS9510: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int' in target.
+            // 0.cs(11,10): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int' in target.
             //     rr = &I;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "&I").WithArguments("in int p", "ref readonly int").WithLocation(11, 10),
             // 0.cs(12,10): error CS8757: No overload for 'O' matches function pointer 'delegate*<ref readonly int, void>'
@@ -5943,19 +5943,19 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // 0.cs(13,9): error CS8757: No overload for 'RR' matches function pointer 'delegate*<int, void>'
             //     v = &RR;
             Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&RR").WithArguments("RR", "delegate*<int, void>").WithLocation(13, 9),
-            // 0.cs(14,9): warning CS9510: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int' in target.
+            // 0.cs(14,9): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int' in target.
             //     i = &RR;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "&RR").WithArguments("ref readonly int p", "in int").WithLocation(14, 9),
-            // 0.cs(15,9): warning CS9510: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'ref int' in target.
+            // 0.cs(15,9): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'ref int' in target.
             //     r = &RR;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "&RR").WithArguments("ref readonly int p", "ref int").WithLocation(15, 9),
             // 0.cs(16,9): error CS8757: No overload for 'RR' matches function pointer 'delegate*<out int, void>'
             //     o = &RR;
             Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&RR").WithArguments("RR", "delegate*<out int, void>").WithLocation(16, 9),
-            // 0.cs(17,9): warning CS9510: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref int' in target.
+            // 0.cs(17,9): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref int' in target.
             //     r = &I;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "&I").WithArguments("in int p", "ref int").WithLocation(17, 9),
-            // 0.cs(18,9): warning CS9510: Reference kind modifier of parameter 'ref int p' doesn't match the corresponding parameter 'in int' in target.
+            // 0.cs(18,9): warning CS9198: Reference kind modifier of parameter 'ref int p' doesn't match the corresponding parameter 'in int' in target.
             //     i = &R;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "&R").WithArguments("ref int p", "in int").WithLocation(18, 9));
     }
@@ -5985,10 +5985,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         CompileAndVerify(new[] { source, RequiresLocationAttributeDefinition }, verify: Verification.Fails,
             expectedOutput: "XYYX", options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(
-            // 0.cs(10,9): warning CS9510: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int' in target.
+            // 0.cs(10,9): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int' in target.
             //     x = (delegate*<ref readonly int, void>)&Y;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(delegate*<ref readonly int, void>)&Y").WithArguments($"{modifier} int p", "ref readonly int").WithLocation(10, 9),
-            // 0.cs(11,9): warning CS9510: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int' in target.
+            // 0.cs(11,9): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int' in target.
             //     y = (delegate*<in int, void>)&X;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, $"(delegate*<{modifier} int, void>)&X").WithArguments("ref readonly int p", $"{modifier} int").WithLocation(11, 9));
     }
@@ -6032,10 +6032,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (7,13): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     C.X2(in i);
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "i").WithArguments("ref readonly parameters").WithLocation(7, 13),
-            // (10,12): warning CS9510: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int' in target.
+            // (10,12): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int' in target.
             //     C.Y2 = &C.X1;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "&C.X1").WithArguments("ref readonly int p", $"{modifier} int").WithLocation(10, 12),
-            // (11,12): warning CS9510: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int' in target.
+            // (11,12): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int' in target.
             //     C.X2 = &C.Y1;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "&C.Y1").WithArguments($"{modifier} int p", "ref readonly int").WithLocation(11, 12),
             // (13,13): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
@@ -6044,10 +6044,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
 
         var expectedDiagnostics = new[]
         {
-            // (10,12): warning CS9510: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int' in target.
+            // (10,12): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int' in target.
             //     C.Y2 = &C.X1;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "&C.X1").WithArguments("ref readonly int p", $"{modifier} int").WithLocation(10, 12),
-            // (11,12): warning CS9510: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int' in target.
+            // (11,12): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int' in target.
             //     C.X2 = &C.Y1;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "&C.Y1").WithArguments($"{modifier} int p", "ref readonly int").WithLocation(11, 12)
         };
@@ -6103,10 +6103,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
 
         var expectedDiagnostics = new[]
         {
-            // (10,12): warning CS9510: Reference kind modifier of parameter 'ref int p' doesn't match the corresponding parameter 'in int' in target.
+            // (10,12): warning CS9198: Reference kind modifier of parameter 'ref int p' doesn't match the corresponding parameter 'in int' in target.
             //     C.Y2 = &C.X1;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "&C.X1").WithArguments("ref int p", "in int").WithLocation(10, 12),
-            // (11,12): warning CS9510: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref int' in target.
+            // (11,12): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref int' in target.
             //     C.X2 = &C.Y1;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "&C.Y1").WithArguments("in int p", "ref int").WithLocation(11, 12)
         };
@@ -6154,10 +6154,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (7,11): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
             // rr = (int x) => throw null;
             Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "ref readonly").WithLocation(7, 11),
-            // (8,6): warning CS9510: Reference kind modifier of parameter 'ref int x' doesn't match the corresponding parameter 'ref readonly int p' in target.
+            // (8,6): warning CS9198: Reference kind modifier of parameter 'ref int x' doesn't match the corresponding parameter 'ref readonly int p' in target.
             // rr = (ref int x) => throw null;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(ref int x) => throw null").WithArguments("ref int x", "ref readonly int p").WithLocation(8, 6),
-            // (9,6): warning CS9510: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int p' in target.
+            // (9,6): warning CS9198: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int p' in target.
             // rr = (in int x) => throw null;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(in int x) => throw null").WithArguments("in int x", "ref readonly int p").WithLocation(9, 6),
             // (10,6): error CS1661: Cannot convert lambda expression to type 'RR' because the parameter types do not match the delegate parameter types
@@ -6172,10 +6172,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (11,23): error CS1677: Parameter 1 should not be declared with the 'ref readonly' keyword
             // v = (ref readonly int x) => throw null;
             Diagnostic(ErrorCode.ERR_BadParamExtraRef, "x").WithArguments("1", "ref readonly").WithLocation(11, 23),
-            // (12,5): warning CS9510: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int p' in target.
+            // (12,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int p' in target.
             // i = (ref readonly int x) => throw null;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(ref readonly int x) => throw null").WithArguments("ref readonly int x", "in int p").WithLocation(12, 5),
-            // (13,5): warning CS9510: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'ref int p' in target.
+            // (13,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'ref int p' in target.
             // r = (ref readonly int x) => throw null;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(ref readonly int x) => throw null").WithArguments("ref readonly int x", "ref int p").WithLocation(13, 5),
             // (14,5): error CS1661: Cannot convert lambda expression to type 'O' because the parameter types do not match the delegate parameter types
@@ -6184,10 +6184,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (14,23): error CS1676: Parameter 1 must be declared with the 'out' keyword
             // o = (ref readonly int x) => throw null;
             Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "out").WithLocation(14, 23),
-            // (15,5): warning CS9510: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref int p' in target.
+            // (15,5): warning CS9198: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref int p' in target.
             // r = (in int x) => throw null;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(in int x) => throw null").WithArguments("in int x", "ref int p").WithLocation(15, 5),
-            // (16,5): warning CS9510: Reference kind modifier of parameter 'ref int x' doesn't match the corresponding parameter 'in int p' in target.
+            // (16,5): warning CS9198: Reference kind modifier of parameter 'ref int x' doesn't match the corresponding parameter 'in int p' in target.
             // i = (ref int x) => throw null;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(ref int x) => throw null").WithArguments("ref int x", "in int p").WithLocation(16, 5),
             // (18,6): error CS1661: Cannot convert lambda expression to type 'RR' because the parameter types do not match the delegate parameter types
@@ -6222,10 +6222,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             delegate void Y({{modifier}} int p);
             """;
         CompileAndVerify(source, expectedOutput: "1234").VerifyDiagnostics(
-            // (8,5): warning CS9510: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
+            // (8,5): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
             // x = (X)((in int p) => System.Console.Write("3"));
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, @$"(X)(({modifier} int p) => System.Console.Write(""3""))").WithArguments($"{modifier} int p", "ref readonly int p").WithLocation(8, 5),
-            // (9,5): warning CS9510: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
+            // (9,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
             // y = (Y)((ref readonly int p) => System.Console.Write("4"));
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, @"(Y)((ref readonly int p) => System.Console.Write(""4""))").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(9, 5));
     }
@@ -6259,10 +6259,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (1,10): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // C.X((ref readonly int p) => System.Console.Write("1"));
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(1, 10),
-            // (4,5): warning CS9510: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
+            // (4,5): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
             // C.X((in int p) => System.Console.Write("3"));
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, @$"({modifier} int p) => System.Console.Write(""3"")").WithArguments($"{modifier} int p", "ref readonly int p").WithLocation(4, 5),
-            // (5,5): warning CS9510: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
+            // (5,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
             // C.Y((ref readonly int p) => System.Console.Write("4"));
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, @"(ref readonly int p) => System.Console.Write(""4"")").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(5, 5),
             // (5,10): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
@@ -6271,10 +6271,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
 
         var expectedDiagnostics = new[]
         {
-            // (4,5): warning CS9510: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
+            // (4,5): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
             // C.X((in int p) => System.Console.Write("3"));
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, @$"({modifier} int p) => System.Console.Write(""3"")").WithArguments($"{modifier} int p", "ref readonly int p").WithLocation(4, 5),
-            // (5,5): warning CS9510: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
+            // (5,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
             // C.Y((ref readonly int p) => System.Console.Write("4"));
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, @"(ref readonly int p) => System.Console.Write(""4"")").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(5, 5)
         };
@@ -6324,10 +6324,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
 
         var expectedDiagnostics = new[]
         {
-            // (4,5): warning CS9510: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref int p' in target.
+            // (4,5): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref int p' in target.
             // C.X((in int p) => System.Console.Write("3"));
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, @"(in int p) => System.Console.Write(""3"")").WithArguments("in int p", "ref int p").WithLocation(4, 5),
-            // (5,5): warning CS9510: Reference kind modifier of parameter 'ref int p' doesn't match the corresponding parameter 'in int p' in target.
+            // (5,5): warning CS9198: Reference kind modifier of parameter 'ref int p' doesn't match the corresponding parameter 'in int p' in target.
             // C.Y((ref int p) => System.Console.Write("4"));
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, @"(ref int p) => System.Console.Write(""4"")").WithArguments("ref int p", "in int p").WithLocation(5, 5)
         };

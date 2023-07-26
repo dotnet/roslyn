@@ -275,8 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IDS_FeatureInlineArrays = MessageBase + 12836,
         IDS_FeatureCollectionExpressions = MessageBase + 12837,
-
-        IDS_FeatureRefReadonlyParameters = MessageBase + 12900, // PROTOTYPE: Pack numbers
+        IDS_FeatureRefReadonlyParameters = MessageBase + 12838,
     }
 
     // Message IDs may refer to strings that need to be localized.

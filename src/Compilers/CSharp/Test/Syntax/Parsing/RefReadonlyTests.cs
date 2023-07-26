@@ -413,7 +413,7 @@ class Test
     {
     }
 }").VerifyDiagnostics(
-                // (4,12): error CS9501: 'readonly' modifier must be specified after 'ref'.
+                // (4,12): error CS9190: 'readonly' modifier must be specified after 'ref'.
                 //     void M(readonly ref int p)
                 Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(4, 12));
         }

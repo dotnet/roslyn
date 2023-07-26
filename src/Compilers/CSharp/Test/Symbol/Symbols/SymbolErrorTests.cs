@@ -12498,7 +12498,7 @@ class C2 : I
                 // (11,14): error CS0682: 'C2.I.P' cannot implement 'I.P' because it is not supported by the language
                 //     object I.P
                 Diagnostic(ErrorCode.ERR_BogusExplicitImpl, "P").WithArguments("C2.I.P", "I.P").WithLocation(11, 14),
-                // (14,9): warning CS9507: Reference kind modifier of parameter 'object value' doesn't match the corresponding parameter 'ref object v' in overridden or implemented member.
+                // (14,9): warning CS9196: Reference kind modifier of parameter 'object value' doesn't match the corresponding parameter 'ref object v' in overridden or implemented member.
                 //         set { }
                 Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "set").WithArguments("object value", "ref object v").WithLocation(14, 9),
                 // (16,20): error CS0682: 'C2.I.E' cannot implement 'I.E' because it is not supported by the language
