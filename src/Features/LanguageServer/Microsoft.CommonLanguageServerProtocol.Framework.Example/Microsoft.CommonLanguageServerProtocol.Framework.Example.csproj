@@ -7,6 +7,7 @@
     <IsShipping>false</IsShipping>
     <IsPackable>false</IsPackable>
     <PackageDescription>An example implementation of the Common Language Server Protocol Framework.</PackageDescription>
+    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
   </PropertyGroup>
 
   <ItemGroup Label="Package References">

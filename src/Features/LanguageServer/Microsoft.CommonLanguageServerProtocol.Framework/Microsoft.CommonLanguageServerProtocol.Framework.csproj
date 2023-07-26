@@ -8,6 +8,7 @@
     <PackageDescription>
       A framework for building Language Server Protocol implementations in C#.
     </PackageDescription>
+    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" Link="Utilities\IsExternalInit.cs" />
