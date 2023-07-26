@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                     return true;
             }
 
-            var totalLength = 2; // for the braces.
+            var totalLength = "{}".Length;
             foreach (var match in matches)
             {
                 var expression = GetExpression(match);
