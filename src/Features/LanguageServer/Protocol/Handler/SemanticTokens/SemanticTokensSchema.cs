@@ -52,7 +52,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             [ClassificationTypeNames.PreprocessorKeyword] = SemanticTokenTypes.Macro,
             // in https://code.visualstudio.com/api/language-extensions/semantic-highlight-guide#standard-token-types-and-modifiers
             [ClassificationTypeNames.LabelName] = "label",
-            [ClassificationTypeNames.PreprocessingName] = "label",
         }).ToImmutableDictionary();
 
         /// <summary>

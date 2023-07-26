@@ -37,6 +37,7 @@ internal class CustomLspSemanticTokenNames
     public const string FieldName = "field";
     public const string ConstantName = "constant";
     public const string ExtensionMethodName = "extensionMethod";
+    public const string PreprocessingName = "preprocessingName";
 
     public const string XmlDocCommentAttributeName = "xmlDocCommentAttributeName";
     public const string XmlDocCommentAttributeQuotes = "xmlDocCommentAttributeQuotes";
@@ -101,6 +102,7 @@ internal class CustomLspSemanticTokenNames
         [ClassificationTypeNames.FieldName] = FieldName,
         [ClassificationTypeNames.ConstantName] = ConstantName,
         [ClassificationTypeNames.ExtensionMethodName] = ExtensionMethodName,
+        [ClassificationTypeNames.PreprocessingName] = PreprocessingName,
 
         [ClassificationTypeNames.XmlDocCommentAttributeName] = XmlDocCommentAttributeName,
         [ClassificationTypeNames.XmlDocCommentAttributeQuotes] = XmlDocCommentAttributeQuotes,
