@@ -33,14 +33,39 @@ public partial class UseCollectionInitializerTests_CollectionExpression
         }.RunAsync();
     }
 
-    private static async Task TestMissingInRegularAndScriptAsync(string testCode)
+    private static Task TestMissingInRegularAndScriptAsync(string testCode)
+        => TestInRegularAndScriptAsync(testCode, testCode);
+
+    [Fact]
+    public async Task TestNotOnVarVariableDeclarator()
     {
-        var test = new VerifyCS.Test
-        {
-            TestCode = testCode,
-            FixedCode = testCode,
-        };
-        await test.RunAsync();
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    var c = [|new|] List<int>();
+                    [|c.Add(|]1);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    var c = new List<int>
+                    {
+                        1
+                    };
+                }
+            }
+            """);
     }
 
     [Fact]
@@ -67,6 +92,38 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M()
                 {
                     List<int> c = [1];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestOnVariableDeclaratorDifferentType()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    IList<int> c = [|new|] List<int>();
+                    [|c.Add(|]1);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    IList<int> c = new List<int>
+                    {
+                        1
+                    };
                 }
             }
             """);
@@ -861,6 +918,39 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M()
                 {
                     List<int> c = [|new|] List<int>()
+                    {
+                        1
+                    };
+                    [|c.Add(|]2);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [1,
+                        2];
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39146")]
+    public async Task TestWithExistingInitializer_NoParens()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>
                     {
                         1
                     };

@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 if (!analyzeForCollectionExpression)
                     return (matches, shouldUseCollectionExpression: false);
 
-                // If we succeeded and finding matches, and we can use collection expressions, then do so.
+                // If we succeeded in finding matches, and this is a location a collection expression is legal in, then convert to that.
                 if (!matches.IsDefaultOrEmpty && CanUseCollectionExpression(semanticModel, objectCreationExpression, cancellationToken))
                     return (matches, analyzeForCollectionExpression);
 
@@ -216,11 +216,9 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
                         // Report the diagnostic at the first unnecessary location. This is the location where the code fix
                         // will be offered.
-                        var location1 = additionalUnnecessaryLocations[0];
-
                         context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                             s_unnecessaryCodeDescriptor,
-                            location1,
+                            additionalUnnecessaryLocations[0],
                             ReportDiagnostic.Default,
                             additionalLocations: locations,
                             additionalUnnecessaryLocations: additionalUnnecessaryLocations));
@@ -237,11 +235,9 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
                     // Report the diagnostic at the first unnecessary location. This is the location where the code fix
                     // will be offered.
-                    var location1 = additionalUnnecessaryLocations[0];
-
                     context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                         s_unnecessaryCodeDescriptor,
-                        location1,
+                        additionalUnnecessaryLocations[0],
                         ReportDiagnostic.Default,
                         additionalLocations: locations,
                         additionalUnnecessaryLocations: additionalUnnecessaryLocations));

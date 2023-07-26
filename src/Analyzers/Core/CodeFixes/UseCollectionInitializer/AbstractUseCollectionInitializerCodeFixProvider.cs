@@ -111,12 +111,12 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 var statement = objectCreation.FirstAncestorOrSelf<TStatementSyntax>();
                 Contract.ThrowIfNull(statement);
 
-                var newStatement = GetNewStatement(
-                    sourceText, statement, objectCreation, wrappingLength, useCollectionExpression, matches);
+                var newStatement = GetNewStatement(sourceText, statement, objectCreation, wrappingLength, useCollectionExpression, matches)
+                    .WithAdditionalAnnotations(Formatter.Annotation);
 
                 var subEditor = new SyntaxEditor(currentRoot, document.Project.Solution.Services);
 
-                subEditor.ReplaceNode(statement, newStatement.WithAdditionalAnnotations(Formatter.Annotation));
+                subEditor.ReplaceNode(statement, newStatement);
                 foreach (var match in matches)
                     subEditor.RemoveNode(match.Statement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
 

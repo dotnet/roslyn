@@ -85,6 +85,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 seenInvocation = !seenIndexAssignment;
             }
 
+            // An indexer can't be used with a collection expression.  So fail out immediately if we see that.
             if (seenIndexAssignment && _analyzeForCollectionExpression)
                 return;
 
@@ -131,6 +132,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                                 out instance))
                         {
                             seenInvocation = true;
+
+                            // AddRange(x) will become `..x` when we make it into a collection expression.
                             matches.Add(new Match<TStatementSyntax>(expressionStatement, UseSpread: true));
                             continue;
                         }
@@ -159,13 +162,25 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                     if (identifier == default)
                         return;
 
+                    // must be of the form:
+                    //
+                    //      foreach (var x in expr)
+                    //          dest.Add(x)
+                    //
+                    // By passing 'x' into TryAnalyzeInvocation below, we ensure that it is an enumerated value from `expr`
+                    // being added to `dest`.
                     if (foreachStatements.ToImmutableArray() is not [TExpressionStatementSyntax childExpressionStatement] ||
-                        !TryAnalyzeInvocation(childExpressionStatement, addName: WellKnownMemberNames.CollectionInitializerAddMethodName, identifier.Text, out var instance) ||
+                        !TryAnalyzeInvocation(
+                            childExpressionStatement,
+                            addName: WellKnownMemberNames.CollectionInitializerAddMethodName,
+                            requiredArgumentName: identifier.Text,
+                            out var instance) ||
                         !ValuePatternMatches(instance))
                     {
                         return;
                     }
 
+                    // `foreach` will become `..expr` when we make it into a collection expression.
                     matches.Add(new Match<TStatementSyntax>(foreachStatement, UseSpread: true));
                 }
                 else
@@ -250,6 +265,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             if (arguments.Count < 1)
                 return false;
 
+            // Collection expressions can only call the single argument Add/AddRange methods on a type.
+            // So if we don't have exactly one argument, fail out.
             if (_analyzeForCollectionExpression && arguments.Count != 1)
                 return false;
 

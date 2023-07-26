@@ -695,8 +695,8 @@ class Program
             yield return getData("static void F() { }", "F", "F", "System.Action");
             yield return getData("static void F(int x, int y) { }", "F", "F", "System.Action<System.Int32, System.Int32>");
             yield return getData("static void F(out int x, int y) { x = 0; }", "F", "F", "<>A{00000002}<System.Int32, System.Int32>");
-            yield return getData("static void F(int x, ref int y) { }", "F", "F", "<>A{00000004}<System.Int32, System.Int32>");
-            yield return getData("static void F(int x, in int y) { }", "F", "F", "<>A{0000000c}<System.Int32, System.Int32>");
+            yield return getData("static void F(int x, ref int y) { }", "F", "F", "<>A{00000008}<System.Int32, System.Int32>");
+            yield return getData("static void F(int x, in int y) { }", "F", "F", "<>A{00000018}<System.Int32, System.Int32>");
             yield return getData("static void F(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16) { }", "F", "F", "System.Action<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object>");
             yield return getData("static void F(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, int _17) { }", "F", "F", "<>A<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32>");
             yield return getData("static object F(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16) => null;", "F", "F", "System.Func<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Object>");
@@ -810,8 +810,8 @@ $@"class Program
             yield return getData("() => { }", "System.Action");
             yield return getData("(int x, int y) => { }", "System.Action<System.Int32, System.Int32>");
             yield return getData("(out int x, int y) => { x = 0; }", "<>A{00000002}<System.Int32, System.Int32>", "<anonymous delegate>");
-            yield return getData("(int x, ref int y) => { x = 0; }", "<>A{00000004}<System.Int32, System.Int32>", "<anonymous delegate>");
-            yield return getData("(int x, in int y) => { x = 0; }", "<>A{0000000c}<System.Int32, System.Int32>", "<anonymous delegate>");
+            yield return getData("(int x, ref int y) => { x = 0; }", "<>A{00000008}<System.Int32, System.Int32>", "<anonymous delegate>");
+            yield return getData("(int x, in int y) => { x = 0; }", "<>A{00000018}<System.Int32, System.Int32>", "<anonymous delegate>");
             yield return getData("(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16) => { }", "System.Action<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object>");
             yield return getData("(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, int _17) => { }", "<>A<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32>", "<anonymous delegate>");
             yield return getData("(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16) => _1", "System.Func<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32>");
@@ -837,8 +837,8 @@ $@"class Program
             yield return getData("void () => { }", "System.Action");
 
             // Distinct names for distinct signatures with > 16 parameters: https://github.com/dotnet/roslyn/issues/55570
-            yield return getData("(int _1, int _2, int _3, int _4, int _5, int _6, int _7, int _8, int _9, int _10, int _11, int _12, int _13, int _14, int _15, int _16, ref int _17) => { }", "<>A{100000000}<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32>", "<anonymous delegate>");
-            yield return getData("(int _1, int _2, int _3, int _4, int _5, int _6, int _7, int _8, int _9, int _10, int _11, int _12, int _13, int _14, int _15, int _16, in int _17)  => { }", "<>A{300000000}<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32>", "<anonymous delegate>");
+            yield return getData("(int _1, int _2, int _3, int _4, int _5, int _6, int _7, int _8, int _9, int _10, int _11, int _12, int _13, int _14, int _15, int _16, ref int _17) => { }", "<>A{1000000000000}<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32>", "<anonymous delegate>");
+            yield return getData("(int _1, int _2, int _3, int _4, int _5, int _6, int _7, int _8, int _9, int _10, int _11, int _12, int _13, int _14, int _15, int _16, in int _17)  => { }", "<>A{3000000000000}<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32>", "<anonymous delegate>");
 
             static object?[] getData(string expr, string? expectedType, string? expectedDisplayString = null) =>
                 new object?[] { expr, expectedType, expectedDisplayString ?? expectedType };
@@ -852,8 +852,8 @@ $@"class Program
             yield return getData("delegate () { }", "System.Action");
             yield return getData("delegate (int x, int y) { }", "System.Action<System.Int32, System.Int32>");
             yield return getData("delegate (out int x, int y) { x = 0; }", "<>A{00000002}<System.Int32, System.Int32>", "<anonymous delegate>");
-            yield return getData("delegate (int x, ref int y) { x = 0; }", "<>A{00000004}<System.Int32, System.Int32>", "<anonymous delegate>");
-            yield return getData("delegate (int x, in int y) { x = 0; }", "<>A{0000000c}<System.Int32, System.Int32>", "<anonymous delegate>");
+            yield return getData("delegate (int x, ref int y) { x = 0; }", "<>A{00000008}<System.Int32, System.Int32>", "<anonymous delegate>");
+            yield return getData("delegate (int x, in int y) { x = 0; }", "<>A{00000018}<System.Int32, System.Int32>", "<anonymous delegate>");
             yield return getData("delegate (int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16) { }", "System.Action<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object>");
             yield return getData("delegate (int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, int _17) { }", "<>A<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32>", "<anonymous delegate>");
             yield return getData("delegate (int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16) { return _1; }", "System.Func<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32>");
@@ -2041,7 +2041,7 @@ class Program
     static void Report(Delegate d) => Console.WriteLine(d.GetType());
 }";
             CompileAndVerify(source, expectedOutput:
-@"<>A{00000004}`2[System.String,System.Int32]
+@"<>A{00000008}`2[System.String,System.Int32]
 <>F{00000001}`1[System.String]
 ");
         }
@@ -4972,7 +4972,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { F2<object, string>, F2<object, string> }").WithLocation(9, 18));
 
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
-@"<>A{00000004}`2[System.String,System.Object]
+@"<>A{00000008}`2[System.String,System.Object]
 <>A{00000001}`2[System.Object,System.String]");
         }
 
@@ -5086,7 +5086,7 @@ class Program
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
 @"<>A{00000001}`1[System.Object]
 <>A{00000001}`1[System.String]
-<>A{00000004}`2[System.Object,System.String]
+<>A{00000008}`2[System.Object,System.String]
 ");
         }
 
@@ -5729,7 +5729,7 @@ class Program
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
 @"System.Func`1[System.Object]
 System.Func`1[System.String]
-<>A{00000004}`2[System.Object,System.String]
+<>A{00000008}`2[System.Object,System.String]
 <>A{00000001}`2[System.Object,System.String]
 ");
         }
@@ -8481,9 +8481,9 @@ class Program
 
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"<>A{00000001}`2[System.Int32,System.Int32]
-<>A{00000004}`2[System.Int32,System.Int32]
+<>A{00000008}`2[System.Int32,System.Int32]
 <>A{00000001}`2[System.Single,System.Int32]
-<>A{00000004}`2[System.Single,System.Int32]
+<>A{00000008}`2[System.Single,System.Int32]
 ");
             verifier.VerifyIL("Program.Main",
 @"{
@@ -8505,7 +8505,7 @@ class Program
   IL_002c:  pop
   IL_002d:  ldsfld     ""Program.<>c Program.<>c.<>9""
   IL_0032:  ldftn      ""void Program.<>c.<Main>b__0_1(int, ref int)""
-  IL_0038:  newobj     ""<>A{00000004}<int, int>..ctor(object, System.IntPtr)""
+  IL_0038:  newobj     ""<>A{00000008}<int, int>..ctor(object, System.IntPtr)""
   IL_003d:  dup
   IL_003e:  stsfld     ""<anonymous delegate> Program.<>c.<>9__0_1""
   IL_0043:  call       ""void Program.Report(System.Delegate)""
@@ -8525,7 +8525,7 @@ class Program
   IL_0074:  pop
   IL_0075:  ldsfld     ""Program.<>c Program.<>c.<>9""
   IL_007a:  ldftn      ""void Program.<>c.<Main>b__0_3(float, ref int)""
-  IL_0080:  newobj     ""<>A{00000004}<float, int>..ctor(object, System.IntPtr)""
+  IL_0080:  newobj     ""<>A{00000008}<float, int>..ctor(object, System.IntPtr)""
   IL_0085:  dup
   IL_0086:  stsfld     ""<anonymous delegate> Program.<>c.<>9__0_3""
   IL_008b:  call       ""void Program.Report(System.Delegate)""
@@ -8698,8 +8698,8 @@ class Program
 
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
 @"<>F{00000001}`2[System.Int32,System.Int32]
-<>F{00000005}`2[System.Int32,System.Int32]
-<>F{0000000d}`2[System.Int32,System.Int32]
+<>F{00000009}`2[System.Int32,System.Int32]
+<>F{00000019}`2[System.Int32,System.Int32]
 ");
             verifier.VerifyIL("Program.Main",
 @"{
@@ -8721,7 +8721,7 @@ class Program
   IL_002c:  pop
   IL_002d:  ldsfld     ""Program.<>c Program.<>c.<>9""
   IL_0032:  ldftn      ""ref int Program.<>c.<Main>b__0_1(ref int)""
-  IL_0038:  newobj     ""<>F{00000005}<int, int>..ctor(object, System.IntPtr)""
+  IL_0038:  newobj     ""<>F{00000009}<int, int>..ctor(object, System.IntPtr)""
   IL_003d:  dup
   IL_003e:  stsfld     ""<anonymous delegate> Program.<>c.<>9__0_1""
   IL_0043:  call       ""void Program.Report(System.Delegate)""
@@ -8731,7 +8731,7 @@ class Program
   IL_0050:  pop
   IL_0051:  ldsfld     ""Program.<>c Program.<>c.<>9""
   IL_0056:  ldftn      ""ref readonly int Program.<>c.<Main>b__0_2(ref int)""
-  IL_005c:  newobj     ""<>F{0000000d}<int, int>..ctor(object, System.IntPtr)""
+  IL_005c:  newobj     ""<>F{00000019}<int, int>..ctor(object, System.IntPtr)""
   IL_0061:  dup
   IL_0062:  stsfld     ""<anonymous delegate> Program.<>c.<>9__0_2""
   IL_0067:  call       ""void Program.Report(System.Delegate)""
@@ -9173,9 +9173,9 @@ System.Action`2[System.IntPtr,System.IntPtr]
 System.Action`1[System.ValueTuple`2[System.Int32,System.Int32]]
 System.Action`2[System.Object,System.Object[]]
 <>A{00000001}`2[System.Object,System.Object]
-<>A{00000004}`2[System.IntPtr,System.IntPtr]
+<>A{00000008}`2[System.IntPtr,System.IntPtr]
 <>A{00000001}`1[System.ValueTuple`2[System.Int32,System.Int32]]
-<>A{00000004}`2[System.Object,System.Object[]]
+<>A{00000008}`2[System.Object,System.Object[]]
 ");
         }
 
@@ -9200,9 +9200,9 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput:
 @"<>F`18[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Int32]
-<>F{200000000}`18[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Int32]
-<>F{100000000}`18[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Int32]
-<>F{300000000}`18[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Int32]
+<>F{2000000000000}`18[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Int32]
+<>F{1000000000000}`18[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Int32]
+<>F{3000000000000}`18[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Int32]
 ");
         }
 
@@ -9231,9 +9231,9 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput:
 @"<>A{00000001}`18[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object]
-<>A{800000001}`18[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object]
-<>A{400000001}`18[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object]
-<>A{c00000001}`18[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object]
+<>A{10000000000001}`18[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object]
+<>A{8000000000001}`18[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object]
+<>A{18000000000001}`18[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object]
 ");
         }
 
@@ -9269,10 +9269,10 @@ class Program
 
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput:
-@"<>A{4000000000000000\,00000000}`33[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32]
-<>A{4000000000000000\,00000002}`33[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32]
-<>A{4000000000000000\,00000001}`33[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32]
-<>A{4000000000000000\,00000003}`33[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32]
+@"<>A{00000000\,20000000}`33[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32]
+<>A{00000000\,220000000}`33[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32]
+<>A{00000000\,120000000}`33[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32]
+<>A{00000000\,320000000}`33[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32]
 ");
         }
 
@@ -9343,7 +9343,7 @@ class Program
             var verifier = CompileAndVerify(comp, validator: validator, expectedOutput:
 @"<>A{00000001}`2[System.Object,System.Object]
 D2
-<>A{00000009}`2[System.Object,System.Object]
+<>A{00000011}`2[System.Object,System.Object]
 D4");
 
             static void validator(PEAssembly assembly)
@@ -9351,7 +9351,7 @@ D4");
                 var reader = assembly.GetMetadataReader();
                 var actualTypes = reader.GetTypeDefNames().Select(h => reader.GetString(h)).ToArray();
 
-                string[] expectedTypes = new[] { "<Module>", "<>A{00000001}`2", "<>A{00000009}`2", "D2", "D4", "Program", "<>c", };
+                string[] expectedTypes = new[] { "<Module>", "<>A{00000001}`2", "<>A{00000011}`2", "D2", "D4", "Program", "<>c", };
                 AssertEx.Equal(expectedTypes, actualTypes);
             }
         }
@@ -10915,12 +10915,12 @@ class Program
                 """;
             var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net70, verify: Verification.Skipped, expectedOutput:
                 """
-                <>F{00000015}`3[System.Int32,System.Int32,System.Int32]
+                <>F{00000049}`3[System.Int32,System.Int32,System.Int32]
                 <>f__AnonymousDelegate0
                 <>f__AnonymousDelegate1
                 <>f__AnonymousDelegate1
                 <>f__AnonymousDelegate0
-                <>F{00000015}`3[System.Int32,System.Int32,System.Int32]
+                <>F{00000049}`3[System.Int32,System.Int32,System.Int32]
                 """);
         }
 

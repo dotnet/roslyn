@@ -782,7 +782,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var lambdaParameters = lambdaSymbol.Parameters;
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, lambdaParameters, diagnostics, modifyCompilation: false);
+            ParameterHelpers.EnsureRefKindAttributesExist(compilation, lambdaParameters, diagnostics, modifyCompilation: false);
 
             if (returnType.HasType)
             {
