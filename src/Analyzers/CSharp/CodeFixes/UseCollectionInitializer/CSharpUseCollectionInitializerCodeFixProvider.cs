@@ -142,28 +142,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
         {
             using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
 
-            foreach (var item in nodes.GetWithSeparators())
+            var nodeOrTokenList = nodes.GetWithSeparators();
+            foreach (var item in nodeOrTokenList)
             {
-                if (item.IsNode)
+                var addLineBreak = item.IsToken || (includeFinalLineBreak && item == nodeOrTokenList.Last());
+                if (addLineBreak && item.GetTrailingTrivia() is not [.., (kind: SyntaxKind.EndOfLineTrivia)])
                 {
-                    var node = item.AsNode()!;
-                    if (includeFinalLineBreak &&
-                        node == nodes.Last() &&
-                        nodes.SeparatorCount < nodes.Count &&
-                        node.GetTrailingTrivia() is not [.., (kind: SyntaxKind.EndOfLineTrivia)])
-                    {
-                        node = node.WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed);
-                    }
-
-                    nodesAndTokens.Add(node);
+                    nodesAndTokens.Add(item.WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed));
                 }
                 else
                 {
-                    var token = item.AsToken();
-                    if (token.TrailingTrivia is not [.., (kind: SyntaxKind.EndOfLineTrivia)])
-                        token = token.WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed);
-
-                    nodesAndTokens.Add(token);
+                    nodesAndTokens.Add(item);
                 }
             }
 
