@@ -3344,6 +3344,13 @@ namespace Microsoft.CodeAnalysis
                  0,                                                                                                                                             // Arity
                      0,                                                                                                                                         // Method Signature
                      (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+                
+                 // System_Runtime_CompilerServices_RequiresLocationAttribute__ctor
+                 (byte)(MemberFlags.Constructor),                                                                                                               // Flags
+                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_RequiresLocationAttribute - WellKnownType.ExtSentinel),  // DeclaringTypeId
+                 0,                                                                                                                                             // Arity
+                     0,                                                                                                                                         // Method Signature
+                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
 
                  // System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor
                  (byte)(MemberFlags.Constructor),                                                                                                               // Flags
@@ -4474,6 +4481,7 @@ namespace Microsoft.CodeAnalysis
                 ".ctor",                                    // System_Runtime_CompilerServices_NullablePublicOnlyAttribute__ctor
                 ".ctor",                                    // System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor
                 ".ctor",                                    // System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor
+                ".ctor",                                    // System_Runtime_CompilerServices_RequiresLocationAttribute__ctor
                 ".ctor",                                    // System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor
                 ".ctor",                                    // System_Runtime_CompilerServices_ObsoleteAttribute__ctor
                 ".ctor",                                    // System_Span_T__ctor_Pointer

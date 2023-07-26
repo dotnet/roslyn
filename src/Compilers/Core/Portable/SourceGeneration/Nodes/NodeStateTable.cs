@@ -154,6 +154,20 @@ namespace Microsoft.CodeAnalysis
             return builder.ToImmutableAndFree();
         }
 
+        public string GetPackedStates()
+        {
+            var pooled = PooledStringBuilder.GetInstance();
+            foreach (var state in _states)
+            {
+                for (int i = 0; i < state.Count; i++)
+                {
+                    pooled.Builder.Append(state.GetState(i).ToString()[0]);
+                }
+                pooled.Builder.Append(',');
+            }
+            return pooled.ToStringAndFree();
+        }
+
         /// <remarks>
         /// The builder is <b>not</b> threadsafe.
         /// </remarks>

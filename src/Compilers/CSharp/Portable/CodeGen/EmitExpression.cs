@@ -712,6 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 default:
+                    Debug.Assert(refKind is RefKind.Ref or RefKind.Out or RefKindExtensions.StrictIn);
                     // NOTE: passing "ReadOnlyStrict" here. 
                     //       we should not get an address of a copy if at all possible
                     var unexpectedTemp = EmitAddress(argument, refKind == RefKindExtensions.StrictIn ? AddressKind.ReadOnlyStrict : AddressKind.Writeable);
@@ -959,13 +960,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     argRefKind = argRefKindsOpt[i];
 
                     Debug.Assert(argRefKind == parameters[i].RefKind ||
-                            argRefKind == RefKindExtensions.StrictIn && parameters[i].RefKind == RefKind.In,
+                            parameters[i].RefKind switch
+                            {
+                                RefKind.In => argRefKind == RefKindExtensions.StrictIn,
+                                RefKind.RefReadOnlyParameter => argRefKind is RefKind.In or RefKindExtensions.StrictIn,
+                                _ => false,
+                            },
                             "in Emit the argument RefKind must be compatible with the corresponding parameter");
                 }
                 else
                 {
+                    Debug.Assert(parameters[i].RefKind != RefKind.RefReadOnlyParameter,
+                        "LocalRewriter.GetEffectiveArgumentRefKinds should ensure 'ref readonly' parameters get an entry in 'argRefKindsOpt'.");
+
                     // otherwise fallback to the refKind of the parameter
-                    argRefKind = parameters[i].RefKind;
+                    argRefKind = parameters[i].RefKind switch
+                    {
+                        RefKind.RefReadOnlyParameter => RefKind.In, // should not happen, asserted above
+                        var refKind => refKind
+                    };
                 }
             }
             else

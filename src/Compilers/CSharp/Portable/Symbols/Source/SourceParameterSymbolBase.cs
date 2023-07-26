@@ -109,9 +109,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     compilation.SynthesizeTupleNamesAttribute(type.Type));
             }
 
-            if (this.RefKind == RefKind.RefReadOnly)
+            switch (this.RefKind)
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
+                case RefKind.In:
+                    AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
+                    break;
+                case RefKind.RefReadOnlyParameter:
+                    AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeRequiresLocationAttribute(this));
+                    break;
             }
 
             if (compilation.ShouldEmitNullableAttributes(this))
