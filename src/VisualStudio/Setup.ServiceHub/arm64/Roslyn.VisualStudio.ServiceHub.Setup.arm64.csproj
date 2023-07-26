@@ -5,6 +5,11 @@
     <OutputType>Library</OutputType>
     <TargetFramework>net472</TargetFramework>
     <SetupProductArch>arm64</SetupProductArch>
+    <!-- If the user is building the entire repository locally, don't deploy this project. We will deploy the x64 flavor,
+         which for purposes of local deploy is actually the same thing; the only difference of this project and the x64 flavor
+         is for crossgen, which we don't run during F5. Since either project will work equally well (even if you were developing on
+         an arm64 machine), we'll just disable this one. -->
+    <DeployExtension>false</DeployExtension>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Workspaces\Remote\ServiceHub.CoreComponents\arm64\Microsoft.CodeAnalysis.Remote.ServiceHub.CoreComponents.arm64.csproj">

@@ -279,6 +279,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 IPropertySymbol propertySymbol => propertySymbol.Type,
                 IMethodSymbol methodSymbol => methodSymbol.ReturnType,
                 IEventSymbol eventSymbol => eventSymbol.Type,
+                IParameterSymbol parameterSymbol => parameterSymbol.Type,
                 _ => null,
             };
 

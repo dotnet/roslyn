@@ -690,6 +690,17 @@ namespace System.Diagnostics.CodeAnalysis
             }
             """;
 
+        internal const string CollectionBuilderAttributeDefinition = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.All, Inherited = false, AllowMultiple = false)]
+                public sealed class CollectionBuilderAttribute : Attribute
+                {
+                    public CollectionBuilderAttribute(Type builderType, string methodName) { }
+                }
+            }
+            """;
+
         protected static T GetSyntax<T>(SyntaxTree tree, string text)
         {
             return GetSyntaxes<T>(tree, text).Single();

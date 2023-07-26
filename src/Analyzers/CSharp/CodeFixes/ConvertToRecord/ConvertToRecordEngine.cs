@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             Document document, TypeDeclarationSyntax typeDeclaration, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             // any type declared partial requires complex movement, don't offer refactoring
-            if (typeDeclaration.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PartialKeyword)))
+            if (typeDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword))
                 return null;
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);

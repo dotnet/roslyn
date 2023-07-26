@@ -87,6 +87,10 @@
         <FileWrites Include="@(RoslynVersionFile)" />
     </ItemGroup>
 
+    <ItemGroup>
+        <EmbeddedResource Update="LanguageServerResources.resx" GenerateSource="true" />
+    </ItemGroup>
+
     <Target Name="WriteRoslynVersion" AfterTargets="Build">
         <WriteLinesToFile File="@(RoslynVersionFile)" Lines="$(MicrosoftCodeAnalysisVersion)" Overwrite="true" />
     </Target>

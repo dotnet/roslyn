@@ -6836,15 +6836,12 @@ class Program
                 // (6,21): error CS1107: A parameter can only have one 'ref' modifier
                 //         D d1 = (ref ref int i) => { };
                 Diagnostic(ErrorCode.ERR_DupParamMod, "ref").WithArguments("ref").WithLocation(6, 21),
-                // (7,16): error CS1661: Cannot convert lambda expression to type 'D' because the parameter types do not match the delegate parameter types
+                // (7,16): warning CS9198: Reference kind modifier of parameter 'in int i' doesn't match the corresponding parameter 'ref int i' in target.
                 //         D d2 = (in ref int i) => { };
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(in ref int i) => { }").WithArguments("lambda expression", "D").WithLocation(7, 16),
+                Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(in ref int i) => { }").WithArguments("in int i", "ref int i").WithLocation(7, 16),
                 // (7,20): error CS8328:  The parameter modifier 'ref' cannot be used with 'in'
                 //         D d2 = (in ref int i) => { };
                 Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "in").WithLocation(7, 20),
-                // (7,28): error CS1676: Parameter 1 must be declared with the 'ref' keyword
-                //         D d2 = (in ref int i) => { };
-                Diagnostic(ErrorCode.ERR_BadParamRef, "i").WithArguments("1", "ref").WithLocation(7, 28),
                 // (8,16): error CS1661: Cannot convert lambda expression to type 'D' because the parameter types do not match the delegate parameter types
                 //         D d3 = (out ref int i) => { };
                 Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(out ref int i) => { }").WithArguments("lambda expression", "D").WithLocation(8, 16),

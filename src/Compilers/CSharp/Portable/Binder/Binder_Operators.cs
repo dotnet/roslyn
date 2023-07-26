@@ -2584,6 +2584,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                             expr = receiver;
                             continue;
                         }
+                    case BoundKind.InlineArrayAccess:
+                        {
+                            var elementAccess = (BoundInlineArrayAccess)expr;
+
+                            if (elementAccess.GetItemOrSliceHelper is WellKnownMember.System_Span_T__get_Item or WellKnownMember.System_ReadOnlySpan_T__get_Item)
+                            {
+                                expr = elementAccess.Expression;
+                                continue;
+                            }
+
+                            goto default;
+                        }
                     case BoundKind.RangeVariable:
                         {
                             // NOTE: there are cases where you can take the address of a range variable.

@@ -58,8 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return objectCreation;
 
-                case ConversionKind.CollectionLiteral:
-                    // Skip through target-typed collection literals
+                case ConversionKind.CollectionExpression:
+                    // Skip through target-typed collection expressions
                     Debug.Assert(node.Type.Equals(node.Operand.Type, TypeCompareKind.AllIgnoreOptions));
                     return VisitExpression(node.Operand)!;
             }
