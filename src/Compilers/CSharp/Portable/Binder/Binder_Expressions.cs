@@ -7733,7 +7733,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations,
             BindingDiagnosticBag diagnostics)
         {
-            int arity = typeArgumentsWithAnnotations.IsDefault ? 0 : typeArgumentsWithAnnotations.Length;
+            int arity;
+            if (typeArgumentsWithAnnotations.IsDefault)
+            {
+                arity = 0;
+            }
+            else
+            {
+                arity = typeArgumentsWithAnnotations.Length;
+            }
+
             var lookupResult = LookupResult.GetInstance();
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             this.LookupExtensionMethods(lookupResult, scope, rightName, arity, ref useSiteInfo);

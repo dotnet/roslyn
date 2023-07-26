@@ -2020,6 +2020,44 @@ namespace N
         }
 
         [Fact, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
+        public void MethodGroup_ScopeByScope_InaccessibleInstance()
+        {
+            // Inaccessible instance method is ignored
+            var source = """
+var z = new C().M;
+z();
+
+public class C
+{
+    protected static void M(object o) { } // ignored
+}
+
+public static class E
+{
+    public static void M(this C c)
+    {
+        System.Console.Write("E.M ");
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "E.M");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
+            var typeInfo = model.GetTypeInfo(memberAccess);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("System.Action", typeInfo.ConvertedType!.ToTestDisplayString());
+            // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
+            Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+            Assert.Equal(new[] { "void C.M()" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
         public void MethodGroup_ScopeByScope_InstanceReceiver()
         {
             // Static method is ignored on instance receiver
@@ -2444,7 +2482,7 @@ static class E
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69222")]
-        public void MethodGroup_GenericExtensionMethod_Constraint()
+        public void MethodGroup_GenericInstanceMethod_Constraint()
         {
             var source = """
 var x = new C().M<int>;
