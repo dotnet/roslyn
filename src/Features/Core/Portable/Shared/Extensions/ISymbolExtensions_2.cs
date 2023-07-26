@@ -153,9 +153,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 case SymbolKind.TypeParameter:
                     return Glyph.TypeParameter;
 
-                // Temporary fix
                 case SymbolKind.Preprocessing:
-                    return Glyph.Label;
+                    return Glyph.Keyword;
 
                 default:
                     throw new ArgumentException(FeaturesResources.The_symbol_does_not_have_an_icon, nameof(symbol));
