@@ -39,7 +39,7 @@ Console.WriteLine(1)/*4*/;
 
             // pre-matched:
 
-            var match = m1.ComputeMatch(m2, knownMatches);
+            var match = m1.ComputeSingleRootMatch(m2, knownMatches);
 
             var actual = ToMatchingPairs(match);
 
@@ -53,7 +53,7 @@ Console.WriteLine(1)/*4*/;
 
             // not pre-matched:
 
-            match = m1.ComputeMatch(m2, knownMatches: null);
+            match = m1.ComputeSingleRootMatch(m2, knownMatches: null);
 
             actual = ToMatchingPairs(match);
 
@@ -81,7 +81,7 @@ Console.WriteLine(2);
             var m2 = MakeMethodBody(src2);
 
             var knownMatches = new[] { new KeyValuePair<SyntaxNode, SyntaxNode>(m1.RootNodes.First(), m2.RootNodes.First()) };
-            var match = m1.ComputeMatch(m2, knownMatches);
+            var match = m1.ComputeSingleRootMatch(m2, knownMatches);
             var actual = ToMatchingPairs(match);
 
             var expected = new MatchingPairs

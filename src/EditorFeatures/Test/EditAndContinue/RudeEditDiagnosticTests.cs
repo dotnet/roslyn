@@ -65,6 +65,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 RudeEditKind.InternalError,
                 RudeEditKind.MemberBodyInternalError,
                 RudeEditKind.ChangingNonCustomAttribute,
+                RudeEditKind.NotCapturingPrimaryConstructorParameter,
             };
 
             var arg3 = new HashSet<RudeEditKind>()

@@ -27,9 +27,9 @@ internal sealed class SimpleMemberBody(SyntaxNode node) : AbstractSimpleMemberBo
             IsIterator: SyntaxUtilities.IsIterator(Node),
             HasSuspensionPoints: SyntaxUtilities.GetSuspensionPoints(Node).Any());
 
-    public override Match<SyntaxNode> ComputeMatch(DeclarationBody newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>>? knownMatches)
+    public override Match<SyntaxNode>? ComputeSingleRootMatch(DeclarationBody newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>>? knownMatches)
         => CSharpEditAndContinueAnalyzer.ComputeBodyMatch(Node, ((SimpleMemberBody)newBody).Node, knownMatches);
 
-    public override bool TryMatchActiveStatement(DeclarationBody newBody, SyntaxNode oldStatement, int statementPart, [NotNullWhen(true)] out SyntaxNode? newStatement)
+    public override bool TryMatchActiveStatement(DeclarationBody newBody, SyntaxNode oldStatement, ref int statementPart, [NotNullWhen(true)] out SyntaxNode? newStatement)
         => CSharpEditAndContinueAnalyzer.TryMatchActiveStatement(Node, ((SimpleMemberBody)newBody).Node, oldStatement, out newStatement);
 }

@@ -63,10 +63,11 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
         public ImmutableArray<CodeAction> GetCodeActions(Document document, ImplementTypeGenerationOptions options, SemanticModel model, SyntaxNode node, CancellationToken cancellationToken)
         {
             var state = State.Generate(this, document, model, node, cancellationToken);
-            return GetActions(document, options, state).ToImmutableArray();
+            return GetActions(document, options, state, cancellationToken).ToImmutableArray();
         }
 
-        private IEnumerable<CodeAction> GetActions(Document document, ImplementTypeGenerationOptions options, State state)
+        private IEnumerable<CodeAction> GetActions(
+            Document document, ImplementTypeGenerationOptions options, State state, CancellationToken cancellationToken)
         {
             if (state == null)
             {
@@ -103,7 +104,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     yield return ImplementInterfaceWithDisposePatternCodeAction.CreateImplementWithDisposePatternCodeAction(this, document, options, state);
                 }
 
-                var delegatableMembers = GetDelegatableMembers(state);
+                var delegatableMembers = GetDelegatableMembers(state, cancellationToken);
                 foreach (var member in delegatableMembers)
                 {
                     yield return ImplementInterfaceCodeAction.CreateImplementThroughMemberCodeAction(this, document, options, state, member);
@@ -156,24 +157,15 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             return false;
         }
 
-        private static IList<ISymbol> GetDelegatableMembers(State state)
+        private static ImmutableArray<ISymbol> GetDelegatableMembers(State state, CancellationToken cancellationToken)
         {
-            var fields =
-                state.ClassOrStructType.GetMembers()
-                                       .OfType<IFieldSymbol>()
-                                       .Where(f => !f.IsImplicitlyDeclared)
-                                       .Where(f => f.Type.GetAllInterfacesIncludingThis().Contains(state.InterfaceTypes.First()))
-                                       .OfType<ISymbol>();
+            var firstInterfaceType = state.InterfaceTypes.First();
 
-            // Select all properties with zero parameters that also have a getter
-            var properties =
-                state.ClassOrStructType.GetMembers()
-                                       .OfType<IPropertySymbol>()
-                                       .Where(p => (!p.IsImplicitlyDeclared) && (p.Parameters.Length == 0) && (p.GetMethod != null))
-                                       .Where(p => p.Type.GetAllInterfacesIncludingThis().Contains(state.InterfaceTypes.First()))
-                                       .OfType<ISymbol>();
-
-            return fields.Concat(properties).ToList();
+            return ImplementHelpers.GetDelegatableMembers(
+                state.Document,
+                state.ClassOrStructType,
+                t => t.GetAllInterfacesIncludingThis().Contains(firstInterfaceType),
+                cancellationToken);
         }
 
         protected static TNode AddComment<TNode>(SyntaxGenerator g, string comment, TNode node) where TNode : SyntaxNode

@@ -3933,6 +3933,26 @@ public       void       Method      (       )           {
             await AssertFormatAsync(expected, code);
         }
 
+        [Fact]
+        public async Task RefReadonlyParameters()
+        {
+            var code = """
+                class C
+                {
+                    int   this  [   ref     readonly    int      x   ,   ref    readonly   int   y   ]   {   get ;   set ;  }
+                    void    M  (   ref    readonly     int   x    ,   ref    readonly   int   y   )  {   }
+                }
+                """;
+            var expected = """
+                class C
+                {
+                    int this[ref readonly int x, ref readonly int y] { get; set; }
+                    void M(ref readonly int x, ref readonly int y) { }
+                }
+                """;
+            await AssertFormatAsync(expected, code);
+        }
+
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539259")]
         public async Task BugFix5143()
         {

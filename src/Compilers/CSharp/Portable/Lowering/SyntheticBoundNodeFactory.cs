@@ -821,13 +821,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var result = method.ParameterRefKinds;
 
-                if (useStrictArgumentRefKinds && result.Contains(RefKind.In))
+                if (!result.IsDefaultOrEmpty && (result.Contains(RefKind.RefReadOnlyParameter) ||
+                    (useStrictArgumentRefKinds && result.Contains(RefKind.In))))
                 {
                     var builder = ArrayBuilder<RefKind>.GetInstance(result.Length);
 
                     foreach (var refKind in result)
                     {
-                        builder.Add(refKind == RefKind.In ? RefKindExtensions.StrictIn : refKind);
+                        builder.Add(refKind switch
+                        {
+                            RefKind.In or RefKind.RefReadOnlyParameter when useStrictArgumentRefKinds => RefKindExtensions.StrictIn,
+                            RefKind.RefReadOnlyParameter => RefKind.In,
+                            _ => refKind
+                        });
                     }
 
                     return builder.ToImmutableAndFree();

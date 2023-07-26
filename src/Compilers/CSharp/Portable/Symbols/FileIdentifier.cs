@@ -3,13 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Security.Cryptography;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp;
 
-internal struct FileIdentifier
+internal readonly struct FileIdentifier
 {
     private static readonly Encoding s_encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
@@ -27,8 +27,8 @@ internal struct FileIdentifier
         try
         {
             var encodedFilePath = s_encoding.GetBytes(filePath);
-            using var sha256 = SHA256.Create();
-            hash = sha256.ComputeHash(encodedFilePath).ToImmutableArray();
+            using var hashAlgorithm = SourceHashAlgorithms.CreateDefaultInstance();
+            hash = hashAlgorithm.ComputeHash(encodedFilePath).ToImmutableArray();
         }
         catch (EncoderFallbackException ex)
         {
