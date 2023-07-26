@@ -211,8 +211,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 }
                             }
 
-                            if (member.Kind != symbol.Kind &&
-                                member is INamedTypeSymbol typeMember)
+                            if (member is INamedTypeSymbol typeMember)
                             {
                                 processMembers(typeMember.GetMembers());
                             }

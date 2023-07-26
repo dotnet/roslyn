@@ -8,18 +8,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
 {
     internal partial class ConvertRegularStringToRawStringCodeRefactoringProvider
     {
-        private readonly struct CanConvertParams
+        private readonly struct CanConvertParams(VirtualCharSequence characters, bool canBeSingleLine, bool canBeMultiLineWithoutLeadingWhiteSpaces)
         {
-            public CanConvertParams(VirtualCharSequence characters, bool canBeSingleLine, bool canBeMultiLineWithoutLeadingWhiteSpaces)
-            {
-                Characters = characters;
-                CanBeSingleLine = canBeSingleLine;
-                CanBeMultiLineWithoutLeadingWhiteSpaces = canBeMultiLineWithoutLeadingWhiteSpaces;
-            }
-
-            public VirtualCharSequence Characters { get; }
-            public bool CanBeSingleLine { get; }
-            public bool CanBeMultiLineWithoutLeadingWhiteSpaces { get; }
+            public VirtualCharSequence Characters { get; } = characters;
+            public bool CanBeSingleLine { get; } = canBeSingleLine;
+            public bool CanBeMultiLineWithoutLeadingWhiteSpaces { get; } = canBeMultiLineWithoutLeadingWhiteSpaces;
         }
     }
 }

@@ -344,5 +344,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             length = 0;
             return false;
         }
+
+#nullable enable
+        internal sealed override bool HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName)
+        {
+            builderType = null;
+            methodName = null;
+            return false;
+        }
+#nullable disable
     }
 }

@@ -410,7 +410,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub Method_RudeRecompile4()
+        Public Sub Method_Async_Recompile()
             Dim src1 = "
 Class C
     Shared Async Function Bar() As Task(Of Integer)
@@ -432,6 +432,58 @@ End Class
             edits.VerifyLineEdits(
                 Array.Empty(Of SequencePointUpdates),
                 {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.Bar"), preserveLocalVariables:=True)})
+        End Sub
+
+        <Fact>
+        Public Sub Method_StaticLocal_LineChange()
+            Dim src1 = "
+Class C
+    Shared Sub F()
+        Static a = 0
+        a = 1
+    End Sub
+End Class
+"
+
+            Dim src2 = "
+Class C
+    Shared Sub F()
+
+        Static a = 0
+        a = 1
+    End Sub
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifyLineEdits({New SourceLineUpdate(3, 4)}, {})
+        End Sub
+
+        <Fact>
+        Public Sub Method_StaticLocal_Recompile()
+            Dim src1 = "
+Class C
+    Shared Sub F()
+        Static a = 0
+        a = 1
+    End Sub
+End Class
+"
+
+            Dim src2 = "
+Class C
+    Shared Sub F()
+             Static a = 0
+        a = 1
+    End Sub
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                diagnostics:={Diagnostic(RudeEditKind.UpdateStaticLocal, "Static a = 0", GetResource("method"))})
         End Sub
 
 #End Region

@@ -957,6 +957,40 @@ class D
     }
 
     [Theory, CombinatorialData]
+    public void InExperimentalMethod(bool inSource)
+    {
+        // Diagnostics for [Experimental] are not suppressed in [Experimental] members
+        var libSrc = """
+public class C
+{
+    [System.Diagnostics.CodeAnalysis.Experimental("DiagID1")]
+    public static void M() { }
+}
+""";
+
+        var src = """
+class D
+{
+    [System.Diagnostics.CodeAnalysis.Experimental("DiagID2")]
+    void M2()
+    {
+        C.M();
+    }
+}
+""";
+
+        var comp = inSource
+            ? CreateCompilation(new[] { src, libSrc, experimentalAttributeSrc })
+            : CreateCompilation(src, references: new[] { CreateCompilation(new[] { libSrc, experimentalAttributeSrc }).EmitToImageReference() });
+
+        comp.VerifyDiagnostics(
+            // (6,9): warning DiagID1: 'C.M()' is for evaluation purposes only and is subject to change or removal in future updates.
+            //         C.M();
+            Diagnostic("DiagID1", "C.M()").WithArguments("C.M()").WithLocation(6, 9)
+            );
+    }
+
+    [Theory, CombinatorialData]
     public void WithObsolete(bool inSource)
     {
         var libSrc = """

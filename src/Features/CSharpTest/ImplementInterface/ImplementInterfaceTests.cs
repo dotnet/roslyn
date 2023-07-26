@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ImplementInterface;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
 using Microsoft.CodeAnalysis.ImplementType;
@@ -71,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
                 Options = { AllOptionsOff },
                 CodeActionEquivalenceKey = codeAction?.equivalenceKey,
                 CodeActionIndex = codeAction?.index,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                LanguageVersion = LanguageVersion.Preview,
             }.RunAsync();
         }
 
@@ -106,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
                 FixedCode = expectedMarkup,
                 CodeActionEquivalenceKey = codeAction?.equivalenceKey,
                 CodeActionIndex = codeAction?.index,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                LanguageVersion = LanguageVersion.Preview,
             }.RunAsync();
         }
 
@@ -1012,6 +1011,37 @@ codeAction: ("True;False;False:global::IInterface;TestProject;Microsoft.CodeAnal
                 {
                     I i;
 
+                    public void Method1()
+                    {
+                        i.Method1();
+                    }
+                }
+                """,
+codeAction: ("False;False;False:global::I;TestProject;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;i", 1));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
+        public async Task TestImplementThroughPrimaryConstructorParameter1()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+                """
+                interface I
+                {
+                    void Method1();
+                }
+
+                class C(I i) : {|CS0535:I|}
+                {
+                }
+                """,
+                """
+                interface I
+                {
+                    void Method1();
+                }
+
+                class C(I i) : I
+                {
                     public void Method1()
                     {
                         i.Method1();

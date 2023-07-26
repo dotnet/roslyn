@@ -24,10 +24,10 @@ namespace Microsoft.CodeAnalysis.AddImport
         private abstract class AddImportCodeAction : CodeAction
         {
             protected readonly AddImportFixData FixData;
+            private readonly CodeActionPriority _priority;
 
             public override string Title { get; }
             public sealed override ImmutableArray<string> Tags { get; }
-            internal sealed override CodeActionPriority Priority { get; }
 
             public sealed override string EquivalenceKey => Title;
 
@@ -51,9 +51,15 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                 Title = fixData.Title;
                 Tags = fixData.Tags.ToImmutableArrayOrEmpty().AddRange(additionalTags);
-                Priority = fixData.Priority;
+                _priority = fixData.Priority;
                 _textChanges = fixData.TextChanges.ToImmutableArrayOrEmpty();
+
+                // Backdoor that allows this provider to use the high-priority bucket.
+                this.CustomTags = this.CustomTags.Add(CodeAction.CanBeHighPriorityTag);
             }
+
+            protected sealed override CodeActionPriority ComputePriority()
+                => _priority;
 
             protected async Task<Document> GetUpdatedDocumentAsync(CancellationToken cancellationToken)
             {

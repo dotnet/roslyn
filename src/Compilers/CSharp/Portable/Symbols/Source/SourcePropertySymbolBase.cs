@@ -446,6 +446,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new LexicalSortKey(Location, this.DeclaringCompilation);
         }
 
+        public sealed override Location TryGetFirstLocation() => Location;
+
         public override ImmutableArray<Location> Locations
         {
             get

@@ -18,21 +18,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
     [ContentType(ContentTypeNames.CSharpContentType)]
     [Name(nameof(XmlTagCompletionCommandHandler))]
     [Order(Before = PredefinedCompletionNames.CompletionCommandHandler)]
-    internal sealed class XmlTagCompletionCommandHandler : AbstractXmlTagCompletionCommandHandler<
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class XmlTagCompletionCommandHandler(ITextUndoHistoryRegistry undoHistory) : AbstractXmlTagCompletionCommandHandler<
         XmlNameSyntax,
         XmlTextSyntax,
         XmlElementSyntax,
         XmlElementStartTagSyntax,
         XmlElementEndTagSyntax,
-        DocumentationCommentTriviaSyntax>
+        DocumentationCommentTriviaSyntax>(undoHistory)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public XmlTagCompletionCommandHandler(ITextUndoHistoryRegistry undoHistory)
-            : base(undoHistory)
-        {
-        }
-
         protected override XmlElementStartTagSyntax GetStartTag(XmlElementSyntax xmlElement)
             => xmlElement.StartTag;
 
@@ -47,6 +42,5 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
 
         protected override SyntaxToken GetLocalName(XmlNameSyntax name)
             => name.LocalName;
-
     }
 }

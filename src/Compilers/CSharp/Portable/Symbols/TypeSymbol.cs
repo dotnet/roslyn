@@ -2522,7 +2522,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal FieldSymbol? TryGetInlineArrayElementField()
         {
-            return TryGetPossiblyUnsupportedByLanguageInlineArrayElementField() is { RefKind: RefKind.None } field ? field : null;
+            return TryGetPossiblyUnsupportedByLanguageInlineArrayElementField() is { } field && IsInlineArrayElementFieldSupported(field) ? field : null;
+        }
+
+        internal static bool IsInlineArrayElementFieldSupported(FieldSymbol elementField)
+        {
+            return elementField is { RefKind: RefKind.None, IsFixedSizeBuffer: false };
         }
     }
 }

@@ -15,11 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Commanding.Commands
     /// Arguments for the Sort Imports command being invoked.	
     /// </summary>	
     [ExcludeFromCodeCoverage]
-    internal class SortImportsCommandArgs : EditorCommandArgs
+    internal class SortImportsCommandArgs(ITextView textView, ITextBuffer subjectBuffer) : EditorCommandArgs(textView, subjectBuffer)
     {
-        public SortImportsCommandArgs(ITextView textView, ITextBuffer subjectBuffer)
-            : base(textView, subjectBuffer)
-        {
-        }
     }
 }

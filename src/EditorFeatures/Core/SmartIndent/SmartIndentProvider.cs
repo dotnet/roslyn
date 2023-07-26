@@ -14,16 +14,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
     [Export(typeof(ISmartIndentProvider))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
-    internal sealed class SmartIndentProvider : ISmartIndentProvider
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class SmartIndentProvider(EditorOptionsService editorOptionsService) : ISmartIndentProvider
     {
-        private readonly EditorOptionsService _editorOptionsService;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SmartIndentProvider(EditorOptionsService editorOptionsService)
-        {
-            _editorOptionsService = editorOptionsService;
-        }
+        private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
 
         public ISmartIndent? CreateSmartIndent(ITextView textView)
         {

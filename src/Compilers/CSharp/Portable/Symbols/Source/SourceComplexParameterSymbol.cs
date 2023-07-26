@@ -1240,12 +1240,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(arguments.Attribute.IsTargetAttribute(this, AttributeDescription.InterpolatedStringHandlerArgumentAttribute) && arguments.Attribute.CommonConstructorArguments.Length == 1);
             Debug.Assert(arguments.AttributeSyntaxOpt is not null);
 
-            var errorLocation = arguments.AttributeSyntaxOpt.Location;
-
             if (Type is not NamedTypeSymbol { IsInterpolatedStringHandlerType: true } handlerType)
             {
                 // '{0}' is not an interpolated string handler type.
-                diagnostics.Add(ErrorCode.ERR_TypeIsNotAnInterpolatedStringHandlerType, errorLocation, Type);
+                diagnostics.Add(ErrorCode.ERR_TypeIsNotAnInterpolatedStringHandlerType, arguments.AttributeSyntaxOpt.Location, Type);
                 setInterpolatedStringHandlerAttributeError(ref arguments);
                 return;
             }
@@ -1253,7 +1251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this is LambdaParameterSymbol)
             {
                 // Lambda parameters will ignore this attribute at usage
-                diagnostics.Add(ErrorCode.WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters, errorLocation);
+                diagnostics.Add(ErrorCode.WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters, arguments.AttributeSyntaxOpt.Location);
             }
 
             TypedConstant constructorArgument = arguments.Attribute.CommonConstructorArguments[0];
@@ -1361,7 +1359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if ((object)parameter == this)
                 {
                     // InterpolatedStringHandlerArgumentAttribute arguments cannot refer to the parameter the attribute is used on.
-                    diagnostics.Add(ErrorCode.ERR_CannotUseSelfAsInterpolatedStringHandlerArgument, errorLocation);
+                    diagnostics.Add(ErrorCode.ERR_CannotUseSelfAsInterpolatedStringHandlerArgument, arguments.AttributeSyntaxOpt.Location);
                     return null;
                 }
 
@@ -1370,7 +1368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Parameter '{0}' occurs after '{1}' in the parameter list, but is used as an argument for interpolated string handler conversions.
                     // This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated
                     // string handler parameter after all arguments involved.
-                    diagnostics.Add(ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter, errorLocation, parameter.Name, this.Name);
+                    diagnostics.Add(ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter, arguments.AttributeSyntaxOpt.Location, parameter.Name, this.Name);
                 }
 
                 return (parameter.Ordinal, parameter);

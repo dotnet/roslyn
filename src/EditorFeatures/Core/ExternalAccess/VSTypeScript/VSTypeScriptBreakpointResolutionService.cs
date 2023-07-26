@@ -17,14 +17,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
     [Shared]
     [ExportLanguageService(typeof(IBreakpointResolutionService), InternalLanguageNames.TypeScript)]
-    internal sealed class VSTypeScriptBreakpointResolutionService : IBreakpointResolutionService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class VSTypeScriptBreakpointResolutionService(IVSTypeScriptBreakpointResolutionServiceImplementation implementation) : IBreakpointResolutionService
     {
-        private readonly IVSTypeScriptBreakpointResolutionServiceImplementation _implementation;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VSTypeScriptBreakpointResolutionService(IVSTypeScriptBreakpointResolutionServiceImplementation implementation)
-            => _implementation = implementation;
+        private readonly IVSTypeScriptBreakpointResolutionServiceImplementation _implementation = implementation;
 
         public async Task<BreakpointResolutionResult?> ResolveBreakpointAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken = default)
             => (await _implementation.ResolveBreakpointAsync(document, textSpan, cancellationToken).ConfigureAwait(false)).UnderlyingObject;

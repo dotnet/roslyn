@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Internal.Editing
 namespace Microsoft.CodeAnalysis.Editing
 #endif
 {
-    public readonly struct DeclarationModifiers : IEquatable<DeclarationModifiers>
+    public readonly record struct DeclarationModifiers
     {
         private readonly Modifiers _modifiers;
 
@@ -85,6 +85,7 @@ namespace Microsoft.CodeAnalysis.Editing
                     isSealed: symbol.IsSealed,
                     isConst: isConst,
                     isUnsafe: symbol.RequiresUnsafeModifier(),
+                    isRef: field?.RefKind is RefKind.Ref or RefKind.RefReadOnly,
                     isVolatile: field?.IsVolatile == true,
                     isExtern: symbol.IsExtern,
                     isAsync: method?.IsAsync == true,
@@ -249,21 +250,6 @@ namespace Microsoft.CodeAnalysis.Editing
 
         public static DeclarationModifiers operator -(DeclarationModifiers left, DeclarationModifiers right)
             => new(left._modifiers & ~right._modifiers);
-
-        public bool Equals(DeclarationModifiers modifiers)
-            => _modifiers == modifiers._modifiers;
-
-        public override bool Equals(object obj)
-            => obj is DeclarationModifiers mods && Equals(mods);
-
-        public override int GetHashCode()
-            => (int)_modifiers;
-
-        public static bool operator ==(DeclarationModifiers left, DeclarationModifiers right)
-            => left._modifiers == right._modifiers;
-
-        public static bool operator !=(DeclarationModifiers left, DeclarationModifiers right)
-            => left._modifiers != right._modifiers;
 
         public override string ToString()
             => _modifiers.ToString();

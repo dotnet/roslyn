@@ -536,6 +536,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor:
                 case ErrorCode.WRN_CapturedPrimaryConstructorParameterInFieldInitializer:
+                case ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase:
+                case ErrorCode.WRN_InlineArrayIndexerNotUsed:
+                case ErrorCode.WRN_InlineArraySliceNotUsed:
+                case ErrorCode.WRN_InlineArrayConversionOperatorNotUsed:
+                case ErrorCode.WRN_InlineArrayNotSupportedByLanguage:
                 case ErrorCode.WRN_BadArgRef:
                 case ErrorCode.WRN_ArgExpectedRefOrIn:
                 case ErrorCode.WRN_RefReadonlyNotVariable:
@@ -2364,9 +2369,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_RuntimeDoesNotSupportInlineArrayTypes:
                 case ErrorCode.ERR_InlineArrayBadIndex:
                 case ErrorCode.ERR_NamedArgumentForInlineArray:
-                case ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible:
-                case ErrorCode.ERR_ExpressionTreeContainsCollectionLiteral:
-                case ErrorCode.ERR_CollectionLiteralNoTargetType:
+                case ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible:
+                case ErrorCode.ERR_ExpressionTreeContainsCollectionExpression:
+                case ErrorCode.ERR_CollectionExpressionNoTargetType:
+                case ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase:
+                case ErrorCode.ERR_InlineArrayUnsupportedElementFieldModifier:
+                case ErrorCode.WRN_InlineArrayIndexerNotUsed:
+                case ErrorCode.WRN_InlineArraySliceNotUsed:
+                case ErrorCode.WRN_InlineArrayConversionOperatorNotUsed:
+                case ErrorCode.WRN_InlineArrayNotSupportedByLanguage:
+                case ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound:
+                case ErrorCode.ERR_CollectionBuilderAttributeInvalidType:
+                case ErrorCode.ERR_CollectionBuilderAttributeInvalidMethodName:
+                case ErrorCode.ERR_CollectionBuilderNoElementType:
+                case ErrorCode.ERR_InlineArrayForEachNotSupported:
                 case ErrorCode.ERR_RefReadOnlyWrongOrdering:
                 case ErrorCode.WRN_BadArgRef:
                 case ErrorCode.WRN_ArgExpectedRefOrIn:

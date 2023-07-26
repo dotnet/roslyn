@@ -27,24 +27,18 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
     [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.NavigateToHighlightedReference)]
-    internal partial class NavigateToHighlightReferenceCommandHandler :
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal partial class NavigateToHighlightReferenceCommandHandler(
+        IOutliningManagerService outliningManagerService,
+        IViewTagAggregatorFactoryService tagAggregatorFactory) :
         ICommandHandler<NavigateToNextHighlightedReferenceCommandArgs>,
         ICommandHandler<NavigateToPreviousHighlightedReferenceCommandArgs>
     {
-        private readonly IOutliningManagerService _outliningManagerService;
-        private readonly IViewTagAggregatorFactoryService _tagAggregatorFactory;
+        private readonly IOutliningManagerService _outliningManagerService = outliningManagerService ?? throw new ArgumentNullException(nameof(outliningManagerService));
+        private readonly IViewTagAggregatorFactoryService _tagAggregatorFactory = tagAggregatorFactory ?? throw new ArgumentNullException(nameof(tagAggregatorFactory));
 
         public string DisplayName => EditorFeaturesResources.Navigate_To_Highlight_Reference;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public NavigateToHighlightReferenceCommandHandler(
-            IOutliningManagerService outliningManagerService,
-            IViewTagAggregatorFactoryService tagAggregatorFactory)
-        {
-            _outliningManagerService = outliningManagerService ?? throw new ArgumentNullException(nameof(outliningManagerService));
-            _tagAggregatorFactory = tagAggregatorFactory ?? throw new ArgumentNullException(nameof(tagAggregatorFactory));
-        }
 
         public CommandState GetCommandState(NavigateToNextHighlightedReferenceCommandArgs args)
             => GetCommandStateImpl(args);

@@ -1178,7 +1178,7 @@ namespace Microsoft.CodeAnalysis
                         analyzerOptions,
                         new AnalyzerManager(analyzers),
                         analyzerExceptionDiagnostics.Add,
-                        Arguments.ReportAnalyzer,
+                        reportAnalyzer: Arguments.ReportAnalyzer || errorLogger != null,
                         severityFilter,
                         trackSuppressedDiagnosticIds: errorLogger != null,
                         out compilation,
@@ -1372,7 +1372,8 @@ namespace Microsoft.CodeAnalysis
 
                             if (errorLogger != null)
                             {
-                                errorLogger.AddAnalyzerDescriptors(analyzerDriver.GetAllDescriptors(cancellationToken));
+                                var descriptorsWithInfo = analyzerDriver.GetAllDiagnosticDescriptorsWithInfo(cancellationToken, out var totalAnalyzerExecutionTime);
+                                AddAnalyzerDescriptorsAndExecutionTime(errorLogger, descriptorsWithInfo, totalAnalyzerExecutionTime);
                             }
                         }
                     }
@@ -1474,6 +1475,8 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<AdditionalText> additionalTextFiles,
             AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider)
             => new Diagnostics.AnalyzerOptions(additionalTextFiles, analyzerConfigOptionsProvider);
+        protected virtual void AddAnalyzerDescriptorsAndExecutionTime(ErrorLogger errorLogger, ImmutableArray<(DiagnosticDescriptor Descriptor, DiagnosticDescriptorErrorLoggerInfo Info)> descriptorsWithInfo, double totalAnalyzerExecutionTime)
+            => errorLogger.AddAnalyzerDescriptorsAndExecutionTime(descriptorsWithInfo, totalAnalyzerExecutionTime);
 
         private bool WriteTouchedFiles(DiagnosticBag diagnostics, TouchedFileLogger? touchedFilesLogger, string? finalXmlFilePath)
         {

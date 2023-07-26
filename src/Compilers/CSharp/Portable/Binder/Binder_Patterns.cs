@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (inputType.IsPointerType())
                 {
-                    CheckFeatureAvailability(patternExpression, MessageID.IDS_FeatureNullPointerConstantPattern, diagnostics, patternExpression.Location);
+                    CheckFeatureAvailability(patternExpression, MessageID.IDS_FeatureNullPointerConstantPattern, diagnostics);
                 }
             }
 

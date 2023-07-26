@@ -2585,7 +2585,7 @@ class C
         }
 
         [WpfFact]
-        public void FormatCollectionLiteralAfterEquals()
+        public void FormatCollectionExpressionAfterEquals()
         {
             var code = @"$$
 var   v  =   [  1  , 2  , 3  ]  ;";
