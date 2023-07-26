@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             {
                 var expression = GetExpression(match);
 
-                // If we have anything like: `new Dictionary<X,Y> { { A, B }, { C, D } }` the always make multiline.
+                // If we have anything like: `new Dictionary<X,Y> { { A, B }, { C, D } }` then always make multiline.
                 // Similarly, if we have `new Dictionary<X,Y> { [A] = B }`.
                 if (expression is InitializerExpressionSyntax or AssignmentExpressionSyntax)
                     return true;
