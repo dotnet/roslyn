@@ -312,6 +312,15 @@ class X
                         case ErrorCode.WRN_InlineArrayIndexerNotUsed:
                         case ErrorCode.WRN_InlineArraySliceNotUsed:
                         case ErrorCode.WRN_InlineArrayConversionOperatorNotUsed:
+                        case ErrorCode.WRN_InlineArrayNotSupportedByLanguage:
+                        case ErrorCode.WRN_BadArgRef:
+                        case ErrorCode.WRN_ArgExpectedRefOrIn:
+                        case ErrorCode.WRN_RefReadonlyNotVariable:
+                        case ErrorCode.WRN_ArgExpectedIn:
+                        case ErrorCode.WRN_OverridingDifferentRefness:
+                        case ErrorCode.WRN_HidingDifferentRefness:
+                        case ErrorCode.WRN_TargetDifferentRefness:
+                        case ErrorCode.WRN_RefReadonlyParameterDefaultValue:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:

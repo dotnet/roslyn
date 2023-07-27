@@ -52,8 +52,8 @@ internal class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer t
             TraceLevel = GetTraceLevel(serverConfiguration),
             EnvironmentVariables = new()
             {
-                // Reset dotnet root to the user's original configuration so that vs test console can find the right runtimes.
-                { DotnetCliHelper.DotnetRootEnvVar, DotnetCliHelper.GetUserDotnetRoot() },
+                // Reset dotnet root so that vs test console can find the right runtimes.
+                { DotnetCliHelper.DotnetRootEnvVar, string.Empty },
             }
         });
 
@@ -64,6 +64,42 @@ internal class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer t
         }
 
         return progress.GetValues() ?? Array.Empty<RunTestsPartialResult>();
+    }
+
+    /// <summary>
+    /// Format a timespan as a string similar to '5m 2s', omitting any value that is not present.
+    /// </summary>
+    internal static string GetShortTimespan(TimeSpan t)
+    {
+        var shortForm = "";
+        // Only output milliseconds if less than a second duration
+        if (t.TotalSeconds < 1)
+        {
+            shortForm += string.Format("{0}ms", t.Milliseconds.ToString());
+            return shortForm;
+        }
+
+        if (t.Days > 0)
+        {
+            shortForm += string.Format("{0}d ", t.Days.ToString());
+        }
+
+        if (t.Hours > 0)
+        {
+            shortForm += string.Format("{0}h ", t.Hours.ToString());
+        }
+
+        if (t.Minutes > 0)
+        {
+            shortForm += string.Format("{0}m ", t.Minutes.ToString());
+        }
+
+        if (t.Seconds > 0)
+        {
+            shortForm += string.Format("{0}s ", t.Seconds.ToString());
+        }
+
+        return shortForm.Trim();
     }
 
     /// <summary>

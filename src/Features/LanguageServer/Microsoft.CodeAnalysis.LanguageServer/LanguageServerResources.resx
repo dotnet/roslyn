@@ -132,7 +132,10 @@
   <data name="Failed" xml:space="preserve">
     <value>Failed!</value>
   </data>
-  <data name="Found_0_tests in_1" xml:space="preserve">
+  <data name="Failed_0_Passed_1_Skipped_2_Total_3_Duration_4" xml:space="preserve">
+    <value>Failed:    {0}, Passed:    {1}, Skipped:    {2}, Total:    {3}, Duration: {4}</value>
+  </data>
+  <data name="Found_0_tests_in_1" xml:space="preserve">
     <value>Found {0} tests in {1}</value>
   </data>
   <data name="Message" xml:space="preserve">
@@ -148,7 +151,7 @@
     <value>Running tests...</value>
   </data>
   <data name="Stack_Trace" xml:space="preserve">
-    <value>Strack Trace</value>
+    <value>Stack Trace</value>
   </data>
   <data name="Starting_test_discovery" xml:space="preserve">
     <value>Starting test discovery</value>
@@ -158,9 +161,6 @@
   </data>
   <data name="Summary" xml:space="preserve">
     <value>Summary</value>
-  </data>
-  <data name="Summary_count" xml:space="preserve">
-    <value>Failed:    {0}, Passed:    {1}, Skipped:    {2}, Total:    {3}, Duration: {4}</value>
   </data>
   <data name="Test_discovery_aborted" xml:space="preserve">
     <value>Test discovery aborted</value>

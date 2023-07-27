@@ -22,12 +22,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (collectionTypeKind)
             {
                 case CollectionExpressionTypeKind.CollectionInitializer:
-                    return VisitCollectionInitializerCollectionExpression(node);
+                    return VisitCollectionInitializerCollectionExpression(node, node.Type);
                 case CollectionExpressionTypeKind.Array:
                 case CollectionExpressionTypeKind.Span:
                 case CollectionExpressionTypeKind.ReadOnlySpan:
                     Debug.Assert(elementType is { });
-                    return VisitArrayOrSpanCollectionExpression(node, elementType);
+                    return VisitArrayOrSpanCollectionExpression(node, node.Type, elementType);
+                case CollectionExpressionTypeKind.CollectionBuilder:
+                    return VisitCollectionBuilderCollectionExpression(node);
                 case CollectionExpressionTypeKind.ListInterface:
                     return VisitListInterfaceCollectionExpression(node);
                 default:
@@ -35,13 +37,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression VisitArrayOrSpanCollectionExpression(BoundCollectionExpression node, TypeSymbol elementType)
+        private BoundExpression VisitArrayOrSpanCollectionExpression(BoundCollectionExpression node, TypeSymbol collectionType, TypeSymbol elementType)
         {
             Debug.Assert(!_inExpressionLambda);
-            Debug.Assert(node.Type is { });
 
             var syntax = node.Syntax;
-            var collectionType = node.Type;
             MethodSymbol? spanConstructor = null;
 
             var arrayType = collectionType as ArrayTypeSymbol;
@@ -50,7 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(collectionType.Name is "Span" or "ReadOnlySpan");
                 // We're constructing a Span<T> or ReadOnlySpan<T> rather than T[].
                 var spanType = (NamedTypeSymbol)collectionType;
-                arrayType = ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, spanType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0]);
+                Debug.Assert(elementType.Equals(spanType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type, TypeCompareKind.AllIgnoreOptions));
+                arrayType = ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, TypeWithAnnotations.Create(elementType));
                 spanConstructor = ((MethodSymbol)_compilation.GetWellKnownTypeMember(
                     collectionType.Name == "Span" ? WellKnownMember.System_Span_T__ctor_Array : WellKnownMember.System_ReadOnlySpan_T__ctor_Array)!).AsMember(spanType);
             }
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // https://github.com/dotnet/roslyn/issues/68785: Emit Enumerable.TryGetNonEnumeratedCount() and avoid intermediate List<T> at runtime.
                 var listType = _compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(elementType);
                 var listToArray = ((MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray)!).AsMember(listType);
-                var list = VisitCollectionInitializerCollectionExpression(node);
+                var list = VisitCollectionInitializerCollectionExpression(node, collectionType);
                 array = _factory.Call(list, listToArray);
             }
             else
@@ -99,10 +100,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundObjectCreationExpression(syntax, spanConstructor, array);
         }
 
-        private BoundExpression VisitCollectionInitializerCollectionExpression(BoundCollectionExpression node)
+        private BoundExpression VisitCollectionInitializerCollectionExpression(BoundCollectionExpression node, TypeSymbol collectionType)
         {
             Debug.Assert(!_inExpressionLambda);
-            Debug.Assert(node.Type is { });
 
             var rewrittenReceiver = VisitExpression(node.CollectionCreation);
             Debug.Assert(rewrittenReceiver is { });
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray.Create(temp.LocalSymbol),
                 sideEffects.ToImmutableAndFree(),
                 temp,
-                node.Type);
+                collectionType);
         }
 
         private BoundExpression VisitListInterfaceCollectionExpression(BoundCollectionExpression node)
@@ -150,8 +150,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.Type is { });
 
             // https://github.com/dotnet/roslyn/issues/68785: Emit [] as Array.Empty<T>() rather than a List<T>.
-            var list = VisitCollectionInitializerCollectionExpression(node);
+            var list = VisitCollectionInitializerCollectionExpression(node, node.Type);
             return _factory.Convert(node.Type, list);
+        }
+
+        private BoundExpression VisitCollectionBuilderCollectionExpression(BoundCollectionExpression node)
+        {
+            Debug.Assert(!_inExpressionLambda);
+            Debug.Assert(node.Type is { });
+
+            var constructMethod = node.CollectionBuilderMethod;
+            Debug.Assert(constructMethod is { });
+            Debug.Assert(constructMethod.ReturnType.Equals(node.Type, TypeCompareKind.AllIgnoreOptions));
+
+            var spanType = (NamedTypeSymbol)constructMethod.Parameters[0].Type;
+            Debug.Assert(spanType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions));
+
+            var span = VisitArrayOrSpanCollectionExpression(node, spanType, spanType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type);
+            return new BoundCall(
+                node.Syntax,
+                receiverOpt: null,
+                method: constructMethod,
+                arguments: ImmutableArray.Create(span),
+                argumentNamesOpt: default,
+                argumentRefKindsOpt: default,
+                isDelegateCall: false,
+                expanded: false,
+                invokedAsExtensionMethod: false,
+                argsToParamsOpt: default,
+                defaultArguments: default,
+                resultKind: LookupResultKind.Viable,
+                type: constructMethod.ReturnType);
         }
 
         private BoundExpression MakeCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement initializer)

@@ -27,7 +27,12 @@
         <target state="new">Failed!</target>
         <note />
       </trans-unit>
-      <trans-unit id="Found_0_tests in_1">
+      <trans-unit id="Failed_0_Passed_1_Skipped_2_Total_3_Duration_4">
+        <source>Failed:    {0}, Passed:    {1}, Skipped:    {2}, Total:    {3}, Duration: {4}</source>
+        <target state="new">Failed:    {0}, Passed:    {1}, Skipped:    {2}, Total:    {3}, Duration: {4}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_0_tests_in_1">
         <source>Found {0} tests in {1}</source>
         <target state="new">Found {0} tests in {1}</target>
         <note />
@@ -53,8 +58,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Stack_Trace">
-        <source>Strack Trace</source>
-        <target state="new">Strack Trace</target>
+        <source>Stack Trace</source>
+        <target state="new">Stack Trace</target>
         <note />
       </trans-unit>
       <trans-unit id="Starting_test_discovery">
@@ -70,11 +75,6 @@
       <trans-unit id="Summary">
         <source>Summary</source>
         <target state="new">Summary</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Summary_count">
-        <source>Failed:    {0}, Passed:    {1}, Skipped:    {2}, Total:    {3}, Duration: {4}</source>
-        <target state="new">Failed:    {0}, Passed:    {1}, Skipped:    {2}, Total:    {3}, Duration: {4}</target>
         <note />
       </trans-unit>
       <trans-unit id="Test_discovery_aborted">

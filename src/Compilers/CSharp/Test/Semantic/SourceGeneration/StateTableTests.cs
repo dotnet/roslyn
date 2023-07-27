@@ -90,12 +90,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 
             var expected = ImmutableArray.Create((10, EntryState.Modified, 0), (11, EntryState.Added, 1), (2, EntryState.Cached, 0), (3, EntryState.Cached, 1), (20, EntryState.Modified, 0), (21, EntryState.Modified, 1), (22, EntryState.Added, 2), (6, EntryState.Removed, 0));
             AssertTableEntries(newTable, expected);
-            Assert.Equal(new[] { 2, 3 }, YieldItems(cachedEntries.Items));
+            Assert.Equal(new[] { 2, 3 }, yieldItems(cachedEntries.Items));
             Assert.Equal(1, removedEntries.Count);
             Assert.Equal(6, removedEntries[0]);
             Assert.True(didRemoveEntries);
 
-            static IEnumerable<int> YieldItems(OneOrMany<int> items)
+            static IEnumerable<int> yieldItems(OneOrMany<int> items)
             {
                 foreach (var value in items)
                     yield return value;

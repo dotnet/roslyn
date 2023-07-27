@@ -191,9 +191,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private protected override SyntaxNode ParameterDeclaration(
-            string name, SyntaxNode? type, SyntaxNode? initializer, RefKind refKind, bool isExtension, bool isParams)
+            string name, SyntaxNode? type, SyntaxNode? initializer, RefKind refKind, bool isExtension, bool isParams, bool isScoped)
         {
             var modifiers = CSharpSyntaxGeneratorInternal.GetParameterModifiers(refKind);
+            if (isScoped)
+                modifiers = modifiers.Insert(0, SyntaxFactory.Token(SyntaxKind.ScopedKeyword));
+
             if (isExtension)
                 modifiers = modifiers.Insert(0, SyntaxFactory.Token(SyntaxKind.ThisKeyword));
 
@@ -219,6 +222,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return SyntaxFactory.Token(SyntaxKind.OutKeyword);
                 case RefKind.Ref:
                     return SyntaxFactory.Token(SyntaxKind.RefKeyword);
+                case RefKind.RefReadOnlyParameter:
+                    return SyntaxFactory.Token(SyntaxKind.InKeyword);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(refKind);
             }
@@ -1423,6 +1428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             DeclarationModifiers.Const |
             DeclarationModifiers.New |
             DeclarationModifiers.ReadOnly |
+            DeclarationModifiers.Ref |
             DeclarationModifiers.Required |
             DeclarationModifiers.Static |
             DeclarationModifiers.Unsafe |

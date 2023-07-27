@@ -2459,6 +2459,94 @@ class C
         }
 
         [Fact]
+        public void Lambdas_Insert_PrimaryParameterOnly_Top()
+        {
+            var src1 = @"
+using System;
+
+class C(int x)
+{
+    int G(Func<int, int> f) => 0;
+
+    void F()
+    {
+        
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C(int x)
+{
+    int G(Func<int, int> f) => 0;
+   
+    void F()
+    {
+        G(a => x);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            // TODO: allow creating a new leaf closure: https://github.com/dotnet/roslyn/issues/54672
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "x", "x"));
+        }
+
+        [Fact]
+        public void Lambdas_Insert_PrimaryParameterOnly_Nested()
+        {
+            var src1 = @"
+using System;
+
+class C(int x)
+{
+    void F()
+    {
+        var f1 = new Func<int, int>(a => 
+        {
+            var f2 = new Func<int, int>(b => 
+            {
+                return b;
+            });
+
+            return a;
+        });
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C(int x)
+{
+    void F()
+    {
+        var f1 = new Func<int, int>(a => 
+        {
+            var f2 = new Func<int, int>(b => 
+            {
+                return b;
+            });
+
+            var f3 = new Func<int, int>(c => 
+            {
+                return c + x;
+            });
+
+            return a;
+        });
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "x", "x"));
+        }
+
+        [Fact]
         public void Lambdas_Insert_ThisOnly_Second()
         {
             var src1 = @"
@@ -2485,6 +2573,46 @@ class C
     {
         var f1 = new Func<int, int>(a => x);
         var f2 = new Func<int, int>(b => x);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
+
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "b", GetResource("lambda")) },
+                capabilities: EditAndContinueCapabilities.Baseline);
+        }
+
+        [Fact]
+        public void Lambdas_Insert_ThisAndPrimaryParameter()
+        {
+            var src1 = @"
+using System;
+
+class C(int y)
+{
+    int x = 0;
+
+    void F()
+    {
+        var f1 = new Func<int, int>(a => x);
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C(int y)
+{
+    int x = 0;
+   
+    void F()
+    {
+        var f1 = new Func<int, int>(a => x);
+        var f2 = new Func<int, int>(b => y);
     }
 }
 ";
@@ -5146,6 +5274,37 @@ class C
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M"), preserveLocalVariables: true));
         }
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/69152")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69152")]
+        public void Lambdas_Update_PrimaryParameterOutsideOfLambda()
+        {
+            var src1 = @"
+using System;
+
+class C(int x)
+{
+    void F()
+    {
+        var f = new Func<int, int>(a => 1);
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C(int x)
+{
+    void F()
+    {
+        var f = new Func<int, int>(a => 2);
+        var y = x;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics();
+        }
+
         [Fact]
         public void Lambdas_Update_StaticToThisOnly1()
         {
@@ -5224,6 +5383,48 @@ partial class C
                 Diagnostic(RudeEditKind.CapturingVariable, "F", "this").WithFirstLine("partial void F()  // impl"));
         }
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/69152")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69152")]
+        public void Lambdas_Update_StaticToPrimaryParameterOnly_Partial()
+        {
+            var src1 = @"
+using System;
+
+partial class C(int x)
+{
+    partial void F(); // def
+}
+
+partial class C
+{
+    partial void F()  // impl
+    {
+        var f = new Func<int, int>(a => a);
+    }
+}
+";
+            var src2 = @"
+using System;
+
+partial class C(int x)
+{
+    partial void F(); // def
+}
+
+partial class C
+{
+    partial void F()  // impl
+    {
+        var f = new Func<int, int>(a => a + x);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "x", "x").WithFirstLine("partial class C(int x)"));
+        }
+
         [Fact]
         public void Lambdas_Update_StaticToThisOnly3()
         {
@@ -5259,6 +5460,71 @@ class C
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a1", "this", CSharpFeaturesResources.lambda));
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/69152")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69152")]
+        public void Lambdas_Update_StaticToPrimaryParameterOnly3()
+        {
+            var src1 = @"
+using System;
+
+class C(int x)
+{
+    void F()
+    {
+        var f1 = new Func<int, int>(a1 => a1);
+        var f2 = new Func<int, int>(a2 => a2 + x);
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C(int x)
+{
+    void F()
+    {
+        var f1 = new Func<int, int>(a1 => a1 + x);
+        var f2 = new Func<int, int>(a2 => a2 + x);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "x", "x", CSharpFeaturesResources.lambda));
+        }
+
+        [Fact]
+        public void Lambdas_Update_StaticToPrimaryParameterOnly()
+        {
+            var src1 = @"
+using System;
+
+class C(int x)
+{
+    void F()
+    {
+        var f = new Func<int, int>(a => a);
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C(int x)
+{
+    void F()
+    {
+        var f = new Func<int, int>(a => a + x);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "x", "x"));
         }
 
         [Fact]
@@ -8974,6 +9240,16 @@ class Test
 
             edits.VerifySemanticDiagnostics(
                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+        }
+
+        [Fact]
+        public void LocalFunctions_WithoutBody_SemanticError()
+        {
+            var src1 = "Console.WriteLine(1); int C(int X);";
+            var src2 = "Console.WriteLine(2); int C(int X);";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$")));
         }
 
         #endregion

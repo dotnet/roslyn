@@ -734,6 +734,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return false;
             }
 
+            // Similar to above, it's fine for a switch expression to potentially change to having a 'null' direct type
+            // (as long as a target-typed switch-expression conversion happened).  Note: unlike above, we don't have to
+            // check a language version since switch expressions always supported target-typed conversion.
+            if (newExpression.IsKind(SyntaxKind.SwitchExpression) &&
+                this.SpeculativeSemanticModel.GetConversion(newExpression).IsSwitchExpression)
+            {
+                return false;
+            }
+
             return base.ReplacementIntroducesErrorType(originalExpression, newExpression);
         }
 

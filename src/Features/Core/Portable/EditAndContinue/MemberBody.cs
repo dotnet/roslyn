@@ -42,12 +42,6 @@ internal abstract class MemberBody : DeclarationBody
     public SyntaxNode FindStatement(TextSpan span, out int statementPart)
         => FindStatementAndPartner(span, partnerDeclarationBody: null, out _, out statementPart);
 
-    /// <summary>
-    /// Analyzes data flow in the member body represented by the specified node and returns all captured variables and parameters (including "this").
-    /// If the body is a field/property initializer analyzes the initializer expression only.
-    /// </summary>
-    public abstract ImmutableArray<ISymbol> GetCapturedVariables(SemanticModel model);
-
     public IEnumerable<int> GetOverlappingActiveStatements(ImmutableArray<UnmappedActiveStatement> statements)
     {
         var envelope = Envelope;

@@ -70,7 +70,7 @@ internal partial class TestRunner
             }
 
             // Report the test summary (similar to the dotnet test output).
-            message = @$"==== {LanguageServerResources.Summary} ===={Environment.NewLine}{state}  - {string.Format(LanguageServerResources.Summary_count, stats?.TestsFailed, stats?.TestsPassed, stats?.TestsSkipped, stats?.TotalTests, testRunCompleteArgs.ElapsedTimeInRunningTests.ToString("g"))}{Environment.NewLine}";
+            message = @$"==== {LanguageServerResources.Summary} ===={Environment.NewLine}{state}  - {string.Format(LanguageServerResources.Failed_0_Passed_1_Skipped_2_Total_3_Duration_4, stats?.TestsFailed, stats?.TestsPassed, stats?.TestsSkipped, stats?.TotalTests, RunTestsHandler.GetShortTimespan(testRunCompleteArgs.ElapsedTimeInRunningTests))}{Environment.NewLine}";
 
             _progress.Report(partialResult with { Message = message });
         }
