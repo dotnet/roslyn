@@ -14,8 +14,8 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UseCollectionExpression;
 
 using VerifyCS = CSharpCodeFixVerifier<
-    CSharpUseCollectionExpressionForArrayDiagnosticAnalyzer,
-    CSharpUseCollectionExpressionForArrayCodeFixProvider>;
+    CSharpUseCollectionExpressionForEmptyDiagnosticAnalyzer,
+    CSharpUseCollectionExpressionForEmptyCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionExpression)]
 public class UseCollectionExpressionForEmptyTests
