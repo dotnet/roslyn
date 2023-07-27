@@ -781,41 +781,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
                 return false;
             }
-
-            // A conditional expression may become untyped if it now involves a conditional conversion.  For example:
-            //
-            //      int? s = x ? 0 : null;
-            //
-            // In this case, the null type is allowed if we do have a conditional-expression-conversion *and* the
-            // converted type matches the original type.
-            if (newExpression.IsKind(SyntaxKind.ConditionalExpression) &&
-                ConditionalExpressionConversionsAreAllowed(newExpression) &&
-                this.SpeculativeSemanticModel.GetConversion(newExpression).IsConditionalExpression &&
-                SymbolsAreCompatible(originalTypeInfo.Type, newTypeInfo.ConvertedType))
-            {
-                // This null type is ok.
-                return false;
-            }
-
-            // Similar to above, it's fine for a switch expression to potentially change to having a 'null' direct type
-            // (as long as a target-typed switch-expression conversion happened).  Note: unlike above, we don't have to
-            // check a language version since switch expressions always supported target-typed conversion.
-            if (newExpression.IsKind(SyntaxKind.SwitchExpression) &&
-                this.SpeculativeSemanticModel.GetConversion(newExpression).IsSwitchExpression &&
-                SymbolsAreCompatible(originalTypeInfo.Type, newTypeInfo.ConvertedType))
-            {
-                return false;
-            }
-
-            if (newExpression.IsKind(SyntaxKind.CollectionExpression) &&
-                this.SpeculativeSemanticModel.GetConversion(newExpression).IsCollectionExpression &&
-                SymbolsAreCompatible(originalTypeInfo.Type, newTypeInfo.ConvertedType))
-            {
-                return false;
-            }
-
-            // not a legal use of the null type.  This is a disallowed replacement.
-            return true;
         }
 
         protected override bool ConversionsAreCompatible(SemanticModel originalModel, ExpressionSyntax originalExpression, SemanticModel newModel, ExpressionSyntax newExpression)
