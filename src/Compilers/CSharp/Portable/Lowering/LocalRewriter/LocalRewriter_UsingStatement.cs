@@ -498,7 +498,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(expression == null);
                 Debug.Assert(method.Parameters.AsSpan()[1..].All(assertParametersAreOptional, (p, assertOptional) => (p.IsOptional || p.IsParams || !assertOptional) && p.RefKind == RefKind.None));
-                Debug.Assert(method.ParameterRefKinds.IsDefaultOrEmpty || method.ParameterRefKinds[0] is RefKind.In or RefKind.None);
+                Debug.Assert(method.ParameterRefKinds.IsDefaultOrEmpty || method.ParameterRefKinds[0] is RefKind.In or RefKind.RefReadOnlyParameter or RefKind.None);
             }
             else
             {
