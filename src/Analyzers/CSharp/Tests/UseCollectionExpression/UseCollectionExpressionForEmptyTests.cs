@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UseCollectionExpression;
@@ -18,6 +19,18 @@ using VerifyCS = CSharpCodeFixVerifier<
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionExpression)]
 public class UseCollectionExpressionForEmptyTests
 {
+    private const string CollectionBuilderAttributeDefinition = """
+
+        namespace System.Runtime.CompilerServices
+        {
+            [AttributeUsage(AttributeTargets.All, Inherited = false, AllowMultiple = false)]
+            public sealed class CollectionBuilderAttribute : Attribute
+            {
+                public CollectionBuilderAttribute(Type builderType, string methodName) { }
+            }
+        }
+        """;
+
     [Fact]
     public async Task ArrayEmpty1()
     {
@@ -51,6 +64,37 @@ public class UseCollectionExpressionForEmptyTests
                 void M()
                 {
                     int[] v = Array.[|Empty|]<int>();
+                }
+            }
+            """,
+            FixedCode = """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    int[] v = [];
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task ArrayEmpty2_A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    int[] v = System.Array.[|Empty|]<int>();
                 }
             }
             """,
@@ -383,6 +427,74 @@ public class UseCollectionExpressionForEmptyTests
                 IEnumerator IEnumerable.GetEnumerator() => default;
             }
             """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestBuilder1()
+    {
+        await new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            TestCode = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+
+            class C
+            {
+                void M()
+                {
+                    MyList<int> x = MyList<int>.[|Empty|];
+                }
+            }
+
+            [CollectionBuilder(typeof(MyList), "Create")]
+            class MyList<T> : IEnumerable<T>
+            {
+                public static MyList<T> Empty { get; }
+
+                public IEnumerator<T> GetEnumerator() => default;
+            
+                IEnumerator IEnumerable.GetEnumerator() => default;
+            }
+
+            static class MyList
+            {
+                public static MyList<T> Create<T>(ReadOnlySpan<T> values) => default;
+            }
+            """ + CollectionBuilderAttributeDefinition,
+            FixedCode = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+
+            class C
+            {
+                void M()
+                {
+                    MyList<int> x = [];
+                }
+            }
+            
+            [CollectionBuilder(typeof(MyList), "Create")]
+            class MyList<T> : IEnumerable<T>
+            {
+                public static MyList<T> Empty { get; }
+            
+                public IEnumerator<T> GetEnumerator() => default;
+            
+                IEnumerator IEnumerable.GetEnumerator() => default;
+            }
+            
+            static class MyList
+            {
+                public static MyList<T> Create<T>(ReadOnlySpan<T> values) => default;
+            }
+            """ + CollectionBuilderAttributeDefinition,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
     }
