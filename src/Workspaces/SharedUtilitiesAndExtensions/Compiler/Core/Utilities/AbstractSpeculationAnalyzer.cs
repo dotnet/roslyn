@@ -74,9 +74,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             TExpressionSyntax expression,
             TExpressionSyntax newExpression,
             SemanticModel semanticModel,
-            CancellationToken cancellationToken,
-            bool skipVerificationForReplacedNode = false,
-            bool failOnOverloadResolutionFailuresInOriginalCode = false)
+            bool skipVerificationForReplacedNode,
+            bool failOnOverloadResolutionFailuresInOriginalCode,
+            CancellationToken cancellationToken)
         {
             _expression = expression;
             _newExpressionForReplace = newExpression;

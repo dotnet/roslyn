@@ -43,11 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         /// <param name="newExpression">New expression to replace the original expression.</param>
         /// <param name="semanticModel">Semantic model of <paramref name="expression"/> node's syntax tree.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <param name="skipVerificationForReplacedNode">
-        /// True if semantic analysis should be skipped for the replaced node and performed starting from parent of the original and replaced nodes.
-        /// This could be the case when custom verifications are required to be done by the caller or
-        /// semantics of the replaced expression are different from the original expression.
-        /// </param>
         /// <param name="failOnOverloadResolutionFailuresInOriginalCode">
         /// True if semantic analysis should fail when any of the invocation expression ancestors of <paramref name="expression"/> in original code has overload resolution failures.
         /// </param>
@@ -56,9 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             ExpressionSyntax newExpression,
             SemanticModel semanticModel,
             CancellationToken cancellationToken,
-            bool skipVerificationForReplacedNode = false,
             bool failOnOverloadResolutionFailuresInOriginalCode = false)
-            : base(expression, newExpression, semanticModel, cancellationToken, skipVerificationForReplacedNode, failOnOverloadResolutionFailuresInOriginalCode)
+            : base(expression, newExpression, semanticModel, skipVerificationForReplacedNode: false, failOnOverloadResolutionFailuresInOriginalCode, cancellationToken)
         {
         }
 
@@ -81,14 +75,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         public static bool CanSpeculateOnNode(SyntaxNode node)
         {
-            return (node is StatementSyntax && node.Kind() != SyntaxKind.Block) ||
-                node is TypeSyntax ||
-                node is CrefSyntax ||
-                node.Kind() == SyntaxKind.Attribute ||
-                node.Kind() == SyntaxKind.ThisConstructorInitializer ||
-                node.Kind() == SyntaxKind.BaseConstructorInitializer ||
-                node.Kind() == SyntaxKind.EqualsValueClause ||
-                node.Kind() == SyntaxKind.ArrowExpressionClause;
+            return node is StatementSyntax(kind: not SyntaxKind.Block) or TypeSyntax or CrefSyntax ||
+                node.Kind() is SyntaxKind.Attribute or
+                               SyntaxKind.ThisConstructorInitializer or
+                               SyntaxKind.BaseConstructorInitializer or
+                               SyntaxKind.EqualsValueClause or
+                               SyntaxKind.ArrowExpressionClause;
         }
 
         protected override void ValidateSpeculativeSemanticModel(SemanticModel speculativeSemanticModel, SyntaxNode nodeToSpeculate)

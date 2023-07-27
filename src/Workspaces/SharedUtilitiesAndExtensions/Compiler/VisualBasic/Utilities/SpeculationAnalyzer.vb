@@ -42,10 +42,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         ''' True if semantic analysis should fail when any of the invocation expression ancestors of <paramref name="expression"/> in original code has overload resolution failures.
         ''' </param>        
         Public Sub New(expression As ExpressionSyntax, newExpression As ExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken, Optional skipVerificationForReplacedNode As Boolean = False, Optional failOnOverloadResolutionFailuresInOriginalCode As Boolean = False)
-            MyBase.New(expression, newExpression, semanticModel, cancellationToken, skipVerificationForReplacedNode, failOnOverloadResolutionFailuresInOriginalCode)
+            MyBase.New(expression, newExpression, semanticModel, skipVerificationForReplacedNode, failOnOverloadResolutionFailuresInOriginalCode, cancellationToken)
         End Sub
 
         Protected Overrides ReadOnly Property SyntaxFactsService As CodeAnalysis.LanguageService.ISyntaxFacts = VisualBasicSyntaxFacts.Instance
+
         Protected Overrides Function CanAccessInstanceMemberThrough(expression As ExpressionSyntax) As Boolean
             ' vb can reference an instance member by just writing `.X` (when in a 'with' block), or by writing Me.X,
             ' MyBase.X and MyClass.X (the latter is not just for accessing static members).

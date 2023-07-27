@@ -85,7 +85,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var speculationAnalyzer = new SpeculationAnalyzer(
                 defaultExpression, s_defaultLiteralExpression, semanticModel,
                 cancellationToken,
-                skipVerificationForReplacedNode: false,
                 failOnOverloadResolutionFailuresInOriginalCode: true);
 
             return !speculationAnalyzer.ReplacementChangesSemantics();
