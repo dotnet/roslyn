@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
             var parentNodeToSpeculate = expression
                 .AncestorsAndSelf(ascendOutOfTrivia: false)
-                .Where(node => CanSpeculateOnNode(node))
+                .Where(CanSpeculateOnNode)
                 .LastOrDefault();
 
             return parentNodeToSpeculate ?? expression;
