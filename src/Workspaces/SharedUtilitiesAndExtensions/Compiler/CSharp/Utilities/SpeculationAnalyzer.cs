@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             }
             else if (currentOriginalNode.Kind() == SyntaxKind.ImplicitArrayCreationExpression)
             {
-                return !TypesAreCompatible((ImplicitArrayCreationExpressionSyntax)currentOriginalNode, (ImplicitArrayCreationExpressionSyntax)currentReplacedNode);
+                return !TypesAreCompatible((ExpressionSyntax)currentOriginalNode, (ExpressionSyntax)currentReplacedNode);
             }
             else if (currentOriginalNode is AnonymousObjectMemberDeclaratorSyntax originalAnonymousObjectMemberDeclarator)
             {

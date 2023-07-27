@@ -240,7 +240,19 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             var originalTypeInfo = this.OriginalSemanticModel.GetTypeInfo(originalExpression);
             var newTypeInfo = this.SpeculativeSemanticModel.GetTypeInfo(newExpression);
-            return SymbolsAreCompatible(originalTypeInfo.Type, newTypeInfo.Type);
+            if (SymbolsAreCompatible(originalTypeInfo.Type, newTypeInfo.Type))
+                return true;
+
+            // types changed between the old and new expression (specifically, the new type became null, while the
+            // original type was not).  That's ok in some circumstance.  Check for those and allow in that specific
+            // case.
+            if (originalTypeInfo.Type != null && newTypeInfo.Type == null &&
+                !ReplacementIntroducesDisallowedNullType(originalExpression, newExpression, originalTypeInfo, newTypeInfo))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         protected bool ConvertedTypesAreCompatible(TExpressionSyntax originalExpression, TExpressionSyntax newExpression)
