@@ -722,15 +722,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 !SymbolInfosAreCompatible(originalClauseInfo.OperationInfo, newClauseInfo.OperationInfo);
         }
 
-        protected override bool ReplacementIntroducesErrorType(ExpressionSyntax originalExpression, ExpressionSyntax newExpression)
+        protected override bool ReplacementIntroducesDisallowedNullType(
+            ExpressionSyntax originalExpression,
+            ExpressionSyntax newExpression,
+            TypeInfo originalTypeInfo,
+            TypeInfo newTypeInfo)
         {
-            // The base implementation will see that the type of the new expression may potentially change to null,
-            // because the expression has no type but can be converted to a conditional expression type. In that case,
-            // we don't want to consider the null type to be an error type.
+            // If the base check is fine with the nullability of types before/after, then we're good and there are no
+            // more checks we need to do.
+            if (!base.ReplacementIntroducesDisallowedNullType(originalExpression, newExpression, originalTypeInfo, newTypeInfo))
+                return false;
+
+            // If, however, the base check is not ok.  That means that the old expression had an initial type, but the
+            // new expression does not.  This may or may not be ok depending on the construct.
+
+            // A conditional expression may become untyped if it now involves a conditional conversion.  For example:
+            //
+            //      int? s = x ? 0 : null;
+            //
+            // In this case, the null type is allowed if we do have a conditional-expression-conversion *and* the
+            // converted type matches the original type.
             if (newExpression.IsKind(SyntaxKind.ConditionalExpression) &&
                 ConditionalExpressionConversionsAreAllowed(newExpression) &&
-                this.SpeculativeSemanticModel.GetConversion(newExpression).IsConditionalExpression)
+                this.SpeculativeSemanticModel.GetConversion(newExpression).IsConditionalExpression &&
+                SymbolsAreCompatible(originalTypeInfo.Type, newTypeInfo.ConvertedType))
             {
+                // This null type is ok.
                 return false;
             }
 
@@ -738,12 +755,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             // (as long as a target-typed switch-expression conversion happened).  Note: unlike above, we don't have to
             // check a language version since switch expressions always supported target-typed conversion.
             if (newExpression.IsKind(SyntaxKind.SwitchExpression) &&
-                this.SpeculativeSemanticModel.GetConversion(newExpression).IsSwitchExpression)
+                this.SpeculativeSemanticModel.GetConversion(newExpression).IsSwitchExpression &&
+                SymbolsAreCompatible(originalTypeInfo.Type, newTypeInfo.ConvertedType))
             {
                 return false;
             }
 
-            return base.ReplacementIntroducesErrorType(originalExpression, newExpression);
+            if (newExpression.IsKind(SyntaxKind.CollectionExpression) &&
+                this.SpeculativeSemanticModel.GetConversion(newExpression).IsCollectionExpression &&
+                SymbolsAreCompatible(originalTypeInfo.Type, newTypeInfo.ConvertedType))
+            {
+                return false;
+            }
+
+            // not a legal use of the null type.  This is a disallowed replacement.
+            return true;
         }
 
         protected override bool ConversionsAreCompatible(SemanticModel originalModel, ExpressionSyntax originalExpression, SemanticModel newModel, ExpressionSyntax newExpression)

@@ -223,7 +223,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
             s_nullLiteralExpression,
             semanticModel,
             cancellationToken,
-            skipVerificationForReplacedNode: true,
+            skipVerificationForReplacedNode: false,
             failOnOverloadResolutionFailuresInOriginalCode: true);
 
         if (speculationAnalyzer.ReplacementChangesSemantics())
