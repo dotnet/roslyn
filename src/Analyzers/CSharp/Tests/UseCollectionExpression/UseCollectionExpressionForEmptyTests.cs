@@ -50,7 +50,7 @@ public class UseCollectionExpressionForEmptyTests
             {
                 void M()
                 {
-                    int[] v = Array.Empty<int>();
+                    int[] v = Array.[|Empty|]<int>();
                 }
             }
             """,
@@ -95,6 +95,8 @@ public class UseCollectionExpressionForEmptyTests
         {
             TestCode = """
             using System;
+            using System.Collections.Generic;
+
             class C
             {
                 void M()
@@ -119,7 +121,7 @@ public class UseCollectionExpressionForEmptyTests
             {
                 void M()
                 {
-                    string[] v = Array.Empty<string>();
+                    string[] v = Array.[|Empty|]<string>();
                 }
             }
             """,
@@ -144,17 +146,19 @@ public class UseCollectionExpressionForEmptyTests
         await new VerifyCS.Test
         {
             TestCode = """
+            #nullable enable
             using System;
 
             class C
             {
                 void M()
                 {
-                    string[] v = Array.Empty<string?>();
+                    string[] v = Array.[|Empty|]<string?>();
                 }
             }
             """,
             FixedCode = """
+            #nullable enable
             using System;
 
             class C
@@ -175,17 +179,19 @@ public class UseCollectionExpressionForEmptyTests
         await new VerifyCS.Test
         {
             TestCode = """
+            #nullable enable
             using System;
 
             class C
             {
                 void M()
                 {
-                    string?[] v = Array.Empty<string>();
+                    string?[] v = Array.[|Empty|]<string>();
                 }
             }
             """,
             FixedCode = """
+            #nullable enable
             using System;
 
             class C
@@ -206,17 +212,19 @@ public class UseCollectionExpressionForEmptyTests
         await new VerifyCS.Test
         {
             TestCode = """
+            #nullable enable
             using System;
 
             class C
             {
                 void M()
                 {
-                    string?[] v = Array.Empty<string?>();
+                    string?[] v = Array.[|Empty|]<string?>();
                 }
             }
             """,
             FixedCode = """
+            #nullable enable
             using System;
 
             class C
@@ -237,17 +245,19 @@ public class UseCollectionExpressionForEmptyTests
         await new VerifyCS.Test
         {
             TestCode = """
+            #nullable enable
             using System;
 
             class C
             {
                 void M()
                 {
-                    string[]? v = Array.Empty<string>();
+                    string[]? v = Array.[|Empty|]<string>();
                 }
             }
             """,
             FixedCode = """
+            #nullable enable
             using System;
 
             class C
@@ -268,17 +278,19 @@ public class UseCollectionExpressionForEmptyTests
         await new VerifyCS.Test
         {
             TestCode = """
+            #nullable enable
             using System;
 
             class C
             {
                 void M()
                 {
-                    int[] v = /*goo*/ Array.Empty<int>() /*bar*/;
+                    int[] v = /*goo*/ Array.[|Empty|]<int>() /*bar*/;
                 }
             }
             """,
             FixedCode = """
+            #nullable enable
             using System;
 
             class C
