@@ -133,9 +133,10 @@ $$");
         [Theory, CombinatorialData]
         public async Task TestNotAfterIn([CombinatorialValues("in", "ref readonly")] string modifier)
         {
-            await VerifyAbsenceAsync(
-@"class C {
-    void Goo(" + modifier + @" $$");
+            await VerifyAbsenceAsync($$"""
+                class C {
+                    void Goo({{modifier}} $$
+                """);
         }
 
         [Fact]
@@ -1052,16 +1053,18 @@ public static class Extensions
         [Theory, CombinatorialData]
         public async Task TestExtensionMethods_FirstParameter_AfterInKeyword_InClass([CombinatorialValues("in", "ref readonly")] string modifier)
         {
-            await VerifyKeywordAsync(@"
-public static class Extensions
-{
-    public static void Extension(" + modifier + @" $$");
+            await VerifyKeywordAsync($$"""
+                public static class Extensions
+                {
+                    public static void Extension({{modifier}} $$
+                """);
 
-            await VerifyKeywordAsync(@"
-public static class Extensions
-{
-    public static void Extension(" + modifier + @" $$ object obj, int x) { }
-}");
+            await VerifyKeywordAsync($$"""
+                public static class Extensions
+                {
+                    public static void Extension({{modifier}} $$ object obj, int x) { }
+                }
+                """);
         }
 
         [Fact]
@@ -1097,16 +1100,18 @@ public static class Extensions
         [Theory, CombinatorialData]
         public async Task TestExtensionMethods_SecondParameter_AfterInKeyword_InClass([CombinatorialValues("in", "ref readonly")] string modifier)
         {
-            await VerifyAbsenceAsync(@"
-public static class Extensions
-{
-    public static void Extension(int x, " + modifier + @" $$");
+            await VerifyAbsenceAsync($$"""
+                public static class Extensions
+                {
+                    public static void Extension(int x, {{modifier}} $$
+                """);
 
-            await VerifyAbsenceAsync(@"
-public static class Extensions
-{
-    public static void Extension(int x, " + modifier + @" $$ object obj) { }
-}");
+            await VerifyAbsenceAsync($$"""
+                public static class Extensions
+                {
+                    public static void Extension(int x, {{modifier}} $$ object obj) { }
+                }
+                """);
         }
 
         [Fact]
@@ -1166,16 +1171,18 @@ public class Extensions
         [Theory, CombinatorialData]
         public async Task TestExtensionMethods_FirstParameter_AfterInKeyword_NonStaticClass([CombinatorialValues("in", "ref readonly")] string modifier)
         {
-            await VerifyAbsenceAsync(@"
-public class Extensions
-{
-    public static void Extension(" + modifier + @" $$");
+            await VerifyAbsenceAsync($$"""
+                public class Extensions
+                {
+                    public static void Extension({{modifier}} $$
+                """);
 
-            await VerifyAbsenceAsync(@"
-public class Extensions
-{
-    public static void Extension(" + modifier + @" $$ object obj, int x) { }
-}");
+            await VerifyAbsenceAsync($$"""
+                public class Extensions
+                {
+                    public static void Extension({{modifier}} $$ object obj, int x) { }
+                }
+                """);
         }
 
         [Fact]
@@ -1211,16 +1218,18 @@ public static class Extensions
         [Theory, CombinatorialData]
         public async Task TestExtensionMethods_FirstParameter_AfterInKeyword_NonStaticMethod([CombinatorialValues("in", "ref readonly")] string modifier)
         {
-            await VerifyAbsenceAsync(@"
-public static class Extensions
-{
-    public void Extension(" + modifier + @" $$");
+            await VerifyAbsenceAsync($$"""
+                public static class Extensions
+                {
+                    public void Extension({{modifier}} $$
+                """);
 
-            await VerifyAbsenceAsync(@"
-public static class Extensions
-{
-    public void Extension(" + modifier + @" $$ object obj, int x) { }
-}");
+            await VerifyAbsenceAsync($$"""
+                public static class Extensions
+                {
+                    public void Extension({{modifier}} $$ object obj, int x) { }
+                }
+                """);
         }
 
         [Fact]
