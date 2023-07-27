@@ -43,11 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         /// <param name="newExpression">New expression to replace the original expression.</param>
         /// <param name="semanticModel">Semantic model of <paramref name="expression"/> node's syntax tree.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <param name="skipVerificationForReplacedNode">
-        /// True if semantic analysis should be skipped for the replaced node and performed starting from parent of the original and replaced nodes.
-        /// This could be the case when custom verifications are required to be done by the caller or
-        /// semantics of the replaced expression are different from the original expression.
-        /// </param>
         /// <param name="failOnOverloadResolutionFailuresInOriginalCode">
         /// True if semantic analysis should fail when any of the invocation expression ancestors of <paramref name="expression"/> in original code has overload resolution failures.
         /// </param>
@@ -56,9 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             ExpressionSyntax newExpression,
             SemanticModel semanticModel,
             CancellationToken cancellationToken,
-            bool skipVerificationForReplacedNode = false,
             bool failOnOverloadResolutionFailuresInOriginalCode = false)
-            : base(expression, newExpression, semanticModel, cancellationToken, skipVerificationForReplacedNode, failOnOverloadResolutionFailuresInOriginalCode)
+            : base(expression, newExpression, semanticModel, skipVerificationForReplacedNode: false, failOnOverloadResolutionFailuresInOriginalCode, cancellationToken)
         {
         }
 
@@ -81,14 +75,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         public static bool CanSpeculateOnNode(SyntaxNode node)
         {
-            return (node is StatementSyntax && node.Kind() != SyntaxKind.Block) ||
-                node is TypeSyntax ||
-                node is CrefSyntax ||
-                node.Kind() == SyntaxKind.Attribute ||
-                node.Kind() == SyntaxKind.ThisConstructorInitializer ||
-                node.Kind() == SyntaxKind.BaseConstructorInitializer ||
-                node.Kind() == SyntaxKind.EqualsValueClause ||
-                node.Kind() == SyntaxKind.ArrowExpressionClause;
+            return node is StatementSyntax(kind: not SyntaxKind.Block) or TypeSyntax or CrefSyntax ||
+                node.Kind() is SyntaxKind.Attribute or
+                               SyntaxKind.ThisConstructorInitializer or
+                               SyntaxKind.BaseConstructorInitializer or
+                               SyntaxKind.EqualsValueClause or
+                               SyntaxKind.ArrowExpressionClause;
         }
 
         protected override void ValidateSpeculativeSemanticModel(SemanticModel speculativeSemanticModel, SyntaxNode nodeToSpeculate)
@@ -506,7 +498,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             }
             else if (currentOriginalNode.Kind() == SyntaxKind.ImplicitArrayCreationExpression)
             {
-                return !TypesAreCompatible((ImplicitArrayCreationExpressionSyntax)currentOriginalNode, (ImplicitArrayCreationExpressionSyntax)currentReplacedNode);
+                return !TypesAreCompatible((ExpressionSyntax)currentOriginalNode, (ExpressionSyntax)currentReplacedNode);
             }
             else if (currentOriginalNode is AnonymousObjectMemberDeclaratorSyntax originalAnonymousObjectMemberDeclarator)
             {
@@ -722,28 +714,65 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 !SymbolInfosAreCompatible(originalClauseInfo.OperationInfo, newClauseInfo.OperationInfo);
         }
 
-        protected override bool ReplacementIntroducesErrorType(ExpressionSyntax originalExpression, ExpressionSyntax newExpression)
+        protected override bool ReplacementIntroducesDisallowedNullType(
+            ExpressionSyntax originalExpression,
+            ExpressionSyntax newExpression,
+            TypeInfo originalTypeInfo,
+            TypeInfo newTypeInfo)
         {
-            // The base implementation will see that the type of the new expression may potentially change to null,
-            // because the expression has no type but can be converted to a conditional expression type. In that case,
-            // we don't want to consider the null type to be an error type.
-            if (newExpression.IsKind(SyntaxKind.ConditionalExpression) &&
-                ConditionalExpressionConversionsAreAllowed(newExpression) &&
-                this.SpeculativeSemanticModel.GetConversion(newExpression).IsConditionalExpression)
+            // If the base check is fine with the nullability of types before/after, then we're good and there are no
+            // more checks we need to do.
+            if (!base.ReplacementIntroducesDisallowedNullType(originalExpression, newExpression, originalTypeInfo, newTypeInfo))
+                return false;
+
+            // If, however, the base check is not ok.  That means that the old expression had an initial type, but the
+            // new expression does not.  This may or may not be ok depending on the construct.  If it's a supported
+            // construct then we want to check the new constructs converted type against the old construct's original
+            // type to make sure those still match.  If so, this change is fine.
+            if (IsSupportedConstructWithNullType() &&
+                SymbolsAreCompatible(originalTypeInfo.Type, newTypeInfo.ConvertedType))
             {
                 return false;
             }
 
-            // Similar to above, it's fine for a switch expression to potentially change to having a 'null' direct type
-            // (as long as a target-typed switch-expression conversion happened).  Note: unlike above, we don't have to
-            // check a language version since switch expressions always supported target-typed conversion.
-            if (newExpression.IsKind(SyntaxKind.SwitchExpression) &&
-                this.SpeculativeSemanticModel.GetConversion(newExpression).IsSwitchExpression)
+            return true;
+
+            bool IsSupportedConstructWithNullType()
             {
+                // A conditional expression may become untyped if it now involves a conditional conversion.  For example:
+                //
+                //      int? s = x ? 0 : null;
+                //
+                // In this case, the null type is allowed if we do have a conditional-expression-conversion *and* the
+                // converted type matches the original type.
+                if (newExpression.IsKind(SyntaxKind.ConditionalExpression) &&
+                    ConditionalExpressionConversionsAreAllowed(newExpression) &&
+                    this.SpeculativeSemanticModel.GetConversion(newExpression).IsConditionalExpression)
+                {
+                    return true;
+                }
+
+                // Similar to above, it's fine for a switch expression to potentially change to having a 'null' direct type
+                // (as long as a target-typed switch-expression conversion happened).  Note: unlike above, we don't have to
+                // check a language version since switch expressions always supported target-typed conversion.
+                if (newExpression.IsKind(SyntaxKind.SwitchExpression) &&
+                    this.SpeculativeSemanticModel.GetConversion(newExpression).IsSwitchExpression &&
+                    SymbolsAreCompatible(originalTypeInfo.Type, newTypeInfo.ConvertedType))
+                {
+                    return true;
+                }
+
+                // Similar to above, it's fine for a collection expression to have a a 'null' direct type (as long as a
+                // target-typed collection-expression conversion happened).  Note: unlike above, we don't have to check
+                // a language version since collection expressions always supported collection-expression-conversions.
+                if (newExpression.IsKind(SyntaxKind.CollectionExpression) &&
+                    this.SpeculativeSemanticModel.GetConversion(newExpression).IsCollectionExpression)
+                {
+                    return true;
+                }
+
                 return false;
             }
-
-            return base.ReplacementIntroducesErrorType(originalExpression, newExpression);
         }
 
         protected override bool ConversionsAreCompatible(SemanticModel originalModel, ExpressionSyntax originalExpression, SemanticModel newModel, ExpressionSyntax newExpression)

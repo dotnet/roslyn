@@ -58,7 +58,6 @@ internal static class UseCollectionExpressionHelpers
             s_emptyCollectionExpression,
             semanticModel,
             cancellationToken,
-            skipVerificationForReplacedNode: true,
             failOnOverloadResolutionFailuresInOriginalCode: true);
 
         if (speculationAnalyzer.ReplacementChangesSemantics())
@@ -89,7 +88,7 @@ internal static class UseCollectionExpressionHelpers
         };
 
         bool HasType(ExpressionSyntax expression)
-            => semanticModel.GetTypeInfo(expression, cancellationToken).Type != null;
+            => semanticModel.GetTypeInfo(expression, cancellationToken).Type is not null and not IErrorTypeSymbol;
 
         static bool IsInTargetTypedEqualsValueClause(EqualsValueClauseSyntax equalsValue)
             // If we're after an `x = ...` and it's not `var x`, this is target typed.
