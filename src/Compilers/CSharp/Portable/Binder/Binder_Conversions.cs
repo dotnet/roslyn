@@ -1200,7 +1200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var boundLambda = unboundLambda.Bind((NamedTypeSymbol)destination, isExpressionTree: destination.IsGenericOrNonGenericExpressionType(out _)).WithInAnonymousFunctionConversion();
             diagnostics.AddRange(boundLambda.Diagnostics);
 
-            CheckValidScopedMethodConversion(syntax, boundLambda.Symbol, destination, invokedAsExtensionMethod: false, diagnostics);
+            CheckParameterModifierMismatchMethodConversion(syntax, boundLambda.Symbol, destination, invokedAsExtensionMethod: false, diagnostics);
             CheckLambdaConversion(boundLambda.Symbol, destination, diagnostics);
             return new BoundConversion(
                 syntax,
@@ -1236,7 +1236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundConversion(syntax, group, conversion, @checked: false, explicitCastInCode: isCast, conversionGroup, constantValueOpt: ConstantValue.NotAvailable, type: destination, hasErrors: hasErrors) { WasCompilerGenerated = group.WasCompilerGenerated };
         }
 
-        private static void CheckValidScopedMethodConversion(SyntaxNode syntax, MethodSymbol lambdaOrMethod, TypeSymbol targetType, bool invokedAsExtensionMethod, BindingDiagnosticBag diagnostics)
+        private static void CheckParameterModifierMismatchMethodConversion(SyntaxNode syntax, MethodSymbol lambdaOrMethod, TypeSymbol targetType, bool invokedAsExtensionMethod, BindingDiagnosticBag diagnostics)
         {
             MethodSymbol? delegateMethod;
             if (targetType.GetDelegateType() is { } delegateType)
@@ -1272,6 +1272,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     allowVariance: true,
                     invokedAsExtensionMethod: invokedAsExtensionMethod);
             }
+
+            SourceMemberContainerTypeSymbol.CheckRefReadonlyInMismatch(
+                delegateMethod, lambdaOrMethod, diagnostics,
+                static (diagnostics, delegateMethod, lambdaOrMethod, lambdaOrMethodParameter, _, arg) =>
+                {
+                    var (delegateParameter, location) = arg;
+                    diagnostics.Add(ErrorCode.WRN_TargetDifferentRefness, location, lambdaOrMethodParameter, delegateParameter);
+                },
+                syntax.Location,
+                invokedAsExtensionMethod: invokedAsExtensionMethod);
         }
 
         private static void CheckLambdaConversion(LambdaSymbol lambdaSymbol, TypeSymbol targetType, BindingDiagnosticBag diagnostics)
@@ -1825,7 +1835,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //  * Every ref or similar parameter has an identity conversion to the corresponding target parameter
                 // Note the addition of the reference requirement: it means that for delegate type void D(int i), void M(long l) is
                 // _applicable_, but not _compatible_.
-                if (!hasConversion(delegateType.TypeKind, Conversions, delegateParameter.Type, methodParameter.Type, delegateParameter.RefKind, methodParameter.RefKind, ref useSiteInfo))
+                if (!hasConversion(this, delegateType.TypeKind, Conversions, delegateParameter.Type, methodParameter.Type, delegateParameter.RefKind, methodParameter.RefKind, ref useSiteInfo))
                 {
                     // No overload for '{0}' matches delegate '{1}'
                     Error(diagnostics, getMethodMismatchErrorCode(delegateType.TypeKind), errorLocation, method, delegateType);
@@ -1846,7 +1856,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool returnsMatch = delegateOrFuncPtrMethod switch
             {
                 { RefKind: RefKind.None, ReturnsVoid: true } => method.ReturnsVoid,
-                { RefKind: var destinationRefKind } => hasConversion(delegateType.TypeKind, Conversions, methodReturnType, delegateReturnType, method.RefKind, destinationRefKind, ref useSiteInfo),
+                { RefKind: var destinationRefKind } => hasConversion(this, delegateType.TypeKind, Conversions, methodReturnType, delegateReturnType, method.RefKind, destinationRefKind, ref useSiteInfo),
             };
 
             if (!returnsMatch)
@@ -1880,10 +1890,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.Add(errorLocation, useSiteInfo);
             return true;
 
-            static bool hasConversion(TypeKind targetKind, Conversions conversions, TypeSymbol source, TypeSymbol destination,
+            static bool hasConversion(Binder binder, TypeKind targetKind, Conversions conversions, TypeSymbol source, TypeSymbol destination,
                 RefKind sourceRefKind, RefKind destinationRefKind, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
-                if (sourceRefKind != destinationRefKind)
+                if (!OverloadResolution.AreRefsCompatibleForMethodConversion(sourceRefKind, destinationRefKind, binder.Compilation))
                 {
                     return false;
                 }
@@ -1974,7 +1984,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            CheckValidScopedMethodConversion(syntax, selectedMethod, delegateOrFuncPtrType, isExtensionMethod, diagnostics);
+            CheckParameterModifierMismatchMethodConversion(syntax, selectedMethod, delegateOrFuncPtrType, isExtensionMethod, diagnostics);
             if (!isAddressOf)
             {
                 ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, selectedMethod, syntax, isDelegateConversion: true);

@@ -1092,6 +1092,11 @@
         <target state="translated">UTF-8-Zeichenfolgenliterale bevorzugen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_collection_expression">
+        <source>Prefer collection expression</source>
+        <target state="new">Prefer collection expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
         <source>Prefer compound assignments</source>
         <target state="translated">Zusammengesetzte Zuweisungen bevorzugen</target>

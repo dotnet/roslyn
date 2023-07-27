@@ -1092,6 +1092,11 @@
         <target state="translated">Préférer les littéraux de chaîne UTF-8</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_collection_expression">
+        <source>Prefer collection expression</source>
+        <target state="new">Prefer collection expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
         <source>Prefer compound assignments</source>
         <target state="translated">Préférer les affectations composées</target>
