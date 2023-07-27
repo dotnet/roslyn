@@ -80,16 +80,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         }
 
         public static bool CanSpeculateOnNode(SyntaxNode node)
-        {
-            return (node is StatementSyntax && node.Kind() != SyntaxKind.Block) ||
-                node is TypeSyntax ||
-                node is CrefSyntax ||
-                node.Kind() == SyntaxKind.Attribute ||
-                node.Kind() == SyntaxKind.ThisConstructorInitializer ||
-                node.Kind() == SyntaxKind.BaseConstructorInitializer ||
-                node.Kind() == SyntaxKind.EqualsValueClause ||
-                node.Kind() == SyntaxKind.ArrowExpressionClause;
-        }
+            => node is StatementSyntax(kind: not SyntaxKind.Block) or TypeSyntax or CrefSyntax ||
+               node.Kind() is SyntaxKind.Attribute or
+                              SyntaxKind.ThisConstructorInitializer or
+                              SyntaxKind.BaseConstructorInitializer or
+                              SyntaxKind.EqualsValueClause or
+                              SyntaxKind.ArrowExpressionClause;
 
         protected override void ValidateSpeculativeSemanticModel(SemanticModel speculativeSemanticModel, SyntaxNode nodeToSpeculate)
         {
