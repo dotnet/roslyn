@@ -290,6 +290,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal override void VisitPreprocessing(IPreprocessingSymbol symbol)
+        {
+            var part = new SymbolDisplayPart(SymbolDisplayPartKind.PreprocessingName, symbol, symbol.Name);
+            builder.Add(part);
+        }
+
         protected override void AddSpace()
         {
             builder.Add(CreatePart(SymbolDisplayPartKind.Space, null, " "));

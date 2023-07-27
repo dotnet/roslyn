@@ -261,15 +261,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         <Extension>
-        Friend Function GetPreprocessingSymbolInfo(syntaxTree As SyntaxTree, identifierNode As IdentifierNameSyntax) As VisualBasicPreprocessingSymbolInfo
+        Friend Function GetPreprocessingSymbolInfo(syntaxTree As SyntaxTree, token As SyntaxToken) As VisualBasicPreprocessingSymbolInfo
             Dim vbTree = DirectCast(syntaxTree, VisualBasicSyntaxTree)
-            Return vbTree.GetPreprocessingSymbolInfo(identifierNode)
-        End Function
-
-        <Extension>
-        Friend Function GetPreprocessingSymbolInfo(syntaxTree As SyntaxTree, identifierNode As SyntaxToken) As VisualBasicPreprocessingSymbolInfo
-            Dim vbTree = DirectCast(syntaxTree, VisualBasicSyntaxTree)
-            Return vbTree.GetPreprocessingSymbolInfo(identifierNode)
+            Return vbTree.GetPreprocessingSymbolInfo(token)
         End Function
 
         <Extension>

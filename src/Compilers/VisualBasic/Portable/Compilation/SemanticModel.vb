@@ -2920,7 +2920,6 @@ _Default:
         ''' </summary>
         ''' <param name="token">Preprocessing symbol syntax token.</param>
         Public Shadows Function GetPreprocessingSymbolInfo(token As SyntaxToken) As VisualBasicPreprocessingSymbolInfo
-
             Dim parent = DirectCast(token.Parent, VisualBasicSyntaxNode)
             CheckSyntaxNode(parent)
 
@@ -2946,8 +2945,7 @@ _Default:
             CheckSyntaxNode(node)
 
             If SyntaxFacts.IsWithinPreprocessorConditionalExpression(node) Then
-                Dim symbolInfo As VisualBasicPreprocessingSymbolInfo = node.SyntaxTree.GetPreprocessingSymbolInfo(node)
-
+                Dim symbolInfo As VisualBasicPreprocessingSymbolInfo = node.SyntaxTree.GetPreprocessingSymbolInfo(node.Identifier)
                 Return RetrieveOrConstructPreprocessingSymbolInfo(symbolInfo, node.Identifier)
             End If
 

@@ -4857,34 +4857,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             return PreprocessingSymbolInfo.None;
         }
 
-        /// <summary>
-        /// Gets the preprocessing symbol info for the preprocessing symbol defined in the #define directive.
-        /// </summary>
-        /// <param name="node">A #define directive trivia node.</param>
-        private PreprocessingSymbolInfo GetPreprocessingSymbolInfo(DefineDirectiveTriviaSyntax node)
+        private PreprocessingSymbolInfo GetPreprocessingSymbolInfo(DirectiveTriviaSyntax node, SyntaxToken name)
         {
             CheckSyntaxNode(node);
-            return CreatePreprocessingSymbolInfo(node.Name);
+            return CreatePreprocessingSymbolInfo(name);
         }
 
-        /// <summary>
-        /// Gets the preprocessing symbol info for the preprocessing symbol undefined in the #undef directive.
-        /// </summary>
-        /// <param name="node">An #undef directive trivia node.</param>
-        private PreprocessingSymbolInfo GetPreprocessingSymbolInfo(UndefDirectiveTriviaSyntax node)
-        {
-            CheckSyntaxNode(node);
-            return CreatePreprocessingSymbolInfo(node.Name);
-        }
-
-        private PreprocessingSymbolInfo CreatePreprocessingSymbolInfo(in SyntaxToken identifier)
+        private PreprocessingSymbolInfo CreatePreprocessingSymbolInfo(SyntaxToken identifier)
         {
             bool isDefined = SyntaxTree.IsPreprocessorSymbolDefined(identifier.ValueText, identifier.SpanStart);
             var preprocessingSymbol = CreatePreprocessingSymbol(identifier);
-            return new(preprocessingSymbol, isDefined);
+            return new PreprocessingSymbolInfo(preprocessingSymbol, isDefined);
         }
 
-        private Symbols.PublicModel.PreprocessingSymbol CreatePreprocessingSymbol(in SyntaxToken identifier)
+        private Symbols.PublicModel.PreprocessingSymbol CreatePreprocessingSymbol(SyntaxToken identifier)
         {
             return new Symbols.PublicModel.PreprocessingSymbol(
                 identifier.ValueText,
@@ -5105,8 +5091,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node switch
             {
                 IdentifierNameSyntax nameSyntax => GetPreprocessingSymbolInfo(nameSyntax),
-                DefineDirectiveTriviaSyntax defineSyntax => GetPreprocessingSymbolInfo(defineSyntax),
-                UndefDirectiveTriviaSyntax undefSyntax => GetPreprocessingSymbolInfo(undefSyntax),
+                DefineDirectiveTriviaSyntax defineSyntax => GetPreprocessingSymbolInfo(defineSyntax, defineSyntax.Name),
+                UndefDirectiveTriviaSyntax undefSyntax => GetPreprocessingSymbolInfo(undefSyntax, undefSyntax.Name),
                 _ => PreprocessingSymbolInfo.None
             };
         }
