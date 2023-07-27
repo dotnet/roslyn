@@ -153,7 +153,7 @@ public class UseCollectionExpressionForEmptyTests
             {
                 void M()
                 {
-                    string[] v = Array.[|Empty|]<string?>();
+                    string[] v = {|CS8619:Array.[|Empty|]<string?>()|};
                 }
             }
             """,
@@ -299,6 +299,88 @@ public class UseCollectionExpressionForEmptyTests
                 {
                     int[] v = /*goo*/ [] /*bar*/;
                 }
+            }
+            """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNonCollection()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    X x = X.Empty<int>();
+                }
+            }
+
+            class X
+            {
+                public static X Empty<T>() => default;
+            }
+            """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestProperty1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    MyList<int> x = MyList<int>.[|Empty|];
+                }
+            }
+
+            class MyList<T> : IEnumerable<T>
+            {
+                public static MyList<T> Empty { get; }
+
+                public void Add(T value) { }
+
+                public IEnumerator<T> GetEnumerator() => default;
+            
+                IEnumerator IEnumerable.GetEnumerator() => default;
+            }
+            """,
+            FixedCode = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    MyList<int> x = [];
+                }
+            }
+
+            class MyList<T> : IEnumerable<T>
+            {
+                public static MyList<T> Empty { get; }
+
+                public void Add(T value) { }
+
+                public IEnumerator<T> GetEnumerator() => default;
+
+                IEnumerator IEnumerable.GetEnumerator() => default;
             }
             """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,

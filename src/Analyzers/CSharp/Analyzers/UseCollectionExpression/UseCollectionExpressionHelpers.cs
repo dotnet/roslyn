@@ -65,6 +65,13 @@ internal static class UseCollectionExpressionHelpers
         if (speculationAnalyzer.ReplacementChangesSemantics())
             return false;
 
+        // Ensure that we have a collection conversion with the replacement.  If not, this wasn't a legal replacement
+        // (for example, we're trying to replace an expression that is converted to something that isn't even a
+        // collection type).
+        var conversion = speculationAnalyzer.SpeculativeSemanticModel.GetConversion(speculationAnalyzer.ReplacedExpression, cancellationToken);
+        if (!conversion.IsCollectionExpression)
+            return false;
+
         return true;
     }
 
