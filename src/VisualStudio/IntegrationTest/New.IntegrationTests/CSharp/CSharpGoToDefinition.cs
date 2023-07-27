@@ -133,8 +133,8 @@ class C
             var actual = await TestServices.Editor.GetOutliningSpansAsync(HangMitigatingCancellationToken);
 
             // When collapsing, not everything is collapsed (eg, namespace and class aren't), but most things are
-            Assert.Equal(32, actual.Length);
-            Assert.Equal(8, actual.Count(s => !s.Collapsed));
+            Assert.Equal(31, actual.Length);
+            Assert.Equal(7, actual.Count(s => !s.Collapsed));
         }
 
         [IdeFact]
@@ -163,7 +163,7 @@ class C
 
             var actual = await TestServices.Editor.GetOutliningSpansAsync(HangMitigatingCancellationToken);
 
-            Assert.Equal(32, actual.Length);
+            Assert.Equal(31, actual.Length);
             Assert.Equal(1, actual.Count(s => s.Collapsed));
         }
 
