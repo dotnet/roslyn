@@ -18,10 +18,29 @@
       <!-- Disable NGEN. Core assemblies are crossgened. -->
       <Ngen>false</Ngen>
     </ProjectReference>
-  </ItemGroup>
+  </ItemGroup> 
   <ItemGroup>
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
+  <!--
+    The properties and targets below will add the VSIXSourceItems (files that go in the VSIX) and the VSIX file itself to the item group that tracks when files are up-to-date.
+    This ensures that these files are recognized in VS to force the VS Extension Project to build when the files are changed, such as prior to debugging.
+    Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1820277 
+  -->
+  <PropertyGroup>
+    <CollectUpToDateCheckInputDesignTimeDependsOn>$(CollectUpToDateCheckInputDesignTimeDependsOn);AddUpToDateCheckVSIXSourceItems</CollectUpToDateCheckInputDesignTimeDependsOn>
+    <CollectUpToDateCheckOutputDesignTimeDependsOn>$(CollectUpToDateCheckOutputDesignTimeDependsOn);AddUpToDateCheckTargetVsixContainer</CollectUpToDateCheckOutputDesignTimeDependsOn>
+  </PropertyGroup>
+  <Target Name="AddUpToDateCheckVSIXSourceItems" DependsOnTargets="GetVsixSourceItems;Publish">
+    <ItemGroup>
+      <UpToDateCheckInput Include="@(VSIXSourceItem)" Set="VsixItems" />
+    </ItemGroup>
+  </Target>
+  <Target Name="AddUpToDateCheckTargetVsixContainer">
+    <ItemGroup>
+      <UpToDateCheckOutput Include="$(TargetVsixContainer)" Set="VsixItems" />
+    </ItemGroup>
+  </Target>
 </Project>
