@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
@@ -495,6 +496,106 @@ public class UseCollectionExpressionForEmptyTests
                 public static MyList<T> Create<T>(ReadOnlySpan<T> values) => default;
             }
             """ + CollectionBuilderAttributeDefinition,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestBuilder2()
+    {
+        await new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            TestCode = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+
+            class C
+            {
+                void M()
+                {
+                    MyList<int> x = MyList<int>.[|Empty|];
+                }
+            }
+
+            [CollectionBuilder(typeof(MyList), "Create")]
+            class MyList<T> : IEnumerable<T>
+            {
+                public static MyList<T> Empty { get; }
+
+                public IEnumerator<T> GetEnumerator() => default;
+            
+                IEnumerator IEnumerable.GetEnumerator() => default;
+            }
+
+            static class MyList
+            {
+                public static MyList<T> Create<T>(ReadOnlySpan<T> values, int x) => default;
+            }
+            """ + CollectionBuilderAttributeDefinition,
+            FixedCode = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+
+            class C
+            {
+                void M()
+                {
+                    MyList<int> x = {|CS9187:[]|};
+                }
+            }
+            
+            [CollectionBuilder(typeof(MyList), "Create")]
+            class MyList<T> : IEnumerable<T>
+            {
+                public static MyList<T> Empty { get; }
+            
+                public IEnumerator<T> GetEnumerator() => default;
+            
+                IEnumerator IEnumerable.GetEnumerator() => default;
+            }
+            
+            static class MyList
+            {
+                public static MyList<T> Create<T>(ReadOnlySpan<T> values, int x) => default;
+            }
+            """ + CollectionBuilderAttributeDefinition,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task ReadOnlySpan1()
+    {
+        await new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            TestCode = """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    ReadOnlySpan<int> v = ReadOnlySpan<int>.[|Empty|];
+                }
+            }
+            """,
+            FixedCode = """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    ReadOnlySpan<int> v = [];
+                }
+            }
+            """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
     }
