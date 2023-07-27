@@ -734,7 +734,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return false;
 
             // If, however, the base check is not ok.  That means that the old expression had an initial type, but the
-            // new expression does not.  This may or may not be ok depending on the construct.
+            // new expression does not.  This may or may not be ok depending on the construct.  If it's a supported
+            // construct then we want to check the new constructs converted type against the old construct's original
+            // type to make sure those still match.  If so, this change is fine.
+            if (IsSupportedConstructWithNullType() &&
+                SymbolsAreCompatible(originalTypeInfo.Type, newTypeInfo.ConvertedType))
+            {
+                return false;
+            }
+
+            return true;
+
+            bool IsSupportedConstructWithNullType()
+            {
+                // A conditional expression may become untyped if it now involves a conditional conversion.  For example:
+                //
+                //      int? s = x ? 0 : null;
+                //
+                // In this case, the null type is allowed if we do have a conditional-expression-conversion *and* the
+                // converted type matches the original type.
+                if (newExpression.IsKind(SyntaxKind.ConditionalExpression) &&
+                    ConditionalExpressionConversionsAreAllowed(newExpression) &&
+                    this.SpeculativeSemanticModel.GetConversion(newExpression).IsConditionalExpression)
+                {
+                    return true;
+                }
+
+                // Similar to above, it's fine for a switch expression to potentially change to having a 'null' direct type
+                // (as long as a target-typed switch-expression conversion happened).  Note: unlike above, we don't have to
+                // check a language version since switch expressions always supported target-typed conversion.
+                if (newExpression.IsKind(SyntaxKind.SwitchExpression) &&
+                    this.SpeculativeSemanticModel.GetConversion(newExpression).IsSwitchExpression &&
+                    SymbolsAreCompatible(originalTypeInfo.Type, newTypeInfo.ConvertedType))
+                {
+                    return true;
+                }
+
+                // Similar to above, it's fine for a collection expression to have a a 'null' direct type (as long as a
+                // target-typed collection-expression conversion happened).  Note: unlike above, we don't have to check
+                // a language version since collection expressions always supported collection-expression-conversions.
+                if (newExpression.IsKind(SyntaxKind.CollectionExpression) &&
+                    this.SpeculativeSemanticModel.GetConversion(newExpression).IsCollectionExpression)
+                {
+                    return true;
+                }
+
+                return false;
+            }
 
             // A conditional expression may become untyped if it now involves a conditional conversion.  For example:
             //
