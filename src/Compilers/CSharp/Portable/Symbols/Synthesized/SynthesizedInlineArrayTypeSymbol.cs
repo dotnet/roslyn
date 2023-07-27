@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsSerializable => false;
 
-        public override bool AreLocalsZeroed => true; // PROTOTYPE: Is this correct?
+        public override bool AreLocalsZeroed => true;
 
         public override TypeKind TypeKind => TypeKind.Struct;
 
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override FileIdentifier? AssociatedFileIdentifier => null;
 
-        internal override bool MangleName => false; // PROTOTYPE: Is this correct?
+        internal override bool MangleName => false;
 
         internal override bool HasDeclaredRequiredMembers => false;
 
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool ShouldAddWinRTMembers => false;
 
-        internal override TypeLayout Layout => default; // PROTOTYPE: Is this correct?
+        internal override TypeLayout Layout => default;
 
         internal override CharSet MarshallingCharSet => DefaultMarshallingCharSet;
 

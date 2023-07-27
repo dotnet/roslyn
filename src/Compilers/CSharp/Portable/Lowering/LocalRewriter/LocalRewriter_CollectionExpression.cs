@@ -18,22 +18,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!_inExpressionLambda);
             Debug.Assert(node.Type is { });
 
-            var collectionTypeKind = ConversionsBase.GetCollectionExpressionTypeKind(_compilation, node.Type, out var elementType);
-            switch (collectionTypeKind)
+            var previousSyntax = _factory.Syntax;
+            _factory.Syntax = node.Syntax;
+            try
             {
-                case CollectionExpressionTypeKind.CollectionInitializer:
-                    return VisitCollectionInitializerCollectionExpression(node, node.Type);
-                case CollectionExpressionTypeKind.Array:
-                case CollectionExpressionTypeKind.Span:
-                case CollectionExpressionTypeKind.ReadOnlySpan:
-                    Debug.Assert(elementType is { });
-                    return VisitArrayOrSpanCollectionExpression(node, node.Type, TypeWithAnnotations.Create(elementType));
-                case CollectionExpressionTypeKind.CollectionBuilder:
-                    return VisitCollectionBuilderCollectionExpression(node);
-                case CollectionExpressionTypeKind.ListInterface:
-                    return VisitListInterfaceCollectionExpression(node);
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(collectionTypeKind);
+                var collectionTypeKind = ConversionsBase.GetCollectionExpressionTypeKind(_compilation, node.Type, out var elementType);
+                switch (collectionTypeKind)
+                {
+                    case CollectionExpressionTypeKind.CollectionInitializer:
+                        return VisitCollectionInitializerCollectionExpression(node, node.Type);
+                    case CollectionExpressionTypeKind.Array:
+                    case CollectionExpressionTypeKind.Span:
+                    case CollectionExpressionTypeKind.ReadOnlySpan:
+                        Debug.Assert(elementType is { });
+                        return VisitArrayOrSpanCollectionExpression(node, node.Type, TypeWithAnnotations.Create(elementType));
+                    case CollectionExpressionTypeKind.CollectionBuilder:
+                        return VisitCollectionBuilderCollectionExpression(node);
+                    case CollectionExpressionTypeKind.ListInterface:
+                        return VisitListInterfaceCollectionExpression(node);
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(collectionTypeKind);
+                }
+            }
+            finally
+            {
+                _factory.Syntax = previousSyntax;
             }
         }
 
@@ -174,10 +183,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
             BoundExpression span;
 
-            // PROTOTYPE: Check also ReadOnlySpan<T> parameter is not [UnscopedRef].
             if (elements.Length > 0
                 && !elements.Any(i => i is BoundCollectionExpressionSpreadElement)
-                && _compilation.Assembly.RuntimeSupportsInlineArrayTypes)
+                && _compilation.Assembly.RuntimeSupportsInlineArrayTypes
+                && (!constructMethod.ReturnType.IsRefLikeType || constructMethod.Parameters[0].EffectiveScope == ScopedKind.ScopedValue))
             {
                 span = CreateAndPopulateInlineArray(syntax, elementType, elements, locals, sideEffects);
             }
@@ -244,12 +253,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Get a span to the inline array.
-            var spanType = _factory.WellKnownType(WellKnownType.System_Span_T); // PROTOTYPE: Test missing type.
+            var spanType = _factory.WellKnownType(WellKnownType.System_Span_T);
             var inlineArrayAsSpan = _factory.ModuleBuilderOpt.EnsureInlineArrayAsSpanExists(syntax, spanType, intType, _diagnostics.DiagnosticBag);
             inlineArrayAsSpan = inlineArrayAsSpan.Construct(ImmutableArray.Create(TypeWithAnnotations.Create(inlineArrayType), elementType));
 
             spanType = spanType.Construct(ImmutableArray.Create(elementType));
-            // PROTOTYPE: Test missing operator.
             var spanOperator = _factory.WellKnownMethod(WellKnownMember.System_Span_T__op_Implicit_Span).AsMember(spanType);
             return _factory.Call(
                 receiver: null,

@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
@@ -6067,7 +6068,111 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
         }
 
-        // PROTOTYPE: Test sharing synthesized type across all uses within the same assembly, but not across assemblies.
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void CollectionBuilder_InlineArrayTypes()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                public struct MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    public MyCollection(List<T> list) { _list = list; }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+                    {
+                        return new MyCollection<T>(new List<T>(items.ToArray()));
+                    }
+                }
+                class A
+                {
+                    static void M()
+                    {
+                        MyCollection<object> x;
+                        x = [];
+                        x = [null, null];
+                        x = [1, 2, 3];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            CompileAndVerify(
+                comp,
+                symbolValidator: module =>
+                {
+                    AssertEx.Equal(new[] { "$InlineArray2", "$InlineArray3" }, getInlineArrayTypeNames(module));
+                },
+                verify: Verification.Skipped);
+            var refA = comp.EmitToImageReference();
+
+            string sourceB = """
+                class B
+                {
+                    static void M<T>(MyCollection<T> c)
+                    {
+                    }
+                    static void M1()
+                    {
+                        M([1]);
+                    }
+                    static void M2()
+                    {
+                        M([4, 5, 6]);
+                        M(["a"]);
+                        M(["b"]);
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net80);
+            CompileAndVerify(
+                comp,
+                symbolValidator: module =>
+                {
+                    AssertEx.Equal(new[] { "$InlineArray1", "$InlineArray3" }, getInlineArrayTypeNames(module));
+                },
+                verify: Verification.Skipped);
+
+            const int n = 1025;
+            var builder = new System.Text.StringBuilder();
+            for (int i = 0; i < n; i++)
+            {
+                if (i > 0) builder.Append(", ");
+                builder.Append(i);
+            }
+            string sourceC = $$"""
+                using System;
+                using System.Linq;
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> c = ([{{builder.ToString()}}]);
+                        Console.WriteLine(c.Count());
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceC, references: new[] { refA }, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            CompileAndVerify(
+                comp,
+                symbolValidator: module =>
+                {
+                    AssertEx.Equal(new[] { $"$InlineArray{n}" }, getInlineArrayTypeNames(module));
+                },
+                verify: Verification.Skipped,
+                expectedOutput: $"{n}");
+
+            static ImmutableArray<string> getInlineArrayTypeNames(ModuleSymbol module)
+            {
+                return module.GlobalNamespace.GetTypeMembers().WhereAsArray(t => t.Name.StartsWith("$InlineArray")).SelectAsArray(t => t.Name);
+            }
+        }
 
         [CombinatorialData]
         [ConditionalTheory(typeof(CoreClrOnly))]
@@ -6115,42 +6220,74 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var verifier = CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: "1, 2, 3, ");
-            // PROTOTYPE: Use heap for non-scoped case.
-            verifier.VerifyIL("Program.F",
-                $$"""
-                {
-                  // Code size       72 (0x48)
-                  .maxstack  2
-                  .locals init ($InlineArray3<object> V_0)
-                  IL_0000:  ldloca.s   V_0
-                  IL_0002:  initobj    "$InlineArray3<object>"
-                  IL_0008:  ldloca.s   V_0
-                  IL_000a:  ldc.i4.0
-                  IL_000b:  call       "InlineArrayElementRef<$InlineArray3<object>, object>(ref $InlineArray3<object>, int)"
-                  IL_0010:  ldc.i4.1
-                  IL_0011:  box        "int"
-                  IL_0016:  stind.ref
-                  IL_0017:  ldloca.s   V_0
-                  IL_0019:  ldc.i4.1
-                  IL_001a:  call       "InlineArrayElementRef<$InlineArray3<object>, object>(ref $InlineArray3<object>, int)"
-                  IL_001f:  ldc.i4.2
-                  IL_0020:  box        "int"
-                  IL_0025:  stind.ref
-                  IL_0026:  ldloca.s   V_0
-                  IL_0028:  ldc.i4.2
-                  IL_0029:  call       "InlineArrayElementRef<$InlineArray3<object>, object>(ref $InlineArray3<object>, int)"
-                  IL_002e:  ldc.i4.3
-                  IL_002f:  box        "int"
-                  IL_0034:  stind.ref
-                  IL_0035:  ldloca.s   V_0
-                  IL_0037:  ldc.i4.3
-                  IL_0038:  call       "InlineArrayAsSpan<$InlineArray3<object>, object>(ref $InlineArray3<object>, int)"
-                  IL_003d:  call       "System.ReadOnlySpan<object> System.Span<object>.op_Implicit(System.Span<object>)"
-                  IL_0042:  call       "MyCollection<object> MyCollectionBuilder.Create<object>({{qualifier}}System.ReadOnlySpan<object>)"
-                  IL_0047:  ret
-                }
-                """);
+            var verifier = CompileAndVerify(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: "1, 2, 3, ");
+            if (useScoped)
+            {
+                verifier.VerifyIL("Program.F",
+                    $$"""
+                    {
+                      // Code size       72 (0x48)
+                      .maxstack  2
+                      .locals init ($InlineArray3<object> V_0)
+                      IL_0000:  ldloca.s   V_0
+                      IL_0002:  initobj    "$InlineArray3<object>"
+                      IL_0008:  ldloca.s   V_0
+                      IL_000a:  ldc.i4.0
+                      IL_000b:  call       "InlineArrayElementRef<$InlineArray3<object>, object>(ref $InlineArray3<object>, int)"
+                      IL_0010:  ldc.i4.1
+                      IL_0011:  box        "int"
+                      IL_0016:  stind.ref
+                      IL_0017:  ldloca.s   V_0
+                      IL_0019:  ldc.i4.1
+                      IL_001a:  call       "InlineArrayElementRef<$InlineArray3<object>, object>(ref $InlineArray3<object>, int)"
+                      IL_001f:  ldc.i4.2
+                      IL_0020:  box        "int"
+                      IL_0025:  stind.ref
+                      IL_0026:  ldloca.s   V_0
+                      IL_0028:  ldc.i4.2
+                      IL_0029:  call       "InlineArrayElementRef<$InlineArray3<object>, object>(ref $InlineArray3<object>, int)"
+                      IL_002e:  ldc.i4.3
+                      IL_002f:  box        "int"
+                      IL_0034:  stind.ref
+                      IL_0035:  ldloca.s   V_0
+                      IL_0037:  ldc.i4.3
+                      IL_0038:  call       "InlineArrayAsSpan<$InlineArray3<object>, object>(ref $InlineArray3<object>, int)"
+                      IL_003d:  call       "System.ReadOnlySpan<object> System.Span<object>.op_Implicit(System.Span<object>)"
+                      IL_0042:  call       "MyCollection<object> MyCollectionBuilder.Create<object>({{qualifier}}System.ReadOnlySpan<object>)"
+                      IL_0047:  ret
+                    }
+                    """);
+            }
+            else
+            {
+                verifier.VerifyIL("Program.F",
+                    $$"""
+                        {
+                      // Code size       44 (0x2c)
+                      .maxstack  4
+                      IL_0000:  ldc.i4.3
+                      IL_0001:  newarr     "object"
+                      IL_0006:  dup
+                      IL_0007:  ldc.i4.0
+                      IL_0008:  ldc.i4.1
+                      IL_0009:  box        "int"
+                      IL_000e:  stelem.ref
+                      IL_000f:  dup
+                      IL_0010:  ldc.i4.1
+                      IL_0011:  ldc.i4.2
+                      IL_0012:  box        "int"
+                      IL_0017:  stelem.ref
+                      IL_0018:  dup
+                      IL_0019:  ldc.i4.2
+                      IL_001a:  ldc.i4.3
+                      IL_001b:  box        "int"
+                      IL_0020:  stelem.ref
+                      IL_0021:  newobj     "System.ReadOnlySpan<object>..ctor(object[])"
+                      IL_0026:  call       "MyCollection<object> MyCollectionBuilder.Create<object>(System.ReadOnlySpan<object>)"
+                      IL_002b:  ret
+                    }
+                    """);
+            }
         }
 
         [CombinatorialData]
@@ -9067,7 +9204,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: "[], [1, 2, 3], ");
+            CompileAndVerify(
+                new[] { sourceB, s_collectionExtensions },
+                references: new[] { refA },
+                targetFramework: TargetFramework.Net80,
+                verify: builderParameterModifier == "scoped" ? Verification.Fails : Verification.Passes,
+                expectedOutput: "[], [1, 2, 3], ");
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -9112,6 +9254,60 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // 0.cs(16,82): error CS8352: Cannot use variable 'scoped ReadOnlySpan<T> items' in this context because it may expose referenced variables outside of their declaration scope
                 //     public static MyCollection<T> Create<T>(scoped ReadOnlySpan<T> items) => new(items);
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "items").WithArguments("scoped System.ReadOnlySpan<T> items").WithLocation(16, 82));
+        }
+
+        [CombinatorialData]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        public void CollectionBuilder_MissingSpanMembers(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                public struct MyCollection<T>
+                {
+                    public IEnumerator<T> GetEnumerator() => default;
+                }
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB = """
+                #pragma warning disable 219
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<string> x = [];
+                        MyCollection<int> y = [1, 2, 3];
+                        MyCollection<object> z = new();
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net80);
+            comp.MakeTypeMissing(WellKnownType.System_Span_T);
+            comp.VerifyEmitDiagnostics(
+                // error CS0656: Missing compiler required member 'System.Runtime.InteropServices.MemoryMarshal.CreateSpan'
+                // 
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "").WithArguments("System.Runtime.InteropServices.MemoryMarshal", "CreateSpan").WithLocation(1, 1),
+                // (7,31): error CS0518: Predefined type 'System.Span`1' is not defined or imported
+                //         MyCollection<int> y = [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[1, 2, 3]").WithArguments("System.Span`1").WithLocation(7, 31),
+                // (7,31): error CS0656: Missing compiler required member 'System.Span`1.op_Implicit'
+                //         MyCollection<int> y = [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[1, 2, 3]").WithArguments("System.Span`1", "op_Implicit").WithLocation(7, 31));
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net80);
+            comp.MakeMemberMissing(WellKnownMember.System_Span_T__op_Implicit_Span);
+            comp.VerifyEmitDiagnostics(
+                // (7,31): error CS0656: Missing compiler required member 'System.Span`1.op_Implicit'
+                //         MyCollection<int> y = [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[1, 2, 3]").WithArguments("System.Span`1", "op_Implicit").WithLocation(7, 31));
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
