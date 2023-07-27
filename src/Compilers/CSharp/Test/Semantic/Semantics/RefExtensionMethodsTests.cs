@@ -72,9 +72,9 @@ public static class Program
             CompileAndVerify(code, expectedOutput: "1");
         }
 
-        [Fact]
+        [Theory, CombinatorialData]
         [WorkItem(25862, "https://github.com/dotnet/roslyn/issues/25862")]
-        public void ExtensionMethods_StructCollectionInitializerInParam()
+        public void ExtensionMethods_StructCollectionInitializerInParam([CombinatorialValues("in", "ref readonly")] string modifier)
         {
             var code = @"
 public struct MyStruct : System.Collections.IEnumerable
@@ -85,7 +85,7 @@ public struct MyStruct : System.Collections.IEnumerable
 
 public static class MyStructExtension
 {
-    public static void Add(ref this MyStruct s, in MyStruct other)
+    public static void Add(ref this MyStruct s, " + modifier + @" MyStruct other)
     {
         s.i += other.i;
     }
@@ -117,7 +117,7 @@ public static class Program
   IL_0014:  initobj    ""MyStruct""
   IL_001a:  ldloca.s   V_1
   IL_001c:  ldloca.s   V_0
-  IL_001e:  call       ""void MyStructExtension.Add(ref MyStruct, in MyStruct)""
+  IL_001e:  call       ""void MyStructExtension.Add(ref MyStruct, " + modifier + @" MyStruct)""
   IL_0023:  ldloc.1
   IL_0024:  ldfld      ""int MyStruct.i""
   IL_0029:  call       ""void System.Console.Write(int)""
@@ -125,9 +125,9 @@ public static class Program
 }");
         }
 
-        [Fact]
+        [Theory, CombinatorialData]
         [WorkItem(25862, "https://github.com/dotnet/roslyn/issues/25862")]
-        public void ExtensionMethods_StructCollectionInitializerInParamImplicitTempArg()
+        public void ExtensionMethods_StructCollectionInitializerInParamImplicitTempArg([CombinatorialValues("in", "ref readonly")] string modifier)
         {
             var code = @"
 public struct MyStruct : System.Collections.IEnumerable
@@ -138,7 +138,7 @@ public struct MyStruct : System.Collections.IEnumerable
 
 public static class MyStructExtension
 {
-    public static void Add(ref this MyStruct s, in MyStruct other)
+    public static void Add(ref this MyStruct s, " + modifier + @" MyStruct other)
     {
         s.i += other.i;
     }
@@ -167,7 +167,7 @@ public static class Program
   IL_0014:  ldc.i4.2
   IL_0015:  stfld      ""int MyStruct.i""
   IL_001a:  ldloca.s   V_1
-  IL_001c:  call       ""void MyStructExtension.Add(ref MyStruct, in MyStruct)""
+  IL_001c:  call       ""void MyStructExtension.Add(ref MyStruct, " + modifier + @" MyStruct)""
   IL_0021:  ldloc.0
   IL_0022:  ldfld      ""int MyStruct.i""
   IL_0027:  call       ""void System.Console.Write(int)""
