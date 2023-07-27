@@ -35,10 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 
         protected override ISyntaxFacts GetSyntaxFacts() => CSharpSyntaxFacts.Instance;
 
-        protected override bool CanUseCollectionExpression
-            (SemanticModel semanticModel, BaseObjectCreationExpressionSyntax objectCreationExpression, CancellationToken cancellationToken)
-        {
-            return UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(semanticModel, objectCreationExpression, cancellationToken);
-        }
+        protected override bool CanUseCollectionExpression(SemanticModel semanticModel, BaseObjectCreationExpressionSyntax objectCreationExpression, CancellationToken cancellationToken)
+            => UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(semanticModel, objectCreationExpression, skipVerificationForReplacedNode: false, cancellationToken);
     }
 }

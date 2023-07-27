@@ -74,9 +74,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             TExpressionSyntax expression,
             TExpressionSyntax newExpression,
             SemanticModel semanticModel,
-            bool skipVerificationForReplacedNode,
-            bool failOnOverloadResolutionFailuresInOriginalCode,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            bool skipVerificationForReplacedNode = false,
+            bool failOnOverloadResolutionFailuresInOriginalCode = false)
         {
             _expression = expression;
             _newExpressionForReplace = newExpression;
@@ -597,6 +597,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 var newExpression = (TExpressionSyntax)currentReplacedNode;
                 if (!ImplicitConversionsAreCompatible(originalExpression, newExpression))
                     return true;
+
                 RoslynDebug.AssertNotNull(originalExpression);
                 Debug.Assert(this.SemanticRootOfOriginalExpression.DescendantNodesAndSelf().Contains(originalExpression));
                 RoslynDebug.AssertNotNull(newExpression);

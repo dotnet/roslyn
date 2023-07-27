@@ -86,7 +86,7 @@ internal sealed partial class CSharpUseCollectionExpressionForEmptyDiagnosticAna
         if (nodeToReplace is null)
             return;
 
-        if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(semanticModel, nodeToReplace, cancellationToken))
+        if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(semanticModel, nodeToReplace, skipVerificationForReplacedNode: true, cancellationToken))
             return;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(

@@ -22,6 +22,7 @@ internal static class UseCollectionExpressionHelpers
     public static bool CanReplaceWithCollectionExpression(
         SemanticModel semanticModel,
         ExpressionSyntax expression,
+        bool skipVerificationForReplacedNode,
         CancellationToken cancellationToken)
     {
         var topMostExpression = expression.WalkUpParentheses();
@@ -58,6 +59,7 @@ internal static class UseCollectionExpressionHelpers
             s_emptyCollectionExpression,
             semanticModel,
             cancellationToken,
+            skipVerificationForReplacedNode,
             failOnOverloadResolutionFailuresInOriginalCode: true);
 
         if (speculationAnalyzer.ReplacementChangesSemantics())
