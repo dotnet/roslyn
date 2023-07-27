@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
@@ -79,20 +80,20 @@ internal sealed partial class CSharpUseCollectionExpressionForEmptyDiagnosticAna
 
         // X.Empty<T>() or X<T>.Empty
 
-        if (!IsEmptyProperty() &&
-            !IsEmptyMethodCall())
-        {
+        var nodeToReplace =
+            IsEmptyProperty() ? memberAccess :
+            IsEmptyMethodCall() ? (ExpressionSyntax)memberAccess.GetRequiredParent() : null;
+        if (nodeToReplace is null)
             return;
-        }
 
-        if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(semanticModel, memberAccess, cancellationToken))
+        if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(semanticModel, nodeToReplace, cancellationToken))
             return;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
             s_descriptor,
             memberAccess.Name.Identifier.GetLocation(),
             option.Notification.Severity,
-            additionalLocations: ImmutableArray.Create(memberAccess.GetLocation()),
+            additionalLocations: ImmutableArray.Create(nodeToReplace.GetLocation()),
             properties: null));
 
         return;
