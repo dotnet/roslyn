@@ -344,7 +344,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         switch (nts, other)
                         {
-                            case ({ } left, SourceMemberContainerTypeSymbol right) when isFileLocalTypeInSeparateFileFrom(left, right) || isFileLocalTypeInSeparateFileFrom(right, left):
+                            case ({ } left, SourceMemberContainerTypeSymbol right) when isFileLocalTypeInSeparateFileFrom(right, left):
+                            case ({ } left1, NamespaceOrTypeSymbol right1) when isFileLocalTypeInSeparateFileFrom(left1, right1):
                                 // no error
                                 break;
                             case ({ IsFileLocal: true }, _) or (_, SourceMemberContainerTypeSymbol { IsFileLocal: true }):
@@ -373,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            static bool isFileLocalTypeInSeparateFileFrom(SourceMemberContainerTypeSymbol possibleFileLocalType, SourceMemberContainerTypeSymbol otherSymbol)
+            static bool isFileLocalTypeInSeparateFileFrom(SourceMemberContainerTypeSymbol possibleFileLocalType, NamespaceOrTypeSymbol otherSymbol)
             {
                 if (!possibleFileLocalType.IsFileLocal)
                 {
@@ -381,9 +382,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var leftTree = possibleFileLocalType.MergedDeclaration.Declarations[0].Location.SourceTree;
-                if (otherSymbol.MergedDeclaration.NameLocations.Any((loc, leftTree) => (object)loc.SourceTree == leftTree, leftTree))
+                if (otherSymbol is SourceNamedTypeSymbol { MergedDeclaration.NameLocations: var typeNameLocations })
                 {
-                    return false;
+                    if (typeNameLocations.Any((loc, leftTree) => (object)loc.SourceTree == leftTree, leftTree))
+                    {
+                        return false;
+                    }
+                }
+                else if (otherSymbol is SourceNamespaceSymbol { MergedDeclaration.NameLocations: var namespaceNameLocations })
+                {
+                    if (namespaceNameLocations.Any((loc, leftTree) => (object)loc.SourceTree == leftTree, leftTree))
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    throw ExceptionUtilities.UnexpectedValue(otherSymbol);
                 }
 
                 return true;
