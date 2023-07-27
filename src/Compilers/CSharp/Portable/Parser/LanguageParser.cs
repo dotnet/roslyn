@@ -12838,8 +12838,6 @@ done:;
             {
                 case SyntaxKind.ParamsKeyword:
                 case SyntaxKind.ReadOnlyKeyword:
-                // 'params' and 'readonly' are is not actually legal in a lambda, but we allow it for error recovery
-                // purposes and then give an error during semantic analysis.
                 case SyntaxKind.RefKeyword:
                 case SyntaxKind.OutKeyword:
                 case SyntaxKind.InKeyword:
