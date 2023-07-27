@@ -61,7 +61,7 @@ internal sealed class PreprocessingSymbolReferenceFinder : AbstractReferenceFind
         return resultDocuments.ToImmutable();
     }
 
-    private async ValueTask<IEnumerable<Document>> GetAllSolutionDocumentsAsync(Solution solution, CancellationToken cancellationToken)
+    private static async ValueTask<IEnumerable<Document>> GetAllSolutionDocumentsAsync(Solution solution, CancellationToken cancellationToken)
     {
         var documents = Enumerable.Empty<Document>();
 
