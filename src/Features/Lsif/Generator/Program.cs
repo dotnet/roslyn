@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 outputWriter = outputFile;
             }
 
-            using var logFile = log != null ? new StreamWriter(log) : TextWriter.Null;
+            using var logFile = log != null ? new StreamWriter(log) { AutoFlush = true } : TextWriter.Null;
             ILsifJsonWriter lsifWriter = outputFormat switch
             {
                 LsifFormat.Json => new JsonModeLsifJsonWriter(outputWriter),
