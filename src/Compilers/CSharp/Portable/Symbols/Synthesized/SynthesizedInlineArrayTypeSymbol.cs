@@ -13,22 +13,31 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
+    /// <summary>
+    /// A synthesized type used during emit to allow temp locals of Span&lt;T&gt;
+    /// of a specific length where the span storage is on the stack.
+    /// <code>
+    /// [InlineArray(N)] struct __InlineArrayN&lt;T&gt; { private T _element0; }
+    /// </code>
+    /// </summary>
     internal sealed class SynthesizedInlineArrayTypeSymbol : NamedTypeSymbol
     {
         private readonly ModuleSymbol _containingModule;
         private readonly int _arrayLength;
         private readonly MethodSymbol _inlineArrayAttributeConstructor;
-        private readonly FieldSymbol _field;
+        private readonly ImmutableArray<FieldSymbol> _fields;
 
         internal SynthesizedInlineArrayTypeSymbol(SourceModuleSymbol containingModule, string name, int arrayLength, MethodSymbol inlineArrayAttributeConstructor)
         {
             Debug.Assert(arrayLength > 0);
 
             var typeParameter = new InlineArrayTypeParameterSymbol(this);
+            var field = new SynthesizedFieldSymbol(this, typeParameter, "_element0");
+
             _containingModule = containingModule;
             _arrayLength = arrayLength;
             _inlineArrayAttributeConstructor = inlineArrayAttributeConstructor;
-            _field = new SynthesizedFieldSymbol(this, typeParameter, "_element0");
+            _fields = ImmutableArray.Create<FieldSymbol>(field);
             Name = name;
             TypeParameters = ImmutableArray.Create<TypeParameterSymbol>(typeParameter);
         }
@@ -57,13 +66,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsReadOnly => true;
 
-        public override Symbol? ContainingSymbol => null;
+        public override Symbol? ContainingSymbol => _containingModule.GlobalNamespace;
 
         internal override ModuleSymbol ContainingModule => _containingModule;
 
         public override AssemblySymbol ContainingAssembly => _containingModule.ContainingAssembly;
-
-        public override NamespaceSymbol ContainingNamespace => _containingModule.GlobalNamespace;
 
         public override ImmutableArray<Location> Locations => ImmutableArray<Location>.Empty;
 
@@ -115,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ObsoleteAttributeData? ObsoleteAttributeData => null;
 
-        public override ImmutableArray<Symbol> GetMembers() => ImmutableArray.Create<Symbol>(_field);
+        public override ImmutableArray<Symbol> GetMembers() => ImmutableArray<Symbol>.CastUp(_fields);
 
         public override ImmutableArray<Symbol> GetMembers(string name) => GetMembers().WhereAsArray(m => m.Name == name);
 
@@ -141,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers(string name) => GetMembers(name);
 
-        internal override IEnumerable<FieldSymbol> GetFieldsToEmit() => SpecializedCollections.SingletonEnumerable(_field);
+        internal override IEnumerable<FieldSymbol> GetFieldsToEmit() => _fields;
 
         internal override ImmutableArray<NamedTypeSymbol> GetInterfacesToEmit() => ImmutableArray<NamedTypeSymbol>.Empty;
 

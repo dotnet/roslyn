@@ -239,11 +239,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Construct(ImmutableArray.Create(TypeWithAnnotations.Create(inlineArrayType), elementType));
 
             // Create an inline array and assign to a local.
+            // var tmp = new __InlineArrayN<T>();
             BoundAssignmentOperator assignmentToTemp;
             BoundLocal inlineArrayLocal = _factory.StoreToTemp(new BoundDefaultExpression(syntax, inlineArrayType), out assignmentToTemp, isKnownToReferToTempIfReferenceType: true);
             sideEffects.Add(assignmentToTemp);
             locals.Add(inlineArrayLocal.LocalSymbol);
 
+            // Populate the inline array.
+            // InlineArrayElementRef<__InlineArrayN<T>, T>(ref tmp, 0) = element0;
+            // InlineArrayElementRef<__InlineArrayN<T>, T>(ref tmp, 1) = element1;
+            // ...
             for (int i = 0; i < arrayLength; i++)
             {
                 var element = VisitExpression(elements[i]);
@@ -253,11 +258,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Get a span to the inline array.
-            var spanType = _factory.WellKnownType(WellKnownType.System_Span_T);
-            var inlineArrayAsSpan = _factory.ModuleBuilderOpt.EnsureInlineArrayAsSpanExists(syntax, spanType, intType, _diagnostics.DiagnosticBag);
+            // ... (ReadOnlySpan<T>)InlineArrayAsSpan<__InlineArrayN<T>, T>(ref tmp, N)
+            var inlineArrayAsSpan = _factory.ModuleBuilderOpt.EnsureInlineArrayAsSpanExists(syntax, _factory.WellKnownType(WellKnownType.System_Span_T), intType, _diagnostics.DiagnosticBag);
             inlineArrayAsSpan = inlineArrayAsSpan.Construct(ImmutableArray.Create(TypeWithAnnotations.Create(inlineArrayType), elementType));
 
-            spanType = spanType.Construct(ImmutableArray.Create(elementType));
+            var spanType = (NamedTypeSymbol)inlineArrayAsSpan.ReturnType;
             var spanOperator = _factory.WellKnownMethod(WellKnownMember.System_Span_T__op_Implicit_Span).AsMember(spanType);
             return _factory.Call(
                 receiver: null,
