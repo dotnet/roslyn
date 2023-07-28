@@ -5,6 +5,7 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -4773,6 +4774,51 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (9,12): warning CS9196: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in overridden or implemented member.
             //     void I.M2(in int x) { }
             Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "M2").WithArguments("in int x", "ref readonly int x").WithLocation(9, 12));
+    }
+
+    [Theory, CombinatorialData]
+    public void Implementation_RefReadonly_In_Explicit_Retargeting(bool emit)
+    {
+        var source1v1 = """
+            public interface I
+            {
+                void M(in int x);
+            }
+            """;
+        var comp1v1 = CreateCompilation(source1v1, assemblyName: "Assembly1");
+        var comp1v1Ref = emit ? comp1v1.EmitToImageReference() : comp1v1.ToMetadataReference();
+
+        var source1v2 = """
+            public interface I
+            {
+                void M(ref readonly int x);
+            }
+            """;
+        var comp1v2 = CreateCompilation(source1v2, assemblyName: "Assembly1");
+        var comp1v2Ref = emit ? comp1v2.EmitToImageReference() : comp1v2.ToMetadataReference();
+
+        var source2 = """
+            public class C : I
+            {
+                void I.M(in int x) { }
+            }
+            """;
+        var comp2 = CreateCompilation(source2, new[] { comp1v1Ref }, assemblyName: "Assembly2");
+        var comp2Ref = emit ? comp2.EmitToImageReference() : comp2.ToMetadataReference();
+
+        var comp3v1 = CreateCompilation("", new[] { comp2Ref, comp1v1Ref }, assemblyName: "Assembly3");
+
+        var c1 = comp3v1.GetMember<NamedTypeSymbol>("C");
+        var m1 = c1.GetMember<MethodSymbol>("I.M");
+        Assert.True(m1 is not RetargetingMethodSymbol);
+        Assert.Equal("I.M(in int)", m1.ExplicitInterfaceImplementations.Single().ToDisplayString());
+
+        var comp3v2 = CreateCompilation("", new[] { comp2Ref, comp1v2Ref }, assemblyName: "Assembly3");
+
+        var c2 = comp3v2.GetMember<NamedTypeSymbol>("C");
+        var m2 = c2.GetMember<MethodSymbol>("I.M");
+        Assert.Equal(!emit, m2 is RetargetingMethodSymbol);
+        Assert.Equal("I.M(ref readonly int)", m2.ExplicitInterfaceImplementations.Single().ToDisplayString());
     }
 
     [Fact]
