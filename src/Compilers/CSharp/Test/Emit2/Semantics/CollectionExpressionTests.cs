@@ -18,6 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class CollectionExpressionTests : CSharpTestBase
     {
+        private static string IncludeExpectedOutput(string expectedOutput) => ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null;
+
         private const string s_collectionExtensions = """
             using System;
             using System.Collections;
@@ -1605,7 +1607,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F2").WithArguments("Program.F2<T>(T[][], T[][])").WithLocation(8, 17));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void TypeInference_24()
         {
             string source = """
@@ -1628,10 +1630,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 new[] { source, s_collectionExtensionsWithSpan },
                 targetFramework: TargetFramework.Net70,
                 verify: Verification.Skipped,
-                expectedOutput: "[0, 2], [null, 4], ");
+                expectedOutput: IncludeExpectedOutput("[0, 2], [null, 4], "));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void TypeInference_25()
         {
             string source = """
@@ -2664,7 +2666,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[[1, 2], [3, 4]]").WithArguments("int[*,*]").WithLocation(5, 20));
         }
 
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         [CombinatorialData]
         public void Span_01(bool useReadOnlySpan)
         {
@@ -2686,7 +2688,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, targetFramework: TargetFramework.Net70, verify: Verification.Skipped, expectedOutput: "[], [1, 2], [3, 4, 5], [null, 7], ");
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, targetFramework: TargetFramework.Net70, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("[], [1, 2], [3, 4, 5], [null, 7], "));
             verifier.VerifyIL("Program.Create1", $$"""
                 {
                   // Code size       12 (0xc)
@@ -2763,7 +2765,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
         }
 
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         [CombinatorialData]
         public void Span_02(bool useReadOnlySpan)
         {
@@ -2781,10 +2783,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, targetFramework: TargetFramework.Net70, verify: Verification.Skipped, expectedOutput: "[], [1, 2, 3], ");
+            CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, targetFramework: TargetFramework.Net70, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("[], [1, 2, 3], "));
         }
 
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         [CombinatorialData]
         public void Span_03(bool useReadOnlySpan)
         {
@@ -2802,10 +2804,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, targetFramework: TargetFramework.Net70, verify: Verification.Skipped, expectedOutput: "[], [1, 2, 3], ");
+            CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, targetFramework: TargetFramework.Net70, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("[], [1, 2, 3], "));
         }
 
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         [CombinatorialData]
         public void Span_04(bool useReadOnlySpan)
         {
@@ -2834,7 +2836,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "[]").WithLocation(6, 28));
         }
 
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         [CombinatorialData]
         public void Span_05(bool useReadOnlySpan)
         {
@@ -2857,7 +2859,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void Span_MissingConstructor()
         {
             string source = """
@@ -4282,7 +4284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_SyntaxError, "4").WithArguments(",").WithLocation(9, 16));
         }
 
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         [CombinatorialData]
         public void SpreadElement_01(
             [CombinatorialValues("IEnumerable<int>", "int[]", "List<int>", "Span<int>", "ReadOnlySpan<int>")] string spreadType,
@@ -4307,7 +4309,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 options: TestOptions.ReleaseExe,
                 targetFramework: TargetFramework.Net70,
                 verify: Verification.Skipped,
-                expectedOutput: "[1, 2, 3], ");
+                expectedOutput: IncludeExpectedOutput("[1, 2, 3], "));
 
             // Verify some of the cases.
             string expectedIL = (spreadType, collectionType) switch
@@ -4468,7 +4470,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         [InlineData("int[]")]
         [InlineData("System.Collections.Generic.List<int>")]
         [InlineData("System.Span<int>")]
@@ -4498,7 +4500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 options: TestOptions.ReleaseExe,
                 targetFramework: TargetFramework.Net70,
                 verify: Verification.Skipped,
-                expectedOutput: "[1, 2], ");
+                expectedOutput: IncludeExpectedOutput("[1, 2], "));
 
             if (collectionType == "System.ReadOnlySpan<int>")
             {
@@ -4958,7 +4960,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
         }
 
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         [InlineData("List")]
         [InlineData("Span")]
         [InlineData("ReadOnlySpan")]
@@ -4986,7 +4988,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 new[] { source, s_collectionExtensionsWithSpan },
                 targetFramework: TargetFramework.Net70,
                 verify: Verification.Skipped,
-                expectedOutput: "[1, 2, 3], [1, 2, 3], ");
+                expectedOutput: IncludeExpectedOutput("[1, 2, 3], [1, 2, 3], "));
         }
 
         [Fact]
@@ -5589,7 +5591,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void SemanticModel()
         {
             string source = """
@@ -5659,7 +5661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_01(bool useCompilationReference)
         {
             string sourceA = """
@@ -5718,7 +5720,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 references: new[] { refA },
                 targetFramework: TargetFramework.Net80,
                 verify: Verification.Fails,
-                expectedOutput: "[], [0, 1, 2], [3, 4, null], ");
+                expectedOutput: IncludeExpectedOutput("[], [0, 1, 2], [3, 4, null], "));
             verifier.VerifyIL("Program.F0",
                 """
                 {
@@ -5815,7 +5817,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 references: new[] { refA },
                 targetFramework: TargetFramework.Net80,
                 verify: Verification.Fails,
-                expectedOutput: "[1, 2, 3], ");
+                expectedOutput: IncludeExpectedOutput("[1, 2, 3], "));
             verifier.VerifyIL("Program.F2",
                 """
                 {
@@ -5865,7 +5867,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_02A(
             [CombinatorialValues(TargetFramework.Net70, TargetFramework.Net80)] TargetFramework targetFramework,
             bool useCompilationReference)
@@ -5925,8 +5927,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         Assert.Null(type);
                     }
                 },
-                verify: targetFramework == TargetFramework.Net80 ? Verification.Fails : Verification.Passes,
-                expectedOutput: "[1, 2, null], ");
+                verify: targetFramework == TargetFramework.Net80 ? Verification.Fails : Verification.FailsPEVerify,
+                expectedOutput: IncludeExpectedOutput("[1, 2, null], "));
             if (targetFramework == TargetFramework.Net80)
             {
                 verifier.VerifyIL("Program.F",
@@ -6068,7 +6070,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void CollectionBuilder_InlineArrayTypes()
         {
             string sourceA = """
@@ -6166,7 +6168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     AssertEx.Equal(new[] { $"__InlineArray{n}" }, getInlineArrayTypeNames(module));
                 },
                 verify: Verification.Skipped,
-                expectedOutput: $"{n}");
+                expectedOutput: IncludeExpectedOutput($"{n}"));
 
             static ImmutableArray<string> getInlineArrayTypeNames(ModuleSymbol module)
             {
@@ -6175,7 +6177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_RefStructCollection(bool useCompilationReference, bool useScoped)
         {
             string qualifier = useScoped ? "scoped " : "";
@@ -6220,7 +6222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var verifier = CompileAndVerify(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: "1, 2, 3, ");
+            var verifier = CompileAndVerify(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: IncludeExpectedOutput("1, 2, 3, "));
             if (useScoped)
             {
                 verifier.VerifyIL("Program.F",
@@ -6291,7 +6293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_NonGenericCollection(bool useCompilationReference)
         {
             string sourceA = """
@@ -6328,11 +6330,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: "[], [1, 2, 3], ");
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: IncludeExpectedOutput("[], [1, 2, 3], "));
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_InterfaceCollection_ReturnInterface(bool useCompilationReference)
         {
             string sourceA = """
@@ -6372,11 +6374,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: "(MyCollectionBuilder.MyCollection<System.String>) [], (MyCollectionBuilder.MyCollection<System.Int32>) [1, 2, 3], ");
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: IncludeExpectedOutput("(MyCollectionBuilder.MyCollection<System.String>) [], (MyCollectionBuilder.MyCollection<System.Int32>) [1, 2, 3], "));
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_InterfaceCollection_ReturnImplementation(bool useCompilationReference)
         {
             string sourceA = """
@@ -6425,7 +6427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_NestedCollectionAndBuilder(bool useCompilationReference)
         {
             string sourceA = """
@@ -6465,11 +6467,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: "(Container.MyCollection<System.String>) [], (Container.MyCollection<System.Int32>) [1, 2, 3], ");
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: IncludeExpectedOutput("(Container.MyCollection<System.String>) [], (Container.MyCollection<System.Int32>) [1, 2, 3], "));
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_NoElementType(bool useCompilationReference)
         {
             string sourceA = """
@@ -6511,7 +6513,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_ElementTypeFromPattern_01(bool useCompilationReference)
         {
             string sourceA = """
@@ -6567,11 +6569,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: "[], [1, 2, 3], ");
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: IncludeExpectedOutput("[], [1, 2, 3], "));
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_ElementTypeFromPattern_02(bool useCompilationReference)
         {
             string sourceA = """
@@ -6627,11 +6629,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: "[], [1, 2, 3], ");
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: IncludeExpectedOutput("[], [1, 2, 3], "));
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_ObjectElementType_01(bool useCompilationReference)
         {
             string sourceA = """
@@ -6666,11 +6668,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: "[], [1, 2, 3], ");
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: IncludeExpectedOutput("[], [1, 2, 3], "));
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_ObjectElementType_02(bool useCompilationReference)
         {
             string sourceA = """
@@ -6714,7 +6716,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_ConstructedElementType(bool useCompilationReference)
         {
             string sourceA = """
@@ -6757,11 +6759,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: "(C<System.String>) [null], (C<System.Int32>) [E(1), null], ");
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: IncludeExpectedOutput("(C<System.String>) [null], (C<System.Int32>) [E(1), null], "));
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_Dictionary(bool useCompilationReference)
         {
             string sourceA = """
@@ -6803,10 +6805,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: "[], [[one, 1], [two, 2]], ");
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: IncludeExpectedOutput("[], [[one, 1], [two, 2]], "));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void CollectionBuilder_MissingBuilderType()
         {
             string sourceA = """
@@ -6854,7 +6856,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_MissingBuilderMethod(bool useCompilationReference)
         {
             string sourceA = """
@@ -6896,7 +6898,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[null]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(7, 34));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void CollectionBuilder_NullBuilderType()
         {
             string sourceA = """
@@ -6975,7 +6977,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[null]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(7, 34));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void CollectionBuilder_InvalidBuilderType_Interface()
         {
             string sourceA = """
@@ -7069,7 +7071,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_InvalidBuilderType_03(
             [CombinatorialValues("public delegate void MyCollectionBuilder();", "public enum MyCollectionBuilder { }")] string builderTypeDefinition)
         {
@@ -7112,7 +7114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_InvalidBuilderType_04(
             [CombinatorialValues("int[]", "int*", "(object, object)")] string builderTypeName)
         {
@@ -7152,7 +7154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[null]").WithArguments("ToString", "T", "MyCollection<T>").WithLocation(7, 34));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void CollectionBuilder_InvalidBuilderType_TypeParameter()
         {
             string source = """
@@ -7190,7 +7192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_NullOrEmptyMethodName([CombinatorialValues("null", "\"\"")] string methodName)
         {
             string sourceA = $$"""
@@ -7282,7 +7284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_InstanceMethod(bool useCompilationReference)
         {
             string sourceA = """
@@ -7327,7 +7329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_OtherMember_01(
             [CombinatorialValues(
                 "public MyCollection Create = null;",
@@ -7376,14 +7378,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_TypeDifferences_Dynamic_01(bool useCompilationReference)
         {
             CollectionBuilder_TypeDifferences("object", "dynamic", "1, 2, 3", "[1, 2, 3]", useCompilationReference);
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_TypeDifferences_Dynamic_02(bool useCompilationReference)
         {
             string sourceA = $$"""
@@ -7425,11 +7427,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: $"[], [1, 2, 3], ");
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: IncludeExpectedOutput($"[], [1, 2, 3], "));
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_TypeDifferences_TupleElementNames(bool useCompilationReference)
         {
             CollectionBuilder_TypeDifferences("(int, int)", "(int A, int B)", "(1, 2), default", "[(1, 2), (0, 0)]", useCompilationReference);
@@ -7475,12 +7477,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: $"[], {expectedOutput}, ");
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: IncludeExpectedOutput($"[], {expectedOutput}, "));
         }
 
         // If there are multiple attributes, the first is used.
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_MultipleAttributes(bool useCompilationReference)
         {
             string sourceAttribute = """
@@ -7531,7 +7533,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: "[1, 2, 3], ");
+            var verifier = CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: IncludeExpectedOutput("[1, 2, 3], "));
             comp = (CSharpCompilation)verifier.Compilation;
 
             var collectionType = (NamedTypeSymbol)comp.GetMember<MethodSymbol>("Program.F").ReturnType;
@@ -7543,7 +7545,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("Create1", methodName);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void CollectionBuilder_GenericBuilderType_01()
         {
             string sourceA = """
@@ -7587,7 +7589,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[null]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(7, 34));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void CollectionBuilder_GenericBuilderType_02()
         {
             string sourceA = """
@@ -7631,7 +7633,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[null]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(7, 34));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void CollectionBuilder_GenericBuilderType_03()
         {
             string source = """
@@ -7677,7 +7679,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_GenericCollectionContainerType_01(bool useCompilationReference)
         {
             string sourceA = """
@@ -7717,11 +7719,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: "(Container<T>.MyCollection<System.String>) [], (Container<T>.MyCollection<System.Int32>) [1, 2, 3], ");
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: IncludeExpectedOutput("(Container<T>.MyCollection<System.String>) [], (Container<T>.MyCollection<System.Int32>) [1, 2, 3], "));
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_GenericCollectionContainerType_02(bool useCompilationReference)
         {
             string sourceA = """
@@ -7761,11 +7763,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: "(Container<T>.MyCollection<System.Int32>) [], (Container<T>.MyCollection<System.String>) [1, 2, 3], ");
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: IncludeExpectedOutput("(Container<T>.MyCollection<System.Int32>) [], (Container<T>.MyCollection<System.String>) [1, 2, 3], "));
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_GenericCollectionContainerType_03(bool useCompilationReference)
         {
             string sourceA = """
@@ -7805,11 +7807,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: "(Container<T>.MyCollection<System.Int32, System.String>) [], (Container<T>.MyCollection<System.String, System.Int32>) [1, 2, 3], ");
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: IncludeExpectedOutput("(Container<T>.MyCollection<System.Int32, System.String>) [], (Container<T>.MyCollection<System.String, System.Int32>) [1, 2, 3], "));
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_GenericType_ElementTypeFirstOfTwo(bool useCompilationReference)
         {
             string sourceA = """
@@ -7846,11 +7848,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: "(MyCollection<System.String, System.Int32>) [], (MyCollection<System.Int32, System.String>) [1, 2, 3], ");
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: IncludeExpectedOutput("(MyCollection<System.String, System.Int32>) [], (MyCollection<System.Int32, System.String>) [1, 2, 3], "));
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_GenericType_ElementTypeSecondOfTwo(bool useCompilationReference)
         {
             string sourceA = """
@@ -7887,11 +7889,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: "(MyCollection<System.Int32, System.String>) [], (MyCollection<System.String, System.Int32>) [1, 2, 3], ");
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: IncludeExpectedOutput("(MyCollection<System.Int32, System.String>) [], (MyCollection<System.String, System.Int32>) [1, 2, 3], "));
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_InaccessibleBuilderType_01(bool useCompilationReference)
         {
             string sourceA = """
@@ -7936,7 +7938,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_NestedBuilderType(bool useCompilationReference)
         {
             string sourceA = """
@@ -7974,11 +7976,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: "[], [1, 2, 3], ");
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: IncludeExpectedOutput("[], [1, 2, 3], "));
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_InaccessibleBuilderType_02(bool useCompilationReference)
         {
             string sourceA = """
@@ -8024,7 +8026,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_InaccessibleMethod(bool useCompilationReference)
         {
             string sourceA = """
@@ -8070,7 +8072,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_Overloads_01(bool useCompilationReference)
         {
             string sourceA = """
@@ -8121,11 +8123,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: "[], [1, 2, 3], ");
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: IncludeExpectedOutput("[], [1, 2, 3], "));
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_Overloads_02(bool useCompilationReference)
         {
             string sourceA = """
@@ -8168,11 +8170,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: "[], [1, 2, 3], ");
+            CompileAndVerify(new[] { sourceB, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: IncludeExpectedOutput("[], [1, 2, 3], "));
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_UnexpectedSignature_01(
             [CombinatorialValues(
                 "public static MyCollection<int> Create(ReadOnlySpan<int> items) => default;", // constructed parameter and return types
@@ -8234,7 +8236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_UnexpectedSignature_MoreTypeParameters(bool useCompilationReference)
         {
             string sourceA = """
@@ -8279,7 +8281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_UnexpectedSignature_FewerTypeParameters(bool useCompilationReference)
         {
             string sourceA = """
@@ -8324,7 +8326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_InheritedAttributeOnBaseCollection(bool useCompilationReference)
         {
             string sourceAttribute = """
@@ -8378,7 +8380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_CreateMethodOnBase(bool useCompilationReference)
         {
             string sourceA = """
@@ -8425,7 +8427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_ObsoleteBuilderType_01(bool useCompilationReference)
         {
             string sourceA = """
@@ -8470,7 +8472,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "[1, 2, 3]").WithArguments("MyCollectionBuilder").WithLocation(7, 31));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void CollectionBuilder_ObsoleteBuilderType_02()
         {
             string sourceA = """
@@ -8516,7 +8518,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_ObsoleteBuilderMethod_01(bool useCompilationReference)
         {
             string sourceA = """
@@ -8562,7 +8564,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_ObsoleteBuilderMethod_02(bool useCompilationReference)
         {
             string sourceA = """
@@ -8607,7 +8609,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[1, 2, 3]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "message 4").WithLocation(7, 31));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void CollectionBuilder_UnmanagedCallersOnly()
         {
             string sourceA = """
@@ -8657,7 +8659,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_Constraints_CollectionAndBuilder(bool useCompilationReference)
         {
             string sourceA = """
@@ -8694,7 +8696,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            CompileAndVerify(new[] { sourceB1, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: "[], [1, 2, 3], ");
+            CompileAndVerify(new[] { sourceB1, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: IncludeExpectedOutput("[], [1, 2, 3], "));
 
             string sourceB2 = """
                 #pragma warning disable 219
@@ -8715,7 +8717,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_Constraints_BuilderOnly(bool useCompilationReference)
         {
             string sourceA = """
@@ -8752,7 +8754,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            CompileAndVerify(new[] { sourceB1, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: "[], [1, 2, 3], ");
+            CompileAndVerify(new[] { sourceB1, s_collectionExtensions }, references: new[] { refA }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: IncludeExpectedOutput("[], [1, 2, 3], "));
 
             string sourceB2 = """
                 #pragma warning disable 219
@@ -8772,7 +8774,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "[4, null]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "int?").WithLocation(6, 32));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void CollectionBuilder_Constraints_CollectionOnly()
         {
             string sourceA = """
@@ -8817,7 +8819,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_Substituted_01(bool useCompilationReference)
         {
             string sourceA = """
@@ -8871,7 +8873,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("Create", methodName);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void CollectionBuilder_Substituted_02()
         {
             string sourceA = """
@@ -8931,7 +8933,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("Create", methodName);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void CollectionBuilder_Substituted_03()
         {
             string source = """
@@ -9038,7 +9040,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("Create", methodName);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void CollectionBuilder_ExtensionMethodGetEnumerator_01()
         {
             string source = """
@@ -9076,7 +9078,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_CollectionBuilderNoElementType, "[]").WithArguments("MyCollection<int>").WithLocation(24, 31));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void CollectionBuilder_ExtensionMethodGetEnumerator_02()
         {
             string sourceA = """
@@ -9118,7 +9120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_CollectionBuilderNoElementType, "[]").WithArguments("MyCollection<int>").WithLocation(6, 31));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void CollectionBuilder_InaccessibleGetEnumerator()
         {
             string source = """
@@ -9159,7 +9161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [InlineData("scoped", "", true)]
         [InlineData("scoped", "scoped", false)]
         [InlineData("scoped", "scoped", true)]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_Scoped(string constructorParameterModifier, string builderParameterModifier, bool useCompilationReference)
         {
             string sourceA = $$"""
@@ -9208,11 +9210,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 new[] { sourceB, s_collectionExtensions },
                 references: new[] { refA },
                 targetFramework: TargetFramework.Net80,
-                verify: builderParameterModifier == "scoped" ? Verification.Fails : Verification.Passes,
-                expectedOutput: "[], [1, 2, 3], ");
+                verify: builderParameterModifier == "scoped" ? Verification.Fails : Verification.FailsPEVerify,
+                expectedOutput: IncludeExpectedOutput("[], [1, 2, 3], "));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void CollectionBuilder_ScopedBuilderParameterOnly()
         {
             string sourceA = $$"""
@@ -9257,7 +9259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [CombinatorialData]
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         public void CollectionBuilder_MissingSpanMembers(bool useCompilationReference)
         {
             string sourceA = """
@@ -9310,7 +9312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[1, 2, 3]").WithArguments("System.Span`1", "op_Implicit").WithLocation(7, 31));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void CollectionBuilder_Async()
         {
             string sourceA = """
@@ -9354,7 +9356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(new[] { sourceA, sourceB, CollectionBuilderAttributeDefinition, s_collectionExtensions }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: "[1, 2, 3], ");
+            var verifier = CompileAndVerify(new[] { sourceA, sourceB, CollectionBuilderAttributeDefinition, s_collectionExtensions }, targetFramework: TargetFramework.Net80, verify: Verification.Fails, expectedOutput: IncludeExpectedOutput("[1, 2, 3], "));
             verifier.VerifyIL("Program.<CreateCollection>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
                 """
                 {
@@ -9500,7 +9502,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void CollectionBuilder_AttributeCycle()
         {
             string source = """
@@ -9730,7 +9732,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void IOperation_Span()
         {
             string source = """
