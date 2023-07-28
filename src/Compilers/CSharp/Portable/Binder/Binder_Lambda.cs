@@ -170,6 +170,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var refKind = RefKind.None;
                     var scope = ScopedKind.None;
 
+                    refKind = ParameterHelpers.GetModifiers(p.Modifiers, out _, out var paramsKeyword, out _, out scope);
+
                     if (typeSyntax == null)
                     {
                         hasExplicitlyTypedParameterList = false;
@@ -180,7 +182,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ParameterHelpers.CheckParameterModifiers(p, diagnostics, parsingFunctionPointerParams: false,
                             parsingLambdaParams: !isAnonymousMethod,
                             parsingAnonymousMethodParams: isAnonymousMethod);
-                        refKind = ParameterHelpers.GetModifiers(p.Modifiers, out _, out var paramsKeyword, out _, out scope);
 
                         var isLastParameter = parameterCount == parameterSyntaxList.Value.Count;
                         if (isLastParameter && paramsKeyword.Kind() != SyntaxKind.None)

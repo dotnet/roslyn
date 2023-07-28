@@ -2141,10 +2141,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(anonymousFunction.ParameterCount == delegateParameters.Length);
                 for (int i = 0; i < anonymousFunction.ParameterCount; ++i)
                 {
-                    var lambdaParameterType = anonymousFunction.ParameterType(i);
-                    if (lambdaParameterType.IsErrorType())
+                    TypeSymbol? lambdaParameterType = null;
+                    if (anonymousFunction.HasExplicitlyTypedParameterList)
                     {
-                        continue;
+                        lambdaParameterType = anonymousFunction.ParameterType(i);
+                        if (lambdaParameterType.IsErrorType())
+                        {
+                            continue;
+                        }
                     }
 
                     var lambdaParameterLocation = anonymousFunction.ParameterLocation(i);
@@ -2152,7 +2156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var delegateParameterType = delegateParameters[i].Type;
                     var delegateRefKind = delegateParameters[i].RefKind;
 
-                    if (!lambdaParameterType.Equals(delegateParameterType, TypeCompareKind.AllIgnoreOptions))
+                    if (lambdaParameterType is not null && !lambdaParameterType.Equals(delegateParameterType, TypeCompareKind.AllIgnoreOptions))
                     {
                         SymbolDistinguisher distinguisher = new SymbolDistinguisher(this.Compilation, lambdaParameterType, delegateParameterType);
 

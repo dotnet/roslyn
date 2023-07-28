@@ -465,6 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public Binder GetWithParametersBinder(LambdaSymbol lambdaSymbol, Binder binder)
             => Data.GetWithParametersBinder(lambdaSymbol, binder);
         public bool HasExplicitlyTypedParameterList { get { return Data.HasExplicitlyTypedParameterList; } }
+        public bool HasParameterRefKinds { get { return Data.HasParameterRefKinds; } }
         public int ParameterCount { get { return Data.ParameterCount; } }
         public TypeWithAnnotations InferReturnType(ConversionsBase conversions, NamedTypeSymbol delegateType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out bool inferredFromFunctionType)
             => BindForReturnTypeInference(delegateType).GetInferredReturnType(conversions, _nullableState, ref useSiteInfo, out inferredFromFunctionType);
@@ -546,6 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract bool HasSignature { get; }
         public abstract bool HasExplicitReturnType(out RefKind refKind, out TypeWithAnnotations returnType);
         public abstract bool HasExplicitlyTypedParameterList { get; }
+        public abstract bool HasParameterRefKinds { get; }
         public abstract int ParameterCount { get; }
         public abstract bool IsAsync { get; }
         public abstract bool IsStatic { get; }
@@ -1443,6 +1445,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override bool HasExplicitlyTypedParameterList { get { return !_parameterTypesWithAnnotations.IsDefault; } }
 
+        public override bool HasParameterRefKinds { get { return !_parameterRefKinds.IsDefault; } }
+
         public override int ParameterCount { get { return _parameterNames.IsDefault ? 0 : _parameterNames.Length; } }
 
         public override bool IsAsync { get { return _isAsync; } }
@@ -1497,7 +1501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override RefKind RefKind(int index)
         {
-            Debug.Assert(0 <= index && index < _parameterTypesWithAnnotations.Length);
+            Debug.Assert(0 <= index);
             return _parameterRefKinds.IsDefault ? Microsoft.CodeAnalysis.RefKind.None : _parameterRefKinds[index];
         }
 

@@ -191,9 +191,15 @@ class C
                 // (34,9): error CS0246: The type or namespace name 'Frob' could not be found (are you missing a using directive or an assembly reference?)
                 //         Frob q8 = ()=>{};
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Frob").WithArguments("Frob").WithLocation(34, 9),
+                // (36,17): error CS1661: Cannot convert lambda expression to type 'C.D2' because the parameter types do not match the delegate parameter types
+                //         D2 q9 = x9=>{};
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "x9=>{}").WithArguments("lambda expression", "C.D2").WithLocation(36, 17),
                 // (36,17): error CS1676: Parameter 1 must be declared with the 'out' keyword
                 //         D2 q9 = x9=>{};
                 Diagnostic(ErrorCode.ERR_BadParamRef, "x9").WithArguments("1", "out").WithLocation(36, 17),
+                // (38,18): error CS1661: Cannot convert lambda expression to type 'C.D1' because the parameter types do not match the delegate parameter types
+                //         D1 q10 = (x10,y10,z10)=>{}; 
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(x10,y10,z10)=>{}").WithArguments("lambda expression", "C.D1").WithLocation(38, 18),
                 // (38,19): error CS1676: Parameter 1 must be declared with the 'ref' keyword
                 //         D1 q10 = (x10,y10,z10)=>{}; 
                 Diagnostic(ErrorCode.ERR_BadParamRef, "x10").WithArguments("1", "ref").WithLocation(38, 19),
@@ -7056,9 +7062,15 @@ public class DisplayAttribute : System.Attribute
 
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
+                // (9,17): error CS1661: Cannot convert lambda expression to type 'D1' because the parameter types do not match the delegate parameter types
+                //         D1 d1 = r1 => r1; // 1
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "r1 => r1").WithArguments("lambda expression", "D1").WithLocation(9, 17),
                 // (9,17): error CS1676: Parameter 1 must be declared with the 'ref' keyword
                 //         D1 d1 = r1 => r1; // 1
                 Diagnostic(ErrorCode.ERR_BadParamRef, "r1").WithArguments("1", "ref").WithLocation(9, 17),
+                // (10,11): error CS1661: Cannot convert lambda expression to type 'D1' because the parameter types do not match the delegate parameter types
+                //         M(r2 => r2); // 2
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "r2 => r2").WithArguments("lambda expression", "D1").WithLocation(10, 11),
                 // (10,11): error CS1676: Parameter 1 must be declared with the 'ref' keyword
                 //         M(r2 => r2); // 2
                 Diagnostic(ErrorCode.ERR_BadParamRef, "r2").WithArguments("1", "ref").WithLocation(10, 11)
@@ -8459,6 +8471,179 @@ class Program
                 // (1,19): error CS0027: Keyword 'this' is not available in the current context
                 // var lam = (params this int[] xs) => xs.Length;
                 Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(1, 19));
+        }
+
+        [Fact]
+        public void RefModifiersWithoutTypeName_01()
+        {
+            const string source = """
+                delegate T SelfReturnerIn<T>(in T t);
+                delegate T SelfReturnerRef<T>(ref T t);
+                delegate T SelfReturnerOut<T>(out T t);
+                delegate T SelfReturnerRefReadonly<T>(ref readonly T t);
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        SelfReturnerIn<string> fin = (in x) => x;
+                        SelfReturnerRef<string> fref = (ref x) => x;
+                        SelfReturnerOut<string> fout = (out x) => x;
+                        SelfReturnerRefReadonly<string> frr = (ref readonly x) => x;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (12,51): error CS0269: Use of unassigned out parameter 'x'
+                //         SelfReturnerOut<string> fout = (out x) => x;
+                Diagnostic(ErrorCode.ERR_UseDefViolationOut, "x").WithArguments("x").WithLocation(12, 51),
+                // (12,51): error CS0177: The out parameter 'x' must be assigned to before control leaves the current method
+                //         SelfReturnerOut<string> fout = (out x) => x;
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "x").WithArguments("x").WithLocation(12, 51));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var lambdas = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Select(e => model.GetSymbolInfo(e).Symbol.GetSymbol<LambdaSymbol>()).ToArray();
+
+            Assert.Equal(RefKind.In, lambdas[0].Parameters[0].RefKind);
+            Assert.Equal(RefKind.Ref, lambdas[1].Parameters[0].RefKind);
+            Assert.Equal(RefKind.Out, lambdas[2].Parameters[0].RefKind);
+            Assert.Equal(RefKind.RefReadOnlyParameter, lambdas[3].Parameters[0].RefKind);
+        }
+
+        [Fact]
+        public void RefModifiersWithoutTypeName_02()
+        {
+            const string source = """
+                delegate T SelfReturnerIn<T>(in T t, int index);
+                delegate T SelfReturnerRef<T>(ref T t, int index);
+                delegate T SelfReturnerOut<T>(out T t, int index);
+                delegate T SelfReturnerRefReadonly<T>(ref readonly T t, int index);
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        SelfReturnerIn<string> fin = (in x, index) => x;
+                        SelfReturnerRef<string> fref = (ref x, index) => x;
+                        SelfReturnerOut<string> fout = (out x, index) => x;
+                        SelfReturnerRefReadonly<string> frr = (ref readonly x, index) => x;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (12,58): error CS0269: Use of unassigned out parameter 'x'
+                //         SelfReturnerOut<string> fout = (out x, index) => x;
+                Diagnostic(ErrorCode.ERR_UseDefViolationOut, "x").WithArguments("x").WithLocation(12, 58),
+                // (12,58): error CS0177: The out parameter 'x' must be assigned to before control leaves the current method
+                //         SelfReturnerOut<string> fout = (out x, index) => x;
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "x").WithArguments("x").WithLocation(12, 58));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var lambdas = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Select(e => model.GetSymbolInfo(e).Symbol.GetSymbol<LambdaSymbol>()).ToArray();
+
+            Assert.Equal(RefKind.In, lambdas[0].Parameters[0].RefKind);
+            Assert.Equal(RefKind.Ref, lambdas[1].Parameters[0].RefKind);
+            Assert.Equal(RefKind.Out, lambdas[2].Parameters[0].RefKind);
+            Assert.Equal(RefKind.RefReadOnlyParameter, lambdas[3].Parameters[0].RefKind);
+
+            Assert.Equal(RefKind.None, lambdas[0].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[1].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[2].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[3].Parameters[1].RefKind);
+        }
+
+        [Fact]
+        public void RefModifiersWithoutTypeName_Unparenthesized()
+        {
+            const string source = """
+                delegate T SelfReturnerIn<T>(in T t);
+                delegate T SelfReturnerRef<T>(ref T t);
+                delegate T SelfReturnerOut<T>(out T t);
+                delegate T SelfReturnerRefReadonly<T>(ref readonly T t);
+                
+                class Program
+                {
+                    static void Main()
+                    {
+                        SelfReturnerIn<string> fin = in x => x;
+                        SelfReturnerRef<string> fref = ref x => x;
+                        SelfReturnerOut<string> fout = out x => x;
+                        SelfReturnerRefReadonly<string> frr = ref readonly x => x;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (10,38): error CS1525: Invalid expression term 'in'
+                //         SelfReturnerIn<string> fin = in x => x;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "in").WithArguments("in").WithLocation(10, 38),
+                // (10,38): error CS1003: Syntax error, ',' expected
+                //         SelfReturnerIn<string> fin = in x => x;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "in").WithArguments(",").WithLocation(10, 38),
+                // (10,41): error CS1002: ; expected
+                //         SelfReturnerIn<string> fin = in x => x;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "x").WithLocation(10, 41),
+                // (10,41): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         SelfReturnerIn<string> fin = in x => x;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "x => x").WithLocation(10, 41),
+                // (11,33): error CS8171: Cannot initialize a by-value variable with a reference
+                //         SelfReturnerRef<string> fref = ref x => x;
+                Diagnostic(ErrorCode.ERR_InitializeByValueVariableWithReference, "fref = ref x => x").WithLocation(11, 33),
+                // (11,44): error CS1661: Cannot convert lambda expression to type 'SelfReturnerRef<string>' because the parameter types do not match the delegate parameter types
+                //         SelfReturnerRef<string> fref = ref x => x;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "x => x").WithArguments("lambda expression", "SelfReturnerRef<string>").WithLocation(11, 44),
+                // (11,44): error CS1676: Parameter 1 must be declared with the 'ref' keyword
+                //         SelfReturnerRef<string> fref = ref x => x;
+                Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "ref").WithLocation(11, 44),
+                // (12,40): error CS1525: Invalid expression term 'out'
+                //         SelfReturnerOut<string> fout = out x => x;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "out").WithArguments("out").WithLocation(12, 40),
+                // (12,40): error CS1003: Syntax error, ',' expected
+                //         SelfReturnerOut<string> fout = out x => x;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",").WithLocation(12, 40),
+                // (12,44): error CS1002: ; expected
+                //         SelfReturnerOut<string> fout = out x => x;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "x").WithLocation(12, 44),
+                // (12,44): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         SelfReturnerOut<string> fout = out x => x;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "x => x").WithLocation(12, 44),
+                // (13,41): error CS8171: Cannot initialize a by-value variable with a reference
+                //         SelfReturnerRefReadonly<string> frr = ref readonly x => x;
+                Diagnostic(ErrorCode.ERR_InitializeByValueVariableWithReference, "frr = ref ").WithLocation(13, 41),
+                // (13,51): error CS1525: Invalid expression term 'readonly'
+                //         SelfReturnerRefReadonly<string> frr = ref readonly x => x;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "readonly").WithArguments("readonly").WithLocation(13, 51),
+                // (13,51): error CS1002: ; expected
+                //         SelfReturnerRefReadonly<string> frr = ref readonly x => x;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "readonly").WithLocation(13, 51),
+                // (13,51): error CS0106: The modifier 'readonly' is not valid for this item
+                //         SelfReturnerRefReadonly<string> frr = ref readonly x => x;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(13, 51),
+                // (13,60): error CS0246: The type or namespace name 'x' could not be found (are you missing a using directive or an assembly reference?)
+                //         SelfReturnerRefReadonly<string> frr = ref readonly x => x;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "x").WithArguments("x").WithLocation(13, 60),
+                // (13,62): error CS1001: Identifier expected
+                //         SelfReturnerRefReadonly<string> frr = ref readonly x => x;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(13, 62),
+                // (13,62): error CS1003: Syntax error, ',' expected
+                //         SelfReturnerRefReadonly<string> frr = ref readonly x => x;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(13, 62),
+                // (13,65): error CS1002: ; expected
+                //         SelfReturnerRefReadonly<string> frr = ref readonly x => x;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "x").WithLocation(13, 65),
+                // (13,65): error CS0103: The name 'x' does not exist in the current context
+                //         SelfReturnerRefReadonly<string> frr = ref readonly x => x;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(13, 65),
+                // (13,65): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         SelfReturnerRefReadonly<string> frr = ref readonly x => x;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "x").WithLocation(13, 65));
         }
     }
 }
