@@ -243,7 +243,8 @@ public class UseCollectionExpressionForArray
             FixedCode = """
                 class C
                 {
-                    object[] i = [
+                    object[] i =
+                    [
                         ""
                     ];
                 }
@@ -347,7 +348,8 @@ public class UseCollectionExpressionForArray
             FixedCode = """
                 class C
                 {
-                    string[] i = [
+                    string[] i =
+                    [
                         ""
                     ];
                 }
@@ -1420,7 +1422,7 @@ public class UseCollectionExpressionForArray
             FixedCode = """
                 class C
                 {
-                    int[] i = 
+                    int[] i =
                     [
                         1, 2, 3
                     ];
@@ -1681,7 +1683,7 @@ public class UseCollectionExpressionForArray
             FixedCode = """
                 class C
                 {
-                    int[] i = 
+                    int[] i =
                     [
                         1, 2, 3
                     ];

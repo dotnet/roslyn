@@ -150,7 +150,9 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider : Sy
 
                     return shouldReplaceExpressionEntirely
                         ? collectionExpression.WithTriviaFrom(currentArrayCreation)
-                        : collectionExpression.WithPrependedLeadingTrivia(currentArrayCreation.Type.GetTrailingTrivia());
+                        : collectionExpression
+                            .WithPrependedLeadingTrivia(currentArrayCreation.Type.GetTrailingTrivia())
+                            .WithPrependedLeadingTrivia(ElasticMarker);
                 });
         }
 
@@ -172,7 +174,9 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider : Sy
 
                     return shouldReplaceExpressionEntirely
                         ? collectionExpression.WithTriviaFrom(currentArrayCreation)
-                        : collectionExpression.WithPrependedLeadingTrivia(currentArrayCreation.CloseBracketToken.TrailingTrivia);
+                        : collectionExpression
+                            .WithPrependedLeadingTrivia(currentArrayCreation.CloseBracketToken.TrailingTrivia)
+                            .WithPrependedLeadingTrivia(ElasticMarker);
                 });
         }
     }
