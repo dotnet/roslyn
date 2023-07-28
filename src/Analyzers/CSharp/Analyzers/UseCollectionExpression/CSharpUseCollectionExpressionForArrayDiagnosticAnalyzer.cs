@@ -25,7 +25,7 @@ using static SyntaxFactory;
 internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAnalyzer
     : AbstractBuiltInCodeStyleDiagnosticAnalyzer
 {
-    private static readonly LiteralExpressionSyntax s_nullLiteralExpression = LiteralExpression(SyntaxKind.NullLiteralExpression);
+    private static readonly CollectionExpressionSyntax s_emptyCollectionExpression = CollectionExpression();
 
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
@@ -214,16 +214,18 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
         }
 
         // Looks good as something to replace.  Now check the semantics of making the replacement to see if there would
-        // any issues.  To keep things simple, all we do is replace the existing expression with the `null` literal.
-        // This is a similarly 'untyped' literal (like a collection-expression is), so it tells us if the new code will
-        // have any issues moving to something untyped.  This will also tell us if we have any ambiguities (because
-        // there are multiple destination types that could accept the collection expression).
+        // any issues.  To keep things simple, all we do is replace the existing expression with the `[]` literal. This
+        // will tell us if we have problems assigning a collection expression to teh target type.
+        //
+        // Note: this does mean certain unambiguous cases with overloads (like `Goo(int[] values)` vs `Goo(string[]
+        // values)`) will not get simplification.  We can revisit this in the future to see if that warrants a more
+        // expensive check that involves checking the consitutuent elements of the literal.
         var speculationAnalyzer = new SpeculationAnalyzer(
             topmostExpression,
-            s_nullLiteralExpression,
+            s_emptyCollectionExpression,
             semanticModel,
             cancellationToken,
-            skipVerificationForReplacedNode: true,
+            skipVerificationForReplacedNode: false,
             failOnOverloadResolutionFailuresInOriginalCode: true);
 
         if (speculationAnalyzer.ReplacementChangesSemantics())
