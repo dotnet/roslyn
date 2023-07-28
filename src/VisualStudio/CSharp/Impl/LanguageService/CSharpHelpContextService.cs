@@ -97,8 +97,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             if (TryGetTextForSpecialCharacters(token, out var text) ||
                 TryGetTextForContextualKeyword(token, out text) ||
                 TryGetTextForCombinationKeyword(token, out text) ||
-                TryGetTextForKeyword(token, out text) ||
                 TryGetTextForPreProcessor(token, out text) ||
+                TryGetTextForKeyword(token, out text) ||
                 TryGetTextForOperator(token, document, out text) ||
                 TryGetTextForSymbol(token, semanticModel, document, cancellationToken, out text))
             {
