@@ -29532,5 +29532,21 @@ Block[B2] - Exit
                 // }
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(27, 2));
         }
+
+        [Fact]
+        public void AutoDefault()
+        {
+            var comp = CreateCompilation("""
+                ref struct RS
+                {
+                    ref int ri;
+                    public RS() => ri = 0;
+                }
+                """,
+                options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings),
+                targetFramework: TargetFramework.NetCoreApp);
+
+            comp.VerifyDiagnostics();
+        }
     }
 }

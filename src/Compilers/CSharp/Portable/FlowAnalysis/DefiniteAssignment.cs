@@ -1497,6 +1497,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected void Assign(BoundNode node, BoundExpression value, bool isRef = false, bool read = true)
         {
+            if (!isRef && node is BoundFieldAccess { FieldSymbol.RefKind: not RefKind.None } fieldAccess)
+            {
+                CheckAssigned(fieldAccess, node.Syntax);
+            }
             AssignImpl(node, value, written: true, isRef: isRef, read: read);
         }
 
