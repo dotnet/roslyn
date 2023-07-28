@@ -120,11 +120,23 @@
   <data name="Aborted" xml:space="preserve">
     <value>Aborted!</value>
   </data>
+  <data name="Attaching_debugger_to_process" xml:space="preserve">
+    <value>Attaching debugger to process {0}</value>
+  </data>
   <data name="Building_project" xml:space="preserve">
     <value>Building project...</value>
   </data>
   <data name="Canceled" xml:space="preserve">
     <value>Canceled!</value>
+  </data>
+  <data name="Client_failed_to_attach_the_debugger" xml:space="preserve">
+    <value>Client failed to attach the debugger</value>
+  </data>
+  <data name="Debugger_attached" xml:space="preserve">
+    <value>Debugger attached</value>
+  </data>
+  <data name="Debugging_tests" xml:space="preserve">
+    <value>Debugging tests...</value>
   </data>
   <data name="Discovering_tests" xml:space="preserve">
     <value>Discovering tests...</value>

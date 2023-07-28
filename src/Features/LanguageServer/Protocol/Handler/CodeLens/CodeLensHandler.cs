@@ -122,12 +122,24 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
                 Command = new LSP.Command
                 {
                     CommandIdentifier = RunTestsCommandIdentifier,
-                    Arguments = new object[] { new RunTestsParams(textDocumentIdentifier, range) },
+                    Arguments = new object[] { new RunTestsParams(textDocumentIdentifier, range, AttachDebugger: false) },
                     Title = FeaturesResources.Run_Test
                 }
             };
 
+            var debugTestCodeLens = new LSP.CodeLens
+            {
+                Range = range,
+                Command = new LSP.Command
+                {
+                    CommandIdentifier = RunTestsCommandIdentifier,
+                    Arguments = new object[] { new RunTestsParams(textDocumentIdentifier, range, AttachDebugger: true) },
+                    Title = FeaturesResources.Debug_Test
+                }
+            };
+
             codeLenses.Add(runTestsCodeLens);
+            codeLenses.Add(debugTestCodeLens);
         }
 
         // Create code lenses for all test containers.
@@ -140,12 +152,24 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
                 Command = new LSP.Command
                 {
                     CommandIdentifier = RunTestsCommandIdentifier,
-                    Arguments = new object[] { new RunTestsParams(textDocumentIdentifier, range) },
+                    Arguments = new object[] { new RunTestsParams(textDocumentIdentifier, range, AttachDebugger: false) },
                     Title = FeaturesResources.Run_All_Tests
                 }
             };
 
+            var debugTestsCodeLens = new LSP.CodeLens
+            {
+                Range = range,
+                Command = new LSP.Command
+                {
+                    CommandIdentifier = RunTestsCommandIdentifier,
+                    Arguments = new object[] { new RunTestsParams(textDocumentIdentifier, range, AttachDebugger: true) },
+                    Title = FeaturesResources.Debug_All_Tests
+                }
+            };
+
             codeLenses.Add(runTestsCodeLens);
+            codeLenses.Add(debugTestsCodeLens);
         }
     }
 }
