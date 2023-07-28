@@ -53,8 +53,9 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
     {
         private static readonly ObjectPool<TAnalyzer> s_pool = SharedPools.Default<TAnalyzer>();
 
+        protected abstract bool IsComplexElementInitializer(SyntaxNode expression);
         protected abstract void GetPartsOfForeachStatement(TForeachStatementSyntax statement, out SyntaxToken identifier, out TExpressionSyntax expression, out IEnumerable<TStatementSyntax> statements);
-        protected abstract void GetPartsOfIfStatement(TIfStatementSyntax statement, out TExpressionSyntax condition, out IEnumerable<TStatementSyntax> whenTrueStatements, out IEnumerable<TStatementSyntax> whenFalseStatements);
+        protected abstract void GetPartsOfIfStatement(TIfStatementSyntax statement, out TExpressionSyntax condition, out IEnumerable<TStatementSyntax> whenTrueStatements, out IEnumerable<TStatementSyntax>? whenFalseStatements);
 
         public static TAnalyzer Allocate()
             => s_pool.Allocate();
@@ -73,10 +74,28 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             CancellationToken cancellationToken)
         {
             this.Initialize(semanticModel, syntaxFacts, objectCreationExpression, areCollectionExpressionsSupported, cancellationToken);
-            return this.AnalyzeWorker();
+            var result = this.AnalyzeWorker();
+
+            // If analysis failed entirely, immediately bail out.
+            if (result.IsDefault)
+                return default;
+
+            // Analysis succeeded, but the result may be empty or non empty.
+            //
+            // For collection expressions, it's fine for this result to be empty.  In other words, it's ok to offer
+            // changing `new List<int>() { 1 }` (on its own) to `[1]`.
+            //
+            // However, for collection initializers we always want at least one element to add to the initializer.  In
+            // other words, we don't want to suggest changing `new List<int>()` to `new List<int>() { }` as that's just
+            // noise.  So convert empty results to an invalid result here.
+            if (areCollectionExpressionsSupported)
+                return result;
+
+            // Downgrade an empty result to a failure for the normal collection-initializer case.
+            return result.IsEmpty ? default : result;
         }
 
-        protected override void AddMatches(ArrayBuilder<Match<TStatementSyntax>> matches)
+        protected override bool TryAddMatches(ArrayBuilder<Match<TStatementSyntax>> matches)
         {
             // If containing statement is inside a block (e.g. method), than we need to iterate through its child statements.
             // If containing statement is in top-level code, than we need to iterate through child statements of containing compilation unit.
@@ -98,13 +117,19 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             if (initializer != null)
             {
                 var firstInit = _syntaxFacts.GetExpressionsOfObjectCollectionInitializer(initializer).First();
+
+                // if we have an object creation, and it *already* has an initializer in it (like `new T { { x, y } }`)
+                // this can't legally become a collection expression.
+                if (_analyzeForCollectionExpression && this.IsComplexElementInitializer(firstInit))
+                    return false;
+
                 seenIndexAssignment = _syntaxFacts.IsElementAccessInitializer(firstInit);
                 seenInvocation = !seenIndexAssignment;
             }
 
             // An indexer can't be used with a collection expression.  So fail out immediately if we see that.
             if (seenIndexAssignment && _analyzeForCollectionExpression)
-                return;
+                return false;
 
             foreach (var child in containingBlockOrCompilationUnit.ChildNodesAndTokens())
             {
@@ -141,8 +166,10 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 }
 
                 // Something we didn't understand. Stop here.
-                return;
+                break;
             }
+
+            return true;
 
             bool TryProcessExpressionStatement(TExpressionStatementSyntax expressionStatement)
             {
@@ -241,7 +268,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
                 this.GetPartsOfIfStatement(ifStatement, out _, out var whenTrue, out var whenFalse);
                 var whenTrueStatements = whenTrue.ToImmutableArray();
-                var whenFalseStatements = whenFalse.ToImmutableArray();
 
                 if (whenTrueStatements is [TExpressionStatementSyntax trueChildStatement] &&
                     TryAnalyzeInvocation(
@@ -251,13 +277,14 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                         out var instance) &&
                     ValuePatternMatches(instance))
                 {
-                    if (whenTrueStatements.Length == 0)
+                    if (whenFalse is null)
                     {
                         // add the form `.. x ? [y] : []` to the result
                         matches.Add(new Match<TStatementSyntax>(ifStatement, UseSpread: true));
                         return true;
                     }
 
+                    var whenFalseStatements = whenFalse.ToImmutableArray();
                     if (whenFalseStatements is [TExpressionStatementSyntax falseChildStatement] &&
                         TryAnalyzeInvocation(
                             falseChildStatement,

@@ -156,11 +156,21 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             // collection expressions. 
             var syntaxFacts = GetSyntaxFacts();
             using var analyzer = GetAnalyzer();
-            var result = GetCollectionExpressionMatches() ?? GetCollectionInitializerMatches();
-            if (result is null)
+
+            var collectionExpressionMatches = GetCollectionExpressionMatches();
+            var collectionInitializerMatches = GetCollectionInitializerMatches();
+
+            // if both fail, we have nothing to offer.
+            if (collectionExpressionMatches is null && collectionInitializerMatches is null)
                 return;
 
-            var (matches, shouldUseCollectionExpression) = result.Value;
+            // if one fails, prefer the other.  If both succeed, prefer the one with more matches.
+            var (matches, shouldUseCollectionExpression) =
+                collectionExpressionMatches is null ? collectionInitializerMatches!.Value :
+                collectionInitializerMatches is null ? collectionExpressionMatches!.Value :
+                collectionExpressionMatches.Value.matches.Length >= collectionInitializerMatches.Value.matches.Length
+                    ? collectionExpressionMatches.Value
+                    : collectionInitializerMatches.Value;
 
             var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(matches.Select(static m => m.Statement));
             if (syntaxFacts.ContainsInterleavedDirective(nodes, cancellationToken))
@@ -187,12 +197,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 if (matches.IsDefault)
                     return null;
 
-                // for collection initializers we always want at least one element to add to the initializer.  In other
-                // words, we don't want to suggest changing `new List<int>()` to `new List<int>() { }` as that's just
-                // noise.
-                if (matches.IsEmpty)
-                    return null;
-
                 return (matches, shouldUseCollectionExpression: false);
             }
 
@@ -207,9 +211,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 // If analysis failed, we can't change this, no matter what.
                 if (matches.IsDefault)
                     return null;
-
-                // Analysis succeeded.  Note: for collection expressions, it's fine for this result to be empty.  In
-                // other words, it's ok to offer changing `new List<int>() { 1 }` (on its own) to `[1]`.
 
                 // Check if it would actually be legal to use a collection expression here though.
                 if (!CanUseCollectionExpression(semanticModel, objectCreationExpression, cancellationToken))

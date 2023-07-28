@@ -28,5 +28,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             ' Only called for collection expressions, which VB does not support
             Throw ExceptionUtilities.Unreachable()
         End Sub
+
+        Protected Overrides Function IsComplexElementInitializer(expression As SyntaxNode) As Boolean
+            ' Only called for collection expressions, which VB does not support
+            Throw ExceptionUtilities.Unreachable()
+        End Function
     End Class
 End Namespace

@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
                 var matches = analyzer.Analyze(semanticModel, syntaxFacts, objectCreation, useCollectionExpression, cancellationToken);
 
-                if (matches.IsDefaultOrEmpty)
+                if (matches.IsDefault)
                     continue;
 
                 var statement = objectCreation.FirstAncestorOrSelf<TStatementSyntax>();

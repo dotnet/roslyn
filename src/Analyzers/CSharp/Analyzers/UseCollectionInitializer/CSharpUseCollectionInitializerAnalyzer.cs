@@ -21,6 +21,9 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
         VariableDeclaratorSyntax,
         CSharpUseCollectionInitializerAnalyzer>
 {
+    protected override bool IsComplexElementInitializer(SyntaxNode expression)
+        => expression.IsKind(SyntaxKind.ComplexElementInitializerExpression);
+
     protected override void GetPartsOfForeachStatement(
         ForEachStatementSyntax statement,
         out SyntaxToken identifier,
@@ -36,11 +39,11 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
         IfStatementSyntax statement,
         out ExpressionSyntax condition,
         out IEnumerable<StatementSyntax> whenTrueStatements,
-        out IEnumerable<StatementSyntax> whenFalseStatements)
+        out IEnumerable<StatementSyntax>? whenFalseStatements)
     {
         condition = statement.Condition;
         whenTrueStatements = ExtractEmbeddedStatements(statement.Statement);
-        whenFalseStatements = statement.Else != null ? ExtractEmbeddedStatements(statement.Else.Statement) : SpecializedCollections.EmptyEnumerable<StatementSyntax>();
+        whenFalseStatements = statement.Else != null ? ExtractEmbeddedStatements(statement.Else.Statement) : null;
     }
 
     private static IEnumerable<StatementSyntax> ExtractEmbeddedStatements(StatementSyntax embeddedStatement)

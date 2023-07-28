@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             return !_syntaxFacts.IsObjectCollectionInitializer(_syntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression));
         }
 
-        protected override void AddMatches(ArrayBuilder<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches)
+        protected override bool TryAddMatches(ArrayBuilder<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches)
         {
             // If containing statement is inside a block (e.g. method), than we need to iterate through its child statements.
             // If containing statement is in top-level code, than we need to iterate through child statements of containing compilation unit.
@@ -180,6 +180,8 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 matches.Add(new Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>(
                     statement, leftMemberAccess, rightExpression, typeMember?.Name ?? identifier.ValueText));
             }
+
+            return true;
         }
 
         private static bool IsExplicitlyImplemented(
