@@ -636,6 +636,104 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
     }
 
     [Fact]
+    public void Operators()
+    {
+        var source = """
+            class C
+            {
+                public static C operator+(ref readonly C x, C y) => x;
+                public static C operator--(ref readonly C x) => x;
+                public static implicit operator C(ref readonly int x) => null;
+                public static explicit operator C(ref readonly short x) => null;
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (3,29): error CS0631: ref and out are not valid in this context
+            //     public static C operator+(ref readonly C x, C y) => x;
+            Diagnostic(ErrorCode.ERR_IllegalRefParam, "+").WithLocation(3, 29),
+            // (4,29): error CS0631: ref and out are not valid in this context
+            //     public static C operator--(ref readonly C x) => x;
+            Diagnostic(ErrorCode.ERR_IllegalRefParam, "--").WithLocation(4, 29),
+            // (5,37): error CS0631: ref and out are not valid in this context
+            //     public static implicit operator C(ref readonly int x) => null;
+            Diagnostic(ErrorCode.ERR_IllegalRefParam, "C").WithLocation(5, 37),
+            // (6,37): error CS0631: ref and out are not valid in this context
+            //     public static explicit operator C(ref readonly short x) => null;
+            Diagnostic(ErrorCode.ERR_IllegalRefParam, "C").WithLocation(6, 37));
+    }
+
+    [Fact]
+    public void ExpressionTrees_Invalid()
+    {
+        var source = """
+            using System;
+            using System.Linq.Expressions;
+
+            Expression<D> e1 = (ref readonly int p) => C.M(in p);
+            Expression<D> e2 = (ref readonly int p) => C.M(ref p);
+            Expression<D> e3 = (ref readonly int p) => C.M(p);
+            Expression<D> e4 = (int p) => C.M(in p);
+            Expression<Action<int>> e5 = (int p) => C.M(out p);
+
+            delegate void D(ref readonly int p);
+
+            static class C
+            {
+                public static void M(ref readonly int x) { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (4,38): error CS1951: An expression tree lambda may not contain a ref, in or out parameter
+            // Expression<D> e1 = (ref readonly int p) => C.M(in p);
+            Diagnostic(ErrorCode.ERR_ByRefParameterInExpressionTree, "p").WithLocation(4, 38),
+            // (5,52): error CS8329: Cannot use variable 'p' as a ref or out value because it is a readonly variable
+            // Expression<D> e2 = (ref readonly int p) => C.M(ref p);
+            Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "p").WithArguments("variable", "p").WithLocation(5, 52),
+            // (6,38): error CS1951: An expression tree lambda may not contain a ref, in or out parameter
+            // Expression<D> e3 = (ref readonly int p) => C.M(p);
+            Diagnostic(ErrorCode.ERR_ByRefParameterInExpressionTree, "p").WithLocation(6, 38),
+            // (6,48): warning CS9506: Argument 1 should be passed with the 'in' keyword
+            // Expression<D> e3 = (ref readonly int p) => C.M(p);
+            Diagnostic(ErrorCode.WRN_ArgExpectedIn, "p").WithArguments("1").WithLocation(6, 48),
+            // (7,20): error CS1661: Cannot convert lambda expression to type 'Expression<D>' because the parameter types do not match the delegate parameter types
+            // Expression<D> e4 = (int p) => C.M(in p);
+            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(int p) => C.M(in p)").WithArguments("lambda expression", "System.Linq.Expressions.Expression<D>").WithLocation(7, 20),
+            // (7,25): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
+            // Expression<D> e4 = (int p) => C.M(in p);
+            Diagnostic(ErrorCode.ERR_BadParamRef, "p").WithArguments("1", "ref readonly").WithLocation(7, 25),
+            // (8,49): error CS1615: Argument 1 may not be passed with the 'out' keyword
+            // Expression<Action<int>> e5 = (int p) => C.M(out p);
+            Diagnostic(ErrorCode.ERR_BadArgExtraRef, "p").WithArguments("1", "out").WithLocation(8, 49));
+    }
+
+    [Fact]
+    public void ExpressionTrees_Valid()
+    {
+        var source = """
+            using System;
+            using System.Linq.Expressions;
+
+            C.E((int p) => C.M(in p));
+            C.E((int p) => C.M(ref p));
+            C.E((int p) => C.M(p));
+            C.E((int p) => C.M(5));
+
+            static class C
+            {
+                public static void M(ref readonly int x) => Console.Write(x);
+                public static void E(Expression<Action<int>> e) => e.Compile()(4);
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "4445").VerifyDiagnostics(
+            // (6,20): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // C.E((int p) => C.M(p));
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "p").WithArguments("1").WithLocation(6, 20),
+            // (7,20): warning CS9504: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
+            // C.E((int p) => C.M(5));
+            Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "5").WithArguments("1").WithLocation(7, 20));
+    }
+
+    [Fact]
     public void Delegate()
     {
         var source = """
@@ -3409,6 +3507,67 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("d", "C.M(ref readonly System.DateTime)").WithLocation(8, 9));
     }
 
+    [Theory, CombinatorialData]
+    public void OperationTree([CombinatorialValues("ref ", "in ", "")] string modifier)
+    {
+        var source = $$"""
+            class C
+            {
+                void M(ref readonly int p) { }
+                void M2(int x)
+                /*<bind>*/{
+                    M({{modifier}}x);
+                }/*</bind>*/
+            }
+            """;
+        var comp = CreateCompilation(source);
+
+        VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(comp, $$"""
+            IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+              IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'M({{modifier}}x);')
+                Expression:
+                  IInvocationOperation ( void C.M(ref readonly System.Int32 p)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M({{modifier}}x)')
+                    Instance Receiver:
+                      IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M')
+                    Arguments(1):
+                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p) (OperationKind.Argument, Type: null) (Syntax: '{{modifier}}x')
+                          IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            """,
+            modifier == ""
+                ? new[]
+                {
+                    // (6,11): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+                    //         M(x);
+                    Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(6, 11)
+                }
+                : DiagnosticDescription.None);
+
+        VerifyFlowGraphForTest<BlockSyntax>(comp, $$"""
+            Block[B0] - Entry
+                Statements (0)
+                Next (Regular) Block[B1]
+            Block[B1] - Block
+                Predecessors: [B0]
+                Statements (1)
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'M({{modifier}}x);')
+                      Expression:
+                        IInvocationOperation ( void C.M(ref readonly System.Int32 p)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M({{modifier}}x)')
+                          Instance Receiver:
+                            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M')
+                          Arguments(1):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p) (OperationKind.Argument, Type: null) (Syntax: '{{modifier}}x')
+                                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Next (Regular) Block[B2]
+            Block[B2] - Exit
+                Predecessors: [B1]
+                Statements (0)
+            """);
+    }
+
     [Fact]
     public void Invocation_VirtualMethod()
     {
@@ -4819,6 +4978,30 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         var m2 = c2.GetMember<MethodSymbol>("I.M");
         Assert.Equal(!emit, m2 is RetargetingMethodSymbol);
         Assert.Equal("I.M(ref readonly int)", m2.ExplicitInterfaceImplementations.Single().ToDisplayString());
+    }
+
+    [Fact]
+    public void Implementation_RefReadonly_In_Close()
+    {
+        var source = """
+            interface I
+            {
+                void M1(in int x);
+                void M2(ref readonly int x);
+            }
+            class C : I
+            {
+                void M1(ref readonly int x) { }
+                void M2(in int x) { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (6,11): error CS0737: 'C' does not implement interface member 'I.M1(in int)'. 'C.M1(ref readonly int)' cannot implement an interface member because it is not public.
+            // class C : I
+            Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "I").WithArguments("C", "I.M1(in int)", "C.M1(ref readonly int)").WithLocation(6, 11),
+            // (6,11): error CS0737: 'C' does not implement interface member 'I.M2(ref readonly int)'. 'C.M2(in int)' cannot implement an interface member because it is not public.
+            // class C : I
+            Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "I").WithArguments("C", "I.M2(ref readonly int)", "C.M2(in int)").WithLocation(6, 11));
     }
 
     [Fact]

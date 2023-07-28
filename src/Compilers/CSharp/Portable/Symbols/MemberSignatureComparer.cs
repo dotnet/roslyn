@@ -386,6 +386,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _typeComparison = typeComparison;
             Debug.Assert((_typeComparison & TypeCompareKind.FunctionPointerRefMatchesOutInRefReadonly) == 0,
                          $"Rely on the {nameof(refKindCompareMode)} flag to set this to ensure all cases are handled.");
+            Debug.Assert(_refKindCompareMode == RefKindCompareMode.DoNotConsiderDifferences ||
+                (_refKindCompareMode & RefKindCompareMode.ConsiderDifferences) != 0,
+                $"Cannot set {nameof(RefKindCompareMode)} flags without {nameof(RefKindCompareMode.ConsiderDifferences)}.");
             if ((refKindCompareMode & RefKindCompareMode.ConsiderDifferences) == 0)
             {
                 _typeComparison |= TypeCompareKind.FunctionPointerRefMatchesOutInRefReadonly;
@@ -765,10 +768,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Metadata signatures don't distinguish ref/out, but C# does - even when comparing metadata method signatures.
                 if ((refKindCompareMode & RefKindCompareMode.ConsiderDifferences) != 0)
                 {
-                    if (refKind1 != refKind2 &&
-                        !((refKindCompareMode & RefKindCompareMode.AllowRefReadonlyVsInMismatch) != 0 &&
-                        ((refKind1 == RefKind.RefReadOnlyParameter && refKind2 == RefKind.In) ||
-                        (refKind1 == RefKind.In && refKind2 == RefKind.RefReadOnlyParameter))))
+                    if (!areRefKindsCompatible(refKindCompareMode, refKind1, refKind2))
                     {
                         return false;
                     }
@@ -783,6 +783,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return true;
+
+            static bool areRefKindsCompatible(RefKindCompareMode refKindCompareMode, RefKind refKind1, RefKind refKind2)
+            {
+                if (refKind1 == refKind2)
+                {
+                    return true;
+                }
+
+                if ((refKindCompareMode & RefKindCompareMode.AllowRefReadonlyVsInMismatch) != 0)
+                {
+                    return (refKind1, refKind2) is (RefKind.RefReadOnlyParameter, RefKind.In) or (RefKind.In, RefKind.RefReadOnlyParameter);
+                }
+
+                return false;
+            }
         }
 
         private static TypeWithAnnotations SubstituteType(TypeMap typeMap, TypeWithAnnotations typeSymbol)
