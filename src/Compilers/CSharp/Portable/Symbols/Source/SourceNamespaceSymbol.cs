@@ -384,24 +384,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var leftTree = possibleFileLocalType.MergedDeclaration.Declarations[0].Location.SourceTree;
                 if (otherSymbol is SourceNamedTypeSymbol { MergedDeclaration.NameLocations: var typeNameLocations })
                 {
-                    if (typeNameLocations.Any((loc, leftTree) => (object)loc.SourceTree == leftTree, leftTree))
-                    {
-                        return false;
-                    }
+                    return !typeNameLocations.Any((loc, leftTree) => (object)loc.SourceTree == leftTree, leftTree);
                 }
                 else if (otherSymbol is SourceNamespaceSymbol { MergedDeclaration.NameLocations: var namespaceNameLocations })
                 {
-                    if (namespaceNameLocations.Any((loc, leftTree) => (object)loc.SourceTree == leftTree, leftTree))
-                    {
-                        return false;
-                    }
-                }
-                else
-                {
-                    throw ExceptionUtilities.UnexpectedValue(otherSymbol);
+                    return !namespaceNameLocations.Any((loc, leftTree) => (object)loc.SourceTree == leftTree, leftTree);
                 }
 
-                return true;
+                throw ExceptionUtilities.UnexpectedValue(otherSymbol);
             }
         }
 

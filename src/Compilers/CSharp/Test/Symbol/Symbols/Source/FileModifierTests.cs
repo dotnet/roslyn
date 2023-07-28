@@ -5040,8 +5040,40 @@ public partial class C
             Diagnostic(ErrorCode.ERR_FileLocalDuplicateNameInNS, "Widget").WithArguments("Widget", "App").WithLocation(3, 16));
     }
 
+    [Theory, CombinatorialData]
+    public void ShadowNamespace_02(bool useMetadataReference)
+    {
+        var source1 = """
+            namespace App.Widget
+            {
+                public class Inner { }
+            }
+
+            """;
+
+        var source2 = """
+            namespace App
+            {
+                file class Widget { }
+            }
+
+            """;
+
+        var comp1 = CreateCompilation(new[] { (source1, "File1.cs") });
+        comp1.VerifyEmitDiagnostics();
+
+        var comp2 = CreateCompilation(new[] { (source2, "File2.cs") }, references: new[] { useMetadataReference ? comp1.ToMetadataReference() : comp1.EmitToImageReference() });
+        comp2.VerifyEmitDiagnostics();
+
+        comp2 = CreateCompilation(new[] { (source2, "File2.cs") });
+        comp2.VerifyEmitDiagnostics();
+
+        comp1 = CreateCompilation(new[] { (source1, "File1.cs") }, references: new[] { useMetadataReference ? comp2.ToMetadataReference() : comp2.EmitToImageReference() });
+        comp1.VerifyEmitDiagnostics();
+    }
+
     [Fact]
-    public void ShadowNamespace_02()
+    public void ShadowNamespace_03()
     {
         var source1 = """
             namespace App.Widget
