@@ -1326,11 +1326,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (fieldSymbol.RefKind != RefKind.None)
                         {
-                            // it should be impossible for 'hasAssociatedProperty' to be true but don't want to rule it out in error scenarios.
-                            Diagnostics.Add(
-                                ErrorCode.WRN_UseDefViolationRefField,
-                                node.Location,
-                                symbolName);
+                            // 'hasAssociatedProperty' is only true here in error scenarios where we don't need to report this as a cascading diagnostic
+                            if (!hasAssociatedProperty)
+                            {
+                                Diagnostics.Add(
+                                    ErrorCode.WRN_UseDefViolationRefField,
+                                    node.Location,
+                                    symbolName);
+                            }
                         }
                         else if (compilation.IsFeatureEnabled(MessageID.IDS_FeatureAutoDefaultStructs))
                         {
