@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         TInvocationExpressionSyntax,
         TExpressionStatementSyntax,
         TForeachStatementSyntax,
+        TIfStatementSyntax,
         TVariableDeclaratorSyntax>
         : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct
@@ -40,6 +41,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         where TInvocationExpressionSyntax : TExpressionSyntax
         where TExpressionStatementSyntax : TStatementSyntax
         where TForeachStatementSyntax : TStatementSyntax
+        where TIfStatementSyntax : TStatementSyntax
         where TVariableDeclaratorSyntax : SyntaxNode
     {
 
@@ -127,10 +129,13 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             if (containingStatement == null)
                 return;
 
-            var (matches, shouldUseCollectionExpression) = GetMatches();
-            // If we got no matches, then we def can't convert this.
-            if (matches.IsDefaultOrEmpty)
+            // Analyze the surrounding statements. First, try a broader set of statements if the language supports
+            // collection expressions. 
+            var result = GetCollectionExpressionMatches() ?? GetCollectionInitializerMatches();
+            if (result is null)
                 return;
+
+            var (matches, shouldUseCollectionExpression) = result.Value;
 
             var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(matches.Select(static m => m.Statement));
             var syntaxFacts = GetSyntaxFacts();
@@ -150,29 +155,47 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
             return;
 
-            (ImmutableArray<Match<TStatementSyntax>> matches, bool shouldUseCollectionExpression) GetMatches()
+            (ImmutableArray<Match<TStatementSyntax>> matches, bool shouldUseCollectionExpression)? GetCollectionInitializerMatches()
             {
-                // Analyze the surrounding statements. First, try a broader set of statements if the language supports
-                // collection expressions. 
-                var analyzeForCollectionExpression = AreCollectionExpressionsSupported();
                 var matches = UseCollectionInitializerAnalyzer<
                     TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TForeachStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
-                    semanticModel, GetSyntaxFacts(), objectCreationExpression, analyzeForCollectionExpression, cancellationToken);
+                    semanticModel, GetSyntaxFacts(), objectCreationExpression, areCollectionExpressionsSupported: false, cancellationToken);
 
-                // if this was a normal (non-collection-expr) analysis, then just return what we got.
-                if (!analyzeForCollectionExpression)
-                    return (matches, shouldUseCollectionExpression: false);
+                // If analysis failed, we can't change this, no matter what.
+                if (matches.IsDefault)
+                    return null;
 
-                // If we succeeded in finding matches, and this is a location a collection expression is legal in, then convert to that.
-                if (!matches.IsDefaultOrEmpty && CanUseCollectionExpression(semanticModel, objectCreationExpression, cancellationToken))
-                    return (matches, analyzeForCollectionExpression);
+                // for collection initializers we always want at least one element to add to the initializer.  In other
+                // words, we don't want to suggest changing `new List<int>()` to `new List<int>() { }` as that's just
+                // noise.
+                if (matches.IsEmpty)
+                    return null;
 
-                // we tried collection expression, and were not successful.  try again, this time without collection exprs.
-                analyzeForCollectionExpression = false;
-                matches = UseCollectionInitializerAnalyzer<
+                return (matches, shouldUseCollectionExpression: false);
+            }
+
+            (ImmutableArray<Match<TStatementSyntax>> matches, bool shouldUseCollectionExpression)? GetCollectionExpressionMatches()
+            {
+                // Don't bother analyzing for the collection expression case if the lang/version doesn't even support it.
+                if (!AreCollectionExpressionsSupported())
+                    return null;
+
+                var matches = UseCollectionInitializerAnalyzer<
                     TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TForeachStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
-                    semanticModel, GetSyntaxFacts(), objectCreationExpression, analyzeForCollectionExpression, cancellationToken);
-                return (matches, analyzeForCollectionExpression);
+                    semanticModel, GetSyntaxFacts(), objectCreationExpression, areCollectionExpressionsSupported: true, cancellationToken);
+
+                // If analysis failed, we can't change this, no matter what.
+                if (matches.IsDefault)
+                    return null;
+
+                // Analysis succeeded.  Note: for collection expressions, it's fine for this result to be empty.  In
+                // other words, it's ok to offer changing `new List<int>() { 1 }` (on its own) to `[1]`.
+
+                // Check if it would actually be legal to use a collection expression here though.
+                if (!CanUseCollectionExpression(semanticModel, objectCreationExpression, cancellationToken))
+                    return null;
+
+                return (matches, shouldUseCollectionExpression: true);
             }
 
             bool AreCollectionExpressionsSupported()
