@@ -549,6 +549,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_HidingDifferentRefness:
                 case ErrorCode.WRN_TargetDifferentRefness:
                 case ErrorCode.WRN_RefReadonlyParameterDefaultValue:
+                case ErrorCode.WRN_UseDefViolationRefField:
                     return 1;
                 default:
                     return 0;
@@ -2394,6 +2395,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_TargetDifferentRefness:
                 case ErrorCode.ERR_OutAttrOnRefReadonlyParam:
                 case ErrorCode.WRN_RefReadonlyParameterDefaultValue:
+                case ErrorCode.WRN_UseDefViolationRefField:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

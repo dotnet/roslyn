@@ -7778,4 +7778,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_TargetDifferentRefness_Title" xml:space="preserve">
     <value>Reference kind modifier of parameter doesn't match the corresponding parameter in target.</value>
   </data>
+  <data name="WRN_UseDefViolationRefField" xml:space="preserve">
+    <value>'ref' field '{0}' should be ref-assigned before use.</value>
+  </data>
+  <data name="WRN_UseDefViolationRefField_Title" xml:space="preserve">
+    <value>'ref' field should be ref-assigned before use.</value>
+  </data>
 </root>

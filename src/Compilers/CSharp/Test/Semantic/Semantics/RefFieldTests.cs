@@ -29534,19 +29534,51 @@ Block[B2] - Exit
         }
 
         [Fact]
-        public void AutoDefault()
+        public void RefField_Assignment_AutoDefault()
         {
-            var comp = CreateCompilation("""
+            var verifier = CompileAndVerify("""
+                using System;
+
+                try
+                {
+                    new RS();
+                }
+                catch (NullReferenceException)
+                {
+                    Console.Write(1);
+                }
+
                 ref struct RS
                 {
                     ref int ri;
                     public RS() => ri = 0;
                 }
                 """,
-                options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings),
-                targetFramework: TargetFramework.NetCoreApp);
+                options: TestOptions.DebugExe.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings),
+                verify: Verification.Skipped,
+                targetFramework: TargetFramework.NetCoreApp,
+                expectedOutput: "1");
 
-            comp.VerifyDiagnostics();
+            verifier.VerifyDiagnostics(
+                // (15,20): warning CS9210: 'ref' field 'ri' should be ref-assigned before use.
+                //     public RS() => ri = 0;
+                Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "ri").WithArguments("ri").WithLocation(15, 20));
+
+            verifier.VerifyIL("RS..ctor", """
+                {
+                  // Code size       17 (0x11)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  conv.u
+                  IL_0003:  stfld      "ref int RS.ri"
+                  IL_0008:  ldarg.0
+                  IL_0009:  ldfld      "ref int RS.ri"
+                  IL_000e:  ldc.i4.0
+                  IL_000f:  stind.i4
+                  IL_0010:  ret
+                }
+                """);
         }
     }
 }

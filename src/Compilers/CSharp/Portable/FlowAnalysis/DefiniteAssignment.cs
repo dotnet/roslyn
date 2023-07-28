@@ -1324,7 +1324,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // should we handle nested fields here? https://github.com/dotnet/roslyn/issues/59890
                         AddImplicitlyInitializedField((FieldSymbol)fieldIdentifier.Symbol);
 
-                        if (compilation.IsFeatureEnabled(MessageID.IDS_FeatureAutoDefaultStructs))
+                        if (fieldSymbol.RefKind != RefKind.None)
+                        {
+                            // it should be impossible for 'hasAssociatedProperty' to be true but don't want to rule it out in error scenarios.
+                            Diagnostics.Add(
+                                ErrorCode.WRN_UseDefViolationRefField,
+                                node.Location,
+                                symbolName);
+                        }
+                        else if (compilation.IsFeatureEnabled(MessageID.IDS_FeatureAutoDefaultStructs))
                         {
                             Diagnostics.Add(
                                 hasAssociatedProperty ? ErrorCode.WRN_UseDefViolationPropertySupportedVersion : ErrorCode.WRN_UseDefViolationFieldSupportedVersion,

@@ -332,6 +332,7 @@
                 case ErrorCode.WRN_HidingDifferentRefness:
                 case ErrorCode.WRN_TargetDifferentRefness:
                 case ErrorCode.WRN_RefReadonlyParameterDefaultValue:
+                case ErrorCode.WRN_UseDefViolationRefField:
                     return true;
                 default:
                     return false;
