@@ -37,5 +37,5 @@ internal class CSharpUseCollectionInitializerDiagnosticAnalyzer :
         => CSharpSyntaxFacts.Instance;
 
     protected override bool CanUseCollectionExpression(SemanticModel semanticModel, BaseObjectCreationExpressionSyntax objectCreationExpression, CancellationToken cancellationToken)
-        => UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(semanticModel, objectCreationExpression, skipVerificationForReplacedNode: false, cancellationToken);
+        => UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(semanticModel, objectCreationExpression, skipVerificationForReplacedNode: true, cancellationToken);
 }
