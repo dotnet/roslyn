@@ -483,13 +483,6 @@ public class UseCollectionExpressionForArray
                         var i = new int[] { 1 }.AsSpan();
                     }
                 }
-
-                //internal static class Extensions
-                //{
-                //    public static ReadOnlySpan<T> AsSpan<T>(this T[] values) => default;
-                //}
-
-                //internal readonly struct ReadOnlySpan<T> { }
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
@@ -508,11 +501,11 @@ public class UseCollectionExpressionForArray
                 }
                 """,
             FixedCode = """
-            class C
-            {
-                private int[] X = [1];
-            }
-            """,
+                class C
+                {
+                    private int[] X = [1];
+                }
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
     }
@@ -529,11 +522,11 @@ public class UseCollectionExpressionForArray
                 }
                 """,
             FixedCode = """
-            class C
-            {
-                private int[] X { get; } = [1];
-            }
-            """,
+                class C
+                {
+                    private int[] X { get; } = [1];
+                }
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
     }
@@ -553,14 +546,14 @@ public class UseCollectionExpressionForArray
                 }
                 """,
             FixedCode = """
-            class C
-            {
-                void M()
+                class C
                 {
-                    var c = (int[])[1];
+                    void M()
+                    {
+                        var c = (int[])[1];
+                    }
                 }
-            }
-            """,
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
     }
@@ -667,7 +660,7 @@ public class UseCollectionExpressionForArray
     }
 
     [Fact]
-    public async Task TestTargetTypedInConditional4()
+    public async Task TestNotTargetTypedInConditional4()
     {
         await new VerifyCS.Test
         {
@@ -766,7 +759,7 @@ public class UseCollectionExpressionForArray
     }
 
     [Fact]
-    public async Task TestTargetTypedInSwitchExpressionArm4()
+    public async Task TestNotTargetTypedInSwitchExpressionArm4()
     {
         await new VerifyCS.Test
         {
@@ -784,7 +777,7 @@ public class UseCollectionExpressionForArray
     }
 
     [Fact]
-    public async Task TestTargetTypedInitializer1()
+    public async Task TestNotTargetTypedInitializer1()
     {
         await new VerifyCS.Test
         {
@@ -932,7 +925,7 @@ public class UseCollectionExpressionForArray
     }
 
     [Fact]
-    public async Task TestTargetTypedArgument2()
+    public async Task TestNotTargetTypedArgument2()
     {
         await new VerifyCS.Test
         {
@@ -1112,7 +1105,7 @@ public class UseCollectionExpressionForArray
     }
 
     [Fact]
-    public async Task TestLinqLet()
+    public async Task TestNotWithLinqLet()
     {
         await new VerifyCS.Test
         {

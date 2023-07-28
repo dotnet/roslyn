@@ -91,6 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                             !currentToken.IsCommaInInitializerExpression() &&
                             !currentToken.IsCommaInAnyArgumentsList() &&
                             !currentToken.IsCommaInTupleExpression() &&
+                            !currentToken.IsCommaInCollectionExpression() &&
                             !currentToken.IsParenInArgumentList() &&
                             !currentToken.IsDotInMemberAccess() &&
                             !currentToken.IsCloseParenInStatement() &&
@@ -117,9 +118,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // statement related operations
             // object and anonymous initializer "," case
             if (previousToken.IsCommaInInitializerExpression())
-            {
                 return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
-            }
+
+            if (previousToken.IsCommaInCollectionExpression())
+                return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
 
             // , * in switch expression arm
             // ```

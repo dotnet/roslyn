@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         protected SemanticModel _semanticModel;
         protected ISyntaxFacts _syntaxFacts;
         protected TObjectCreationExpressionSyntax _objectCreationExpression;
+        protected bool _analyzeForCollectionExpression;
         protected CancellationToken _cancellationToken;
 
         protected TStatementSyntax _containingStatement;
@@ -41,11 +42,13 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             SemanticModel semanticModel,
             ISyntaxFacts syntaxFacts,
             TObjectCreationExpressionSyntax objectCreationExpression,
+            bool analyzeForCollectionExpression,
             CancellationToken cancellationToken)
         {
             _semanticModel = semanticModel;
             _syntaxFacts = syntaxFacts;
             _objectCreationExpression = objectCreationExpression;
+            _analyzeForCollectionExpression = analyzeForCollectionExpression;
             _cancellationToken = cancellationToken;
         }
 
@@ -54,6 +57,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             _semanticModel = null;
             _syntaxFacts = null;
             _objectCreationExpression = null;
+            _analyzeForCollectionExpression = false;
             _cancellationToken = default;
             _containingStatement = null;
             _valuePattern = default;
@@ -63,19 +67,19 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         protected abstract bool ShouldAnalyze();
         protected abstract void AddMatches(ArrayBuilder<TMatch> matches);
 
-        protected ImmutableArray<TMatch>? AnalyzeWorker()
+        protected ImmutableArray<TMatch> AnalyzeWorker()
         {
             if (!ShouldAnalyze())
-                return null;
+                return default;
 
             _containingStatement = _objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
             if (_containingStatement == null)
-                return null;
+                return default;
 
             if (!TryInitializeVariableDeclarationCase() &&
                 !TryInitializeAssignmentCase())
             {
-                return null;
+                return default;
             }
 
             using var _ = ArrayBuilder<TMatch>.GetInstance(out var matches);
