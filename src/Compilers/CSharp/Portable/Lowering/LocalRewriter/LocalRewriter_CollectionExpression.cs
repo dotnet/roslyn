@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             inlineArrayAsSpan = inlineArrayAsSpan.Construct(ImmutableArray.Create(TypeWithAnnotations.Create(inlineArrayType), elementType));
 
             var spanType = (NamedTypeSymbol)inlineArrayAsSpan.ReturnType;
-            var spanOperator = _factory.WellKnownMethod(WellKnownMember.System_Span_T__op_Implicit_Span).AsMember(spanType);
+            var spanOperator = _factory.WellKnownMethod(WellKnownMember.System_Span_T__op_Implicit_ReadOnlySpan_Span).AsMember(spanType);
             return _factory.Call(
                 receiver: null,
                 spanOperator,

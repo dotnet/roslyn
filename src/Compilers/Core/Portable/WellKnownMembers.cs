@@ -3412,7 +3412,7 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
 
-                 // System_Span_T__op_Implicit_Span
+                 // System_Span_T__op_Implicit_ReadOnlySpan_Span
                  (byte)(MemberFlags.Method | MemberFlags.Static),                                                                                               // Flags
                  (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Span_T - WellKnownType.ExtSentinel),                                              // DeclaringTypeId
                  0,                                                                                                                                             // Arity
@@ -4503,7 +4503,7 @@ namespace Microsoft.CodeAnalysis
                 "get_Item",                                 // System_Span_T__get_Item
                 "get_Length",                               // System_Span_T__get_Length
                 "Slice",                                    // System_Span_T__Slice_Int_Int
-                "op_Implicit",                              // System_Span_T__op_Implicit_Span
+                "op_Implicit",                              // System_Span_T__op_Implicit_ReadOnlySpan_Span
                 ".ctor",                                    // System_ReadOnlySpan_T__ctor_Pointer
                 ".ctor",                                    // System_ReadOnlySpan_T__ctor_Array
                 ".ctor",                                    // System_ReadOnlySpan_T__ctor_Array_Start_Length

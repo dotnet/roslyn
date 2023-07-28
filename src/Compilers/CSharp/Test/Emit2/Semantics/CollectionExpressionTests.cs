@@ -9303,7 +9303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[1, 2, 3]").WithArguments("System.Span`1", "op_Implicit").WithLocation(7, 31));
 
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net80);
-            comp.MakeMemberMissing(WellKnownMember.System_Span_T__op_Implicit_Span);
+            comp.MakeMemberMissing(WellKnownMember.System_Span_T__op_Implicit_ReadOnlySpan_Span);
             comp.VerifyEmitDiagnostics(
                 // (7,31): error CS0656: Missing compiler required member 'System.Span`1.op_Implicit'
                 //         MyCollection<int> y = [1, 2, 3];
