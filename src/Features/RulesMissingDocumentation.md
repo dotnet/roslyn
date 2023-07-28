@@ -4,6 +4,7 @@ Rule ID | Missing Help Link | Title |
 --------|-------------------|-------|
 IDE0005_gen |  | Imports statement is unnecessary. |
 IDE0043 |  | Invalid format string |
+IDE0280 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0280> | Use 'nameof' |
 IDE0290 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0290> | Use primary constructor |
 IDE0300 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0300> | Simplify collection initialization |
 IDE1007 |  |  |
