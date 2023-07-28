@@ -1564,8 +1564,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                                 predicateValueKind = SetValueForIsNullComparisonOperator(isPatternOperation.Pattern, equals: FlowBranchConditionKind == ControlFlowConditionKind.WhenFalse, targetAnalysisData: targetAnalysisData);
                             }
 
-                            // Also set the predicated value for pattern value for true branch, i.e. for 'c' in "c is D d".
-                            goto case OperationKind.DiscardPattern;
+                            // Also set the predicated value for pattern value for true branch, i.e. for 'c' in "c is D d",
+                            // while explicitly ignore the returned 'predicateValueKind'.
+                            if (FlowBranchConditionKind == ControlFlowConditionKind.WhenTrue)
+                            {
+                                _ = SetValueForIsNullComparisonOperator(isPatternOperation.Value, equals: false, targetAnalysisData: targetAnalysisData);
+                            }
+
+                            break;
 
                         case OperationKind.DiscardPattern:
                         case OperationKind.RecursivePattern:
@@ -2272,7 +2278,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     // Implement Non-context sensitive interprocedural analysis to
                     // merge the relevant data from invoked method's analysis result into CurrentAnalysisData.
                     // For now, retain the original logic of resetting the analysis data.
-                    ResetAnalysisData();
+                    ResetAnalysisData(hasEscapedLambdaOrLocalFunctions: false);
                 }
             }
             finally
@@ -2302,12 +2308,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             // Local functions
             TAbstractAnalysisValue ResetAnalysisDataAndReturnDefaultValue()
             {
-                ResetAnalysisData();
-                MarkEscapedLambdasAndLocalFunctionsFromArguments();
+                var hasEscapes = MarkEscapedLambdasAndLocalFunctionsFromArguments();
+                ResetAnalysisData(hasEscapes);
                 return defaultValue;
             }
 
-            void ResetAnalysisData()
+            void ResetAnalysisData(bool hasEscapedLambdaOrLocalFunctions)
             {
                 // Interprocedural analysis did not succeed, so we need to conservatively reset relevant analysis data.
                 if (!PessimisticAnalysis)
@@ -2316,7 +2322,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     return;
                 }
 
-                if (isLambdaOrLocalFunction)
+                if (isLambdaOrLocalFunction || hasEscapedLambdaOrLocalFunctions)
                 {
                     // For local/lambda cases, we reset all analysis data.
                     ResetCurrentAnalysisData();
@@ -2330,23 +2336,36 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 }
             }
 
-            void MarkEscapedLambdasAndLocalFunctionsFromArguments()
+            bool MarkEscapedLambdasAndLocalFunctionsFromArguments()
             {
-                if (!IsPointsToAnalysis)
-                {
-                    // Only mark escaped lambdas and local functions for points to analysis.
-                    return;
-                }
-
+                var hasEscapes = false;
                 foreach (var argument in arguments)
                 {
                     if (argument.Parameter?.Type.TypeKind == TypeKind.Delegate ||
                         argument.Parameter?.Type.SpecialType == SpecialType.System_Object)
                     {
-                        var pointsToValue = GetPointsToAbstractValue(argument);
-                        MarkEscapedLambdasAndLocalFunctions(pointsToValue);
+                        if (!IsPointsToAnalysis)
+                        {
+                            // For non-points to analysis, pessimistically assume delegate arguments
+                            // lead to escaped lambda or local function target which may get invoked.
+                            if (argument.Parameter.Type.TypeKind == TypeKind.Delegate)
+                            {
+                                hasEscapes = true;
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            // For points to analysis, we try to compute the target lambda or local function
+                            // to determine if we have an escape.
+                            var pointsToValue = GetPointsToAbstractValue(argument);
+                            if (MarkEscapedLambdasAndLocalFunctions(pointsToValue))
+                                hasEscapes = true;
+                        }
                     }
                 }
+
+                return hasEscapes;
             }
 
             InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue> ComputeInterproceduralAnalysisData()
@@ -3200,10 +3219,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 invokedAsDelegate: false, originalOperation: operation, defaultValue: value);
         }
 
-        private protected void MarkEscapedLambdasAndLocalFunctions(PointsToAbstractValue pointsToAbstractValue)
+        private protected bool MarkEscapedLambdasAndLocalFunctions(PointsToAbstractValue pointsToAbstractValue)
         {
             Debug.Assert(IsPointsToAnalysis);
 
+            var hasEscapes = false;
             using var methodTargetsOptBuilder = PooledHashSet<(IMethodSymbol method, IOperation? instance)>.GetInstance();
             using var lambdaTargets = PooledHashSet<IFlowAnonymousFunctionOperation>.GetInstance();
             if (ResolveLambdaOrDelegateOrLocalFunctionTargets(pointsToAbstractValue, methodTargetsOptBuilder, lambdaTargets))
@@ -3213,14 +3233,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     if (targetMethod.MethodKind == MethodKind.LocalFunction)
                     {
                         _escapedLocalFunctions.Add(targetMethod);
+                        hasEscapes = true;
                     }
                 }
 
                 foreach (var flowAnonymousFunctionOperation in lambdaTargets)
                 {
                     _escapedLambdas.Add(flowAnonymousFunctionOperation);
+                    hasEscapes = true;
                 }
             }
+
+            return hasEscapes;
         }
 
         private bool ResolveLambdaOrDelegateOrLocalFunctionTargets(

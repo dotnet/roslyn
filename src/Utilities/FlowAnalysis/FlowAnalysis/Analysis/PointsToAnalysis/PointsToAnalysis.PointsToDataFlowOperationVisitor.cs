@@ -1142,6 +1142,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 {
                     // Conservatively handle user defined conversions as escaping operations.
                     HandleEscapingOperation(operation, operation.Operand);
+                    return value;
                 }
 
                 ConversionInference? inference = null;
