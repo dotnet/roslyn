@@ -266,11 +266,10 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             await logFile.WriteLineAsync($"Load of the binlog complete; {msbuildInvocations.Length} invocations were found.");
 
             var lsifGenerator = Generator.CreateAndWriteCapabilitiesVertex(lsifWriter, logFile);
+            var workspace = new AdhocWorkspace(await Composition.CreateHostServicesAsync());
 
             foreach (var msbuildInvocation in msbuildInvocations)
             {
-                var workspace = new AdhocWorkspace(await Composition.CreateHostServicesAsync());
-
                 var projectInfo = CommandLineProject.CreateProjectInfo(
                     Path.GetFileNameWithoutExtension(msbuildInvocation.ProjectFilePath),
                     msbuildInvocation.Language == Microsoft.Build.Logging.StructuredLogger.CompilerInvocation.CSharp ? LanguageNames.CSharp : LanguageNames.VisualBasic,
@@ -286,6 +285,10 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 var generationStopwatch = Stopwatch.StartNew();
                 await lsifGenerator.GenerateForProjectAsync(project, GeneratorOptions.Default, cancellationToken);
                 await logFile.WriteLineAsync($"Generation for {project.FilePath} completed in {generationStopwatch.Elapsed.ToDisplayString()}.");
+
+                // Remove the project from the workspace; we reuse the same workspace object to ensure that some workspace-level services (like the IMetadataService
+                // or IDocumentationProviderService) are kept around allowing their caches to be reused.
+                workspace.OnProjectRemoved(project.Id);
             }
         }
     }
