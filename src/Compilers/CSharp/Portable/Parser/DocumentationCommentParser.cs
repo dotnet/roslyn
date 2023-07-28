@@ -330,13 +330,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     var attr = this.ParseXmlAttribute(elementName);
                     string attrName = attr.Name.ToString();
-                    if (_attributesSeen.Contains(attrName))
+                    if (!_attributesSeen.Add(attrName))
                     {
                         attr = this.WithXmlParseError(attr, XmlParseErrorCode.XML_DuplicateAttribute, attrName);
-                    }
-                    else
-                    {
-                        _attributesSeen.Add(attrName);
                     }
 
                     attrs.Add(attr);
