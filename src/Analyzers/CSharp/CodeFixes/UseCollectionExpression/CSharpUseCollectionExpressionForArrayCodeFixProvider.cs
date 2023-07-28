@@ -89,13 +89,57 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider : Sy
                 (current, _) =>
                 {
                     var currentArrayCreation = (ArrayCreationExpressionSyntax)current;
+
+                    Contract.ThrowIfNull(arrayCreation.Initializer);
                     Contract.ThrowIfNull(currentArrayCreation.Initializer);
+
+                    var isOnSingleLine = IsOnSingleLine(arrayCreation.Initializer);
+
                     var collectionExpression = ConvertInitializerToCollectionExpression(
                         currentArrayCreation.Initializer,
-                        IsOnSingleLine(arrayCreation));
+                        isOnSingleLine);
 
-                    collectionExpression = collectionExpression.WithLeadingTrivia(currentArrayCreation.GetLeadingTrivia());
-                    return collectionExpression;
+                    // Any time we have `{ x, y, z }` in any form, then always just replace the whole original expression
+                    // with `[x, y, z]`.
+                    if (isOnSingleLine)
+                        return collectionExpression.WithTriviaFrom(currentArrayCreation);
+
+                    // initializer was on multiple lines, but started on the same line as the 'new' keyword.  e.g.:
+                    //
+                    //      var v = new[] {
+                    //          1, 2, 3
+                    //      };
+                    //
+                    // Just remove the `new...` section entirely, but otherwise keep the initialize multiline:
+                    //
+                    //      var v = [
+                    //          1, 2, 3
+                    //      ];
+                    if (sourceText.AreOnSameLine(arrayCreation.NewKeyword, arrayCreation.Initializer.OpenBraceToken))
+                        return collectionExpression.WithTriviaFrom(currentArrayCreation);
+
+                    // Initializer was on multiple lines, and was not on the same line as the 'new' keyword. e.g.:
+                    //
+                    //      var v2 = new[]
+                    //      {
+                    //          1, 2, 3
+                    //      };
+                    //
+                    //  or
+                    //
+                    //      var v2 =
+                    //          new[]
+                    //          {
+                    //              1, 2, 3
+                    //          };
+                    //
+                    // For the former, we want to remove the 'new' portion, but keep the collection on its own line.
+                    // For the latter, we want to just remove the new and move the collection to subsume it.
+                    var previousToken = arrayCreation.NewKeyword.GetPreviousToken();
+                    if (previousToken == default || !sourceText.AreOnSameLine(previousToken, arrayCreation.NewKeyword))
+                        return collectionExpression.WithTriviaFrom(currentArrayCreation);
+
+                    return collectionExpression.WithLeadingTrivia(currentArrayCreation.Type.GetTrailingTrivia());
                 });
         }
 
