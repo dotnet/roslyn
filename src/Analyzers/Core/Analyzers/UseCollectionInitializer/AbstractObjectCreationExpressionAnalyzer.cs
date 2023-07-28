@@ -38,6 +38,9 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         {
         }
 
+        protected abstract bool ShouldAnalyze();
+        protected abstract void AddMatches(ArrayBuilder<TMatch> matches);
+
         public void Initialize(
             SemanticModel semanticModel,
             ISyntaxFacts syntaxFacts,
@@ -63,9 +66,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             _valuePattern = default;
             _initializedSymbol = null;
         }
-
-        protected abstract bool ShouldAnalyze();
-        protected abstract void AddMatches(ArrayBuilder<TMatch> matches);
 
         protected ImmutableArray<TMatch> AnalyzeWorker()
         {

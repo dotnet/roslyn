@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections;
 using System.Collections.Immutable;
 using System.Linq;
@@ -41,7 +40,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         TExpressionStatementSyntax,
         TForeachStatementSyntax,
         TIfStatementSyntax,
-        TVariableDeclaratorSyntax>
+        TVariableDeclaratorSyntax,
+        TAnalyzer>
         : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct
         where TExpressionSyntax : SyntaxNode
@@ -53,6 +53,16 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         where TForeachStatementSyntax : TStatementSyntax
         where TIfStatementSyntax : TStatementSyntax
         where TVariableDeclaratorSyntax : SyntaxNode
+        where TAnalyzer : AbstractUseCollectionInitializerAnalyzer<
+            TExpressionSyntax,
+            TStatementSyntax,
+            TObjectCreationExpressionSyntax,
+            TMemberAccessExpressionSyntax,
+            TInvocationExpressionSyntax,
+            TExpressionStatementSyntax,
+            TForeachStatementSyntax,
+            TIfStatementSyntax,
+            TVariableDeclaratorSyntax>
     {
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
@@ -84,6 +94,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         protected abstract bool AreCollectionInitializersSupported(Compilation compilation);
         protected abstract bool AreCollectionExpressionsSupported(Compilation compilation);
         protected abstract bool CanUseCollectionExpression(SemanticModel semanticModel, TObjectCreationExpressionSyntax objectCreationExpression, CancellationToken cancellationToken);
+
+        protected abstract TAnalyzer GetAnalyzer();
 
         protected sealed override void InitializeWorker(AnalysisContext context)
             => context.RegisterCompilationStartAction(OnCompilationStart);
@@ -141,6 +153,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
             // Analyze the surrounding statements. First, try a broader set of statements if the language supports
             // collection expressions. 
+            using var analyzer = GetAnalyzer();
             var result = GetCollectionExpressionMatches() ?? GetCollectionInitializerMatches();
             if (result is null)
                 return;
@@ -167,8 +180,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
             (ImmutableArray<Match<TStatementSyntax>> matches, bool shouldUseCollectionExpression)? GetCollectionInitializerMatches()
             {
-                var matches = UseCollectionInitializerAnalyzer<
-                    TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TForeachStatementSyntax, TIfStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
+                var matches = analyzer.Analyze(
                     semanticModel, GetSyntaxFacts(), objectCreationExpression, areCollectionExpressionsSupported: false, cancellationToken);
 
                 // If analysis failed, we can't change this, no matter what.
@@ -190,8 +202,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 if (!AreCollectionExpressionsSupported())
                     return null;
 
-                var matches = UseCollectionInitializerAnalyzer<
-                    TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TForeachStatementSyntax, TIfStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
+                var matches = analyzer.Analyze(
                     semanticModel, GetSyntaxFacts(), objectCreationExpression, areCollectionExpressionsSupported: true, cancellationToken);
 
                 // If analysis failed, we can't change this, no matter what.

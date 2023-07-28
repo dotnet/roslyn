@@ -1823,6 +1823,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             statements = If(foreachBlock Is Nothing, SpecializedCollections.EmptyEnumerable(Of SyntaxNode), foreachBlock.Statements)
         End Sub
 
+        Public Sub GetPartsOfIfStatement(statement As IfStatementSyntax, ByRef condition As SyntaxNode, ByRef whenTrueStatements As IEnumerable(Of SyntaxNode), ByRef whenFalseStatements As IEnumerable(Of SyntaxNode)) Implements ISyntaxFacts.GetPartsOfIfStatement
+            Dim ifStatement = DirectCast(statement, IfStatementSyntax)
+
+        End Sub
+
         Public Sub GetPartsOfInterpolationExpression(node As SyntaxNode, ByRef stringStartToken As SyntaxToken, ByRef contents As SyntaxList(Of SyntaxNode), ByRef stringEndToken As SyntaxToken) Implements ISyntaxFacts.GetPartsOfInterpolationExpression
             Dim interpolatedStringExpression = DirectCast(node, InterpolatedStringExpressionSyntax)
             stringStartToken = interpolatedStringExpression.DollarSignDoubleQuoteToken

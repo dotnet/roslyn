@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -13,7 +14,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 {
-    internal sealed class UseCollectionInitializerAnalyzer<
+    internal abstract class AbstractUseCollectionInitializerAnalyzer<
         TExpressionSyntax,
         TStatementSyntax,
         TObjectCreationExpressionSyntax,
@@ -22,12 +23,13 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         TExpressionStatementSyntax,
         TForeachStatementSyntax,
         TIfStatementSyntax,
-        TVariableDeclaratorSyntax> : AbstractObjectCreationExpressionAnalyzer<
+        TVariableDeclaratorSyntax,
+        TAnalyzer> : AbstractObjectCreationExpressionAnalyzer<
             TExpressionSyntax,
             TStatementSyntax,
             TObjectCreationExpressionSyntax,
             TVariableDeclaratorSyntax,
-            Match<TStatementSyntax>>
+            Match<TStatementSyntax>>, IDisposable
         where TExpressionSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
         where TObjectCreationExpressionSyntax : TExpressionSyntax
@@ -37,9 +39,21 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         where TForeachStatementSyntax : TStatementSyntax
         where TIfStatementSyntax : TStatementSyntax
         where TVariableDeclaratorSyntax : SyntaxNode
+        where TAnalyzer : AbstractUseCollectionInitializerAnalyzer<
+            TExpressionSyntax,
+            TStatementSyntax,
+            TObjectCreationExpressionSyntax,
+            TMemberAccessExpressionSyntax,
+            TInvocationExpressionSyntax,
+            TExpressionStatementSyntax,
+            TForeachStatementSyntax,
+            TIfStatementSyntax,
+            TVariableDeclaratorSyntax,
+            TAnalyzer>, new()
     {
-        private static readonly ObjectPool<UseCollectionInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TForeachStatementSyntax, TIfStatementSyntax, TVariableDeclaratorSyntax>> s_pool
-            = SharedPools.Default<UseCollectionInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TForeachStatementSyntax, TIfStatementSyntax, TVariableDeclaratorSyntax>>();
+        private static readonly ObjectPool<TAnalyzer> s_pool = SharedPools.Default<TAnalyzer>();
+
+        public abstract void Dispose();
 
         public static ImmutableArray<Match<TStatementSyntax>> Analyze(
             SemanticModel semanticModel,
