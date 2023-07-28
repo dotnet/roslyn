@@ -203,6 +203,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
                 if (IsAttributeArgumentWithMatchingStringSyntaxAttribute(semanticModel, container.Parent, cancellationToken, out identifier))
                     return true;
             }
+            else if (syntaxFacts.IsNamedMemberInitializer(container.Parent))
+            {
+                syntaxFacts.GetPartsOfNamedMemberInitializer(container.Parent, out var name, out _);
+                if (IsFieldOrPropertyWithMatchingStringSyntaxAttribute(semanticModel, name, cancellationToken, out identifier))
+                    return true;
+            }
             else
             {
                 var statement = container.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsStatement);
