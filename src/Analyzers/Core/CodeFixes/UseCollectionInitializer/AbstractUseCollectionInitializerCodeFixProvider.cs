@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         TInvocationExpressionSyntax,
         TExpressionStatementSyntax,
         TForeachStatementSyntax,
+        TIfStatementSyntax,
         TVariableDeclaratorSyntax>
         : SyntaxEditorBasedCodeFixProvider
         where TSyntaxKind : struct
@@ -40,6 +41,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         where TInvocationExpressionSyntax : TExpressionSyntax
         where TExpressionStatementSyntax : TStatementSyntax
         where TForeachStatementSyntax : TStatementSyntax
+        where TIfStatementSyntax : TStatementSyntax
         where TVariableDeclaratorSyntax : SyntaxNode
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds
@@ -102,7 +104,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 var (originalObjectCreation, useCollectionExpression) = originalObjectCreationNodes.Pop();
                 var objectCreation = currentRoot.GetCurrentNodes(originalObjectCreation).Single();
 
-                var matches = UseCollectionInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TForeachStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
+                var matches = UseCollectionInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TForeachStatementSyntax, TIfStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
                     semanticModel, syntaxFacts, objectCreation, useCollectionExpression, cancellationToken);
 
                 if (matches.IsDefaultOrEmpty)

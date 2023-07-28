@@ -200,6 +200,8 @@ namespace Microsoft.CodeAnalysis.LanguageService
         bool IsExpressionOfForeach([NotNullWhen(true)] SyntaxNode? node);
         void GetPartsOfForeachStatement(SyntaxNode statement, out SyntaxToken identifier, out SyntaxNode expression, out IEnumerable<SyntaxNode> statements);
 
+        void GetPartsOfIfStatement(SyntaxNode statement, out SyntaxNode condition, out IEnumerable<SyntaxNode> whenTrueStatements, out IEnumerable<SyntaxNode> whenFalseStatements);
+
         void GetPartsOfTupleExpression<TArgumentSyntax>(SyntaxNode node,
             out SyntaxToken openParen, out SeparatedSyntaxList<TArgumentSyntax> arguments, out SyntaxToken closeParen) where TArgumentSyntax : SyntaxNode;
 

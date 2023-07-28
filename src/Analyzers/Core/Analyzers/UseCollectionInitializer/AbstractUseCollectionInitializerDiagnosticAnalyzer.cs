@@ -17,6 +17,16 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 {
+    /// <summary>
+    /// Represents statements following an object initializer that should be converted into
+    /// collection-initializer/expression elements.
+    /// </summary>
+    /// <param name="Statement">The statement that follows that contains the values to add to the new
+    /// collection-initializer or collection-expression</param>
+    /// <param name="UseSpread">Whether or not a spread (<c>.. x</c>) element should be created for this statement. This
+    /// is needed as the statement could be cases like <c>expr.Add(x)</c> vs. <c>expr.AddRange(x)</c>. This property
+    /// indicates that the latter should become a spread, without the consumer having to reexamine the statement to see
+    /// what form it is.</param>
     internal readonly record struct Match<TStatementSyntax>(
         TStatementSyntax Statement,
         bool UseSpread) where TStatementSyntax : SyntaxNode;
@@ -158,7 +168,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             (ImmutableArray<Match<TStatementSyntax>> matches, bool shouldUseCollectionExpression)? GetCollectionInitializerMatches()
             {
                 var matches = UseCollectionInitializerAnalyzer<
-                    TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TForeachStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
+                    TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TForeachStatementSyntax, TIfStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
                     semanticModel, GetSyntaxFacts(), objectCreationExpression, areCollectionExpressionsSupported: false, cancellationToken);
 
                 // If analysis failed, we can't change this, no matter what.
@@ -181,7 +191,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                     return null;
 
                 var matches = UseCollectionInitializerAnalyzer<
-                    TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TForeachStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
+                    TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TForeachStatementSyntax, TIfStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
                     semanticModel, GetSyntaxFacts(), objectCreationExpression, areCollectionExpressionsSupported: true, cancellationToken);
 
                 // If analysis failed, we can't change this, no matter what.
