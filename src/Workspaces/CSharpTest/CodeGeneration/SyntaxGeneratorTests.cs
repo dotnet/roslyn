@@ -168,56 +168,56 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
         public void TestAttributeData()
         {
             VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
-@"using System; 
+@"using System;
 public class MyAttribute : Attribute { }",
 @"[MyAttribute]")),
 @"[global::MyAttribute]");
 
             VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
-@"using System; 
+@"using System;
 public class MyAttribute : Attribute { public MyAttribute(object value) { } }",
 @"[MyAttribute(null)]")),
 @"[global::MyAttribute(null)]");
 
             VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
-@"using System; 
+@"using System;
 public class MyAttribute : Attribute { public MyAttribute(int value) { } }",
 @"[MyAttribute(123)]")),
 @"[global::MyAttribute(123)]");
 
             VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
-@"using System; 
+@"using System;
 public class MyAttribute : Attribute { public MyAttribute(double value) { } }",
 @"[MyAttribute(12.3)]")),
 @"[global::MyAttribute(12.3)]");
 
             VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
-@"using System; 
+@"using System;
 public class MyAttribute : Attribute { public MyAttribute(string value) { } }",
 @"[MyAttribute(""value"")]")),
 @"[global::MyAttribute(""value"")]");
 
             VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
-@"using System; 
+@"using System;
 public enum E { A, B, C }
 public class MyAttribute : Attribute { public MyAttribute(E value) { } }",
 @"[MyAttribute(E.A)]")),
 @"[global::MyAttribute(global::E.A)]");
 
             VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
-@"using System; 
+@"using System;
 public class MyAttribute : Attribute { public MyAttribute(Type value) { } }",
 @"[MyAttribute(typeof (MyAttribute))]")),
 @"[global::MyAttribute(typeof(global::MyAttribute))]");
 
             VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
-@"using System; 
+@"using System;
 public class MyAttribute : Attribute { public MyAttribute(int[] values) { } }",
 @"[MyAttribute(new [] {1, 2, 3})]")),
 @"[global::MyAttribute(new[] { 1, 2, 3 })]");
 
             VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
-@"using System; 
+@"using System;
 public class MyAttribute : Attribute { public int Value {get; set;} }",
 @"[MyAttribute(Value = 123)]")),
 @"[global::MyAttribute(Value = 123)]");
@@ -2524,6 +2524,64 @@ public class C { } // end").Members[0];
                 """);
         }
 
+        public interface IGooFromMetadata
+        {
+            void BarMethod();
+            int BarProp { get; }
+            int this[int x] { get; }
+            event System.Action E;
+        }
+
+        public class GooFromMetadata : IGooFromMetadata
+        {
+            void IGooFromMetadata.BarMethod() { }
+            int IGooFromMetadata.BarProp => 0;
+            int IGooFromMetadata.this[int x] => 0;
+            event System.Action IGooFromMetadata.E { add { } remove { } }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66375")]
+        public void TestExplicitInterface2()
+        {
+            var compilation = _emptyCompilation.AddReferences(TestMetadata.Net451.mscorlib, TestMetadata.Net451.System, TestMetadata.Net451.SystemCore, TestMetadata.Net451.SystemRuntime, TestReferences.NetFx.ValueTuple.tuplelib)
+                .AddReferences(MetadataReference.CreateFromFile(typeof(GooFromMetadata).Assembly.Location));
+
+            var type = compilation.GetTypeByMetadataName(typeof(GooFromMetadata).FullName);
+            var method = type.GetMembers().Single(m => m is IMethodSymbol method && method.MethodKind == MethodKind.ExplicitInterfaceImplementation &&
+                !method.ExplicitInterfaceImplementations.Any(im => im is{ MethodKind: MethodKind.PropertyGet or MethodKind.PropertySet }));
+            var property = type.GetMembers().Single(m => m is IPropertySymbol property && !property.IsIndexer &&
+                !property.ExplicitInterfaceImplementations.Any(p => p.IsIndexer));
+            var indexer = type.GetMembers().Single(m => m is IPropertySymbol property && (property.IsIndexer ||
+                property.ExplicitInterfaceImplementations.Any(p => p.IsIndexer)));
+            var ev = type.GetMembers().Single(m => m is IEventSymbol);
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                Generator.Declaration(method),
+                """
+                void global::Microsoft.CodeAnalysis.CSharp.UnitTests.Editing.SyntaxGeneratorTests.IGooFromMetadata.BarMethod()
+                {
+                }
+                """);
+            VerifySyntax<PropertyDeclarationSyntax>(
+                Generator.Declaration(property),
+                "global::System.Int32 global::Microsoft.CodeAnalysis.CSharp.UnitTests.Editing.SyntaxGeneratorTests.IGooFromMetadata.BarProp { get; }");
+            VerifySyntax<IndexerDeclarationSyntax>(
+                Generator.Declaration(indexer),
+                """
+                global::System.Int32 global::Microsoft.CodeAnalysis.CSharp.UnitTests.Editing.SyntaxGeneratorTests.IGooFromMetadata.this[global::System.Int32 x]
+                {
+                    get
+                    {
+                    }
+                }
+                """);
+            VerifySyntax<EventFieldDeclarationSyntax>(
+                Generator.Declaration(ev),
+                """
+                event global::System.Action Microsoft.CodeAnalysis.CSharp.UnitTests.Editing.SyntaxGeneratorTests.IGooFromMetadata.E;
+                """);
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66380")]
         public void TestConstantFieldDeclarations()
         {
@@ -4754,7 +4812,7 @@ public readonly struct [|S|]
                     public readonly ref int RORefValue;
 
                     public void M(scoped ref int value) { }
-                    public void M(scoped ref readonly double value) { } 
+                    public void M(scoped ref readonly double value) { }
                     public void M(in int x, scoped in int y) { }
                     public void M(S x, scoped S y) { }
                     public void M(out int value) { }
