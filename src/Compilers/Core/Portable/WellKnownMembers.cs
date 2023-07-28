@@ -3413,7 +3413,7 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
 
                  // System_Span_T__op_Implicit_Span
-                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                                                    // Flags
+                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                                                               // Flags
                  (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Span_T - WellKnownType.ExtSentinel),                                              // DeclaringTypeId
                  0,                                                                                                                                             // Arity
                     1,                                                                                                                                          // Method Signature

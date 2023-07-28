@@ -235,8 +235,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(inlineArrayType.HasInlineArrayAttribute(out int inlineArrayLength) && inlineArrayLength == arrayLength);
 
             var intType = _factory.SpecialType(SpecialType.System_Int32);
-            var elementRef = _factory.ModuleBuilderOpt.EnsureInlineArrayElementRefExists(syntax, intType, _diagnostics.DiagnosticBag);
-            elementRef = elementRef.Construct(ImmutableArray.Create(TypeWithAnnotations.Create(inlineArrayType), elementType));
+            MethodSymbol elementRef = _factory.ModuleBuilderOpt.EnsureInlineArrayElementRefExists(syntax, intType, _diagnostics.DiagnosticBag).
+                Construct(ImmutableArray.Create(TypeWithAnnotations.Create(inlineArrayType), elementType));
 
             // Create an inline array and assign to a local.
             BoundAssignmentOperator assignmentToTemp;

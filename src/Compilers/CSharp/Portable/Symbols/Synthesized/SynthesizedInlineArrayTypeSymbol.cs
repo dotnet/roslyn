@@ -18,19 +18,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ModuleSymbol _containingModule;
         private readonly int _arrayLength;
         private readonly MethodSymbol _inlineArrayAttributeConstructor;
-        private readonly ImmutableArray<FieldSymbol> _fields;
+        private readonly FieldSymbol _field;
 
         internal SynthesizedInlineArrayTypeSymbol(SourceModuleSymbol containingModule, string name, int arrayLength, MethodSymbol inlineArrayAttributeConstructor)
         {
             Debug.Assert(arrayLength > 0);
 
             var typeParameter = new InlineArrayTypeParameterSymbol(this);
-            var field = new SynthesizedFieldSymbol(this, typeParameter, "_element0");
-
             _containingModule = containingModule;
             _arrayLength = arrayLength;
             _inlineArrayAttributeConstructor = inlineArrayAttributeConstructor;
-            _fields = ImmutableArray.Create<FieldSymbol>(field);
+            _field = new SynthesizedFieldSymbol(this, typeParameter, "_element0");
             Name = name;
             TypeParameters = ImmutableArray.Create<TypeParameterSymbol>(typeParameter);
         }
@@ -69,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<Location> Locations => ImmutableArray<Location>.Empty;
 
-        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => throw new NotImplementedException();
+        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
 
         public override bool IsStatic => false;
 
@@ -117,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ObsoleteAttributeData? ObsoleteAttributeData => null;
 
-        public override ImmutableArray<Symbol> GetMembers() => ImmutableArray<Symbol>.Empty;
+        public override ImmutableArray<Symbol> GetMembers() => ImmutableArray.Create<Symbol>(_field);
 
         public override ImmutableArray<Symbol> GetMembers(string name) => GetMembers().WhereAsArray(m => m.Name == name);
 
@@ -143,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers(string name) => GetMembers(name);
 
-        internal override IEnumerable<FieldSymbol> GetFieldsToEmit() => _fields;
+        internal override IEnumerable<FieldSymbol> GetFieldsToEmit() => SpecializedCollections.SingletonEnumerable(_field);
 
         internal override ImmutableArray<NamedTypeSymbol> GetInterfacesToEmit() => ImmutableArray<NamedTypeSymbol>.Empty;
 

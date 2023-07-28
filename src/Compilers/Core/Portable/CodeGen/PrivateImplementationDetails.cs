@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal static string GetInlineArrayTypeName(int arrayLength)
         {
             Debug.Assert(arrayLength > 0);
-            return $"$InlineArray{arrayLength}";
+            return $"__InlineArray{arrayLength}";
         }
 
         internal void Freeze()
