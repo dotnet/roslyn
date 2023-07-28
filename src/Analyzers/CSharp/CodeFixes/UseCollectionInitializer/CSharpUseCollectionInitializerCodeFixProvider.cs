@@ -92,6 +92,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 objectCreation, matches,
                 static (match, expression) => match?.UseSpread is true ? SpreadElement(expression) : ExpressionElement(expression));
 
+
+
             if (MakeMultiLine(sourceText, objectCreation, matches, wrappingLength))
                 elements = AddLineBreaks(elements, includeFinalLineBreak: false);
 
@@ -144,8 +146,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             ImmutableArray<Match<StatementSyntax>> matches,
             int wrappingLength)
         {
-            // If it's already multiline, keep it that way.
-            if (!sourceText.AreOnSameLine(objectCreation.GetFirstToken(), objectCreation.GetLastToken()))
+            // If the existing creation expression already has an initializer, and that initializer is already
+            // multiline, then keep things that way.
+            if (objectCreation.Initializer != null && !sourceText.AreOnSameLine(objectCreation.Initializer.GetFirstToken(), objectCreation.Initializer.GetLastToken()))
                 return true;
 
             var totalLength = "{}".Length;

@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Analyzers.UseCollectionExpression;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -22,6 +23,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
 using static SyntaxFactory;
+using static UseCollectionExpressionHelpers;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionExpressionForArray), Shared]
 internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider : SyntaxEditorBasedCodeFixProvider
@@ -83,59 +85,9 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider : Sy
                     IsOnSingleLine(sourceText, initializer)));
         }
 
-        bool ShouldReplaceExistingExpressionEntirely(ExpressionSyntax explicitOrImplicitArray, InitializerExpressionSyntax initializer)
-        {
-            // Any time we have `{ x, y, z }` in any form, then always just replace the whole original expression
-            // with `[x, y, z]`.
-            if (IsOnSingleLine(sourceText, initializer))
-                return true;
-
-            // initializer was on multiple lines, but started on the same line as the 'new' keyword.  e.g.:
-            //
-            //      var v = new[] {
-            //          1, 2, 3
-            //      };
-            //
-            // Just remove the `new...` section entirely, but otherwise keep the initialize multiline:
-            //
-            //      var v = [
-            //          1, 2, 3
-            //      ];
-            var newKeyword = explicitOrImplicitArray.GetFirstToken();
-            if (sourceText.AreOnSameLine(newKeyword, initializer.OpenBraceToken))
-                return true;
-
-            // Initializer was on multiple lines, and was not on the same line as the 'new' keyword, and the 'new' is on a newline:
-            //
-            //      var v2 =
-            //          new[]
-            //          {
-            //              1, 2, 3
-            //          };
-            //
-            // For this latter, we want to just remove the new portion and move the collection to subsume it.
-            var previousToken = newKeyword.GetPreviousToken();
-            if (previousToken == default)
-                return true;
-
-            if (!sourceText.AreOnSameLine(previousToken, newKeyword))
-                return true;
-
-            // All that is left is:
-            //
-            //      var v2 = new[]
-            //      {
-            //          1, 2, 3
-            //      };
-            //
-            // For this we want to remove the 'new' portion, but keep the collection on its own line.
-            return false;
-        }
-
         void RewriteArrayCreationExpression(ArrayCreationExpressionSyntax arrayCreation)
         {
             Contract.ThrowIfNull(arrayCreation.Initializer);
-            var shouldReplaceExpressionEntirely = ShouldReplaceExistingExpressionEntirely(arrayCreation, arrayCreation.Initializer);
 
             editor.ReplaceNode(
                 arrayCreation,
@@ -148,18 +100,14 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider : Sy
                         currentArrayCreation.Initializer,
                         IsOnSingleLine(sourceText, arrayCreation.Initializer));
 
-                    return shouldReplaceExpressionEntirely
-                        ? collectionExpression.WithTriviaFrom(currentArrayCreation)
-                        : collectionExpression
-                            .WithPrependedLeadingTrivia(currentArrayCreation.Type.GetTrailingTrivia())
-                            .WithPrependedLeadingTrivia(ElasticMarker);
+                    return ReplaceWithCollectionExpression(
+                        sourceText, arrayCreation.Initializer, collectionExpression);
                 });
         }
 
         void RewriteImplicitArrayCreationExpression(ImplicitArrayCreationExpressionSyntax implicitArrayCreation)
         {
             Contract.ThrowIfNull(implicitArrayCreation.Initializer);
-            var shouldReplaceExpressionEntirely = ShouldReplaceExistingExpressionEntirely(implicitArrayCreation, implicitArrayCreation.Initializer);
 
             editor.ReplaceNode(
                 implicitArrayCreation,
@@ -172,11 +120,8 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider : Sy
                         currentArrayCreation.Initializer,
                         IsOnSingleLine(sourceText, implicitArrayCreation));
 
-                    return shouldReplaceExpressionEntirely
-                        ? collectionExpression.WithTriviaFrom(currentArrayCreation)
-                        : collectionExpression
-                            .WithPrependedLeadingTrivia(currentArrayCreation.CloseBracketToken.TrailingTrivia)
-                            .WithPrependedLeadingTrivia(ElasticMarker);
+                    return ReplaceWithCollectionExpression(
+                        sourceText, implicitArrayCreation.Initializer, collectionExpression);
                 });
         }
     }
