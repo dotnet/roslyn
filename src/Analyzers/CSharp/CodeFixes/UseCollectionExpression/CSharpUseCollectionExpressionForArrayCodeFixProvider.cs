@@ -125,26 +125,4 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider : Sy
                 });
         }
     }
-
-    private static CollectionExpressionSyntax ConvertInitializerToCollectionExpression(
-        InitializerExpressionSyntax initializer, bool wasOnSingleLine)
-    {
-        // if the initializer is already on multiple lines, keep it that way.  otherwise, squash from `{ 1, 2, 3 }` to `[1, 2, 3]`
-        var openBracket = Token(SyntaxKind.OpenBracketToken).WithTriviaFrom(initializer.OpenBraceToken);
-        var elements = initializer.Expressions.GetWithSeparators().SelectAsArray(
-            i => i.IsToken ? i : ExpressionElement((ExpressionSyntax)i.AsNode()!));
-        var closeBracket = Token(SyntaxKind.CloseBracketToken).WithTriviaFrom(initializer.CloseBraceToken);
-
-        if (wasOnSingleLine)
-        {
-            // convert '{ ' to '['
-            if (openBracket.TrailingTrivia is [(kind: SyntaxKind.WhitespaceTrivia), ..])
-                openBracket = openBracket.WithTrailingTrivia(openBracket.TrailingTrivia.Skip(1));
-
-            if (elements is [.., var lastNodeOrToken] && lastNodeOrToken.GetTrailingTrivia() is [.., (kind: SyntaxKind.WhitespaceTrivia)] trailingTrivia)
-                elements = elements.Replace(lastNodeOrToken, lastNodeOrToken.WithTrailingTrivia(trailingTrivia.Take(trailingTrivia.Count - 1)));
-        }
-
-        return CollectionExpression(openBracket, SeparatedList<CollectionElementSyntax>(elements), closeBracket);
-    }
 }

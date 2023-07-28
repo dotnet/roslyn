@@ -11,6 +11,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Analyzers.UseCollectionExpression;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.UseObjectInitializer;
@@ -92,12 +93,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 objectCreation, matches,
                 static (match, expression) => match?.UseSpread is true ? SpreadElement(expression) : ExpressionElement(expression));
 
+            //if (MakeMultiLine(sourceText, objectCreation, matches, wrappingLength))
+            //    elements = AddLineBreaks(elements, includeFinalLineBreak: false);
 
 
-            if (MakeMultiLine(sourceText, objectCreation, matches, wrappingLength))
-                elements = AddLineBreaks(elements, includeFinalLineBreak: false);
+            // If the object creation expression had an initializer.  Attempt to preserve the formatting of the original
+            // initializer and the new collection expression.
+            if (objectCreation.Initializer != null)
+            {
+                if (MakeMultiLine())
+                {
 
-            return CollectionExpression(elements).WithTriviaFrom(objectCreation);
+                }
+                else
+                {
+                    // both the initializer and the new elements all would work on a single line.  
+                    // First, convert the 
+                    var initialConversion = UseCollectionExpressionHelpers.ConvertInitializerToCollectionExpression(
+                        objectCreation.Initializer, wasOnSingleLine: true);
+
+                    // now, add all the matches in after the existing elements.
+
+                    return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
+                        sourceText, objectCreation.Initializer, initialConversion.WithElements(allElements));
+                }
+
+                var collectionExpression = CollectionExpression(
+                    elements);
+            }
+
+            return CollectionExpression(elements);
         }
 
         private static ExpressionSyntax ConvertExpression(ExpressionSyntax expression)
@@ -152,9 +177,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 return true;
 
             var totalLength = "{}".Length;
-            foreach (var match in matches)
+            foreach (var (statement, _) in matches)
             {
-                foreach (var component in GetElementComponents(match.Statement))
+                // if the statement we're replacing has any comments on it, then we need to be multiline to give them an
+                // appropriate place to go.
+                if (statement.GetLeadingTrivia().Any(static t => t.IsSingleOrMultiLineComment()) ||
+                    statement.GetTrailingTrivia().Any(static t => t.IsSingleOrMultiLineComment()))
+                {
+                    return true;
+                }
+
+                foreach (var component in GetElementComponents(statement))
                 {
                     // if any of the expressions we're adding are multiline, then make things multiline.
                     if (!sourceText.AreOnSameLine(component.GetFirstToken(), component.GetLastToken()))
