@@ -94,6 +94,8 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 _ => throw new NotImplementedException()
             };
 
+            var totalExecutionTime = Stopwatch.StartNew();
+
             try
             {
                 // Exactly one of "solution", or "project" or "compilerInvocation" should be specified
@@ -141,7 +143,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             }
 
             (lsifWriter as IDisposable)?.Dispose();
-            await logFile.WriteLineAsync("Generation complete.");
+            await logFile.WriteLineAsync($"Generation complete. Total execution time: {totalExecutionTime.Elapsed.ToDisplayString()}");
         }
 
         private static async Task LocateAndRegisterMSBuild(TextWriter logFile, DirectoryInfo? sourceDirectory)
