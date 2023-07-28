@@ -33,13 +33,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             InvocationExpressionSyntax,
             ExpressionStatementSyntax,
             ForEachStatementSyntax,
-            VariableDeclaratorSyntax>
+            IfStatementSyntax,
+            VariableDeclaratorSyntax,
+            CSharpUseCollectionInitializerAnalyzer>
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpUseCollectionInitializerCodeFixProvider()
         {
         }
+
+        protected override CSharpUseCollectionInitializerAnalyzer GetAnalyzer()
+            => CSharpUseCollectionInitializerAnalyzer.Allocate();
 
         protected override StatementSyntax GetNewStatement(
             SourceText sourceText,

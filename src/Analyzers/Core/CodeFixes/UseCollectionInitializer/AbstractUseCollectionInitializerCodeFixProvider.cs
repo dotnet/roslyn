@@ -31,7 +31,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         TExpressionStatementSyntax,
         TForeachStatementSyntax,
         TIfStatementSyntax,
-        TVariableDeclaratorSyntax>
+        TVariableDeclaratorSyntax,
+        TAnalyzer>
         : SyntaxEditorBasedCodeFixProvider
         where TSyntaxKind : struct
         where TExpressionSyntax : SyntaxNode
@@ -43,9 +44,22 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         where TForeachStatementSyntax : TStatementSyntax
         where TIfStatementSyntax : TStatementSyntax
         where TVariableDeclaratorSyntax : SyntaxNode
+        where TAnalyzer : AbstractUseCollectionInitializerAnalyzer<
+            TExpressionSyntax,
+            TStatementSyntax,
+            TObjectCreationExpressionSyntax,
+            TMemberAccessExpressionSyntax,
+            TInvocationExpressionSyntax,
+            TExpressionStatementSyntax,
+            TForeachStatementSyntax,
+            TIfStatementSyntax,
+            TVariableDeclaratorSyntax,
+            TAnalyzer>, new()
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseCollectionInitializerDiagnosticId);
+
+        protected abstract TAnalyzer GetAnalyzer();
 
         protected abstract TStatementSyntax GetNewStatement(
             SourceText sourceText, TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation, int wrappingLength, bool useCollectionExpression, ImmutableArray<Match<TStatementSyntax>> matches);
@@ -99,13 +113,14 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 #endif
                 CodeActionOptions.DefaultCollectionExpressionWrappingLength;
 
+            using var analyzer = GetAnalyzer();
+
             while (originalObjectCreationNodes.Count > 0)
             {
                 var (originalObjectCreation, useCollectionExpression) = originalObjectCreationNodes.Pop();
                 var objectCreation = currentRoot.GetCurrentNodes(originalObjectCreation).Single();
 
-                var matches = UseCollectionInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TForeachStatementSyntax, TIfStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
-                    semanticModel, syntaxFacts, objectCreation, useCollectionExpression, cancellationToken);
+                var matches = analyzer.Analyze(semanticModel, syntaxFacts, objectCreation, useCollectionExpression, cancellationToken);
 
                 if (matches.IsDefaultOrEmpty)
                     continue;

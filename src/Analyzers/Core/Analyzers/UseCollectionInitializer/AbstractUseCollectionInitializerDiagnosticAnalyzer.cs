@@ -62,7 +62,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             TExpressionStatementSyntax,
             TForeachStatementSyntax,
             TIfStatementSyntax,
-            TVariableDeclaratorSyntax>
+            TVariableDeclaratorSyntax,
+            TAnalyzer>, new()
     {
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
@@ -153,6 +154,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
             // Analyze the surrounding statements. First, try a broader set of statements if the language supports
             // collection expressions. 
+            var syntaxFacts = GetSyntaxFacts();
             using var analyzer = GetAnalyzer();
             var result = GetCollectionExpressionMatches() ?? GetCollectionInitializerMatches();
             if (result is null)
@@ -161,7 +163,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             var (matches, shouldUseCollectionExpression) = result.Value;
 
             var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(matches.Select(static m => m.Statement));
-            var syntaxFacts = GetSyntaxFacts();
             if (syntaxFacts.ContainsInterleavedDirective(nodes, cancellationToken))
                 return;
 
@@ -180,8 +181,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
             (ImmutableArray<Match<TStatementSyntax>> matches, bool shouldUseCollectionExpression)? GetCollectionInitializerMatches()
             {
-                var matches = analyzer.Analyze(
-                    semanticModel, GetSyntaxFacts(), objectCreationExpression, areCollectionExpressionsSupported: false, cancellationToken);
+                var matches = analyzer.Analyze(semanticModel, syntaxFacts, objectCreationExpression, areCollectionExpressionsSupported: false, cancellationToken);
 
                 // If analysis failed, we can't change this, no matter what.
                 if (matches.IsDefault)
@@ -202,8 +202,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 if (!AreCollectionExpressionsSupported())
                     return null;
 
-                var matches = analyzer.Analyze(
-                    semanticModel, GetSyntaxFacts(), objectCreationExpression, areCollectionExpressionsSupported: true, cancellationToken);
+                var matches = analyzer.Analyze(semanticModel, syntaxFacts, objectCreationExpression, areCollectionExpressionsSupported: true, cancellationToken);
 
                 // If analysis failed, we can't change this, no matter what.
                 if (matches.IsDefault)
@@ -228,7 +227,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 if (!option.Value)
                     return false;
 
-                var syntaxFacts = GetSyntaxFacts();
                 var arguments = syntaxFacts.GetArgumentsOfObjectCreationExpression(objectCreationExpression);
                 if (arguments.Count != 0)
                     return false;

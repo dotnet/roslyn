@@ -53,26 +53,27 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
     {
         private static readonly ObjectPool<TAnalyzer> s_pool = SharedPools.Default<TAnalyzer>();
 
-        public abstract void Dispose();
+        protected abstract void GetPartsOfForeachStatement(TForeachStatementSyntax statement, out SyntaxToken identifier, out TExpressionSyntax expression, out IEnumerable<TStatementSyntax> statements);
+        protected abstract void GetPartsOfIfStatement(TIfStatementSyntax statement, out TExpressionSyntax condition, out IEnumerable<TStatementSyntax> whenTrueStatements, out IEnumerable<TStatementSyntax> whenFalseStatements);
 
-        public static ImmutableArray<Match<TStatementSyntax>> Analyze(
+        public static TAnalyzer Allocate()
+            => s_pool.Allocate();
+
+        public void Dispose()
+        {
+            this.Clear();
+            s_pool.Free((TAnalyzer)this);
+        }
+
+        public ImmutableArray<Match<TStatementSyntax>> Analyze(
             SemanticModel semanticModel,
             ISyntaxFacts syntaxFacts,
             TObjectCreationExpressionSyntax objectCreationExpression,
             bool areCollectionExpressionsSupported,
             CancellationToken cancellationToken)
         {
-            var analyzer = s_pool.Allocate();
-            analyzer.Initialize(semanticModel, syntaxFacts, objectCreationExpression, areCollectionExpressionsSupported, cancellationToken);
-            try
-            {
-                return analyzer.AnalyzeWorker();
-            }
-            finally
-            {
-                analyzer.Clear();
-                s_pool.Free(analyzer);
-            }
+            this.Initialize(semanticModel, syntaxFacts, objectCreationExpression, areCollectionExpressionsSupported, cancellationToken);
+            return this.AnalyzeWorker();
         }
 
         protected override void AddMatches(ArrayBuilder<Match<TStatementSyntax>> matches)
@@ -196,28 +197,25 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 // `[..expr]` elements.
                 if (_analyzeForCollectionExpression)
                 {
-                    _syntaxFacts.GetPartsOfForeachStatement(foreachStatement, out var identifier, out _, out var foreachStatements);
-                    if (identifier != default)
+                    this.GetPartsOfForeachStatement(foreachStatement, out var identifier, out _, out var foreachStatements);
+                    // must be of the form:
+                    //
+                    //      foreach (var x in expr)
+                    //          dest.Add(x)
+                    //
+                    // By passing 'x' into TryAnalyzeInvocation below, we ensure that it is an enumerated value from `expr`
+                    // being added to `dest`.
+                    if (foreachStatements.ToImmutableArray() is [TExpressionStatementSyntax childExpressionStatement] &&
+                        TryAnalyzeInvocation(
+                            childExpressionStatement,
+                            addName: WellKnownMemberNames.CollectionInitializerAddMethodName,
+                            requiredArgumentName: identifier.Text,
+                            out var instance) &&
+                        ValuePatternMatches(instance))
                     {
-                        // must be of the form:
-                        //
-                        //      foreach (var x in expr)
-                        //          dest.Add(x)
-                        //
-                        // By passing 'x' into TryAnalyzeInvocation below, we ensure that it is an enumerated value from `expr`
-                        // being added to `dest`.
-                        if (foreachStatements.ToImmutableArray() is [TExpressionStatementSyntax childExpressionStatement] &&
-                            TryAnalyzeInvocation(
-                                childExpressionStatement,
-                                addName: WellKnownMemberNames.CollectionInitializerAddMethodName,
-                                requiredArgumentName: identifier.Text,
-                                out var instance) &&
-                            ValuePatternMatches(instance))
-                        {
-                            // `foreach` will become `..expr` when we make it into a collection expression.
-                            matches.Add(new Match<TStatementSyntax>(foreachStatement, UseSpread: true));
-                            return true;
-                        }
+                        // `foreach` will become `..expr` when we make it into a collection expression.
+                        matches.Add(new Match<TStatementSyntax>(foreachStatement, UseSpread: true));
+                        return true;
                     }
                 }
 
@@ -241,7 +239,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 //  else
                 //      expr.Add(z)
 
-                _syntaxFacts.GetPartsOfIfStatement(ifStatement, out _, out var whenTrue, out var whenFalse);
+                this.GetPartsOfIfStatement(ifStatement, out _, out var whenTrue, out var whenFalse);
                 var whenTrueStatements = whenTrue.ToImmutableArray();
                 var whenFalseStatements = whenFalse.ToImmutableArray();
 
