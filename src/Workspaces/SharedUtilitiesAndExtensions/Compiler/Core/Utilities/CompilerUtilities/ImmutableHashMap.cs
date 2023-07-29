@@ -1093,7 +1093,7 @@ namespace Roslyn.Collections.Immutable
             }
 
             [DebuggerStepThrough]
-            public static Exception FailRange(string parameterName, string? message = null)
+            public static void FailRange(string parameterName, string? message = null)
             {
                 if (string.IsNullOrEmpty(message))
                 {
