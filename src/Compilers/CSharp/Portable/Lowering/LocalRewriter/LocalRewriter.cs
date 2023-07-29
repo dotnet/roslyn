@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly int _topLevelMethodOrdinal;
         private DelegateCacheRewriter? _lazyDelegateCacheRewriter;
         private bool _inExpressionLambda;
+        private ArrayBuilder<LocalSymbol>? _additionalLocals;
 
         /// <summary>
         /// The original body of the current lambda or local function body, or null if not currently lowering a lambda.
@@ -618,6 +619,43 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.Update(operand, getTypeFromHandle, type);
         }
 
+        private BoundStatement? RewriteFieldOrPropertyInitializer(BoundStatement initializer)
+        {
+            var previousLocals = _additionalLocals;
+            _additionalLocals = ArrayBuilder<LocalSymbol>.GetInstance();
+
+            try
+            {
+                if (initializer.Kind == BoundKind.Block)
+                {
+                    var block = (BoundBlock)initializer;
+
+                    var statement = RewriteExpressionStatement((BoundExpressionStatement)block.Statements.Single(), suppressInstrumentation: true);
+                    Debug.Assert(statement is { });
+                    return block.Update(block.Locals.AddRange(_additionalLocals), block.LocalFunctions, block.HasUnsafeModifier, block.Instrumentation, ImmutableArray.Create(statement));
+                }
+                else
+                {
+                    var statement = RewriteExpressionStatement((BoundExpressionStatement)initializer, suppressInstrumentation: true);
+                    if (statement is null || _additionalLocals.Count == 0)
+                    {
+                        return statement;
+                    }
+                    return new BoundBlock(
+                        statement.Syntax,
+                        _additionalLocals.ToImmutable(),
+                        ImmutableArray.Create(statement));
+                }
+            }
+            finally
+            {
+                _additionalLocals.Free();
+                _additionalLocals = previousLocals;
+            }
+
+
+        }
+
         public override BoundNode VisitTypeOrInstanceInitializers(BoundTypeOrInstanceInitializers node)
         {
             ImmutableArray<BoundStatement> originalStatements = node.Statements;
@@ -626,18 +664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (IsFieldOrPropertyInitializer(initializer))
                 {
-                    if (initializer.Kind == BoundKind.Block)
-                    {
-                        var block = (BoundBlock)initializer;
-
-                        var statement = RewriteExpressionStatement((BoundExpressionStatement)block.Statements.Single(), suppressInstrumentation: true);
-                        Debug.Assert(statement is { });
-                        statements.Add(block.Update(block.Locals, block.LocalFunctions, block.HasUnsafeModifier, block.Instrumentation, ImmutableArray.Create(statement)));
-                    }
-                    else
-                    {
-                        statements.Add(RewriteExpressionStatement((BoundExpressionStatement)initializer, suppressInstrumentation: true));
-                    }
+                    statements.Add(RewriteFieldOrPropertyInitializer(initializer));
                 }
                 else
                 {

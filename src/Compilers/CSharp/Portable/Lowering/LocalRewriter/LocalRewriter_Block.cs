@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Diagnostics;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -20,26 +19,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var builder = ArrayBuilder<BoundStatement>.GetInstance();
-            VisitStatementSubList(builder, node.Statements);
+            var previousLocals = _additionalLocals;
+            _additionalLocals = ArrayBuilder<LocalSymbol>.GetInstance();
 
-            var additionalLocals = TemporaryArray<LocalSymbol>.Empty;
-
-            BoundBlockInstrumentation? instrumentation = null;
-            if (Instrument)
+            try
             {
-                Instrumenter.InstrumentBlock(node, this, ref additionalLocals, out var prologue, out var epilogue, out instrumentation);
-                if (prologue != null)
+                VisitStatementSubList(builder, node.Statements);
+
+                var additionalLocals = TemporaryArray<LocalSymbol>.Empty;
+
+                BoundBlockInstrumentation? instrumentation = null;
+                if (Instrument)
                 {
-                    builder.Insert(0, prologue);
+                    Instrumenter.InstrumentBlock(node, this, ref additionalLocals, out var prologue, out var epilogue, out instrumentation);
+                    if (prologue != null)
+                    {
+                        builder.Insert(0, prologue);
+                    }
+
+                    if (epilogue != null)
+                    {
+                        builder.Add(epilogue);
+                    }
                 }
 
-                if (epilogue != null)
-                {
-                    builder.Add(epilogue);
-                }
+                return new BoundBlock(node.Syntax, node.Locals.AddRange(_additionalLocals).AddRange(additionalLocals), node.LocalFunctions, node.HasUnsafeModifier, instrumentation, builder.ToImmutableAndFree(), node.HasErrors);
             }
-
-            return new BoundBlock(node.Syntax, node.Locals.AddRange(additionalLocals), node.LocalFunctions, node.HasUnsafeModifier, instrumentation, builder.ToImmutableAndFree(), node.HasErrors);
+            finally
+            {
+                _additionalLocals.Free();
+                _additionalLocals = previousLocals;
+            }
         }
 
         /// <summary>

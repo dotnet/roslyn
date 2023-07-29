@@ -6849,6 +6849,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_CollectionBuilderAttributeInvalidMethodName" xml:space="preserve">
     <value>The CollectionBuilderAttribute method name is invalid.</value>
   </data>
+  <data name="ERR_CollectionExpressionEscape" xml:space="preserve">
+    <value>A collection expression of type '{0}' cannot be used in this context because it may be exposed outside of the current scope.</value>
+  </data>
   <data name="ERR_EqualityContractRequiresGetter" xml:space="preserve">
     <value>Record equality contract property '{0}' must have a get accessor.</value>
   </data>

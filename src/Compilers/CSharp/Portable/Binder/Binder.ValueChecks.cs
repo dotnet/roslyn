@@ -3960,7 +3960,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetValEscape(switchExpr.SwitchArms.SelectAsArray(a => a.Value), scopeOfTheContainingExpression);
 
                 case BoundKind.CollectionExpression:
-                    return CallingMethodScope;
+                    return HasLocalScope((BoundCollectionExpression)expr)
+                        ? scopeOfTheContainingExpression
+                        : CallingMethodScope;
 
                 default:
                     // in error situations some unexpected nodes could make here
@@ -3969,6 +3971,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(false, $"{expr.Kind} expression of {expr.Type} type");
                     return scopeOfTheContainingExpression;
             }
+        }
+
+        private static bool HasLocalScope(BoundCollectionExpression expr)
+        {
+            // A non-empty collection expression with span type may be stored on
+            // the stack, so the expression is assumed to have local scope.
+            return expr.Type?.IsRefLikeType == true && expr.Elements.Length > 0;
         }
 
         private uint GetTupleValEscape(ImmutableArray<BoundExpression> elements, uint scopeOfTheContainingExpression)
@@ -4489,6 +4498,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
 
                 case BoundKind.CollectionExpression:
+                    if (HasLocalScope((BoundCollectionExpression)expr) && escapeTo < _localScopeDepth)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_CollectionExpressionEscape, node, expr.Type);
+                        return false;
+                    }
                     return true;
 
                 default:

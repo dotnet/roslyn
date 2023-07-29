@@ -2266,6 +2266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_OutAttrOnRefReadonlyParam = 9199,
         WRN_RefReadonlyParameterDefaultValue = 9200,
         WRN_UseDefViolationRefField = 9201,
+        ERR_CollectionExpressionEscape = 9202,
 
         #endregion
 
