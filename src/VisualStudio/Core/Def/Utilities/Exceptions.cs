@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
         {
             Marshal.ThrowExceptionForHR(VSConstants.E_FAIL, new IntPtr(-1));
 
-            // never reached...
+            // The return exception should be used to avoid detection of the codepath not returning a value
             return null;
         }
 
@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
         {
             Marshal.ThrowExceptionForHR(VSConstants.E_INVALIDARG, new IntPtr(-1));
 
-            // never reached...
+            // The return exception should be used to avoid detection of the codepath not returning a value
             return null;
         }
 
@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
         {
             Marshal.ThrowExceptionForHR(VSConstants.E_NOTIMPL, new IntPtr(-1));
 
-            // never reached...
+            // The return exception should be used to avoid detection of the codepath not returning a value
             return null;
         }
 
@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
         {
             Marshal.ThrowExceptionForHR(VSConstants.E_UNEXPECTED, new IntPtr(-1));
 
-            // never reached...
+            // The return exception should be used to avoid detection of the codepath not returning a value
             return null;
         }
     }

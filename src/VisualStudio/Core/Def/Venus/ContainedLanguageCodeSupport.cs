@@ -344,7 +344,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
                     if (!workspace.TryApplyChanges(newSolution))
                     {
-                        Exceptions.ThrowEFail();
+                        throw Exceptions.ThrowEFail();
                     }
 
                     // Notify third parties about the completed rename operation on the workspace, and
