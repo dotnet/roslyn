@@ -3960,7 +3960,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetValEscape(switchExpr.SwitchArms.SelectAsArray(a => a.Value), scopeOfTheContainingExpression);
 
                 case BoundKind.CollectionExpression:
-                    return CallingMethodScope;
+                    return ((BoundCollectionExpression)expr).HasLocalScope
+                        ? scopeOfTheContainingExpression
+                        : CallingMethodScope;
 
                 default:
                     // in error situations some unexpected nodes could make here
@@ -4489,6 +4491,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
 
                 case BoundKind.CollectionExpression:
+                    if (((BoundCollectionExpression)expr).HasLocalScope && escapeTo < _localScopeDepth)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_CollectionExpressionEscape, node, expr.Type);
+                        return false;
+                    }
                     return true;
 
                 default:

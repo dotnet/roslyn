@@ -598,7 +598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     GetWellKnownType(WellKnownType.System_Collections_Generic_List_T, diagnostics, syntax).Construct(elementType),
                     wasCompilerGenerated: wasCompilerGenerated,
                     diagnostics);
-                return result.Update(result.CollectionTypeKind, result.Placeholder, result.CollectionCreation, result.CollectionBuilderMethod, result.Elements, targetType);
+                return result.Update(result.CollectionTypeKind, result.Placeholder, result.CollectionCreation, result.CollectionBuilderMethod, result.Elements, result.HasLocalScope, targetType);
             }
 
             var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
@@ -614,6 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionCreation: null,
                 collectionBuilderMethod: null,
                 builder.ToImmutableAndFree(),
+                hasLocalScope: false,
                 targetType)
             { WasCompilerGenerated = wasCompilerGenerated };
         }
@@ -706,6 +707,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionCreation,
                 collectionBuilderMethod: null,
                 builder.ToImmutableAndFree(),
+                hasLocalScope: false,
                 targetType,
                 hasErrors)
             { WasCompilerGenerated = wasCompilerGenerated };
@@ -725,7 +727,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GetWellKnownType(WellKnownType.System_Collections_Generic_List_T, diagnostics, node.Syntax).Construct(elementType),
                 wasCompilerGenerated: wasCompilerGenerated,
                 diagnostics);
-            return result.Update(result.CollectionTypeKind, result.Placeholder, result.CollectionCreation, result.CollectionBuilderMethod, result.Elements, targetType);
+            return result.Update(result.CollectionTypeKind, result.Placeholder, result.CollectionCreation, result.CollectionBuilderMethod, result.Elements, result.HasLocalScope, targetType);
         }
 
         private BoundCollectionExpression BindCollectionExpressionForErrorRecovery(
@@ -746,6 +748,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionCreation: null,
                 collectionBuilderMethod: null,
                 elements: builder.ToImmutableAndFree(),
+                hasLocalScope: false,
                 targetType,
                 hasErrors: true);
         }
@@ -802,7 +805,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     GetWellKnownType(WellKnownType.System_Collections_Generic_List_T, diagnostics, syntax).Construct(elementType),
                     wasCompilerGenerated: wasCompilerGenerated,
                     diagnostics);
-                return result.Update(result.CollectionTypeKind, result.Placeholder, result.CollectionCreation, constructMethod, result.Elements, targetType);
+                return result.Update(result.CollectionTypeKind, result.Placeholder, result.CollectionCreation, constructMethod, result.Elements, result.HasLocalScope, targetType);
             }
 
             var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, readOnlySpanType) { WasCompilerGenerated = true };
@@ -818,6 +821,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionCreation: null,
                 collectionBuilderMethod: constructMethod,
                 builder.ToImmutableAndFree(),
+                hasLocalScope: false,
                 targetType)
             { WasCompilerGenerated = wasCompilerGenerated };
         }

@@ -1064,7 +1064,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             declTypeOpt.Type,
                             initializerOpt,
                             localDiagnostics,
-                            localSymbol.RefKind != RefKind.None ? ConversionForAssignmentFlags.RefAssignment : ConversionForAssignmentFlags.None);
+                            (localSymbol.RefKind != RefKind.None ? ConversionForAssignmentFlags.RefAssignment : ConversionForAssignmentFlags.None) |
+                                ConversionForAssignmentFlags.LocalVariableAssignment);
                     }
                 }
             }
@@ -1495,7 +1496,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Build bound conversion. The node might not be used if this is a dynamic conversion
                 // but diagnostics should be reported anyways.
-                var conversion = GenerateConversionForAssignment(op1.Type, op2, diagnostics, isRef ? ConversionForAssignmentFlags.RefAssignment : ConversionForAssignmentFlags.None);
+                var conversion = GenerateConversionForAssignment(
+                    op1.Type,
+                    op2,
+                    diagnostics,
+                    (isRef ? ConversionForAssignmentFlags.RefAssignment : ConversionForAssignmentFlags.None) |
+                        (op1.Kind == BoundKind.Local ? ConversionForAssignmentFlags.LocalVariableAssignment : ConversionForAssignmentFlags.None));
 
                 // If the result is a dynamic assignment operation (SetMember or SetIndex),
                 // don't generate the boxing conversion to the dynamic type.
@@ -1902,6 +1908,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             IncrementAssignment = 1 << 2,
             CompoundAssignment = 1 << 3,
             PredefinedOperator = 1 << 4,
+            LocalVariableAssignment = 1 << 5,
         }
 
         internal BoundExpression GenerateConversionForAssignment(TypeSymbol targetType, BoundExpression expression, BindingDiagnosticBag diagnostics, ConversionForAssignmentFlags flags = ConversionForAssignmentFlags.None)
@@ -1962,7 +1969,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics = BindingDiagnosticBag.Discarded;
             }
 
-            return CreateConversion(expression.Syntax, expression, conversion, isCast: false, conversionGroupOpt: null, targetType, diagnostics);
+            var result = CreateConversion(expression.Syntax, expression, conversion, isCast: false, conversionGroupOpt: null, targetType, diagnostics);
+
+            // A collection expression assigned to a local of ref struct type is treated as local scope.
+            if ((flags & ConversionForAssignmentFlags.LocalVariableAssignment) != 0
+                && targetType.IsRefLikeType
+                && result is BoundConversion { ConversionKind: ConversionKind.CollectionExpression, Operand: BoundCollectionExpression resultOperand } resultConversion)
+            {
+                return resultConversion.Update(
+                    resultOperand.Update(
+                        resultOperand.CollectionTypeKind,
+                        resultOperand.Placeholder,
+                        resultOperand.CollectionCreation,
+                        resultOperand.CollectionBuilderMethod,
+                        resultOperand.Elements,
+                        hasLocalScope: true,
+                        resultOperand.Type),
+                    resultConversion.Conversion,
+                    resultConversion.IsBaseConversion,
+                    resultConversion.Checked,
+                    resultConversion.ExplicitCastInCode,
+                    resultConversion.ConstantValueOpt,
+                    resultConversion.ConversionGroupOpt,
+                    resultConversion.Type);
+            }
+
+            return result;
         }
 
 #nullable enable

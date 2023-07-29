@@ -2396,6 +2396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_OutAttrOnRefReadonlyParam:
                 case ErrorCode.WRN_RefReadonlyParameterDefaultValue:
                 case ErrorCode.WRN_ByValArraySizeConstRequired:
+                case ErrorCode.ERR_CollectionExpressionEscape:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

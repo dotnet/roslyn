@@ -1891,6 +1891,8 @@
     <Field Name="CollectionBuilderMethod" Type="MethodSymbol?" Null="allow"/>
     <!-- Collection expression elements. -->
     <Field Name="Elements" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+    <!-- Collection expression must not escape current scope. -->
+    <Field Name="HasLocalScope" Type="bool"/>
   </Node>
 
   <Node Name="BoundCollectionExpressionSpreadElement" Base="BoundExpression">

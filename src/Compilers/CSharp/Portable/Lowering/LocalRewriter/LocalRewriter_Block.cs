@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Diagnostics;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var builder = ArrayBuilder<BoundStatement>.GetInstance();
-            VisitStatementSubList(builder, node.Statements);
-
             var additionalLocals = TemporaryArray<LocalSymbol>.Empty;
+
+            VisitStatementSubList(builder, ref additionalLocals, node.Statements);
 
             BoundBlockInstrumentation? instrumentation = null;
             if (Instrument)
@@ -46,14 +46,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Visit a partial list of statements that possibly contain using declarations
         /// </summary>
         /// <param name="builder">The array builder to append statements to</param>
+        /// <param name="additionalLocals">Additional locals generated from rewriting local declarations.</param>
         /// <param name="statements">The list of statements to visit</param>
         /// <param name="startIndex">The index of the <paramref name="statements"/> to begin visiting at</param>
         /// <returns>An <see cref="ImmutableArray{T}"/> of <see cref="BoundStatement"/></returns>
-        public void VisitStatementSubList(ArrayBuilder<BoundStatement> builder, ImmutableArray<BoundStatement> statements, int startIndex = 0)
+        public void VisitStatementSubList(ArrayBuilder<BoundStatement> builder, ref TemporaryArray<LocalSymbol> additionalLocals, ImmutableArray<BoundStatement> statements, int startIndex = 0)
         {
             for (int i = startIndex; i < statements.Length; i++)
             {
-                BoundStatement? statement = VisitPossibleUsingDeclaration(statements[i], statements, i, out var replacedUsingDeclarations);
+                BoundStatement? statement = VisitPossibleUsingDeclaration(statements[i], statements, i, ref additionalLocals, out var replacedUsingDeclarations);
                 if (statement != null)
                 {
                     builder.Add(statement);
@@ -72,6 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="node">The node to visit</param>
         /// <param name="statements">All statements in the block containing this node</param>
         /// <param name="statementIndex">The current statement being visited in <paramref name="statements"/></param>
+        /// <param name="additionalLocals">Additional locals generated from rewriting local declarations.</param>
         /// <param name="replacedLocalDeclarations">Set to true if this visited a <see cref="BoundUsingLocalDeclarations"/> node</param>
         /// <returns>A <see cref="BoundStatement"/></returns>
         /// <remarks>
@@ -79,20 +81,51 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// When traversing down a set of labels, we set node to the label.body and recurse, but statements[startIndex] still refers to the original parent label 
         /// as we haven't actually moved down the original statement list
         /// </remarks>
-        public BoundStatement? VisitPossibleUsingDeclaration(BoundStatement node, ImmutableArray<BoundStatement> statements, int statementIndex, out bool replacedLocalDeclarations)
+        public BoundStatement? VisitPossibleUsingDeclaration(BoundStatement node, ImmutableArray<BoundStatement> statements, int statementIndex, ref TemporaryArray<LocalSymbol> additionalLocals, out bool replacedLocalDeclarations)
         {
             switch (node.Kind)
             {
                 case BoundKind.LabeledStatement:
                     var labelStatement = (BoundLabeledStatement)node;
-                    return MakeLabeledStatement(labelStatement, VisitPossibleUsingDeclaration(labelStatement.Body, statements, statementIndex, out replacedLocalDeclarations));
+                    return MakeLabeledStatement(labelStatement, VisitPossibleUsingDeclaration(labelStatement.Body, statements, statementIndex, ref additionalLocals, out replacedLocalDeclarations));
+
                 case BoundKind.UsingLocalDeclarations:
                     // visit everything after this node 
                     ArrayBuilder<BoundStatement> builder = ArrayBuilder<BoundStatement>.GetInstance();
-                    VisitStatementSubList(builder, statements, statementIndex + 1);
+                    VisitStatementSubList(builder, ref additionalLocals, statements, statementIndex + 1);
                     // make a using declaration with the visited statements as its body
                     replacedLocalDeclarations = true;
                     return MakeLocalUsingDeclarationStatement((BoundUsingLocalDeclarations)node, builder.ToImmutableAndFree());
+
+                case BoundKind.LocalDeclaration:
+                    var localDeclaration = (BoundLocalDeclaration)node;
+                    var localSymbol = localDeclaration.LocalSymbol;
+                    replacedLocalDeclarations = false;
+                    if (localSymbol.Type.IsRefLikeType &&
+                        localDeclaration.InitializerOpt is BoundConversion { ConversionKind: ConversionKind.CollectionExpression, Operand: BoundCollectionExpression collectionExpression } &&
+                        ShouldUseInlineArray(collectionExpression))
+                    {
+                        var collectionTypeKind = ConversionsBase.GetCollectionExpressionTypeKind(_compilation, localSymbol.Type, out var elementType);
+                        if (collectionTypeKind is CollectionExpressionTypeKind.Span or CollectionExpressionTypeKind.ReadOnlySpan)
+                        {
+                            var localsBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
+                            var rewrittenInitializer = CreateAndPopulateSpanFromInlineArray(
+                                collectionExpression.Syntax,
+                                TypeWithAnnotations.Create(elementType),
+                                collectionExpression.Elements,
+                                asReadOnlySpan: collectionTypeKind == CollectionExpressionTypeKind.ReadOnlySpan,
+                                localsBuilder);
+                            Debug.Assert(localsBuilder.Count == 1);
+                            foreach (var local in localsBuilder)
+                            {
+                                additionalLocals.Add(local);
+                            }
+                            localsBuilder.Free();
+                            return RewriteLocalDeclaration(localDeclaration, node.Syntax, localSymbol, rewrittenInitializer, node.HasErrors);
+                        }
+                    }
+                    return (BoundStatement?)VisitLocalDeclaration(localDeclaration);
+
                 default:
                     replacedLocalDeclarations = false;
                     return VisitStatement(node);

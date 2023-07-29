@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -183,12 +184,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
             BoundExpression span;
 
-            if (elements.Length > 0
-                && !elements.Any(i => i is BoundCollectionExpressionSpreadElement)
-                && _compilation.Assembly.RuntimeSupportsInlineArrayTypes
-                && (!constructMethod.ReturnType.IsRefLikeType || constructMethod.Parameters[0].EffectiveScope == ScopedKind.ScopedValue))
+            if (ShouldUseInlineArray(node) &&
+                (!constructMethod.ReturnType.IsRefLikeType || constructMethod.Parameters[0].EffectiveScope == ScopedKind.ScopedValue))
             {
-                span = CreateAndPopulateInlineArray(syntax, elementType, elements, locals, sideEffects);
+                span = CreateAndPopulateSpanFromInlineArray(syntax, elementType, elements, asReadOnlySpan: true, locals, sideEffects);
             }
             else
             {
@@ -218,10 +217,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 call.Type);
         }
 
-        private BoundExpression CreateAndPopulateInlineArray(
+        private bool ShouldUseInlineArray(BoundCollectionExpression node)
+        {
+            var elements = node.Elements;
+            return elements.Length > 0 &&
+                !elements.Any(i => i is BoundCollectionExpressionSpreadElement) &&
+                _compilation.Assembly.RuntimeSupportsInlineArrayTypes;
+        }
+
+        private BoundExpression CreateAndPopulateSpanFromInlineArray(
             SyntaxNode syntax,
             TypeWithAnnotations elementType,
             ImmutableArray<BoundExpression> elements,
+            bool asReadOnlySpan,
             ArrayBuilder<LocalSymbol> locals,
             ArrayBuilder<BoundExpression> sideEffects)
         {
@@ -259,14 +267,42 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Get a span to the inline array.
             // ... InlineArrayAsReadOnlySpan<<>y__InlineArrayN<ElementType>, ElementType>(in tmp, N)
-            var inlineArrayAsReadOnlySpan = _factory.ModuleBuilderOpt.EnsureInlineArrayAsReadOnlySpanExists(syntax, _factory.WellKnownType(WellKnownType.System_ReadOnlySpan_T), intType, _diagnostics.DiagnosticBag).
-                Construct(ImmutableArray.Create(TypeWithAnnotations.Create(inlineArrayType), elementType));
+            // or
+            // ... InlineArrayAsSpan<<>y__InlineArrayN<ElementType>, ElementType>(ref tmp, N)
+            MethodSymbol inlineArrayAsSpan = asReadOnlySpan ?
+                _factory.ModuleBuilderOpt.EnsureInlineArrayAsReadOnlySpanExists(syntax, _factory.WellKnownType(WellKnownType.System_ReadOnlySpan_T), intType, _diagnostics.DiagnosticBag) :
+                _factory.ModuleBuilderOpt.EnsureInlineArrayAsSpanExists(syntax, _factory.WellKnownType(WellKnownType.System_Span_T), intType, _diagnostics.DiagnosticBag);
+            inlineArrayAsSpan = inlineArrayAsSpan.Construct(ImmutableArray.Create(TypeWithAnnotations.Create(inlineArrayType), elementType));
             return _factory.Call(
                 receiver: null,
-                inlineArrayAsReadOnlySpan,
+                inlineArrayAsSpan,
                 inlineArrayLocal,
                 _factory.Literal(arrayLength),
                 useStrictArgumentRefKinds: true);
+        }
+
+        private BoundExpression CreateAndPopulateSpanFromInlineArray(
+            SyntaxNode syntax,
+            TypeWithAnnotations elementType,
+            ImmutableArray<BoundExpression> elements,
+            bool asReadOnlySpan,
+            ArrayBuilder<LocalSymbol> additionalLocals)
+        {
+#if DEBUG
+            int nLocalsBefore = additionalLocals.Count;
+#endif
+            var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
+            BoundExpression span = CreateAndPopulateSpanFromInlineArray(syntax, elementType, elements, asReadOnlySpan, additionalLocals, sideEffects);
+            Debug.Assert(span.Type is { });
+#if DEBUG
+            Debug.Assert(additionalLocals.Count == nLocalsBefore + 1); // Should be exactly one local, for the inline array.
+#endif
+            return new BoundSequence(
+                syntax,
+                locals: ImmutableArray<LocalSymbol>.Empty,
+                sideEffects.ToImmutableAndFree(),
+                span,
+                span.Type);
         }
 
         private BoundExpression MakeCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement initializer)

@@ -6311,7 +6311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundCollectionExpression : BoundExpression
     {
-        public BoundCollectionExpression(SyntaxNode syntax, CollectionExpressionTypeKind collectionTypeKind, BoundObjectOrCollectionValuePlaceholder? placeholder, BoundExpression? collectionCreation, MethodSymbol? collectionBuilderMethod, ImmutableArray<BoundExpression> elements, TypeSymbol type, bool hasErrors = false)
+        public BoundCollectionExpression(SyntaxNode syntax, CollectionExpressionTypeKind collectionTypeKind, BoundObjectOrCollectionValuePlaceholder? placeholder, BoundExpression? collectionCreation, MethodSymbol? collectionBuilderMethod, ImmutableArray<BoundExpression> elements, bool hasLocalScope, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.CollectionExpression, syntax, type, hasErrors || placeholder.HasErrors() || collectionCreation.HasErrors() || elements.HasErrors())
         {
 
@@ -6323,6 +6323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.CollectionCreation = collectionCreation;
             this.CollectionBuilderMethod = collectionBuilderMethod;
             this.Elements = elements;
+            this.HasLocalScope = hasLocalScope;
         }
 
         public new TypeSymbol Type => base.Type!;
@@ -6331,15 +6332,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression? CollectionCreation { get; }
         public MethodSymbol? CollectionBuilderMethod { get; }
         public ImmutableArray<BoundExpression> Elements { get; }
+        public bool HasLocalScope { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitCollectionExpression(this);
 
-        public BoundCollectionExpression Update(CollectionExpressionTypeKind collectionTypeKind, BoundObjectOrCollectionValuePlaceholder? placeholder, BoundExpression? collectionCreation, MethodSymbol? collectionBuilderMethod, ImmutableArray<BoundExpression> elements, TypeSymbol type)
+        public BoundCollectionExpression Update(CollectionExpressionTypeKind collectionTypeKind, BoundObjectOrCollectionValuePlaceholder? placeholder, BoundExpression? collectionCreation, MethodSymbol? collectionBuilderMethod, ImmutableArray<BoundExpression> elements, bool hasLocalScope, TypeSymbol type)
         {
-            if (collectionTypeKind != this.CollectionTypeKind || placeholder != this.Placeholder || collectionCreation != this.CollectionCreation || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(collectionBuilderMethod, this.CollectionBuilderMethod) || elements != this.Elements || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (collectionTypeKind != this.CollectionTypeKind || placeholder != this.Placeholder || collectionCreation != this.CollectionCreation || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(collectionBuilderMethod, this.CollectionBuilderMethod) || elements != this.Elements || hasLocalScope != this.HasLocalScope || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundCollectionExpression(this.Syntax, collectionTypeKind, placeholder, collectionCreation, collectionBuilderMethod, elements, type, this.HasErrors);
+                var result = new BoundCollectionExpression(this.Syntax, collectionTypeKind, placeholder, collectionCreation, collectionBuilderMethod, elements, hasLocalScope, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -11574,7 +11576,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? collectionCreation = node.CollectionCreation;
             ImmutableArray<BoundExpression> elements = this.VisitList(node.Elements);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.CollectionTypeKind, placeholder, collectionCreation, node.CollectionBuilderMethod, elements, type);
+            return node.Update(node.CollectionTypeKind, placeholder, collectionCreation, node.CollectionBuilderMethod, elements, node.HasLocalScope, type);
         }
         public override BoundNode? VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node)
         {
@@ -13799,12 +13801,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(node.CollectionTypeKind, placeholder, collectionCreation, collectionBuilderMethod, elements, infoAndType.Type!);
+                updatedNode = node.Update(node.CollectionTypeKind, placeholder, collectionCreation, collectionBuilderMethod, elements, node.HasLocalScope, infoAndType.Type!);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(node.CollectionTypeKind, placeholder, collectionCreation, collectionBuilderMethod, elements, node.Type);
+                updatedNode = node.Update(node.CollectionTypeKind, placeholder, collectionCreation, collectionBuilderMethod, elements, node.HasLocalScope, node.Type);
             }
             return updatedNode;
         }
@@ -16205,6 +16207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("collectionCreation", null, new TreeDumperNode[] { Visit(node.CollectionCreation, null) }),
             new TreeDumperNode("collectionBuilderMethod", node.CollectionBuilderMethod, null),
             new TreeDumperNode("elements", null, from x in node.Elements select Visit(x, null)),
+            new TreeDumperNode("hasLocalScope", node.HasLocalScope, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
