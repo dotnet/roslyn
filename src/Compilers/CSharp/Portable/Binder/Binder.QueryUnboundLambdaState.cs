@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             public override bool HasExplicitlyTypedParameterList { get { return false; } }
-            public override bool HasParameterRefKinds => false;
             public override int ParameterCount { get { return _parameters.Length; } }
             public override bool IsAsync { get { return false; } }
             public override bool IsStatic => false;
