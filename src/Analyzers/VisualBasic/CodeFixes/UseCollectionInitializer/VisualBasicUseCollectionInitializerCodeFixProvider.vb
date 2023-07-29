@@ -7,6 +7,7 @@ Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.UseCollectionInitializer
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
@@ -22,6 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             MemberAccessExpressionSyntax,
             InvocationExpressionSyntax,
             ExpressionStatementSyntax,
+            ForEachStatementSyntax,
             VariableDeclaratorSyntax)
 
         <ImportingConstructor>
@@ -30,8 +32,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
         End Sub
 
         Protected Overrides Function GetNewStatement(
-                statement As StatementSyntax, objectCreation As ObjectCreationExpressionSyntax,
-                matches As ImmutableArray(Of ExpressionStatementSyntax)) As StatementSyntax
+                sourceText As SourceText,
+                statement As StatementSyntax,
+                objectCreation As ObjectCreationExpressionSyntax,
+                wrappingLength As Integer,
+                useCollectionExpression As Boolean,
+                matches As ImmutableArray(Of Match(Of StatementSyntax))) As StatementSyntax
+            Contract.ThrowIfTrue(useCollectionExpression, "VB does not support collection expressions")
             Dim newStatement = statement.ReplaceNode(
                 objectCreation,
                 GetNewObjectCreation(objectCreation, matches))
@@ -41,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             totalTrivia.Add(SyntaxFactory.ElasticMarker)
 
             For Each match In matches
-                For Each trivia In match.GetLeadingTrivia()
+                For Each trivia In match.Statement.GetLeadingTrivia()
                     If trivia.Kind = SyntaxKind.CommentTrivia Then
                         totalTrivia.Add(trivia)
                         totalTrivia.Add(SyntaxFactory.ElasticMarker)
@@ -54,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
 
         Private Shared Function GetNewObjectCreation(
                 objectCreation As ObjectCreationExpressionSyntax,
-                matches As ImmutableArray(Of ExpressionStatementSyntax)) As ObjectCreationExpressionSyntax
+                matches As ImmutableArray(Of Match(Of StatementSyntax))) As ObjectCreationExpressionSyntax
 
             Return UseInitializerHelpers.GetNewObjectCreation(
                 objectCreation,
@@ -64,13 +71,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
 
         Private Shared Function CreateCollectionInitializer(
                 objectCreation As ObjectCreationExpressionSyntax,
-                matches As ImmutableArray(Of ExpressionStatementSyntax)) As CollectionInitializerSyntax
+                matches As ImmutableArray(Of Match(Of StatementSyntax))) As CollectionInitializerSyntax
             Dim nodesAndTokens = ArrayBuilder(Of SyntaxNodeOrToken).GetInstance()
 
             AddExistingItems(objectCreation, nodesAndTokens)
 
             For i = 0 To matches.Length - 1
-                Dim expressionStatement = matches(i)
+                Dim expressionStatement = DirectCast(matches(i).Statement, ExpressionStatementSyntax)
 
                 Dim newExpression As ExpressionSyntax
                 Dim invocationExpression = DirectCast(expressionStatement.Expression, InvocationExpressionSyntax)
