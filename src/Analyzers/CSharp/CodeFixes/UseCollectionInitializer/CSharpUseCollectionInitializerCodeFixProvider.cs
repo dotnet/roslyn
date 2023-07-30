@@ -90,39 +90,60 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             ImmutableArray<Match<StatementSyntax>> matches)
         {
             var elements = CreateElements<CollectionElementSyntax>(
-                objectCreation, matches,
-                static (match, expression) => match?.UseSpread is true ? SpreadElement(expression) : ExpressionElement(expression));
+                objectCreation, matches, CreateCollectionElement);
 
             //if (MakeMultiLine(sourceText, objectCreation, matches, wrappingLength))
             //    elements = AddLineBreaks(elements, includeFinalLineBreak: false);
-
 
             // If the object creation expression had an initializer.  Attempt to preserve the formatting of the original
             // initializer and the new collection expression.
             if (objectCreation.Initializer != null)
             {
-                if (MakeMultiLine())
+                if (MakeMultiLine(sourceText, objectCreation, matches, wrappingLength))
                 {
-
+                    throw new NotImplementedException();
                 }
                 else
                 {
-                    // both the initializer and the new elements all would work on a single line.  
-                    // First, convert the 
+                    // Both the initializer and the new elements all would work on a single line.
+
+                    // First, convert the existing initializer (and its expressions) into a corresponding collection
+                    // expression.  This will fixup the braces properly for the collection expression.
                     var initialConversion = UseCollectionExpressionHelpers.ConvertInitializerToCollectionExpression(
                         objectCreation.Initializer, wasOnSingleLine: true);
 
                     // now, add all the matches in after the existing elements.
+                    var totalConversion = initialConversion.AddElements(
+                        matches.Select(m => CreateElement(m, CreateCollectionElement)).ToArray());
 
+                    // Now do the actual replacement.  This will ensure the location of the collection expression
+                    // properly corresponds to the equivalent pieces of the collection initializer.
                     return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
-                        sourceText, objectCreation.Initializer, initialConversion.WithElements(allElements));
+                        sourceText, objectCreation.Initializer, totalConversion);
                 }
+            }
+            else
+            {
+                // Didn't have an existing initializer.
 
-                var collectionExpression = CollectionExpression(
-                    elements);
+                if (MakeMultiLine(sourceText, objectCreation, matches, wrappingLength))
+                {
+                    throw new NotImplementedException();
+                }
+                else
+                {
+                    // 
+                }
             }
 
             return CollectionExpression(elements);
+
+            static CollectionElementSyntax CreateCollectionElement(
+                Match<StatementSyntax>? match,
+                ExpressionSyntax expression)
+            {
+                return match?.UseSpread is true ? SpreadElement(expression) : ExpressionElement(expression);
+            }
         }
 
         private static ExpressionSyntax ConvertExpression(ExpressionSyntax expression)
@@ -249,6 +270,48 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             return SeparatedList<TNode>(nodesAndTokens);
         }
 
+        private static TElementSyntax CreateElement<TElementSyntax>(
+            Match<StatementSyntax> match,
+            Func<Match<StatementSyntax>?, ExpressionSyntax, TElementSyntax> createElement)
+            where TElementSyntax : SyntaxNode
+        {
+            var statement = match.Statement;
+
+            if (statement is ExpressionStatementSyntax expressionStatement)
+            {
+                return createElement(match, ConvertExpression(expressionStatement.Expression).WithoutTrivia());
+            }
+            else if (statement is ForEachStatementSyntax foreachStatement)
+            {
+                return createElement(match, foreachStatement.Expression.WithoutTrivia());
+            }
+            else if (statement is IfStatementSyntax ifStatement)
+            {
+                var trueStatement = (ExpressionStatementSyntax)UnwrapEmbeddedStatement(ifStatement.Statement);
+
+                if (ifStatement.Else is null)
+                {
+                    // Create: x ? [y] : []
+                    var expression = ConditionalExpression(
+                        ifStatement.Condition.Parenthesize(),
+                        CollectionExpression(SingletonSeparatedList<CollectionElementSyntax>(ExpressionElement(ConvertExpression(trueStatement.Expression)))),
+                        CollectionExpression());
+                    return createElement(match, expression);
+                }
+                else
+                {
+                    // Create: x ? y : z
+                    var falseStatement = (ExpressionStatementSyntax)UnwrapEmbeddedStatement(ifStatement.Else.Statement);
+                    var expression = ConditionalExpression(ifStatement.Condition.Parenthesize(), ConvertExpression(trueStatement.Expression), ConvertExpression(falseStatement.Expression));
+                    return createElement(match, expression);
+                }
+            }
+            else
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+        }
+
         private static SeparatedSyntaxList<TElement> CreateElements<TElement>(
             BaseObjectCreationExpressionSyntax objectCreation,
             ImmutableArray<Match<StatementSyntax>> matches,
@@ -265,60 +328,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 var match = matches[i];
                 var statement = match.Statement;
 
-                if (statement is ExpressionStatementSyntax expressionStatement)
+                var element = CreateElement(match, createElement);
+
+                var trivia = statement.GetLeadingTrivia();
+                var leadingTrivia = i == 0 ? trivia.WithoutLeadingBlankLines() : trivia;
+
+                var semicolon = statement is ExpressionStatementSyntax expressionStatement ? expressionStatement.SemicolonToken : default;
+                var trailingTrivia = semicolon.TrailingTrivia.Contains(static t => t.IsSingleOrMultiLineComment())
+                    ? semicolon.TrailingTrivia
+                    : default;
+
+                if (i < matches.Length - 1)
                 {
-                    var trivia = statement.GetLeadingTrivia();
-                    var leadingTrivia = i == 0 ? trivia.WithoutLeadingBlankLines() : trivia;
-
-                    var semicolon = expressionStatement.SemicolonToken;
-                    var trailingTrivia = semicolon.TrailingTrivia.Contains(static t => t.IsSingleOrMultiLineComment())
-                        ? semicolon.TrailingTrivia
-                        : default;
-
-                    var expression = createElement(match, ConvertExpression(expressionStatement.Expression).WithoutTrivia()).WithLeadingTrivia(leadingTrivia);
-                    if (i < matches.Length - 1)
-                    {
-                        nodesAndTokens.Add(expression);
-                        nodesAndTokens.Add(Token(SyntaxKind.CommaToken).WithTrailingTrivia(trailingTrivia));
-                    }
-                    else
-                    {
-                        nodesAndTokens.Add(expression.WithTrailingTrivia(trailingTrivia));
-                    }
-                }
-                else if (statement is ForEachStatementSyntax foreachStatement)
-                {
-                    nodesAndTokens.Add(createElement(match, foreachStatement.Expression.WithoutTrivia()));
-                    if (i < matches.Length - 1)
-                        nodesAndTokens.Add(Token(SyntaxKind.CommaToken));
-                }
-                else if (statement is IfStatementSyntax ifStatement)
-                {
-                    var trueStatement = (ExpressionStatementSyntax)UnwrapEmbeddedStatement(ifStatement.Statement);
-
-                    if (ifStatement.Else is null)
-                    {
-                        // Create: x ? [y] : []
-                        var expression = ConditionalExpression(
-                            ifStatement.Condition.Parenthesize(),
-                            CollectionExpression(SingletonSeparatedList<CollectionElementSyntax>(ExpressionElement(ConvertExpression(trueStatement.Expression)))),
-                            CollectionExpression());
-                        nodesAndTokens.Add(createElement(match, expression));
-                    }
-                    else
-                    {
-                        // Create: x ? y : z
-                        var falseStatement = (ExpressionStatementSyntax)UnwrapEmbeddedStatement(ifStatement.Else.Statement);
-                        var expression = ConditionalExpression(ifStatement.Condition.Parenthesize(), ConvertExpression(trueStatement.Expression), ConvertExpression(falseStatement.Expression));
-                        nodesAndTokens.Add(createElement(match, expression));
-                    }
-
-                    if (i < matches.Length - 1)
-                        nodesAndTokens.Add(Token(SyntaxKind.CommaToken));
+                    nodesAndTokens.Add(element);
+                    nodesAndTokens.Add(Token(SyntaxKind.CommaToken).WithTrailingTrivia(trailingTrivia));
                 }
                 else
                 {
-                    throw ExceptionUtilities.Unreachable();
+                    nodesAndTokens.Add(element.WithTrailingTrivia(trailingTrivia));
                 }
             }
 
