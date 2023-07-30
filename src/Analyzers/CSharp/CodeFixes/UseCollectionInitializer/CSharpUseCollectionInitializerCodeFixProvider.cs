@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CSharp.Analyzers.UseCollectionExpression;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.UseObjectInitializer;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -81,7 +82,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
         {
             var expressions = CreateElements(objectCreation, matches, static (_, e) => e);
             var withLineBreaks = AddLineBreaks(expressions, includeFinalLineBreak: true);
-            return UseInitializerHelpers.GetNewObjectCreation(objectCreation, withLineBreaks);
+            var newCreation = UseInitializerHelpers.GetNewObjectCreation(objectCreation, withLineBreaks);
+            return newCreation.WithAdditionalAnnotations(Formatter.Annotation);
         }
 
         private static CollectionExpressionSyntax CreateCollectionExpression(
