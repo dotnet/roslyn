@@ -2796,6 +2796,76 @@ public partial class UseCollectionInitializerTests_CollectionExpression
     }
 
     [Fact]
+    public async Task TestReplacementLocation_ExistingElements_ExistingInitializer9()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [|new|] List<int>()
+                        {
+                            1, 2
+                        };
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [
+                            1, 2
+                        ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_ExistingElements_ExistingInitializer10()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [|new|] List<int>()
+                        {
+                            1, 2,
+                        };
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [
+                            1, 2,
+                        ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task TestReplacementLocation_NewSingleLineElements_ExistingElements_ExistingInitializer1()
     {
         await TestInRegularAndScriptAsync(
@@ -3060,6 +3130,76 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                             1,
                             2,
                             3
+                        ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_NewSingleLineElements_ExistingElements_ExistingInitializer9()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>()
+                        {
+                            1, 2
+                        };
+                    [|c.Add(|]3);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [
+                            1, 2, 3
+                        ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_NewSingleLineElements_ExistingElements_ExistingInitializer10()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>()
+                        {
+                            1, 2,
+                        };
+                    [|c.Add(|]3);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [
+                            1, 2, 3,
                         ];
                 }
             }
@@ -3365,6 +3505,78 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                             2,
                             3 +
                                 4
+                        ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_NewMultiLineElements_ExistingElements_ExistingInitializer9()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>() {
+                            1, 2
+                        };
+                    [|c.Add(|]3 +
+                        4);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [
+                            1, 2,
+                            3 +
+                                4
+                        ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_NewMultiLineElements_ExistingElements_ExistingInitializer10()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>() {
+                            1, 2,
+                        };
+                    [|c.Add(|]3 +
+                        4);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [
+                            1, 2,
+                            3 +
+                                4,
                         ];
                 }
             }
