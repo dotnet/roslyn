@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 
             if (objectCreation.Initializer == null)
             {
-                // Didn't have an existing initializer.
+                // Didn't have an existing initializer.  Create one.  If the new elements need to be multi-line
 
                 if (makeMultiLine)
                 {
