@@ -90,102 +90,144 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             int wrappingLength,
             ImmutableArray<Match<StatementSyntax>> matches)
         {
-            var elements = CreateElements<CollectionElementSyntax>(
-                objectCreation, matches, CreateCollectionElement);
+            var elements = CreateElements(objectCreation, matches, CreateCollectionElement);
 
-            var makeMultiLine = MakeMultiLine(sourceText, objectCreation, matches, wrappingLength);
             //if (MakeMultiLine(sourceText, objectCreation, matches, wrappingLength))
             //    elements = AddLineBreaks(elements, includeFinalLineBreak: false);
+            var makeMultiLine = MakeMultiLine(sourceText, objectCreation, matches, wrappingLength);
 
             var initializer = objectCreation.Initializer;
-            if (initializer == null || initializer.Expressions.Count == 0)
-            {
-                // Didn't have an existing initializer (or it was empty).  For both cases, just create an entirely
-                // fresh collection expression, and replace the object entirely.
+            return initializer == null || initializer.Expressions.Count == 0
+                ? CreateCollectionExpressionWithoutExistingElements(sourceText, objectCreation, matches, makeMultiLine)
+                : CreateCollectionExpressionWithExistingElements(sourceText, objectCreation, matches, makeMultiLine);
+        }
 
-                if (makeMultiLine)
-                {
-                    throw new NotImplementedException();
-                }
-                else
-                {
-                    // All the elements would work on a single line.  This is a trivial case.  We can just make the
-                    // fresh collection expression, and do a wholesale replacement of the original object creation
-                    // expression with it.
-                    var collectionExpression = CollectionExpression(
-                        SeparatedList(matches.Select(m => CreateElement(m, CreateCollectionElement))));
-                    return collectionExpression.WithTriviaFrom(objectCreation);
-                }
+        private static CollectionElementSyntax CreateCollectionElement(
+            Match<StatementSyntax>? match,
+            ExpressionSyntax expression)
+        {
+            return match?.UseSpread is true ? SpreadElement(expression) : ExpressionElement(expression);
+        }
+
+        private static CollectionExpressionSyntax CreateCollectionExpressionWithoutExistingElements(
+            SourceText sourceText,
+            BaseObjectCreationExpressionSyntax objectCreation,
+            ImmutableArray<Match<StatementSyntax>> matches,
+            bool makeMultiLine)
+        {
+            // Didn't have an existing initializer (or it was empty).  For both cases, just create an entirely
+            // fresh collection expression, and replace the object entirely.
+            if (makeMultiLine)
+            {
+                throw new NotImplementedException();
             }
             else
             {
-                // If the object creation expression had an initializer (with at least one element in it).  Attempt to
-                // preserve the formatting of the original initializer and the new collection expression.
+                // All the elements would work on a single line.  This is a trivial case.  We can just make the
+                // fresh collection expression, and do a wholesale replacement of the original object creation
+                // expression with it.
+                var collectionExpression = CollectionExpression(
+                    SeparatedList(matches.Select(m => CreateElement(m, CreateCollectionElement))));
+                return collectionExpression.WithTriviaFrom(objectCreation);
+            }
+        }
 
-                if (!sourceText.AreOnSameLine(initializer.GetFirstToken(), initializer.GetLastToken()))
+        private static CollectionExpressionSyntax CreateCollectionExpressionWithExistingElements(
+            SourceText sourceText,
+            BaseObjectCreationExpressionSyntax objectCreation,
+            ImmutableArray<Match<StatementSyntax>> matches,
+            bool makeMultiLine)
+        {
+            // If the object creation expression had an initializer (with at least one element in it).  Attempt to
+            // preserve the formatting of the original initializer and the new collection expression.
+            var initializer = objectCreation.Initializer;
+            Contract.ThrowIfNull(initializer);
+
+            if (!sourceText.AreOnSameLine(initializer.GetFirstToken(), initializer.GetLastToken()))
+            {
+                // initializer itself was on multiple lines.  We'll want to create a collection expression whose
+                // braces (and initial elements) match whatever the initializer correct looks like.
+
+                var initialConversion = UseCollectionExpressionHelpers.ConvertInitializerToCollectionExpression(
+                    initializer, wasOnSingleLine: false);
+
+                if (!makeMultiLine &&
+                    sourceText.AreOnSameLine(initializer.Expressions.First().GetFirstToken(), initializer.Expressions.Last().GetLastToken()))
                 {
-                    // initializer itself was on multiple lines.  We'll want to create a collection expression whose
-                    // braces (and initial elements) match whatever the initializer correct looks like.
+                    // New elements were all single line, and existing elements were on a single line.  e.g.
+                    //
+                    //  {
+                    //      1, 2, 3
+                    //  }
+                    //
+                    // Just add the new elements to this.
 
-                    var initialConversion = UseCollectionExpressionHelpers.ConvertInitializerToCollectionExpression(
-                        initializer, wasOnSingleLine: false);
+                    var nodesAndTokens = initialConversion.Elements.GetWithSeparators();
+                    var lastExistingItem = nodesAndTokens.Last();
+                    var finalTrivia = lastExistingItem.GetTrailingTrivia();
+                    var finalElements = SeparatedList<CollectionElementSyntax>(nodesAndTokens.Replace(lastExistingItem, lastExistingItem.WithTrailingTrivia()));
+                    finalElements = finalElements.AddRange(matches.Select(m => CreateElement(m, CreateCollectionElement)));
 
-                    if (!makeMultiLine)
-                    {
-                        // combined length of the current expressions and new expressions is ok for a single line. And
-                        // none of the new expressions are on multiple lines.
 
+                    builder[^1] = builder.Last().WithTrailingTrivia();
+
+                    builder.AddRange(initialConversion.AddElements(
+                    matches.Select(m => CreateElement(m, CreateCollectionElement))
                     }
-
-                    if (!makeMultiLine &&
-                        (initializer.Expressions.Count == 0 ||
-                         sourceText.AreOnSameLine(initializer.Expressions.First().GetFirstToken(), initializer.Expressions.Last().GetLastToken())))
-                    {
-                        // If the existing elements themselves were on the same line *and* the new elements are all single
-                        // line, then keep things on a single line.
-                    }
-                    else
-                    {
-                        // otherwise, the existing expressions were on multiple lines, or the new expressions need
-                        // multiple lines.  Place each expression on a new line, indented by the right amount.
-                    }
-
-                    // Now do the actual replacement.  This will ensure the location of the collection expression
-                    // properly corresponds to the equivalent pieces of the collection initializer.
-                    return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
-                        sourceText, objectCreation.Initializer, totalConversion);
-                }
-                else if (makeMultiLine)
+                else
                 {
                     throw new NotImplementedException();
                 }
+
+                if (!makeMultiLine)
+                {
+                    // combined length of the current expressions and new expressions is ok for a single line. And
+                    // none of the new expressions are on multiple lines.
+
+                }
+
+                if (!makeMultiLine &&
+                    (initializer.Expressions.Count == 0 ||
+                     sourceText.AreOnSameLine(initializer.Expressions.First().GetFirstToken(), initializer.Expressions.Last().GetLastToken())))
+                {
+                    // If the existing elements themselves were on the same line *and* the new elements are all single
+                    // line, then keep things on a single line.
+                }
                 else
                 {
-                    // Both the initializer and the new elements all would work on a single line.
-
-                    // First, convert the existing initializer (and its expressions) into a corresponding collection
-                    // expression.  This will fixup the braces properly for the collection expression.
-                    var initialConversion = UseCollectionExpressionHelpers.ConvertInitializerToCollectionExpression(
-                        initializer, wasOnSingleLine: true);
-
-                    // now, add all the matches in after the existing elements.
-                    var totalConversion = initialConversion.AddElements(
-                        matches.Select(m => CreateElement(m, CreateCollectionElement)).ToArray());
-
-                    // Now do the actual replacement.  This will ensure the location of the collection expression
-                    // properly corresponds to the equivalent pieces of the collection initializer.
-                    return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
-                        sourceText, initializer, totalConversion);
+                    // otherwise, the existing expressions were on multiple lines, or the new expressions need
+                    // multiple lines.  Place each expression on a new line, indented by the right amount.
                 }
-            }
 
-            static CollectionElementSyntax CreateCollectionElement(
-                Match<StatementSyntax>? match,
-                ExpressionSyntax expression)
+                // Now do the actual replacement.  This will ensure the location of the collection expression
+                // properly corresponds to the equivalent pieces of the collection initializer.
+                return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
+                    sourceText, objectCreation.Initializer, totalConversion);
+            }
+            else if (makeMultiLine)
             {
-                return match?.UseSpread is true ? SpreadElement(expression) : ExpressionElement(expression);
+                throw new NotImplementedException();
+            }
+            else
+            {
+                // Both the initializer and the new elements all would work on a single line.
+
+                // First, convert the existing initializer (and its expressions) into a corresponding collection
+                // expression.  This will fixup the braces properly for the collection expression.
+                var initialConversion = UseCollectionExpressionHelpers.ConvertInitializerToCollectionExpression(
+                    initializer, wasOnSingleLine: true);
+
+                // now, add all the matches in after the existing elements.
+                var totalConversion = initialConversion.AddElements(
+                    matches.Select(m => CreateElement(m, CreateCollectionElement)).ToArray());
+
+                // Now do the actual replacement.  This will ensure the location of the collection expression
+                // properly corresponds to the equivalent pieces of the collection initializer.
+                return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
+                    sourceText, initializer, totalConversion);
             }
         }
+
 
         private static ExpressionSyntax ConvertExpression(ExpressionSyntax expression)
             => expression switch
