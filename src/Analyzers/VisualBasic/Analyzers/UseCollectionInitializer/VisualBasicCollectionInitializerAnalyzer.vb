@@ -33,5 +33,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             ' Only called for collection expressions, which VB does not support
             Throw ExceptionUtilities.Unreachable()
         End Function
+
+        Protected Overrides Function HasExistingInvalidInitializerForCollection(objectCreation As ObjectCreationExpressionSyntax) As Boolean
+            Return TypeOf objectCreation.Initializer Is ObjectMemberInitializerSyntax
+        End Function
     End Class
 End Namespace
