@@ -181,6 +181,8 @@ internal static class UseCollectionExpressionHelpers
             i => i.IsToken ? i : ExpressionElement((ExpressionSyntax)i.AsNode()!));
         var closeBracket = Token(SyntaxKind.CloseBracketToken).WithTriviaFrom(initializer.CloseBraceToken);
 
+        // If it was on a single line to begin with, then remove the inner spaces on the `{ ... }` to create `[...]`. If
+        // it was multiline, leave alone as we want the brackets to just replace the existing braces exactly as they are.
         if (wasOnSingleLine)
         {
             // convert '{ ' to '['
