@@ -118,15 +118,17 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             var initializer = _syntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression);
             if (initializer != null)
             {
-                var firstInit = _syntaxFacts.GetExpressionsOfObjectCollectionInitializer(initializer).First();
+                var initializerExpressions = _syntaxFacts.GetExpressionsOfObjectCollectionInitializer(initializer);
+                if (initializerExpressions is [var firstInit, ..])
+                {
+                    // if we have an object creation, and it *already* has an initializer in it (like `new T { { x, y } }`)
+                    // this can't legally become a collection expression.
+                    if (_analyzeForCollectionExpression && this.IsComplexElementInitializer(firstInit))
+                        return false;
 
-                // if we have an object creation, and it *already* has an initializer in it (like `new T { { x, y } }`)
-                // this can't legally become a collection expression.
-                if (_analyzeForCollectionExpression && this.IsComplexElementInitializer(firstInit))
-                    return false;
-
-                seenIndexAssignment = _syntaxFacts.IsElementAccessInitializer(firstInit);
-                seenInvocation = !seenIndexAssignment;
+                    seenIndexAssignment = _syntaxFacts.IsElementAccessInitializer(firstInit);
+                    seenInvocation = !seenIndexAssignment;
+                }
             }
 
             // An indexer can't be used with a collection expression.  So fail out immediately if we see that.

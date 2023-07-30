@@ -2855,8 +2855,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    List<int> c =
-                    [1, 2, 3];
+                    List<int> c = [1, 2, 3];
                 }
             }
             """);
