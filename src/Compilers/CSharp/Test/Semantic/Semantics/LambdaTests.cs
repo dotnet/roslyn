@@ -8730,5 +8730,116 @@ class Program
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "x => x").WithLocation(19, 49)
                 );
         }
+
+        [Fact]
+        public void RefModifiersWithoutTypeName_Discard()
+        {
+            const string source = """
+                delegate T SelfReturnerIn<T>(in T t, int index);
+                delegate T SelfReturnerRef<T>(ref T t, int index);
+                delegate T SelfReturnerOut<T>(out T t, int index);
+                delegate T SelfReturnerRefReadonly<T>(ref readonly T t, int index);
+                delegate T SelfReturnerScoped<T>(scoped T t, int index);
+                delegate T SelfReturnerScopedRef<T>(scoped ref T t, int index);
+                delegate T IndexReturnerParams<T>(int index, params T[] t);
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        SelfReturnerIn<string> finImplicit = (in _, _) => string.Empty;
+                        SelfReturnerIn<string> finNoModifier = (_, _) => string.Empty;
+                        SelfReturnerRef<string> frefImplicit = (ref _, _) => string.Empty;
+                        SelfReturnerRef<string> frefNoModifier = (_, _) => string.Empty;
+                        SelfReturnerOut<string> foutImplicit = (out _, _) => string.Empty;
+                        SelfReturnerOut<string> foutNoModifier = (_, _) => string.Empty;
+                        SelfReturnerRefReadonly<string> frrImplicit = (ref readonly _, _) => string.Empty;
+                        SelfReturnerRefReadonly<string> frrNoModifier = (_, _) => string.Empty;
+                        SelfReturnerScoped<string> fsImplicit = (scoped _, _) => string.Empty;
+                        SelfReturnerScoped<string> fsNoModifier = (_, _) => string.Empty;
+                        SelfReturnerScopedRef<string> fsrImplicit = (scoped ref _, _) => string.Empty;
+                        SelfReturnerScopedRef<string> fsrNoModifier = (_, _) => string.Empty;
+                        SelfReturnerParams<string> fpImplicit = (_, params _) => string.Empty;
+                        SelfReturnerParams<string> fpNoModifier = (_, _) => string.Empty;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,34): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                // delegate T SelfReturnerScoped<T>(scoped T t, int index);
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped T t").WithLocation(5, 34),
+                // (14,49): error CS1676: Parameter 1 must be declared with the 'in' keyword
+                //         SelfReturnerIn<string> finNoModifier = (_, _) => string.Empty;
+                Diagnostic(ErrorCode.ERR_BadParamRef, "_").WithArguments("1", "in").WithLocation(14, 49),
+                // (16,51): error CS1676: Parameter 1 must be declared with the 'ref' keyword
+                //         SelfReturnerRef<string> frefNoModifier = (_, _) => string.Empty;
+                Diagnostic(ErrorCode.ERR_BadParamRef, "_").WithArguments("1", "ref").WithLocation(16, 51),
+                // (17,62): error CS0177: The out parameter '_' must be assigned to before control leaves the current method
+                //         SelfReturnerOut<string> foutImplicit = (out _, _) => string.Empty;
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "string.Empty").WithArguments("_").WithLocation(17, 62),
+                // (18,51): error CS1676: Parameter 1 must be declared with the 'out' keyword
+                //         SelfReturnerOut<string> foutNoModifier = (_, _) => string.Empty;
+                Diagnostic(ErrorCode.ERR_BadParamRef, "_").WithArguments("1", "out").WithLocation(18, 51),
+                // (20,58): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
+                //         SelfReturnerRefReadonly<string> frrNoModifier = (_, _) => string.Empty;
+                Diagnostic(ErrorCode.ERR_BadParamRef, "_").WithArguments("1", "ref readonly").WithLocation(20, 58),
+                // (21,50): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                //         SelfReturnerScoped<string> fsImplicit = (scoped _, _) => string.Empty;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(21, 50),
+                // (21,60): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         SelfReturnerScoped<string> fsImplicit = (scoped _, _) => string.Empty;
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "_").WithLocation(21, 60),
+                // (24,56): error CS1676: Parameter 1 must be declared with the 'ref' keyword
+                //         SelfReturnerScopedRef<string> fsrNoModifier = (_, _) => string.Empty;
+                Diagnostic(ErrorCode.ERR_BadParamRef, "_").WithArguments("1", "ref").WithLocation(24, 56),
+                // (25,9): error CS0246: The type or namespace name 'SelfReturnerParams<>' could not be found (are you missing a using directive or an assembly reference?)
+                //         SelfReturnerParams<string> fpImplicit = (params _, _) => string.Empty;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "SelfReturnerParams<string>").WithArguments("SelfReturnerParams<>").WithLocation(25, 9),
+                // (26,9): error CS0246: The type or namespace name 'SelfReturnerParams<>' could not be found (are you missing a using directive or an assembly reference?)
+                //         SelfReturnerParams<string> fpNoModifier = (_, _) => string.Empty;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "SelfReturnerParams<string>").WithArguments("SelfReturnerParams<>").WithLocation(26, 9)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var lambdas = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Select(e => model.GetSymbolInfo(e).Symbol.GetSymbol<LambdaSymbol>()).ToArray();
+
+            assertRefKindScoped(0, RefKind.In, ScopedKind.None);
+            assertRefKindScoped(1, RefKind.None, ScopedKind.None);
+            assertRefKindScoped(2, RefKind.Ref, ScopedKind.None);
+            assertRefKindScoped(3, RefKind.None, ScopedKind.None);
+            assertRefKindScoped(4, RefKind.Out, ScopedKind.ScopedRef);
+            assertRefKindScoped(5, RefKind.None, ScopedKind.None);
+            assertRefKindScoped(6, RefKind.RefReadOnlyParameter, ScopedKind.None);
+            assertRefKindScoped(7, RefKind.None, ScopedKind.None);
+            assertRefKindScoped(8, RefKind.None, ScopedKind.None);
+            assertRefKindScoped(9, RefKind.None, ScopedKind.None);
+            assertRefKindScoped(10, RefKind.Ref, ScopedKind.ScopedRef);
+            assertRefKindScoped(11, RefKind.None, ScopedKind.None);
+            Assert.True(lambdas[12].Parameters[1].IsParams);
+
+            Assert.Equal(RefKind.None, lambdas[0].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[1].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[2].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[3].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[4].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[5].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[6].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[7].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[8].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[9].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[10].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[11].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[12].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[13].Parameters[1].RefKind);
+
+            void assertRefKindScoped(int index, RefKind refKind, ScopedKind scopedKind)
+            {
+                Assert.Equal(refKind, lambdas[index].Parameters[0].RefKind);
+                Assert.Equal(scopedKind, lambdas[index].Parameters[0].EffectiveScope);
+            }
+        }
     }
 }
