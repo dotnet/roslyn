@@ -182,8 +182,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 
                     foreach (var element in matches.Select(m => CreateElement(m, CreateCollectionElement)))
                     {
-                        nodesAndTokens.Add(Token(SyntaxKind.CommaToken));
-                        nodesAndTokens.Add(element);
+                        nodesAndTokens.Add(Token(SyntaxKind.CommaToken).WithoutLeadingTrivia().WithTrailingTrivia(Space));
+                        nodesAndTokens.Add(element.WithoutTrivia());
                     }
 
                     // If we ended with a comma before, continue ending with a comma.
