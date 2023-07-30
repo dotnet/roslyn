@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -92,13 +93,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             var elements = CreateElements<CollectionElementSyntax>(
                 objectCreation, matches, CreateCollectionElement);
 
-            var makeMultiLine = MakeMultiLine(sourceText, matches, wrappingLength);
+            var makeMultiLine = MakeMultiLine(sourceText, objectCreation, matches, wrappingLength);
             //if (MakeMultiLine(sourceText, objectCreation, matches, wrappingLength))
             //    elements = AddLineBreaks(elements, includeFinalLineBreak: false);
 
-            if (objectCreation.Initializer == null)
+            var initializer = objectCreation.Initializer;
+            if (initializer == null || initializer.Expressions.Count == 0)
             {
-                // Didn't have an existing initializer.  Create one.  If the new elements need to be multi-line
+                // Didn't have an existing initializer (or it was empty).  For both cases, just create an entirely
+                // fresh collection expression, and replace the object entirely.
 
                 if (makeMultiLine)
                 {
@@ -116,29 +119,53 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             }
             else
             {
-                // If the object creation expression had an initializer.  Attempt to preserve the formatting of the original
-                // initializer and the new collection expression.
+                // If the object creation expression had an initializer (with at least one element in it).  Attempt to
+                // preserve the formatting of the original initializer and the new collection expression.
 
-                //if (!sourceText.AreOnSameLine(objectCreation.Initializer.GetFirstToken(), objectCreation.Initializer.GetLastToken()))
-                //{
-                //    // initializer itself was on multiple lines.  We'll want to create a collection expression whose
-                //    // braces (and initial elements) match whatever the initializer correct looks like.
+                if (!sourceText.AreOnSameLine(initializer.GetFirstToken(), initializer.GetLastToken()))
+                {
+                    // initializer itself was on multiple lines.  We'll want to create a collection expression whose
+                    // braces (and initial elements) match whatever the initializer correct looks like.
 
-                //    if (objectCreation.Initializer.Expressions.Count == 0 ||)
+                    var initialConversion = UseCollectionExpressionHelpers.ConvertInitializerToCollectionExpression(
+                        initializer, wasOnSingleLine: false);
 
-                //}
+                    if (!makeMultiLine)
+                    {
+                        // combined length of the current expressions and new expressions is ok for a single line. And
+                        // none of the new expressions are on multiple lines.
+                    }
+
+                    if (!makeMultiLine &&
+                        (initializer.Expressions.Count == 0 ||
+                         sourceText.AreOnSameLine(initializer.Expressions.First().GetFirstToken(), initializer.Expressions.Last().GetLastToken())))
+                    {
+                        // If the existing elements themselves were on the same line *and* the new elements are all single
+                        // line, then keep things on a single line.
+                    }
+                    else
+                    {
+                        // otherwise, the existing expressions were on multiple lines, or the new expressions need
+                        // multiple lines.  Place each expression on a new line, indented by the right amount.
+                    }
+
+                    // Now do the actual replacement.  This will ensure the location of the collection expression
+                    // properly corresponds to the equivalent pieces of the collection initializer.
+                    return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
+                        sourceText, objectCreation.Initializer, totalConversion);
+                }
                 //else if (MakeMultiLine(sourceText, objectCreation, matches, wrappingLength))
                 //{
 
                 //}
-                //else
+                else
                 {
                     // Both the initializer and the new elements all would work on a single line.
 
                     // First, convert the existing initializer (and its expressions) into a corresponding collection
                     // expression.  This will fixup the braces properly for the collection expression.
                     var initialConversion = UseCollectionExpressionHelpers.ConvertInitializerToCollectionExpression(
-                        objectCreation.Initializer, wasOnSingleLine: true);
+                        initializer, wasOnSingleLine: true);
 
                     // now, add all the matches in after the existing elements.
                     var totalConversion = initialConversion.AddElements(
@@ -147,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                     // Now do the actual replacement.  This will ensure the location of the collection expression
                     // properly corresponds to the equivalent pieces of the collection initializer.
                     return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
-                        sourceText, objectCreation.Initializer, totalConversion);
+                        sourceText, initializer, totalConversion);
                 }
             }
 
@@ -201,10 +228,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 
         private static bool MakeMultiLine(
             SourceText sourceText,
+            BaseObjectCreationExpressionSyntax objectCreation,
             ImmutableArray<Match<StatementSyntax>> matches,
             int wrappingLength)
         {
-            var totalLength = "{}".Length;
+            var totalLength = 0;
+            if (objectCreation.Initializer != null)
+            {
+                foreach (var expression in objectCreation.Initializer.Expressions)
+                    totalLength += expression.Span.Length;
+            }
+
             foreach (var (statement, _) in matches)
             {
                 // if the statement we're replacing has any comments on it, then we need to be multiline to give them an
@@ -222,14 +256,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                         return true;
 
                     totalLength += component.Span.Length;
-                    totalLength += ", ".Length;
-
-                    if (totalLength > wrappingLength)
-                        return true;
                 }
             }
 
-            return false;
+            return totalLength > wrappingLength;
 
             static IEnumerable<SyntaxNode> GetElementComponents(StatementSyntax statement)
             {
