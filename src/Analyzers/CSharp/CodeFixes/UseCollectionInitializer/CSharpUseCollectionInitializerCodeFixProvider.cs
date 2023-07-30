@@ -134,6 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                     {
                         // combined length of the current expressions and new expressions is ok for a single line. And
                         // none of the new expressions are on multiple lines.
+
                     }
 
                     if (!makeMultiLine &&
@@ -154,10 +155,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                     return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
                         sourceText, objectCreation.Initializer, totalConversion);
                 }
-                //else if (MakeMultiLine(sourceText, objectCreation, matches, wrappingLength))
-                //{
-
-                //}
+                else if (makeMultiLine)
+                {
+                    throw new NotImplementedException();
+                }
                 else
                 {
                     // Both the initializer and the new elements all would work on a single line.
