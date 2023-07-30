@@ -2814,7 +2814,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M()
                 {
                     List<int> c = [|new|] List<int>() { 1, 2 };
-                    c.Add(3);
+                    [|c.Add(|]3);
                 }
             }
             """,
@@ -2844,7 +2844,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 {
                     List<int> c = [|new|] List<int>()
                     { 1, 2 };
-                    c.Add(3);
+                    [|c.Add(|]3);
                 }
             }
             """,
@@ -2877,7 +2877,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                         1,
                         2
                     };
-                    c.Add(3);
+                    [|c.Add(|]3);
                 }
             }
             """,
@@ -2911,7 +2911,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 {
                     List<int> c =
                         [|new|] List<int>() { 1, 2 };
-                    c.Add(3);
+                    [|c.Add(|]3);
                 }
             }
             """,
@@ -2943,7 +2943,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     List<int> c =
                         [|new|] List<int>()
                         { 1, 2 };
-                    c.Add(3);
+                    [|c.Add(|]3);
                 }
             }
             """,
@@ -2978,7 +2978,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                             1,
                             2,
                         };
-                    c.Add(3);
+                    [|c.Add(|]3);
                 }
             }
             """,
@@ -3016,7 +3016,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                             1,
                             2,
                         };
-                    c.Add(3);
+                    [|c.Add(|]3);
                 }
             }
             """,
@@ -3053,7 +3053,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                             1,
                             2
                         };
-                    c.Add(3);
+                    [|c.Add(|]3);
                 }
             }
             """,
@@ -3086,7 +3086,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M()
                 {
                     List<int> c = [|new|] List<int>() { 1, 2 };
-                    c.Add(3 +
+                    [|c.Add(|]3 +
                         4);
                 }
             }
@@ -3123,7 +3123,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 {
                     List<int> c = [|new|] List<int>()
                     { 1, 2 };
-                    c.Add(3 +
+                    [|c.Add(|]3 +
                         4);
                 }
             }
@@ -3162,7 +3162,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                         1,
                         2
                     };
-                    c.Add(3 +
+                    [|c.Add(|]3 +
                         4);
                 }
             }
@@ -3198,7 +3198,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 {
                     List<int> c =
                         [|new|] List<int>() { 1, 2 };
-                    c.Add(3 +
+                    [|c.Add(|]3 +
                         4);
                 }
             }
@@ -3236,7 +3236,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     List<int> c =
                         [|new|] List<int>()
                         { 1, 2 };
-                    c.Add(3 +
+                    [|c.Add(|]3 +
                         4);
                 }
             }
@@ -3277,7 +3277,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                             1,
                             2,
                         };
-                    c.Add(3 +
+                    [|c.Add(|]3 +
                         4);
                 }
             }
@@ -3317,7 +3317,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                             1,
                             2,
                         };
-                    c.Add(3 +
+                    [|c.Add(|]3 +
                         4);
                 }
             }
@@ -3356,7 +3356,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                             1,
                             2
                         };
-                    c.Add(3 +
+                    [|c.Add(|]3 +
                         4);
                 }
             }
