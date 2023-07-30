@@ -331,8 +331,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 var match = matches[i];
                 var statement = match.Statement;
 
-                var element = CreateElement(match, createElement);
-
                 var trivia = statement.GetLeadingTrivia();
                 var leadingTrivia = i == 0 ? trivia.WithoutLeadingBlankLines() : trivia;
 
@@ -340,6 +338,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 var trailingTrivia = semicolon.TrailingTrivia.Contains(static t => t.IsSingleOrMultiLineComment())
                     ? semicolon.TrailingTrivia
                     : default;
+
+                var element = CreateElement(match, createElement).WithLeadingTrivia(leadingTrivia);
 
                 if (i < matches.Length - 1)
                 {
