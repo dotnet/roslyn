@@ -3375,4 +3375,76 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             }
             """);
     }
+
+    [Fact]
+    public async Task TestReplacementLocation_NewMultiLineElements_NoInitializer1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>();
+                    [|c.Add(|]3 +
+                        4);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [
+                            3 +
+                                4
+                        ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReplacementLocation_NewMultiLineElements_NoInitializer2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>();
+                    [|c.Add(|]1 +
+                        2);
+                    [|c.Add(|]3 +
+                        4);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                        [
+                            1 +
+                                2,
+                            3 +
+                                4
+                        ];
+                }
+            }
+            """);
+    }
 }
