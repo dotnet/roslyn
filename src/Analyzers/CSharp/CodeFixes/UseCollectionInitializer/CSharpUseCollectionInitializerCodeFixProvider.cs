@@ -164,16 +164,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 
                     var nodesAndTokens = initialConversion.Elements.GetWithSeparators();
                     var lastExistingItem = nodesAndTokens.Last();
-                    var finalTrivia = lastExistingItem.GetTrailingTrivia();
-                    var finalElements = SeparatedList<CollectionElementSyntax>(nodesAndTokens.Replace(lastExistingItem, lastExistingItem.WithTrailingTrivia()));
-                    finalElements = finalElements.AddRange(matches.Select(m => CreateElement(m, CreateCollectionElement)));
 
+                    var finalTrivia = lastExistingItem.GetTrailingTrivia();
+                    var finalElements = SeparatedList<CollectionElementSyntax>(nodesAndTokens.Replace(
+                        lastExistingItem,
+                        lastExistingItem.WithTrailingTrivia(ElasticMarker)));
+
+                    var newElements = matches.Select(m => CreateElement(m, CreateCollectionElement));
+
+                    // If we ended with a comma before, continue ending with a comma
+                    finalElements = lastExistingItem.IsToken
+                        ? finalElements.AddRangeWithTrailingSeparator(newElements)
+                        : finalElements.AddRange(newElements);
+
+                    if (lastExistingItem.IsToken)
+                        finalElements.InsertRangeWithTrailingSeparator()
 
                     builder[^1] = builder.Last().WithTrailingTrivia();
 
                     builder.AddRange(initialConversion.AddElements(
                     matches.Select(m => CreateElement(m, CreateCollectionElement))
-                    }
                 else
                 {
                     throw new NotImplementedException();
