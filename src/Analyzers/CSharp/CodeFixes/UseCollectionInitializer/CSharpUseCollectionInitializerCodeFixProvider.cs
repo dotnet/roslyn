@@ -162,28 +162,43 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                     //
                     // Just add the new elements to this.
 
-                    var nodesAndTokens = initialConversion.Elements.GetWithSeparators();
-                    var lastExistingItem = nodesAndTokens.Last();
+                    using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
+                    nodesAndTokens.AddRange(initialConversion.Elements.GetWithSeparators());
 
-                    var finalTrivia = lastExistingItem.GetTrailingTrivia();
-                    var finalElements = SeparatedList<CollectionElementSyntax>(nodesAndTokens.Replace(
-                        lastExistingItem,
-                        lastExistingItem.WithTrailingTrivia(ElasticMarker)));
+                    var trailingComma = default(SyntaxToken);
+                    var trailingTrivia = default(SyntaxTriviaList);
+                    if (nodesAndTokens[^1].IsToken)
+                    {
+                        trailingComma = nodesAndTokens[^1].AsToken();
+                        nodesAndTokens.RemoveLast();
+                    }
+                    else
+                    {
+                        trailingTrivia = nodesAndTokens[^1].GetTrailingTrivia();
+                        nodesAndTokens[^1] = nodesAndTokens[^1].WithTrailingTrivia();
+                    }
 
-                    var newElements = matches.Select(m => CreateElement(m, CreateCollectionElement));
+                    foreach (var element in matches.Select(m => CreateElement(m, CreateCollectionElement)))
+                    {
+                        nodesAndTokens.Add(Token(SyntaxKind.CommaToken));
+                        nodesAndTokens.Add(element);
+                    }
 
-                    // If we ended with a comma before, continue ending with a comma
-                    finalElements = lastExistingItem.IsToken
-                        ? finalElements.AddRangeWithTrailingSeparator(newElements)
-                        : finalElements.AddRange(newElements);
+                    // If we ended with a comma before, continue ending with a comma.
+                    if (trailingComma != default)
+                    {
+                        nodesAndTokens.Add(trailingComma);
+                    }
+                    else
+                    {
+                        nodesAndTokens[^1] = nodesAndTokens[^1].WithTrailingTrivia(trailingTrivia);
+                    }
 
-                    if (lastExistingItem.IsToken)
-                        finalElements.InsertRangeWithTrailingSeparator()
+                    var finalCollection = initialConversion.WithElements(SeparatedList<CollectionElementSyntax>(nodesAndTokens));
 
-                    builder[^1] = builder.Last().WithTrailingTrivia();
-
-                    builder.AddRange(initialConversion.AddElements(
-                    matches.Select(m => CreateElement(m, CreateCollectionElement))
+                    return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
+                        sourceText, initializer, finalCollection);
+                }
                 else
                 {
                     throw new NotImplementedException();
@@ -211,8 +226,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 
                 // Now do the actual replacement.  This will ensure the location of the collection expression
                 // properly corresponds to the equivalent pieces of the collection initializer.
-                return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
-                    sourceText, objectCreation.Initializer, totalConversion);
+                //return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
+                //    sourceText, objectCreation.Initializer, totalConversion);
             }
             else if (makeMultiLine)
             {
