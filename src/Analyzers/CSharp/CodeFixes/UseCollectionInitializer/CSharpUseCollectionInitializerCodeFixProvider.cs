@@ -132,11 +132,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 }
                 else
                 {
-                    // 
+                    // All the elements would work on a single line.  This is a trivial case.  We can just make the
+                    // fresh collection expression, and do a wholesale replacement of the original object creation
+                    // expression with it.
+                    var collectionExpression = CollectionExpression(
+                        SeparatedList(matches.Select(m => CreateElement(m, CreateCollectionElement))));
+                    return collectionExpression.WithTriviaFrom(objectCreation);
                 }
             }
-
-            return CollectionExpression(elements);
 
             static CollectionElementSyntax CreateCollectionElement(
                 Match<StatementSyntax>? match,
