@@ -167,10 +167,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var typeSyntax = p.Type;
                     TypeWithAnnotations type = default;
-                    var refKind = RefKind.None;
-                    var scope = ScopedKind.None;
 
-                    refKind = ParameterHelpers.GetModifiers(p.Modifiers, out _, out var paramsKeyword, out _, out scope);
+                    var refKind = ParameterHelpers.GetModifiers(p.Modifiers, out _, out var paramsKeyword, out _, out var scope);
 
                     if (typeSyntax == null)
                     {

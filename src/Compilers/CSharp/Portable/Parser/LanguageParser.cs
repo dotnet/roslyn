@@ -12868,14 +12868,7 @@ done:;
                 ParseParameterModifiers(modifiers, isFunctionPointerParameter: false);
             }
 
-            // If we have "scoped/params" always try to parse out a type.
-            // Otherwise, allow the omission of a type
-
-            bool containsModifierRequiringType = modifiers.Count > 0
-                && (modifiers.Any((int)SyntaxKind.ScopedKeyword)
-                || modifiers.Any((int)SyntaxKind.ParamsKeyword));
-
-            bool shouldParseLambdaParameterType = containsModifierRequiringType || ShouldParseLambdaParameterType();
+            bool shouldParseLambdaParameterType = ShouldParseLambdaParameterType();
 
             var paramType = shouldParseLambdaParameterType
                 ? ParseType(ParseTypeMode.Parameter)
