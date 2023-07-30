@@ -2136,8 +2136,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (reason == LambdaConversionResult.MismatchedParameterType)
             {
-                // Cannot convert {0} to type '{1}' because the parameter types do not match the delegate parameter types
-                Error(diagnostics, ErrorCode.ERR_CantConvAnonMethParams, syntax, id, targetType);
+                bool hasTypeMismatch = false;
+
                 Debug.Assert(anonymousFunction.ParameterCount == delegateParameters.Length);
                 for (int i = 0; i < anonymousFunction.ParameterCount; ++i)
                 {
@@ -2159,6 +2159,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (lambdaParameterType is not null && !lambdaParameterType.Equals(delegateParameterType, TypeCompareKind.AllIgnoreOptions))
                     {
                         SymbolDistinguisher distinguisher = new SymbolDistinguisher(this.Compilation, lambdaParameterType, delegateParameterType);
+
+                        // Report the error beforehand to preserve previous behavior
+                        if (!hasTypeMismatch)
+                        {
+                            hasTypeMismatch = true;
+                            // Cannot convert {0} to type '{1}' because the parameter types do not match the delegate parameter types
+                            Error(diagnostics, ErrorCode.ERR_CantConvAnonMethParams, syntax, id, targetType);
+                        }
 
                         // Parameter {0} is declared as type '{1}{2}' but should be '{3}{4}'
                         Error(diagnostics, ErrorCode.ERR_BadParamType, lambdaParameterLocation,
