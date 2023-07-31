@@ -1760,9 +1760,9 @@ class C
             var decoder0 = new MetadataDecoder(peModule0);
 
             var synthesizedDelegates0 = PEDeltaAssemblyBuilder.GetAnonymousDelegateMapFromMetadata(reader0, decoder0);
-            Assert.Contains(new SynthesizedDelegateKey("<>F{00000004}`3"), synthesizedDelegates0);
+            Assert.Contains(new SynthesizedDelegateKey("<>F{00000008}`3"), synthesizedDelegates0);
             Assert.Contains(new SynthesizedDelegateKey("<>A{00000003}`2"), synthesizedDelegates0);
-            Assert.Contains(new SynthesizedDelegateKey("<>A{00000000,00000001}`33"), synthesizedDelegates0);
+            Assert.Contains(new SynthesizedDelegateKey("<>A{00000000,100000000}`33"), synthesizedDelegates0);
             Assert.Equal(3, synthesizedDelegates0.Count);
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll);

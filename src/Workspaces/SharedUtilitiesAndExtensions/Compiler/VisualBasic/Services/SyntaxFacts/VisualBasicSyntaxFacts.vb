@@ -1424,10 +1424,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return node IsNot Nothing AndAlso TryCast(node.Parent, ForEachStatementSyntax)?.Expression Is node
         End Function
 
-        Public Function GetExpressionOfForeachStatement(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfForeachStatement
-            Return DirectCast(node, ForEachStatementSyntax).Expression
-        End Function
-
         Public Function GetExpressionOfExpressionStatement(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfExpressionStatement
             Return DirectCast(node, ExpressionStatementSyntax).Expression
         End Function
@@ -1815,6 +1811,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             condition = conditionalExpression.Condition
             whenTrue = conditionalExpression.WhenTrue
             whenFalse = conditionalExpression.WhenFalse
+        End Sub
+
+        Public Sub GetPartsOfForeachStatement(statement As SyntaxNode, ByRef identifier As SyntaxToken, ByRef expression As SyntaxNode, ByRef statements As IEnumerable(Of SyntaxNode)) Implements ISyntaxFacts.GetPartsOfForeachStatement
+            Dim foreachStatement = DirectCast(statement, ForEachStatementSyntax)
+            Dim declarator = TryCast(foreachStatement.ControlVariable, VariableDeclaratorSyntax)
+            identifier = If(declarator Is Nothing, Nothing, declarator.Names(0).Identifier)
+            expression = foreachStatement.Expression
+
+            Dim foreachBlock = TryCast(foreachStatement.Parent, ForEachBlockSyntax)
+            statements = If(foreachBlock Is Nothing, SpecializedCollections.EmptyEnumerable(Of SyntaxNode), foreachBlock.Statements)
         End Sub
 
         Public Sub GetPartsOfInterpolationExpression(node As SyntaxNode, ByRef stringStartToken As SyntaxToken, ByRef contents As SyntaxList(Of SyntaxNode), ByRef stringEndToken As SyntaxToken) Implements ISyntaxFacts.GetPartsOfInterpolationExpression

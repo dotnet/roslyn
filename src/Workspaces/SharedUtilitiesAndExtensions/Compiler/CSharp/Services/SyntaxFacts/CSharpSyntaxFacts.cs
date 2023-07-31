@@ -1348,9 +1348,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public bool IsExpressionOfForeach([NotNullWhen(true)] SyntaxNode? node)
             => node?.Parent is ForEachStatementSyntax foreachStatement && foreachStatement.Expression == node;
 
-        public SyntaxNode GetExpressionOfForeachStatement(SyntaxNode node)
-            => ((CommonForEachStatementSyntax)node).Expression;
-
         public SyntaxNode GetExpressionOfExpressionStatement(SyntaxNode node)
             => ((ExpressionStatementSyntax)node).Expression;
 
@@ -1615,6 +1612,18 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             condition = conditionalExpression.Condition;
             whenTrue = conditionalExpression.WhenTrue;
             whenFalse = conditionalExpression.WhenFalse;
+        }
+
+        public void GetPartsOfForeachStatement(SyntaxNode statement, out SyntaxToken identifier, out SyntaxNode expression, out IEnumerable<SyntaxNode> statements)
+        {
+            var commonForeach = (CommonForEachStatementSyntax)statement;
+            identifier = commonForeach is ForEachStatementSyntax { Identifier: var foreachIdentifier }
+                ? foreachIdentifier
+                : default;
+            expression = commonForeach.Expression;
+            statements = commonForeach.Statement is BlockSyntax block
+                ? block.Statements
+                : SpecializedCollections.SingletonEnumerable(commonForeach.Statement);
         }
 
         public void GetPartsOfGenericName(SyntaxNode node, out SyntaxToken identifier, out SeparatedSyntaxList<SyntaxNode> typeArguments)

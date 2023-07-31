@@ -490,4 +490,69 @@ pub{|caret:|}class";
         Assert.NotEmpty(results.Items);
         Assert.Equal(new() { Start = new(2, 0), End = caret.Range.Start }, results.ItemDefaults.EditRange.Value.First);
     }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/5916")]
+    public async Task TestResolveImportCompletionWithIdenticalLabel(bool mutatingLspWorkspace)
+    {
+        var markup =
+@"
+namespace Namespace1
+{
+    class MyClass {}
+}
+namespace Namespace2
+{
+    class MyClass {}
+}
+namespace Program
+{
+    class A
+    {
+        void M()
+        {
+            MyClass{|caret:|}
+        }
+    }
+}";
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, DefaultClientCapabilities);
+        var completionParams = CreateCompletionParams(
+            testLspServer.GetLocations("caret").Single(),
+            invokeKind: LSP.VSInternalCompletionInvokeKind.Explicit,
+            triggerCharacter: "\0",
+            triggerKind: LSP.CompletionTriggerKind.Invoked);
+
+        // Make sure the unimported types option is on by default.
+        testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, true);
+        testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation, true);
+
+        var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+
+        var completionResult = await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName, completionParams, CancellationToken.None).ConfigureAwait(false);
+        Assert.NotNull(completionResult.ItemDefaults.EditRange);
+        Assert.NotNull(completionResult.ItemDefaults.Data);
+        Assert.NotNull(completionResult.ItemDefaults.CommitCharacters);
+
+        var myClassItems = completionResult.Items.Where(i => i.Label == "MyClass").ToImmutableArray();
+        var itemFromNS1 = myClassItems.Single(i => i.LabelDetails?.Description == "Namespace1");
+        var itemFromNS2 = myClassItems.Single(i => i.LabelDetails?.Description == "Namespace2");
+
+        itemFromNS1.Data = completionResult.ItemDefaults.Data;
+        itemFromNS2.Data = completionResult.ItemDefaults.Data;
+
+        var resolvedItem1 = await testLspServer.ExecuteRequestAsync<LSP.CompletionItem, LSP.CompletionItem>(LSP.Methods.TextDocumentCompletionResolveName, itemFromNS1, CancellationToken.None).ConfigureAwait(false);
+        Assert.Equal("Namespace1", resolvedItem1.LabelDetails.Description);
+        Assert.Equal("~MyClass Namespace1", resolvedItem1.SortText);
+        Assert.Equal(CompletionItemKind.Class, resolvedItem1.Kind);
+
+        var expectedAdditionalEdit1 = new TextEdit() { NewText = "using Namespace1;\r\n\r\n", Range = new() { Start = new(1, 0), End = new(1, 0) } };
+        AssertJsonEquals(new[] { expectedAdditionalEdit1 }, resolvedItem1.AdditionalTextEdits);
+
+        var resolvedItem2 = await testLspServer.ExecuteRequestAsync<LSP.CompletionItem, LSP.CompletionItem>(LSP.Methods.TextDocumentCompletionResolveName, itemFromNS2, CancellationToken.None).ConfigureAwait(false);
+        Assert.Equal("Namespace2", resolvedItem2.LabelDetails.Description);
+        Assert.Equal("~MyClass Namespace2", resolvedItem2.SortText);
+        Assert.Equal(CompletionItemKind.Class, resolvedItem2.Kind);
+
+        var expectedAdditionalEdit2 = new TextEdit() { NewText = "using Namespace2;\r\n\r\n", Range = new() { Start = new(1, 0), End = new(1, 0) } };
+        AssertJsonEquals(new[] { expectedAdditionalEdit2 }, resolvedItem2.AdditionalTextEdits);
+    }
 }
