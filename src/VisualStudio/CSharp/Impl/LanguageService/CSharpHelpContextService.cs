@@ -97,8 +97,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             if (TryGetTextForSpecialCharacters(token, out var text) ||
                 TryGetTextForContextualKeyword(token, out text) ||
                 TryGetTextForCombinationKeyword(token, out text) ||
-                TryGetTextForPreProcessor(token, out text) ||
                 TryGetTextForKeyword(token, out text) ||
+                TryGetTextForPreProcessor(token, out text) ||
                 TryGetTextForOperator(token, document, out text) ||
                 TryGetTextForSymbol(token, semanticModel, document, cancellationToken, out text))
             {
@@ -502,6 +502,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             {
                 text = Keyword("switch-expression");
                 return true;
+            }
+
+            // "if" and "else" may appear in "#if" or "#else". These two break the pattern
+            // because we don't treat them as keywords when the parent isn't the if or else statement.
+            if (token.IsKind(SyntaxKind.IfKeyword) && token.Parent is not IfStatementSyntax)
+            {
+                text = null;
+                return false;
+            }
+
+            if (token.IsKind(SyntaxKind.ElseKeyword) && token.Parent is not ElseClauseSyntax)
+            {
+                text = null;
+                return false;
             }
 
             if (token.IsKeyword())
