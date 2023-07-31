@@ -15489,7 +15489,7 @@ class Program
                 readonly ref struct R
                 {
                     private readonly ref int _i;
-                    public R(ref int i) { _i = i; }
+                    public R(ref int i) { _i = ref i; }
                     public R F([InterpolatedStringHandlerArgument("")] CustomHandler handler)
                         => this;
                 }
