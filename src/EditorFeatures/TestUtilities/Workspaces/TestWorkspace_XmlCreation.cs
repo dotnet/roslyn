@@ -176,8 +176,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             var element = new XElement(DocumentElementName,
                 new XAttribute(FilePathAttributeName, filePath),
+                new XAttribute(NormalizeAttributeName, false),
                 CreateParseOptionsElement(parseOptions),
-                code.Replace("\r\n", "\n"));
+                code);
 
             if (!isMarkup)
                 element.Add(new XAttribute(MarkupAttributeName, isMarkup));
@@ -189,8 +190,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             return new XElement(DocumentFromSourceGeneratorElementName,
                 new XAttribute(FilePathAttributeName, hintName),
+                new XAttribute(NormalizeAttributeName, false),
                 CreateParseOptionsElement(parseOptions),
-                code.Replace("\r\n", "\n"));
+                code);
         }
 
         private static XElement CreateParseOptionsElement(ParseOptions parseOptions)
