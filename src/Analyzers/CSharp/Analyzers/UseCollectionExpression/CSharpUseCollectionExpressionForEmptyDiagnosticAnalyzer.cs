@@ -15,6 +15,10 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
+/// <summary>
+/// Analyzer/fixer that looks for code of the form <c>X.Empty&lt;T&gt;()</c> or <c>X&lt;T&gt;.Empty</c> and offers to
+/// replace with <c>[]</c> if legal to do so.
+/// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 internal sealed partial class CSharpUseCollectionExpressionForEmptyDiagnosticAnalyzer
     : AbstractBuiltInCodeStyleDiagnosticAnalyzer
