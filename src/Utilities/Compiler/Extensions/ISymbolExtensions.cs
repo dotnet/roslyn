@@ -626,7 +626,7 @@ namespace Analyzer.Utilities.Extensions
             return symbol.GetAttributes(attributeType).FirstOrDefault();
         }
 
-        public static IEnumerable<AttributeData> GetAttributes(this ISymbol symbol, IEnumerable<INamedTypeSymbol> attributesToMatch)
+        public static IEnumerable<AttributeData> GetAttributes(this ISymbol symbol, IEnumerable<INamedTypeSymbol?> attributesToMatch)
         {
             foreach (var attribute in symbol.GetAttributes())
             {
@@ -657,6 +657,20 @@ namespace Analyzer.Utilities.Extensions
         public static bool HasAnyAttribute(this ISymbol symbol, params INamedTypeSymbol?[] attributeTypesToMatch)
         {
             return symbol.GetAttributes(attributeTypesToMatch).Any();
+        }
+
+        public static bool HasAnyAttribute(this ISymbol symbol, [NotNullWhen(true)] INamedTypeSymbol? attributeToMatch)
+        {
+            if (attributeToMatch is null)
+                return false;
+
+            foreach (var attribute in symbol.GetAttributes())
+            {
+                if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, attributeToMatch))
+                    return true;
+            }
+
+            return false;
         }
 
         /// <summary>
