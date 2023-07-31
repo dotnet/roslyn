@@ -258,21 +258,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Get a span to the inline array.
-            // ... (ReadOnlySpan<T>)InlineArrayAsSpan<__InlineArrayN<T>, T>(ref tmp, N)
-            var inlineArrayAsSpan = _factory.ModuleBuilderOpt.EnsureInlineArrayAsSpanExists(syntax, _factory.WellKnownType(WellKnownType.System_Span_T), intType, _diagnostics.DiagnosticBag);
-            inlineArrayAsSpan = inlineArrayAsSpan.Construct(ImmutableArray.Create(TypeWithAnnotations.Create(inlineArrayType), elementType));
-
-            var spanType = (NamedTypeSymbol)inlineArrayAsSpan.ReturnType;
-            var spanOperator = _factory.WellKnownMethod(WellKnownMember.System_Span_T__op_Implicit_ReadOnlySpan_Span).AsMember(spanType);
+            // ... InlineArrayAsReadOnlySpan<__InlineArrayN<T>, T>(in tmp, N)
+            var inlineArrayAsReadOnlySpan = _factory.ModuleBuilderOpt.EnsureInlineArrayAsReadOnlySpanExists(syntax, _factory.WellKnownType(WellKnownType.System_ReadOnlySpan_T), intType, _diagnostics.DiagnosticBag).
+                Construct(ImmutableArray.Create(TypeWithAnnotations.Create(inlineArrayType), elementType));
             return _factory.Call(
                 receiver: null,
-                spanOperator,
-                _factory.Call(
-                    receiver: null,
-                    inlineArrayAsSpan,
-                    inlineArrayLocal,
-                    _factory.Literal(arrayLength),
-                    useStrictArgumentRefKinds: true));
+                inlineArrayAsReadOnlySpan,
+                inlineArrayLocal,
+                _factory.Literal(arrayLength),
+                useStrictArgumentRefKinds: true);
         }
 
         private BoundExpression MakeCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement initializer)

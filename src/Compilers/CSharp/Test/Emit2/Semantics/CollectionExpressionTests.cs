@@ -5736,7 +5736,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             verifier.VerifyIL("Program.F1",
                 """
                 {
-                  // Code size       57 (0x39)
+                  // Code size       52 (0x34)
                   .maxstack  2
                   .locals init (__InlineArray3<int> V_0)
                   IL_0000:  ldloca.s   V_0
@@ -5758,16 +5758,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0025:  stind.i4
                   IL_0026:  ldloca.s   V_0
                   IL_0028:  ldc.i4.3
-                  IL_0029:  call       "InlineArrayAsSpan<__InlineArray3<int>, int>(ref __InlineArray3<int>, int)"
-                  IL_002e:  call       "System.ReadOnlySpan<int> System.Span<int>.op_Implicit(System.Span<int>)"
-                  IL_0033:  call       "MyCollection<int> MyCollectionBuilder.Create<int>(System.ReadOnlySpan<int>)"
-                  IL_0038:  ret
+                  IL_0029:  call       "InlineArrayAsReadOnlySpan<__InlineArray3<int>, int>(in __InlineArray3<int>, int)"
+                  IL_002e:  call       "MyCollection<int> MyCollectionBuilder.Create<int>(System.ReadOnlySpan<int>)"
+                  IL_0033:  ret
                 }
                 """);
             verifier.VerifyIL("Program.F2",
                 """
                 {
-                  // Code size       62 (0x3e)
+                  // Code size       57 (0x39)
                   .maxstack  2
                   .locals init (__InlineArray3<object> V_0)
                   IL_0000:  ldloca.s   V_0
@@ -5790,10 +5789,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_002a:  stind.ref
                   IL_002b:  ldloca.s   V_0
                   IL_002d:  ldc.i4.3
-                  IL_002e:  call       "InlineArrayAsSpan<__InlineArray3<object>, object>(ref __InlineArray3<object>, int)"
-                  IL_0033:  call       "System.ReadOnlySpan<object> System.Span<object>.op_Implicit(System.Span<object>)"
-                  IL_0038:  call       "MyCollection<object> MyCollectionBuilder.Create<object>(System.ReadOnlySpan<object>)"
-                  IL_003d:  ret
+                  IL_002e:  call       "InlineArrayAsReadOnlySpan<__InlineArray3<object>, object>(in __InlineArray3<object>, int)"
+                  IL_0033:  call       "MyCollection<object> MyCollectionBuilder.Create<object>(System.ReadOnlySpan<object>)"
+                  IL_0038:  ret
                 }
                 """);
 
@@ -5934,7 +5932,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 verifier.VerifyIL("Program.F",
                     """
                     {
-                      // Code size       79 (0x4f)
+                      // Code size       74 (0x4a)
                       .maxstack  2
                       .locals init (__InlineArray3<int?> V_0)
                       IL_0000:  ldloca.s   V_0
@@ -5957,10 +5955,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                       IL_0036:  initobj    "int?"
                       IL_003c:  ldloca.s   V_0
                       IL_003e:  ldc.i4.3
-                      IL_003f:  call       "InlineArrayAsSpan<__InlineArray3<int?>, int?>(ref __InlineArray3<int?>, int)"
-                      IL_0044:  call       "System.ReadOnlySpan<int?> System.Span<int?>.op_Implicit(System.Span<int?>)"
-                      IL_0049:  call       "MyCollection<int?> MyCollectionBuilder.Create<int?>(System.ReadOnlySpan<int?>)"
-                      IL_004e:  ret
+                      IL_003f:  call       "InlineArrayAsReadOnlySpan<__InlineArray3<int?>, int?>(in __InlineArray3<int?>, int)"
+                      IL_0044:  call       "MyCollection<int?> MyCollectionBuilder.Create<int?>(System.ReadOnlySpan<int?>)"
+                      IL_0049:  ret
                     }
                     """);
             }
@@ -6228,7 +6225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 verifier.VerifyIL("Program.F",
                     $$"""
                     {
-                      // Code size       72 (0x48)
+                      // Code size       67 (0x43)
                       .maxstack  2
                       .locals init (__InlineArray3<object> V_0)
                       IL_0000:  ldloca.s   V_0
@@ -6253,10 +6250,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                       IL_0034:  stind.ref
                       IL_0035:  ldloca.s   V_0
                       IL_0037:  ldc.i4.3
-                      IL_0038:  call       "InlineArrayAsSpan<__InlineArray3<object>, object>(ref __InlineArray3<object>, int)"
-                      IL_003d:  call       "System.ReadOnlySpan<object> System.Span<object>.op_Implicit(System.Span<object>)"
-                      IL_0042:  call       "MyCollection<object> MyCollectionBuilder.Create<object>({{qualifier}}System.ReadOnlySpan<object>)"
-                      IL_0047:  ret
+                      IL_0038:  call       "InlineArrayAsReadOnlySpan<__InlineArray3<object>, object>(in __InlineArray3<object>, int)"
+                      IL_003d:  call       "MyCollection<object> MyCollectionBuilder.Create<object>(scoped System.ReadOnlySpan<object>)"
+                      IL_0042:  ret
                     }
                     """);
             }
@@ -9258,60 +9254,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "items").WithArguments("scoped System.ReadOnlySpan<T> items").WithLocation(16, 82));
         }
 
-        [CombinatorialData]
-        [Theory]
-        public void CollectionBuilder_MissingSpanMembers(bool useCompilationReference)
-        {
-            string sourceA = """
-                using System;
-                using System.Collections.Generic;
-                using System.Runtime.CompilerServices;
-                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
-                public struct MyCollection<T>
-                {
-                    public IEnumerator<T> GetEnumerator() => default;
-                }
-                public class MyCollectionBuilder
-                {
-                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
-                }
-                """;
-            var comp = CreateCompilation(new[] { sourceA, CollectionBuilderAttributeDefinition }, targetFramework: TargetFramework.Net80);
-            var refA = AsReference(comp, useCompilationReference);
-
-            string sourceB = """
-                #pragma warning disable 219
-                class Program
-                {
-                    static void Main()
-                    {
-                        MyCollection<string> x = [];
-                        MyCollection<int> y = [1, 2, 3];
-                        MyCollection<object> z = new();
-                    }
-                }
-                """;
-            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net80);
-            comp.MakeTypeMissing(WellKnownType.System_Span_T);
-            comp.VerifyEmitDiagnostics(
-                // error CS0656: Missing compiler required member 'System.Runtime.InteropServices.MemoryMarshal.CreateSpan'
-                // 
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "").WithArguments("System.Runtime.InteropServices.MemoryMarshal", "CreateSpan").WithLocation(1, 1),
-                // (7,31): error CS0518: Predefined type 'System.Span`1' is not defined or imported
-                //         MyCollection<int> y = [1, 2, 3];
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[1, 2, 3]").WithArguments("System.Span`1").WithLocation(7, 31),
-                // (7,31): error CS0656: Missing compiler required member 'System.Span`1.op_Implicit'
-                //         MyCollection<int> y = [1, 2, 3];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[1, 2, 3]").WithArguments("System.Span`1", "op_Implicit").WithLocation(7, 31));
-
-            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net80);
-            comp.MakeMemberMissing(WellKnownMember.System_Span_T__op_Implicit_ReadOnlySpan_Span);
-            comp.VerifyEmitDiagnostics(
-                // (7,31): error CS0656: Missing compiler required member 'System.Span`1.op_Implicit'
-                //         MyCollection<int> y = [1, 2, 3];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[1, 2, 3]").WithArguments("System.Span`1", "op_Implicit").WithLocation(7, 31));
-        }
-
         [Fact]
         public void CollectionBuilder_Async()
         {
@@ -9360,7 +9302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             verifier.VerifyIL("Program.<CreateCollection>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
                 """
                 {
-                  // Code size      329 (0x149)
+                  // Code size      324 (0x144)
                   .maxstack  3
                   .locals init (int V_0,
                                 MyCollection<int> V_1,
@@ -9401,7 +9343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     IL_004a:  ldloca.s   V_4
                     IL_004c:  ldarg.0
                     IL_004d:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<MyCollection<int>>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<CreateCollection>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<CreateCollection>d__1)"
-                    IL_0052:  leave      IL_0148
+                    IL_0052:  leave      IL_0143
                     IL_0057:  ldarg.0
                     IL_0058:  ldfld      "System.Runtime.CompilerServices.TaskAwaiter<int> Program.<CreateCollection>d__1.<>u__1"
                     IL_005d:  stloc.s    V_4
@@ -9448,7 +9390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     IL_00c5:  ldloca.s   V_4
                     IL_00c7:  ldarg.0
                     IL_00c8:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<MyCollection<int>>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<CreateCollection>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<CreateCollection>d__1)"
-                    IL_00cd:  leave.s    IL_0148
+                    IL_00cd:  leave.s    IL_0143
                     IL_00cf:  ldarg.0
                     IL_00d0:  ldfld      "System.Runtime.CompilerServices.TaskAwaiter<int> Program.<CreateCollection>d__1.<>u__1"
                     IL_00d5:  stloc.s    V_4
@@ -9472,32 +9414,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     IL_0102:  ldarg.0
                     IL_0103:  ldflda     "__InlineArray3<int> Program.<CreateCollection>d__1.<>7__wrap1"
                     IL_0108:  ldc.i4.3
-                    IL_0109:  call       "InlineArrayAsSpan<__InlineArray3<int>, int>(ref __InlineArray3<int>, int)"
-                    IL_010e:  call       "System.ReadOnlySpan<int> System.Span<int>.op_Implicit(System.Span<int>)"
-                    IL_0113:  call       "MyCollection<int> MyCollectionBuilder.Create<int>(System.ReadOnlySpan<int>)"
-                    IL_0118:  stloc.1
-                    IL_0119:  leave.s    IL_0134
+                    IL_0109:  call       "InlineArrayAsReadOnlySpan<__InlineArray3<int>, int>(in __InlineArray3<int>, int)"
+                    IL_010e:  call       "MyCollection<int> MyCollectionBuilder.Create<int>(System.ReadOnlySpan<int>)"
+                    IL_0113:  stloc.1
+                    IL_0114:  leave.s    IL_012f
                   }
                   catch System.Exception
                   {
-                    IL_011b:  stloc.s    V_5
-                    IL_011d:  ldarg.0
-                    IL_011e:  ldc.i4.s   -2
-                    IL_0120:  stfld      "int Program.<CreateCollection>d__1.<>1__state"
-                    IL_0125:  ldarg.0
-                    IL_0126:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder<MyCollection<int>> Program.<CreateCollection>d__1.<>t__builder"
-                    IL_012b:  ldloc.s    V_5
-                    IL_012d:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<MyCollection<int>>.SetException(System.Exception)"
-                    IL_0132:  leave.s    IL_0148
+                    IL_0116:  stloc.s    V_5
+                    IL_0118:  ldarg.0
+                    IL_0119:  ldc.i4.s   -2
+                    IL_011b:  stfld      "int Program.<CreateCollection>d__1.<>1__state"
+                    IL_0120:  ldarg.0
+                    IL_0121:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder<MyCollection<int>> Program.<CreateCollection>d__1.<>t__builder"
+                    IL_0126:  ldloc.s    V_5
+                    IL_0128:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<MyCollection<int>>.SetException(System.Exception)"
+                    IL_012d:  leave.s    IL_0143
                   }
-                  IL_0134:  ldarg.0
-                  IL_0135:  ldc.i4.s   -2
-                  IL_0137:  stfld      "int Program.<CreateCollection>d__1.<>1__state"
-                  IL_013c:  ldarg.0
-                  IL_013d:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder<MyCollection<int>> Program.<CreateCollection>d__1.<>t__builder"
-                  IL_0142:  ldloc.1
-                  IL_0143:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<MyCollection<int>>.SetResult(MyCollection<int>)"
-                  IL_0148:  ret
+                  IL_012f:  ldarg.0
+                  IL_0130:  ldc.i4.s   -2
+                  IL_0132:  stfld      "int Program.<CreateCollection>d__1.<>1__state"
+                  IL_0137:  ldarg.0
+                  IL_0138:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder<MyCollection<int>> Program.<CreateCollection>d__1.<>t__builder"
+                  IL_013d:  ldloc.1
+                  IL_013e:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<MyCollection<int>>.SetResult(MyCollection<int>)"
+                  IL_0143:  ret
                 }
                 """);
         }
