@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                         foreach (var (element, anchor) in matches.Select(m => CreateElement(m, CreateCollectionElement)))
                         {
                             nodesAndTokens.Add(Token(SyntaxKind.CommaToken).WithoutTrivia().WithTrailingTrivia(EndOfLine(formattingOptions.NewLine)));
-                            nodesAndTokens.Add(ShiftNode(element.WithoutTrivia(), anchor, preferredIndentation));
+                            nodesAndTokens.Add(element.WithoutTrivia().WithLeadingTrivia(Whitespace(preferredIndentation)));
                         }
 
                         // If we ended with a comma before, continue ending with a comma.
@@ -304,14 +304,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                     return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
                         sourceText, initializer, totalConversion);
                 }
-            }
-
-            static TNode ShiftNode<TNode>(
-                TNode node,
-                SyntaxNode anchor,
-                string preferredIndentation)
-            {
-                // first 
             }
         }
 
