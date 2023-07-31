@@ -98,6 +98,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             ImmutableArray<Match<StatementSyntax>> matches,
             CancellationToken cancellationToken)
         {
+            //if (MakeMultiLine(sourceText, objectCreation, matches, wrappingLength))
+            //    elements = AddLineBreaks(elements, includeFinalLineBreak: false);
+            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
             var parsedDocument = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
             var elements = CreateElements(objectCreation, matches, CreateCollectionElement);
 
@@ -117,9 +121,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 #endif
                 CodeActionOptions.DefaultCollectionExpressionWrappingLength;
 
-            //if (MakeMultiLine(sourceText, objectCreation, matches, wrappingLength))
-            //    elements = AddLineBreaks(elements, includeFinalLineBreak: false);
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var makeMultiLine = MakeMultiLine(sourceText, objectCreation, matches, wrappingLength);
 
             var initializer = objectCreation.Initializer;
@@ -174,40 +175,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                         //  }
                         //
                         // Just add the new elements to this.
-
-                        using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
-                        nodesAndTokens.AddRange(initialConversion.Elements.GetWithSeparators());
-
-                        var trailingComma = default(SyntaxToken);
-                        var trailingTrivia = default(SyntaxTriviaList);
-                        if (nodesAndTokens[^1].IsToken)
-                        {
-                            trailingComma = nodesAndTokens[^1].AsToken();
-                            nodesAndTokens.RemoveLast();
-                        }
-                        else
-                        {
-                            trailingTrivia = nodesAndTokens[^1].GetTrailingTrivia();
-                            nodesAndTokens[^1] = nodesAndTokens[^1].WithTrailingTrivia();
-                        }
-
-                        foreach (var element in matches.Select(m => CreateElement(m, CreateCollectionElement).element))
-                        {
-                            nodesAndTokens.Add(Token(SyntaxKind.CommaToken).WithoutLeadingTrivia().WithTrailingTrivia(Space));
-                            nodesAndTokens.Add(element.WithoutTrivia());
-                        }
-
-                        // If we ended with a comma before, continue ending with a comma.
-                        if (trailingComma != default)
-                        {
-                            nodesAndTokens.Add(trailingComma);
-                        }
-                        else
-                        {
-                            nodesAndTokens[^1] = nodesAndTokens[^1].WithTrailingTrivia(trailingTrivia);
-                        }
-
-                        var finalCollection = initialConversion.WithElements(SeparatedList<CollectionElementSyntax>(nodesAndTokens));
+                        var finalCollection = AddMatchesToExistingCollectionExpression(
+                            initialConversion,
+                            triviaAfterComma: TriviaList(Space),
+                            triviaBeforeElement: default);
 
                         return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
                             sourceText, initializer, finalCollection);
@@ -219,68 +190,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                         var preferredIndentation = initializer.Expressions.First().GetFirstToken().GetPreferredIndentation(
                             parsedDocument, indentationOptions, cancellationToken);
 
-                        using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
-                        nodesAndTokens.AddRange(initialConversion.Elements.GetWithSeparators());
-
-                        var trailingComma = default(SyntaxToken);
-                        var trailingTrivia = default(SyntaxTriviaList);
-                        if (nodesAndTokens[^1].IsToken)
-                        {
-                            trailingComma = nodesAndTokens[^1].AsToken();
-                            nodesAndTokens.RemoveLast();
-                        }
-                        else
-                        {
-                            trailingTrivia = nodesAndTokens[^1].GetTrailingTrivia();
-                            nodesAndTokens[^1] = nodesAndTokens[^1].WithTrailingTrivia();
-                        }
-
-                        foreach (var (element, anchor) in matches.Select(m => CreateElement(m, CreateCollectionElement)))
-                        {
-                            nodesAndTokens.Add(Token(SyntaxKind.CommaToken).WithoutTrivia().WithTrailingTrivia(EndOfLine(formattingOptions.NewLine)));
-                            nodesAndTokens.Add(element.WithoutTrivia().WithLeadingTrivia(Whitespace(preferredIndentation)));
-                        }
-
-                        // If we ended with a comma before, continue ending with a comma.
-                        if (trailingComma != default)
-                        {
-                            nodesAndTokens.Add(trailingComma);
-                        }
-                        else
-                        {
-                            nodesAndTokens[^1] = nodesAndTokens[^1].WithTrailingTrivia(trailingTrivia);
-                        }
-
-                        var finalCollection = initialConversion.WithElements(SeparatedList<CollectionElementSyntax>(nodesAndTokens));
+                        var finalCollection = AddMatchesToExistingCollectionExpression(
+                            initialConversion,
+                            triviaAfterComma: TriviaList(EndOfLine(formattingOptions.NewLine)),
+                            triviaBeforeElement: TriviaList(Whitespace(preferredIndentation)));
 
                         return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
                             sourceText, initializer, finalCollection);
                     }
-
-                    if (!makeMultiLine)
-                    {
-                        // combined length of the current expressions and new expressions is ok for a single line. And
-                        // none of the new expressions are on multiple lines.
-
-                    }
-
-                    if (!makeMultiLine &&
-                        (initializer.Expressions.Count == 0 ||
-                         sourceText.AreOnSameLine(initializer.Expressions.First().GetFirstToken(), initializer.Expressions.Last().GetLastToken())))
-                    {
-                        // If the existing elements themselves were on the same line *and* the new elements are all single
-                        // line, then keep things on a single line.
-                    }
-                    else
-                    {
-                        // otherwise, the existing expressions were on multiple lines, or the new expressions need
-                        // multiple lines.  Place each expression on a new line, indented by the right amount.
-                    }
-
-                    // Now do the actual replacement.  This will ensure the location of the collection expression
-                    // properly corresponds to the equivalent pieces of the collection initializer.
-                    //return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
-                    //    sourceText, objectCreation.Initializer, totalConversion);
                 }
                 else if (makeMultiLine)
                 {
@@ -304,6 +221,47 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                     return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
                         sourceText, initializer, totalConversion);
                 }
+            }
+
+            CollectionExpressionSyntax AddMatchesToExistingCollectionExpression(
+                CollectionExpressionSyntax initialCollectionExpression,
+                SyntaxTriviaList triviaAfterComma,
+                SyntaxTriviaList triviaBeforeElement)
+            {
+                using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
+                nodesAndTokens.AddRange(initialCollectionExpression.Elements.GetWithSeparators());
+
+                var trailingComma = default(SyntaxToken);
+                var trailingTrivia = default(SyntaxTriviaList);
+                if (nodesAndTokens[^1].IsToken)
+                {
+                    trailingComma = nodesAndTokens[^1].AsToken();
+                    nodesAndTokens.RemoveLast();
+                }
+                else
+                {
+                    trailingTrivia = nodesAndTokens[^1].GetTrailingTrivia();
+                    nodesAndTokens[^1] = nodesAndTokens[^1].WithTrailingTrivia();
+                }
+
+                foreach (var element in matches.Select(m => CreateElement(m, CreateCollectionElement).element))
+                {
+                    nodesAndTokens.Add(Token(SyntaxKind.CommaToken).WithoutLeadingTrivia().WithTrailingTrivia(triviaAfterComma));
+                    nodesAndTokens.Add(element.WithoutTrivia().WithLeadingTrivia(triviaBeforeElement));
+                }
+
+                // If we ended with a comma before, continue ending with a comma.
+                if (trailingComma != default)
+                {
+                    nodesAndTokens.Add(trailingComma);
+                }
+                else
+                {
+                    nodesAndTokens[^1] = nodesAndTokens[^1].WithTrailingTrivia(trailingTrivia);
+                }
+
+                var finalCollection = initialCollectionExpression.WithElements(SeparatedList<CollectionElementSyntax>(nodesAndTokens));
+                return finalCollection;
             }
         }
 
