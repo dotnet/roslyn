@@ -3061,6 +3061,37 @@ public class InterceptorsTests : CSharpTestBase
     }
 
     [Fact]
+    public void SignatureMismatch_09()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            static class Program
+            {
+                public static void InterceptableMethod(ref readonly int x) => Console.Write("interceptable " + x);
+
+                public static void Main()
+                {
+                    int x = 5;
+                    InterceptableMethod(in x);
+                }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 11, 9)]
+                public static void Interceptor(in int x) => Console.Write("interceptor " + x);
+            }
+            """;
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.RegularPreview.WithFeature("InterceptorsPreview"));
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(17,6): error CS9144: Cannot intercept method 'Program.InterceptableMethod(ref readonly int)' with interceptor 'D.Interceptor(in int)' because the signatures do not match.
+            //     [InterceptsLocation("Program.cs", 11, 9)]
+            Diagnostic(ErrorCode.ERR_InterceptorSignatureMismatch, @"InterceptsLocation(""Program.cs"", 11, 9)").WithArguments("Program.InterceptableMethod(ref readonly int)", "D.Interceptor(in int)").WithLocation(17, 6));
+    }
+
+    [Fact]
     public void ScopedMismatch_01()
     {
         // Unsafe 'scoped' difference

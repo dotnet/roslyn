@@ -99,6 +99,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionForNullableTernaryConditionalCheckTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionForTernaryConditionalCheckTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\UseCollectionExpressionForArrayTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\UseCollectionInitializerTests_CollectionExpression.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCompoundAssignment\UseCompoundAssignmentTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCompoundAssignment\UseCompoundCoalesceAssignmentTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\UseConditionalExpressionForAssignmentTests.cs" />

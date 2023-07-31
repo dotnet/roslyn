@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return;
             }
 
-            if (node.IsKind(SyntaxKind.ListPattern) && node.Parent != null)
+            if (node.Parent != null && node.Kind() is SyntaxKind.ListPattern or SyntaxKind.CollectionExpression)
             {
                 // Brackets in list patterns are formatted like blocks, so align close bracket with open bracket
                 AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(list, bracketPair);

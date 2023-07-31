@@ -2183,6 +2183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnexpectedParameterList = 9122,
         WRN_AddressOfInAsync = 9123,
         WRN_CapturedPrimaryConstructorParameterInFieldInitializer = 9124,
+        WRN_ByValArraySizeConstRequired = 9125,
 
         ERR_BadRefInUsingAlias = 9130,
         ERR_BadUnsafeInUsingDirective = 9131,

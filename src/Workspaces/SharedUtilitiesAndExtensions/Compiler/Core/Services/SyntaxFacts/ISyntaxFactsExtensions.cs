@@ -518,6 +518,12 @@ namespace Microsoft.CodeAnalysis.LanguageService
             return expression;
         }
 
+        public static SyntaxNode GetExpressionOfForeachStatement(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfForeachStatement(node, out _, out var expression, out _);
+            return expression;
+        }
+
         public static SyntaxToken GetIdentifierOfGenericName(this ISyntaxFacts syntaxFacts, SyntaxNode node)
         {
             syntaxFacts.GetPartsOfGenericName(node, out var identifier, out _);

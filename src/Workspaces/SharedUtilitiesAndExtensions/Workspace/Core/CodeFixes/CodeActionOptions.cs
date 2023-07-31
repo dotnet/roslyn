@@ -50,6 +50,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         public const int DefaultConditionalExpressionWrappingLength = 120;
 
+        public const int DefaultCollectionExpressionWrappingLength = 120;
+
 #if !CODE_STYLE
         [DataMember] public required CodeCleanupOptions CleanupOptions { get; init; }
         [DataMember] public required CodeGenerationOptions CodeGenerationOptions { get; init; }
@@ -60,6 +62,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         [DataMember] public bool HideAdvancedMembers { get; init; } = false;
         [DataMember] public int WrappingColumn { get; init; } = DefaultWrappingColumn;
         [DataMember] public int ConditionalExpressionWrappingLength { get; init; } = DefaultConditionalExpressionWrappingLength;
+        [DataMember] public int CollectionExpressionWrappingLength { get; init; } = DefaultCollectionExpressionWrappingLength;
 
         public static CodeActionOptions GetDefault(LanguageServices languageServices)
             => new()

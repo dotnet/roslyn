@@ -63,7 +63,7 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> where T
 
             // if we're the current view, attempt to just get what's visible, plus 10 lines above and below.  This will
             // ensure that moving up/down a few lines tends to have immediate accurate results.
-            var visibleSpanOpt = textView.GetVisibleLinesSpan(subjectBuffer, extraLines: 10);
+            var visibleSpanOpt = textView.GetVisibleLinesSpan(subjectBuffer, extraLines: s_standardLineCountAroundViewportToTag);
             if (visibleSpanOpt is null)
             {
                 // couldn't figure out the visible span.  So the InView tagger will need to tag everything, and the

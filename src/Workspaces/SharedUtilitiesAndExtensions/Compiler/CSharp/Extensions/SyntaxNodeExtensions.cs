@@ -808,18 +808,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static (SyntaxToken openBracket, SyntaxToken closeBracket) GetBrackets(this SyntaxNode? node)
-        {
-            switch (node)
+            => node switch
             {
-                case ArrayRankSpecifierSyntax n: return (n.OpenBracketToken, n.CloseBracketToken);
-                case BracketedArgumentListSyntax n: return (n.OpenBracketToken, n.CloseBracketToken);
-                case ImplicitArrayCreationExpressionSyntax n: return (n.OpenBracketToken, n.CloseBracketToken);
-                case AttributeListSyntax n: return (n.OpenBracketToken, n.CloseBracketToken);
-                case BracketedParameterListSyntax n: return (n.OpenBracketToken, n.CloseBracketToken);
-                case ListPatternSyntax n: return (n.OpenBracketToken, n.CloseBracketToken);
-                default: return default;
-            }
-        }
+                ArrayRankSpecifierSyntax n => (n.OpenBracketToken, n.CloseBracketToken),
+                BracketedArgumentListSyntax n => (n.OpenBracketToken, n.CloseBracketToken),
+                ImplicitArrayCreationExpressionSyntax n => (n.OpenBracketToken, n.CloseBracketToken),
+                AttributeListSyntax n => (n.OpenBracketToken, n.CloseBracketToken),
+                BracketedParameterListSyntax n => (n.OpenBracketToken, n.CloseBracketToken),
+                ListPatternSyntax n => (n.OpenBracketToken, n.CloseBracketToken),
+                CollectionExpressionSyntax n => (n.OpenBracketToken, n.CloseBracketToken),
+                _ => default,
+            };
 
         public static SyntaxTokenList GetModifiers(this SyntaxNode? member)
             => member switch

@@ -81,6 +81,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\CSharpUseCoalesceExpressionForNullableTernaryConditionalCheckDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\CSharpUseCollectionExpressionForArrayDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\UseCollectionExpressionHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCompoundAssignment\CSharpUseCompoundAssignmentDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCompoundAssignment\CSharpUseCompoundCoalesceAssignmentDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCompoundAssignment\Utilities.cs" />
