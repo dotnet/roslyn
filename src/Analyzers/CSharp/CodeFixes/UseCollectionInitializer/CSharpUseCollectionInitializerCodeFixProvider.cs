@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                     // fresh collection expression, and do a wholesale replacement of the original object creation
                     // expression with it.
                     var collectionExpression = CollectionExpression(
-                        SeparatedList(matches.Select(m => CreateElement(m, CreateCollectionElement))));
+                        SeparatedList(matches.Select(m => CreateElement(m, CreateCollectionElement, preferredIndentation: null))));
                     return collectionExpression.WithTriviaFrom(objectCreation);
                 }
             }
@@ -176,9 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                         //
                         // Just add the new elements to this.
                         var finalCollection = AddMatchesToExistingCollectionExpression(
-                            initialConversion,
-                            triviaAfterComma: TriviaList(Space),
-                            triviaBeforeElement: default);
+                            initialConversion, preferredIndentation: null);
 
                         return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
                             sourceText, initializer, finalCollection);
@@ -191,9 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                             parsedDocument, indentationOptions, cancellationToken);
 
                         var finalCollection = AddMatchesToExistingCollectionExpression(
-                            initialConversion,
-                            triviaAfterComma: TriviaList(EndOfLine(formattingOptions.NewLine)),
-                            triviaBeforeElement: TriviaList(Whitespace(preferredIndentation)));
+                            initialConversion, preferredIndentation);
 
                         return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
                             sourceText, initializer, finalCollection);
@@ -214,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 
                     // now, add all the matches in after the existing elements.
                     var totalConversion = initialConversion.AddElements(
-                        matches.Select(m => CreateElement(m, CreateCollectionElement)).ToArray());
+                        matches.Select(m => CreateElement(m, CreateCollectionElement, preferredIndentation: null)).ToArray());
 
                     // Now do the actual replacement.  This will ensure the location of the collection expression
                     // properly corresponds to the equivalent pieces of the collection initializer.
@@ -225,12 +221,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 
             CollectionExpressionSyntax AddMatchesToExistingCollectionExpression(
                 CollectionExpressionSyntax initialCollectionExpression,
-                SyntaxTriviaList triviaAfterComma,
-                SyntaxTriviaList triviaBeforeElement)
+                string? preferredIndentation)
             {
+                var triviaAfterComma = preferredIndentation is null
+                    ? TriviaList(Space)
+                    : TriviaList(EndOfLine(formattingOptions.NewLine));
+                var commaToken = Token(SyntaxKind.CommaToken).WithoutLeadingTrivia().WithTrailingTrivia(triviaAfterComma);
+
+                //triviaAfterComma: TriviaList(Space),
+                //                            triviaBeforeElement: default);
+
+                //triviaAfterComma: TriviaList(EndOfLine(formattingOptions.NewLine)),
+                //                            triviaBeforeElement: TriviaList(Whitespace(preferredIndentation)));
+
                 using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
                 nodesAndTokens.AddRange(initialCollectionExpression.Elements.GetWithSeparators());
 
+                // If there is already a trailing comma before, remove it.  We'll add it back at the end.
+                // If there is no trailing comma, then grab the trailing trivia off of the last element.
+                // We'll move it to the final last element once we've added everything.
                 var trailingComma = default(SyntaxToken);
                 var trailingTrivia = default(SyntaxTriviaList);
                 if (nodesAndTokens[^1].IsToken)
@@ -244,23 +253,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                     nodesAndTokens[^1] = nodesAndTokens[^1].WithTrailingTrivia();
                 }
 
-                foreach (var element in matches.Select(m => CreateElement(m, CreateCollectionElement)))
+                foreach (var element in matches.Select(m => CreateElement(m, CreateCollectionElement, preferredIndentation)))
                 {
-                    nodesAndTokens.Add(Token(SyntaxKind.CommaToken).WithoutLeadingTrivia().WithTrailingTrivia(triviaAfterComma));
-                    nodesAndTokens.Add(element.WithoutTrivia().WithLeadingTrivia(triviaBeforeElement));
+                    // Add a comment before each new element we're adding.
+                    nodesAndTokens.Add(commaToken);
+                    nodesAndTokens.Add(element);
                 }
 
-                // If we ended with a comma before, continue ending with a comma.
                 if (trailingComma != default)
                 {
+                    // If we ended with a comma before, continue ending with a comma.
                     nodesAndTokens.Add(trailingComma);
                 }
                 else
                 {
+                    // Otherwise, move the trailing trivia from before to the end.
                     nodesAndTokens[^1] = nodesAndTokens[^1].WithTrailingTrivia(trailingTrivia);
                 }
 
-                var finalCollection = initialCollectionExpression.WithElements(SeparatedList<CollectionElementSyntax>(nodesAndTokens));
+                var finalCollection = initialCollectionExpression.WithElements(
+                    SeparatedList<CollectionElementSyntax>(nodesAndTokens));
                 return finalCollection;
             }
         }
@@ -270,7 +282,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             ExpressionSyntax expression)
         {
             return match?.UseSpread is true
-                ? SpreadElement(Token(SyntaxKind.DotDotToken).WithoutTrivia().WithTrailingTrivia(Space), expression)
+                ? SpreadElement(
+                    Token(SyntaxKind.DotDotToken).WithLeadingTrivia(expression.GetLeadingTrivia()).WithTrailingTrivia(Space),
+                    expression.WithoutLeadingTrivia())
                 : ExpressionElement(expression);
         }
 
@@ -397,28 +411,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 
         private static TElementSyntax CreateElement<TElementSyntax>(
             Match<StatementSyntax> match,
-            Func<Match<StatementSyntax>?, ExpressionSyntax, TElementSyntax> createElement)
+            Func<Match<StatementSyntax>?, ExpressionSyntax, TElementSyntax> createElement,
+            string? preferredIndentation)
             where TElementSyntax : SyntaxNode
         {
             var statement = match.Statement;
 
             if (statement is ExpressionStatementSyntax expressionStatement)
             {
-                return createElement(match, ConvertExpression(expressionStatement.Expression).WithoutTrivia());
+                return createElement(match, ConvertExpression(expressionStatement.Expression, preferredIndentation)).WithoutTrivia());
             }
             else if (statement is ForEachStatementSyntax foreachStatement)
             {
-                return createElement(match, foreachStatement.Expression.WithoutTrivia());
+                return createElement(match, Indent(foreachStatement.Expression, preferredIndentation));
             }
             else if (statement is IfStatementSyntax ifStatement)
             {
+                var condition = Indent(ifStatement.Condition, preferredIndentation).Parenthesize();
                 var trueStatement = (ExpressionStatementSyntax)UnwrapEmbeddedStatement(ifStatement.Statement);
 
                 if (ifStatement.Else is null)
                 {
                     // Create: x ? [y] : []
                     var expression = ConditionalExpression(
-                        ifStatement.Condition.Parenthesize(),
+                        condition,
                         CollectionExpression(SingletonSeparatedList<CollectionElementSyntax>(ExpressionElement(ConvertExpression(trueStatement.Expression)))),
                         CollectionExpression());
                     return createElement(match, expression);
@@ -427,7 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 {
                     // Create: x ? y : z
                     var falseStatement = (ExpressionStatementSyntax)UnwrapEmbeddedStatement(ifStatement.Else.Statement);
-                    var expression = ConditionalExpression(ifStatement.Condition.Parenthesize(), ConvertExpression(trueStatement.Expression), ConvertExpression(falseStatement.Expression));
+                    var expression = ConditionalExpression(ifStatement.Condition, ConvertExpression(trueStatement.Expression), ConvertExpression(falseStatement.Expression));
                     return createElement(match, expression);
                 }
             }
@@ -435,6 +451,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             {
                 throw ExceptionUtilities.Unreachable();
             }
+        }
+
+        private static TExpressionSyntax Indent<TExpressionSyntax>(
+            TExpressionSyntax expression,
+            string? preferredIndentation) where TExpressionSyntax : SyntaxNode
+        {
+            return expression;
         }
 
         private static SeparatedSyntaxList<TElement> CreateElements<TElement>(
