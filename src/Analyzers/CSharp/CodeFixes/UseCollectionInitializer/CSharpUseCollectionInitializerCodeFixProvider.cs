@@ -269,7 +269,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             Match<StatementSyntax>? match,
             ExpressionSyntax expression)
         {
-            return match?.UseSpread is true ? SpreadElement(expression) : ExpressionElement(expression);
+            return match?.UseSpread is true
+                ? SpreadElement(Token(SyntaxKind.DotDotToken).WithoutTrivia().WithTrailingTrivia(Space), expression)
+                : ExpressionElement(expression);
         }
 
         private static ExpressionSyntax ConvertExpression(ExpressionSyntax expression)
