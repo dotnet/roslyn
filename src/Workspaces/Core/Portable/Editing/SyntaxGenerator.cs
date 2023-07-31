@@ -738,7 +738,7 @@ namespace Microsoft.CodeAnalysis.Editing
 
                 case SymbolKind.Property:
                     var property = (IPropertySymbol)symbol;
-                    bool isIndexer = property.IsIndexer || property.ExplicitInterfaceImplementations.Any(i => i.IsIndexer);
+                    var isIndexer = property.IsIndexer || property.ExplicitInterfaceImplementations.Any(i => i.IsIndexer);
                     return isIndexer ? IndexerDeclaration(property) : PropertyDeclaration(property);
 
                 case SymbolKind.Event:
