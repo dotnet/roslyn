@@ -5212,7 +5212,7 @@ class Program
 }";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (4,25): warning CS9210: 'ref' field '_t' should be ref-assigned before use.
+                // (4,25): warning CS9201: 'ref' field '_t' should be ref-assigned before use.
                 //     public R(ref T t) { _t = t; }
                 Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "_t").WithArguments("_t").WithLocation(4, 25));
         }
@@ -5460,7 +5460,7 @@ class Program
 }";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (6,9): warning CS9210: 'ref' field 'F' should be ref-assigned before use.
+                // (6,9): warning CS9201: 'ref' field 'F' should be ref-assigned before use.
                 //         F = t;
                 Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "F").WithArguments("F").WithLocation(6, 9));
         }
@@ -5570,7 +5570,7 @@ class Program
 }";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // 0.cs(7,9): warning CS9210: 'ref' field 'F' should be ref-assigned before use.
+                // 0.cs(7,9): warning CS9201: 'ref' field 'F' should be ref-assigned before use.
                 //         F = tValue;
                 Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "F").WithArguments("F").WithLocation(7, 9));
         }
@@ -5608,7 +5608,7 @@ class Program
                 // (7,9): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         F = tValue; // 1
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "F").WithLocation(7, 9),
-                // (7,9): warning CS9210: 'ref' field 'F' should be ref-assigned before use.
+                // (7,9): warning CS9201: 'ref' field 'F' should be ref-assigned before use.
                 //         F = tValue; // 1
                 Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "F").WithArguments("F").WithLocation(7, 9),
                 // (8,9): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
@@ -5661,7 +5661,7 @@ class Program
 }";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // 0.cs(7,9): warning CS9210: 'ref' field 'F' should be ref-assigned before use.
+                // 0.cs(7,9): warning CS9201: 'ref' field 'F' should be ref-assigned before use.
                 //         F = tValue;
                 Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "F").WithArguments("F").WithLocation(7, 9));
         }
@@ -5699,7 +5699,7 @@ class Program
                 // (7,9): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         F = tValue; // 1
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "F").WithLocation(7, 9),
-                // (7,9): warning CS9210: 'ref' field 'F' should be ref-assigned before use.
+                // (7,9): warning CS9201: 'ref' field 'F' should be ref-assigned before use.
                 //         F = tValue; // 1
                 Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "F").WithArguments("F").WithLocation(7, 9),
                 // (8,9): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
@@ -29576,7 +29576,7 @@ Block[B2] - Exit
                 expectedOutput: "1");
 
             verifier.VerifyDiagnostics(
-                // (15,20): warning CS9210: 'ref' field 'ri' should be ref-assigned before use.
+                // (15,20): warning CS9201: 'ref' field 'ri' should be ref-assigned before use.
                 //     public RS() => ri = 0;
                 Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "ri").WithArguments("ri").WithLocation(15, 20));
 
@@ -29633,7 +29633,7 @@ Block[B2] - Exit
                 // (15,12): warning CS9022: Control is returned to caller before field 'RS.ri' is explicitly assigned, causing a preceding implicit assignment of 'default'.
                 //     public RS()
                 Diagnostic(ErrorCode.WRN_UnassignedThisSupportedVersion, "RS").WithArguments("RS.ri").WithLocation(15, 12),
-                // (17,21): warning CS9210: 'ref' field 'ri' should be ref-assigned before use.
+                // (17,21): warning CS9201: 'ref' field 'ri' should be ref-assigned before use.
                 //         int local = ri; // 1
                 Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "ri").WithArguments("ri").WithLocation(17, 21));
 
@@ -29665,6 +29665,15 @@ Block[B2] - Exit
                 new RS();
                 Console.Write(1);
 
+                try
+                {
+                    new RS(ignored: true);
+                }
+                catch
+                {
+                    Console.Write(2);
+                }
+
                 ref struct RS
                 {
                     ref int ri;
@@ -29672,17 +29681,26 @@ Block[B2] - Exit
                     {
                         ref int local = ref ri; // 1
                     }
+
+                    public RS(bool ignored)
+                    {
+                        ref int local = ref ri; // 2
+                        Console.Write(local);
+                    }
                 }
                 """,
                 options: TestOptions.DebugExe.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings),
                 verify: Verification.Skipped,
                 targetFramework: TargetFramework.NetCoreApp,
-                expectedOutput: "1");
+                expectedOutput: "12");
 
             verifier.VerifyDiagnostics(
-                // (11,29): warning CS9210: 'ref' field 'ri' should be ref-assigned before use.
+                // (20,29): warning CS9201: ref field 'ri' should be ref-assigned before use.
                 //         ref int local = ref ri; // 1
-                Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "ri").WithArguments("ri").WithLocation(11, 29));
+                Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "ri").WithArguments("ri").WithLocation(20, 29),
+                // (25,29): warning CS9201: ref field 'ri' should be ref-assigned before use.
+                //         ref int local = ref ri; // 2
+                Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "ri").WithArguments("ri").WithLocation(25, 29));
 
             verifier.VerifyIL("RS..ctor", """
                 {
@@ -29700,6 +29718,43 @@ Block[B2] - Exit
                   IL_0010:  ret
                 }
                 """);
+        }
+
+        [Fact]
+        public void RefField_Assignment_AutoDefault_04()
+        {
+            var verifier = CompileAndVerify("""
+                using System;
+
+                var i = 1;
+                var rs = new RS(ref i);
+
+                i = 2;
+                rs = new RS(ref i, ignored: true);
+
+                ref struct RS
+                {
+                    ref int ri;
+
+                    public RS(ref int ri)
+                    {
+                        this.ri = ref ri;
+                        Console.Write(this.ri);
+                    }
+
+                    public RS(ref int ri, bool ignored)
+                    {
+                        this = default(RS) with { ri = ref ri };
+                        Console.Write(this.ri);
+                    }
+                }
+                """,
+                options: TestOptions.DebugExe.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings),
+                verify: Verification.Skipped,
+                targetFramework: TargetFramework.NetCoreApp,
+                expectedOutput: "12");
+
+            verifier.VerifyDiagnostics();
         }
     }
 }
