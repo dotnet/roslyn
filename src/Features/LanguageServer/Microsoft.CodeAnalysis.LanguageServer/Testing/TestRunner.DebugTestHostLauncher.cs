@@ -45,7 +45,7 @@ internal partial class TestRunner
 
         private bool AttachDebugger(int processId, CancellationToken cancellationToken)
         {
-            progress.Report(new RunTestsPartialResult(LanguageServerResources.Debugging_tests, string.Format(LanguageServerResources.Attaching_debugger_to_process, processId), Progress: null));
+            progress.Report(new RunTestsPartialResult(LanguageServerResources.Debugging_tests, string.Format(LanguageServerResources.Attaching_debugger_to_process_0, processId), Progress: null));
 
             // Send an explicit request to the client to tell it to attach to the debugger and wait for the response.
             // We want to wait for the attach to complete before we continue.

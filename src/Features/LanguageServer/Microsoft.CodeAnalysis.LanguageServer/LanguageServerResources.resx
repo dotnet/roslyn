@@ -120,7 +120,7 @@
   <data name="Aborted" xml:space="preserve">
     <value>Aborted!</value>
   </data>
-  <data name="Attaching_debugger_to_process" xml:space="preserve">
+  <data name="Attaching_debugger_to_process_0" xml:space="preserve">
     <value>Attaching debugger to process {0}</value>
   </data>
   <data name="Building_project" xml:space="preserve">

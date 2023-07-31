@@ -7,7 +7,7 @@
         <target state="new">Aborted!</target>
         <note />
       </trans-unit>
-      <trans-unit id="Attaching_debugger_to_process">
+      <trans-unit id="Attaching_debugger_to_process_0">
         <source>Attaching debugger to process {0}</source>
         <target state="new">Attaching debugger to process {0}</target>
         <note />
