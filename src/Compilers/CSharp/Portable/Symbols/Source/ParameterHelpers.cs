@@ -664,31 +664,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // error CS1670: params is not valid in this context
                 diagnostics.Add(ErrorCode.ERR_IllegalParams, paramsKeyword.GetLocation());
             }
-            else if (isParams && !typeWithAnnotations.IsSZArray())
+            else if (!typeWithAnnotations.IsDefault)
             {
-                // error CS0225: The params parameter must be a single dimensional array
-                diagnostics.Add(ErrorCode.ERR_ParamsMustBeArray, paramsKeyword.GetLocation());
-            }
-            else if (typeWithAnnotations.IsStatic)
-            {
-                Debug.Assert(containingSymbol is null || (containingSymbol is FunctionPointerMethodSymbol or { ContainingType: not null }));
-                // error CS0721: '{0}': static types cannot be used as parameters
-                diagnostics.Add(
-                    ErrorFacts.GetStaticClassParameterCode(containingSymbol?.ContainingType?.IsInterfaceType() ?? false),
-                    syntax.Type?.Location ?? syntax.GetLocation(),
-                    typeWithAnnotations.Type);
-            }
-            else if (firstDefault != -1 && parameterIndex > firstDefault && !isDefault && !isParams)
-            {
-                // error CS1737: Optional parameters must appear after all required parameters
-                Location loc = ((ParameterSyntax)syntax).Identifier.GetNextToken(includeZeroWidth: true).GetLocation(); //could be missing
-                diagnostics.Add(ErrorCode.ERR_DefaultValueBeforeRequiredValue, loc);
-            }
-            else if (refKind != RefKind.None &&
-                typeWithAnnotations.IsRestrictedType(ignoreSpanLikeTypes: true))
-            {
-                // CS1601: Cannot make reference to variable of type 'System.TypedReference'
-                diagnostics.Add(ErrorCode.ERR_MethodArgCantBeRefAny, syntax.Location, typeWithAnnotations.Type);
+                if (isParams && !typeWithAnnotations.IsSZArray())
+                {
+                    // error CS0225: The params parameter must be a single dimensional array
+                    diagnostics.Add(ErrorCode.ERR_ParamsMustBeArray, paramsKeyword.GetLocation());
+                }
+                else if (typeWithAnnotations.IsStatic)
+                {
+                    Debug.Assert(containingSymbol is null || (containingSymbol is FunctionPointerMethodSymbol or { ContainingType: not null }));
+                    // error CS0721: '{0}': static types cannot be used as parameters
+                    diagnostics.Add(
+                        ErrorFacts.GetStaticClassParameterCode(containingSymbol?.ContainingType?.IsInterfaceType() ?? false),
+                        syntax.Type?.Location ?? syntax.GetLocation(),
+                        typeWithAnnotations.Type);
+                }
+                else if (firstDefault != -1 && parameterIndex > firstDefault && !isDefault && !isParams)
+                {
+                    // error CS1737: Optional parameters must appear after all required parameters
+                    Location loc = ((ParameterSyntax)syntax).Identifier.GetNextToken(includeZeroWidth: true).GetLocation(); //could be missing
+                    diagnostics.Add(ErrorCode.ERR_DefaultValueBeforeRequiredValue, loc);
+                }
+                else if (refKind != RefKind.None &&
+                    typeWithAnnotations.IsRestrictedType(ignoreSpanLikeTypes: true))
+                {
+                    // CS1601: Cannot make reference to variable of type 'System.TypedReference'
+                    diagnostics.Add(ErrorCode.ERR_MethodArgCantBeRefAny, syntax.Location, typeWithAnnotations.Type);
+                }
             }
 
             if (isParams && ordinal != lastParameterIndex)
@@ -697,7 +700,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_ParamsLast, syntax.GetLocation());
             }
 
-            if (declaredScope == ScopedKind.ScopedValue && !typeWithAnnotations.IsRefLikeType())
+            if (declaredScope == ScopedKind.ScopedValue && !typeWithAnnotations.IsDefault && !typeWithAnnotations.IsRefLikeType())
             {
                 diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, syntax.Location);
             }

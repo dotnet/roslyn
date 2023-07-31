@@ -8818,6 +8818,7 @@ class Program
             assertRefKindScoped(9, RefKind.None, ScopedKind.None);
             assertRefKindScoped(10, RefKind.Ref, ScopedKind.ScopedRef);
             assertRefKindScoped(11, RefKind.None, ScopedKind.None);
+
             Assert.True(lambdas[12].Parameters[1].IsParams);
 
             Assert.Equal(RefKind.None, lambdas[0].Parameters[1].RefKind);
@@ -8840,6 +8841,32 @@ class Program
                 Assert.Equal(refKind, lambdas[index].Parameters[0].RefKind);
                 Assert.Equal(scopedKind, lambdas[index].Parameters[0].EffectiveScope);
             }
+        }
+
+        [Fact]
+        public void RefModifiersWithoutTypeName_InvalidParamsModifier()
+        {
+            const string source = """
+                delegate T IndexReturnerParams<T>(params T[] first, scoped ref int index, params T[] second);
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        IndexReturnerParams<string> d = (params _, scoped ref _, params second) => string.Empty;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,35): error CS0231: A params parameter must be the last parameter in a parameter list
+                // delegate T IndexReturnerParams<T>(params T[] first, scoped ref int index, params T[] second);
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params T[] first").WithLocation(1, 35),
+                // (7,42): error CS0231: A params parameter must be the last parameter in a parameter list
+                //         IndexReturnerParams<string> d = (params _, scoped ref _, params second) => string.Empty;
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params _").WithLocation(7, 42)
+                );
         }
     }
 }

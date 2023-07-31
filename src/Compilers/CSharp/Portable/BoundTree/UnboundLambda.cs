@@ -1516,9 +1516,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override TypeWithAnnotations ParameterTypeWithAnnotations(int index)
         {
-            Debug.Assert(this.HasExplicitlyTypedParameterList);
-            Debug.Assert(0 <= index && index < _parameterTypesWithAnnotations.Length);
-            return _parameterTypesWithAnnotations[index];
+            Debug.Assert(0 <= index);
+            Debug.Assert(_parameterTypesWithAnnotations.IsDefault || index < _parameterTypesWithAnnotations.Length);
+            return _parameterTypesWithAnnotations.IsDefault ? default : _parameterTypesWithAnnotations[index];
         }
 
         protected override UnboundLambdaState WithCachingCore(bool includeCache)
