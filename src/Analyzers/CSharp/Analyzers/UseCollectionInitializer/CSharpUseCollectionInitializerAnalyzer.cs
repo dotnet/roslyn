@@ -11,15 +11,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
 
 internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollectionInitializerAnalyzer<
     ExpressionSyntax,
-        StatementSyntax,
-        BaseObjectCreationExpressionSyntax,
-        MemberAccessExpressionSyntax,
-        InvocationExpressionSyntax,
-        ExpressionStatementSyntax,
-        ForEachStatementSyntax,
-        IfStatementSyntax,
-        VariableDeclaratorSyntax,
-        CSharpUseCollectionInitializerAnalyzer>
+    StatementSyntax,
+    BaseObjectCreationExpressionSyntax,
+    MemberAccessExpressionSyntax,
+    InvocationExpressionSyntax,
+    ExpressionStatementSyntax,
+    ForEachStatementSyntax,
+    IfStatementSyntax,
+    VariableDeclaratorSyntax,
+    CSharpUseCollectionInitializerAnalyzer>
 {
     protected override bool IsComplexElementInitializer(SyntaxNode expression)
         => expression.IsKind(SyntaxKind.ComplexElementInitializerExpression);
