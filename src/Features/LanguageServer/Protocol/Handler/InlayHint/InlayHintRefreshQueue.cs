@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
                 e.Option.Equals(InlineHintsOptionsStorage.ForLambdaParameterTypes) ||
                 e.Option.Equals(InlineHintsOptionsStorage.ForImplicitObjectCreation))
             {
-                EnqueueRefreshNotification(documentUri: null);
+                EnqueueRefreshNotification(documentPath: null);
             }
         }
 

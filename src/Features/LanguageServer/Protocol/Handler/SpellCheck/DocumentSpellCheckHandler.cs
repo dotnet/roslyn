@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
                 return ImmutableArray<Document>.Empty;
             }
 
-            if (!context.IsTracking(context.Document.GetURI()))
+            if (!context.IsTracking(ProtocolConversions.GetDocumentFilePathFromUri(context.Document.GetURI())))
             {
                 context.TraceInformation($"Ignoring spell check request for untracked document: {context.Document.GetURI()}");
                 return ImmutableArray<Document>.Empty;

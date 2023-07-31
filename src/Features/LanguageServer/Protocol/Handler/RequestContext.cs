@@ -42,7 +42,7 @@ internal readonly struct RequestContext
     /// It contains text that is consistent with all prior LSP text sync notifications, but LSP text sync requests
     /// which are ordered after this one in the queue are not reflected here.
     /// </remarks>
-    private readonly ImmutableDictionary<Uri, (SourceText Text, string LanguageId)> _trackedDocuments;
+    private readonly ImmutableDictionary<string, (SourceText Text, string LanguageId)> _trackedDocuments;
 
     private readonly ILspServices _lspServices;
 
@@ -151,7 +151,7 @@ internal readonly struct RequestContext
         WellKnownLspServerKinds serverKind,
         Document? document,
         IDocumentChangeTracker documentChangeTracker,
-        ImmutableDictionary<Uri, (SourceText Text, string LanguageId)> trackedDocuments,
+        ImmutableDictionary<string, (SourceText Text, string LanguageId)> trackedDocuments,
         ImmutableArray<string> supportedLanguages,
         ILspServices lspServices,
         CancellationToken queueCancellationToken)
@@ -280,10 +280,10 @@ internal readonly struct RequestContext
     public void UpdateTrackedDocument(Uri uri, SourceText changedText)
         => _documentChangeTracker.UpdateTrackedDocument(uri, changedText);
 
-    public SourceText GetTrackedDocumentSourceText(Uri documentUri)
+    public SourceText GetTrackedDocumentSourceText(string documentPath)
     {
-        Contract.ThrowIfFalse(_trackedDocuments.ContainsKey(documentUri), $"Attempted to get text for {documentUri} which is not open.");
-        return _trackedDocuments[documentUri].Text;
+        Contract.ThrowIfFalse(_trackedDocuments.ContainsKey(documentPath), $"Attempted to get text for {documentPath} which is not open.");
+        return _trackedDocuments[documentPath].Text;
     }
 
     /// <summary>
@@ -293,8 +293,8 @@ internal readonly struct RequestContext
     public ValueTask StopTrackingAsync(Uri uri, CancellationToken cancellationToken)
         => _documentChangeTracker.StopTrackingAsync(uri, cancellationToken);
 
-    public bool IsTracking(Uri documentUri)
-        => _trackedDocuments.ContainsKey(documentUri);
+    public bool IsTracking(string documentPath)
+        => _trackedDocuments.ContainsKey(documentPath);
 
     public void ClearSolutionContext()
     {

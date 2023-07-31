@@ -31,7 +31,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
 
         public Task<object?> HandleRequestAsync(LSP.DidChangeTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var text = context.GetTrackedDocumentSourceText(request.TextDocument.Uri);
+            var documentPath = ProtocolConversions.GetDocumentFilePathFromUri(request.TextDocument.Uri);
+            var text = context.GetTrackedDocumentSourceText(documentPath);
 
             // Per the LSP spec, each text change builds upon the previous, so we don't need to translate
             // any text positions between changes, which makes this quite easy.

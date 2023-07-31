@@ -1313,7 +1313,7 @@ class A {";
 
             var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
             Assert.Equal(3, results.Length);
-            Assert.Equal(new Uri("C:/test1.cs"), results[0].TextDocument!.Uri);
+            Assert.Equal(ProtocolConversions.GetUriFromFilePath(@"C:\test1.cs"), results[0].TextDocument!.Uri);
             Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
             Assert.Equal(1, results[0].Diagnostics.Single().Range.Start.Line);
             Assert.Empty(results[1].Diagnostics);

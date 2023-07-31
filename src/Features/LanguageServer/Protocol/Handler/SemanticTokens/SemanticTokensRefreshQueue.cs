@@ -53,7 +53,7 @@ internal class SemanticTokensRefreshQueue :
     /// 
     /// Null when the client does not support sending refresh notifications.
     /// </summary>
-    private AsyncBatchingWorkQueue<Uri?>? _semanticTokenRefreshQueue;
+    private AsyncBatchingWorkQueue<string?>? _semanticTokenRefreshQueue;
 
     private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
 
@@ -80,11 +80,11 @@ internal class SemanticTokensRefreshQueue :
             // sending too many notifications at once.  This ensures we batch up workspace notifications,
             // but also means we send soon enough after a compilation-computation to not make the user wait
             // an enormous amount of time.
-            _semanticTokenRefreshQueue = new AsyncBatchingWorkQueue<Uri?>(
+            _semanticTokenRefreshQueue = new AsyncBatchingWorkQueue<string?>(
                 delay: TimeSpan.FromMilliseconds(2000),
-                processBatchAsync: (documentUris, cancellationToken)
-                    => FilterLspTrackedDocumentsAsync(_lspWorkspaceManager, _notificationManager, documentUris, cancellationToken),
-                equalityComparer: EqualityComparer<Uri?>.Default,
+                processBatchAsync: (documentPaths, cancellationToken)
+                    => FilterLspTrackedDocumentsAsync(_lspWorkspaceManager, _notificationManager, documentPaths, cancellationToken),
+                equalityComparer: EqualityComparer<string?>.Default,
                 asyncListener: _asyncListener,
                 _disposalTokenSource.Token);
 
@@ -123,13 +123,13 @@ internal class SemanticTokensRefreshQueue :
     private static ValueTask FilterLspTrackedDocumentsAsync(
         LspWorkspaceManager lspWorkspaceManager,
         IClientLanguageServerManager notificationManager,
-        ImmutableSegmentedList<Uri?> documentUris,
+        ImmutableSegmentedList<string?> documentPaths,
         CancellationToken cancellationToken)
     {
         var trackedDocuments = lspWorkspaceManager.GetTrackedLspText();
-        foreach (var documentUri in documentUris)
+        foreach (var documentPath in documentPaths)
         {
-            if (documentUri is null || !trackedDocuments.ContainsKey(documentUri))
+            if (documentPath is null || !trackedDocuments.ContainsKey(documentPath))
             {
                 return notificationManager.SendRequestAsync(Methods.WorkspaceSemanticTokensRefreshName, cancellationToken);
             }
@@ -144,13 +144,13 @@ internal class SemanticTokensRefreshQueue :
         if (e.DocumentId is not null && e.Kind is WorkspaceChangeKind.DocumentChanged)
         {
             var document = e.NewSolution.GetRequiredDocument(e.DocumentId);
-            var documentUri = document.GetURI();
+            var documentPath = ProtocolConversions.GetDocumentFilePathFromUri(document.GetURI());
 
             // We enqueue the URI since there's a chance the client is already tracking the
             // document, in which case we don't need to send a refresh notification.
             // We perform the actual check when processing the batch to ensure we have the
             // most up-to-date list of tracked documents.
-            EnqueueSemanticTokenRefreshNotification(documentUri);
+            EnqueueSemanticTokenRefreshNotification(documentPath);
         }
         else
         {
@@ -158,7 +158,7 @@ internal class SemanticTokensRefreshQueue :
         }
     }
 
-    private void EnqueueSemanticTokenRefreshNotification(Uri? documentUri)
+    private void EnqueueSemanticTokenRefreshNotification(string? documentUri)
     {
         // We should have only gotten here if semantic tokens refresh is supported and initialized.
         Contract.ThrowIfNull(_semanticTokenRefreshQueue);

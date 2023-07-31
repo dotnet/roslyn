@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
 
                     // Only consider closed documents here (and only open ones in the DocumentSpellCheckingHandler).
                     // Each handler treats those as separate worlds that they are responsible for.
-                    if (context.IsTracking(document.GetURI()))
+                    if (context.IsTracking(ProtocolConversions.GetDocumentFilePathFromUri(document.GetURI())))
                     {
                         context.TraceInformation($"Skipping tracked document: {document.GetURI()}");
                         continue;

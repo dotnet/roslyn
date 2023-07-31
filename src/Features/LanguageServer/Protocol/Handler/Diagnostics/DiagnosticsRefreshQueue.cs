@@ -94,7 +94,7 @@ internal sealed class DiagnosticsRefreshQueue : AbstractRefreshQueue
     }
 
     private void WorkspaceRefreshRequested()
-        => EnqueueRefreshNotification(documentUri: null);
+        => EnqueueRefreshNotification(documentPath: null);
 
     protected override string GetFeatureAttribute()
         => FeatureAttribute.DiagnosticService;

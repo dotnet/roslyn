@@ -21,7 +21,10 @@ public class UriTests : AbstractLanguageServerProtocolTests
     }
 
     [Theory, CombinatorialData]
-    public async Task TestMiscDocument_WithFileScheme(bool mutatingLspWorkspace)
+    [WorkItem("https://github.com/dotnet/runtime/issues/89538")]
+    public async Task TestMiscDocument_WithFileScheme(
+        bool mutatingLspWorkspace,
+        [CombinatorialValues("C:\\\ue25b.txt", "C:\\\ud86d\udeac.txt", "file://C:/\\ue25b.txt", "file://C:/\ud86d\udeac.txt")] string filePath)
     {
         var source =
 @"class A
@@ -35,8 +38,7 @@ public class UriTests : AbstractLanguageServerProtocolTests
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
         // Open an empty loose file with a file URI.
-        var filePath = @"C:\Users\user\someFile.txt";
-        var looseFileUri = new Uri(filePath, UriKind.Absolute);
+        var looseFileUri = ProtocolConversions.GetUriFromFilePath(filePath);
         await testLspServer.OpenDocumentAsync(looseFileUri, source, languageId: "csharp").ConfigureAwait(false);
 
         // Verify file is added to the misc file workspace.
@@ -90,7 +92,7 @@ public class UriTests : AbstractLanguageServerProtocolTests
         await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
 
         var workspaceDocument = testLspServer.TestWorkspace.CurrentSolution.Projects.Single().Documents.Single();
-        var expectedDocumentUri = new Uri(documentFilePath, UriKind.Absolute);
+        var expectedDocumentUri = ProtocolConversions.GetUriFromFilePath(documentFilePath);
 
         await testLspServer.OpenDocumentAsync(expectedDocumentUri).ConfigureAwait(false);
 

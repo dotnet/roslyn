@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 return ImmutableArray<IDiagnosticSource>.Empty;
             }
 
-            if (!context.IsTracking(document.GetURI()))
+            if (!context.IsTracking(ProtocolConversions.GetDocumentFilePathFromUri(document.GetURI())))
             {
                 context.TraceWarning($"Ignoring diagnostics request for untracked document: {document.GetURI()}");
                 return ImmutableArray<IDiagnosticSource>.Empty;
