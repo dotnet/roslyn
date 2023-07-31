@@ -8571,21 +8571,37 @@ class Program
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(17, 42),
                 // (17,52): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
                 //         SelfReturnerScoped<string> fs = (scoped x, index) => x;
-                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "index").WithLocation(17, 52));
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "index").WithLocation(17, 52)
+                );
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var lambdas = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Select(e => model.GetSymbolInfo(e).Symbol.GetSymbol<LambdaSymbol>()).ToArray();
 
-            Assert.Equal(RefKind.In, lambdas[0].Parameters[0].RefKind);
-            Assert.Equal(RefKind.Ref, lambdas[1].Parameters[0].RefKind);
-            Assert.Equal(RefKind.Out, lambdas[2].Parameters[0].RefKind);
-            Assert.Equal(RefKind.RefReadOnlyParameter, lambdas[3].Parameters[0].RefKind);
+            assertRefKindScoped(0, RefKind.In, ScopedKind.None);
+            assertRefKindScoped(1, RefKind.Ref, ScopedKind.None);
+            assertRefKindScoped(2, RefKind.Out, ScopedKind.ScopedRef);
+            assertRefKindScoped(3, RefKind.RefReadOnlyParameter, ScopedKind.None);
+            assertRefKindScoped(4, RefKind.None, ScopedKind.None);
+            assertRefKindScoped(5, RefKind.Ref, ScopedKind.ScopedRef);
+
+            Assert.False(lambdas[6].Parameters[0].IsParams);
+            Assert.True(lambdas[6].Parameters[1].IsParams);
 
             Assert.Equal(RefKind.None, lambdas[0].Parameters[1].RefKind);
             Assert.Equal(RefKind.None, lambdas[1].Parameters[1].RefKind);
             Assert.Equal(RefKind.None, lambdas[2].Parameters[1].RefKind);
             Assert.Equal(RefKind.None, lambdas[3].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[4].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[5].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[6].Parameters[0].RefKind);
+            Assert.Equal(RefKind.None, lambdas[6].Parameters[1].RefKind);
+
+            void assertRefKindScoped(int index, RefKind refKind, ScopedKind scopedKind)
+            {
+                Assert.Equal(refKind, lambdas[index].Parameters[0].RefKind);
+                Assert.Equal(scopedKind, lambdas[index].Parameters[0].EffectiveScope);
+            }
         }
 
         [Fact]
@@ -8813,7 +8829,11 @@ class Program
             assertRefKindScoped(10, RefKind.Ref, ScopedKind.ScopedRef);
             assertRefKindScoped(11, RefKind.None, ScopedKind.None);
 
+            Assert.False(lambdas[12].Parameters[0].IsParams);
             Assert.True(lambdas[12].Parameters[1].IsParams);
+
+            Assert.False(lambdas[13].Parameters[0].IsParams);
+            Assert.False(lambdas[13].Parameters[1].IsParams);
 
             Assert.Equal(RefKind.None, lambdas[0].Parameters[1].RefKind);
             Assert.Equal(RefKind.None, lambdas[1].Parameters[1].RefKind);
@@ -8827,7 +8847,9 @@ class Program
             Assert.Equal(RefKind.None, lambdas[9].Parameters[1].RefKind);
             Assert.Equal(RefKind.None, lambdas[10].Parameters[1].RefKind);
             Assert.Equal(RefKind.None, lambdas[11].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[12].Parameters[0].RefKind);
             Assert.Equal(RefKind.None, lambdas[12].Parameters[1].RefKind);
+            Assert.Equal(RefKind.None, lambdas[13].Parameters[0].RefKind);
             Assert.Equal(RefKind.None, lambdas[13].Parameters[1].RefKind);
 
             void assertRefKindScoped(int index, RefKind refKind, ScopedKind scopedKind)
@@ -8861,6 +8883,24 @@ class Program
                 //         IndexReturnerParams<string> d = (params _, scoped ref _, params second) => string.Empty;
                 Diagnostic(ErrorCode.ERR_ParamsLast, "params _").WithLocation(7, 42)
                 );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var lambdas = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Select(e => model.GetSymbolInfo(e).Symbol.GetSymbol<LambdaSymbol>()).ToArray();
+
+            assertRefKindScoped(0, RefKind.None, ScopedKind.None);
+            assertRefKindScoped(1, RefKind.Ref, ScopedKind.ScopedRef);
+            assertRefKindScoped(2, RefKind.None, ScopedKind.None);
+
+            Assert.True(lambdas[0].Parameters[0].IsParams);
+            Assert.False(lambdas[0].Parameters[1].IsParams);
+            Assert.True(lambdas[0].Parameters[2].IsParams);
+
+            void assertRefKindScoped(int index, RefKind refKind, ScopedKind scopedKind)
+            {
+                Assert.Equal(refKind, lambdas[0].Parameters[index].RefKind);
+                Assert.Equal(scopedKind, lambdas[0].Parameters[index].EffectiveScope);
+            }
         }
     }
 }
