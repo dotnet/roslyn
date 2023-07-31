@@ -243,7 +243,8 @@ public class UseCollectionExpressionForArray
             FixedCode = """
                 class C
                 {
-                    object[] i = [
+                    object[] i =
+                    [
                         ""
                     ];
                 }
@@ -347,7 +348,8 @@ public class UseCollectionExpressionForArray
             FixedCode = """
                 class C
                 {
-                    string[] i = [
+                    string[] i =
+                    [
                         ""
                     ];
                 }
@@ -1121,6 +1123,728 @@ public class UseCollectionExpressionForArray
                                 let b = new int[] { 1, 2, 3 }
                                 select b;
                     }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInitializerFormatting1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i = [|{|] 1, 2, 3 };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i = [1, 2, 3];
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInitializerFormatting2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i =
+                    [|{|] 1, 2, 3 };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i =
+                    [1, 2, 3];
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInitializerFormatting3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i = [|{|]
+                        1, 2, 3
+                    };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i = [
+                        1, 2, 3
+                    ];
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInitializerFormatting4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i =
+                    [|{|]
+                        1, 2, 3
+                    };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i =
+                    [
+                        1, 2, 3
+                    ];
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInitializerFormatting5()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i =
+                        [|{|] 1, 2, 3 };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i =
+                        [1, 2, 3];
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInitializerFormatting6()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i = [|{|]
+                            1, 2, 3
+                        };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i = [
+                            1, 2, 3
+                        ];
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInitializerFormatting7()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i =
+                        [|{|]
+                            1, 2, 3
+                        };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i =
+                        [
+                            1, 2, 3
+                        ];
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInitializerFormatting8()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i =
+
+                        [|{|]
+                            1, 2, 3
+                        };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i =
+
+                        [
+                            1, 2, 3
+                        ];
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInitializerFormatting1_Explicit()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i = [|[|new|] int[]|] { 1, 2, 3 };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i = [1, 2, 3];
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInitializerFormatting2_Explicit()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i =
+                    [|[|new|] int[]|] { 1, 2, 3 };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i =
+                    [1, 2, 3];
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInitializerFormatting3_Explicit()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i = [|[|new|] int[]|] {
+                        1, 2, 3
+                    };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i = [
+                        1, 2, 3
+                    ];
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInitializerFormatting4_Explicit()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i = [|[|new|] int[]|]
+                    {
+                        1, 2, 3
+                    };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i =
+                    [
+                        1, 2, 3
+                    ];
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInitializerFormatting5_Explicit()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i =
+                    [|[|new|] int[]|]
+                    {
+                        1, 2, 3
+                    };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i =
+                    [
+                        1, 2, 3
+                    ];
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInitializerFormatting6_Explicit()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i =
+                    [|[|new|] int[]|] {
+                        1, 2, 3
+                    };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i =
+                    [
+                        1, 2, 3
+                    ];
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInitializerFormatting7_Explicit()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i =
+                        [|[|new|] int[]|]
+                        {
+                            1, 2, 3
+                        };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i =
+                        [
+                            1, 2, 3
+                        ];
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInitializerFormatting8_Explicit()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i =
+                        [|[|new|] int[]|] {
+                            1, 2, 3
+                        };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i =
+                        [
+                            1, 2, 3
+                        ];
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInitializerFormatting9_Explicit()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i = [|[|new|] int[]|] {
+                            1, 2, 3
+                        };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i = [
+                            1, 2, 3
+                        ];
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInitializerFormatting10_Explicit()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i =
+
+                    [|[|new|] int[]|]
+                    {
+                        1, 2, 3
+                    };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i =
+
+                    [
+                        1, 2, 3
+                    ];
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInitializerFormatting1_Implicit()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i = [|[|new|][]|] { 1, 2, 3 };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i = [1, 2, 3];
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInitializerFormatting2_Implicit()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i =
+                    [|[|new|][]|] { 1, 2, 3 };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i =
+                    [1, 2, 3];
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInitializerFormatting3_Implicit()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i = [|[|new|][]|] {
+                        1, 2, 3
+                    };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i = [
+                        1, 2, 3
+                    ];
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInitializerFormatting4_Implicit()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i = [|[|new|][]|]
+                    {
+                        1, 2, 3
+                    };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i =
+                    [
+                        1, 2, 3
+                    ];
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInitializerFormatting5_Implicit()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i =
+                    [|[|new|][]|]
+                    {
+                        1, 2, 3
+                    };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i =
+                    [
+                        1, 2, 3
+                    ];
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInitializerFormatting6_Implicit()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i =
+                    [|[|new|][]|] {
+                        1, 2, 3
+                    };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i =
+                    [
+                        1, 2, 3
+                    ];
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInitializerFormatting7_Implicit()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i =
+                        [|[|new|][]|]
+                        {
+                            1, 2, 3
+                        };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i =
+                        [
+                            1, 2, 3
+                        ];
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInitializerFormatting8_Implicit()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i =
+                        [|[|new|][]|] {
+                            1, 2, 3
+                        };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i =
+                        [
+                            1, 2, 3
+                        ];
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInitializerFormatting9_Implicit()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i = [|[|new|][]|] {
+                            1, 2, 3
+                        };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i = [
+                            1, 2, 3
+                        ];
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInitializerFormatting10_Implicit()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i =
+
+                    [|[|new|][]|]
+                    {
+                        1, 2, 3
+                    };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i =
+
+                    [
+                        1, 2, 3
+                    ];
                 }
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
