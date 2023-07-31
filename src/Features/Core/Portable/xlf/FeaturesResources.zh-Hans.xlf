@@ -605,6 +605,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">创建其余部分并赋值为属性</target>
         <note />
       </trans-unit>
+      <trans-unit id="Debug_All_Tests">
+        <source>Debug All Tests</source>
+        <target state="new">Debug All Tests</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Debug_Test">
+        <source>Debug Test</source>
+        <target state="new">Debug Test</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Decompiled">
         <source>decompiled</source>
         <target state="translated">反编译</target>
