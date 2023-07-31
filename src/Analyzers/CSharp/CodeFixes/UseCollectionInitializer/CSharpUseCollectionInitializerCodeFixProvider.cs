@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                     // fresh collection expression, and do a wholesale replacement of the original object creation
                     // expression with it.
                     var collectionExpression = CollectionExpression(
-                        SeparatedList(matches.Select(m => CreateElement(m, CreateCollectionElement).element)));
+                        SeparatedList(matches.Select(m => CreateElement(m, CreateCollectionElement))));
                     return collectionExpression.WithTriviaFrom(objectCreation);
                 }
             }
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 
                     // now, add all the matches in after the existing elements.
                     var totalConversion = initialConversion.AddElements(
-                        matches.Select(m => CreateElement(m, CreateCollectionElement).element).ToArray());
+                        matches.Select(m => CreateElement(m, CreateCollectionElement)).ToArray());
 
                     // Now do the actual replacement.  This will ensure the location of the collection expression
                     // properly corresponds to the equivalent pieces of the collection initializer.
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                     nodesAndTokens[^1] = nodesAndTokens[^1].WithTrailingTrivia();
                 }
 
-                foreach (var element in matches.Select(m => CreateElement(m, CreateCollectionElement).element))
+                foreach (var element in matches.Select(m => CreateElement(m, CreateCollectionElement)))
                 {
                     nodesAndTokens.Add(Token(SyntaxKind.CommaToken).WithoutLeadingTrivia().WithTrailingTrivia(triviaAfterComma));
                     nodesAndTokens.Add(element.WithoutTrivia().WithLeadingTrivia(triviaBeforeElement));
@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             return SeparatedList<TNode>(nodesAndTokens);
         }
 
-        private static (TElementSyntax element, ExpressionSyntax anchorExpression) CreateElement<TElementSyntax>(
+        private static TElementSyntax CreateElement<TElementSyntax>(
             Match<StatementSyntax> match,
             Func<Match<StatementSyntax>?, ExpressionSyntax, TElementSyntax> createElement)
             where TElementSyntax : SyntaxNode
@@ -404,15 +404,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 
             if (statement is ExpressionStatementSyntax expressionStatement)
             {
-                return (createElement(match, ConvertExpression(expressionStatement.Expression).WithoutTrivia()), expressionStatement.Expression);
+                return createElement(match, ConvertExpression(expressionStatement.Expression).WithoutTrivia());
             }
             else if (statement is ForEachStatementSyntax foreachStatement)
             {
-                return (createElement(match, foreachStatement.Expression.WithoutTrivia()), foreachStatement.Expression);
+                return createElement(match, foreachStatement.Expression.WithoutTrivia());
             }
             else if (statement is IfStatementSyntax ifStatement)
             {
-                var anchorExpression = ifStatement.Condition;
                 var trueStatement = (ExpressionStatementSyntax)UnwrapEmbeddedStatement(ifStatement.Statement);
 
                 if (ifStatement.Else is null)
@@ -422,14 +421,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                         ifStatement.Condition.Parenthesize(),
                         CollectionExpression(SingletonSeparatedList<CollectionElementSyntax>(ExpressionElement(ConvertExpression(trueStatement.Expression)))),
                         CollectionExpression());
-                    return (createElement(match, expression), anchorExpression);
+                    return createElement(match, expression);
                 }
                 else
                 {
                     // Create: x ? y : z
                     var falseStatement = (ExpressionStatementSyntax)UnwrapEmbeddedStatement(ifStatement.Else.Statement);
                     var expression = ConditionalExpression(ifStatement.Condition.Parenthesize(), ConvertExpression(trueStatement.Expression), ConvertExpression(falseStatement.Expression));
-                    return (createElement(match, expression), anchorExpression);
+                    return createElement(match, expression);
                 }
             }
             else
@@ -462,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                     ? semicolon.TrailingTrivia
                     : default;
 
-                var element = CreateElement(match, createElement).element.WithLeadingTrivia(leadingTrivia);
+                var element = CreateElement(match, createElement).WithLeadingTrivia(leadingTrivia);
 
                 if (i < matches.Length - 1)
                 {
