@@ -659,20 +659,6 @@ namespace Analyzer.Utilities.Extensions
             return symbol.GetAttributes(attributeTypesToMatch).Any();
         }
 
-        public static bool HasAnyAttribute(this ISymbol symbol, [NotNullWhen(true)] INamedTypeSymbol? attributeToMatch)
-        {
-            if (attributeToMatch is null)
-                return false;
-
-            foreach (var attribute in symbol.GetAttributes())
-            {
-                if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, attributeToMatch))
-                    return true;
-            }
-
-            return false;
-        }
-
         /// <summary>
         /// Returns a value indicating whether the specified symbol has the specified
         /// attribute.
@@ -691,9 +677,18 @@ namespace Analyzer.Utilities.Extensions
         /// If <paramref name="symbol"/> is a type, this method does not find attributes
         /// on its base types.
         /// </remarks>
-        public static bool HasAttribute(this ISymbol symbol, [NotNullWhen(returnValue: true)] INamedTypeSymbol? attribute)
+        public static bool HasAnyAttribute(this ISymbol symbol, [NotNullWhen(returnValue: true)] INamedTypeSymbol? attribute)
         {
-            return symbol.HasAnyAttribute(attribute);
+            if (attribute is null)
+                return false;
+
+            foreach (var actualAttribute in symbol.GetAttributes())
+            {
+                if (SymbolEqualityComparer.Default.Equals(actualAttribute.AttributeClass, attribute))
+                    return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -719,7 +714,7 @@ namespace Analyzer.Utilities.Extensions
 
             while (symbol != null)
             {
-                if (symbol.HasAttribute(attribute))
+                if (symbol.HasAnyAttribute(attribute))
                 {
                     return true;
                 }
@@ -758,7 +753,7 @@ namespace Analyzer.Utilities.Extensions
 
             while (symbol != null)
             {
-                if (symbol.HasAttribute(attribute))
+                if (symbol.HasAnyAttribute(attribute))
                 {
                     return true;
                 }
