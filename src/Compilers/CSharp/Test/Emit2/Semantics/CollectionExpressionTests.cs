@@ -5738,27 +5738,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                   // Code size       52 (0x34)
                   .maxstack  2
-                  .locals init (__InlineArray3<int> V_0)
+                  .locals init (<>y__InlineArray3<int> V_0)
                   IL_0000:  ldloca.s   V_0
-                  IL_0002:  initobj    "__InlineArray3<int>"
+                  IL_0002:  initobj    "<>y__InlineArray3<int>"
                   IL_0008:  ldloca.s   V_0
                   IL_000a:  ldc.i4.0
-                  IL_000b:  call       "InlineArrayElementRef<__InlineArray3<int>, int>(ref __InlineArray3<int>, int)"
+                  IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
                   IL_0010:  ldc.i4.0
                   IL_0011:  stind.i4
                   IL_0012:  ldloca.s   V_0
                   IL_0014:  ldc.i4.1
-                  IL_0015:  call       "InlineArrayElementRef<__InlineArray3<int>, int>(ref __InlineArray3<int>, int)"
+                  IL_0015:  call       "InlineArrayElementRef<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
                   IL_001a:  ldc.i4.1
                   IL_001b:  stind.i4
                   IL_001c:  ldloca.s   V_0
                   IL_001e:  ldc.i4.2
-                  IL_001f:  call       "InlineArrayElementRef<__InlineArray3<int>, int>(ref __InlineArray3<int>, int)"
+                  IL_001f:  call       "InlineArrayElementRef<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
                   IL_0024:  ldc.i4.2
                   IL_0025:  stind.i4
                   IL_0026:  ldloca.s   V_0
                   IL_0028:  ldc.i4.3
-                  IL_0029:  call       "InlineArrayAsReadOnlySpan<__InlineArray3<int>, int>(in __InlineArray3<int>, int)"
+                  IL_0029:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray3<int>, int>(in <>y__InlineArray3<int>, int)"
                   IL_002e:  call       "MyCollection<int> MyCollectionBuilder.Create<int>(System.ReadOnlySpan<int>)"
                   IL_0033:  ret
                 }
@@ -5768,28 +5768,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                   // Code size       57 (0x39)
                   .maxstack  2
-                  .locals init (__InlineArray3<object> V_0)
+                  .locals init (<>y__InlineArray3<object> V_0)
                   IL_0000:  ldloca.s   V_0
-                  IL_0002:  initobj    "__InlineArray3<object>"
+                  IL_0002:  initobj    "<>y__InlineArray3<object>"
                   IL_0008:  ldloca.s   V_0
                   IL_000a:  ldc.i4.0
-                  IL_000b:  call       "InlineArrayElementRef<__InlineArray3<object>, object>(ref __InlineArray3<object>, int)"
+                  IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
                   IL_0010:  ldarg.0
                   IL_0011:  box        "int"
                   IL_0016:  stind.ref
                   IL_0017:  ldloca.s   V_0
                   IL_0019:  ldc.i4.1
-                  IL_001a:  call       "InlineArrayElementRef<__InlineArray3<object>, object>(ref __InlineArray3<object>, int)"
+                  IL_001a:  call       "InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
                   IL_001f:  ldarg.1
                   IL_0020:  stind.ref
                   IL_0021:  ldloca.s   V_0
                   IL_0023:  ldc.i4.2
-                  IL_0024:  call       "InlineArrayElementRef<__InlineArray3<object>, object>(ref __InlineArray3<object>, int)"
+                  IL_0024:  call       "InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
                   IL_0029:  ldnull
                   IL_002a:  stind.ref
                   IL_002b:  ldloca.s   V_0
                   IL_002d:  ldc.i4.3
-                  IL_002e:  call       "InlineArrayAsReadOnlySpan<__InlineArray3<object>, object>(in __InlineArray3<object>, int)"
+                  IL_002e:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray3<object>, object>(in <>y__InlineArray3<object>, int)"
                   IL_0033:  call       "MyCollection<object> MyCollectionBuilder.Create<object>(System.ReadOnlySpan<object>)"
                   IL_0038:  ret
                 }
@@ -5915,7 +5915,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 comp,
                 symbolValidator: module =>
                 {
-                    var type = module.GlobalNamespace.GetTypeMembers("__InlineArray3").SingleOrDefault();
+                    var type = module.GlobalNamespace.GetTypeMembers("<>y__InlineArray3").SingleOrDefault();
                     if (targetFramework == TargetFramework.Net80)
                     {
                         Assert.NotNull(type);
@@ -5934,28 +5934,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                       // Code size       74 (0x4a)
                       .maxstack  2
-                      .locals init (__InlineArray3<int?> V_0)
+                      .locals init (<>y__InlineArray3<int?> V_0)
                       IL_0000:  ldloca.s   V_0
-                      IL_0002:  initobj    "__InlineArray3<int?>"
+                      IL_0002:  initobj    "<>y__InlineArray3<int?>"
                       IL_0008:  ldloca.s   V_0
                       IL_000a:  ldc.i4.0
-                      IL_000b:  call       "InlineArrayElementRef<__InlineArray3<int?>, int?>(ref __InlineArray3<int?>, int)"
+                      IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray3<int?>, int?>(ref <>y__InlineArray3<int?>, int)"
                       IL_0010:  ldc.i4.1
                       IL_0011:  newobj     "int?..ctor(int)"
                       IL_0016:  stobj      "int?"
                       IL_001b:  ldloca.s   V_0
                       IL_001d:  ldc.i4.1
-                      IL_001e:  call       "InlineArrayElementRef<__InlineArray3<int?>, int?>(ref __InlineArray3<int?>, int)"
+                      IL_001e:  call       "InlineArrayElementRef<<>y__InlineArray3<int?>, int?>(ref <>y__InlineArray3<int?>, int)"
                       IL_0023:  ldc.i4.2
                       IL_0024:  newobj     "int?..ctor(int)"
                       IL_0029:  stobj      "int?"
                       IL_002e:  ldloca.s   V_0
                       IL_0030:  ldc.i4.2
-                      IL_0031:  call       "InlineArrayElementRef<__InlineArray3<int?>, int?>(ref __InlineArray3<int?>, int)"
+                      IL_0031:  call       "InlineArrayElementRef<<>y__InlineArray3<int?>, int?>(ref <>y__InlineArray3<int?>, int)"
                       IL_0036:  initobj    "int?"
                       IL_003c:  ldloca.s   V_0
                       IL_003e:  ldc.i4.3
-                      IL_003f:  call       "InlineArrayAsReadOnlySpan<__InlineArray3<int?>, int?>(in __InlineArray3<int?>, int)"
+                      IL_003f:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray3<int?>, int?>(in <>y__InlineArray3<int?>, int)"
                       IL_0044:  call       "MyCollection<int?> MyCollectionBuilder.Create<int?>(System.ReadOnlySpan<int?>)"
                       IL_0049:  ret
                     }
@@ -6039,7 +6039,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 comp,
                 symbolValidator: module =>
                 {
-                    var type = module.GlobalNamespace.GetTypeMembers("__InlineArray3").SingleOrDefault();
+                    var type = module.GlobalNamespace.GetTypeMembers("<>y__InlineArray3").SingleOrDefault();
                     Assert.Null(type);
                 },
                 expectedOutput: "[1, 2, null], ");
@@ -6106,7 +6106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 comp,
                 symbolValidator: module =>
                 {
-                    AssertEx.Equal(new[] { "__InlineArray2", "__InlineArray3" }, getInlineArrayTypeNames(module));
+                    AssertEx.Equal(new[] { "<>y__InlineArray2", "<>y__InlineArray3" }, getInlineArrayTypeNames(module));
                 },
                 verify: Verification.Skipped);
             var refA = comp.EmitToImageReference();
@@ -6134,7 +6134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 comp,
                 symbolValidator: module =>
                 {
-                    AssertEx.Equal(new[] { "__InlineArray1", "__InlineArray3" }, getInlineArrayTypeNames(module));
+                    AssertEx.Equal(new[] { "<>y__InlineArray1", "<>y__InlineArray3" }, getInlineArrayTypeNames(module));
                 },
                 verify: Verification.Skipped);
 
@@ -6162,14 +6162,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 comp,
                 symbolValidator: module =>
                 {
-                    AssertEx.Equal(new[] { $"__InlineArray{n}" }, getInlineArrayTypeNames(module));
+                    AssertEx.Equal(new[] { $"<>y__InlineArray{n}" }, getInlineArrayTypeNames(module));
                 },
                 verify: Verification.Skipped,
                 expectedOutput: IncludeExpectedOutput($"{n}"));
 
             static ImmutableArray<string> getInlineArrayTypeNames(ModuleSymbol module)
             {
-                return module.GlobalNamespace.GetTypeMembers().WhereAsArray(t => t.Name.StartsWith("__InlineArray")).SelectAsArray(t => t.Name);
+                return module.GlobalNamespace.GetTypeMembers().WhereAsArray(t => t.Name.StartsWith("<>y__InlineArray")).SelectAsArray(t => t.Name);
             }
         }
 
@@ -6227,30 +6227,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                       // Code size       67 (0x43)
                       .maxstack  2
-                      .locals init (__InlineArray3<object> V_0)
+                      .locals init (<>y__InlineArray3<object> V_0)
                       IL_0000:  ldloca.s   V_0
-                      IL_0002:  initobj    "__InlineArray3<object>"
+                      IL_0002:  initobj    "<>y__InlineArray3<object>"
                       IL_0008:  ldloca.s   V_0
                       IL_000a:  ldc.i4.0
-                      IL_000b:  call       "InlineArrayElementRef<__InlineArray3<object>, object>(ref __InlineArray3<object>, int)"
+                      IL_000b:  call       "InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
                       IL_0010:  ldc.i4.1
                       IL_0011:  box        "int"
                       IL_0016:  stind.ref
                       IL_0017:  ldloca.s   V_0
                       IL_0019:  ldc.i4.1
-                      IL_001a:  call       "InlineArrayElementRef<__InlineArray3<object>, object>(ref __InlineArray3<object>, int)"
+                      IL_001a:  call       "InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
                       IL_001f:  ldc.i4.2
                       IL_0020:  box        "int"
                       IL_0025:  stind.ref
                       IL_0026:  ldloca.s   V_0
                       IL_0028:  ldc.i4.2
-                      IL_0029:  call       "InlineArrayElementRef<__InlineArray3<object>, object>(ref __InlineArray3<object>, int)"
+                      IL_0029:  call       "InlineArrayElementRef<<>y__InlineArray3<object>, object>(ref <>y__InlineArray3<object>, int)"
                       IL_002e:  ldc.i4.3
                       IL_002f:  box        "int"
                       IL_0034:  stind.ref
                       IL_0035:  ldloca.s   V_0
                       IL_0037:  ldc.i4.3
-                      IL_0038:  call       "InlineArrayAsReadOnlySpan<__InlineArray3<object>, object>(in __InlineArray3<object>, int)"
+                      IL_0038:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray3<object>, object>(in <>y__InlineArray3<object>, int)"
                       IL_003d:  call       "MyCollection<object> MyCollectionBuilder.Create<object>(scoped System.ReadOnlySpan<object>)"
                       IL_0042:  ret
                     }
@@ -9321,8 +9321,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     IL_000b:  ldc.i4.1
                     IL_000c:  beq        IL_00cf
                     IL_0011:  ldarg.0
-                    IL_0012:  ldflda     "__InlineArray3<int> Program.<CreateCollection>d__1.<>7__wrap1"
-                    IL_0017:  initobj    "__InlineArray3<int>"
+                    IL_0012:  ldflda     "<>y__InlineArray3<int> Program.<CreateCollection>d__1.<>7__wrap1"
+                    IL_0017:  initobj    "<>y__InlineArray3<int>"
                     IL_001d:  ldc.i4.1
                     IL_001e:  call       "System.Threading.Tasks.Task<int> Program.F(int)"
                     IL_0023:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()"
@@ -9359,15 +9359,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     IL_0076:  call       "int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()"
                     IL_007b:  stloc.2
                     IL_007c:  ldarg.0
-                    IL_007d:  ldflda     "__InlineArray3<int> Program.<CreateCollection>d__1.<>7__wrap1"
+                    IL_007d:  ldflda     "<>y__InlineArray3<int> Program.<CreateCollection>d__1.<>7__wrap1"
                     IL_0082:  ldc.i4.0
-                    IL_0083:  call       "InlineArrayElementRef<__InlineArray3<int>, int>(ref __InlineArray3<int>, int)"
+                    IL_0083:  call       "InlineArrayElementRef<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
                     IL_0088:  ldloc.2
                     IL_0089:  stind.i4
                     IL_008a:  ldarg.0
-                    IL_008b:  ldflda     "__InlineArray3<int> Program.<CreateCollection>d__1.<>7__wrap1"
+                    IL_008b:  ldflda     "<>y__InlineArray3<int> Program.<CreateCollection>d__1.<>7__wrap1"
                     IL_0090:  ldc.i4.1
-                    IL_0091:  call       "InlineArrayElementRef<__InlineArray3<int>, int>(ref __InlineArray3<int>, int)"
+                    IL_0091:  call       "InlineArrayElementRef<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
                     IL_0096:  ldc.i4.2
                     IL_0097:  stind.i4
                     IL_0098:  ldc.i4.3
@@ -9406,15 +9406,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     IL_00ee:  call       "int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()"
                     IL_00f3:  stloc.3
                     IL_00f4:  ldarg.0
-                    IL_00f5:  ldflda     "__InlineArray3<int> Program.<CreateCollection>d__1.<>7__wrap1"
+                    IL_00f5:  ldflda     "<>y__InlineArray3<int> Program.<CreateCollection>d__1.<>7__wrap1"
                     IL_00fa:  ldc.i4.2
-                    IL_00fb:  call       "InlineArrayElementRef<__InlineArray3<int>, int>(ref __InlineArray3<int>, int)"
+                    IL_00fb:  call       "InlineArrayElementRef<<>y__InlineArray3<int>, int>(ref <>y__InlineArray3<int>, int)"
                     IL_0100:  ldloc.3
                     IL_0101:  stind.i4
                     IL_0102:  ldarg.0
-                    IL_0103:  ldflda     "__InlineArray3<int> Program.<CreateCollection>d__1.<>7__wrap1"
+                    IL_0103:  ldflda     "<>y__InlineArray3<int> Program.<CreateCollection>d__1.<>7__wrap1"
                     IL_0108:  ldc.i4.3
-                    IL_0109:  call       "InlineArrayAsReadOnlySpan<__InlineArray3<int>, int>(in __InlineArray3<int>, int)"
+                    IL_0109:  call       "InlineArrayAsReadOnlySpan<<>y__InlineArray3<int>, int>(in <>y__InlineArray3<int>, int)"
                     IL_010e:  call       "MyCollection<int> MyCollectionBuilder.Create<int>(System.ReadOnlySpan<int>)"
                     IL_0113:  stloc.1
                     IL_0114:  leave.s    IL_012f

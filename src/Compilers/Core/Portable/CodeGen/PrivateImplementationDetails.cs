@@ -82,11 +82,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
             new ConcurrentDictionary<string, Cci.IMethodDefinition>();
 
         // synthesized inline array types
-        private readonly ConcurrentDictionary<string, Cci.INamedTypeDefinition> _synthesizedInlineArrayTypes =
-            new ConcurrentDictionary<string, Cci.INamedTypeDefinition>();
+        private ImmutableArray<Cci.INamespaceTypeDefinition> _orderedInlineArrayTypes;
+        private readonly ConcurrentDictionary<string, Cci.INamespaceTypeDefinition> _synthesizedInlineArrayTypes = new ConcurrentDictionary<string, Cci.INamespaceTypeDefinition>();
 
         // field types for different block sizes.
-        private ImmutableArray<Cci.INestedTypeDefinition> _orderedNestedTypes;
+        private ImmutableArray<Cci.ITypeReference> _orderedProxyTypes;
         private readonly ConcurrentDictionary<(uint Size, ushort Alignment), Cci.ITypeReference> _proxyTypes = new ConcurrentDictionary<(uint Size, ushort Alignment), Cci.ITypeReference>();
 
         internal PrivateImplementationDetails(
@@ -135,12 +135,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return name;
         }
 
-        internal static string GetInlineArrayTypeName(int arrayLength)
-        {
-            Debug.Assert(arrayLength > 0);
-            return $"__InlineArray{arrayLength}";
-        }
-
         internal void Freeze()
         {
             var wasFrozen = Interlocked.Exchange(ref _frozen, 1);
@@ -164,10 +158,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
             // Sort methods.
             _orderedSynthesizedMethods = _synthesizedMethods.OrderBy(kvp => kvp.Key).Select(kvp => kvp.Value).AsImmutable();
 
-            // Sort nested types.
-            var orderedProxyTypes = _proxyTypes.OrderBy(kvp => kvp.Key.Size).ThenBy(kvp => kvp.Key.Alignment).Select(kvp => kvp.Value).OfType<ExplicitSizeStruct>();
-            var orderedInlineArrayTypes = _synthesizedInlineArrayTypes.OrderBy(kvp => kvp.Key).Select(kvp => (Cci.INestedTypeDefinition)kvp.Value);
-            _orderedNestedTypes = orderedProxyTypes.Concat(orderedInlineArrayTypes).AsImmutable();
+            // Sort top-level types.
+            _orderedInlineArrayTypes = _synthesizedInlineArrayTypes.OrderBy(kvp => kvp.Key).Select(kvp => (Cci.INamespaceTypeDefinition)kvp.Value).AsImmutable();
+
+            // Sort proxy types.
+            _orderedProxyTypes = _proxyTypes.OrderBy(kvp => kvp.Key.Size).ThenBy(kvp => kvp.Key.Alignment).Select(kvp => kvp.Value).AsImmutable();
         }
 
         private bool IsFrozen => _frozen != 0;
@@ -311,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 #nullable enable
         }
 
-        internal bool TryAddSynthesizedType(Cci.INamedTypeDefinition type)
+        internal bool TryAddSynthesizedType(Cci.INamespaceTypeDefinition type)
         {
             Debug.Assert(!IsFrozen);
             Debug.Assert(type.Name is { });
@@ -338,16 +333,22 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return method;
         }
 
-        internal Cci.INamedTypeDefinition? GetType(string name)
+        internal Cci.INamespaceTypeDefinition? GetType(string name)
         {
             _synthesizedInlineArrayTypes.TryGetValue(name, out var type);
             return type;
         }
 
+        internal IEnumerable<Cci.INamespaceTypeDefinition> GetAdditionalTopLevelTypes()
+        {
+            Debug.Assert(IsFrozen);
+            return _orderedInlineArrayTypes;
+        }
+
         public override IEnumerable<Cci.INestedTypeDefinition> GetNestedTypes(EmitContext context)
         {
             Debug.Assert(IsFrozen);
-            return _orderedNestedTypes;
+            return _orderedProxyTypes.OfType<ExplicitSizeStruct>();
         }
 
         public override string ToString() => this.Name;
