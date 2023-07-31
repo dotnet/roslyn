@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Analyzer.Utilities;
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
     /// </summary>
     public partial class PointsToAnalysis : ForwardDataFlowAnalysis<PointsToAnalysisData, PointsToAnalysisContext, PointsToAnalysisResult, PointsToBlockAnalysisResult, PointsToAbstractValue>
     {
-        internal static readonly AbstractValueDomain<PointsToAbstractValue> PointsToAbstractValueDomainInstance = PointsToAbstractValueDomain.Default;
+        internal static readonly AbstractValueDomain<PointsToAbstractValue> ValueDomainInstance = PointsToAbstractValueDomain.Default;
 
         private PointsToAnalysis(PointsToAnalysisDomain analysisDomain, PointsToDataFlowOperationVisitor operationVisitor)
             : base(analysisDomain, operationVisitor)
@@ -81,22 +82,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         {
             using var trackedEntitiesBuilder = new TrackedEntitiesBuilder(analysisContext.PointsToAnalysisKind);
             var defaultPointsToValueGenerator = new DefaultPointsToValueGenerator(trackedEntitiesBuilder);
-            var analysisDomain = new PointsToAnalysisDomain(defaultPointsToValueGenerator);
+            var isDisposable = DisposeAnalysisHelper.GetIsDisposableDelegate(analysisContext.ControlFlowGraph.OriginalOperation.SemanticModel!.Compilation);
+            var analysisDomain = new PointsToAnalysisDomain(defaultPointsToValueGenerator, isDisposable);
             var operationVisitor = new PointsToDataFlowOperationVisitor(trackedEntitiesBuilder, defaultPointsToValueGenerator, analysisDomain, analysisContext);
             var pointsToAnalysis = new PointsToAnalysis(analysisDomain, operationVisitor);
             return pointsToAnalysis.TryGetOrComputeResultCore(analysisContext, cacheResult: true);
         }
 
-        internal static bool ShouldBeTracked([NotNullWhen(returnValue: true)] ITypeSymbol typeSymbol)
-            => typeSymbol.IsReferenceTypeOrNullableValueType() ||
-               typeSymbol?.IsRefLikeType == true ||
-               typeSymbol is ITypeParameterSymbol typeParameter && !typeParameter.IsValueType;
+        internal static bool ShouldBeTracked([NotNullWhen(returnValue: true)] ITypeSymbol? typeSymbol, Func<ITypeSymbol?, bool> isDisposable)
+            => typeSymbol.CanHoldNullValue() ||
+               isDisposable(typeSymbol);
 
-        internal static bool ShouldBeTracked(AnalysisEntity analysisEntity, PointsToAnalysisKind pointsToAnalysisKind)
+        internal static bool ShouldBeTracked(AnalysisEntity analysisEntity, PointsToAnalysisKind pointsToAnalysisKind, Func<ITypeSymbol?, bool> isDisposable)
         {
             Debug.Assert(pointsToAnalysisKind != PointsToAnalysisKind.None);
 
-            if (!ShouldBeTracked(analysisEntity.Type) &&
+            if (!ShouldBeTracked(analysisEntity.Type, isDisposable) &&
                 !analysisEntity.IsLValueFlowCaptureEntity &&
                 !analysisEntity.IsThisOrMeInstance)
             {

@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 
 namespace Analyzer.Utilities.PooledObjects
@@ -74,9 +75,22 @@ namespace Analyzer.Utilities.PooledObjects
             return storage.Contains(item);
         }
 
+        public readonly bool Any_NonConcurrent()
+        {
+            if (_storage is not { } storage)
+                return false;
+
+            return storage.Count > 0;
+        }
+
         public readonly Enumerator GetEnumerator_NonConcurrent()
         {
             return new Enumerator((_storage ?? EmptyHashSet).GetEnumerator());
+        }
+
+        public readonly IEnumerable<T> AsEnumerable_NonConcurrent()
+        {
+            return (_storage ?? EmptyHashSet).AsEnumerable();
         }
 
         public readonly struct Enumerable

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
         public PointsToAbstractValue GetOrCreateDefaultValue(AnalysisEntity analysisEntity)
         {
-            if (!_defaultPointsToValueMapBuilder.TryGetValue(analysisEntity, out PointsToAbstractValue value))
+            if (!_defaultPointsToValueMapBuilder.TryGetValue(analysisEntity, out var value))
             {
                 if (analysisEntity.Symbol?.Kind == SymbolKind.Local ||
                     analysisEntity.Symbol is IParameterSymbol parameter && parameter.RefKind == RefKind.Out ||

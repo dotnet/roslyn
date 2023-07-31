@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 if (pendingBlocksNeedingAtLeastOnePass.Any())
                 {
                     var finallyRegion = block.GetInnermostRegionStartedByBlock(ControlFlowRegionKind.Finally);
-                    if (finallyRegion?.EnclosingRegion.Kind == ControlFlowRegionKind.TryAndFinally)
+                    if (finallyRegion?.EnclosingRegion!.Kind == ControlFlowRegionKind.TryAndFinally)
                     {
                         // Add all catch blocks in the try region corresponding to the finally.
                         var tryRegion = finallyRegion.EnclosingRegion.NestedRegions[0];
@@ -589,7 +589,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     switch (block.EnclosingRegion.Kind)
                     {
                         case ControlFlowRegionKind.Catch:
-                            if (block.EnclosingRegion.EnclosingRegion.Kind == ControlFlowRegionKind.TryAndCatch)
+                            if (block.EnclosingRegion!.EnclosingRegion!.Kind == ControlFlowRegionKind.TryAndCatch)
                             {
                                 return block.EnclosingRegion.EnclosingRegion;
                             }
@@ -597,7 +597,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                             break;
 
                         case ControlFlowRegionKind.Filter:
-                            if (block.EnclosingRegion.EnclosingRegion.Kind == ControlFlowRegionKind.FilterAndHandler &&
+                            if (block.EnclosingRegion!.EnclosingRegion!.Kind == ControlFlowRegionKind.FilterAndHandler &&
                                 block.EnclosingRegion.EnclosingRegion.EnclosingRegion?.Kind == ControlFlowRegionKind.TryAndCatch)
                             {
                                 return block.EnclosingRegion.EnclosingRegion.EnclosingRegion;
@@ -625,7 +625,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     }
                     else
                     {
-                        var preadjustSuccessorWithbranch = new BranchWithInfo(basicBlock.FallThroughSuccessor);
+                        var preadjustSuccessorWithbranch = new BranchWithInfo(basicBlock.FallThroughSuccessor!);
                         var adjustedSuccessorWithBranch = AdjustBranchIfFinalizing(preadjustSuccessorWithbranch);
                         yield return (successorWithBranch: adjustedSuccessorWithBranch, preadjustSuccessorWithBranch: preadjustSuccessorWithbranch);
 
@@ -800,9 +800,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 HandleBranch(block.ConditionalSuccessor);
             }
 
-            void HandleBranch(ControlFlowBranch branch)
+            void HandleBranch(ControlFlowBranch? branch)
             {
-                if (branch.IsBackEdge() && !loopRangeMap.ContainsKey(branch.Destination.Ordinal))
+                if (branch?.Destination != null && branch.IsBackEdge() && !loopRangeMap.ContainsKey(branch.Destination.Ordinal))
                 {
                     var maxSuccessorOrdinal = Math.Max(branch.Destination.GetMaxSuccessorOrdinal(), branch.Source.Ordinal);
 

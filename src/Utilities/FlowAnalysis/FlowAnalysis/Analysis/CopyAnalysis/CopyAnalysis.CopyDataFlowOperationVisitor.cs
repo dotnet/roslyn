@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
             protected override CopyAbstractValue GetCopyAbstractValue(IOperation operation) => base.GetCachedAbstractValue(operation);
 
-            protected override CopyAbstractValue GetAbstractDefaultValue(ITypeSymbol type) => CopyAbstractValue.NotApplicable;
+            protected override CopyAbstractValue GetAbstractDefaultValue(ITypeSymbol? type) => CopyAbstractValue.NotApplicable;
 
             protected override void ResetAbstractValue(AnalysisEntity analysisEntity)
                 => SetAbstractValue(analysisEntity, GetResetValue(analysisEntity));
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
             protected override CopyAbstractValue ComputeAnalysisValueForEscapedRefOrOutArgument(AnalysisEntity analysisEntity, IArgumentOperation operation, CopyAbstractValue defaultValue)
             {
-                Debug.Assert(operation.Parameter.RefKind is RefKind.Ref or RefKind.Out);
+                Debug.Assert(operation.Parameter?.RefKind is RefKind.Ref or RefKind.Out);
 
                 SetAbstractValue(analysisEntity, ValueDomain.UnknownOrMayBeValue);
                 return GetAbstractValue(analysisEntity);

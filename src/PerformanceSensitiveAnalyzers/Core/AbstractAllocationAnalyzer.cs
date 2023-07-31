@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
                 // The attribute might be applied to a property declaration, instead of its accessor declaration.
                 if (symbol is IMethodSymbol methodSymbol &&
                     (methodSymbol.MethodKind == MethodKind.PropertyGet || methodSymbol.MethodKind == MethodKind.PropertySet) &&
-                    TryGet(methodSymbol.AssociatedSymbol, out info))
+                    TryGet(methodSymbol.AssociatedSymbol!, out info))
                 {
                     return true;
                 }
@@ -88,14 +88,10 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
 
                 bool TryGet(ISymbol s, out PerformanceSensitiveInfo i)
                 {
-                    var attributes = s.GetAttributes();
-                    foreach (var attribute in attributes)
+                    if (s.GetAttribute(PerfSensitiveAttributeSymbol) is { } attribute)
                     {
-                        if (attribute.AttributeClass.Equals(PerfSensitiveAttributeSymbol))
-                        {
-                            i = CreatePerformanceSensitiveInfo(attribute);
-                            return true;
-                        }
+                        i = CreatePerformanceSensitiveInfo(attribute);
+                        return true;
                     }
 
                     i = default;
@@ -114,13 +110,13 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
                     switch (namedArgument.Key)
                     {
                         case "AllowCaptures":
-                            allowCaptures = (bool)namedArgument.Value.Value;
+                            allowCaptures = (bool)namedArgument.Value.Value!;
                             break;
                         case "AllowGenericEnumeration":
-                            allowGenericEnumeration = (bool)namedArgument.Value.Value;
+                            allowGenericEnumeration = (bool)namedArgument.Value.Value!;
                             break;
                         case "AllowLocks":
-                            allowLocks = (bool)namedArgument.Value.Value;
+                            allowLocks = (bool)namedArgument.Value.Value!;
                             break;
                     }
                 }

@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             private readonly ConcurrentDictionary<(ITypeSymbol Type, bool IsPublic), bool> _typeCanBeExtendedCache = new();
             private readonly ConcurrentDictionary<string, UnusedValue> _visitedApiList = new(StringComparer.Ordinal);
             private readonly ConcurrentDictionary<SyntaxTree, ImmutableArray<string>> _skippedNamespacesCache = new();
-            private readonly IReadOnlyDictionary<string, ApiLine> _apiMap;
+            private readonly Lazy<IReadOnlyDictionary<string, ApiLine>> _apiMap;
             private readonly AnalyzerOptions _analyzerOptions;
 
             internal Impl(Compilation compilation, ImmutableDictionary<AdditionalText, SourceText> additionalFiles, ApiData shippedData, ApiData unshippedData, bool isPublic, AnalyzerOptions analyzerOptions)
@@ -88,20 +88,27 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 _useNullability = shippedData.NullableLineNumber >= 0 || unshippedData.NullableLineNumber >= 0;
                 _unshippedData = unshippedData;
 
-                var publicApiMap = new Dictionary<string, ApiLine>(StringComparer.Ordinal);
-                foreach (ApiLine cur in shippedData.ApiList)
-                {
-                    publicApiMap.Add(cur.Text, cur);
-                }
-
-                foreach (ApiLine cur in unshippedData.ApiList)
-                {
-                    publicApiMap.Add(cur.Text, cur);
-                }
-
-                _apiMap = publicApiMap;
+                _apiMap = new Lazy<IReadOnlyDictionary<string, ApiLine>>(() => CreateApiMap(shippedData, unshippedData));
                 _isPublic = isPublic;
                 _analyzerOptions = analyzerOptions;
+
+                static IReadOnlyDictionary<string, ApiLine> CreateApiMap(ApiData shippedData, ApiData unshippedData)
+                {
+                    // Defer allocating/creating the apiMap until it's needed as there are many cases where it's never used
+                    //   and can be fairly large.
+                    var publicApiMap = new Dictionary<string, ApiLine>(shippedData.ApiList.Length + unshippedData.ApiList.Length, StringComparer.Ordinal);
+                    foreach (ApiLine cur in shippedData.ApiList)
+                    {
+                        publicApiMap.Add(cur.Text, cur);
+                    }
+
+                    foreach (ApiLine cur in unshippedData.ApiList)
+                    {
+                        publicApiMap.Add(cur.Text, cur);
+                    }
+
+                    return publicApiMap;
+                }
             }
 
             internal void OnSymbolAction(SymbolAnalysisContext symbolContext)
@@ -167,16 +174,36 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 OnSymbolActionCore(symbol, reportDiagnostic, isImplicitlyDeclaredConstructor: false, obsoleteAttribute, cancellationToken, explicitLocation: explicitLocation);
 
                 // Handle implicitly declared public constructors.
-                if (symbol.Kind == SymbolKind.NamedType)
+                if (symbol is INamedTypeSymbol namedType)
                 {
-                    var namedType = (INamedTypeSymbol)symbol;
-                    if ((namedType.TypeKind == TypeKind.Class && namedType.InstanceConstructors.Length == 1)
-                        || namedType.TypeKind == TypeKind.Struct)
+                    IMethodSymbol? implicitConstructor = null;
+                    if (namedType is { TypeKind: TypeKind.Class, InstanceConstructors.Length: 1 } or { TypeKind: TypeKind.Struct })
                     {
-                        var implicitConstructor = namedType.InstanceConstructors.FirstOrDefault(x => x.IsImplicitlyDeclared);
+                        implicitConstructor = namedType.InstanceConstructors.FirstOrDefault(x => x.IsImplicitlyDeclared);
                         if (implicitConstructor != null)
-                        {
                             OnSymbolActionCore(implicitConstructor, reportDiagnostic, isImplicitlyDeclaredConstructor: true, obsoleteAttribute, cancellationToken, explicitLocation: explicitLocation);
+                    }
+
+                    // Ensure that any implicitly declared members of a record are emitted as well.
+                    foreach (var member in namedType.GetMembers())
+                    {
+                        // Handled above.
+                        if (member.Equals(implicitConstructor))
+                            continue;
+
+                        if (IsTrackedAPI(member, cancellationToken) && member is IMethodSymbol { IsImplicitlyDeclared: true } method)
+                        {
+                            // Record property accessors (for `record X(int P)`) are considered implicitly declared.
+                            // However, we still handle the normal property symbol for that through our standard symbol
+                            // callbacks.  So we don't need to process those here.
+                            //
+                            // We do, however, need to process any implicit accessors for *implicit* properties. For
+                            // example, for the implicit `virtual Type EqualityContract { get; }` member
+                            if (method.MethodKind is not (MethodKind.PropertyGet or MethodKind.PropertySet) ||
+                                method is { MethodKind: MethodKind.PropertyGet or MethodKind.PropertySet, AssociatedSymbol.IsImplicitlyDeclared: true })
+                            {
+                                OnSymbolActionCore(member, reportDiagnostic, isImplicitlyDeclaredConstructor: false, obsoleteAttribute, cancellationToken, explicitLocation: explicitLocation);
+                            }
                         }
                     }
                 }
@@ -203,6 +230,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 _visitedApiList.TryAdd(WithObliviousMarker(publicApiName.NameWithNullability), default);
 
                 List<Location> locationsToReport = new List<Location>();
+                IReadOnlyDictionary<string, ApiLine> apiMap = _apiMap.Value;
 
                 if (explicitLocation != null)
                 {
@@ -219,25 +247,25 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 if (_useNullability)
                 {
                     symbolUsesOblivious = UsesOblivious(symbol);
-                    if (symbolUsesOblivious)
+                    if (symbolUsesOblivious && !symbol.IsImplicitlyDeclared)
                     {
                         reportObliviousApi(symbol);
                     }
 
-                    var hasApiEntryWithNullability = _apiMap.TryGetValue(publicApiName.NameWithNullability, out foundApiLine);
+                    var hasApiEntryWithNullability = apiMap.TryGetValue(publicApiName.NameWithNullability, out foundApiLine);
 
                     var hasApiEntryWithNullabilityAndOblivious =
                         !hasApiEntryWithNullability &&
                         symbolUsesOblivious &&
-                        _apiMap.TryGetValue(WithObliviousMarker(publicApiName.NameWithNullability), out foundApiLine);
+                        apiMap.TryGetValue(WithObliviousMarker(publicApiName.NameWithNullability), out foundApiLine);
 
                     if (!hasApiEntryWithNullability && !hasApiEntryWithNullabilityAndOblivious)
                     {
-                        var hasApiEntryWithoutNullability = _apiMap.TryGetValue(publicApiName.Name, out foundApiLine);
+                        var hasApiEntryWithoutNullability = apiMap.TryGetValue(publicApiName.Name, out foundApiLine);
 
                         var hasApiEntryWithoutNullabilityButOblivious =
                             !hasApiEntryWithoutNullability &&
-                            _apiMap.TryGetValue(WithObliviousMarker(publicApiName.Name), out foundApiLine);
+                            apiMap.TryGetValue(WithObliviousMarker(publicApiName.Name), out foundApiLine);
 
                         if (!hasApiEntryWithoutNullability && !hasApiEntryWithoutNullabilityButOblivious)
                         {
@@ -255,7 +283,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 }
                 else
                 {
-                    var hasApiEntryWithoutNullability = _apiMap.TryGetValue(publicApiName.Name, out foundApiLine);
+                    var hasApiEntryWithoutNullability = apiMap.TryGetValue(publicApiName.Name, out foundApiLine);
                     if (!hasApiEntryWithoutNullability)
                     {
                         reportDeclareNewApi(symbol, isImplicitlyDeclaredConstructor, publicApiName.Name);
@@ -419,13 +447,13 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 {
                     if (_useNullability)
                     {
-                        return _apiMap.TryGetValue(overloadPublicApiName.NameWithNullability, out overloadPublicApiLine) ||
-                            _apiMap.TryGetValue(WithObliviousMarker(overloadPublicApiName.NameWithNullability), out overloadPublicApiLine) ||
-                            _apiMap.TryGetValue(overloadPublicApiName.Name, out overloadPublicApiLine);
+                        return apiMap.TryGetValue(overloadPublicApiName.NameWithNullability, out overloadPublicApiLine) ||
+                            apiMap.TryGetValue(WithObliviousMarker(overloadPublicApiName.NameWithNullability), out overloadPublicApiLine) ||
+                            apiMap.TryGetValue(overloadPublicApiName.Name, out overloadPublicApiLine);
                     }
                     else
                     {
-                        return _apiMap.TryGetValue(overloadPublicApiName.Name, out overloadPublicApiLine);
+                        return apiMap.TryGetValue(overloadPublicApiName.Name, out overloadPublicApiLine);
                     }
                 }
             }
@@ -643,10 +671,9 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
                 if (typeForwardedToAttribute != null)
                 {
-                    foreach (var attribute in compilation.Assembly.GetAttributes())
+                    foreach (var attribute in compilation.Assembly.GetAttributes(typeForwardedToAttribute))
                     {
-                        if (attribute.AttributeClass.Equals(typeForwardedToAttribute) &&
-                            attribute.AttributeConstructor.Parameters.Length == 1 &&
+                        if (attribute.AttributeConstructor.Parameters.Length == 1 &&
                             attribute.ConstructorArguments.Length == 1 &&
                             attribute.ConstructorArguments[0].Value is INamedTypeSymbol forwardedType)
                         {
@@ -689,7 +716,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             /// </summary>
             internal void ReportDeletedApiList(Action<Diagnostic> reportDiagnostic)
             {
-                foreach (KeyValuePair<string, ApiLine> pair in _apiMap)
+                IReadOnlyDictionary<string, ApiLine> apiMap = _apiMap.Value;
+                foreach (KeyValuePair<string, ApiLine> pair in apiMap)
                 {
                     if (_visitedApiList.ContainsKey(pair.Key))
                     {
@@ -724,9 +752,18 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
             private bool IsTrackedAPI(ISymbol symbol, CancellationToken cancellationToken)
             {
-                if (symbol is IMethodSymbol methodSymbol && s_ignorableMethodKinds.Contains(methodSymbol.MethodKind))
+                if (symbol is IMethodSymbol methodSymbol)
                 {
-                    return false;
+                    if (s_ignorableMethodKinds.Contains(methodSymbol.MethodKind))
+                        return false;
+
+                    if (methodSymbol is { MethodKind: MethodKind.Constructor, ContainingType.TypeKind: TypeKind.Enum })
+                        return false;
+
+                    // include a delegate's 'Invoke' method so we encode its signature (it would be a breaking change to
+                    // change that). All other delegate methods can be ignored though.
+                    if (methodSymbol is { ContainingType.TypeKind: TypeKind.Delegate, MethodKind: not MethodKind.DelegateInvoke })
+                        return false;
                 }
 
                 // We don't consider properties to be public APIs. Instead, property getters and setters

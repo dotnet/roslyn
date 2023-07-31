@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
                 {
                     // Up to net45 the System.Array.Empty<T> singleton didn't existed so an empty params array was still causing some memory allocation.
                     if (argument.IsImplicit &&
-                        (!compilationHasSystemArrayEmpty || (argument.Value as IArrayCreationOperation)?.Initializer.ElementValues.IsEmpty != true))
+                        (!compilationHasSystemArrayEmpty || (argument.Value as IArrayCreationOperation)?.Initializer?.ElementValues.IsEmpty != true))
                     {
                         reportDiagnostic(node.CreateDiagnostic(ParamsParameterRule));
                     }

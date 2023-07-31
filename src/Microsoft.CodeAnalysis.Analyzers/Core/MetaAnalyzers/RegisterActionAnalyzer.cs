@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     }
                     else
                     {
-                        ITypeParameterSymbol typeParam = method.TypeParameters.FirstOrDefault(t => t.Name == DiagnosticWellKnownNames.TLanguageKindEnumName);
+                        ITypeParameterSymbol? typeParam = method.TypeParameters.FirstOrDefault(t => t.Name == DiagnosticWellKnownNames.TLanguageKindEnumName);
                         if (typeParam != null)
                         {
                             int index = method.TypeParameters.IndexOf(typeParam);

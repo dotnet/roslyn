@@ -32,12 +32,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         (methodName, arguments) =>
                             methodName == "Append" &&
                             !arguments.IsEmpty &&
-                            (arguments[0].Parameter.Type.SpecialType == SpecialType.System_String ||
-                             arguments[0].Parameter.Type.SpecialType == SpecialType.System_Char ||
-                             (arguments[0].Parameter.Type is IArrayTypeSymbol arrayType &&
+                            arguments[0].Parameter is { } firstParameter &&
+                            (firstParameter.Type.SpecialType == SpecialType.System_String ||
+                             firstParameter.Type.SpecialType == SpecialType.System_Char ||
+                             (firstParameter.Type is IArrayTypeSymbol arrayType &&
                               arrayType.Rank == 1 &&
                               arrayType.ElementType.SpecialType == SpecialType.System_Char) ||
-                             (arguments[0].Parameter.Type is IPointerTypeSymbol pointerType &&
+                             (firstParameter.Type is IPointerTypeSymbol pointerType &&
                               pointerType.PointedAtType.SpecialType == SpecialType.System_Char)),
                         new (string, string)[]{
                             ("value", TaintedTargetValue.This),
@@ -80,9 +81,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         (methodName, arguments) =>
                             methodName == "Insert" &&
                             arguments.Length > 1 &&
-                            (arguments[1].Parameter.Type.SpecialType == SpecialType.System_String ||
-                             arguments[1].Parameter.Type.SpecialType == SpecialType.System_Char ||
-                             (arguments[1].Parameter.Type is IArrayTypeSymbol arrayType &&
+                            arguments[1].Parameter is { } secondParameter &&
+                            (secondParameter.Type.SpecialType == SpecialType.System_String ||
+                             secondParameter.Type.SpecialType == SpecialType.System_Char ||
+                             (secondParameter.Type is IArrayTypeSymbol arrayType &&
                               arrayType.Rank == 1 &&
                               arrayType.ElementType.SpecialType == SpecialType.System_Char)),
                         new (string, string)[]{
