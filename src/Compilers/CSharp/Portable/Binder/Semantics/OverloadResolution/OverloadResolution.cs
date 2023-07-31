@@ -1480,7 +1480,7 @@ outerDefault:
                 }
                 else
                 {
-                    var better = BetterFunctionMember(results[currentBestIndex], results[index], arguments.Arguments, ref useSiteInfo);
+                    var better = BetterFunctionMember(results[currentBestIndex], results[index], arguments, ref useSiteInfo);
                     if (better == BetterResult.Right)
                     {
                         // The current best is worse
@@ -1507,7 +1507,7 @@ outerDefault:
                     return -1;
                 }
 
-                var better = BetterFunctionMember(results[currentBestIndex], results[index], arguments.Arguments, ref useSiteInfo);
+                var better = BetterFunctionMember(results[currentBestIndex], results[index], arguments, ref useSiteInfo);
                 if (better != BetterResult.Left)
                 {
                     // The current best is not better
@@ -1590,7 +1590,7 @@ outerDefault:
                         continue;
                     }
 
-                    var better = BetterFunctionMember(c1Result, c2Result, arguments.Arguments, ref useSiteInfo);
+                    var better = BetterFunctionMember(c1Result, c2Result, arguments, ref useSiteInfo);
                     if (better == BetterResult.Left)
                     {
                         worse[c2Idx] = worseThanSomething;
@@ -1630,7 +1630,7 @@ outerDefault:
                     if (worse[i] == worseThanSomething)
                     {
                         // Mark those candidates, that are worse than the single notBest candidate, as Worst in order to improve error reporting.
-                        results[i] = BetterResult.Left == BetterFunctionMember(results[notBestIdx], results[i], arguments.Arguments, ref useSiteInfo)
+                        results[i] = BetterResult.Left == BetterFunctionMember(results[notBestIdx], results[i], arguments, ref useSiteInfo)
                             ? results[i].Worst() : results[i].Worse();
                     }
                     else
@@ -1694,7 +1694,7 @@ outerDefault:
         private BetterResult BetterFunctionMember<TMember>(
             MemberResolutionResult<TMember> m1,
             MemberResolutionResult<TMember> m2,
-            ArrayBuilder<BoundExpression> arguments,
+            AnalyzedArguments arguments,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             where TMember : Symbol
         {
@@ -1733,11 +1733,13 @@ outerDefault:
         private BetterResult BetterFunctionMember<TMember>(
             MemberResolutionResult<TMember> m1,
             MemberResolutionResult<TMember> m2,
-            ArrayBuilder<BoundExpression> arguments,
+            AnalyzedArguments analyzedArguments,
             bool considerRefKinds,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             where TMember : Symbol
         {
+            var arguments = analyzedArguments.Arguments;
+
             Debug.Assert(m1.Result.IsValid);
             Debug.Assert(m2.Result.IsValid);
             Debug.Assert(arguments != null);
@@ -1992,7 +1994,7 @@ outerDefault:
                     }
                 }
 
-                return PreferValOverInOrRefInterpolatedHandlerParameters(arguments, m1, m1LeastOverriddenParameters, m2, m2LeastOverriddenParameters);
+                return PreferValOverInOrRefInterpolatedHandlerParameters(analyzedArguments, m1, m1LeastOverriddenParameters, m2, m2LeastOverriddenParameters);
             }
 
             // If MP is a non-generic method and MQ is a generic method, then MP is better than MQ.
@@ -2133,7 +2135,7 @@ outerDefault:
             }
 
             // Otherwise, prefer methods with 'val' parameters over 'in' parameters and over 'ref' parameters when the argument is an interpolated string handler.
-            return PreferValOverInOrRefInterpolatedHandlerParameters(arguments, m1, m1LeastOverriddenParameters, m2, m2LeastOverriddenParameters);
+            return PreferValOverInOrRefInterpolatedHandlerParameters(analyzedArguments, m1, m1LeastOverriddenParameters, m2, m2LeastOverriddenParameters);
         }
 
         /// <summary>
@@ -2160,7 +2162,7 @@ outerDefault:
         }
 
         private static BetterResult PreferValOverInOrRefInterpolatedHandlerParameters<TMember>(
-            ArrayBuilder<BoundExpression> arguments,
+            AnalyzedArguments arguments,
             MemberResolutionResult<TMember> m1,
             ImmutableArray<ParameterSymbol> parameters1,
             MemberResolutionResult<TMember> m2,
@@ -2169,9 +2171,9 @@ outerDefault:
         {
             BetterResult valOverInOrRefInterpolatedHandlerPreference = BetterResult.Neither;
 
-            for (int i = 0; i < arguments.Count; ++i)
+            for (int i = 0; i < arguments.Arguments.Count; ++i)
             {
-                if (arguments[i].Kind != BoundKind.ArgListOperator)
+                if (arguments.Argument(i).Kind != BoundKind.ArgListOperator)
                 {
                     var p1 = GetParameter(i, m1.Result, parameters1);
                     var p2 = GetParameter(i, m2.Result, parameters2);
@@ -2184,10 +2186,10 @@ outerDefault:
                         var c2 = m2.Result.ConversionForArg(i);
 
                         isInterpolatedStringHandlerConversion = c1.IsInterpolatedStringHandler && c2.IsInterpolatedStringHandler;
-                        Debug.Assert(!isInterpolatedStringHandlerConversion || arguments[i] is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true });
+                        Debug.Assert(!isInterpolatedStringHandlerConversion || arguments.Argument(i) is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true });
                     }
 
-                    if (p1.RefKind == RefKind.None && isAcceptableRefMismatch(p2.RefKind, isInterpolatedStringHandlerConversion))
+                    if (isLeftBetter(leftRefKind: p1.RefKind, rightRefKind: p2.RefKind, argumentRefKind: arguments.RefKind(i), isInterpolatedStringHandlerConversion))
                     {
                         if (valOverInOrRefInterpolatedHandlerPreference == BetterResult.Right)
                         {
@@ -2198,7 +2200,7 @@ outerDefault:
                             valOverInOrRefInterpolatedHandlerPreference = BetterResult.Left;
                         }
                     }
-                    else if (p2.RefKind == RefKind.None && isAcceptableRefMismatch(p1.RefKind, isInterpolatedStringHandlerConversion))
+                    else if (isLeftBetter(leftRefKind: p2.RefKind, rightRefKind: p1.RefKind, argumentRefKind: arguments.RefKind(i), isInterpolatedStringHandlerConversion))
                     {
                         if (valOverInOrRefInterpolatedHandlerPreference == BetterResult.Left)
                         {
@@ -2214,13 +2216,86 @@ outerDefault:
 
             return valOverInOrRefInterpolatedHandlerPreference;
 
-            static bool isAcceptableRefMismatch(RefKind refKind, bool isInterpolatedStringHandlerConversion)
-                => refKind switch
+            static bool isLeftBetter(RefKind leftRefKind, RefKind rightRefKind, RefKind argumentRefKind, bool isInterpolatedStringHandlerConversion)
+            {
+                if (leftRefKind == rightRefKind)
                 {
-                    RefKind.In or RefKind.RefReadOnlyParameter => true,
-                    RefKind.Ref when isInterpolatedStringHandlerConversion => true,
-                    _ => false
-                };
+                    return false;
+                }
+
+                // Prefer by-value parameter over `in`/`ref` parameter
+                // (rules existing before more mismatches become allowed with introduction of `ref readonly` parameters).
+                if (leftRefKind == RefKind.None)
+                {
+                    Debug.Assert(argumentRefKind == RefKind.None);
+
+                    if (rightRefKind == RefKind.Ref && isInterpolatedStringHandlerConversion)
+                    {
+                        return true;
+                    }
+
+                    if (rightRefKind is RefKind.In)
+                    {
+                        return true;
+                    }
+                }
+
+                return IsLeftBetterParameterRefKindMatch(leftRefKind, rightRefKind, argumentRefKind, isMethodGroupConversion: ThreeState.Unknown);
+            }
+        }
+
+        internal static bool IsLeftBetterParameterRefKindMatch(RefKind leftRefKind, RefKind rightRefKind, RefKind argumentRefKind, ThreeState isMethodGroupConversion)
+        {
+            if (isMethodGroupConversion == ThreeState.True)
+            {
+                return leftRefKind == argumentRefKind && rightRefKind != argumentRefKind;
+            }
+
+            // Can happen during method conversion where the argument is actually the target delegate's parameter.
+            if (isMethodGroupConversion != ThreeState.False && argumentRefKind is RefKind.RefReadOnlyParameter)
+            {
+                // Prefer matching `ref readonly` over mismatched `ref`/`in`.
+                return leftRefKind is RefKind.RefReadOnlyParameter && rightRefKind is RefKind.Ref or RefKind.In;
+            }
+
+            // Prefer `ref readonly` parameter if argument is passed by `ref`/`in` and the other parameter is `in` (which can be passed by value).
+            if (argumentRefKind is RefKind.Ref or RefKind.In && leftRefKind is RefKind.RefReadOnlyParameter && rightRefKind is RefKind.In)
+            {
+                return true;
+            }
+
+            // Prefer `ref` parameter if argument is passed by `ref` and the other parameter is `ref readonly` or `in` (which can be passed by `in`).
+            if (argumentRefKind is RefKind.Ref && leftRefKind is RefKind.Ref && rightRefKind is RefKind.RefReadOnlyParameter or RefKind.In)
+            {
+                return true;
+            }
+
+            // Prefer by-value or `in` parameter if argument is passed by value and the other parameter is `ref readonly` (which can be passed `in`).
+            if (argumentRefKind is RefKind.None && leftRefKind is RefKind.None or RefKind.In && rightRefKind is RefKind.RefReadOnlyParameter)
+            {
+                return true;
+            }
+
+            // Prefer `in` parameter if argument is passed by `in` and the other parameter is `ref` (which can be passed by `ref`).
+            if (argumentRefKind is RefKind.In && leftRefKind is RefKind.In && rightRefKind is RefKind.Ref)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        internal static bool IsPossiblyWorseRefKindMatch(RefKind parameterRefKind, RefKind argumentRefKind, bool isMethodGroupConversion)
+        {
+            if (isMethodGroupConversion)
+            {
+                return parameterRefKind != argumentRefKind;
+            }
+
+            return (parameterRefKind != RefKind.None && IsLeftBetterParameterRefKindMatch(RefKind.None, parameterRefKind, argumentRefKind, ThreeState.False)) ||
+                (parameterRefKind != RefKind.Ref && IsLeftBetterParameterRefKindMatch(RefKind.Ref, parameterRefKind, argumentRefKind, ThreeState.False)) ||
+                (parameterRefKind != RefKind.In && IsLeftBetterParameterRefKindMatch(RefKind.In, parameterRefKind, argumentRefKind, ThreeState.False)) ||
+                (parameterRefKind != RefKind.RefReadOnlyParameter && IsLeftBetterParameterRefKindMatch(RefKind.RefReadOnlyParameter, parameterRefKind, argumentRefKind, ThreeState.False));
         }
 #nullable disable
 
