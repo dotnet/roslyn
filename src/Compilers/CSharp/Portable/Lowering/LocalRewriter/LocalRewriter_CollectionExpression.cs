@@ -239,15 +239,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Construct(ImmutableArray.Create(TypeWithAnnotations.Create(inlineArrayType), elementType));
 
             // Create an inline array and assign to a local.
-            // var tmp = new __InlineArrayN<T>();
+            // var tmp = new __InlineArrayN<ElementType>();
             BoundAssignmentOperator assignmentToTemp;
             BoundLocal inlineArrayLocal = _factory.StoreToTemp(new BoundDefaultExpression(syntax, inlineArrayType), out assignmentToTemp, isKnownToReferToTempIfReferenceType: true);
             sideEffects.Add(assignmentToTemp);
             locals.Add(inlineArrayLocal.LocalSymbol);
 
             // Populate the inline array.
-            // InlineArrayElementRef<__InlineArrayN<T>, T>(ref tmp, 0) = element0;
-            // InlineArrayElementRef<__InlineArrayN<T>, T>(ref tmp, 1) = element1;
+            // InlineArrayElementRef<__InlineArrayN<ElementType>, ElementType>(ref tmp, 0) = element0;
+            // InlineArrayElementRef<__InlineArrayN<ElementType>, ElementType>(ref tmp, 1) = element1;
             // ...
             for (int i = 0; i < arrayLength; i++)
             {
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Get a span to the inline array.
-            // ... InlineArrayAsReadOnlySpan<__InlineArrayN<T>, T>(in tmp, N)
+            // ... InlineArrayAsReadOnlySpan<__InlineArrayN<ElementType>, ElementType>(in tmp, N)
             var inlineArrayAsReadOnlySpan = _factory.ModuleBuilderOpt.EnsureInlineArrayAsReadOnlySpanExists(syntax, _factory.WellKnownType(WellKnownType.System_ReadOnlySpan_T), intType, _diagnostics.DiagnosticBag).
                 Construct(ImmutableArray.Create(TypeWithAnnotations.Create(inlineArrayType), elementType));
             return _factory.Call(
