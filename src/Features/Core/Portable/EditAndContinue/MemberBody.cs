@@ -11,15 +11,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 internal abstract class MemberBody : DeclarationBody
 {
     /// <summary>
-    /// A span that contains all possible breakpoint spans of <see cref="MemberBody"/>
-    /// and no breakpoint spans that do not belong to the <see cref="MemberBody"/>.
+    /// A minimal span that contains all possible breakpoint spans of <see cref="MemberBody"/>.
     /// </summary>
-    public abstract ActiveStatementEnvelope Envelope { get; }
+    public abstract TextSpan Envelope { get; }
 
     /// <summary>
-    /// <see cref="SyntaxNode"/> that includes all active tokens (<see cref="GetActiveTokens"/>) and its span covers the entire <see cref="Envelope"/>.
+    /// True if <paramref name="span"/> belongs to the <see cref="MemberBody"/>.
     /// </summary>
-    public abstract SyntaxNode EncompassingAncestor { get; }
+    public bool ContainsActiveStatementSpan(TextSpan span)
+        => Envelope.Contains(span) && !IsExcludedActiveStatementSpanWithinEnvelope(span);
+
+    /// <summary>
+    /// True for <paramref name="span"/> within <see cref="Envelope"/> does not belong to the body.
+    /// </summary>
+    public virtual bool IsExcludedActiveStatementSpanWithinEnvelope(TextSpan span)
+        => false;
 
     /// <summary>
     /// All tokens of the body that may be part of an active statement.
@@ -27,7 +33,7 @@ internal abstract class MemberBody : DeclarationBody
     public abstract IEnumerable<SyntaxToken>? GetActiveTokens();
 
     /// <summary>
-    /// Finds am active statement at given span within this body and the corresponding partner statement in 
+    /// Finds an active statement at given span within this body and the corresponding partner statement in 
     /// <paramref name="partnerDeclarationBody"/>, if specified. Only called with <paramref name="partnerDeclarationBody"/> when
     /// the body does not have any non-trivial changes and thus the correpsonding active statement is always found in the partner body.
     /// </summary>
@@ -36,9 +42,23 @@ internal abstract class MemberBody : DeclarationBody
     public SyntaxNode FindStatement(TextSpan span, out int statementPart)
         => FindStatementAndPartner(span, partnerDeclarationBody: null, out _, out statementPart);
 
-    /// <summary>
-    /// Analyzes data flow in the member body represented by the specified node and returns all captured variables and parameters (including "this").
-    /// If the body is a field/property initializer analyzes the initializer expression only.
-    /// </summary>
-    public abstract ImmutableArray<ISymbol> GetCapturedVariables(SemanticModel model);
+    public IEnumerable<int> GetOverlappingActiveStatements(ImmutableArray<UnmappedActiveStatement> statements)
+    {
+        var envelope = Envelope;
+
+        var range = ActiveStatementsMap.GetSpansStartingInSpan(
+            envelope.Start,
+            envelope.End,
+            statements,
+            startPositionComparer: (x, y) => x.UnmappedSpan.Start.CompareTo(y));
+
+        for (var i = range.Start.Value; i < range.End.Value; i++)
+        {
+            var span = statements[i].UnmappedSpan;
+            if (envelope.Contains(span) && !IsExcludedActiveStatementSpanWithinEnvelope(span))
+            {
+                yield return i;
+            }
+        }
+    }
 }

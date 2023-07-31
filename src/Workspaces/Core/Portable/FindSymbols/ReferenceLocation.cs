@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     /// Information about a reference to a symbol.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    public readonly struct ReferenceLocation : IComparable<ReferenceLocation>, IEquatable<ReferenceLocation>
+    public readonly record struct ReferenceLocation : IComparable<ReferenceLocation>
     {
         /// <summary>
         /// The document that the reference was found in.
@@ -109,18 +109,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// actual "Goo()" method existed.
         /// </summary>
         public bool IsCandidateLocation => this.CandidateReason != CandidateReason.None;
-
-        public static bool operator ==(ReferenceLocation left, ReferenceLocation right)
-            => left.Equals(right);
-
-        public static bool operator !=(ReferenceLocation left, ReferenceLocation right)
-            => !(left == right);
-
-        public override bool Equals(object? obj)
-        {
-            return obj is ReferenceLocation location &&
-                Equals(location);
-        }
 
         public bool Equals(ReferenceLocation other)
         {

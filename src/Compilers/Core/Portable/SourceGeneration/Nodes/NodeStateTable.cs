@@ -154,6 +154,20 @@ namespace Microsoft.CodeAnalysis
             return builder.ToImmutableAndFree();
         }
 
+        public string GetPackedStates()
+        {
+            var pooled = PooledStringBuilder.GetInstance();
+            foreach (var state in _states)
+            {
+                for (int i = 0; i < state.Count; i++)
+                {
+                    pooled.Builder.Append(state.GetState(i).ToString()[0]);
+                }
+                pooled.Builder.Append(',');
+            }
+            return pooled.ToStringAndFree();
+        }
+
         /// <remarks>
         /// The builder is <b>not</b> threadsafe.
         /// </remarks>
@@ -698,19 +712,7 @@ namespace Microsoft.CodeAnalysis
                     Debug.Assert(_items.Count == _requestedCapacity);
                     Debug.Assert(_states == null || _states.Count == _requestedCapacity);
 
-                    OneOrMany<T> items;
-                    if (_items.Count == 1)
-                    {
-                        var item = _items[0];
-                        _items.Free();
-                        items = OneOrMany.Create(item);
-                    }
-                    else
-                    {
-                        items = OneOrMany.Create(_items.ToImmutableAndFree());
-                    }
-
-                    return new TableEntry(items, _states?.ToImmutableAndFree() ?? GetSingleArray(_currentState.Value), anyRemoved: _anyRemoved);
+                    return new TableEntry(_items.ToOneOrManyAndFree(), _states?.ToImmutableAndFree() ?? GetSingleArray(_currentState.Value), anyRemoved: _anyRemoved);
                 }
             }
         }

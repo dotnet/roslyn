@@ -582,6 +582,7 @@ namespace Roslyn.Test.Utilities
                 await server.ExecuteRequestAsync<LSP.InitializeParams, LSP.InitializeResult>(LSP.Methods.InitializeName, new LSP.InitializeParams
                 {
                     Capabilities = initializationOptions.ClientCapabilities,
+                    Locale = initializationOptions.Locale,
                 }, CancellationToken.None);
 
                 if (initializationOptions.CallInitialized)

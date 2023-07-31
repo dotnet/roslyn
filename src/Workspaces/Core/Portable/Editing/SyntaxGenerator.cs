@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Editing
             SyntaxNode? initializer = null,
             RefKind refKind = RefKind.None)
         {
-            return ParameterDeclaration(name, type, initializer, refKind, isExtension: false, isParams: false);
+            return ParameterDeclaration(name, type, initializer, refKind, isExtension: false, isParams: false, isScoped: false);
         }
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
@@ -326,7 +326,8 @@ namespace Microsoft.CodeAnalysis.Editing
             SyntaxNode? initializer,
             RefKind refKind,
             bool isExtension,
-            bool isParams);
+            bool isParams,
+            bool isScoped);
 
         /// <summary>
         /// Creates a parameter declaration matching an existing parameter symbol.
@@ -340,7 +341,9 @@ namespace Microsoft.CodeAnalysis.Editing
                 symbol.HasExplicitDefaultValue ? GenerateExpression(symbol.Type, symbol.ExplicitDefaultValue, canUseFieldReference: true) : null,
                 symbol.RefKind,
                 isExtension: symbol is { Ordinal: 0, ContainingSymbol: IMethodSymbol { IsExtensionMethod: true } },
-                symbol.IsParams);
+                symbol.IsParams,
+                isScoped: symbol is { RefKind: RefKind.Ref or RefKind.In or RefKind.RefReadOnlyParameter, ScopedKind: ScopedKind.ScopedRef }
+                    or { RefKind: RefKind.None, Type.IsRefLikeType: true, ScopedKind: ScopedKind.ScopedValue });
         }
 
         private protected abstract SyntaxNode TypeParameter(ITypeParameterSymbol typeParameter);
@@ -393,7 +396,10 @@ namespace Microsoft.CodeAnalysis.Editing
             if (setMethodSymbol is not null)
             {
                 var setMethodAccessibility = setMethodSymbol.DeclaredAccessibility;
-                setAccessor = SetAccessorDeclaration(setMethodAccessibility < propertyAccessibility ? setMethodAccessibility : Accessibility.NotApplicable, setAccessorStatements);
+                setAccessor = SetAccessorDeclaration(
+                    setMethodAccessibility < propertyAccessibility ? setMethodAccessibility : Accessibility.NotApplicable,
+                    isInitOnly: setMethodSymbol.IsInitOnly,
+                    setAccessorStatements);
             }
 
             var propDecl = PropertyDeclaration(
@@ -430,9 +436,13 @@ namespace Microsoft.CodeAnalysis.Editing
             Accessibility accessibility = Accessibility.NotApplicable,
             IEnumerable<SyntaxNode>? statements = null);
 
-        public abstract SyntaxNode SetAccessorDeclaration(
+        public SyntaxNode SetAccessorDeclaration(
             Accessibility accessibility = Accessibility.NotApplicable,
-            IEnumerable<SyntaxNode>? statements = null);
+            IEnumerable<SyntaxNode>? statements = null)
+            => SetAccessorDeclaration(accessibility, isInitOnly: false, statements);
+
+        private protected abstract SyntaxNode SetAccessorDeclaration(
+            Accessibility accessibility, bool isInitOnly, IEnumerable<SyntaxNode>? statements);
 
         /// <summary>
         /// Creates an indexer declaration.
@@ -728,14 +738,7 @@ namespace Microsoft.CodeAnalysis.Editing
 
                 case SymbolKind.Property:
                     var property = (IPropertySymbol)symbol;
-                    if (property.IsIndexer)
-                    {
-                        return IndexerDeclaration(property);
-                    }
-                    else
-                    {
-                        return PropertyDeclaration(property);
-                    }
+                    return property.IsIndexer ? IndexerDeclaration(property) : PropertyDeclaration(property);
 
                 case SymbolKind.Event:
                     var ev = (IEventSymbol)symbol;
@@ -883,6 +886,7 @@ namespace Microsoft.CodeAnalysis.Editing
                             kinds: (tp.HasConstructorConstraint ? SpecialTypeConstraintKind.Constructor : SpecialTypeConstraintKind.None)
                                    | (tp.HasReferenceTypeConstraint ? SpecialTypeConstraintKind.ReferenceType : SpecialTypeConstraintKind.None)
                                    | (tp.HasValueTypeConstraint ? SpecialTypeConstraintKind.ValueType : SpecialTypeConstraintKind.None),
+                            isUnamangedType: tp.HasUnmanagedTypeConstraint,
                             types: tp.ConstraintTypes.Select(TypeExpression));
                     }
                 }
@@ -914,7 +918,13 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Adds a type constraint to a type parameter of a declaration.
         /// </summary>
-        public abstract SyntaxNode WithTypeConstraint(SyntaxNode declaration, string typeParameterName, SpecialTypeConstraintKind kinds, IEnumerable<SyntaxNode>? types = null);
+#pragma warning disable RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
+        public SyntaxNode WithTypeConstraint(SyntaxNode declaration, string typeParameterName, SpecialTypeConstraintKind kinds, IEnumerable<SyntaxNode>? types = null)
+            => WithTypeConstraint(declaration, typeParameterName, kinds, isUnamangedType: false, types);
+#pragma warning restore RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
+
+        private protected abstract SyntaxNode WithTypeConstraint(
+            SyntaxNode declaration, string typeParameterName, SpecialTypeConstraintKind kinds, bool isUnamangedType, IEnumerable<SyntaxNode>? types);
 
         private protected abstract SyntaxNode WithDefaultConstraint(SyntaxNode declaration, string typeParameterName);
 

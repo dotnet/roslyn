@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             DiagnosticAnalyzer analyzer = new AnalyzerWithDisabledRules();
             var analyzers = ImmutableArray.Create(analyzer);
             var analyzerOptions = new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty);
-            var compWithAnalyzers = new CompilationWithAnalyzers(compilation, analyzers, analyzerOptions, CancellationToken.None);
+            var compWithAnalyzers = new CompilationWithAnalyzers(compilation, analyzers, analyzerOptions);
 
             var analysisResult = compWithAnalyzers.GetAnalysisResultAsync(CancellationToken.None).Result;
             Assert.Empty(analysisResult.CompilationDiagnostics);

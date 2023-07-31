@@ -898,7 +898,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 initializer As SyntaxNode,
                 refKind As RefKind,
                 isExtension As Boolean,
-                isParams As Boolean) As SyntaxNode
+                isParams As Boolean,
+                isScoped As Boolean) As SyntaxNode
 
             Dim modifiers = GetParameterModifiers(refKind, initializer)
             If isParams Then
@@ -934,7 +935,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 GetStatementList(statements))
         End Function
 
-        Public Overrides Function SetAccessorDeclaration(Optional accessibility As Accessibility = Accessibility.NotApplicable, Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+        Private Protected Overrides Function SetAccessorDeclaration(accessibility As Accessibility, isInitOnly As Boolean, statements As IEnumerable(Of SyntaxNode)) As SyntaxNode
             Return SyntaxFactory.SetAccessorBlock(
                 SyntaxFactory.SetAccessorStatement().WithModifiers(GetModifierList(accessibility, DeclarationModifiers.None, declaration:=Nothing, DeclarationKind.Property)),
                 GetStatementList(statements))
@@ -2869,7 +2870,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 SyntaxFactory.IdentifierName(method.Name))
         End Function
 
-        Public Overrides Function WithTypeConstraint(declaration As SyntaxNode, typeParameterName As String, kinds As SpecialTypeConstraintKind, Optional types As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+        Private Protected Overrides Function WithTypeConstraint(
+                declaration As SyntaxNode,
+                typeParameterName As String,
+                kinds As SpecialTypeConstraintKind,
+                isUnmanagedType As Boolean,
+                types As IEnumerable(Of SyntaxNode)) As SyntaxNode
             Dim constraints = SyntaxFactory.SeparatedList(Of ConstraintSyntax)
 
             If types IsNot Nothing Then

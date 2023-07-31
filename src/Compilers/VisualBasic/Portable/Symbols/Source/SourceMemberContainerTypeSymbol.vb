@@ -1802,9 +1802,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             Dim candidateLocation As Location = candidate.NonMergedLocation
                             Debug.Assert(candidateLocation IsNot Nothing)
 
-                            If partialMethods.Contains(candidate) Then
+                            If partialMethods.Remove(candidate) Then
                                 '  partial-partial conflict
-                                partialMethods.Remove(candidate)
 
                                 '  the 'best' partial method is the one with the 'smallest' 
                                 ' location, we should report errors on the other

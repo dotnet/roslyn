@@ -798,6 +798,34 @@ class Program
 }", "System.Int32");
         }
 
+        [Fact]
+        public async Task TestRefReadonlyParameter_Ref()
+        {
+            await TestAsync(
+                """
+                class C
+                {
+                    void M(r[||]ef readonly int x)
+                    {
+                    }
+                }
+                """, "ref_CSharpKeyword");
+        }
+
+        [Fact]
+        public async Task TestRefReadonlyParameter_ReadOnly()
+        {
+            await TestAsync(
+                """
+                class C
+                {
+                    void M(ref read[||]only int x)
+                    {
+                    }
+                }
+                """, "readonly_CSharpKeyword");
+        }
+
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862420")]
         public async Task TestArgumentType()
         {

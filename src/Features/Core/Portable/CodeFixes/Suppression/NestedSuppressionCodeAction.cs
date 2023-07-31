@@ -13,14 +13,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         protected NestedSuppressionCodeAction(string title)
             => Title = title;
 
-        // Put suppressions at the end of everything.
-        internal override CodeActionPriority Priority => CodeActionPriority.Lowest;
-
         public sealed override string Title { get; }
 
         protected abstract string DiagnosticIdForEquivalenceKey { get; }
 
         public override string EquivalenceKey => Title + DiagnosticIdForEquivalenceKey;
+
+        // Put suppressions at the end of everything.
+        protected sealed override CodeActionPriority ComputePriority()
+            => CodeActionPriority.Lowest;
 
         public static bool IsEquivalenceKeyForGlobalSuppression(string equivalenceKey)
             => equivalenceKey.StartsWith(FeaturesResources.in_Suppression_File);

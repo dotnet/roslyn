@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
@@ -18,6 +19,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
 
     public class ConvertNamespaceRefactoringTests
     {
+        public static IEnumerable<object[]> EndOfDocumentSequences
+        {
+            get
+            {
+                yield return new object[] { "" };
+                yield return new object[] { "\r\n" };
+            }
+        }
+
         #region Convert To File Scoped
 
         [Fact]
@@ -597,18 +607,18 @@ public class C
 
         #region Convert To Block Scoped
 
-        [Fact]
-        public async Task TestConvertToBlockScopedInCSharp9()
+        [Theory]
+        [MemberData(nameof(EndOfDocumentSequences))]
+        public async Task TestConvertToBlockScopedInCSharp9(string endOfDocumentSequence)
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-{|CS8773:namespace|} $$N;
-",
-                FixedCode = @"
+                TestCode = $@"
+{{|CS8773:namespace|}} $$N;{endOfDocumentSequence}",
+                FixedCode = $@"
 namespace $$N
-{
-}",
+{{
+}}{endOfDocumentSequence}",
                 LanguageVersion = LanguageVersion.CSharp9,
                 Options =
                 {
@@ -646,7 +656,8 @@ namespace $$N;
                 FixedCode = @"
 namespace $$N
 {
-}",
+}
+",
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -666,7 +677,8 @@ $$namespace N;
                 FixedCode = @"
 namespace N
 {
-}",
+}
+",
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -749,7 +761,8 @@ namespace $$N
     namespace N2
     {
     }
-}",
+}
+",
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -822,7 +835,8 @@ namespace $${|CS8956:N|};
 
 namespace $$N
 {
-}",
+}
+",
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -845,7 +859,8 @@ int {|CS0116:i|} = 0;
 namespace $$N
 {
     int {|CS0116:i|} = 0;
-}",
+}
+",
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -869,7 +884,8 @@ using System;
 
 namespace $$N
 {
-}",
+}
+",
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -892,7 +908,8 @@ using System;
 namespace $$N
 {
     using System;
-}",
+}
+",
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -919,7 +936,8 @@ namespace $$N
     class C
     {
     }
-}",
+}
+",
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -948,7 +966,8 @@ namespace $$N
     class C
     {
     }
-}",
+}
+",
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -973,7 +992,8 @@ namespace N
 {
     /// <summary/>
     class C
-    {}{|CS1513:|}",
+    {
+}{|CS1513:|}",
                 LanguageVersion = LanguageVersion.CSharp10,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 Options =
@@ -1001,7 +1021,8 @@ namespace $$N
     class C
     {
     }
-}",
+}
+",
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
@@ -1030,7 +1051,8 @@ namespace $$N
     class C
     {
     }
-}",
+}
+",
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {

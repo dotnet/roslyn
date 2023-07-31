@@ -1523,13 +1523,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (lookupResult.IsMultiViable)
                     {
-                        var conversions = Conversions;
-
                         foreach (var symbol in lookupResult.Symbols)
                         {
                             var method = (MethodSymbol)symbol;
-                            var conversion = conversions.ConvertExtensionMethodThisArg(method.Parameters[0].Type, receiverType, ref useSiteInfo);
-                            if (conversion.Exists)
+                            if (method.ReduceExtensionMethod(receiverType, Compilation) is not null)
                             {
                                 haveInstanceCandidates = true;
                                 break;
@@ -2696,11 +2693,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool CheckFeatureAvailability(SyntaxNode syntax, MessageID feature, BindingDiagnosticBag diagnostics, Location? location = null)
             => CheckFeatureAvailability(syntax, feature, diagnostics.DiagnosticBag, location);
 
-        internal static bool CheckFeatureAvailability(SyntaxToken syntax, MessageID feature, BindingDiagnosticBag diagnostics, Location? location = null)
-            => CheckFeatureAvailability(syntax, feature, diagnostics.DiagnosticBag, location);
-
-        internal static bool CheckFeatureAvailability(SyntaxNodeOrToken syntax, MessageID feature, BindingDiagnosticBag diagnostics, Location? location = null)
-            => CheckFeatureAvailability(syntax, feature, diagnostics.DiagnosticBag, location);
+        internal static bool CheckFeatureAvailability(SyntaxToken syntax, MessageID feature, BindingDiagnosticBag diagnostics, bool forceWarning = false)
+            => CheckFeatureAvailability(syntax, feature, diagnostics.DiagnosticBag, forceWarning: forceWarning);
 
         internal static bool CheckFeatureAvailability(SyntaxTree tree, MessageID feature, BindingDiagnosticBag diagnostics, Location location)
             => CheckFeatureAvailability(tree, feature, diagnostics.DiagnosticBag, location);
@@ -2708,11 +2702,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool CheckFeatureAvailability(SyntaxNode syntax, MessageID feature, DiagnosticBag? diagnostics, Location? location = null)
             => CheckFeatureAvailability(syntax.SyntaxTree, feature, diagnostics, (location, syntax), static tuple => tuple.location ?? tuple.syntax.GetLocation());
 
-        private static bool CheckFeatureAvailability(SyntaxToken syntax, MessageID feature, DiagnosticBag? diagnostics, Location? location = null)
-            => CheckFeatureAvailability(syntax.SyntaxTree!, feature, diagnostics, (location, syntax), static tuple => tuple.location ?? tuple.syntax.GetLocation());
-
-        private static bool CheckFeatureAvailability(SyntaxNodeOrToken syntax, MessageID feature, DiagnosticBag? diagnostics, Location? location = null)
-            => CheckFeatureAvailability(syntax.SyntaxTree!, feature, diagnostics, (location, syntax), static tuple => tuple.location ?? tuple.syntax.GetLocation()!);
+        private static bool CheckFeatureAvailability(SyntaxToken syntax, MessageID feature, DiagnosticBag? diagnostics, bool forceWarning = false)
+            => CheckFeatureAvailability(syntax.SyntaxTree!, feature, diagnostics, syntax, static syntax => syntax.GetLocation(), forceWarning: forceWarning);
 
         private static bool CheckFeatureAvailability(SyntaxTree tree, MessageID feature, DiagnosticBag? diagnostics, Location location)
             => CheckFeatureAvailability(tree, feature, diagnostics, location, static location => location);
@@ -2720,11 +2711,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="getLocation">Callback function that computes the location to report the diagnostics at
         /// <em>if</em> a diagnostic should be reported.  Should always be passed a static/cached callback to prevent
         /// allocations of the delegate.</param>
-        private static bool CheckFeatureAvailability<TData>(SyntaxTree tree, MessageID feature, DiagnosticBag? diagnostics, TData data, Func<TData, Location> getLocation)
+        private static bool CheckFeatureAvailability<TData>(SyntaxTree tree, MessageID feature, DiagnosticBag? diagnostics, TData data, Func<TData, Location> getLocation, bool forceWarning = false)
         {
             if (feature.GetFeatureAvailabilityDiagnosticInfo((CSharpParseOptions)tree.Options) is { } diagInfo)
             {
-                diagnostics?.Add(diagInfo, getLocation(data));
+                if (forceWarning)
+                {
+                    diagnostics?.Add(ErrorCode.WRN_ErrorOverride, getLocation(data), diagInfo, (int)diagInfo.Code);
+                }
+                else
+                {
+                    diagnostics?.Add(diagInfo, getLocation(data));
+                }
+
                 return false;
             }
             return true;

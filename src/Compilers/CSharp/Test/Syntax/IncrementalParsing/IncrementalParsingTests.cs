@@ -473,7 +473,7 @@ class C { void c() { } }
         }
 
         [Fact]
-        public void TestAttributeToCollectionLiteral1()
+        public void TestAttributeToCollectionExpression1()
         {
             var source = @"
 using System;
@@ -505,7 +505,7 @@ class C
         }
 
         [Fact]
-        public void TestCollectionLiteralToAttribute1()
+        public void TestCollectionExpressionToAttribute1()
         {
             var source = @"
 using System;

@@ -12,20 +12,13 @@ using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
 {
-    internal sealed class YieldReturnConverter : AbstractConverter
+    internal sealed class YieldReturnConverter(
+        ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo,
+        YieldStatementSyntax yieldReturnStatement,
+        YieldStatementSyntax yieldBreakStatement) : AbstractConverter(forEachInfo)
     {
-        private readonly YieldStatementSyntax _yieldReturnStatement;
-        private readonly YieldStatementSyntax _yieldBreakStatement;
-
-        public YieldReturnConverter(
-            ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo,
-            YieldStatementSyntax yieldReturnStatement,
-            YieldStatementSyntax yieldBreakStatement)
-            : base(forEachInfo)
-        {
-            _yieldReturnStatement = yieldReturnStatement;
-            _yieldBreakStatement = yieldBreakStatement;
-        }
+        private readonly YieldStatementSyntax _yieldReturnStatement = yieldReturnStatement;
+        private readonly YieldStatementSyntax _yieldBreakStatement = yieldBreakStatement;
 
         public override void Convert(SyntaxEditor editor, bool convertToQuery, CancellationToken cancellationToken)
         {

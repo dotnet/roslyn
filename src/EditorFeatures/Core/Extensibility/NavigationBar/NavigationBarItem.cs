@@ -13,14 +13,22 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
-    internal abstract class NavigationBarItem : IEquatable<NavigationBarItem>
+    internal abstract class NavigationBarItem(
+        ITextVersion? textVersion,
+        string text,
+        Glyph glyph,
+        ImmutableArray<TextSpan> spans,
+        ImmutableArray<NavigationBarItem> childItems = default,
+        int indent = 0,
+        bool bolded = false,
+        bool grayed = false) : IEquatable<NavigationBarItem>
     {
-        public string Text { get; }
-        public Glyph Glyph { get; }
-        public bool Bolded { get; }
-        public bool Grayed { get; }
-        public int Indent { get; }
-        public ImmutableArray<NavigationBarItem> ChildItems { get; }
+        public string Text { get; } = text;
+        public Glyph Glyph { get; } = glyph;
+        public bool Bolded { get; } = bolded;
+        public bool Grayed { get; } = grayed;
+        public int Indent { get; } = indent;
+        public ImmutableArray<NavigationBarItem> ChildItems { get; } = childItems.NullToEmpty();
 
         /// <summary>
         /// The spans in the owning document corresponding to this nav bar item.  If the user's caret enters one of
@@ -28,29 +36,9 @@ namespace Microsoft.CodeAnalysis.Editor
         /// within this).
         /// </summary>
         /// <remarks>This can be empty for items whose location is in another document.</remarks>
-        public ImmutableArray<TextSpan> Spans { get; }
+        public ImmutableArray<TextSpan> Spans { get; } = spans;
 
-        internal ITextVersion? TextVersion { get; }
-
-        public NavigationBarItem(
-            ITextVersion? textVersion,
-            string text,
-            Glyph glyph,
-            ImmutableArray<TextSpan> spans,
-            ImmutableArray<NavigationBarItem> childItems = default,
-            int indent = 0,
-            bool bolded = false,
-            bool grayed = false)
-        {
-            TextVersion = textVersion;
-            Text = text;
-            Glyph = glyph;
-            Spans = spans;
-            ChildItems = childItems.NullToEmpty();
-            Indent = indent;
-            Bolded = bolded;
-            Grayed = grayed;
-        }
+        internal ITextVersion? TextVersion { get; } = textVersion;
 
         public abstract override bool Equals(object? obj);
         public abstract override int GetHashCode();

@@ -11,16 +11,11 @@ using Microsoft.CodeAnalysis.Options;
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
-    internal sealed class HostSolutionCrawlerWorkspaceEventListener : IEventListener<object>, IEventListenerStoppable
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class HostSolutionCrawlerWorkspaceEventListener(IGlobalOptionService globalOptions) : IEventListener<object>, IEventListenerStoppable
     {
-        private readonly IGlobalOptionService _globalOptions;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public HostSolutionCrawlerWorkspaceEventListener(IGlobalOptionService globalOptions)
-        {
-            _globalOptions = globalOptions;
-        }
+        private readonly IGlobalOptionService _globalOptions = globalOptions;
 
         public void StartListening(Workspace workspace, object? serviceOpt)
         {

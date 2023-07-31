@@ -657,12 +657,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We extend the definition of standard implicit conversions to include
             // all of the implicit conversions that are allowed based on an expression,
             // with the exception of switch expression, interpolated string builder,
-            // and collection literal conversions.
+            // and collection expression conversions.
 
             Conversion conversion = ClassifyImplicitBuiltInConversionFromExpression(sourceExpression, source, destination, ref useSiteInfo);
             if (conversion.Exists &&
                 !conversion.IsInterpolatedStringHandler &&
-                !conversion.IsCollectionLiteral)
+                !conversion.IsCollectionExpression)
             {
                 Debug.Assert(IsStandardImplicitConversionFromExpression(conversion.Kind));
                 return conversion;
@@ -1057,7 +1057,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.UnboundLambda:
-                    if (HasAnonymousFunctionConversion(sourceExpression, destination))
+                    if (HasAnonymousFunctionConversion(sourceExpression, destination, this.Compilation))
                     {
                         return Conversion.AnonymousFunction;
                     }
@@ -1101,10 +1101,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.UnconvertedObjectCreationExpression:
                     return Conversion.ObjectCreation;
 
-                case BoundKind.UnconvertedCollectionLiteralExpression:
-                    if (GetCollectionLiteralTypeKind(Compilation, destination, out _) != CollectionLiteralTypeKind.None)
+                case BoundKind.UnconvertedCollectionExpression:
+                    if (GetCollectionExpressionTypeKind(Compilation, destination, out _) != CollectionExpressionTypeKind.None)
                     {
-                        return Conversion.CollectionLiteral;
+                        return Conversion.CollectionExpression;
                     }
                     break;
             }
@@ -1413,7 +1413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 IsConstantNumericZero(sourceConstantValue);
         }
 
-        private static LambdaConversionResult IsAnonymousFunctionCompatibleWithDelegate(UnboundLambda anonymousFunction, TypeSymbol type, bool isTargetExpressionTree)
+        private static LambdaConversionResult IsAnonymousFunctionCompatibleWithDelegate(UnboundLambda anonymousFunction, TypeSymbol type, CSharpCompilation compilation, bool isTargetExpressionTree)
         {
             Debug.Assert((object)anonymousFunction != null);
             Debug.Assert((object)type != null);
@@ -1461,7 +1461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     for (int p = 0; p < delegateParameters.Length; ++p)
                     {
-                        if (delegateParameters[p].RefKind != anonymousFunction.RefKind(p) ||
+                        if (!OverloadResolution.AreRefsCompatibleForMethodConversion(delegateParameters[p].RefKind, anonymousFunction.RefKind(p), compilation) ||
                             !delegateParameters[p].Type.Equals(anonymousFunction.ParameterType(p), TypeCompareKind.AllIgnoreOptions))
                         {
                             return LambdaConversionResult.MismatchedParameterType;
@@ -1531,7 +1531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return LambdaConversionResult.Success;
         }
 
-        private static LambdaConversionResult IsAnonymousFunctionCompatibleWithExpressionTree(UnboundLambda anonymousFunction, NamedTypeSymbol type)
+        private static LambdaConversionResult IsAnonymousFunctionCompatibleWithExpressionTree(UnboundLambda anonymousFunction, NamedTypeSymbol type, CSharpCompilation compilation)
         {
             Debug.Assert((object)anonymousFunction != null);
             Debug.Assert((object)type != null);
@@ -1559,7 +1559,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return LambdaConversionResult.ExpressionTreeFromAnonymousMethod;
             }
 
-            return IsAnonymousFunctionCompatibleWithDelegate(anonymousFunction, delegateType, isTargetExpressionTree: true);
+            return IsAnonymousFunctionCompatibleWithDelegate(anonymousFunction, delegateType, compilation, isTargetExpressionTree: true);
         }
 
         internal bool IsAssignableFromMulticastDelegate(TypeSymbol type, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -1569,24 +1569,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ClassifyImplicitConversionFromType(multicastDelegateType, type, ref useSiteInfo).Exists;
         }
 
-        public static LambdaConversionResult IsAnonymousFunctionCompatibleWithType(UnboundLambda anonymousFunction, TypeSymbol type)
+        public static LambdaConversionResult IsAnonymousFunctionCompatibleWithType(UnboundLambda anonymousFunction, TypeSymbol type, CSharpCompilation compilation)
         {
             Debug.Assert((object)anonymousFunction != null);
             Debug.Assert((object)type != null);
 
             if (type.IsDelegateType())
             {
-                return IsAnonymousFunctionCompatibleWithDelegate(anonymousFunction, type, isTargetExpressionTree: false);
+                return IsAnonymousFunctionCompatibleWithDelegate(anonymousFunction, type, compilation, isTargetExpressionTree: false);
             }
             else if (type.IsExpressionTree())
             {
-                return IsAnonymousFunctionCompatibleWithExpressionTree(anonymousFunction, (NamedTypeSymbol)type);
+                return IsAnonymousFunctionCompatibleWithExpressionTree(anonymousFunction, (NamedTypeSymbol)type, compilation);
             }
 
             return LambdaConversionResult.BadTargetType;
         }
 
-        private static bool HasAnonymousFunctionConversion(BoundExpression source, TypeSymbol destination)
+        private static bool HasAnonymousFunctionConversion(BoundExpression source, TypeSymbol destination, CSharpCompilation compilation)
         {
             Debug.Assert(source != null);
             Debug.Assert((object)destination != null);
@@ -1596,10 +1596,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            return IsAnonymousFunctionCompatibleWithType((UnboundLambda)source, destination) == LambdaConversionResult.Success;
+            return IsAnonymousFunctionCompatibleWithType((UnboundLambda)source, destination, compilation) == LambdaConversionResult.Success;
         }
 
-        internal static CollectionLiteralTypeKind GetCollectionLiteralTypeKind(CSharpCompilation compilation, TypeSymbol destination, out TypeSymbol? elementType)
+        internal static CollectionExpressionTypeKind GetCollectionExpressionTypeKind(CSharpCompilation compilation, TypeSymbol destination, out TypeSymbol? elementType)
         {
             Debug.Assert(compilation is { });
 
@@ -1608,29 +1608,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (arrayType.IsSZArray)
                 {
                     elementType = arrayType.ElementType;
-                    return CollectionLiteralTypeKind.Array;
+                    return CollectionExpressionTypeKind.Array;
                 }
             }
             else if (isSpanType(compilation, destination, WellKnownType.System_Span_T, out elementType))
             {
-                return CollectionLiteralTypeKind.Span;
+                return CollectionExpressionTypeKind.Span;
             }
             else if (isSpanType(compilation, destination, WellKnownType.System_ReadOnlySpan_T, out elementType))
             {
-                return CollectionLiteralTypeKind.ReadOnlySpan;
+                return CollectionExpressionTypeKind.ReadOnlySpan;
+            }
+            else if ((destination as NamedTypeSymbol)?.HasCollectionBuilderAttribute(out _, out _) == true)
+            {
+                return CollectionExpressionTypeKind.CollectionBuilder;
             }
             else if (implementsIEnumerable(compilation, destination))
             {
                 elementType = null;
-                return CollectionLiteralTypeKind.CollectionInitializer;
+                return CollectionExpressionTypeKind.CollectionInitializer;
             }
             else if (isListInterface(compilation, destination, out elementType))
             {
-                return CollectionLiteralTypeKind.ListInterface;
+                return CollectionExpressionTypeKind.ListInterface;
             }
 
             elementType = null;
-            return CollectionLiteralTypeKind.None;
+            return CollectionExpressionTypeKind.None;
 
             static bool isSpanType(CSharpCompilation compilation, TypeSymbol targetType, WellKnownType spanType, [NotNullWhen(true)] out TypeSymbol? elementType)
             {

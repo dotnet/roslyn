@@ -13,6 +13,8 @@ using Microsoft.CodeAnalysis.UseObjectInitializer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
 {
+    using ObjectInitializerMatch = Match<ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, ExpressionStatementSyntax>;
+
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseObjectInitializer), Shared]
     internal class CSharpUseObjectInitializerCodeFixProvider :
         AbstractUseObjectInitializerCodeFixProvider<
@@ -32,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
 
         protected override StatementSyntax GetNewStatement(
             StatementSyntax statement, BaseObjectCreationExpressionSyntax objectCreation,
-            ImmutableArray<Match<ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, ExpressionStatementSyntax>> matches)
+            ImmutableArray<ObjectInitializerMatch> matches)
         {
             return statement.ReplaceNode(
                 objectCreation,
@@ -41,19 +43,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
 
         private static BaseObjectCreationExpressionSyntax GetNewObjectCreation(
             BaseObjectCreationExpressionSyntax objectCreation,
-            ImmutableArray<Match<ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, ExpressionStatementSyntax>> matches)
+            ImmutableArray<ObjectInitializerMatch> matches)
         {
             return UseInitializerHelpers.GetNewObjectCreation(
                 objectCreation, CreateExpressions(objectCreation, matches));
         }
 
         private static SeparatedSyntaxList<ExpressionSyntax> CreateExpressions(
-                BaseObjectCreationExpressionSyntax objectCreation,
-                ImmutableArray<Match<ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, ExpressionStatementSyntax>> matches)
+            BaseObjectCreationExpressionSyntax objectCreation,
+            ImmutableArray<ObjectInitializerMatch> matches)
         {
             using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
 
-            UseInitializerHelpers.AddExistingItems(objectCreation, nodesAndTokens);
+            UseInitializerHelpers.AddExistingItems<ObjectInitializerMatch, ExpressionSyntax>(
+                objectCreation, nodesAndTokens, static (_, e) => e);
 
             for (var i = 0; i < matches.Length; i++)
             {

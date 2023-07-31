@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.UseCollectionInitializer
@@ -19,10 +20,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             MemberAccessExpressionSyntax,
             InvocationExpressionSyntax,
             ExpressionStatementSyntax,
+            ForEachStatementSyntax,
             VariableDeclaratorSyntax)
 
         Protected Overrides Function AreCollectionInitializersSupported(compilation As Compilation) As Boolean
             Return True
+        End Function
+
+        Protected Overrides Function AreCollectionExpressionsSupported(compilation As Compilation) As Boolean
+            Return False
+        End Function
+
+        Protected Overrides Function CanUseCollectionExpression(semanticModel As SemanticModel, objectCreationExpression As ObjectCreationExpressionSyntax, cancellationToken As CancellationToken) As Boolean
+            Throw ExceptionUtilities.Unreachable()
         End Function
 
         Protected Overrides Function GetSyntaxFacts() As ISyntaxFacts

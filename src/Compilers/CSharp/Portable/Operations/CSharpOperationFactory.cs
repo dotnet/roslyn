@@ -100,10 +100,10 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundArrayCreationOperation((BoundArrayCreation)boundNode);
                 case BoundKind.ArrayInitialization:
                     return CreateBoundArrayInitializationOperation((BoundArrayInitialization)boundNode);
-                case BoundKind.CollectionLiteralExpression:
-                    return CreateBoundCollectionLiteralExpression((BoundCollectionLiteralExpression)boundNode);
-                case BoundKind.CollectionLiteralSpreadElement:
-                    return CreateBoundCollectionLiteralSpreadElement((BoundCollectionLiteralSpreadElement)boundNode);
+                case BoundKind.CollectionExpression:
+                    return CreateBoundCollectionExpression((BoundCollectionExpression)boundNode);
+                case BoundKind.CollectionExpressionSpreadElement:
+                    return CreateBoundCollectionExpressionSpreadElement((BoundCollectionExpressionSpreadElement)boundNode);
                 case BoundKind.DefaultLiteral:
                     return CreateBoundDefaultLiteralOperation((BoundDefaultLiteral)boundNode);
                 case BoundKind.DefaultExpression:
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.StackAllocArrayCreation:
                 case BoundKind.TypeExpression:
                 case BoundKind.TypeOrValueExpression:
-                case BoundKind.UnconvertedCollectionLiteralExpression:
+                case BoundKind.UnconvertedCollectionExpression:
 
                     ConstantValue? constantValue = (boundNode as BoundExpression)?.ConstantValueOpt;
                     bool isImplicit = boundNode.WasCompilerGenerated;
@@ -1221,12 +1221,12 @@ namespace Microsoft.CodeAnalysis.Operations
             return new ArrayInitializerOperation(elementValues, _semanticModel, syntax, isImplicit);
         }
 
-        private IOperation CreateBoundCollectionLiteralExpression(BoundCollectionLiteralExpression boundCollectionLiteralExpression)
+        private IOperation CreateBoundCollectionExpression(BoundCollectionExpression boundCollectionExpression)
         {
-            ImmutableArray<IOperation> elements = createChildren(boundCollectionLiteralExpression.Elements);
-            SyntaxNode syntax = boundCollectionLiteralExpression.Syntax;
-            ITypeSymbol? type = boundCollectionLiteralExpression.GetPublicTypeSymbol();
-            bool isImplicit = boundCollectionLiteralExpression.WasCompilerGenerated;
+            ImmutableArray<IOperation> elements = createChildren(boundCollectionExpression.Elements);
+            SyntaxNode syntax = boundCollectionExpression.Syntax;
+            ITypeSymbol? type = boundCollectionExpression.GetPublicTypeSymbol();
+            bool isImplicit = boundCollectionExpression.WasCompilerGenerated;
             return new NoneOperation(elements, _semanticModel, syntax, type: type, constantValue: null, isImplicit);
 
             ImmutableArray<IOperation> createChildren(ImmutableArray<BoundExpression> elements)
@@ -1254,7 +1254,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
-        private IOperation CreateBoundCollectionLiteralSpreadElement(BoundCollectionLiteralSpreadElement boundSpreadExpression)
+        private IOperation CreateBoundCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement boundSpreadExpression)
         {
             SyntaxNode syntax = boundSpreadExpression.Syntax;
             ITypeSymbol? type = boundSpreadExpression.GetPublicTypeSymbol();

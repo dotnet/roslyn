@@ -536,5 +536,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return currentToken.IsKind(SyntaxKind.CommaToken) &&
                 currentToken.Parent.IsKind(SyntaxKind.TupleExpression);
         }
+
+        public static bool IsCommaInCollectionExpression(this SyntaxToken token)
+            => token.Kind() == SyntaxKind.CommaToken && token.Parent.IsKind(SyntaxKind.CollectionExpression);
     }
 }
