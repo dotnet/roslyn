@@ -29626,7 +29626,6 @@ Block[B2] - Exit
                 targetFramework: TargetFramework.NetCoreApp,
                 expectedOutput: "1");
 
-            // TODO2: why are we getting an 'unassigned this' as well as 'use def violation' diagnostic
             verifier.VerifyDiagnostics(
                 // (14,13): warning CS0649: Field 'RS.ri' is never assigned to, and will always have its default value 0
                 //     ref int ri;
