@@ -86,13 +86,15 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 outputWriter = outputFile;
             }
 
-            using var logFile = log != null ? new StreamWriter(log) : TextWriter.Null;
+            using var logFile = log != null ? new StreamWriter(log) { AutoFlush = true } : TextWriter.Null;
             ILsifJsonWriter lsifWriter = outputFormat switch
             {
                 LsifFormat.Json => new JsonModeLsifJsonWriter(outputWriter),
                 LsifFormat.Line => new LineModeLsifJsonWriter(outputWriter),
                 _ => throw new NotImplementedException()
             };
+
+            var totalExecutionTime = Stopwatch.StartNew();
 
             try
             {
@@ -141,7 +143,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             }
 
             (lsifWriter as IDisposable)?.Dispose();
-            await logFile.WriteLineAsync("Generation complete.");
+            await logFile.WriteLineAsync($"Generation complete. Total execution time: {totalExecutionTime.Elapsed.ToDisplayString()}");
         }
 
         private static async Task LocateAndRegisterMSBuild(TextWriter logFile, DirectoryInfo? sourceDirectory)
@@ -264,11 +266,10 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             await logFile.WriteLineAsync($"Load of the binlog complete; {msbuildInvocations.Length} invocations were found.");
 
             var lsifGenerator = Generator.CreateAndWriteCapabilitiesVertex(lsifWriter, logFile);
+            var workspace = new AdhocWorkspace(await Composition.CreateHostServicesAsync());
 
             foreach (var msbuildInvocation in msbuildInvocations)
             {
-                var workspace = new AdhocWorkspace(await Composition.CreateHostServicesAsync());
-
                 var projectInfo = CommandLineProject.CreateProjectInfo(
                     Path.GetFileNameWithoutExtension(msbuildInvocation.ProjectFilePath),
                     msbuildInvocation.Language == Microsoft.Build.Logging.StructuredLogger.CompilerInvocation.CSharp ? LanguageNames.CSharp : LanguageNames.VisualBasic,
@@ -284,6 +285,10 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 var generationStopwatch = Stopwatch.StartNew();
                 await lsifGenerator.GenerateForProjectAsync(project, GeneratorOptions.Default, cancellationToken);
                 await logFile.WriteLineAsync($"Generation for {project.FilePath} completed in {generationStopwatch.Elapsed.ToDisplayString()}.");
+
+                // Remove the project from the workspace; we reuse the same workspace object to ensure that some workspace-level services (like the IMetadataService
+                // or IDocumentationProviderService) are kept around allowing their caches to be reused.
+                workspace.OnProjectRemoved(project.Id);
             }
         }
     }

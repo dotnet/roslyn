@@ -5004,4 +5004,116 @@ public partial class C
         var verifier = CompileAndVerify(new[] { (source0, "F0.cs"), (source1, "F1.cs"), (source2, "F2.cs") }, expectedOutput: "12");
         verifier.VerifyDiagnostics();
     }
+
+    [Fact]
+    public void ShadowNamespace_01()
+    {
+        var source1 = """
+            namespace App.Widget
+            {
+                class Inner { }
+            }
+
+            """;
+
+        var source2 = """
+            namespace App
+            {
+                file class Widget { }
+            }
+
+            """;
+
+        var comp = CreateCompilation(new[] { (source1, "File1.cs"), (source2, "File2.cs") });
+        comp.VerifyDiagnostics();
+
+        comp = CreateCompilation(source1 + source2);
+        comp.VerifyDiagnostics(
+            // (7,16): error CS9071: The namespace 'App' already contains a definition for 'Widget' in this file.
+            //     file class Widget { }
+            Diagnostic(ErrorCode.ERR_FileLocalDuplicateNameInNS, "Widget").WithArguments("Widget", "App").WithLocation(7, 16));
+
+        comp = CreateCompilation(source2 + source1);
+        comp.VerifyDiagnostics(
+            // (3,16): error CS9071: The namespace 'App' already contains a definition for 'Widget' in this file.
+            //     file class Widget { }
+            Diagnostic(ErrorCode.ERR_FileLocalDuplicateNameInNS, "Widget").WithArguments("Widget", "App").WithLocation(3, 16));
+    }
+
+    [Theory, CombinatorialData]
+    public void ShadowNamespace_02(bool useMetadataReference)
+    {
+        var source1 = """
+            namespace App.Widget
+            {
+                public class Inner { }
+            }
+
+            """;
+
+        var source2 = """
+            namespace App
+            {
+                file class Widget { }
+            }
+
+            """;
+
+        var comp1 = CreateCompilation(new[] { (source1, "File1.cs") });
+        comp1.VerifyEmitDiagnostics();
+
+        var comp2 = CreateCompilation(new[] { (source2, "File2.cs") }, references: new[] { useMetadataReference ? comp1.ToMetadataReference() : comp1.EmitToImageReference() });
+        comp2.VerifyEmitDiagnostics();
+
+        comp2 = CreateCompilation(new[] { (source2, "File2.cs") });
+        comp2.VerifyEmitDiagnostics();
+
+        comp1 = CreateCompilation(new[] { (source1, "File1.cs") }, references: new[] { useMetadataReference ? comp2.ToMetadataReference() : comp2.EmitToImageReference() });
+        comp1.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void ShadowNamespace_03()
+    {
+        var source1 = """
+            namespace App.Widget
+            {
+                class Inner { }
+            }
+
+            class C1
+            {
+                static void M1()
+                {
+                    new App.Widget(); // 1
+                    new App.Widget.Inner();
+                }
+            }
+            """;
+
+        var source2 = """
+            namespace App
+            {
+                file class Widget { }
+            }
+
+            class C2
+            {
+                static void M2()
+                {
+                    new App.Widget();
+                    new App.Widget.Inner(); // 2
+                }
+            }
+            """;
+
+        var comp = CreateCompilation(new[] { (source1, "File1.cs"), (source2, "File2.cs") });
+        comp.VerifyDiagnostics(
+            // File1.cs(10,13): error CS0118: 'App.Widget' is a namespace but is used like a type
+            //         new App.Widget(); // 1
+            Diagnostic(ErrorCode.ERR_BadSKknown, "App.Widget").WithArguments("App.Widget", "namespace", "type").WithLocation(10, 13),
+            // File2.cs(11,24): error CS0426: The type name 'Inner' does not exist in the type 'Widget'
+            //         new App.Widget.Inner(); // 2
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Inner").WithArguments("Inner", "App.Widget").WithLocation(11, 24));
+    }
 }
