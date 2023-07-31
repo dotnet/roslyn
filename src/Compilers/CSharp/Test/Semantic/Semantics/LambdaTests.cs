@@ -8759,8 +8759,8 @@ class Program
                         SelfReturnerScoped<string> fsNoModifier = (_, _) => string.Empty;
                         SelfReturnerScopedRef<string> fsrImplicit = (scoped ref _, _) => string.Empty;
                         SelfReturnerScopedRef<string> fsrNoModifier = (_, _) => string.Empty;
-                        SelfReturnerParams<string> fpImplicit = (_, params _) => string.Empty;
-                        SelfReturnerParams<string> fpNoModifier = (_, _) => string.Empty;
+                        IndexReturnerParams<string> fpImplicit = (_, params _) => string.Empty;
+                        IndexReturnerParams<string> fpNoModifier = (_, _) => string.Empty;
                     }
                 }
                 """;
@@ -8793,13 +8793,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "_").WithLocation(21, 60),
                 // (24,56): error CS1676: Parameter 1 must be declared with the 'ref' keyword
                 //         SelfReturnerScopedRef<string> fsrNoModifier = (_, _) => string.Empty;
-                Diagnostic(ErrorCode.ERR_BadParamRef, "_").WithArguments("1", "ref").WithLocation(24, 56),
-                // (25,9): error CS0246: The type or namespace name 'SelfReturnerParams<>' could not be found (are you missing a using directive or an assembly reference?)
-                //         SelfReturnerParams<string> fpImplicit = (params _, _) => string.Empty;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "SelfReturnerParams<string>").WithArguments("SelfReturnerParams<>").WithLocation(25, 9),
-                // (26,9): error CS0246: The type or namespace name 'SelfReturnerParams<>' could not be found (are you missing a using directive or an assembly reference?)
-                //         SelfReturnerParams<string> fpNoModifier = (_, _) => string.Empty;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "SelfReturnerParams<string>").WithArguments("SelfReturnerParams<>").WithLocation(26, 9)
+                Diagnostic(ErrorCode.ERR_BadParamRef, "_").WithArguments("1", "ref").WithLocation(24, 56)
                 );
 
             var tree = comp.SyntaxTrees[0];
