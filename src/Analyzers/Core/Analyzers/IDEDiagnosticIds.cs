@@ -193,6 +193,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string UsePrimaryConstructorDiagnosticId = "IDE0290";
 
         public const string UseCollectionExpressionForArrayDiagnosticId = "IDE0300";
+        public const string UseCollectionExpressionForEmptyDiagnosticId = "IDE0301";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";

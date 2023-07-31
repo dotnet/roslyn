@@ -12,33 +12,30 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
-namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
+namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+internal class CSharpUseCollectionInitializerDiagnosticAnalyzer :
+    AbstractUseCollectionInitializerDiagnosticAnalyzer<
+        SyntaxKind,
+        ExpressionSyntax,
+        StatementSyntax,
+        BaseObjectCreationExpressionSyntax,
+        MemberAccessExpressionSyntax,
+        InvocationExpressionSyntax,
+        ExpressionStatementSyntax,
+        ForEachStatementSyntax,
+        VariableDeclaratorSyntax>
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpUseCollectionInitializerDiagnosticAnalyzer :
-        AbstractUseCollectionInitializerDiagnosticAnalyzer<
-            SyntaxKind,
-            ExpressionSyntax,
-            StatementSyntax,
-            BaseObjectCreationExpressionSyntax,
-            MemberAccessExpressionSyntax,
-            InvocationExpressionSyntax,
-            ExpressionStatementSyntax,
-            ForEachStatementSyntax,
-            VariableDeclaratorSyntax>
-    {
-        protected override bool AreCollectionInitializersSupported(Compilation compilation)
-            => compilation.LanguageVersion() >= LanguageVersion.CSharp3;
+    protected override bool AreCollectionInitializersSupported(Compilation compilation)
+        => compilation.LanguageVersion() >= LanguageVersion.CSharp3;
 
-        protected override bool AreCollectionExpressionsSupported(Compilation compilation)
-            => compilation.LanguageVersion().SupportsCollectionExpressions();
+    protected override bool AreCollectionExpressionsSupported(Compilation compilation)
+        => compilation.LanguageVersion().SupportsCollectionExpressions();
 
-        protected override ISyntaxFacts GetSyntaxFacts() => CSharpSyntaxFacts.Instance;
+    protected override ISyntaxFacts GetSyntaxFacts()
+        => CSharpSyntaxFacts.Instance;
 
-        protected override bool CanUseCollectionExpression
-            (SemanticModel semanticModel, BaseObjectCreationExpressionSyntax objectCreationExpression, CancellationToken cancellationToken)
-        {
-            return UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(semanticModel, objectCreationExpression, cancellationToken);
-        }
-    }
+    protected override bool CanUseCollectionExpression(SemanticModel semanticModel, BaseObjectCreationExpressionSyntax objectCreationExpression, CancellationToken cancellationToken)
+        => UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(semanticModel, objectCreationExpression, skipVerificationForReplacedNode: true, cancellationToken);
 }
