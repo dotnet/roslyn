@@ -233,7 +233,7 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
     }
 
     [Theory, CombinatorialData]
-    public async Task TestHasRunTestsCommandAsync(bool mutatingLspWorkspace)
+    public async Task TestHasTestsCommandAsync(bool mutatingLspWorkspace)
     {
         var markup =
 @"using System;
@@ -262,11 +262,11 @@ namespace Test
                 globalOptions.SetGlobalOption(LspOptionsStorage.LspUsingDevkitFeatures, false);
             }
         });
-        await VerifyTestCodeLensAsync(testLspServer, FeaturesResources.Run_Test);
+        await VerifyTestCodeLensAsync(testLspServer, FeaturesResources.Run_Test, FeaturesResources.Debug_Test);
     }
 
     [Theory, CombinatorialData]
-    public async Task TestHasRunAllTestsCommandAsync(bool mutatingLspWorkspace)
+    public async Task TestHasAllTestsCommandAsync(bool mutatingLspWorkspace)
     {
         var markup =
 @"using System;
@@ -295,7 +295,7 @@ namespace Test
                 globalOptions.SetGlobalOption(LspOptionsStorage.LspUsingDevkitFeatures, false);
             }
         });
-        await VerifyTestCodeLensAsync(testLspServer, FeaturesResources.Run_All_Tests);
+        await VerifyTestCodeLensAsync(testLspServer, FeaturesResources.Run_All_Tests, FeaturesResources.Debug_All_Tests);
     }
 
     [Theory, CombinatorialData]

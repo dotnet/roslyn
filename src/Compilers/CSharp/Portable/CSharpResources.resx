@@ -7574,6 +7574,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_AddressOfInAsync_Title" xml:space="preserve">
     <value>The '&amp;' operator should not be used on parameters or local variables in async methods.</value>
   </data>
+  <data name="WRN_ByValArraySizeConstRequired" xml:space="preserve">
+    <value>Attribute parameter 'SizeConst' must be specified.</value>
+  </data>
+  <data name="WRN_ByValArraySizeConstRequired_Title" xml:space="preserve">
+    <value>Attribute parameter 'SizeConst' must be specified.</value>
+  </data>
   <data name="ERR_BadStaticAfterUnsafe" xml:space="preserve">
     <value>'static' modifier must precede 'unsafe' modifier.</value>
   </data>

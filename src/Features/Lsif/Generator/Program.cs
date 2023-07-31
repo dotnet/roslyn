@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
             var solutionLoadStopwatch = Stopwatch.StartNew();
 
-            var msbuildWorkspace = MSBuildWorkspace.Create(await Composition.CreateHostServicesAsync());
+            using var msbuildWorkspace = MSBuildWorkspace.Create(await Composition.CreateHostServicesAsync());
             msbuildWorkspace.WorkspaceFailed += (s, e) => logFile.WriteLine("Error while loading: " + e.Diagnostic.Message);
 
             var solution = await openAsync(msbuildWorkspace, cancellationToken);
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             await logFile.WriteLineAsync($"Load of the binlog complete; {msbuildInvocations.Length} invocations were found.");
 
             var lsifGenerator = Generator.CreateAndWriteCapabilitiesVertex(lsifWriter, logFile);
-            var workspace = new AdhocWorkspace(await Composition.CreateHostServicesAsync());
+            using var workspace = new AdhocWorkspace(await Composition.CreateHostServicesAsync());
 
             foreach (var msbuildInvocation in msbuildInvocations)
             {

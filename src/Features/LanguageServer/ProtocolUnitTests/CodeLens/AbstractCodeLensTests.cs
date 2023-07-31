@@ -46,7 +46,7 @@ public abstract class AbstractCodeLensTests : AbstractLanguageServerProtocolTest
         Assert.True(resolvedCodeLens.Command.Title.StartsWith(expectedReferenceCountString));
     }
 
-    private protected static async Task VerifyTestCodeLensAsync(TestLspServer testLspServer, string commandTitle)
+    private protected static async Task VerifyTestCodeLensAsync(TestLspServer testLspServer, params string[] commandTitles)
     {
         var expectedCodeLens = testLspServer.GetLocations("codeLens").Single();
 
@@ -63,8 +63,10 @@ public abstract class AbstractCodeLensTests : AbstractLanguageServerProtocolTest
         var matchingCodeLenses = actualCodeLenses
             .Where(actualCodeLens => actualCodeLens.Range == expectedCodeLens.Range)
             .Where(actualCodeLens => actualCodeLens.Command != null && actualCodeLens.Command.CommandIdentifier == CodeLensHandler.RunTestsCommandIdentifier);
-        Assert.Single(matchingCodeLenses);
-        Assert.Equal(commandTitle, matchingCodeLenses.Single().Command!.Title);
+        foreach (var title in commandTitles)
+        {
+            Assert.Single(matchingCodeLenses, (c) => c.Command!.Title == title);
+        }
     }
 
     private protected static async Task VerifyTestCodeLensMissingAsync(TestLspServer testLspServer)
