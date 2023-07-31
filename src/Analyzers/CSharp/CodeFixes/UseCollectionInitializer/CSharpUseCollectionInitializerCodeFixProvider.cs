@@ -103,7 +103,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             var parsedDocument = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-            var elements = CreateElements(objectCreation, matches, CreateCollectionElement);
 
 #if CODE_STYLE
             var formattingOptions = SyntaxFormattingOptions.CommonDefaults;
