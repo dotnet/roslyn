@@ -447,10 +447,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                                 newLeadingTrivia.RemoveLast();
 
                             newLeadingTrivia.Add(Whitespace(preferredIndentation));
+                            afterNewLine = false;
                         }
 
                         newLeadingTrivia.Add(currentTrivia);
-                        afterNewLine = currentTrivia.IsEndOfLine();
+                        if (currentTrivia.IsEndOfLine())
+                            afterNewLine = true;
                     }
 
                     if (lastLeadingCommentIndex + 1 < leadingTrivia.Count &&
