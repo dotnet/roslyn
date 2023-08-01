@@ -3186,4 +3186,10 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Run_Test" xml:space="preserve">
     <value>Run Test</value>
   </data>
+  <data name="Debug_All_Tests" xml:space="preserve">
+    <value>Debug All Tests</value>
+  </data>
+  <data name="Debug_Test" xml:space="preserve">
+    <value>Debug Test</value>
+  </data>
 </root>

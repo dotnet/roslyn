@@ -80,7 +80,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         private static bool MatchesLSPCompletionItem(LSP.CompletionItem lspCompletionItem, CompletionItem completionItem)
         {
-            return lspCompletionItem.Label == completionItem.GetEntireDisplayText();
+            return lspCompletionItem.Label == completionItem.GetEntireDisplayText()
+                && (lspCompletionItem.LabelDetails?.Description ?? string.Empty) == completionItem.InlineDescription;
         }
 
         private CompletionListCache.CacheEntry? GetCompletionListCacheEntry(LSP.CompletionItem request)

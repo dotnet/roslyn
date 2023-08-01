@@ -60,7 +60,8 @@ internal class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer t
         var testCases = await testDiscoverer.DiscoverTestsAsync(request.Range, context.Document, projectOutputPath, progress, vsTestConsoleWrapper, cancellationToken);
         if (!testCases.IsEmpty)
         {
-            await testRunner.RunTestsAsync(testCases, progress, vsTestConsoleWrapper, cancellationToken);
+            var clientLanguageServerManager = context.GetRequiredLspService<IClientLanguageServerManager>();
+            await testRunner.RunTestsAsync(testCases, progress, vsTestConsoleWrapper, request.AttachDebugger, clientLanguageServerManager, cancellationToken);
         }
 
         return progress.GetValues() ?? Array.Empty<RunTestsPartialResult>();

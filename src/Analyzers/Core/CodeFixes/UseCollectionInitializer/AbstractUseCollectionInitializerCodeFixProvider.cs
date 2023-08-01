@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Analyzers.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -15,6 +16,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer
@@ -27,6 +29,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         TMemberAccessExpressionSyntax,
         TInvocationExpressionSyntax,
         TExpressionStatementSyntax,
+        TForeachStatementSyntax,
         TVariableDeclaratorSyntax>
         : SyntaxEditorBasedCodeFixProvider
         where TSyntaxKind : struct
@@ -36,23 +39,30 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         where TMemberAccessExpressionSyntax : TExpressionSyntax
         where TInvocationExpressionSyntax : TExpressionSyntax
         where TExpressionStatementSyntax : TStatementSyntax
+        where TForeachStatementSyntax : TStatementSyntax
         where TVariableDeclaratorSyntax : SyntaxNode
     {
-        public override ImmutableArray<string> FixableDiagnosticIds
+        public sealed override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseCollectionInitializerDiagnosticId);
 
-        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
+        protected abstract TStatementSyntax GetNewStatement(
+            SourceText sourceText, TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation, int wrappingLength, bool useCollectionExpression, ImmutableArray<Match<TStatementSyntax>> matches);
+
+        protected sealed override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
             => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
 
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
+        public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             RegisterCodeFix(context, AnalyzersResources.Collection_initialization_can_be_simplified, nameof(AnalyzersResources.Collection_initialization_can_be_simplified));
             return Task.CompletedTask;
         }
 
-        protected override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        protected sealed override async Task FixAllAsync(
+            Document document,
+            ImmutableArray<Diagnostic> diagnostics,
+            SyntaxEditor editor,
+            CodeActionOptionsProvider fallbackOptions,
+            CancellationToken cancellationToken)
         {
             // Fix-All for this feature is somewhat complicated.  As Collection-Initializers 
             // could be arbitrarily nested, we have to make sure that any edits we make
@@ -65,53 +75,58 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var originalRoot = editor.OriginalRoot;
 
-            var originalObjectCreationNodes = new Stack<TObjectCreationExpressionSyntax>();
+            var originalObjectCreationNodes = new Stack<(TObjectCreationExpressionSyntax objectCreationExpression, bool useCollectionExpression)>();
             foreach (var diagnostic in diagnostics)
             {
                 var objectCreation = (TObjectCreationExpressionSyntax)originalRoot.FindNode(
                     diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
-                originalObjectCreationNodes.Push(objectCreation);
+                originalObjectCreationNodes.Push((objectCreation, diagnostic.Properties?.ContainsKey(UseCollectionInitializerHelpers.UseCollectionExpressionName) is true));
             }
 
             // We're going to be continually editing this tree.  Track all the nodes we
             // care about so we can find them across each edit.
-            document = document.WithSyntaxRoot(originalRoot.TrackNodes(originalObjectCreationNodes));
+            document = document.WithSyntaxRoot(originalRoot.TrackNodes(originalObjectCreationNodes.Select(static t => t.objectCreationExpression)));
+            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var currentRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
+            // the option is currently not an editorconfig option, so not available in code style layer
+            var wrappingLength =
+#if !CODE_STYLE
+                fallbackOptions.GetOptions(document.Project.Services)?.CollectionExpressionWrappingLength ??
+#endif
+                CodeActionOptions.DefaultCollectionExpressionWrappingLength;
+
             while (originalObjectCreationNodes.Count > 0)
             {
-                var originalObjectCreation = originalObjectCreationNodes.Pop();
+                var (originalObjectCreation, useCollectionExpression) = originalObjectCreationNodes.Pop();
                 var objectCreation = currentRoot.GetCurrentNodes(originalObjectCreation).Single();
 
-                var matches = UseCollectionInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
-                    semanticModel, syntaxFacts, objectCreation, cancellationToken);
+                var matches = UseCollectionInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TForeachStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
+                    semanticModel, syntaxFacts, objectCreation, useCollectionExpression, cancellationToken);
 
-                if (matches == null || matches.Value.Length == 0)
+                if (matches.IsDefaultOrEmpty)
                     continue;
 
                 var statement = objectCreation.FirstAncestorOrSelf<TStatementSyntax>();
                 Contract.ThrowIfNull(statement);
 
-                var newStatement = GetNewStatement(statement, objectCreation, matches.Value)
+                var newStatement = GetNewStatement(sourceText, statement, objectCreation, wrappingLength, useCollectionExpression, matches)
                     .WithAdditionalAnnotations(Formatter.Annotation);
 
                 var subEditor = new SyntaxEditor(currentRoot, document.Project.Solution.Services);
 
                 subEditor.ReplaceNode(statement, newStatement);
                 foreach (var match in matches)
-                    subEditor.RemoveNode(match, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+                    subEditor.RemoveNode(match.Statement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
 
                 document = document.WithSyntaxRoot(subEditor.GetChangedRoot());
+                sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 currentRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             }
 
             editor.ReplaceNode(originalRoot, currentRoot);
         }
-
-        protected abstract TStatementSyntax GetNewStatement(
-            TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation,
-            ImmutableArray<TExpressionStatementSyntax> matches);
     }
 }

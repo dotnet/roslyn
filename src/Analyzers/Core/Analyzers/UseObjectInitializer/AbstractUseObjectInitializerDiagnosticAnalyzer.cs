@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             var matches = UseNamedMemberInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
                 context.SemanticModel, syntaxFacts, objectCreationExpression, context.CancellationToken);
 
-            if (matches == null || matches.Value.Length == 0)
+            if (matches.IsDefaultOrEmpty)
                 return;
 
             var containingStatement = objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             if (!IsValidContainingStatement(containingStatement))
                 return;
 
-            var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(matches.Value.Select(m => m.Statement));
+            var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(matches.Select(m => m.Statement));
             if (syntaxFacts.ContainsInterleavedDirective(nodes, context.CancellationToken))
                 return;
 
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 locations,
                 properties: null));
 
-            FadeOutCode(context, matches.Value, locations);
+            FadeOutCode(context, matches, locations);
         }
 
         private void FadeOutCode(

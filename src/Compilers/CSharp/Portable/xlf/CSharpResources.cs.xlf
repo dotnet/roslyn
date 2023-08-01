@@ -2377,6 +2377,16 @@
         <target state="new">The 'ref' modifier for an argument corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ByValArraySizeConstRequired">
+        <source>Attribute parameter 'SizeConst' must be specified.</source>
+        <target state="new">Attribute parameter 'SizeConst' must be specified.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ByValArraySizeConstRequired_Title">
+        <source>Attribute parameter 'SizeConst' must be specified.</source>
+        <target state="new">Attribute parameter 'SizeConst' must be specified.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_CallArgMixing">
         <source>This combination of arguments to '{0}' may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
         <target state="translated">Tato kombinace argumentů parametru {0} může vystavit proměnné, na které odkazuje parametr {1}, mimo obor jejich deklarace</target>
