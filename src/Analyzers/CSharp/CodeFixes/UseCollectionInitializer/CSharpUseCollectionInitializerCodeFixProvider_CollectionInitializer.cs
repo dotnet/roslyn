@@ -50,7 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                         : default;
 
                     var expression = ConvertExpression(statement.Expression, indent: null)
-                        .WithTrailingTrivia().WithLeadingTrivia(leadingTrivia);
+                        .WithTrailingTrivia()
+                        .WithLeadingTrivia(leadingTrivia);
 
                     if (i < matches.Length - 1)
                     {

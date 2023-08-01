@@ -208,6 +208,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 return finalCollection;
             }
 
+            static CollectionElementSyntax CreateCollectionElement(
+                Match<StatementSyntax>? match, ExpressionSyntax expression)
+            {
+                return match?.UseSpread is true
+                    ? SpreadElement(
+                        Token(SyntaxKind.DotDotToken).WithLeadingTrivia(expression.GetLeadingTrivia()).WithTrailingTrivia(Space),
+                        expression.WithoutLeadingTrivia())
+                    : ExpressionElement(expression);
+            }
+
             CollectionElementSyntax CreateElement(
                 Match<StatementSyntax> match, string? preferredIndentation)
             {
@@ -254,8 +264,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             }
 
             TExpressionSyntax Indent<TExpressionSyntax>(
-               TExpressionSyntax expression,
-               string? preferredIndentation) where TExpressionSyntax : SyntaxNode
+                TExpressionSyntax expression,
+                string? preferredIndentation) where TExpressionSyntax : SyntaxNode
             {
                 // This must be called from an expression from the original tree.  Not something we're already transforming.
                 // Otherwise, we'll have no idea how to apply the preferredIndentation if present.
@@ -325,75 +335,60 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 
                 return indentationString;
             }
-        }
 
-        private static CollectionElementSyntax CreateCollectionElement(
-            Match<StatementSyntax>? match,
-            ExpressionSyntax expression)
-        {
-            return match?.UseSpread is true
-                ? SpreadElement(
-                    Token(SyntaxKind.DotDotToken).WithLeadingTrivia(expression.GetLeadingTrivia()).WithTrailingTrivia(Space),
-                    expression.WithoutLeadingTrivia())
-                : ExpressionElement(expression);
-        }
-
-        private static bool MakeMultiLine(
-            SourceText sourceText,
-            BaseObjectCreationExpressionSyntax objectCreation,
-            ImmutableArray<Match<StatementSyntax>> matches,
-            int wrappingLength)
-        {
-            var totalLength = 0;
-            if (objectCreation.Initializer != null)
+            bool MakeMultiLine(int wrappingLength)
             {
-                foreach (var expression in objectCreation.Initializer.Expressions)
-                    totalLength += expression.Span.Length;
-            }
-
-            foreach (var (statement, _) in matches)
-            {
-                // if the statement we're replacing has any comments on it, then we need to be multiline to give them an
-                // appropriate place to go.
-                if (statement.GetLeadingTrivia().Any(static t => t.IsSingleOrMultiLineComment()) ||
-                    statement.GetTrailingTrivia().Any(static t => t.IsSingleOrMultiLineComment()))
+                var totalLength = 0;
+                if (objectCreation.Initializer != null)
                 {
-                    return true;
+                    foreach (var expression in objectCreation.Initializer.Expressions)
+                        totalLength += expression.Span.Length;
                 }
 
-                foreach (var component in GetElementComponents(statement))
+                foreach (var (statement, _) in matches)
                 {
-                    // if any of the expressions we're adding are multiline, then make things multiline.
-                    if (!sourceText.AreOnSameLine(component.GetFirstToken(), component.GetLastToken()))
+                    // if the statement we're replacing has any comments on it, then we need to be multiline to give them an
+                    // appropriate place to go.
+                    if (statement.GetLeadingTrivia().Any(static t => t.IsSingleOrMultiLineComment()) ||
+                        statement.GetTrailingTrivia().Any(static t => t.IsSingleOrMultiLineComment()))
+                    {
                         return true;
+                    }
 
-                    totalLength += component.Span.Length;
+                    foreach (var component in GetElementComponents(statement))
+                    {
+                        // if any of the expressions we're adding are multiline, then make things multiline.
+                        if (!sourceText.AreOnSameLine(component.GetFirstToken(), component.GetLastToken()))
+                            return true;
+
+                        totalLength += component.Span.Length;
+                    }
+                }
+
+                return totalLength > wrappingLength;
+
+                static IEnumerable<SyntaxNode> GetElementComponents(StatementSyntax statement)
+                {
+                    if (statement is ExpressionStatementSyntax expressionStatement)
+                    {
+                        yield return expressionStatement.Expression;
+                    }
+                    else if (statement is ForEachStatementSyntax foreachStatement)
+                    {
+                        yield return foreachStatement.Expression;
+                    }
+                    else if (statement is IfStatementSyntax ifStatement)
+                    {
+                        yield return ifStatement.Condition;
+                        yield return UnwrapEmbeddedStatement(ifStatement.Statement);
+                        if (ifStatement.Else != null)
+                            yield return UnwrapEmbeddedStatement(ifStatement.Else.Statement);
+                    }
                 }
             }
 
-            return totalLength > wrappingLength;
-
-            static IEnumerable<SyntaxNode> GetElementComponents(StatementSyntax statement)
-            {
-                if (statement is ExpressionStatementSyntax expressionStatement)
-                {
-                    yield return expressionStatement.Expression;
-                }
-                else if (statement is ForEachStatementSyntax foreachStatement)
-                {
-                    yield return foreachStatement.Expression;
-                }
-                else if (statement is IfStatementSyntax ifStatement)
-                {
-                    yield return ifStatement.Condition;
-                    yield return UnwrapEmbeddedStatement(ifStatement.Statement);
-                    if (ifStatement.Else != null)
-                        yield return UnwrapEmbeddedStatement(ifStatement.Else.Statement);
-                }
-            }
+            static StatementSyntax UnwrapEmbeddedStatement(StatementSyntax statement)
+                => statement is BlockSyntax { Statements: [var innerStatement] } ? innerStatement : statement;
         }
-
-        private static StatementSyntax UnwrapEmbeddedStatement(StatementSyntax statement)
-            => statement is BlockSyntax { Statements: [var innerStatement] } ? innerStatement : statement;
     }
 }
