@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 
                 if (statement is ExpressionStatementSyntax expressionStatement)
                 {
-                    return CreateCollectionElement(match, ConvertExpression(expressionStatement.Expression, preferredIndentation));
+                    return CreateCollectionElement(match, ConvertExpression(expressionStatement.Expression, expr => Indent(expr, preferredIndentation)));
                 }
                 else if (statement is ForEachStatementSyntax foreachStatement)
                 {
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                         var expression = ConditionalExpression(
                             condition,
                             CollectionExpression(SingletonSeparatedList<CollectionElementSyntax>(
-                                ExpressionElement(ConvertExpression(trueStatement.Expression, preferredIndentation: null)))),
+                                ExpressionElement(ConvertExpression(trueStatement.Expression, indent: null)))),
                             CollectionExpression());
                         return CreateCollectionElement(match, expression);
                     }
@@ -309,8 +309,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                         var falseStatement = (ExpressionStatementSyntax)UnwrapEmbeddedStatement(ifStatement.Else.Statement);
                         var expression = ConditionalExpression(
                             ifStatement.Condition,
-                            ConvertExpression(trueStatement.Expression, preferredIndentation: null),
-                            ConvertExpression(falseStatement.Expression, preferredIndentation: null));
+                            ConvertExpression(trueStatement.Expression, indent: null),
+                            ConvertExpression(falseStatement.Expression, indent: null));
                         return CreateCollectionElement(match, expression);
                     }
                 }
@@ -399,26 +399,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 : ExpressionElement(expression);
         }
 
-        private static ExpressionSyntax ConvertExpression(ExpressionSyntax expression, string? preferredIndentation)
+        private static ExpressionSyntax ConvertExpression(ExpressionSyntax expression, Func<ExpressionSyntax, ExpressionSyntax>? indent)
         {
             // This must be called from an expression from the original tree.  Not something we're already transforming.
             // Otherwise, we'll have no idea how to apply the preferredIndentation if present.
             Contract.ThrowIfNull(expression.Parent);
             return expression switch
             {
-                InvocationExpressionSyntax invocation => ConvertInvocation(invocation, preferredIndentation),
-                AssignmentExpressionSyntax assignment => ConvertAssignment(assignment, preferredIndentation),
+                InvocationExpressionSyntax invocation => ConvertInvocation(invocation, indent),
+                AssignmentExpressionSyntax assignment => ConvertAssignment(assignment, indent),
                 _ => throw new InvalidOperationException(),
             };
         }
 
         private static AssignmentExpressionSyntax ConvertAssignment(
             AssignmentExpressionSyntax assignment,
-            string? preferredIndentation)
+            Func<ExpressionSyntax, ExpressionSyntax>? indent)
         {
             // Assignment is only used for collection-initializers, which *currently* do not do any special
             // indentation handling on elements.
-            Contract.ThrowIfTrue(preferredIndentation != null);
+            Contract.ThrowIfTrue(indent != null);
 
             var elementAccess = (ElementAccessExpressionSyntax)assignment.Left;
             return assignment.WithLeft(
@@ -427,8 +427,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 
         private static ExpressionSyntax ConvertInvocation(
             InvocationExpressionSyntax invocation,
-            string? preferredIndentation)
+            Func<ExpressionSyntax, ExpressionSyntax>? indent)
         {
+            indent ??= static expr => expr;
             var arguments = invocation.ArgumentList.Arguments;
 
             if (arguments.Count == 1)
@@ -437,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 // report an error.  This is because { a = b } is the form for an object initializer,
                 // and the two forms are not allowed to mix/match.  Parenthesize the assignment to
                 // avoid the ambiguity.
-                var expression = Indent(arguments[0].Expression, preferredIndentation);
+                var expression = indent(arguments[0].Expression);
                 return SyntaxFacts.IsAssignmentExpression(expression.Kind())
                     ? ParenthesizedExpression(expression)
                     : expression;
@@ -554,7 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                     ? statement.SemicolonToken.TrailingTrivia
                     : default;
 
-                var expression = ConvertExpression(statement.Expression, preferredIndentation: null)
+                var expression = ConvertExpression(statement.Expression, indent: null)
                     .WithTrailingTrivia().WithLeadingTrivia(leadingTrivia);
 
                 if (i < matches.Length - 1)
