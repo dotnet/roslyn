@@ -1480,10 +1480,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    List<Action> list1 = [() =>
-                    {
-                        List<int> list2 = [2];
-                    }
+                    List<Action> list1 = [
+                        () => {
+                            List<int> list2 = [2];
+                        }
 
                     ];
                 }
@@ -3620,10 +3620,10 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M()
                 {
                     List<int> c =
-                        [
-                            3 +
-                                4
-                        ];
+                    [
+                        3 +
+                            4
+                    ];
                 }
             }
             """);
@@ -3656,12 +3656,12 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M()
                 {
                     List<int> c =
-                        [
-                            1 +
-                                2,
-                            3 +
-                                4
-                        ];
+                    [
+                        1 +
+                            2,
+                        3 +
+                            4
+                    ];
                 }
             }
             """);
