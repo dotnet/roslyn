@@ -476,6 +476,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             // This must be called from an expression from the original tree.  Not something we're already transforming.
             // Otherwise, we'll have no idea how to apply the preferredIndentation if present.
             Contract.ThrowIfNull(expression.Parent);
+            if (preferredIndentation is null)
+                return expression.WithoutLeadingTrivia();
 
             return expression;
         }
