@@ -109,7 +109,7 @@ public class A { }";
         public void VerifyLspClientOptionNames()
         {
             var actualNames = DidChangeConfigurationNotificationHandler.SupportedOptions.Select(
-                DidChangeConfigurationNotificationHandler.GenerateFullNameForOption).ToArray();
+                DidChangeConfigurationNotificationHandler.GenerateFullNameForOption).OrderBy(name => name).ToArray();
             // These options are persist in the LSP client. Please make sure also modify the LSP client code if these strings are changed.
             var expectedNames = new[]
             {
@@ -142,7 +142,7 @@ public class A { }";
                 "code_style.formatting.new_line.insert_final_newline",
                 "background_analysis.dotnet_analyzer_diagnostics_scope",
                 "background_analysis.dotnet_compiler_diagnostics_scope"
-            };
+            }.OrderBy(name => name);
 
             Assert.Equal(expectedNames, actualNames);
         }
