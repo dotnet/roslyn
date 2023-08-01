@@ -695,15 +695,13 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (6,48): warning CS9506: Argument 1 should be passed with the 'in' keyword
             // Expression<D> e3 = (ref readonly int p) => C.M(p);
             Diagnostic(ErrorCode.WRN_ArgExpectedIn, "p").WithArguments("1").WithLocation(6, 48),
-            // (7,20): error CS1661: Cannot convert lambda expression to type 'Expression<D>' because the parameter types do not match the delegate parameter types
-            // Expression<D> e4 = (int p) => C.M(in p);
-            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(int p) => C.M(in p)").WithArguments("lambda expression", "System.Linq.Expressions.Expression<D>").WithLocation(7, 20),
             // (7,25): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
             // Expression<D> e4 = (int p) => C.M(in p);
             Diagnostic(ErrorCode.ERR_BadParamRef, "p").WithArguments("1", "ref readonly").WithLocation(7, 25),
             // (8,49): error CS1615: Argument 1 may not be passed with the 'out' keyword
             // Expression<Action<int>> e5 = (int p) => C.M(out p);
-            Diagnostic(ErrorCode.ERR_BadArgExtraRef, "p").WithArguments("1", "out").WithLocation(8, 49));
+            Diagnostic(ErrorCode.ERR_BadArgExtraRef, "p").WithArguments("1", "out").WithLocation(8, 49)
+            );
     }
 
     [Fact]
