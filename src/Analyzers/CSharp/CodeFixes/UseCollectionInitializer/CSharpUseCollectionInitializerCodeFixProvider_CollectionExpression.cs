@@ -26,6 +26,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 
     internal partial class CSharpUseCollectionInitializerCodeFixProvider
     {
+        /// <summary>
+        /// Creates the final collection-expression <c>[...]</c> that will replace the given <paramref
+        /// name="objectCreation"/> expression.
+        /// </summary>
         private static async Task<CollectionExpressionSyntax> CreateCollectionExpressionAsync(
             Document workspaceDocument,
             CodeActionOptionsProvider fallbackOptions,
@@ -33,6 +37,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             ImmutableArray<Match<StatementSyntax>> matches,
             CancellationToken cancellationToken)
         {
+            // This method is quite complex, but primarily because it wants to perform all the trivia handling itself.
+            // We are moving nodes around in the tree in complex ways, and the formatting engine is just not sufficient
+            // for performing this task.
+
             var document = await ParsedDocument.CreateAsync(workspaceDocument, cancellationToken).ConfigureAwait(false);
 
 #if CODE_STYLE
@@ -51,18 +59,40 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             var wrappingLength = fallbackOptions.GetOptions(document.LanguageServices).CollectionExpressionWrappingLength;
 #endif
 
+            // Determine if we want to end up with a multiline collection expression.  The general intuition is that we
+            // want a multiline expression if any of the following are true:
+            //
+            //  1. the original object creation expression was multiline.
+            //  2. any of the elements we're going to add are multi-line themselves.
+            //  3. any of the elements we're going to add will have comments on them.  These will need to be multiline
+            //     so that the comments do not end up wrongly consuming other elements that come after them.
+            //  4. any of the elements would be very long.
             var makeMultiLineCollectionExpression = MakeMultiLineCollectionExpression();
 
+            // If we have an initializer already with elements in it (e.g. `new List<int> { 1, 2, 3 }`) then we want to
+            // preserve as much as we can from the `{ 1, 2, 3 }` portion when converting to a collection expression and
+            // we want to match the style there as much as is reasonably possible.  Note that this initializer itself
+            // may be multiline, and we want to match that style closely.
+            //
+            // If there is no existing initializer (e.g. `new List<int>();`), or the initializer has no items in it, we
+            // will instead try to figure out the best form for the final collection expression based on the elements
+            // we're going to add.
             var initializer = objectCreation.Initializer;
             return initializer == null || initializer.Expressions.Count == 0
                 ? CreateCollectionExpressionWithoutExistingElements()
                 : CreateCollectionExpressionWithExistingElements();
 
+            // Helper which produces the CollectionElementSyntax nodes and adds to the separated syntax list builder array.
+            // Used to we can uniformly add the items correctly with the requested (but optional) indentation.  And so that
+            // commas are added properly to the sequence.
             void CreateAndAddElements(
                 ImmutableArray<Match<StatementSyntax>> matches,
                 string? preferredIndentation,
                 ArrayBuilder<SyntaxNodeOrToken> nodesAndTokens)
             {
+                // If there's no requested indentation, then we want to produce the sequence as: `a, b, c, d`.  So just
+                // a space after any comma.  If there is desired indentation for an element, then we always follow a comma
+                // with a newline so that the element node comes on the next line indented properly.
                 var triviaAfterComma = preferredIndentation is null
                     ? TriviaList(Space)
                     : TriviaList(EndOfLine(formattingOptions.NewLine));
@@ -70,7 +100,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 foreach (var element in matches.Select(m => CreateElement(m, preferredIndentation)))
                 {
                     // Add a comment before each new element we're adding.  Move any trailing whitespace/comment trivia
-                    // from the prior node to come after that comma.
+                    // from the prior node to come after that comma.  e.g. if the prior node was `x // comment` then we
+                    // end up with: `x, // comment<new-line>`
                     if (nodesAndTokens.Count > 0)
                     {
                         var lastNode = nodesAndTokens[^1];
@@ -92,6 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             {
                 // Didn't have an existing initializer (or it was empty).  For both cases, just create an entirely
                 // fresh collection expression, and replace the object entirely.
+
                 if (makeMultiLineCollectionExpression)
                 {
                     // Slightly difficult case.  We're replacing `new List<int>();` with a fresh, multi-line collection
@@ -106,19 +138,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                         SingletonSeparatedList<ExpressionSyntax>(LiteralExpression(SyntaxKind.NullLiteralExpression, Token(SyntaxKind.NullKeyword).WithAdditionalAnnotations(nullTokenAnnotation))),
                         Token(SyntaxKind.CloseBraceToken));
 
+                    // Update the doc with the new object (now with initializer).
                     var updatedRoot = document.Root.ReplaceNode(objectCreation, objectCreation.WithInitializer(initializer));
                     var updatedParsedDocument = document.WithChangedRoot(updatedRoot, cancellationToken);
 
+                    // Find the '{' and 'null' tokens after the rewrite.
                     var openBraceToken = updatedRoot.GetAnnotatedTokens(openBraceTokenAnnotation).Single();
                     var nullToken = updatedRoot.GetAnnotatedTokens(nullTokenAnnotation).Single();
                     initializer = (InitializerExpressionSyntax)openBraceToken.GetRequiredParent();
 
+                    // Figure out where those tokens would prefer to be placed if they were on their own line.
                     var openBraceIndentation = openBraceToken.GetPreferredIndentation(updatedParsedDocument, indentationOptions, cancellationToken);
                     var elementIndentation = nullToken.GetPreferredIndentation(updatedParsedDocument, indentationOptions, cancellationToken);
 
+                    // now create the elements, following that indentation preference.
                     using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
                     CreateAndAddElements(matches, preferredIndentation: elementIndentation, nodesAndTokens);
 
+                    // Make the collection expression with the braces on new lines, at the desired brace indentation.
                     var finalCollection = CollectionExpression(
                         Token(SyntaxKind.OpenBracketToken).WithLeadingTrivia(ElasticCarriageReturnLineFeed, Whitespace(openBraceIndentation)).WithTrailingTrivia(ElasticCarriageReturnLineFeed),
                         SeparatedList<CollectionElementSyntax>(nodesAndTokens),
