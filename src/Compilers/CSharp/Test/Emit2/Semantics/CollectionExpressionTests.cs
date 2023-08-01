@@ -7491,6 +7491,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             CollectionBuilder_TypeDifferences("(int A, int B)", "(int, int)", "(1, 2), default", "[(1, 2), (0, 0)]", useCompilationReference);
         }
 
+        [CombinatorialData]
+        [Theory]
+        public void CollectionBuilder_TypeDifferences_Nullability(bool useCompilationReference)
+        {
+            CollectionBuilder_TypeDifferences("object", "object?", "1, 2, 3", "[1, 2, 3]", useCompilationReference);
+            CollectionBuilder_TypeDifferences("object?", "object", "1, null, 3", "[1, null, 3]", useCompilationReference);
+        }
+
         private void CollectionBuilder_TypeDifferences(string collectionElementType, string builderElementType, string values, string expectedOutput, bool useCompilationReference)
         {
             string sourceA = $$"""
