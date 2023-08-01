@@ -85,8 +85,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             BaseObjectCreationExpressionSyntax objectCreation,
             ImmutableArray<Match<StatementSyntax>> matches)
         {
-            var expressions = CreateElements(objectCreation, matches, static (_, e) => e);
-            var withLineBreaks = AddLineBreaks(expressions, includeFinalLineBreak: true);
+            var expressions = CreateCollectionInitializerExpressions(objectCreation, matches);
+            var withLineBreaks = AddLineBreaks(expressions);
             var newCreation = UseInitializerHelpers.GetNewObjectCreation(objectCreation, withLineBreaks);
             return newCreation.WithAdditionalAnnotations(Formatter.Annotation);
         }
@@ -287,22 +287,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 : ExpressionElement(expression);
         }
 
-        private static ExpressionSyntax ConvertExpression(ExpressionSyntax expression)
-            => expression switch
+        private static ExpressionSyntax ConvertExpression(ExpressionSyntax expression, string? preferredIndentation)
+        {
+            // This must be called from an expression from the original tree.  Not something we're already transforming.
+            // Otherwise, we'll have no idea how to apply the preferredIndentation if present.
+            Contract.ThrowIfNull(expression.Parent);
+            return expression switch
             {
-                InvocationExpressionSyntax invocation => ConvertInvocation(invocation),
-                AssignmentExpressionSyntax assignment => ConvertAssignment(assignment),
+                InvocationExpressionSyntax invocation => ConvertInvocation(invocation, preferredIndentation),
+                AssignmentExpressionSyntax assignment => ConvertAssignment(assignment, preferredIndentation),
                 _ => throw new InvalidOperationException(),
             };
+        }
 
-        private static AssignmentExpressionSyntax ConvertAssignment(AssignmentExpressionSyntax assignment)
+        private static AssignmentExpressionSyntax ConvertAssignment(
+            AssignmentExpressionSyntax assignment,
+            string? preferredIndentation)
         {
+            // Assignment is only used for collection-initializers, which *currently* do not do any special
+            // indentation handling on elements.
+            Contract.ThrowIfTrue(preferredIndentation != null);
+
             var elementAccess = (ElementAccessExpressionSyntax)assignment.Left;
             return assignment.WithLeft(
                 ImplicitElementAccess(elementAccess.ArgumentList));
         }
 
-        private static ExpressionSyntax ConvertInvocation(InvocationExpressionSyntax invocation)
+        private static ExpressionSyntax ConvertInvocation(
+            InvocationExpressionSyntax invocation,
+            string? preferredIndentation)
         {
             var arguments = invocation.ArgumentList.Arguments;
 
@@ -312,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 // report an error.  This is because { a = b } is the form for an object initializer,
                 // and the two forms are not allowed to mix/match.  Parenthesize the assignment to
                 // avoid the ambiguity.
-                var expression = arguments[0].Expression;
+                var expression = Indent(arguments[0].Expression, preferredIndentation);
                 return SyntaxFacts.IsAssignmentExpression(expression.Kind())
                     ? ParenthesizedExpression(expression)
                     : expression;
@@ -386,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             => statement is BlockSyntax { Statements: [var innerStatement] } ? innerStatement : statement;
 
         public static SeparatedSyntaxList<TNode> AddLineBreaks<TNode>(
-            SeparatedSyntaxList<TNode> nodes, bool includeFinalLineBreak)
+            SeparatedSyntaxList<TNode> nodes)
             where TNode : SyntaxNode
         {
             using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
@@ -394,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             var nodeOrTokenList = nodes.GetWithSeparators();
             foreach (var item in nodeOrTokenList)
             {
-                var addLineBreak = item.IsToken || (includeFinalLineBreak && item == nodeOrTokenList.Last());
+                var addLineBreak = item.IsToken || item == nodeOrTokenList.Last();
                 if (addLineBreak && item.GetTrailingTrivia() is not [.., (kind: SyntaxKind.EndOfLineTrivia)])
                 {
                     nodesAndTokens.Add(item.WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed));
@@ -418,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 
             if (statement is ExpressionStatementSyntax expressionStatement)
             {
-                return createElement(match, ConvertExpression(expressionStatement.Expression, preferredIndentation)).WithoutTrivia());
+                return createElement(match, ConvertExpression(expressionStatement.Expression, preferredIndentation));
             }
             else if (statement is ForEachStatementSyntax foreachStatement)
             {
@@ -434,7 +447,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                     // Create: x ? [y] : []
                     var expression = ConditionalExpression(
                         condition,
-                        CollectionExpression(SingletonSeparatedList<CollectionElementSyntax>(ExpressionElement(ConvertExpression(trueStatement.Expression)))),
+                        CollectionExpression(SingletonSeparatedList<CollectionElementSyntax>(
+                            ExpressionElement(ConvertExpression(trueStatement.Expression, preferredIndentation: null)))),
                         CollectionExpression());
                     return createElement(match, expression);
                 }
@@ -442,7 +456,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 {
                     // Create: x ? y : z
                     var falseStatement = (ExpressionStatementSyntax)UnwrapEmbeddedStatement(ifStatement.Else.Statement);
-                    var expression = ConditionalExpression(ifStatement.Condition, ConvertExpression(trueStatement.Expression), ConvertExpression(falseStatement.Expression));
+                    var expression = ConditionalExpression(
+                        ifStatement.Condition,
+                        ConvertExpression(trueStatement.Expression, preferredIndentation: null),
+                        ConvertExpression(falseStatement.Expression, preferredIndentation: null));
                     return createElement(match, expression);
                 }
             }
@@ -456,47 +473,49 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             TExpressionSyntax expression,
             string? preferredIndentation) where TExpressionSyntax : SyntaxNode
         {
+            // This must be called from an expression from the original tree.  Not something we're already transforming.
+            // Otherwise, we'll have no idea how to apply the preferredIndentation if present.
+            Contract.ThrowIfNull(expression.Parent);
+
             return expression;
         }
 
-        private static SeparatedSyntaxList<TElement> CreateElements<TElement>(
+        private static SeparatedSyntaxList<ExpressionSyntax> CreateCollectionInitializerExpressions(
             BaseObjectCreationExpressionSyntax objectCreation,
-            ImmutableArray<Match<StatementSyntax>> matches,
-            Func<Match<StatementSyntax>?, ExpressionSyntax, TElement> createElement)
-            where TElement : SyntaxNode
+            ImmutableArray<Match<StatementSyntax>> matches)
         {
             using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
 
-            UseInitializerHelpers.AddExistingItems(
-                objectCreation, nodesAndTokens, addTrailingComma: matches.Length > 0, createElement);
+            UseInitializerHelpers.AddExistingItems<Match<StatementSyntax>, ExpressionSyntax>(
+                objectCreation, nodesAndTokens, addTrailingComma: matches.Length > 0, static (_, expression) => expression);
 
             for (var i = 0; i < matches.Length; i++)
             {
                 var match = matches[i];
-                var statement = match.Statement;
+                var statement = (ExpressionStatementSyntax)match.Statement;
 
                 var trivia = statement.GetLeadingTrivia();
                 var leadingTrivia = i == 0 ? trivia.WithoutLeadingBlankLines() : trivia;
 
-                var semicolon = statement is ExpressionStatementSyntax expressionStatement ? expressionStatement.SemicolonToken : default;
-                var trailingTrivia = semicolon.TrailingTrivia.Contains(static t => t.IsSingleOrMultiLineComment())
-                    ? semicolon.TrailingTrivia
+                var trailingTrivia = statement.SemicolonToken.TrailingTrivia.Contains(static t => t.IsSingleOrMultiLineComment())
+                    ? statement.SemicolonToken.TrailingTrivia
                     : default;
 
-                var element = CreateElement(match, createElement).WithLeadingTrivia(leadingTrivia);
+                var expression = ConvertExpression(statement.Expression, preferredIndentation: null)
+                    .WithTrailingTrivia().WithLeadingTrivia(leadingTrivia);
 
                 if (i < matches.Length - 1)
                 {
-                    nodesAndTokens.Add(element);
+                    nodesAndTokens.Add(expression);
                     nodesAndTokens.Add(Token(SyntaxKind.CommaToken).WithTrailingTrivia(trailingTrivia));
                 }
                 else
                 {
-                    nodesAndTokens.Add(element.WithTrailingTrivia(trailingTrivia));
+                    nodesAndTokens.Add(expression.WithTrailingTrivia(trailingTrivia));
                 }
             }
 
-            return SeparatedList<TElement>(nodesAndTokens);
+            return SeparatedList<ExpressionSyntax>(nodesAndTokens);
         }
     }
 }
