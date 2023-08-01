@@ -1417,7 +1417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // ...
-            // - The method has at least one additional `ref`, `in`, or `out` parameter, or a parameter of `ref struct` type.
+            // - The method has at least one additional `ref`, `in`, `ref readonly`, or `out` parameter, or a parameter of `ref struct` type.
             int nRefParameters = parameters.Count(p => p.RefKind is RefKind.Ref or RefKind.In or RefKind.RefReadOnlyParameter or RefKind.Out);
             if (nRefParameters >= nRefParametersRequired)
             {
