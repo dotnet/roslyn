@@ -9,7 +9,7 @@ Namespace Global.TestProject
         End Sub
         
         Private Shared s_resourceManager As Global.System.Resources.ResourceManager
-        Friend Shared ReadOnly Property ResourceManager As Global.System.Resources.ResourceManager
+        Public Shared ReadOnly Property ResourceManager As Global.System.Resources.ResourceManager
             Get
                 If s_resourceManager Is Nothing Then
                     s_resourceManager = New Global.System.Resources.ResourceManager(GetType(Resources))
@@ -17,13 +17,13 @@ Namespace Global.TestProject
                 Return s_resourceManager
             End Get
         End Property
-        Friend Shared Property Culture As Global.System.Globalization.CultureInfo
+        Public Shared Property Culture As Global.System.Globalization.CultureInfo
         <Global.System.Runtime.CompilerServices.MethodImpl(Global.System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)>
         Friend Shared Function GetResourceString(ByVal resourceKey As String, Optional ByVal defaultValue As String = Nothing) As String
             Return ResourceManager.GetString(resourceKey, Culture)
         End Function
         ''' <summary>value</summary>
-        Friend Const [Name] As String = "Name"
+        Public Const [Name] As String = "Name"
 
     End Class
 End Namespace

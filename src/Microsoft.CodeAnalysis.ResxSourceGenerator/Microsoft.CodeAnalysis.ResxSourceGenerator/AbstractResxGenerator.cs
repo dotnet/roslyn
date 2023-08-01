@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                         case Lang.CSharp:
                             if (ResourceInformation.AsConstants)
                             {
-                                strings.AppendLine($"{memberIndent}internal const string @{identifier} = \"{name}\";");
+                                strings.AppendLine($"{memberIndent}public const string @{identifier} = \"{name}\";");
                             }
                             else
                             {
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                                         needSuppression = true;
                                 }
 
-                                strings.AppendLine($"{memberIndent}internal static string @{identifier} => GetResourceString(\"{name}\"{defaultValue}){(needSuppression ? "!" : "")};");
+                                strings.AppendLine($"{memberIndent}public static string @{identifier} => GetResourceString(\"{name}\"{defaultValue}){(needSuppression ? "!" : "")};");
                             }
 
                             if (ResourceInformation.EmitFormatMethods)
@@ -439,11 +439,11 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                         case Lang.VisualBasic:
                             if (ResourceInformation.AsConstants)
                             {
-                                strings.AppendLine($"{memberIndent}Friend Const [{identifier}] As String = \"{name}\"");
+                                strings.AppendLine($"{memberIndent}Public Const [{identifier}] As String = \"{name}\"");
                             }
                             else
                             {
-                                strings.AppendLine($"{memberIndent}Friend Shared ReadOnly Property [{identifier}] As String");
+                                strings.AppendLine($"{memberIndent}Public Shared ReadOnly Property [{identifier}] As String");
                                 strings.AppendLine($"{memberIndent}  Get");
                                 strings.AppendLine($"{memberIndent}    Return GetResourceString(\"{name}\"{defaultValue})");
                                 strings.AppendLine($"{memberIndent}  End Get");
@@ -483,7 +483,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                                 getResourceStringAttributes.Add("[return: global::System.Diagnostics.CodeAnalysis.NotNullIfNotNull(\"defaultValue\")]");
                             }
 
-                            getStringMethod = $@"{memberIndent}internal static global::System.Globalization.CultureInfo{(CompilationInformation.SupportsNullable ? "?" : "")} Culture {{ get; set; }}
+                            getStringMethod = $@"{memberIndent}public static global::System.Globalization.CultureInfo{(CompilationInformation.SupportsNullable ? "?" : "")} Culture {{ get; set; }}
 {string.Join(Environment.NewLine, getResourceStringAttributes.Select(attr => memberIndent + attr))}
 {memberIndent}internal static {(CompilationInformation.SupportsNullable ? "string?" : "string")} GetResourceString(string resourceKey, {(CompilationInformation.SupportsNullable ? "string?" : "string")} defaultValue = null) =>  ResourceManager.GetString(resourceKey, Culture) ?? defaultValue;";
                             if (ResourceInformation.EmitFormatMethods)
@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                             break;
 
                         case Lang.VisualBasic:
-                            getStringMethod = $@"{memberIndent}Friend Shared Property Culture As Global.System.Globalization.CultureInfo
+                            getStringMethod = $@"{memberIndent}Public Shared Property Culture As Global.System.Globalization.CultureInfo
 {memberIndent}<Global.System.Runtime.CompilerServices.MethodImpl(Global.System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)>
 {memberIndent}Friend Shared Function GetResourceString(ByVal resourceKey As String, Optional ByVal defaultValue As String = Nothing) As String
 {memberIndent}    Return ResourceManager.GetString(resourceKey, Culture)
@@ -615,7 +615,7 @@ using System.Reflection;
 {classIndent}internal static partial class {className}
 {classIndent}{{
 {memberIndent}private static global::System.Resources.ResourceManager{(CompilationInformation.SupportsNullable ? "?" : "")} s_resourceManager;
-{memberIndent}internal static global::System.Resources.ResourceManager ResourceManager => s_resourceManager ?? (s_resourceManager = new global::System.Resources.ResourceManager(typeof({resourceTypeName})));
+{memberIndent}public static global::System.Resources.ResourceManager ResourceManager => s_resourceManager ?? (s_resourceManager = new global::System.Resources.ResourceManager(typeof({resourceTypeName})));
 {getStringMethod}
 {strings}
 {classIndent}}}
@@ -635,7 +635,7 @@ Imports System.Reflection
 {memberIndent}End Sub
 {memberIndent}
 {memberIndent}Private Shared s_resourceManager As Global.System.Resources.ResourceManager
-{memberIndent}Friend Shared ReadOnly Property ResourceManager As Global.System.Resources.ResourceManager
+{memberIndent}Public Shared ReadOnly Property ResourceManager As Global.System.Resources.ResourceManager
 {memberIndent}    Get
 {memberIndent}        If s_resourceManager Is Nothing Then
 {memberIndent}            s_resourceManager = New Global.System.Resources.ResourceManager(GetType({resourceTypeName}))
