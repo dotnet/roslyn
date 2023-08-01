@@ -11,10 +11,8 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Security.Cryptography;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -1382,7 +1380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // This affects only diagnostics.
                 for (int i = _modules.Length - 1; i > 0; i--)
                 {
-                    var peModuleSymbol = (Metadata.PE.PEModuleSymbol)_modules[i];
+                    var peModuleSymbol = (PEModuleSymbol)_modules[i];
 
                     foreach (NamedTypeSymbol forwarded in peModuleSymbol.GetForwardedTypes())
                     {
@@ -2553,6 +2551,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().AssemblyAlgorithmIdAttributeSetting = algorithmId;
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.ExperimentalAttribute))
+            {
+                var obsoleteData = attribute.DecodeExperimentalAttribute();
+                arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().ObsoleteAttributeData = obsoleteData;
+            }
         }
 
         // Checks that the integral arguments for the given well-known attribute are non-negative.
@@ -2858,6 +2861,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return null;
+        }
+
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
+        {
+            get
+            {
+                // [assembly: Experimental] may have been specified in the assembly or one of the modules
+                var result = GetSourceDecodedWellKnownAttributeData()?.ObsoleteAttributeData
+                    ?? GetNetModuleDecodedWellKnownAttributeData()?.ObsoleteAttributeData;
+
+                Debug.Assert(result is null || result is { Kind: ObsoleteAttributeKind.Experimental });
+                return result;
+            }
         }
 
 #nullable disable

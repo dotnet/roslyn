@@ -8,6 +8,7 @@ using System;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -439,6 +440,28 @@ namespace Microsoft.CodeAnalysis
             {
                 VerifySealed(expected: false);
                 _forwardedTypes = value;
+                SetDataStored();
+            }
+        }
+        #endregion
+
+        #region ExperimentalAttribute
+        private ObsoleteAttributeData _obsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
+        public ObsoleteAttributeData ObsoleteAttributeData
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _obsoleteAttributeData.IsUninitialized ? null : _obsoleteAttributeData;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                Debug.Assert(value != null);
+                Debug.Assert(!value.IsUninitialized);
+                Debug.Assert(value.Kind == ObsoleteAttributeKind.Experimental);
+
+                _obsoleteAttributeData = value;
                 SetDataStored();
             }
         }

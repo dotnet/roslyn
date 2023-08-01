@@ -64,5 +64,27 @@ namespace Microsoft.CodeAnalysis
             return value >= Cci.Constants.CharSet_None && value <= Cci.Constants.CharSet_Auto;
         }
         #endregion
+
+        #region ExperimentalAttribute
+        private ObsoleteAttributeData _obsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
+        public ObsoleteAttributeData ObsoleteAttributeData
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _obsoleteAttributeData.IsUninitialized ? null : _obsoleteAttributeData;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                Debug.Assert(value != null);
+                Debug.Assert(!value.IsUninitialized);
+                Debug.Assert(value.Kind == ObsoleteAttributeKind.Experimental);
+
+                _obsoleteAttributeData = value;
+                SetDataStored();
+            }
+        }
+        #endregion
     }
 }

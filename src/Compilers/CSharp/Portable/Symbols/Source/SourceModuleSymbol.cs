@@ -531,6 +531,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 CSharpAttributeData.DecodeSkipLocalsInitAttribute<ModuleWellKnownAttributeData>(DeclaringCompilation, ref arguments);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.ExperimentalAttribute))
+            {
+                arguments.GetOrCreateData<ModuleWellKnownAttributeData>().ObsoleteAttributeData = attribute.DecodeExperimentalAttribute();
+            }
         }
 
 #nullable enable
@@ -652,5 +656,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _lazyUseUpdatedEscapeRules == ThreeState.True;
             }
         }
+
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
+            => GetDecodedWellKnownAttributeData()?.ObsoleteAttributeData;
     }
 }
