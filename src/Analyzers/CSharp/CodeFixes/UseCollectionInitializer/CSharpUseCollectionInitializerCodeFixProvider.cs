@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 var root = syntaxTree.GetRoot(cancellationToken);
                 var startLine = sourceText.Lines.GetLineFromPosition(expression.SpanStart);
 
-                var firstTokenOnLineIndentationString = GetIndentationStringForToken(root.FindToken(startLine.LineNumber));
+                var firstTokenOnLineIndentationString = GetIndentationStringForToken(root.FindToken(startLine.Start));
 
                 var expressionFirstToken = expression.GetFirstToken();
                 return expression.ReplaceTokens(
