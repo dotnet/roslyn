@@ -1545,6 +1545,90 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             """);
     }
 
+    [Fact]
+    public async Task TestTrivia2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+            class C
+            {
+                void M(int[] x, int[] y)
+                {
+                    List<int> c = [|new|] List<int>();
+                    // Goo
+                    [|foreach (var v in |]x)
+                        c.Add(v);
+
+                    // Bar
+                    [|foreach (var v in |]y)
+                        c.Add(v);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+            class C
+            {
+                void M()
+                {
+                    List<int> c =
+                    [
+                        // Goo
+                       .. x,
+                        // Bar
+                       .. y
+                    ];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestTrivia3()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+            class C
+            {
+                void M(bool b1, bool b2)
+                {
+                    List<int> c = [|new|] List<int>();
+                    // Goo
+                    if (b1)
+                        c.Add(0);
+                    else
+                        c.Add(1);
+
+                    // Bar
+                    if (b1)
+                    {
+                        c.Add(2);
+                    }
+                    else
+                    {
+                        c.Add(3);
+                    }
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+            class C
+            {
+                void M(bool b1, bool b2)
+                {
+                    List<int> c =
+                    [
+                        b1 ? 0 : 1, // Goo
+                        b2 ? 2 : 3 // Bar
+                    ];
+                }
+            }
+            """);
+    }
+
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/46670")]
     public async Task TestTriviaRemoveLeadingBlankLinesForFirstElement()

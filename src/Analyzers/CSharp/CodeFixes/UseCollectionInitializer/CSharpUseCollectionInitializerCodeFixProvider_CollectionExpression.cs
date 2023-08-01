@@ -27,20 +27,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
     internal partial class CSharpUseCollectionInitializerCodeFixProvider
     {
         private static async Task<CollectionExpressionSyntax> CreateCollectionExpressionAsync(
-            Document document,
+            Document workspaceDocument,
             CodeActionOptionsProvider fallbackOptions,
             BaseObjectCreationExpressionSyntax objectCreation,
             ImmutableArray<Match<StatementSyntax>> matches,
             CancellationToken cancellationToken)
         {
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-            var parsedDocument = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+            var document = await ParsedDocument.CreateAsync(workspaceDocument, cancellationToken).ConfigureAwait(false);
 
 #if CODE_STYLE
             var formattingOptions = SyntaxFormattingOptions.CommonDefaults;
 #else
-            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(
+            var formattingOptions = await workspaceDocument.GetSyntaxFormattingOptionsAsync(
                 fallbackOptions, cancellationToken).ConfigureAwait(false);
 #endif
 
@@ -50,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 #if CODE_STYLE
             var wrappingLength = CodeActionOptions.DefaultCollectionExpressionWrappingLength;
 #else
-            var wrappingLength = fallbackOptions.GetOptions(document.Project.Services).CollectionExpressionWrappingLength;
+            var wrappingLength = fallbackOptions.GetOptions(document.LanguageServices).CollectionExpressionWrappingLength;
 #endif
 
             var makeMultiLineCollectionExpression = MakeMultiLineCollectionExpression();
@@ -60,25 +58,41 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 ? CreateCollectionExpressionWithoutExistingElements()
                 : CreateCollectionExpressionWithExistingElements();
 
+            void CreateAndAddElements(
+                ImmutableArray<Match<StatementSyntax>> matches,
+                string? preferredIndentation,
+                ArrayBuilder<SyntaxNodeOrToken> nodesAndTokens)
+            {
+                var triviaAfterComma = preferredIndentation is null
+                    ? TriviaList(Space)
+                    : TriviaList(EndOfLine(formattingOptions.NewLine));
+
+                foreach (var element in matches.Select(m => CreateElement(m, preferredIndentation)))
+                {
+                    // Add a comment before each new element we're adding.  Move any trailing whitespace/comment trivia
+                    // from the prior node to come after that comma.
+                    if (nodesAndTokens.Count > 0)
+                    {
+                        var lastNode = nodesAndTokens[^1];
+                        var trailingWhitespaceAndComments = lastNode.GetTrailingTrivia().Where(IsWhitespaceOrComment);
+
+                        nodesAndTokens[^1] = lastNode.WithTrailingTrivia(lastNode.GetTrailingTrivia().Where(t => !trailingWhitespaceAndComments.Contains(t)));
+
+                        var commaToken = Token(SyntaxKind.CommaToken)
+                            .WithoutLeadingTrivia()
+                            .WithTrailingTrivia(TriviaList(trailingWhitespaceAndComments).AddRange(triviaAfterComma));
+                        nodesAndTokens.Add(commaToken);
+                    }
+
+                    nodesAndTokens.Add(element);
+                }
+            }
+
             CollectionExpressionSyntax CreateCollectionExpressionWithoutExistingElements()
             {
                 // Didn't have an existing initializer (or it was empty).  For both cases, just create an entirely
                 // fresh collection expression, and replace the object entirely.
                 if (makeMultiLineCollectionExpression)
-                {
-                    return SynthesizeNewMultiLineCollectionExpression(objectCreation, matches, sourceText, parsedDocument, indentationOptions, cancellationToken);
-                }
-                else
-                {
-                    // All the elements would work on a single line.  This is a trivial case.  We can just make the
-                    // fresh collection expression, and do a wholesale replacement of the original object creation
-                    // expression with it.
-                    var collectionExpression = CollectionExpression(
-                        SeparatedList(matches.Select(m => CreateElement(m, preferredIndentation: null))));
-                    return collectionExpression.WithTriviaFrom(objectCreation);
-                }
-
-                CollectionExpressionSyntax SynthesizeNewMultiLineCollectionExpression(BaseObjectCreationExpressionSyntax objectCreation, ImmutableArray<Match<StatementSyntax>> matches, SourceText? sourceText, ParsedDocument parsedDocument, IndentationOptions indentationOptions, CancellationToken cancellationToken)
                 {
                     // Slightly difficult case.  We're replacing `new List<int>();` with a fresh, multi-line collection
                     // expression.  To figure out what to do here, we need to figure out where the braces *and* elements
@@ -92,8 +106,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                         SingletonSeparatedList<ExpressionSyntax>(LiteralExpression(SyntaxKind.NullLiteralExpression, Token(SyntaxKind.NullKeyword).WithAdditionalAnnotations(nullTokenAnnotation))),
                         Token(SyntaxKind.CloseBraceToken));
 
-                    var updatedRoot = parsedDocument.Root.ReplaceNode(objectCreation, objectCreation.WithInitializer(initializer));
-                    var updatedParsedDocument = parsedDocument.WithChangedRoot(updatedRoot, cancellationToken);
+                    var updatedRoot = document.Root.ReplaceNode(objectCreation, objectCreation.WithInitializer(initializer));
+                    var updatedParsedDocument = document.WithChangedRoot(updatedRoot, cancellationToken);
 
                     var openBraceToken = updatedRoot.GetAnnotatedTokens(openBraceTokenAnnotation).Single();
                     var nullToken = updatedRoot.GetAnnotatedTokens(nullTokenAnnotation).Single();
@@ -102,13 +116,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                     var openBraceIndentation = openBraceToken.GetPreferredIndentation(updatedParsedDocument, indentationOptions, cancellationToken);
                     var elementIndentation = nullToken.GetPreferredIndentation(updatedParsedDocument, indentationOptions, cancellationToken);
 
+                    using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
+                    CreateAndAddElements(matches, preferredIndentation: elementIndentation, nodesAndTokens);
+
                     var finalCollection = CollectionExpression(
                         Token(SyntaxKind.OpenBracketToken).WithLeadingTrivia(ElasticCarriageReturnLineFeed, Whitespace(openBraceIndentation)).WithTrailingTrivia(ElasticCarriageReturnLineFeed),
-                        SeparatedList(matches.Select(m => CreateElement(m, preferredIndentation: elementIndentation))),
+                        SeparatedList<CollectionElementSyntax>(nodesAndTokens),
                         Token(SyntaxKind.CloseBracketToken).WithLeadingTrivia(ElasticCarriageReturnLineFeed, Whitespace(openBraceIndentation)));
 
                     return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
                         updatedParsedDocument.Text, initializer, finalCollection, newCollectionIsSingleLine: false);
+                }
+                else
+                {
+                    // All the elements would work on a single line.  This is a trivial case.  We can just make the
+                    // fresh collection expression, and do a wholesale replacement of the original object creation
+                    // expression with it.
+                    using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
+                    CreateAndAddElements(matches, preferredIndentation: null, nodesAndTokens);
+
+                    var collectionExpression = CollectionExpression(
+                        SeparatedList<CollectionElementSyntax>(nodesAndTokens));
+                    return collectionExpression.WithTriviaFrom(objectCreation);
                 }
             }
 
@@ -122,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 var formattingOptions = SyntaxFormattingOptions.CommonDefaults;
                 var indentationOptions = new IndentationOptions(formattingOptions);
 
-                if (!sourceText.AreOnSameLine(initializer.GetFirstToken(), initializer.GetLastToken()))
+                if (!document.Text.AreOnSameLine(initializer.GetFirstToken(), initializer.GetLastToken()))
                 {
                     // initializer itself was on multiple lines.  We'll want to create a collection expression whose
                     // braces (and initial elements) match whatever the initializer correct looks like.
@@ -131,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                         initializer, wasOnSingleLine: false);
 
                     if (!makeMultiLineCollectionExpression &&
-                        sourceText.AreOnSameLine(initializer.Expressions.First().GetFirstToken(), initializer.Expressions.Last().GetLastToken()))
+                        document.Text.AreOnSameLine(initializer.Expressions.First().GetFirstToken(), initializer.Expressions.Last().GetLastToken()))
                     {
                         // New elements were all single line, and existing elements were on a single line.  e.g.
                         //
@@ -144,20 +173,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                             initialCollection, preferredIndentation: null);
 
                         return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
-                            sourceText, initializer, finalCollection, newCollectionIsSingleLine: false);
+                            document.Text, initializer, finalCollection, newCollectionIsSingleLine: false);
                     }
                     else
                     {
                         // We want the new items to be multiline *or* existing items were on different lines already.
                         // Figure out what the preferred indentation is, and prepend each new item with it.
                         var preferredIndentation = initializer.Expressions.First().GetFirstToken().GetPreferredIndentation(
-                            parsedDocument, indentationOptions, cancellationToken);
+                            document, indentationOptions, cancellationToken);
 
                         var finalCollection = AddMatchesToExistingCollectionExpression(
                             initialCollection, preferredIndentation);
 
                         return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
-                            sourceText, initializer, finalCollection, newCollectionIsSingleLine: false);
+                            document.Text, initializer, finalCollection, newCollectionIsSingleLine: false);
                     }
                 }
                 else if (makeMultiLineCollectionExpression)
@@ -169,10 +198,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                     var initialCollection = UseCollectionExpressionHelpers.ConvertInitializerToCollectionExpression(
                         initializer, wasOnSingleLine: false);
 
-                    if (sourceText.AreOnSameLine(objectCreation.NewKeyword, initializer.OpenBraceToken))
+                    if (document.Text.AreOnSameLine(objectCreation.NewKeyword, initializer.OpenBraceToken))
                     {
-                        var preferredBraceIndentation = initializer.OpenBraceToken.GetPreferredIndentation(parsedDocument, indentationOptions, cancellationToken);
-                        var preferredItemIndentation = initializer.Expressions.First().GetFirstToken().GetPreferredIndentation(parsedDocument, indentationOptions, cancellationToken);
+                        var preferredBraceIndentation = initializer.OpenBraceToken.GetPreferredIndentation(document, indentationOptions, cancellationToken);
+                        var preferredItemIndentation = initializer.Expressions.First().GetFirstToken().GetPreferredIndentation(document, indentationOptions, cancellationToken);
 
                         initialCollection = initialCollection.Update(
                             initialCollection.OpenBracketToken.WithLeadingTrivia(ElasticCarriageReturnLineFeed, Whitespace(preferredBraceIndentation)),
@@ -183,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                             initialCollection, preferredItemIndentation);
 
                         return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
-                            sourceText, initializer, finalCollection, newCollectionIsSingleLine: false);
+                            document.Text, initializer, finalCollection, newCollectionIsSingleLine: false);
                     }
                     else
                     {
@@ -191,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                         // new List<int>()
                         // { 1, 2, 3 }
 
-                        var preferredItemIndentation = initializer.Expressions.First().GetFirstToken().GetPreferredIndentation(parsedDocument, indentationOptions, cancellationToken);
+                        var preferredItemIndentation = initializer.Expressions.First().GetFirstToken().GetPreferredIndentation(document, indentationOptions, cancellationToken);
                         var braceIndentation = GetIndentationStringForToken(initializer.OpenBraceToken);
 
                         initialCollection = initialCollection
@@ -202,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                             initialCollection, preferredIndentation: preferredItemIndentation);
 
                         return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
-                            sourceText, initializer, finalCollection, newCollectionIsSingleLine: false);
+                            document.Text, initializer, finalCollection, newCollectionIsSingleLine: false);
                     }
                 }
                 else
@@ -221,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                     // Now do the actual replacement.  This will ensure the location of the collection expression
                     // properly corresponds to the equivalent pieces of the collection initializer.
                     return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
-                        sourceText, initializer, finalCollection, newCollectionIsSingleLine: true);
+                        document.Text, initializer, finalCollection, newCollectionIsSingleLine: true);
                 }
             }
 
@@ -229,11 +258,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 CollectionExpressionSyntax initialCollectionExpression,
                 string? preferredIndentation)
             {
-                var triviaAfterComma = preferredIndentation is null
-                    ? TriviaList(Space)
-                    : TriviaList(EndOfLine(formattingOptions.NewLine));
-                var commaToken = Token(SyntaxKind.CommaToken).WithoutLeadingTrivia().WithTrailingTrivia(triviaAfterComma);
-
                 using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
                 nodesAndTokens.AddRange(initialCollectionExpression.Elements.GetWithSeparators());
 
@@ -253,12 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                     nodesAndTokens[^1] = nodesAndTokens[^1].WithTrailingTrivia();
                 }
 
-                foreach (var element in matches.Select(m => CreateElement(m, preferredIndentation)))
-                {
-                    // Add a comment before each new element we're adding.
-                    nodesAndTokens.Add(commaToken);
-                    nodesAndTokens.Add(element);
-                }
+                CreateAndAddElements(matches, preferredIndentation, nodesAndTokens);
 
                 if (trailingComma != default)
                 {
@@ -323,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                         // Create: x ? y : z
                         var falseStatement = (ExpressionStatementSyntax)UnwrapEmbeddedStatement(ifStatement.Else.Statement);
                         var expression = ConditionalExpression(
-                            ifStatement.Condition,
+                            condition,
                             ConvertExpression(trueStatement.Expression, indent: null),
                             ConvertExpression(falseStatement.Expression, indent: null));
                         return CreateCollectionElement(match, expression);
@@ -362,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 
                 var syntaxTree = expression.SyntaxTree;
                 var root = syntaxTree.GetRoot(cancellationToken);
-                var startLine = sourceText.Lines.GetLineFromPosition(expression.SpanStart);
+                var startLine = document.Text.Lines.GetLineFromPosition(expression.SpanStart);
 
                 var firstTokenOnLineIndentationString = GetIndentationStringForToken(root.FindToken(startLine.Start));
 
@@ -425,7 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 {
                     foreach (var trivia in parentStatement.GetTrailingTrivia())
                     {
-                        if (trivia.IsSingleOrMultiLineComment() || trivia.IsWhitespace())
+                        if (IsWhitespaceOrComment(trivia))
                             newTrailingTrivia.Add(trivia);
                     }
                 }
@@ -439,10 +458,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 
             string GetIndentationStringForToken(SyntaxToken token)
             {
-                var tokenLine = sourceText.Lines.GetLineFromPosition(token.SpanStart);
+                var tokenLine = document.Text.Lines.GetLineFromPosition(token.SpanStart);
                 var indentation = token.SpanStart - tokenLine.Start;
                 var indentationString = new IndentationResult(indentation, offset: 0).GetIndentationString(
-                    sourceText, indentationOptions);
+                    document.Text, indentationOptions);
 
                 return indentationString;
             }
@@ -469,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                     foreach (var component in GetElementComponents(statement))
                     {
                         // if any of the expressions we're adding are multiline, then make things multiline.
-                        if (!sourceText.AreOnSameLine(component.GetFirstToken(), component.GetLastToken()))
+                        if (!document.Text.AreOnSameLine(component.GetFirstToken(), component.GetLastToken()))
                             return true;
 
                         totalLength += component.Span.Length;
@@ -500,6 +519,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 
             static StatementSyntax UnwrapEmbeddedStatement(StatementSyntax statement)
                 => statement is BlockSyntax { Statements: [var innerStatement] } ? innerStatement : statement;
+        }
+
+        private static bool IsWhitespaceOrComment(SyntaxTrivia trivia)
+        {
+            return trivia.IsSingleOrMultiLineComment() || trivia.IsWhitespace();
         }
     }
 }
