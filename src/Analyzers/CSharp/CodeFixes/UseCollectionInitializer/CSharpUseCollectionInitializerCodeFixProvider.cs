@@ -208,8 +208,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                         initializer, wasOnSingleLine: true);
 
                     // now, add all the matches in after the existing elements.
-                    var totalConversion = initialConversion.AddElements(
-                        matches.Select(m => CreateElement(m, CreateCollectionElement, preferredIndentation: null)).ToArray());
+                    var totalConversion = AddMatchesToExistingCollectionExpression(
+                        initialConversion, preferredIndentation: null);
 
                     // Now do the actual replacement.  This will ensure the location of the collection expression
                     // properly corresponds to the equivalent pieces of the collection initializer.

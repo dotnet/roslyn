@@ -179,14 +179,15 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             var locations = ImmutableArray.Create(objectCreationExpression.GetLocation());
 
             var option = shouldUseCollectionExpression ? preferExpressionOption : preferInitializerOption;
+            var properties = shouldUseCollectionExpression ? UseCollectionInitializerHelpers.UseCollectionExpressionProperties : null;
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 s_descriptor,
                 objectCreationExpression.GetFirstToken().GetLocation(),
                 option.Notification.Severity,
                 additionalLocations: locations,
-                properties: shouldUseCollectionExpression ? UseCollectionInitializerHelpers.UseCollectionExpressionProperties : null));
+                properties));
 
-            FadeOutCode(context, matches, locations);
+            FadeOutCode(context, matches, locations, properties);
 
             return;
 
@@ -235,7 +236,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         private void FadeOutCode(
             SyntaxNodeAnalysisContext context,
             ImmutableArray<Match<TStatementSyntax>> matches,
-            ImmutableArray<Location> locations)
+            ImmutableArray<Location> locations,
+            ImmutableDictionary<string, string?>? properties)
         {
             var syntaxTree = context.Node.SyntaxTree;
             var syntaxFacts = GetSyntaxFacts();
@@ -260,7 +262,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                             additionalUnnecessaryLocations[0],
                             ReportDiagnostic.Default,
                             additionalLocations: locations,
-                            additionalUnnecessaryLocations: additionalUnnecessaryLocations));
+                            additionalUnnecessaryLocations: additionalUnnecessaryLocations,
+                            properties));
                     }
                 }
                 else if (match is TForeachStatementSyntax)
@@ -279,7 +282,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                         additionalUnnecessaryLocations[0],
                         ReportDiagnostic.Default,
                         additionalLocations: locations,
-                        additionalUnnecessaryLocations: additionalUnnecessaryLocations));
+                        additionalUnnecessaryLocations: additionalUnnecessaryLocations,
+                        properties));
                 }
             }
         }
