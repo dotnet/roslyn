@@ -626,7 +626,7 @@ namespace Analyzer.Utilities.Extensions
             return symbol.GetAttributes(attributeType).FirstOrDefault();
         }
 
-        public static IEnumerable<AttributeData> GetAttributes(this ISymbol symbol, IEnumerable<INamedTypeSymbol> attributesToMatch)
+        public static IEnumerable<AttributeData> GetAttributes(this ISymbol symbol, IEnumerable<INamedTypeSymbol?> attributesToMatch)
         {
             foreach (var attribute in symbol.GetAttributes())
             {
@@ -677,9 +677,18 @@ namespace Analyzer.Utilities.Extensions
         /// If <paramref name="symbol"/> is a type, this method does not find attributes
         /// on its base types.
         /// </remarks>
-        public static bool HasAttribute(this ISymbol symbol, [NotNullWhen(returnValue: true)] INamedTypeSymbol? attribute)
+        public static bool HasAnyAttribute(this ISymbol symbol, [NotNullWhen(returnValue: true)] INamedTypeSymbol? attribute)
         {
-            return symbol.HasAnyAttribute(attribute);
+            if (attribute is null)
+                return false;
+
+            foreach (var actualAttribute in symbol.GetAttributes())
+            {
+                if (SymbolEqualityComparer.Default.Equals(actualAttribute.AttributeClass, attribute))
+                    return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -705,7 +714,7 @@ namespace Analyzer.Utilities.Extensions
 
             while (symbol != null)
             {
-                if (symbol.HasAttribute(attribute))
+                if (symbol.HasAnyAttribute(attribute))
                 {
                     return true;
                 }
@@ -744,7 +753,7 @@ namespace Analyzer.Utilities.Extensions
 
             while (symbol != null)
             {
-                if (symbol.HasAttribute(attribute))
+                if (symbol.HasAnyAttribute(attribute))
                 {
                     return true;
                 }
